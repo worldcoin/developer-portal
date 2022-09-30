@@ -1,0 +1,6 @@
+.mask {
+  -webkit-mask-image: url(/icons/octagon.svg);
+  -webkit-mask-size: 100%;
+  -webkit-mask-repeat: round;
+  -webkit-mask-clip: border-box;
+}

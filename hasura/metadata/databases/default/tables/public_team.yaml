@@ -1,0 +1,63 @@
+table:
+  schema: public
+  name: team
+array_relationships:
+  - name: apps
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          schema: public
+          name: app
+  - name: users
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          schema: public
+          name: user
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - name
+      backend_only: false
+select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - created_at
+        - id
+        - name
+        - updated_at
+      filter:
+        id:
+          _eq: X-Hasura-Team-Id
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - name
+        - updated_at
+      filter:
+        id:
+          _eq: X-Hasura-Team-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - name
+      filter:
+        users:
+          id:
+            _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        users:
+          id:
+            _eq: X-Hasura-User-Id

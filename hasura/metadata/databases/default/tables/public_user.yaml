@@ -1,0 +1,64 @@
+table:
+  schema: public
+  name: user
+object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - email
+        - ironclad_id
+        - is_subscribed
+        - name
+        - password
+        - team_id
+      backend_only: false
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - email
+        - name
+        - password
+        - created_at
+        - updated_at
+        - id
+        - team_id
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - email
+        - id
+        - is_subscribed
+        - name
+        - team_id
+      filter:
+        team:
+          users:
+            id:
+              _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - email
+        - name
+        - password
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        team:
+          users:
+            id:
+              _eq: X-Hasura-User-Id

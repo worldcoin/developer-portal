@@ -1,0 +1,56 @@
+table:
+  schema: public
+  name: nullifier
+object_relationships:
+  - name: action
+    using:
+      foreign_key_constraint_on: action_id
+insert_permissions:
+  - role: service
+    permission:
+      check:
+        action:
+          status:
+            _eq: active
+      columns:
+        - action_id
+        - merkle_root
+        - nullifier_hash
+      backend_only: false
+select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - action_id
+        - created_at
+        - id
+        - merkle_root
+        - nullifier_hash
+        - updated_at
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      allow_aggregations: true
+  - role: service
+    permission:
+      columns:
+        - created_at
+        - nullifier_hash
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - merkle_root
+        - nullifier_hash
+        - created_at
+        - updated_at
+        - action_id
+        - id
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      allow_aggregations: true
