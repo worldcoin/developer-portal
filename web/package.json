@@ -25,6 +25,7 @@
     "@ethersproject/bytes": "^5.6.1",
     "@ethersproject/solidity": "^5.6.1",
     "@walletconnect/client": "^1.7.8",
+    "@worldcoin/helpers": "^0.8.0",
     "@worldcoin/id": "^0.9.2",
     "chart.js": "^3.8.0",
     "classnames": "^2.3.1",

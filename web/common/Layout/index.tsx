@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { Meta } from "common/Meta";
 import cn from "classnames";
 import { CookieBanner } from "common/CookieBanner/CookieBanner";
+import { Logo } from "common/Logo";
 
 export const Layout = (props: {
   title?: string;
@@ -39,19 +40,7 @@ export const Layout = (props: {
         <aside className="min-w-[304px] overflow-y-auto px-3.5 gap-y-4 pt-8 pb-6 grid grid-rows-auto/1fr/auto border-r border-neutral/30">
           <header className="cursor-pointer">
             <Link href="/">
-              <div className="grid justify-start gap-y-0.5">
-                <Icon
-                  name="logo"
-                  className="w-32 h-6 text-neutral-dark ml-4.5"
-                />
-                <div className="px-1 rounded-md bg-primary/20 justify-self-end">
-                  <p className="font-sora text-[12px] text-primary">
-                    {"<"}
-                    <span className="font-bold">Dev</span>
-                    {"/Portal>"}
-                  </p>
-                </div>
-              </div>
+              <Logo />
             </Link>
           </header>
 

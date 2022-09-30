@@ -9,6 +9,11 @@ const nextConfig = {
       key.startsWith("NEXT_PUBLIC_")
     )
   ),
+  serverRuntimeConfig: Object.fromEntries(
+    Object.entries(process.env).filter(([key, value]) =>
+      key.startsWith("NEXT_SERVER_")
+    )
+  ),
 };
 
 module.exports = nextConfig;
