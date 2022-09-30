@@ -6,14 +6,20 @@ import {
   errorValidation,
 } from "../../../errors";
 import { runCors } from "../../../cors";
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { ethers } from "ethers";
 import { gql } from "@apollo/client";
 import * as jose from "jose";
 import { URL } from "url";
-import { canVerifyForAction, generateVerificationJWT } from "api-utils";
+import {
+  canVerifyForAction,
+  CONTRACT_ABI,
+  generateVerificationJWT,
+  KNOWN_ERROR_CODES,
+  parseVerifyProofRequestInputs,
+  PRODUCTION_RPC,
+  STAGING_RPC,
+} from "api-utils";
 import { getAPIServiceClient } from "api-graphql";
-import { utils } from "@worldcoin/id";
 
 interface ENSActionQuery {
   cache: {
@@ -36,36 +42,6 @@ interface ENSActionQuery {
     private_jwk: jose.JWK;
   }[];
 }
-
-interface ParameterInterface {
-  merkle_root: BigInt;
-  signal_hash: BigInt;
-  nullifier_hash: BigInt;
-  action_id_hash: BigInt;
-  proof: BigInt[];
-}
-
-const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
-const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";
-
-const KNOWN_ERROR_CODES = [
-  {
-    rawCode: "0x504570e3",
-    code: "invalid_merkle_root",
-    detail:
-      "The provided Merkle root is invalid. User appears to be unverified.",
-  },
-  {
-    rawCode: "0x09bde339",
-    code: "invalid_proof",
-    detail:
-      "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
-  },
-];
-
-const CONTRACT_ABI = [
-  "function verifyProof (uint256 root, uint256 groupId, uint256 signalHash, uint256 nullifierHash, uint256 externalNullifierHash, uint256[8] calldata proof)",
-];
 
 export default async function handleVerify(
   req: NextApiRequest,
@@ -169,7 +145,7 @@ export default async function handleVerify(
   }
 
   // Parse & validate inputs
-  const proofParams = parseRequestInputs(req.body, res);
+  const proofParams = parseVerifyProofRequestInputs(req.body, res);
   if (!proofParams) {
     return;
   }
@@ -297,113 +273,3 @@ export default async function handleVerify(
     return_url,
   });
 }
-
-const parseRequestInputs = (
-  body: NextApiRequest["body"],
-  res: NextApiResponse
-): ParameterInterface | null => {
-  let proof,
-    nullifier_hash,
-    action_id_hash,
-    signal_hash,
-    merkle_root = null;
-
-  try {
-    proof = abi.decode(["uint256[8]"], body.proof)[0] as BigInt[];
-  } catch (e) {
-    console.error(e);
-    errorValidation(
-      "invalid_format",
-      "This attribute is improperly formatted. Expected an ABI-encoded uint256[8].",
-      "proof",
-      res
-    );
-    return null;
-  }
-
-  try {
-    nullifier_hash = abi.decode(["uint256"], body.nullifier_hash)[0] as BigInt;
-  } catch (e) {
-    console.error(e);
-    errorValidation(
-      "invalid_format",
-      "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
-      "nullifier_hash",
-      res
-    );
-    return null;
-  }
-
-  if (body.advanced_use_raw_action_id) {
-    if (!utils.validateABILikeEncoding(body.action_id)) {
-      errorValidation(
-        "invalid_format",
-        `You enabled 'advanced_use_raw_action_id' which uses the action ID raw (without any additional hashing or encoding),
-        but the action ID you provided does not look to be validly hashed or encoded. Please check
-        https://id.worldcoin.org/api/reference#verify for details.`,
-        "action_id",
-        res
-      );
-      return null;
-    }
-
-    action_id_hash = body.action_id;
-  } else {
-    try {
-      action_id_hash = utils.worldIDHash(body.action_id).hash;
-    } catch (e) {
-      console.error(e);
-      errorValidation(
-        "invalid_format",
-        "This attribute is improperly formatted.",
-        "action_id",
-        res
-      );
-      return null;
-    }
-  }
-
-  if (body.advanced_use_raw_signal) {
-    if (!utils.validateABILikeEncoding(body.signal)) {
-      errorValidation(
-        "invalid_format",
-        `You enabled 'advanced_use_raw_signal' which uses the signal raw (without any additional hashing or encoding),
-        but the signal you provided does not look to be validly hashed or encoded. Please check
-        https://id.worldcoin.org/api/reference#verify for details.`,
-        "signal",
-        res
-      );
-      return null;
-    }
-
-    signal_hash = body.signal;
-  } else {
-    try {
-      signal_hash = utils.worldIDHash(body.signal).hash;
-    } catch (e) {
-      console.error(e);
-      errorValidation(
-        "invalid_format",
-        "This attribute is improperly formatted.",
-        "signal",
-        res
-      );
-      return null;
-    }
-  }
-
-  try {
-    merkle_root = abi.decode(["uint256"], body.merkle_root)[0] as BigInt;
-  } catch (e) {
-    console.error(e);
-    errorValidation(
-      "invalid_format",
-      "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
-      "merkle_root",
-      res
-    );
-    return null;
-  }
-
-  return { proof, nullifier_hash, action_id_hash, signal_hash, merkle_root };
-};
