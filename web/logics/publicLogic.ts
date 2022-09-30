@@ -22,6 +22,12 @@ export interface ValidProofResponse {
   created_at: string;
 }
 
+export interface MaybeValidProofResponse {
+  success: boolean;
+  code?: string;
+  detail?: string;
+}
+
 /**
  * This logic is reused by the hosted page & kiosk
  */

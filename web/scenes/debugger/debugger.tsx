@@ -13,19 +13,45 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { useValues } from "kea";
 
-function ResultBox(): JSX.Element {
+const ERROR_DETAILS: Record<string, string | JSX.Element> = {
+  invalid_merkle_root: (
+    <>
+      Looks like the identity is not verified by World ID. If you verified with
+      the <b>simulator</b>, make sure you set the environment to <b>staging</b>.
+    </>
+  ),
+  invalid_proof:
+    "Looks like your proof is invalid. The signal may be wrong or there might be an encoding issue with some parameter.",
+  invalid:
+    "We do not know what went wrong, but something did. Your proof may be okay, but we cannot verify it. Please check the console and try again.",
+};
+
+function ResultBox(): JSX.Element | null {
+  const { verificationResult } = useValues(debuggerLogic);
+  if (!verificationResult) {
+    return <div className="text-neutral">Debugger not run yet.</div>;
+  }
+
+  const errorCode = verificationResult.code ?? "invalid";
+  const color = verificationResult.success ? "success" : "warning";
+  const title = verificationResult.success
+    ? "All good, fren!"
+    : "Emm... your proof is not valid ser";
+  const caption = verificationResult.success
+    ? "🎉🎉 Hooray for zero-knowledge proofs, your proof is 100% valid."
+    : ERROR_DETAILS[errorCode];
+
+  // TODO: Warning states for improper encoding #ffc700
   return (
-    <div className="flex border border-ffc700 bg-ffc700 bg-opacity-10 rounded-xl p-4">
+    <div
+      className={`flex border border-${color} bg-${color} bg-opacity-10 rounded-xl p-4`}
+    >
       <div className="pr-4">
-        <Icon name="warning" className="w-6 h-6 text-ffc700" />
+        <Icon name="warning" className={`w-6 h-6 text-${color}`} />
       </div>
       <div>
-        <h3 className="text-ffc700 text-xl font-bold">Warning</h3>
-        <div className="text-neutral">
-          Your proof is almost valid. Looks like you are using custom advanced
-          encoding but the action_id is not properly encoded. Check this guide
-          on how to encode it or remove the advanced option.
-        </div>
+        <h3 className={`text-${color} text-xl font-bold`}>{title}</h3>
+        <div className="text-neutral">{caption}</div>
       </div>
     </div>
   );
@@ -33,7 +59,8 @@ function ResultBox(): JSX.Element {
 
 export function Debugger(): JSX.Element {
   const envSelect = useToggle();
-  const { environments } = useValues(debuggerLogic);
+  const { environments, debuggerForm, isDebuggerFormSubmitting } =
+    useValues(debuggerLogic);
 
   return (
     <Fragment>
@@ -77,6 +104,7 @@ export function Debugger(): JSX.Element {
                         value={value}
                         autoFocus
                         placeholder="wid_7fa9fec9fe0de"
+                        disabled={isDebuggerFormSubmitting}
                       />
 
                       {error && (
@@ -95,6 +123,7 @@ export function Debugger(): JSX.Element {
                     <Checkbox
                       checked={value}
                       onChange={onChange}
+                      disabled={isDebuggerFormSubmitting}
                       label={
                         <span>
                           <b>Advanced.</b> Use raw action ID
@@ -123,6 +152,7 @@ export function Debugger(): JSX.Element {
                         onChange={(e) => onChange(e.target.value)}
                         value={value}
                         placeholder="mySignal"
+                        disabled={isDebuggerFormSubmitting}
                       />
 
                       {error && (
@@ -141,6 +171,7 @@ export function Debugger(): JSX.Element {
                     <Checkbox
                       checked={value}
                       onChange={onChange}
+                      disabled={isDebuggerFormSubmitting}
                       label={
                         <span>
                           <b>Advanced.</b> Use raw signal
@@ -228,6 +259,7 @@ export function Debugger(): JSX.Element {
                       onChange={(e) => onChange(e.target.value)}
                       value={value}
                       placeholder={`{\n  "proof": "0x",\n  "merkle_root": "0x",\n  "nullifier_hash": "0x"\n}`}
+                      disabled={isDebuggerFormSubmitting}
                     ></textarea>
 
                     {error && (
@@ -243,13 +275,11 @@ export function Debugger(): JSX.Element {
 
           <div className="col-span-4">
             <Widget className="mt-8" title="Debugging results">
-              <div className="text-neutral">Debugger not run yet.</div>
-
               <ResultBox />
 
               <Button
                 type="submit"
-                //disabled={isDisabled}
+                disabled={isDebuggerFormSubmitting}
                 maxWidth="xs"
                 fullWidth
                 color="primary"

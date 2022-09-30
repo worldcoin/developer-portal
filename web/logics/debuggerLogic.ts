@@ -1,9 +1,11 @@
-import { kea, path, selectors } from "kea";
+import { restAPIRequest } from "frontend-api";
+import { actions, kea, path, reducers, selectors } from "kea";
 import { forms } from "kea-forms";
 import { EnvironmentType } from "types";
 import { ENVIRONMENTS } from "utils";
 
 import type { debuggerLogicType } from "./debuggerLogicType";
+import { MaybeValidProofResponse, ValidProofResponse } from "./publicLogic";
 
 interface DebuggerFormInterface {
   action_id: string;
@@ -31,7 +33,18 @@ const validateVerificationResponse = (value: string | null) => {
 
 export const debuggerLogic = kea<debuggerLogicType>([
   path(["logics", "debuggerLogic"]),
-  forms(({ actions, values }) => ({
+  actions({
+    setVerificationResult: (result: MaybeValidProofResponse) => ({ result }),
+  }),
+  reducers({
+    verificationResult: [
+      null as MaybeValidProofResponse | null,
+      {
+        setVerificationResult: (_, { result }) => result,
+      },
+    ],
+  }),
+  forms(({ actions }) => ({
     debuggerForm: {
       defaults: {
         action_id: "",
@@ -50,11 +63,41 @@ export const debuggerLogic = kea<debuggerLogicType>([
         verificationResponse:
           validateVerificationResponse(verificationResponse),
       }),
-      submit: async (payload, breakpoint) => {
+      submit: async ({ verificationResponse, ...payload }, breakpoint) => {
         breakpoint();
 
-        console.log(payload);
-        return payload;
+        const parsedResponse = JSON.parse(verificationResponse);
+
+        try {
+          await restAPIRequest<MaybeValidProofResponse>("/debugger", {
+            method: "POST",
+            customErrorHandling: true,
+            json: {
+              ...payload,
+              proof: parsedResponse.proof,
+              merkle_root: parsedResponse.merkle_root,
+              nullifier_hash: parsedResponse.nullifier_hash,
+            },
+          });
+          actions.setVerificationResult({ success: true });
+        } catch (e) {
+          if (typeof e === "object") {
+            const errorRes = e as Record<string, string>;
+            actions.setVerificationResult({
+              success: false,
+              code: errorRes.code,
+              detail: errorRes.detail,
+            });
+          } else {
+            actions.setVerificationResult({
+              success: false,
+              code: "invalid",
+              detail: "Something went wrong. Check the console.",
+            });
+          }
+        }
+
+        return { ...payload, verificationResponse };
       },
     },
   })),
