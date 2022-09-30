@@ -11,7 +11,23 @@ interface DebuggerFormInterface {
   advanced_use_raw_action_id: boolean;
   advanced_use_raw_signal: boolean;
   environment: "staging" | "production";
+  verificationResponse: string; // entire object is stringified so the user can just paste the entire response
 }
+
+const validateVerificationResponse = (value: string | null) => {
+  if (!value) {
+    return "Please paste the verification response from the JS widget.";
+  }
+  try {
+    const jsonObj = JSON.parse(value);
+    if (!jsonObj || typeof jsonObj !== "object" || !jsonObj["proof"]) {
+      return "Please paste a valid verification response as received from the JS widget.";
+    }
+    return undefined;
+  } catch (e) {
+    return "Please paste a valid JSON.";
+  }
+};
 
 export const debuggerLogic = kea<debuggerLogicType>([
   path(["logics", "debuggerLogic"]),
@@ -24,13 +40,15 @@ export const debuggerLogic = kea<debuggerLogicType>([
         advanced_use_raw_signal: false,
         environment: "production",
       } as DebuggerFormInterface,
-      errors: ({ action_id, signal }) => ({
+      errors: ({ action_id, signal, verificationResponse }) => ({
         action_id: !action_id
           ? "Please enter a name for your action"
           : undefined,
         signal: !signal
           ? "Please select an engine before continuing"
           : undefined,
+        verificationResponse:
+          validateVerificationResponse(verificationResponse),
       }),
       submit: async (payload, breakpoint) => {
         breakpoint();

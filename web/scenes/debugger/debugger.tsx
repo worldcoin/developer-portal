@@ -13,6 +13,24 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { useValues } from "kea";
 
+function ResultBox(): JSX.Element {
+  return (
+    <div className="flex border border-ffc700 bg-ffc700 bg-opacity-10 rounded-xl p-4">
+      <div className="pr-4">
+        <Icon name="warning" className="w-6 h-6 text-ffc700" />
+      </div>
+      <div>
+        <h3 className="text-ffc700 text-xl font-bold">Warning</h3>
+        <div className="text-neutral">
+          Your proof is almost valid. Looks like you are using custom advanced
+          encoding but the action_id is not properly encoded. Check this guide
+          on how to encode it or remove the advanced option.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Debugger(): JSX.Element {
   const envSelect = useToggle();
   const { environments } = useValues(debuggerLogic);
@@ -29,12 +47,12 @@ export function Debugger(): JSX.Element {
         </CardWithSideGradient>
 
         <Form
-          className="grid grid-cols-6 gap-4"
+          className="grid grid-cols-10 gap-4"
           logic={debuggerLogic}
           formKey="debuggerForm"
           enableFormOnSubmit
         >
-          <div className="col-span-4">
+          <div className="col-span-6">
             <Widget
               className="mt-8"
               title="Input parameters"
@@ -104,7 +122,6 @@ export function Debugger(): JSX.Element {
                         )}
                         onChange={(e) => onChange(e.target.value)}
                         value={value}
-                        autoFocus
                         placeholder="mySignal"
                       />
 
@@ -189,11 +206,47 @@ export function Debugger(): JSX.Element {
                 )}
               </Field>
             </Widget>
+
+            <Widget
+              className="mt-8"
+              title="Output parameters"
+              description="Params you get from the JS widget. Just paste the object below."
+            >
+              <Field noStyle name="verificationResponse">
+                {({ value, onChange, error }) => (
+                  <>
+                    <textarea
+                      name="verificationResponse"
+                      className={cn(
+                        "p-5 text-14 w-full font-ibm bg-neutral-muted bg-opacity-40",
+                        styles.container.flat,
+                        {
+                          "border-ff5a76": error,
+                        }
+                      )}
+                      rows={7}
+                      onChange={(e) => onChange(e.target.value)}
+                      value={value}
+                      placeholder={`{\n  "proof": "0x",\n  "merkle_root": "0x",\n  "nullifier_hash": "0x"\n}`}
+                    ></textarea>
+
+                    {error && (
+                      <div className="mt-2 mb-2">
+                        <InputError error={error} />
+                      </div>
+                    )}
+                  </>
+                )}
+              </Field>
+            </Widget>
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-4">
             <Widget className="mt-8" title="Debugging results">
-              Debugger not run yet.
+              <div className="text-neutral">Debugger not run yet.</div>
+
+              <ResultBox />
+
               <Button
                 type="submit"
                 //disabled={isDisabled}
@@ -201,6 +254,7 @@ export function Debugger(): JSX.Element {
                 fullWidth
                 color="primary"
                 variant="contained"
+                className="mt-8"
               >
                 validate proof
               </Button>

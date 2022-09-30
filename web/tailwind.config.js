@@ -40,7 +40,7 @@ module.exports = {
         DEFAULT: "#00c313",
       },
       warning: {
-        DEFAULT: "#ff5a76",
+        DEFAULT: "#ff5a76", // FIXME: This color is actually danger
       },
       ...mirrorHexColors([
         "#000000",
@@ -61,6 +61,7 @@ module.exports = {
         "#fbfbfb",
         "#fcfbfe",
         "#ff6848",
+        "#ffc700", // FIXME: this color is actually warning
         "#fff0ed",
         "#ffffff",
       ]),
