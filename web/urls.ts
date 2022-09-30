@@ -20,4 +20,6 @@ export const urls = {
 
   kiosk: (action_id: string): `/kiosk/${string}` => `/kiosk/${action_id}`,
   team: (): "/team" => "/team",
+
+  debugger: () => "/debugger",
 };

@@ -22,6 +22,7 @@ const iconNames = [
   "close",
   "cloud",
   "copy",
+  "debugger",
   "document",
   "dots",
   "edit",
