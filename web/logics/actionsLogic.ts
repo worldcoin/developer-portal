@@ -13,9 +13,10 @@ import { forms } from "kea-forms";
 import { loaders } from "kea-loaders";
 import Router from "next/router";
 import { toast } from "react-toastify";
-import { CreateActionFormValues, EnvironmentType } from "scenes/action/types";
-import { ActionType } from "types";
+import { CreateActionFormValues } from "scenes/action/types";
+import { ActionType, EnvironmentType } from "types";
 import { urls } from "urls";
+import { ENVIRONMENTS } from "utils";
 import type { actionsLogicType } from "./actionsLogicType";
 import { authLogic } from "./authLogic";
 
@@ -33,11 +34,6 @@ export interface ListFilter {
   status?: "all" | "staging" | "production";
   show_archived?: boolean;
 }
-
-const ENVIRONMENTS: EnvironmentType[] = [
-  { name: "Production", value: "production", icon: { name: "rocket" } },
-  { name: "Staging", value: "staging", icon: { name: "chart" } },
-];
 
 export const actionQueryParams = (detailed?: boolean) => `
 id

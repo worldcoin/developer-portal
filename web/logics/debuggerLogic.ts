@@ -7,7 +7,8 @@ import { ENVIRONMENTS } from "utils";
 import type { debuggerLogicType } from "./debuggerLogicType";
 import { MaybeValidProofResponse, ValidProofResponse } from "./publicLogic";
 
-interface DebuggerFormInterface {
+// Used by debuggerLogicType.ts
+export interface DebuggerFormInterface {
   action_id: string;
   signal: string;
   advanced_use_raw_action_id: boolean;
