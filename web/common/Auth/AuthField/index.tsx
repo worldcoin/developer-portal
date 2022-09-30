@@ -22,7 +22,14 @@ export const AuthField = memo(function AuthField(props: AuthFieldInterface) {
       {({ value, onChange, error }) => {
         const errorToShow = props.error || error;
         return (
-          <FieldGroup variant="small" label={props.label}>
+          <FieldGroup
+            variant="small"
+            label={
+              <span className="grid grid-flow-col justify-between">
+                {props.label} {props.labelLink}
+              </span>
+            }
+          >
             <FieldInput
               variant="small"
               name={props.name}

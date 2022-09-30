@@ -5,6 +5,7 @@ import { JwtConfig } from "./types";
 import * as jose from "jose";
 import crypto, { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
+import { compactVerify } from "jose/dist/types/jws/compact/verify";
 
 const JWK_ALG = "PS256";
 
@@ -83,6 +84,45 @@ export const generateUserJWT = async (
   };
 
   return await _generateJWT(payload);
+};
+
+/**
+ * Generates a JWT for email verification.
+ * @param email
+ * @returns
+ */
+export const generateEmailVerificationJWT = async (
+  email: string
+): Promise<string> => {
+  const payload = {
+    email,
+  };
+
+  return await _generateJWT(payload, "3h");
+};
+
+/**
+ * Verify JWT
+ * @param token
+ * @returns
+ */
+export const verifyEmailVerificationJWT = async (
+  token: string
+): Promise<string> => {
+  const JWT_CONFIG: JwtConfig = JSON.parse(
+    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
+  );
+
+  if (!JWT_CONFIG) {
+    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
+  }
+
+  const key = new Uint8Array(Buffer.from(JWT_CONFIG.key));
+  const { payload } = await jose.compactVerify(token, key, {
+    algorithms: [JWT_CONFIG.type],
+  });
+  const data = JSON.parse(payload.toString());
+  return data.email;
 };
 
 /**

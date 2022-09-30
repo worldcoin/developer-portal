@@ -38,12 +38,11 @@ export const Login = memo(function Login() {
 
         <AuthField
           label="Password"
-          // FIXME: Password recovery not yet supported
-          // labelLink={
-          //   <Link className="text-primary" href="/forgot">
-          //     Forgot password?
-          //   </Link>
-          // }
+          labelLink={
+            <Link className="text-primary" href="/forgot">
+              Forgot password?
+            </Link>
+          }
           type={passwordShown ? "text" : "password"}
           name="password"
           placeholder="········"
