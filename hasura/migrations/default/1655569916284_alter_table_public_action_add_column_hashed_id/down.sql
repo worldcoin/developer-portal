@@ -1,0 +1,1 @@
+alter table "public"."action" drop column "hashed_id";

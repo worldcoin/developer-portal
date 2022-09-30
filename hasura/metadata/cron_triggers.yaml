@@ -1,0 +1,13 @@
+- name: Update ENS addresses
+  webhook: '{{NEXT_API_URL}}/_ens'
+  schedule: 0 * * * *
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 3
+    timeout_seconds: 60
+    tolerance_seconds: 21600
+    retry_interval_seconds: 100
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET

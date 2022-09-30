@@ -1,0 +1,1 @@
+alter table "public"."action" drop column "max_verifications_per_person";

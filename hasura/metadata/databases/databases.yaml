@@ -1,0 +1,10 @@
+- name: default
+  kind: postgres
+  configuration:
+    connection_info:
+      use_prepared_statements: true
+      database_url:
+        from_env: HASURA_GRAPHQL_DATABASE_URL
+      isolation_level: read-committed
+  tables: "!include default/tables/tables.yaml"
+  functions: "!include default/functions/functions.yaml"

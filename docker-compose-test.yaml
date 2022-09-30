@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  postgres_test:
+    image: postgres:14
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 10s
+      retries: 5
+
+  hasura_test:
+    image: hasura/graphql-engine:v2.7.0.cli-migrations-v3
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:password@postgres_test:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ADMIN_SECRET: secret!
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: "startup, http-log, webhook-log, websocket-log, query-log"
+      HASURA_GRAPHQL_MIGRATIONS_DIR: /hasura-migrations
+      HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
+      HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
+      HASURA_GRAPHQL_CLI_ENVIRONMENT: "default"
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+    volumes:
+      - ./hasura/migrations:/hasura-migrations
+      - ./hasura/metadata:/hasura-metadata
