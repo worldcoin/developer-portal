@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
+  customErrorHandling?: boolean;
 }
 
 const handleError = async (response: unknown): Promise<void> => {
@@ -29,7 +30,8 @@ export const restAPIRequest = async <T>(
   requestOptions?: RequestOptions
 ): Promise<T> => {
   let response = null;
-  const { json, headers, ...restOfRequestOptions } = requestOptions || {};
+  const { json, headers, customErrorHandling, ...restOfRequestOptions } =
+    requestOptions || {};
 
   try {
     response = await fetch(`/api/v1${path}`, {
@@ -38,14 +40,18 @@ export const restAPIRequest = async <T>(
       headers: { ...headers, "Content-Type": "application/json" },
     });
   } catch (e) {
-    await handleError(e);
+    if (!customErrorHandling) {
+      await handleError(e);
+    }
     throw e;
   }
 
   const jsonResponse = await response.json();
 
   if (!response?.ok) {
-    await handleError(jsonResponse);
+    if (!customErrorHandling) {
+      await handleError(jsonResponse);
+    }
     throw jsonResponse || response;
   }
 

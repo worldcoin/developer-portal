@@ -1,3 +1,5 @@
+import { IconType } from "common/Icon";
+
 export interface JwtConfig {
   key: string;
   type: "HS512" | "HS384" | "HS256";
@@ -87,3 +89,9 @@ export interface ContractType {
   key: string;
   value: string;
 }
+
+export type EnvironmentType = {
+  name: string;
+  value: "production" | "staging";
+  icon: { name: IconType; noMask?: boolean };
+};
