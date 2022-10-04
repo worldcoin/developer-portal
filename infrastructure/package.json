@@ -41,7 +41,7 @@
   "dependencies": {
     "asserts": "4.0.2",
     "aws-cdk-lib": "^2.25.0",
-    "cdk-nag": "2.12.47",
+    "cdk-nag": "2.18.9",
     "constructs": "^10.0.5",
     "ts-node": "10.8.1"
   },
