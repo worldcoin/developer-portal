@@ -1,4 +1,3 @@
-import { Widget } from "common/Widget";
 import { memo, useCallback, useEffect, useState } from "react";
 import { FieldGroup } from "common/FieldGroup";
 import { FieldInput } from "common/FieldInput";
@@ -49,78 +48,74 @@ export const KioskAccess = memo(function KioskAccess(props: {
   }, [props.url]);
 
   return (
-    <Widget expandable opened title="Kiosk access">
-      <div className="grid overflow-y-auto gap-y-6">
-        <FieldGroup label="Kiosk URL">
-          <label className={cn(text.caption, "leading-tight")}>
-            Use this URL to open the Kiosk page for this action. You don&apos;t
-            have to be logged in.
-          </label>
-          <FieldInput
-            type="text"
-            name="hostedPageUrl"
-            readOnly
-            defaultValue={
-              props.url || "Cannot load Kiosk URL. Please try again."
-            }
-            addon={
-              props.url ? (
-                <FieldInputAddon>
-                  {shouldShareAppears && (
-                    <FieldInputAddonAction onClick={shareKioskPageUrl}>
-                      <Icon
-                        name="withdraw"
-                        className="w-6 h-6 text-neutral-dark"
-                      />
-                    </FieldInputAddonAction>
-                  )}
-
-                  <FieldInputAddonAction onClick={copyKioskPageUrl}>
-                    {kioskPageUrlCopied ? (
-                      <Icon name="check" className="w-6 h-6 text-success" />
-                    ) : (
-                      <Icon name="copy" className="w-6 h-6 text-neutral-dark" />
-                    )}
+    <div className="grid overflow-y-auto gap-y-6">
+      <FieldGroup label="Kiosk URL">
+        <label className={cn(text.caption, "leading-tight")}>
+          Use this URL to open the Kiosk page for this action. You don&apos;t
+          have to be logged in.
+        </label>
+        <FieldInput
+          type="text"
+          name="hostedPageUrl"
+          readOnly
+          defaultValue={props.url || "Cannot load Kiosk URL. Please try again."}
+          addon={
+            props.url ? (
+              <FieldInputAddon>
+                {shouldShareAppears && (
+                  <FieldInputAddonAction onClick={shareKioskPageUrl}>
+                    <Icon
+                      name="withdraw"
+                      className="w-6 h-6 text-neutral-dark"
+                    />
                   </FieldInputAddonAction>
-                </FieldInputAddon>
-              ) : undefined
-            }
-          />
-        </FieldGroup>
+                )}
 
-        {props.url && (
-          <div className="justify-self-end min-w-[295px] grid gap-y-1 group">
-            <Button
-              color="primary"
-              variant="contained"
-              fullWidth
-              maxWidth="xs"
-              component="a"
-              href={props.url}
-              disabled={currentAction?.status !== "active"}
-            >
-              Launch Kiosk
-            </Button>
+                <FieldInputAddonAction onClick={copyKioskPageUrl}>
+                  {kioskPageUrlCopied ? (
+                    <Icon name="check" className="w-6 h-6 text-success" />
+                  ) : (
+                    <Icon name="copy" className="w-6 h-6 text-neutral-dark" />
+                  )}
+                </FieldInputAddonAction>
+              </FieldInputAddon>
+            ) : undefined
+          }
+        />
+      </FieldGroup>
 
-            <div
-              className={cn(
-                "text-12 text-777e90 text-center select-none transition-visibility/opacity",
-                {
-                  "opacity-0 invisible group-hover:opacity-100 group-hover:visible":
-                    currentAction?.status !== "active",
-                },
-                {
-                  hidden: currentAction?.status === "active",
-                }
-              )}
-            >
-              {props.deploymentStep === "access"
-                ? 'Set public description in "Display" tab first'
-                : "Enable kiosk interface above first"}
-            </div>
+      {props.url && (
+        <div className="justify-self-end min-w-[295px] grid gap-y-1 group">
+          <Button
+            color="primary"
+            variant="contained"
+            fullWidth
+            maxWidth="xs"
+            component="a"
+            href={props.url}
+            disabled={currentAction?.status !== "active"}
+          >
+            Launch Kiosk
+          </Button>
+
+          <div
+            className={cn(
+              "text-12 text-777e90 text-center select-none transition-visibility/opacity",
+              {
+                "opacity-0 invisible group-hover:opacity-100 group-hover:visible":
+                  currentAction?.status !== "active",
+              },
+              {
+                hidden: currentAction?.status === "active",
+              }
+            )}
+          >
+            {props.deploymentStep === "access"
+              ? 'Set public description in "Display" tab first'
+              : "Enable kiosk interface above first"}
           </div>
-        )}
-      </div>
-    </Widget>
+        </div>
+      )}
+    </div>
   );
 });

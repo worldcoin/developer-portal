@@ -103,6 +103,9 @@ export const actionLogic = kea<actionLogicType>([
     enableUserInterface: (userInterface: UserInterfacesType) => ({
       userInterface,
     }),
+    disableUserInterface: (userInterface: UserInterfacesType) => ({
+      userInterface,
+    }),
     activateActionIfReady: (action: ActionType) => ({ action }),
     setStatsArgs: (args: Partial<StatsArgs>, merge?: boolean) => ({
       args,
@@ -258,6 +261,27 @@ export const actionLogic = kea<actionLogicType>([
                 []),
               userInterface,
             ]),
+          ],
+        },
+      });
+    },
+    disableUserInterface: async ({ userInterface }) => {
+      if (!values.currentAction) {
+        return;
+      }
+      actions.updateAction({
+        attr: "user_interfaces",
+        value: {
+          ...values.currentAction.user_interfaces,
+          enabled_interfaces: [
+            ...new Set(
+              (
+                values.currentAction.user_interfaces.enabled_interfaces ?? []
+              ).filter(
+                (enabledInterface: unknown) =>
+                  enabledInterface !== userInterface
+              )
+            ),
           ],
         },
       });

@@ -10,10 +10,6 @@ export const Kiosk = memo(function Kiosk(props: {
 }) {
   return (
     <div className="grid gap-y-8 mt-4">
-      <KioskOverview
-        opened={props.deploymentStep !== "access"}
-        onContinue={() => props.enableUserInterface("kiosk")}
-      />
       <KioskAccess url={props.url} deploymentStep={props.deploymentStep} />
     </div>
   );

@@ -1,7 +1,5 @@
-import { ActionCard } from "scenes/action/ActionCard/ActionCard";
 import { NotFound } from "common/NotFound";
 import { Preloader } from "common/Preloader";
-import { Tabs } from "common/Tabs";
 import { Tab } from "common/Tabs/types";
 import { useActions, useValues } from "kea";
 import { actionLogic } from "logics/actionLogic";
@@ -12,6 +10,7 @@ import { Deployment } from "./Deployment";
 import { Display } from "./Display";
 import { Stats } from "./Stats";
 import { Layout } from "common/Layout";
+import { ActionHeader } from "./ActionHeader";
 
 export function Action(): JSX.Element | null {
   const { currentAction, currentActionLoading, actionTabs } =
@@ -68,25 +67,28 @@ export function Action(): JSX.Element | null {
   }
 
   return (
-    <Layout title={currentAction?.name}>
-      <div className="grid gap-y-8 min-h-full">
-        {currentAction && (
-          <ActionCard
-            action={currentAction}
-            isLoading={currentActionLoading}
-            updateAction={updateAction}
-          />
-        )}
+    <Layout
+      title={currentAction?.name}
+      mainClassName="p-0 lg:p-0 xl:p-0 flex flex-col"
+    >
+      {currentAction && (
+        <ActionHeader
+          action={currentAction}
+          isLoading={currentActionLoading}
+          updateAction={updateAction}
+          tabs={actionTabs}
+          currentTab={tab}
+          setTab={handleChangeTab}
+        />
+      )}
 
-        {currentAction && tab && (
-          <Tabs tabs={actionTabs} currentTab={tab} setTab={handleChangeTab}>
-            {tab.name === "deployment" && <Deployment />}
-            {tab.name === "display" && <Display />}
-            {tab.name === "stats" && currentAction.engine !== "on-chain" && (
-              <Stats />
-            )}
-          </Tabs>
-        )}
+      <div className="px-4 lg:px-8 xl:px-16 grow flex flex-col">
+        {currentAction && tab && tab.name === "deployment" && <Deployment />}
+        {currentAction && tab && tab.name === "display" && <Display />}
+        {currentAction &&
+          tab &&
+          tab.name === "stats" &&
+          currentAction.engine !== "on-chain" && <Stats />}
 
         {!currentAction && (
           <NotFound
