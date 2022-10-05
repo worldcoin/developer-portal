@@ -47,6 +47,13 @@ export interface ActionUrlsInterface {
   hostedPage: string;
 }
 
+export interface InterfaceConfigFormValues {
+  public_description?: string;
+  widget?: boolean;
+  hosted_page?: boolean;
+  kiosk?: boolean;
+}
+
 const retrieveActionQuery = gql`
   query Action($action_id: String!) {
     action(where: { id: { _eq: $action_id } }, limit: 1) {
@@ -100,6 +107,9 @@ export const actionLogic = kea<actionLogicType>([
     actions: [actionsLogic, ["replaceActionAtList", "archiveActionSuccess"]],
   }),
   actions({
+    setUserInterfaces: (userInterfaces: Array<UserInterfacesType>) => ({
+      userInterfaces,
+    }),
     enableUserInterface: (userInterface: UserInterfacesType) => ({
       userInterface,
     }),
@@ -112,8 +122,19 @@ export const actionLogic = kea<actionLogicType>([
       merge,
     }),
     setCurrentAction: (action: ActionType) => ({ action }),
+    toggleInterface: (userInterface: UserInterfacesType) => ({ userInterface }),
+    setEnabledInterfaces: (userInterfaces: Array<UserInterfacesType>) => ({
+      userInterfaces,
+    }),
+    setAfterInterfaceConfigSubmitSuccess: (callback) => ({ callback }),
   }),
   reducers({
+    afterInterfaceConfigSubmitSuccess: [
+      null as ((interfaceConfig: InterfaceConfigFormValues) => void) | null,
+      {
+        setAfterInterfaceConfigSubmitSuccess: (_, { callback }) => callback,
+      },
+    ],
     currentAction: [
       null as ActionType | null,
       {
@@ -137,8 +158,49 @@ export const actionLogic = kea<actionLogicType>([
           merge ? { ...state, ...args } : (args as StatsArgs),
       },
     ],
+    enabledInterfaces: [
+      [] as Array<UserInterfacesType>,
+      {
+        setEnabledInterfaces: (_, { userInterfaces }) => userInterfaces,
+
+        toggleInterface: (state, { userInterface }) => {
+          const isEnabled = state.some(
+            (enabledInterface) => enabledInterface === userInterface
+          );
+
+          if (!isEnabled) {
+            return [...state, userInterface];
+          }
+
+          return state.filter(
+            (enabledInterface) => enabledInterface !== userInterface
+          );
+        },
+      },
+    ],
   }),
   loaders(({ values, actions }) => ({
+    interfaceConfig: {
+      initInterfaceConfigFormDefaults: () =>
+        ({
+          public_description: values.currentAction?.public_description,
+
+          widget:
+            values.currentAction?.user_interfaces.enabled_interfaces?.some(
+              (userInterface) => userInterface === "widget"
+            ),
+
+          hosted_page:
+            values.currentAction?.user_interfaces.enabled_interfaces?.some(
+              (userInterface) => userInterface === "hosted_page"
+            ),
+
+          kiosk: values.currentAction?.user_interfaces.enabled_interfaces?.some(
+            (userInterface) => userInterface === "kiosk"
+          ),
+        } as InterfaceConfigFormValues),
+    },
+
     // Current action being displayed on /actions/${id} scene
     currentAction: [
       null as ActionType | null,
@@ -227,6 +289,22 @@ export const actionLogic = kea<actionLogicType>([
     ],
   })),
   listeners(({ values, actions }) => ({
+    submitInterfaceConfigSuccess: ({ interfaceConfig }) => {
+      values.afterInterfaceConfigSubmitSuccess?.(interfaceConfig);
+    },
+    setUserInterfaces: async ({ userInterfaces }) => {
+      if (!values.currentAction) {
+        return;
+      }
+
+      actions.updateAction({
+        attr: "user_interfaces",
+        value: {
+          ...values.currentAction.user_interfaces,
+          enabled_interfaces: userInterfaces,
+        },
+      });
+    },
     activateActionIfReady: async ({ action }, breakpoint) => {
       if (action.status !== "created") {
         return;
@@ -291,6 +369,12 @@ export const actionLogic = kea<actionLogicType>([
     },
     loadActionSuccess: async ({ currentAction }) => {
       actions.setHostedPageConfigValue("return_url", currentAction?.return_url);
+
+      actions.setEnabledInterfaces(
+        currentAction?.user_interfaces.enabled_interfaces ?? []
+      );
+
+      actions.initInterfaceConfigFormDefaults();
     },
     updateActionSuccess: async ({ currentAction }) => {
       actions.setHostedPageConfigValue("return_url", currentAction?.return_url);
@@ -306,6 +390,27 @@ export const actionLogic = kea<actionLogicType>([
   })),
   // @ts-ignore FIXME bug with kea-typegen
   forms(({ actions, values }) => ({
+    interfaceConfig: {
+      defaults: { public_description: "" } as InterfaceConfigFormValues,
+      submit: (formValues) => {
+        actions.updateAction({
+          attr: "public_description",
+          value: formValues.public_description || "",
+          skipToast: true,
+        });
+
+        actions.updateAction({
+          attr: "user_interfaces",
+          value: {
+            ...values.currentAction?.user_interfaces,
+            enabled_interfaces: values.enabledInterfaces,
+          },
+          skipToast: true,
+        });
+
+        toast.success("Action updated successfully!");
+      },
+    },
     hostedPageConfig: {
       defaults: { return_url: "" } as {
         return_url: string;

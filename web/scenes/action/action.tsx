@@ -2,20 +2,78 @@ import { NotFound } from "common/NotFound";
 import { Preloader } from "common/Preloader";
 import { Tab } from "common/Tabs/types";
 import { useActions, useValues } from "kea";
-import { actionLogic } from "logics/actionLogic";
+import { actionLogic, InterfaceConfigFormValues } from "logics/actionLogic";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { urls } from "urls";
 import { Deployment } from "./Deployment";
 import { Display } from "./Display";
 import { Stats } from "./Stats";
 import { Layout } from "common/Layout";
 import { ActionHeader } from "./ActionHeader";
+import { Footer } from "common/Footer";
+import { Button } from "common/Button";
 
 export function Action(): JSX.Element | null {
-  const { currentAction, currentActionLoading, actionTabs } =
-    useValues(actionLogic);
-  const { loadAction, updateAction } = useActions(actionLogic);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
+
+  const {
+    currentAction,
+    currentActionLoading,
+    actionTabs,
+    interfaceConfigChanged,
+    isInterfaceConfigSubmitting,
+  } = useValues(actionLogic);
+
+  const {
+    loadAction,
+    updateAction,
+    resetInterfaceConfig,
+    submitInterfaceConfig,
+    setAfterInterfaceConfigSubmitSuccess,
+  } = useActions(actionLogic);
+
+  useEffect(() => {
+    interfaceConfigChanged && setIsFooterVisible(true);
+  }, [interfaceConfigChanged]);
+
+  const defaultValues: InterfaceConfigFormValues = useMemo(
+    () => ({
+      public_description: currentAction?.public_description,
+
+      widget: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "widget"
+      ),
+
+      hosted_page: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "hosted_page"
+      ),
+
+      kiosk: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "kiosk"
+      ),
+    }),
+
+    [
+      currentAction?.public_description,
+      currentAction?.user_interfaces.enabled_interfaces,
+    ]
+  );
+
+  const submit = useCallback(() => {
+    setAfterInterfaceConfigSubmitSuccess(
+      (newFormValues: InterfaceConfigFormValues) => {
+        resetInterfaceConfig(newFormValues);
+      }
+    );
+
+    submitInterfaceConfig();
+    setIsFooterVisible(false);
+  }, [
+    resetInterfaceConfig,
+    setAfterInterfaceConfigSubmitSuccess,
+    submitInterfaceConfig,
+  ]);
 
   // Reset scroll on currentAction change
   useEffect(() => {
@@ -100,6 +158,38 @@ export function Action(): JSX.Element | null {
           />
         )}
       </div>
+
+      {isFooterVisible && (
+        <Footer>
+          <div className="grid grid-cols-1fr/auto items-center">
+            <span className="text-14 text-neutral">
+              You have unsaved changes.
+            </span>
+
+            <div className="grid grid-flow-col gap-x-8">
+              <Button
+                className="uppercase"
+                color="danger"
+                variant="default"
+                onClick={() => resetInterfaceConfig(defaultValues)}
+                disabled={isInterfaceConfigSubmitting}
+              >
+                discard
+              </Button>
+
+              <Button
+                className="uppercase"
+                color="primary"
+                variant="contained"
+                onClick={submit}
+                disabled={isInterfaceConfigSubmitting}
+              >
+                save changes
+              </Button>
+            </div>
+          </div>
+        </Footer>
+      )}
     </Layout>
   );
 }

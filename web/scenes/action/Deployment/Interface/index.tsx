@@ -3,19 +3,22 @@ import cn from "classnames";
 import { Icon, IconType } from "common/Icon";
 import { Button } from "common/Button";
 import { Switch } from "common/Switch";
+import { Field } from "kea-forms";
+import { UserInterfacesType } from "types";
 
 interface InterfaceInterface {
   className?: string;
   icon: IconType;
-  name: string;
+  title: string;
   description: string;
-  enabled: boolean;
+  enabled?: boolean;
   onChangeEnabled: (enabled: boolean) => void;
   overviewItems: Array<{
     icon: IconType;
     text: ReactNode;
   }>;
   children?: ReactNode;
+  name: UserInterfacesType;
 }
 
 export const Interface = memo(function Interface(props: InterfaceInterface) {
@@ -27,7 +30,7 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
         </div>
         <div className="grid grid-flow-row gap-y-1">
           <h3 className="font-sora font-semibold text-16 leading-5">
-            {props.name}
+            {props.title}
           </h3>
           <p className="text-14 text-neutral leading-4">{props.description}</p>
         </div>
@@ -41,10 +44,17 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
             Show deployment instructions
             <Icon name="arrow-right" className={cn("w-4 h-4")} />
           </Button>
-          <Switch
-            checked={props.enabled}
-            onChangeChecked={props.onChangeEnabled}
-          />
+          <Field noStyle name={props.name}>
+            {({ value, onChange }) => (
+              <Switch
+                checked={value}
+                onChangeChecked={(value) => {
+                  onChange(value);
+                  props.onChangeEnabled(value);
+                }}
+              />
+            )}
+          </Field>
         </div>
       </div>
       {props.enabled && props.children && (
@@ -56,7 +66,7 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
         <h3 className="grid grid-flow-col gap-x-4 mb-4 items-baseline justify-start font-sora font-semibold text-16 leading-5">
           Overview
           <span className="text-12 text-neutral-dark/30 leading-4">
-            {props.name}
+            {props.title}
           </span>
         </h3>
         <div className="grid grid-flow-col justify-items-center items-center overflow-x-auto">

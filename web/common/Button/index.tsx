@@ -8,6 +8,7 @@ interface ButtonInterface<C extends ElementType = "button"> {
   fullWidth?: boolean;
   maxWidth?: "xs";
   loading?: boolean;
+  disabled?: boolean;
   component?: C;
 }
 
@@ -22,15 +23,17 @@ export const Button = memo(function Button<C extends ElementType = "button">(
     fullWidth,
     maxWidth,
     loading,
+    disabled,
     component: Component = "button",
     ...otherProps
   } = props;
 
   return (
     <Component
+      disabled={props.disabled}
       className={cn(
         "grid grid-flow-col justify-center items-center select-none font-sora leading-4 cursor-pointer hover:opacity-80",
-        { "opacity-30 pointer-events-none": props.disabled || loading },
+        { "opacity-30 pointer-events-none": disabled || loading },
         { "h-14 uppercase font-semibold text-16": size === "lg" },
         { "h-10 text-14": size === "md" },
         { "w-full max-w-none": fullWidth },
