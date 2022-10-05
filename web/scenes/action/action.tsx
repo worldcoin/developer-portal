@@ -75,6 +75,11 @@ export function Action(): JSX.Element | null {
     submitInterfaceConfig,
   ]);
 
+  const discard = useCallback(() => {
+    setIsFooterVisible(false);
+    resetInterfaceConfig(defaultValues);
+  }, [defaultValues, resetInterfaceConfig]);
+
   // Reset scroll on currentAction change
   useEffect(() => {
     document.querySelector("main")?.scrollTo(0, 0);
@@ -171,7 +176,7 @@ export function Action(): JSX.Element | null {
                 className="uppercase"
                 color="danger"
                 variant="default"
-                onClick={() => resetInterfaceConfig(defaultValues)}
+                onClick={discard}
                 disabled={isInterfaceConfigSubmitting}
               >
                 discard
