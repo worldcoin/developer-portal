@@ -74,7 +74,6 @@ export const ActionHeader = memo(function ActionHeader(
         </div>
       </HeaderText>
       <div className="grid grid-flow-row">
-        <div></div>
         {props.action && props.currentTab && (
           <Tabs
             tabs={props.tabs}

@@ -17,10 +17,13 @@ export const HeaderText = memo(function HeaderText(props: HeaderTextInterface) {
         props.className
       )}
     >
-      <h1 className="font-sora font-semibold text-16 leading-5">
+      <div className="font-sora font-semibold text-16 leading-5">
         {props.title}
-      </h1>
-      <p className="mt-1 text-14 text-neutral leading-4">{props.description}</p>
+      </div>
+
+      <div className="mt-1 text-14 text-neutral leading-4">
+        {props.description}
+      </div>
       {props.children ?? null}
     </div>
   );
