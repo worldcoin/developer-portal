@@ -26,6 +26,7 @@ import { validateUrl } from "utils";
 import { actionQueryParams, actionsLogic } from "./actionsLogic";
 import type { actionLogicType } from "./actionLogicType";
 import { isSSR } from "common/helpers/is-ssr";
+import { BooleanSupportOption } from "prettier";
 
 interface LoadActionsInterface {
   action: ActionType[];
@@ -122,10 +123,6 @@ export const actionLogic = kea<actionLogicType>([
       merge,
     }),
     setCurrentAction: (action: ActionType) => ({ action }),
-    toggleInterface: (userInterface: UserInterfacesType) => ({ userInterface }),
-    setEnabledInterfaces: (userInterfaces: Array<UserInterfacesType>) => ({
-      userInterfaces,
-    }),
     setAfterInterfaceConfigSubmitSuccess: (callback) => ({ callback }),
   }),
   reducers({
@@ -156,26 +153,6 @@ export const actionLogic = kea<actionLogicType>([
       {
         setStatsArgs: (state, { args, merge }) =>
           merge ? { ...state, ...args } : (args as StatsArgs),
-      },
-    ],
-    enabledInterfaces: [
-      [] as Array<UserInterfacesType>,
-      {
-        setEnabledInterfaces: (_, { userInterfaces }) => userInterfaces,
-
-        toggleInterface: (state, { userInterface }) => {
-          const isEnabled = state.some(
-            (enabledInterface) => enabledInterface === userInterface
-          );
-
-          if (!isEnabled) {
-            return [...state, userInterface];
-          }
-
-          return state.filter(
-            (enabledInterface) => enabledInterface !== userInterface
-          );
-        },
       },
     ],
   }),
@@ -369,11 +346,6 @@ export const actionLogic = kea<actionLogicType>([
     },
     loadActionSuccess: async ({ currentAction }) => {
       actions.setHostedPageConfigValue("return_url", currentAction?.return_url);
-
-      actions.setEnabledInterfaces(
-        currentAction?.user_interfaces.enabled_interfaces ?? []
-      );
-
       actions.initInterfaceConfigFormDefaults();
     },
     updateActionSuccess: async ({ currentAction }) => {
@@ -399,11 +371,35 @@ export const actionLogic = kea<actionLogicType>([
           skipToast: true,
         });
 
+        type InterfaceConfigurationCheckboxValues = Omit<
+          InterfaceConfigFormValues,
+          "public_description"
+        >;
+
+        const enabledInterfaces = (
+          Object.entries(formValues).filter(
+            ([key, _]) => key !== "public_description"
+          ) as Array<
+            [
+              keyof InterfaceConfigurationCheckboxValues,
+              InterfaceConfigurationCheckboxValues[keyof InterfaceConfigurationCheckboxValues]
+            ]
+          >
+        ).reduce((acc: Array<UserInterfacesType>, current) => {
+          const [key, value] = current;
+
+          if (!value) {
+            return acc;
+          }
+
+          return [...acc, key];
+        }, []);
+
         actions.updateAction({
           attr: "user_interfaces",
           value: {
             ...values.currentAction?.user_interfaces,
-            enabled_interfaces: values.enabledInterfaces,
+            enabled_interfaces: enabledInterfaces,
           },
           skipToast: true,
         });

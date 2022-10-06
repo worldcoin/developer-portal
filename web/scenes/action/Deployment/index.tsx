@@ -14,20 +14,16 @@ import { Footer } from "common/Footer";
 
 export function Deployment() {
   const {
+    interfaceConfig,
     currentAction,
     actionUrls,
     deploymentSteps,
-    enabledInterfaces,
     interfaceConfigLoading,
   } = useValues(actionLogic);
 
-  const { toggleInterface } = useActions(actionLogic);
-
   const isInterfaceEnabled = useCallback(
-    (userInterface: UserInterfacesType) => {
-      return enabledInterfaces.includes(userInterface);
-    },
-    [enabledInterfaces]
+    (userInterface: UserInterfacesType) => interfaceConfig[userInterface],
+    [interfaceConfig]
   );
 
   if (!currentAction) {
@@ -66,6 +62,7 @@ export function Deployment() {
                   variant="outlined"
                   color="primary"
                   size="md"
+                  type="button"
                 >
                   Preview Worldcoin App
                 </Button>
@@ -101,7 +98,6 @@ export function Deployment() {
               title="API & JS widget"
               description="Add the JS widget to your website and verify proofs with our API."
               enabled={isInterfaceEnabled("widget")}
-              onChangeEnabled={() => toggleInterface("widget")}
               overviewItems={[
                 {
                   icon: "overview-1",
@@ -152,7 +148,6 @@ export function Deployment() {
               title="Smart contract & JS widget"
               description="Add the JS widget to your website and verify proofs with our API."
               enabled={isInterfaceEnabled("widget")}
-              onChangeEnabled={() => toggleInterface("widget")}
               overviewItems={[
                 {
                   icon: "overview-1",
@@ -206,7 +201,6 @@ export function Deployment() {
             title="Hosted page"
             description="Redirect the user to our page for verification, we’ll redirect the user back upon success."
             enabled={isInterfaceEnabled("hosted_page")}
-            onChangeEnabled={() => toggleInterface("hosted_page")}
             overviewItems={[
               {
                 icon: "overview-1",
@@ -238,7 +232,6 @@ export function Deployment() {
               title="Kiosk"
               description="Verify users in-person right here. No code needed."
               enabled={isInterfaceEnabled("kiosk")}
-              onChangeEnabled={() => toggleInterface("kiosk")}
               overviewItems={[
                 { icon: "overview-1", text: "You open the Kiosk page" },
                 {

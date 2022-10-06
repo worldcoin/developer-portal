@@ -12,7 +12,6 @@ interface InterfaceInterface {
   title: string;
   description: string;
   enabled?: boolean;
-  onChangeEnabled: (enabled: boolean) => void;
   overviewItems: Array<{
     icon: IconType;
     text: ReactNode;
@@ -48,10 +47,7 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
             {({ value, onChange }) => (
               <Switch
                 checked={value}
-                onChangeChecked={(value) => {
-                  onChange(value);
-                  props.onChangeEnabled(value);
-                }}
+                onChangeChecked={(value) => onChange(value)}
               />
             )}
           </Field>
