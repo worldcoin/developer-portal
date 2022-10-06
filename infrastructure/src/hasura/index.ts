@@ -4,6 +4,7 @@ import { DataDog } from 'common/datadog'
 import { parameters } from './parameters'
 import { NagSuppressions } from 'cdk-nag'
 import { MultiEnvRootStack } from 'common/multi-env-stack'
+import { ScalingConfig } from 'common/types'
 
 export class Hasura extends MultiEnvRootStack {
   public static readonly port = 8080
@@ -33,6 +34,10 @@ export class Hasura extends MultiEnvRootStack {
     this.cloudMapNamespace = props.cloudMapNamespace
     this.domainName = stackParameters.domainName
 
+    const scalingConfig = process.env.SCALING_PARAMS
+    ? (JSON.parse(process.env.SCALING_PARAMS) as ScalingConfig)
+    : null;
+
     // ANCHOR Secrets
     const adminSecret = new cdk.aws_secretsmanager.Secret(this, 'admin-secret', {
       generateSecretString: {
@@ -46,8 +51,8 @@ export class Hasura extends MultiEnvRootStack {
     // ANCHOR Task definition
     // Define the task as FargateTaskDefinition, because taskImageOptions does not have the command param
     const taskDefinition = new cdk.aws_ecs.FargateTaskDefinition(this, 'task-definition', {
-      cpu: 1024,
-      memoryLimitMiB: 2048,
+      cpu: scalingConfig?.taskDefinition.cpu || 512,
+      memoryLimitMiB: scalingConfig?.taskDefinition.memoryLimitMiB || 1024,
     })
 
     taskDefinition.addContainer('Hasura', {
@@ -117,16 +122,27 @@ export class Hasura extends MultiEnvRootStack {
     // ANCHOR Health check
     fargateServicePattern.targetGroup.configureHealthCheck({
       enabled: true,
-      healthyThresholdCount: 3,
-      interval: cdk.Duration.seconds(5),
-      path: '/healthz',
-      timeout: cdk.Duration.seconds(3),
+      healthyThresholdCount: scalingConfig?.healthCheck.healthyThresholdCount ?? 2,
+      interval: cdk.Duration.seconds(scalingConfig?.healthCheck.interval ?? 3),
+      path: scalingConfig?.healthCheck.path ?? '/health',
+      timeout: cdk.Duration.seconds(scalingConfig?.healthCheck.timeout ?? 2),
     })
 
     // ANCHOR Autoscaling
-    const scalableTarget = fargateServicePattern.service.autoScaleTaskCount({ minCapacity: 3, maxCapacity: 50 })
-    scalableTarget.scaleOnCpuUtilization('CpuScaling', { targetUtilizationPercent: 50 })
-    scalableTarget.scaleOnMemoryUtilization('MemoryScaling', { targetUtilizationPercent: 70 })
+    const scalableTarget = fargateServicePattern.service.autoScaleTaskCount({
+      minCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.minCapacity ?? 1, 
+      maxCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.maxCapacity ?? 30 
+    })
+
+    scalableTarget.scaleOnCpuUtilization( 
+      scalingConfig?.autoscaling.scaleOnCpuUtilization.name ?? 'CpuScaling', 
+      { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnCpuUtilization.targetUtilizationPercent ?? 40 }
+    )
+    
+    scalableTarget.scaleOnMemoryUtilization(
+      scalingConfig?.autoscaling.scaleOnMemoryUtilization.name ?? 'MemoryScaling',
+      { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnMemoryUtilization.targetUtilizationPercent ?? 50 }
+    )
 
     // ANCHOR Set up logging
     new DataDog(this, 'DataDog', {

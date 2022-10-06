@@ -1,0 +1,30 @@
+{
+  "taskDefinition": {
+    "cpu": 1024,
+    "memoryLimitMiB": 2048
+  },
+
+  "healthCheck": {
+    "healthyThresholdCount": 3,
+    "interval": 5,
+    "path": "/healthz",
+    "timeout": 3
+  },
+
+  "autoscaling": {
+    "autoScaleTaskCount": {
+      "minCapacity": 3,
+      "maxCapacity": 50
+    },
+
+    "scaleOnCpuUtilization": {
+      "name": "CpuScaling",
+      "targetUtilizationPercent": 50
+    },
+
+    "scaleOnMemoryUtilization": {
+      "name": "MemoryScaling",
+      "targetUtilizationPercent": 70
+    }
+  }
+}
