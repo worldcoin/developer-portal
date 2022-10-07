@@ -11,10 +11,11 @@ import { Interface } from "./Interface";
 import { Kiosk } from "./Kiosk";
 import { OnChainWidget } from "./OnChainWidget";
 import { Field, Form } from "kea-forms";
-import { APIInstructions } from "./CloudWidget/Instructions";
+import { CloudWidgetInstructions } from "./CloudWidget/Instructions";
 import { HostedPageInstructions } from "./HostedPage/Instructions";
 import { Modal } from "common/Modal";
 import { Preview } from "common/Preview";
+import { OnChainWidgetInstructions } from "./OnChainWidget/Instructions";
 
 export function Deployment() {
   const { interfaceConfig, currentAction, actionUrls, interfaceConfigLoading } =
@@ -142,7 +143,9 @@ export function Deployment() {
                   ),
                 },
               ]}
-              instructions={<APIInstructions actionId={currentAction.id} />}
+              instructions={
+                <CloudWidgetInstructions actionId={currentAction.id} />
+              }
             />
           ) : (
             <Interface
@@ -193,6 +196,9 @@ export function Deployment() {
                   ),
                 },
               ]}
+              instructions={
+                <OnChainWidgetInstructions actionId={currentAction.id} />
+              }
             >
               {isInterfaceEnabled("widget") && <OnChainWidget />}
             </Interface>

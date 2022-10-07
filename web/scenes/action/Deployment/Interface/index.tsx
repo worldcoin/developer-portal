@@ -44,17 +44,19 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
         title={props.title}
         description={props.description}
       >
-        <Button
-          className="grid grid-flow-col gap-x-2 h-[34px] !font-rubik !font-medium border-primary/10 bg-primary/5"
-          variant="outlined"
-          color="primary"
-          size="md"
-          type="button"
-          onClick={deploymentInstructionsModal.toggleOn}
-        >
-          Show deployment instructions
-          <Icon name="arrow-right" className={cn("w-4 h-4")} />
-        </Button>
+        {!!props.instructions && (
+          <Button
+            className="grid grid-flow-col gap-x-2 h-[34px] !font-rubik !font-medium border-primary/10 bg-primary/5"
+            variant="outlined"
+            color="primary"
+            size="md"
+            type="button"
+            onClick={deploymentInstructionsModal.toggleOn}
+          >
+            Show deployment instructions
+            <Icon name="arrow-right" className={cn("w-4 h-4")} />
+          </Button>
+        )}
         <Field noStyle name={props.name}>
           {({ value, onChange }) => (
             <Switch
