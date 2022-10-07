@@ -139,12 +139,12 @@ export class Hasura extends MultiEnvRootStack {
     })
 
     scalableTarget.scaleOnCpuUtilization( 
-      scalingConfig?.autoscaling.scaleOnCpuUtilization.name ?? 'CpuScaling', 
+      'CpuScaling', 
       { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnCpuUtilization.targetUtilizationPercent ?? 40 }
     )
     
     scalableTarget.scaleOnMemoryUtilization(
-      scalingConfig?.autoscaling.scaleOnMemoryUtilization.name ?? 'MemoryScaling',
+      'MemoryScaling',
       { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnMemoryUtilization.targetUtilizationPercent ?? 50 }
     )
 

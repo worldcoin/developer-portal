@@ -10,7 +10,7 @@ export type ScalingConfig = {
 
   autoscaling: {
     autoScaleTaskCount: {minCapacity: number; maxCapacity: number}
-    scaleOnCpuUtilization: {name: string; targetUtilizationPercent: number}
-    scaleOnMemoryUtilization: {name: string; targetUtilizationPercent: number}
+    scaleOnCpuUtilization: {targetUtilizationPercent: number}
+    scaleOnMemoryUtilization: {targetUtilizationPercent: number}
   }
 }
