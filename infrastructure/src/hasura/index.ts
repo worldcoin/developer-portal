@@ -34,9 +34,13 @@ export class Hasura extends MultiEnvRootStack {
     this.cloudMapNamespace = props.cloudMapNamespace
     this.domainName = stackParameters.domainName
 
-    const scalingConfig = process.env.SCALING_PARAMS
-    ? (JSON.parse(process.env.SCALING_PARAMS) as ScalingConfig)
+    const scalingConfig = stackParameters.envs.SCALING_CONFIG
+    ? (JSON.parse(stackParameters.envs.SCALING_CONFIG) as ScalingConfig)
     : null;
+
+    if(!scalingConfig) {
+      console.error("Scaling config is not defined")
+    }
 
     // ANCHOR Secrets
     const adminSecret = new cdk.aws_secretsmanager.Secret(this, 'admin-secret', {
