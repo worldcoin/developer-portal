@@ -127,7 +127,7 @@ export class Hasura extends MultiEnvRootStack {
     fargateServicePattern.targetGroup.configureHealthCheck({
       enabled: true,
       healthyThresholdCount: scalingConfig?.healthCheck.healthyThresholdCount ?? 2,
-      interval: cdk.Duration.seconds(scalingConfig?.healthCheck.interval ?? 3),
+      interval: cdk.Duration.seconds(scalingConfig?.healthCheck.interval ?? 5),
       path: scalingConfig?.healthCheck.path ?? '/health',
       timeout: cdk.Duration.seconds(scalingConfig?.healthCheck.timeout ?? 2),
     })
