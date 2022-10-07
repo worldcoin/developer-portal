@@ -27,7 +27,7 @@ export function Deployment() {
 
   const previewModal = useToggle();
 
-  if (!currentAction) {
+  if (!interfaceConfig || !currentAction) {
     return null;
   }
 
@@ -49,7 +49,11 @@ export function Deployment() {
                   <span
                     className={cn(
                       "inline-grid grid-flow-col gap-x-0.5 justify-start font-semibold",
-                      "after:inline-block after:w-1.5 after:h-1.5 after:rounded-full after:bg-ff6848"
+                      {
+                        "after:inline-block after:w-1.5 after:h-1.5 after:rounded-full after:bg-ff6848":
+                          currentAction.user_interfaces.enabled_interfaces
+                            ?.length === 0 || !currentAction.public_description,
+                      }
                     )}
                   >
                     Public description

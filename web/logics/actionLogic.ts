@@ -26,7 +26,6 @@ import { validateUrl } from "utils";
 import { actionQueryParams, actionsLogic } from "./actionsLogic";
 import type { actionLogicType } from "./actionLogicType";
 import { isSSR } from "common/helpers/is-ssr";
-import { BooleanSupportOption } from "prettier";
 
 interface LoadActionsInterface {
   action: ActionType[];
@@ -52,6 +51,7 @@ export interface InterfaceConfigFormValues {
   public_description?: string;
   widget?: boolean;
   hosted_page?: boolean;
+  return_url?: string;
   kiosk?: boolean;
 }
 
@@ -84,6 +84,20 @@ const updateUserInterfacesQuery = gql`
     }
   }
 `;
+
+const updateUserInterface = gql`mutation UpdateInterfaceConfig($action_id: String!, $public_description: String, $return_url: String, $user_interfaces: jsonb) {
+  update_action_by_pk(
+    pk_columns: {id: $action_id}, 
+    _set: {
+      public_description: $public_description, 
+      return_url: $return_url, 
+      user_interfaces: $user_interfaces
+    }
+  ) 
+  {
+    ${actionQueryParams(true)}
+  }
+}`;
 
 const getStatsQuery = gql`
   query GetStats(
@@ -172,6 +186,8 @@ export const actionLogic = kea<actionLogicType>([
               (userInterface) => userInterface === "hosted_page"
             ),
 
+          return_url: values.currentAction?.return_url,
+
           kiosk: values.currentAction?.user_interfaces.enabled_interfaces?.some(
             (userInterface) => userInterface === "kiosk"
           ),
@@ -194,6 +210,50 @@ export const actionLogic = kea<actionLogicType>([
           });
           actions.loadStats({ action_id: id });
           return response.data?.action[0] ?? null;
+        },
+        editAction: async (
+          args: {
+            value: {
+              public_description?: string;
+              return_url?: string;
+              user_interfaces?: ActionUserInterfaces;
+            };
+            skipToast?: boolean;
+            skipActivation?: boolean;
+          },
+          breakpoint
+        ) => {
+          breakpoint();
+          const { skipToast, skipActivation, value } = args;
+          const { public_description, return_url, user_interfaces } = value;
+
+          const response = await graphQLRequest<LoadActionsInterface>({
+            query: updateUserInterface,
+            variables: {
+              action_id: values.currentActionId,
+              public_description,
+              return_url,
+              user_interfaces,
+            },
+          });
+
+          // Notify user of success
+          if (!skipToast) {
+            toast.success("Action updated successfully!");
+          }
+
+          // Update actions list so other views get updated too
+          const action = response.data?.update_action_by_pk ?? null;
+          if (action) {
+            actions.replaceActionAtList(action);
+          }
+
+          if (!skipActivation && action) {
+            // Now that the action is updated, check if it should be activated
+            actions.activateActionIfReady(action);
+          }
+
+          return action;
         },
         updateAction: async (
           {
@@ -363,22 +423,32 @@ export const actionLogic = kea<actionLogicType>([
   // @ts-ignore FIXME bug with kea-typegen
   forms(({ actions, values }) => ({
     interfaceConfig: {
-      defaults: { public_description: "" } as InterfaceConfigFormValues,
-      submit: (formValues) => {
-        actions.updateAction({
-          attr: "public_description",
-          value: formValues.public_description || "",
-          skipToast: true,
-        });
+      defaults: {
+        public_description: "",
+        return_url: "",
+      } as InterfaceConfigFormValues,
 
+      errors: ({ return_url }) => ({
+        return_url: !return_url
+          ? "Please enter a return URL"
+          : !validateUrl(return_url, !values.currentAction?.is_staging)
+          ? `Please enter a valid URL ${
+              !values.currentAction?.is_staging ? " over https://" : ""
+            }`
+          : undefined,
+      }),
+
+      submit: (formValues, breakpoint) => {
         type InterfaceConfigurationCheckboxValues = Omit<
           InterfaceConfigFormValues,
-          "public_description"
+          "public_description" | "return_url"
         >;
 
-        const enabledInterfaces = (
+        const { public_description, return_url } = formValues;
+
+        const enabled_interfaces = (
           Object.entries(formValues).filter(
-            ([key, _]) => key !== "public_description"
+            ([key, _]) => key !== "public_description" && key !== "return_url"
           ) as Array<
             [
               keyof InterfaceConfigurationCheckboxValues,
@@ -395,11 +465,15 @@ export const actionLogic = kea<actionLogicType>([
           return [...acc, key];
         }, []);
 
-        actions.updateAction({
-          attr: "user_interfaces",
+        breakpoint();
+
+        actions.editAction({
           value: {
-            ...values.currentAction?.user_interfaces,
-            enabled_interfaces: enabledInterfaces,
+            public_description,
+            return_url,
+            user_interfaces: {
+              enabled_interfaces,
+            },
           },
           skipToast: true,
         });

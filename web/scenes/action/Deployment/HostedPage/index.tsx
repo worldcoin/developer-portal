@@ -3,6 +3,7 @@ import { useValues } from "kea";
 import { actionLogic } from "logics/actionLogic";
 import cn from "classnames";
 import { Field as ActionField } from "scenes/action/ActionHeader/Field";
+import { Field } from "kea-forms";
 
 export function HostedPage(props: { actionId: string }) {
   const { actionUrls } = useValues(actionLogic);
@@ -37,16 +38,22 @@ export function HostedPage(props: { actionId: string }) {
             </span>
           </label>
         </div>
-        <FieldInput
-          id={`${HostedPage.name}-returnUrl`}
-          className="!h-[44px] !px-4"
-          variant="small"
-          value={""}
-          onChange={() => {}}
-          name="returnUrl"
-          //error={error}
-          type="text"
-        />
+        {
+          <Field noStyle name="return_url">
+            {({ value, onChange, error }) => (
+              <FieldInput
+                id={`${HostedPage.name}-returnUrl`}
+                className="!h-[44px] !px-4"
+                variant="small"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                name="return_url"
+                error={error}
+                type="text"
+              />
+            )}
+          </Field>
+        }
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ export function Action(): JSX.Element | null {
     currentActionLoading,
     actionTabs,
     interfaceConfigChanged,
+    interfaceConfigHasErrors,
     isInterfaceConfigSubmitting,
   } = useValues(actionLogic);
 
@@ -48,6 +49,8 @@ export function Action(): JSX.Element | null {
         (userInterface) => userInterface === "hosted_page"
       ),
 
+      hosted_page_return_url: currentAction?.return_url,
+
       kiosk: currentAction?.user_interfaces.enabled_interfaces?.some(
         (userInterface) => userInterface === "kiosk"
       ),
@@ -55,6 +58,7 @@ export function Action(): JSX.Element | null {
 
     [
       currentAction?.public_description,
+      currentAction?.return_url,
       currentAction?.user_interfaces.enabled_interfaces,
     ]
   );
@@ -185,7 +189,9 @@ export function Action(): JSX.Element | null {
                 color="primary"
                 variant="contained"
                 onClick={submit}
-                disabled={isInterfaceConfigSubmitting}
+                disabled={
+                  isInterfaceConfigSubmitting || interfaceConfigHasErrors
+                }
               >
                 save changes
               </Button>
