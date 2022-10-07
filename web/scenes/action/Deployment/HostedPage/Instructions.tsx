@@ -4,13 +4,15 @@ import { Button } from "common/Button";
 import cn from "classnames";
 import { ApiVerificationInstructions } from "../Instructions/ApiVerification";
 import { JwtVerificationInstructions } from "../Instructions/JwtVerification";
+import { useValues } from "kea";
+import { actionLogic } from "logics/actionLogic";
 
 type Method = "api" | "jwt";
 
 export const HostedPageInstructions = memo(function Instructions(props: {
   actionId: string;
-  hostedPageUrl?: string;
 }) {
+  const { actionUrls } = useValues(actionLogic);
   const [method, setMethod] = useState<Method>("jwt");
   const createSetMethodHandler = useCallback(
     (method: Method) => () => setMethod(method),
@@ -57,7 +59,7 @@ export const HostedPageInstructions = memo(function Instructions(props: {
         {method === "jwt" && (
           <JwtVerificationInstructions
             actionId={props.actionId}
-            hostedPageUrl={props.hostedPageUrl || ""}
+            hostedPageUrl={actionUrls?.hostedPage || ""}
           />
         )}
       </div>
