@@ -1,22 +1,87 @@
-import { ActionCard } from "scenes/action/ActionCard/ActionCard";
 import { NotFound } from "common/NotFound";
 import { Preloader } from "common/Preloader";
-import { Tabs } from "common/Tabs";
 import { Tab } from "common/Tabs/types";
 import { useActions, useValues } from "kea";
-import { actionLogic } from "logics/actionLogic";
+import { actionLogic, InterfaceConfigFormValues } from "logics/actionLogic";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { urls } from "urls";
 import { Deployment } from "./Deployment";
-import { Display } from "./Display";
 import { Stats } from "./Stats";
 import { Layout } from "common/Layout";
+import { ActionHeader } from "./ActionHeader";
+import { Footer } from "common/Footer";
+import { Button } from "common/Button";
 
 export function Action(): JSX.Element | null {
-  const { currentAction, currentActionLoading, actionTabs } =
-    useValues(actionLogic);
-  const { loadAction, updateAction } = useActions(actionLogic);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
+
+  const {
+    currentAction,
+    currentActionLoading,
+    actionTabs,
+    interfaceConfigChanged,
+    interfaceConfigHasErrors,
+    isInterfaceConfigSubmitting,
+  } = useValues(actionLogic);
+
+  const {
+    loadAction,
+    updateAction,
+    resetInterfaceConfig,
+    submitInterfaceConfig,
+    setAfterInterfaceConfigSubmitSuccess,
+  } = useActions(actionLogic);
+
+  useEffect(() => {
+    interfaceConfigChanged && setIsFooterVisible(true);
+  }, [interfaceConfigChanged]);
+
+  const defaultValues: InterfaceConfigFormValues = useMemo(
+    () => ({
+      public_description: currentAction?.public_description,
+
+      widget: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "widget"
+      ),
+
+      hosted_page: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "hosted_page"
+      ),
+
+      hosted_page_return_url: currentAction?.return_url,
+
+      kiosk: currentAction?.user_interfaces.enabled_interfaces?.some(
+        (userInterface) => userInterface === "kiosk"
+      ),
+    }),
+
+    [
+      currentAction?.public_description,
+      currentAction?.return_url,
+      currentAction?.user_interfaces.enabled_interfaces,
+    ]
+  );
+
+  const submit = useCallback(() => {
+    setAfterInterfaceConfigSubmitSuccess(
+      (newFormValues: InterfaceConfigFormValues) => {
+        resetInterfaceConfig(newFormValues);
+      }
+    );
+
+    submitInterfaceConfig();
+    setIsFooterVisible(false);
+  }, [
+    resetInterfaceConfig,
+    setAfterInterfaceConfigSubmitSuccess,
+    submitInterfaceConfig,
+  ]);
+
+  const discard = useCallback(() => {
+    setIsFooterVisible(false);
+    resetInterfaceConfig(defaultValues);
+  }, [defaultValues, resetInterfaceConfig]);
 
   // Reset scroll on currentAction change
   useEffect(() => {
@@ -68,25 +133,27 @@ export function Action(): JSX.Element | null {
   }
 
   return (
-    <Layout title={currentAction?.name}>
-      <div className="grid gap-y-8 min-h-full">
-        {currentAction && (
-          <ActionCard
-            action={currentAction}
-            isLoading={currentActionLoading}
-            updateAction={updateAction}
-          />
-        )}
+    <Layout
+      title={currentAction?.name}
+      mainClassName="p-0 lg:p-0 xl:p-0 flex flex-col"
+    >
+      {currentAction && (
+        <ActionHeader
+          action={currentAction}
+          isLoading={currentActionLoading}
+          updateAction={updateAction}
+          tabs={actionTabs}
+          currentTab={tab}
+          setTab={handleChangeTab}
+        />
+      )}
 
-        {currentAction && tab && (
-          <Tabs tabs={actionTabs} currentTab={tab} setTab={handleChangeTab}>
-            {tab.name === "deployment" && <Deployment />}
-            {tab.name === "display" && <Display />}
-            {tab.name === "stats" && currentAction.engine !== "on-chain" && (
-              <Stats />
-            )}
-          </Tabs>
-        )}
+      <div className="px-4 lg:px-8 xl:px-16 grow flex flex-col">
+        {currentAction && tab && tab.name === "deployment" && <Deployment />}
+        {currentAction &&
+          tab &&
+          tab.name === "stats" &&
+          currentAction.engine !== "on-chain" && <Stats />}
 
         {!currentAction && (
           <NotFound
@@ -98,6 +165,40 @@ export function Action(): JSX.Element | null {
           />
         )}
       </div>
+
+      {isFooterVisible && (
+        <Footer>
+          <div className="grid grid-cols-1fr/auto items-center">
+            <span className="text-14 text-neutral">
+              You have unsaved changes.
+            </span>
+
+            <div className="grid grid-flow-col gap-x-8">
+              <Button
+                className="uppercase"
+                color="danger"
+                variant="default"
+                onClick={discard}
+                disabled={isInterfaceConfigSubmitting}
+              >
+                discard
+              </Button>
+
+              <Button
+                className="uppercase"
+                color="primary"
+                variant="contained"
+                onClick={submit}
+                disabled={
+                  isInterfaceConfigSubmitting || interfaceConfigHasErrors
+                }
+              >
+                save changes
+              </Button>
+            </div>
+          </div>
+        </Footer>
+      )}
     </Layout>
   );
 }

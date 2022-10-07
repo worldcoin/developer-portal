@@ -46,6 +46,7 @@ module.exports = {
         "#000000",
         "#191c20",
         "#3c4040",
+        "#487b8f",
         "#626467",
         "#777e90",
         "#a39dff",
@@ -114,6 +115,7 @@ module.exports = {
       zIndex: {
         dropdown: "50",
         header: "100",
+        modal: "1000",
       },
     },
   },

@@ -111,7 +111,7 @@ export const Action = memo(function Action(props: ActionProps) {
         })}
       >
         {isActive && !action.is_archived && "Active"}
-        {!isActive && !action.is_archived && "Awaiting deployment"}
+        {!isActive && !action.is_archived && "Config missing"}
         {action.is_archived && "Archived"}
       </Cell>
 
