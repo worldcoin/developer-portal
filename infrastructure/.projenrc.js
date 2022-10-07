@@ -30,4 +30,5 @@ const project = new awscdk.AwsCdkTypeScriptApp({
 })
 
 project.tsconfig.file.addOverride('ts-node', { require: ['tsconfig-paths/register'] })
+project.gitignore.addPatterns('.env', '.env.local')
 project.synth()

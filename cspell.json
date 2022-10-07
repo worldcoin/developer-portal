@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -17,11 +22,12 @@
     "arrayify",
     "chartjs",
     "fren",
-    "hexlify",
     "Hasura",
-    "JWT",
+    "healthz",
+    "hexlify",
     "JWK",
     "jwks",
+    "JWT",
     "keccak",
     "merkle",
     "nullifer",
