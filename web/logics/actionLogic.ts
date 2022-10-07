@@ -429,12 +429,14 @@ export const actionLogic = kea<actionLogicType>([
       } as InterfaceConfigFormValues,
 
       errors: ({ return_url }) => ({
-        return_url: !return_url
-          ? "Please enter a return URL"
-          : !validateUrl(return_url, !values.currentAction?.is_staging)
-          ? `Please enter a valid URL ${
-              !values.currentAction?.is_staging ? " over https://" : ""
-            }`
+        return_url: values.interfaceConfig["hosted_page"]
+          ? !return_url
+            ? "Please enter a return URL"
+            : !validateUrl(return_url, !values.currentAction?.is_staging)
+            ? `Please enter a valid URL ${
+                !values.currentAction?.is_staging ? " over https://" : ""
+              }`
+            : undefined
           : undefined,
       }),
 
@@ -561,7 +563,7 @@ export const actionLogic = kea<actionLogicType>([
         const baseTabs: Array<Tab> = [
           {
             name: "deployment",
-            label: "Deployment",
+            label: "Configuration",
             notifications,
           },
         ];

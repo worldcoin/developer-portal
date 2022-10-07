@@ -67,7 +67,7 @@ export const Status = memo(function Status(props: StatusInterface) {
               onClick={handleClickAwaitingDeployment}
               className="leading-4 cursor-pointer"
             >
-              Awaiting deployment
+              Config missing
             </span>
           )}
 

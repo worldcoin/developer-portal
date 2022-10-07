@@ -80,7 +80,7 @@ export const ActionCard = memo(function ActionCard(props: {
                     onClick={handleClickAwaitingDeployment}
                     className="leading-none cursor-pointer"
                   >
-                    Awaiting deployment
+                    Config missing
                   </span>
                 )}
 
