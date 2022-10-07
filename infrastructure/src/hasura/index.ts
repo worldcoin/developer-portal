@@ -35,10 +35,10 @@ export class Hasura extends MultiEnvRootStack {
     this.domainName = stackParameters.domainName
 
     const scalingConfig = stackParameters.envs.SCALING_CONFIG
-    ? (JSON.parse(stackParameters.envs.SCALING_CONFIG) as ScalingConfig)
-    : null;
+      ? (JSON.parse(stackParameters.envs.SCALING_CONFIG) as ScalingConfig)
+      : null;
 
-    if(!scalingConfig) {
+    if (!scalingConfig) {
       console.error("Scaling config is not defined")
     }
 
@@ -134,15 +134,15 @@ export class Hasura extends MultiEnvRootStack {
 
     // ANCHOR Autoscaling
     const scalableTarget = fargateServicePattern.service.autoScaleTaskCount({
-      minCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.minCapacity ?? 1, 
-      maxCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.maxCapacity ?? 30 
+      minCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.minCapacity ?? 1,
+      maxCapacity: scalingConfig?.autoscaling.autoScaleTaskCount.maxCapacity ?? 30
     })
 
-    scalableTarget.scaleOnCpuUtilization( 
-      'CpuScaling', 
+    scalableTarget.scaleOnCpuUtilization(
+      'CpuScaling',
       { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnCpuUtilization.targetUtilizationPercent ?? 40 }
     )
-    
+
     scalableTarget.scaleOnMemoryUtilization(
       'MemoryScaling',
       { targetUtilizationPercent: scalingConfig?.autoscaling.scaleOnMemoryUtilization.targetUtilizationPercent ?? 50 }
