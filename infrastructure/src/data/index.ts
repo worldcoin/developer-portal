@@ -96,6 +96,14 @@ export class Data extends MultiEnvRootStack {
       "Allow from Metabase to Database"
     );
 
+    // ANCHOR Exports
+    this.exportValue(this.databaseCluster.secret!.secretArn, {
+      name: `${this.stackName}:DatabaseClusterSecretArn`,
+    });
+    this.exportValue(databaseSecurityGroup.securityGroupId, {
+      name: `${this.stackName}:DatabaseSecurityGroupId`,
+    });
+
     // FIXME Use RDS IAM database authentication to obtain temporary credentials
     // https://github.com/worldcoin/distributors-web-app/pull/688
     NagSuppressions.addResourceSuppressions(
