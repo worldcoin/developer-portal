@@ -53,6 +53,7 @@ export const Field = memo(function Field(props: FieldInterface) {
           "text-primary": props.copyable,
         })}
         onClick={props.copyable ? copy : undefined}
+        type={props.copyable ? "button" : undefined}
       >
         {props.icon && <Icon name={props.icon} className="w-4 h-4 mr-1" />}
         <span className={props.valueClassName}>{props.value}</span>

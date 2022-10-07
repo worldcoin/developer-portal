@@ -115,6 +115,7 @@ module.exports = {
       zIndex: {
         dropdown: "50",
         header: "100",
+        modal: "1000",
       },
     },
   },

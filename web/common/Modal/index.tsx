@@ -10,6 +10,7 @@ export const Modal = memo(function Modal(props: {
   isAlt?: boolean;
   isShown: boolean;
   heading?: string;
+  containerClassName?: string;
   buttonClassName?: string;
   withCloseButton?: boolean;
 }) {
@@ -31,7 +32,10 @@ export const Modal = memo(function Modal(props: {
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center sm:p-8 md:p-4"
+        className={cn(
+          "fixed inset-0 z-modal flex flex-col items-center justify-center sm:p-8 md:p-4",
+          props.containerClassName
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <span

@@ -1,10 +1,15 @@
-import { memo, ReactNode } from "react";
+import { memo, ReactNode, useCallback } from "react";
+import { UserInterfacesType } from "types";
+import { useToggle } from "common/hooks";
 import cn from "classnames";
+import { InterfaceHeader } from "./InterfaceHeader";
+import { InterfaceOverview } from "./InterfaceOverview";
 import { Icon, IconType } from "common/Icon";
 import { Button } from "common/Button";
 import { Switch } from "common/Switch";
 import { Field } from "kea-forms";
-import { UserInterfacesType } from "types";
+import { Modal } from "common/Modal";
+import { Footer } from "common/Footer";
 
 interface InterfaceInterface {
   className?: string;
@@ -18,70 +23,115 @@ interface InterfaceInterface {
   }>;
   children?: ReactNode;
   name: UserInterfacesType;
+  instructions?: ReactNode;
 }
 
 export const Interface = memo(function Interface(props: InterfaceInterface) {
+  const deploymentInstructionsModal = useToggle();
+
+  const handleClickDone = useCallback(
+    (onChange: (value: boolean) => void) => () => {
+      onChange(true);
+      deploymentInstructionsModal.toggleOff();
+    },
+    [deploymentInstructionsModal]
+  );
+
   return (
     <div className="mb-2 bg-ffffff border border-neutral-muted rounded-xl">
-      <div className="grid grid-cols-auto/1fr/auto items-center pt-8 pl-8 pr-8 pb-6">
-        <div className="grid items-center justify-center w-12 h-12 mr-4 text-primary border border-primary/10 rounded-full">
-          <Icon name={props.icon} className={cn("w-6 h-6")} />
-        </div>
-        <div className="grid grid-flow-row gap-y-1">
-          <h3 className="font-sora font-semibold text-16 leading-5">
-            {props.title}
-          </h3>
-          <p className="text-14 text-neutral leading-4">{props.description}</p>
-        </div>
-        <div className="grid grid-flow-col gap-x-8 items-center">
-          <Button
-            className="grid grid-flow-col gap-x-2 h-[34px] px-3 !font-rubik !font-medium border-primary/10 bg-primary/5"
-            variant="outlined"
-            color="primary"
-            size="md"
-          >
-            Show deployment instructions
-            <Icon name="arrow-right" className={cn("w-4 h-4")} />
-          </Button>
-          <Field noStyle name={props.name}>
-            {({ value, onChange }) => (
-              <Switch
-                checked={value}
-                onChangeChecked={(value) => onChange(value)}
-              />
-            )}
-          </Field>
-        </div>
-      </div>
+      <InterfaceHeader
+        icon={props.icon}
+        title={props.title}
+        description={props.description}
+      >
+        <Button
+          className="grid grid-flow-col gap-x-2 h-[34px] !font-rubik !font-medium border-primary/10 bg-primary/5"
+          variant="outlined"
+          color="primary"
+          size="md"
+          type="button"
+          onClick={deploymentInstructionsModal.toggleOn}
+        >
+          Show deployment instructions
+          <Icon name="arrow-right" className={cn("w-4 h-4")} />
+        </Button>
+        <Field noStyle name={props.name}>
+          {({ value, onChange }) => (
+            <Switch
+              checked={value}
+              onChangeChecked={(value) => onChange(value)}
+            />
+          )}
+        </Field>
+      </InterfaceHeader>
       {props.enabled && props.children && (
         <div className="pt-6 pl-8 pr-8 pb-8 border-t border-neutral-muted">
           {props.children}
         </div>
       )}
-      <div className="pt-6 pl-8 pr-8 pb-8 border-t border-neutral-muted">
-        <h3 className="grid grid-flow-col gap-x-4 mb-4 items-baseline justify-start font-sora font-semibold text-16 leading-5">
-          Overview
-          <span className="text-12 text-neutral-dark/30 leading-4">
-            {props.title}
-          </span>
-        </h3>
-        <div className="grid grid-flow-col justify-items-center items-center overflow-x-auto">
-          {props.overviewItems.map((item, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-1fr/auto items-center w-full"
-            >
-              <div className="grid grid-cols-auto/1fr gap-x-2 items-center p-4 bg-f1f5f8 border border-487b8f/30 rounded-2xl">
-                <Icon name={item.icon} className="w-8 h-8" noMask />
-                <span className="text-14 leading-4">{item.text}</span>
-              </div>
-              {i < props.overviewItems.length - 1 && (
-                <Icon name="arrow-right" className="w-6 h-6 mx-3" />
-              )}
-            </div>
-          ))}
+      <InterfaceOverview
+        icon={props.icon}
+        title={props.title}
+        overviewItems={props.overviewItems}
+      />
+
+      <Modal
+        containerClassName="left-[304px] right-0! !p-0"
+        className={cn(
+          "flex flex-col !min-w-full !max-w-none w-full min-h-full p-0 rounded-none overflow-y-auto bg-fbfbfb"
+        )}
+        close={deploymentInstructionsModal.toggleOff}
+        isShown={deploymentInstructionsModal.isOn}
+      >
+        <div className="grow px-4 lg:px-8 xl:px-16 py-8">
+          <div className="mb-2 bg-ffffff border border-neutral-muted rounded-xl">
+            <InterfaceHeader
+              icon={props.icon}
+              title={props.title}
+              description={props.description}
+            />
+            <InterfaceOverview
+              icon={props.icon}
+              title={props.title}
+              overviewItems={props.overviewItems}
+            />
+          </div>
+          <h2 className="mt-8 mb-4 font-sora font-semibold text-20 leading-6">
+            Deployment instructions
+          </h2>
+          {props.instructions}
         </div>
-      </div>
+        <Footer>
+          <Button
+            className={cn(
+              "justify-self-start grid grid-flow-col gap-x-2 h-12 !px-12 !font-rubik !font-medium border-primary/10 bg-primary/5"
+            )}
+            variant="outlined"
+            color="primary"
+            size="md"
+            type="button"
+            onClick={deploymentInstructionsModal.toggleOff}
+          >
+            BACK TO CONFIGURATION
+          </Button>
+          <Field noStyle name={props.name}>
+            {({ onChange }) => (
+              <Button
+                className={cn(
+                  "justify-self-end grid grid-flow-col gap-x-2 h-12 !px-12 !font-semibold uppercase"
+                )}
+                variant="contained"
+                color="primary"
+                size="md"
+                type="button"
+                onClick={handleClickDone(onChange)}
+              >
+                I’ve done this
+              </Button>
+            )}
+          </Field>
+        </Footer>
+      </Modal>
     </div>
   );
 });

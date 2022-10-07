@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { urls } from "urls";
 import { Deployment } from "./Deployment";
-import { Display } from "./Display";
 import { Stats } from "./Stats";
 import { Layout } from "common/Layout";
 import { ActionHeader } from "./ActionHeader";
@@ -147,7 +146,6 @@ export function Action(): JSX.Element | null {
 
       <div className="px-4 lg:px-8 xl:px-16 grow flex flex-col">
         {currentAction && tab && tab.name === "deployment" && <Deployment />}
-        {currentAction && tab && tab.name === "display" && <Display />}
         {currentAction &&
           tab &&
           tab.name === "stats" &&

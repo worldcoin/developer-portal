@@ -8,7 +8,9 @@ export const CodeBlock = memo(function CodeBlock(
     code: string;
     theme: "error" | "neutral" | "success";
     language: string;
+    hideLineNumbers?: boolean;
     className?: string;
+    preTagClassName?: string;
     loading?: boolean;
   } & (
     | { caption: string; captionClassName?: string }
@@ -17,11 +19,15 @@ export const CodeBlock = memo(function CodeBlock(
 ) {
   const preTag = useCallback(
     (preTagProps: ComponentProps<any>) => (
-      <PreTag theme={props.theme} loading={props.loading}>
+      <PreTag
+        className={props.preTagClassName}
+        theme={props.theme}
+        loading={props.loading}
+      >
         {preTagProps.children}
       </PreTag>
     ),
-    [props.loading, props.theme]
+    [props.loading, props.theme, props.preTagClassName]
   );
 
   const codeTag = useCallback(
@@ -41,7 +47,7 @@ export const CodeBlock = memo(function CodeBlock(
 
       <SyntaxHighlighter
         language={props.language}
-        showLineNumbers
+        showLineNumbers={!props.hideLineNumbers}
         wrapLines
         showInlineLineNumbers
         lineNumberStyle={{

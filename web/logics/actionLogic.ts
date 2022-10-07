@@ -477,19 +477,18 @@ export const actionLogic = kea<actionLogicType>([
     actionTabs: [
       (s) => [s.currentAction],
       (currentAction): Array<Tab> => {
+        let notifications = 0;
+        if (!currentAction?.user_interfaces.enabled_interfaces?.length) {
+          notifications++;
+        }
+        if (!currentAction?.public_description) {
+          notifications++;
+        }
         const baseTabs: Array<Tab> = [
           {
             name: "deployment",
             label: "Deployment",
-            notifications: currentAction?.user_interfaces.enabled_interfaces
-              ?.length
-              ? 0
-              : 1,
-          },
-          {
-            name: "display",
-            label: "Display",
-            notifications: currentAction?.public_description ? 0 : 1,
+            notifications,
           },
         ];
 

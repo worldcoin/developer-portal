@@ -1,30 +1,31 @@
-import { useActions, useValues } from "kea";
+import { useValues } from "kea";
 import { actionLogic } from "logics/actionLogic";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { userInterfaces, UserInterfacesType } from "types";
+import { useCallback } from "react";
+import { useToggle } from "common/hooks";
+import { UserInterfacesType } from "types";
 import { HostedPage } from "./HostedPage";
 import cn from "classnames";
 import { Button } from "common/Button";
 import { FieldInput } from "common/FieldInput";
 import { Interface } from "./Interface";
-import { KioskAccess } from "./Kiosk/Access";
+import { Kiosk } from "./Kiosk";
 import { OnChainWidget } from "./OnChainWidget";
 import { Field, Form } from "kea-forms";
-import { Footer } from "common/Footer";
+import { APIInstructions } from "./CloudWidget/Instructions";
+import { HostedPageInstructions } from "./HostedPage/Instructions";
+import { Modal } from "common/Modal";
+import { Preview } from "common/Preview";
 
 export function Deployment() {
-  const {
-    interfaceConfig,
-    currentAction,
-    actionUrls,
-    deploymentSteps,
-    interfaceConfigLoading,
-  } = useValues(actionLogic);
+  const { interfaceConfig, currentAction, actionUrls, interfaceConfigLoading } =
+    useValues(actionLogic);
 
   const isInterfaceEnabled = useCallback(
     (userInterface: UserInterfacesType) => interfaceConfig[userInterface],
     [interfaceConfig]
   );
+
+  const previewModal = useToggle();
 
   if (!currentAction) {
     return null;
@@ -58,11 +59,12 @@ export function Deployment() {
                   </span>
                 </label>
                 <Button
-                  className="h-[34px] px-3 !font-rubik !font-medium border-primary/10 bg-primary/5"
+                  className="h-[34px] !font-rubik !font-medium border-primary/10 bg-primary/5"
                   variant="outlined"
                   color="primary"
                   size="md"
                   type="button"
+                  onClick={previewModal.toggleOn}
                 >
                   Preview Worldcoin App
                 </Button>
@@ -140,6 +142,7 @@ export function Deployment() {
                   ),
                 },
               ]}
+              instructions={<APIInstructions actionId={currentAction.id} />}
             />
           ) : (
             <Interface
@@ -219,8 +222,11 @@ export function Deployment() {
                 text: "You verify the response (JWT signature)",
               },
             ]}
+            instructions={
+              <HostedPageInstructions actionId={currentAction.id} />
+            }
           >
-            {isInterfaceEnabled("kiosk") && (
+            {isInterfaceEnabled("hosted_page") && (
               <HostedPage actionId={currentAction.id} />
             )}
           </Interface>
@@ -254,16 +260,23 @@ export function Deployment() {
                 },
               ]}
             >
-              {isInterfaceEnabled("kiosk") && (
-                <KioskAccess
-                  deploymentStep={deploymentSteps?.kiosk}
-                  url={actionUrls?.kiosk}
-                />
-              )}
+              {isInterfaceEnabled("kiosk") && <Kiosk url={actionUrls?.kiosk} />}
             </Interface>
           )}
         </Form>
       )}
+
+      <Modal
+        className={cn("p-0 bg-ffffff/0")}
+        close={previewModal.toggleOff}
+        isShown={previewModal.isOn}
+      >
+        <Preview
+          className="justify-self-center"
+          app={currentAction.app}
+          message={interfaceConfig.public_description ?? ""}
+        />
+      </Modal>
     </div>
   );
 }
