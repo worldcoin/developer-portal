@@ -7,6 +7,6 @@ export const dev = (params: {
 }) => ({
   domainName: params.hostedZone.zoneName,
   envs: {
-    SCALING_CONFIG: process.env.SCALING_CONFIG_JSON,
+    SCALING_CONFIG: process.env.WEB_SCALING_CONFIG_JSON,
   },
 })
