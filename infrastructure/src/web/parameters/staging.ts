@@ -8,6 +8,6 @@ export const staging = (params: {
   domainName: params.hostedZone.zoneName,
   envs: {
     NEXT_PUBLIC_APP_URL: 'https://staging.developer.worldcoin.org',
-    SCALING_CONFIG: process.env.SCALING_CONFIG_JSON,
+    SCALING_CONFIG: process.env.WEB_SCALING_CONFIG_JSON,
   },
 })
