@@ -138,7 +138,7 @@ export class Web extends MultiEnvRootStack {
       healthyThresholdCount:
         scalingConfig?.healthCheck.healthyThresholdCount ?? 2,
       interval: cdk.Duration.seconds(scalingConfig?.healthCheck.interval ?? 5),
-      path: '/api/health',
+      path: scalingConfig?.healthCheck.path ?? '/api/health',
       timeout: cdk.Duration.seconds(scalingConfig?.healthCheck.timeout ?? 2),
     })
 
