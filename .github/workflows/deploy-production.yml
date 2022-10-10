@@ -65,7 +65,7 @@ jobs:
         working-directory: infrastructure
       - name: Install Hasura CLI
         run: |
-          yarn global add hasura-cli@2.2.0
+          yarn global add hasura-cli@2.12.0
       - name: Apply DB migrations
         run: |
           cd hasura
