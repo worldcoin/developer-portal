@@ -57,20 +57,22 @@ export const ActionHeader = memo(function ActionHeader(
           />
         }
       >
-        <div className="grid grid-flow-col justify-start gap-8 mt-3.5 text-14 leading-4">
+        <div className="flex flex-wrap justify-start gap-y-3 gap-x-6 xl:gap-x-8 mt-3.5 text-14 leading-4">
           <Field label="Action ID" value={props.action?.id} copyable />
-          <Field
-            icon="rocket"
-            value={props.action?.is_staging ? "Staging" : "Production"}
-            unchangeable
-          />
-          <Field
-            icon="cloud"
-            value={props.action?.engine}
-            unchangeable
-            valueClassName="capitalize"
-          />
-          {props.action && <Status action={props.action} />}
+          <div className="grid grid-flow-col justify-start gap-x-6 xl:gap-x-8">
+            <Field
+              icon="rocket"
+              value={props.action?.is_staging ? "Staging" : "Production"}
+              unchangeable
+            />
+            <Field
+              icon="cloud"
+              value={props.action?.engine}
+              unchangeable
+              valueClassName="capitalize"
+            />
+            {props.action && <Status action={props.action} />}
+          </div>
         </div>
       </HeaderText>
       <div className="grid grid-flow-row">
