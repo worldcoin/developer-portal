@@ -22,17 +22,11 @@ export const JsWidgetInstructions = memo(function JsWidgetInstructions(
       {/*</p>*/}
       <CodeBlock
         className="mt-3"
-        preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-        code={
-          "yarn add @worldcoin/id" +
-          "\n" +
-          "# or" +
-          "\n" +
-          "npm install @worldcoin/id"
-        }
+        code={`yarn add @worldcoin/id
+# or
+npm install @worldcoin/id`}
         language="bash"
         theme="neutral"
-        hideLineNumbers
       />
 
       <h3 className="mt-8 font-sora font-semibold text-16 leading-5">
@@ -40,11 +34,9 @@ export const JsWidgetInstructions = memo(function JsWidgetInstructions(
       </h3>
       <CodeBlock
         className="mt-3"
-        preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
         code={'<div id="world-id-container"></div>'}
         language="bash"
         theme="neutral"
-        hideLineNumbers
       />
 
       <h3 className="mt-8 font-sora font-semibold text-16 leading-5">
@@ -52,23 +44,13 @@ export const JsWidgetInstructions = memo(function JsWidgetInstructions(
       </h3>
       <CodeBlock
         className="mt-3"
-        preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-        code={
-          'worldID.init("world-id-container", {' +
-          "\n" +
-          "  enable_telemetry: true," +
-          "\n" +
-          '  action_id: "' +
-          props.actionId +
-          '",' +
-          "\n" +
-          '  signal: "yourSignal" // <- Set an appropriate signal for each user' +
-          "\n" +
-          "});"
-        }
+        code={`worldID.init("world-id-container", {
+  enable_telemetry: true,
+  action_id: "${props.actionId}",
+  signal: "yourSignal" // <- Set an appropriate signal for each user
+});`}
         language="javascript"
         theme="neutral"
-        hideLineNumbers
       />
 
       <h3 className="mt-8 font-sora font-semibold text-16 leading-5">
@@ -76,27 +58,16 @@ export const JsWidgetInstructions = memo(function JsWidgetInstructions(
       </h3>
       <CodeBlock
         className="mt-3"
-        preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-        code={
-          'document.addEventListener("DOMContentLoaded", async function () {' +
-          "\n" +
-          "  try {" +
-          "\n" +
-          "    const result = await worldID.enable(); // <- Send 'result' to your backend or sm" +
-          "\n" +
-          "  } catch (failure) {" +
-          "\n" +
-          '    console.warn("World ID verification failed:", failure);' +
-          "\n" +
-          "    // Re-activate here so your end user can try again" +
-          "\n" +
-          "  }" +
-          "\n" +
-          "});"
-        }
+        code={`document.addEventListener("DOMContentLoaded", async function () {
+  try {
+    const result = await worldID.enable(); // <- Send 'result' to your backend or sm
+  } catch (failure) {
+    console.warn("World ID verification failed:", failure);
+    // Re-activate here so your end user can try again
+  }
+});`}
         language="javascript"
         theme="neutral"
-        hideLineNumbers
       />
     </>
   );

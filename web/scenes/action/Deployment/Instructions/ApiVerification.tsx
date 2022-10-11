@@ -20,11 +20,9 @@ export const ApiVerificationInstructions = memo(
         </h3>
         <CodeBlock
           className="mt-3"
-          preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
           code={"POST https://developer.worldcoin.org/api/v1/verify"}
           language="text"
           theme="neutral"
-          hideLineNumbers
         />
 
         <h3 className="mt-8 font-sora font-semibold text-16 leading-5">
@@ -32,37 +30,25 @@ export const ApiVerificationInstructions = memo(
         </h3>
         <CodeBlock
           className="mt-3"
-          preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-          code={
-            "{" + "\n" + '  "Content-Type": "application/json"' + "\n" + "}"
-          }
+          code={`{
+  "Content-Type": "application/json"
+}`}
           language="json"
           theme="neutral"
-          hideLineNumbers
         />
 
         <h3 className="mt-8 font-sora font-semibold text-16 leading-5">Body</h3>
         <CodeBlock
           className="mt-3"
-          preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-          code={
-            "{" +
-            "\n" +
-            `  "action_id": "${props.actionId}",` +
-            "\n" +
-            '  "signal": "<your_signal>",' +
-            "\n" +
-            '  "proof": "<as_received_from_the_widget>",' +
-            "\n" +
-            '  "nullifier_hash": "<as_received_from_the_widget>",' +
-            "\n" +
-            '  "merkle_root": "<as_received_from_the_widget>"' +
-            "\n" +
-            "}"
-          }
+          code={`{
+  "action_id": "wid_staging_442d023c609ffa14f658d3a36fb6597a",
+  "signal": "<your_signal>",
+  "proof": "<as_received_from_the_widget>",
+  "nullifier_hash": "<as_received_from_the_widget>",
+  "merkle_root": "<as_received_from_the_widget>"
+}`}
           language="json"
           theme="neutral"
-          hideLineNumbers
         />
 
         <h3 className="mt-8 font-sora font-semibold text-16 leading-5">
@@ -70,21 +56,13 @@ export const ApiVerificationInstructions = memo(
         </h3>
         <CodeBlock
           className="mt-3"
-          preTagClassName="p-4 border-neutral-muted bg-neutral-muted/30"
-          code={
-            "{" +
-            "\n" +
-            '  "success": true,' +
-            "\n" +
-            '  "nullifier_hash": "nil_c94ee7a8954a4f18effc179cfd76b992",' +
-            "\n" +
-            '  "created_at": "2022-06-22T11:23:23.931Z"' +
-            "\n" +
-            "}"
-          }
+          code={`{
+  "success": true,
+  "nullifier_hash": "nil_c94ee7a8954a4f18effc179cfd76b992",
+  "created_at": "2022-06-22T11:23:23.931Z"
+}`}
           language="json"
           theme="neutral"
-          hideLineNumbers
         />
       </>
     );
