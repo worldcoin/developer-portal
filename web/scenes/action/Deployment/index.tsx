@@ -39,7 +39,12 @@ export function Deployment() {
       </h2>
 
       {!interfaceConfigLoading && (
-        <Form logic={actionLogic} formKey="interfaceConfig" enableFormOnSubmit>
+        <Form
+          className="min-w-0"
+          logic={actionLogic}
+          formKey="interfaceConfig"
+          enableFormOnSubmit
+        >
           <div className="mb-6 p-8 bg-ffffff border border-neutral-muted rounded-xl">
             <div className="grid gap-y-2">
               <div className="grid grid-cols-1fr/auto">
