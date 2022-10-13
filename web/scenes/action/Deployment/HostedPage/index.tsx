@@ -14,6 +14,7 @@ export function HostedPage(props: { actionId: string }) {
         <div className="font-medium text-14 leading-4">Hosted page URL</div>
         <ActionField
           className="mt-2 text-14 leading-4"
+          valueClassName="truncate"
           value={actionUrls?.hostedPage ?? ""}
           copyable
         />
@@ -43,7 +44,7 @@ export function HostedPage(props: { actionId: string }) {
             {({ value, onChange, error }) => (
               <FieldInput
                 id={`${HostedPage.name}-returnUrl`}
-                className="!h-[44px] !px-4"
+                className="!h-[44px] !px-4 min-w-0"
                 variant="small"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
