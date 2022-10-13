@@ -24,7 +24,7 @@ export const InterfaceHeader = memo(function InterfaceHeader(
         </h3>
         <p className="text-14 text-neutral leading-4">{props.description}</p>
       </div>
-      <div className="grow grid grid-flow-col gap-x-8 items-center justify-end">
+      <div className="grow grid grid-flow-col gap-x-8 items-center justify-between lg:justify-end">
         {props.children}
       </div>
     </div>

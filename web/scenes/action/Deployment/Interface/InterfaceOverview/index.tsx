@@ -22,15 +22,21 @@ export const InterfaceOverview = memo(function InterfaceOverview(
           {props.title}
         </span>
       </h3>
-      <div className="grid grid-flow-col justify-items-center items-center overflow-x-auto">
+      <div className="grid gap-y-2 grid-flow-row lg:grid-flow-col justify-items-center items-center overflow-x-auto">
         {props.overviewItems.map((item, i) => (
-          <div key={i} className="grid grid-cols-1fr/auto items-center w-full">
+          <div
+            key={i}
+            className="grid gap-y-2 grid-flow-row lg:grid-cols-1fr/auto items-center w-full lg:min-w-[280px]"
+          >
             <div className="grid grid-cols-auto/1fr gap-x-2 items-center p-4 bg-f1f5f8 border border-487b8f/30 rounded-2xl">
               <Icon name={item.icon} className="w-8 h-8" noMask />
               <span className="text-14 leading-4">{item.text}</span>
             </div>
             {i < props.overviewItems.length - 1 && (
-              <Icon name="arrow-right" className="w-6 h-6 mx-3" />
+              <Icon
+                name="arrow-right"
+                className="w-6 h-6 mx-3 justify-self-center rotate-90 lg:rotate-0"
+              />
             )}
           </div>
         ))}
