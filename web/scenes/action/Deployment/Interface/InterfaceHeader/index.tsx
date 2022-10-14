@@ -14,7 +14,7 @@ export const InterfaceHeader = memo(function InterfaceHeader(
   props: InterfaceHeaderInterface
 ) {
   return (
-    <div className="grid grid-cols-auto/1fr/auto items-center pt-8 pl-8 pr-8 pb-6">
+    <div className="flex flex-wrap items-center gap-4 pt-8 pl-8 pr-8 pb-6">
       <div className="grid items-center justify-center w-12 h-12 mr-4 text-primary border border-primary/10 rounded-full">
         <Icon name={props.icon} className={cn("w-6 h-6")} />
       </div>
@@ -24,7 +24,7 @@ export const InterfaceHeader = memo(function InterfaceHeader(
         </h3>
         <p className="text-14 text-neutral leading-4">{props.description}</p>
       </div>
-      <div className="grid grid-flow-col gap-x-8 items-center">
+      <div className="grow grid grid-flow-col gap-x-8 items-center justify-between lg:justify-end">
         {props.children}
       </div>
     </div>
