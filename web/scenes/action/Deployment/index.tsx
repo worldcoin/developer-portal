@@ -112,7 +112,7 @@ export function Deployment() {
               enabled={isInterfaceEnabled("widget")}
               overviewItems={[
                 {
-                  icon: "overview-1",
+                  icon: "overview-js",
                   text: (
                     <>
                       Your app shows the
@@ -122,7 +122,7 @@ export function Deployment() {
                   ),
                 },
                 {
-                  icon: "overview-2",
+                  icon: "overview-qr",
                   text: (
                     <>
                       User verifies with
@@ -132,7 +132,7 @@ export function Deployment() {
                   ),
                 },
                 {
-                  icon: "overview-3",
+                  icon: "overview-proof",
                   text: (
                     <>
                       Your backend sends
@@ -142,7 +142,7 @@ export function Deployment() {
                   ),
                 },
                 {
-                  icon: "overview-4",
+                  icon: "overview-backend",
                   text: (
                     <>
                       Our API verifies the proof and
@@ -165,7 +165,7 @@ export function Deployment() {
               enabled={isInterfaceEnabled("widget")}
               overviewItems={[
                 {
-                  icon: "overview-1",
+                  icon: "overview-js",
                   text: (
                     <>
                       Your app shows the
@@ -175,7 +175,7 @@ export function Deployment() {
                   ),
                 },
                 {
-                  icon: "overview-2",
+                  icon: "overview-qr",
                   text: (
                     <>
                       User verifies with
@@ -185,22 +185,15 @@ export function Deployment() {
                   ),
                 },
                 {
-                  icon: "overview-3",
-                  text: (
-                    <>
-                      Your backend sends
-                      <br />
-                      the proof to our API
-                    </>
-                  ),
+                  icon: "overview-proof",
+                  text: <>Your dapp sends the proof to your smart contract</>,
                 },
                 {
-                  icon: "overview-4",
+                  icon: "overview-contract",
                   text: (
                     <>
-                      Our API verifies the proof and
-                      <br />
-                      your backend executes action
+                      Your smart contract calls our contract to verify the proof
+                      and executes
                     </>
                   ),
                 },
@@ -221,19 +214,19 @@ export function Deployment() {
             enabled={isInterfaceEnabled("hosted_page")}
             overviewItems={[
               {
-                icon: "overview-1",
+                icon: "overview-request",
                 text: "You redirect the user to our URL",
               },
               {
-                icon: "overview-2",
+                icon: "overview-qr",
                 text: "User verifies with World ID on your site",
               },
               {
-                icon: "overview-3",
+                icon: "overview-response",
                 text: "We redirect the user back to your site",
               },
               {
-                icon: "overview-4",
+                icon: "overview-signature",
                 text: "You verify the response (JWT signature)",
               },
             ]}
@@ -254,17 +247,17 @@ export function Deployment() {
               description="Verify users in-person right here. No code needed."
               enabled={isInterfaceEnabled("kiosk")}
               overviewItems={[
-                { icon: "overview-1", text: "You open the Kiosk page" },
+                { icon: "kiosk-qr-page", text: "You open the Kiosk page" },
                 {
-                  icon: "overview-2",
+                  icon: "kiosk-qr-mobile",
                   text: "User scans QR code from the Kiosk",
                 },
                 {
-                  icon: "overview-3",
+                  icon: "kiosk-success-page",
                   text: "You receive confirmation immediately",
                 },
                 {
-                  icon: "overview-4",
+                  icon: "kiosk-restart-page",
                   text: (
                     <>
                       Restart.
