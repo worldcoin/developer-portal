@@ -151,7 +151,7 @@ npm install jose --save`}
 import * as jose from 'jose';
 const jsonKeys = await (await fetch('https://developer.worldcoin.org/api/v1/jwks')).json();
 const kid = jose.decodeProtectedHeader(token).kid;
-const jsonKey = jsonKeys.find((key) => key.kid === kid);
+const jsonKey = jsonKeys.keys.find((key) => key.kid === kid);
 const publicKey =  await jose.importJWK(jsonKey, 'PS256');
 const { payload } = await jose.jwtVerify(token, publicKey, { issuer: 'https://developer.worldcoin.org' });
 if (payload.verified) {
