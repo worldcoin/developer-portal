@@ -11,7 +11,8 @@ export const PreTag = memo(function PreTag(props: {
   return (
     <pre
       className={cn(
-        "grid border rounded-lg relative items-center transition-colors overflow-x-auto",
+        "grid relative items-center p-4 transition-colors overflow-x-auto",
+        "bg-neutral-muted/30 border border-neutral-muted rounded-lg",
         { "py-16": props.loading },
         { "bg-neutral-muted/20 border-primary": props.theme === "neutral" },
         { "bg-warning/5 border-warning": props.theme === "error" },

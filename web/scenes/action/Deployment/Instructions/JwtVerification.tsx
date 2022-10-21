@@ -135,9 +135,9 @@ export const JwtVerificationInstructions = memo(
                   Install the following packages in your app
                 </div>
                 <CodeBlock
-                  code={
-                    "yarn add jose\n" + "# or\n" + "npm install jose --save"
-                  }
+                  code={`yarn add jose
+# or
+npm install jose --save`}
                   language="sh"
                   theme="neutral"
                 />
@@ -147,20 +147,17 @@ export const JwtVerificationInstructions = memo(
                   Parse the verification result JWT, verifying the signature.
                 </p>
                 <CodeBlock
-                  code={
-                    "// Assumes JWT is in `token` var\n" +
-                    "import * as jose from 'jose';\n" +
-                    "const jsonKeys = await (await fetch('https://developer.worldcoin.org/api/v1/jwks')).json();\n" +
-                    "const kid = jose.decodeProtectedHeader(token).kid;\n" +
-                    "const jsonKey = jsonKeys.find((key) => key.kid === kid);\n" +
-                    "const publicKey =  await jose.importJWK(jsonKey, 'PS256');\n" +
-                    "const { payload } = await jose.jwtVerify(token, publicKey, { issuer: 'https://developer.worldcoin.org' });\n" +
-                    "if (payload.verified) {\n" +
-                    "  // user is a unique human, do your action here\n" +
-                    "  // you can use `payload.nullifier_hash` to get the anonymous ID for this user\n" +
-                    "}\n" +
-                    "});"
-                  }
+                  code={`// Assumes JWT is in \`token\` var
+import * as jose from 'jose';
+const jsonKeys = await (await fetch('https://developer.worldcoin.org/api/v1/jwks')).json();
+const kid = jose.decodeProtectedHeader(token).kid;
+const jsonKey = jsonKeys.keys.find((key) => key.kid === kid);
+const publicKey =  await jose.importJWK(jsonKey, 'PS256');
+const { payload } = await jose.jwtVerify(token, publicKey, { issuer: 'https://developer.worldcoin.org' });
+if (payload.verified) {
+  // user is a unique human, do your action here
+  // you can use \`payload.nullifier_hash\` to get the anonymous ID for this user
+}`}
                   language="javascript"
                   theme="neutral"
                 />
