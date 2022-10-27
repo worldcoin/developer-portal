@@ -9,6 +9,7 @@ import { Field } from "./Field";
 import { Status } from "./Status";
 import { Tabs } from "common/Tabs";
 import { Tab } from "common/Tabs/types";
+import { ActionDropdown } from "common/ActionDropdown";
 
 interface ActionHeaderInterface {
   action: ActionType;
@@ -86,6 +87,11 @@ export const ActionHeader = memo(function ActionHeader(
           />
         )}
       </div>
+
+      <ActionDropdown
+        className="!absolute top-3.5 right-8 xl:right-16"
+        action={props.action}
+      />
     </Header>
   );
 });
