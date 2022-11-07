@@ -13,6 +13,7 @@ import { urls } from "urls";
 
 export const ActionDropdown = memo(function ActionDropdown(props: {
   action: ActionType;
+  className?: string;
 }) {
   const deleteModal = useToggle();
   const router = useRouter();
@@ -53,6 +54,7 @@ export const ActionDropdown = memo(function ActionDropdown(props: {
   return (
     <Fragment>
       <Dropdown
+        className={props.className}
         toggler={dropdown}
         containerClassName="bg-ffffff rounded-lg shadow-lg z-50"
       >

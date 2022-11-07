@@ -1,20 +1,16 @@
 import { memo } from "react";
-import { KioskOverview } from "./Overview";
-import { KioskAccess } from "./Access";
-import { actionLogic } from "logics/actionLogic";
+import { Field as ActionField } from "scenes/action/ActionHeader/Field";
 
-export const Kiosk = memo(function Kiosk(props: {
-  url?: string;
-  enableUserInterface: typeof actionLogic.actions.enableUserInterface;
-  deploymentStep?: string;
-}) {
+export const Kiosk = memo(function Kiosk(props: { url?: string }) {
   return (
-    <div className="grid gap-y-8 mt-4">
-      <KioskOverview
-        opened={props.deploymentStep !== "access"}
-        onContinue={() => props.enableUserInterface("kiosk")}
+    <div>
+      <div className="font-medium text-14 leading-4">Kiosk URL</div>
+      <ActionField
+        className="mt-2 text-14 leading-4"
+        valueClassName="truncate"
+        value={props.url ?? ""}
+        copyable
       />
-      <KioskAccess url={props.url} deploymentStep={props.deploymentStep} />
     </div>
   );
 });

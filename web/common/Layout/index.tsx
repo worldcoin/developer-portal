@@ -75,6 +75,8 @@ export const Layout = (props: {
 
             <NavItem name="My Team" icon="team" href={urls.team()} />
 
+            <NavItem name="Debugger" icon="debugger" href={urls.debugger()} />
+
             <NavItem
               name="Simulator"
               icon="meter"

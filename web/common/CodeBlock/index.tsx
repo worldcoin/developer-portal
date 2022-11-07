@@ -8,6 +8,7 @@ export const CodeBlock = memo(function CodeBlock(
     code: string;
     theme: "error" | "neutral" | "success";
     language: string;
+    showLineNumbers?: boolean;
     className?: string;
     loading?: boolean;
   } & (
@@ -41,7 +42,7 @@ export const CodeBlock = memo(function CodeBlock(
 
       <SyntaxHighlighter
         language={props.language}
-        showLineNumbers
+        showLineNumbers={props.showLineNumbers}
         wrapLines
         showInlineLineNumbers
         lineNumberStyle={{

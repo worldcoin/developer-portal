@@ -5,6 +5,7 @@ import { DataDog } from 'common/datadog'
 import { parameters } from './parameters'
 import { NagSuppressions } from 'cdk-nag'
 import { MultiEnvRootStack } from 'common/multi-env-stack'
+import { ScalingConfig } from 'common/types'
 
 export class Web extends MultiEnvRootStack {
   public static readonly port = 3000
@@ -23,17 +24,34 @@ export class Web extends MultiEnvRootStack {
       readonly secretsSecret: cdk.aws_secretsmanager.ISecret
       readonly graphQlApiUrl: string
       readonly containerImageTag: string
-    },
+    }
   ) {
     super(scope, id, props)
     cdk.Tags.of(this).add('service', id)
-    const stackParameters = parameters({ environment: this.node.tryGetContext('env'), hostedZone: props.hostedZone })
+    const stackParameters = parameters({
+      environment: this.node.tryGetContext('env'),
+      hostedZone: props.hostedZone,
+    })
+
+    const scalingConfig = stackParameters.envs.SCALING_CONFIG
+      ? (JSON.parse(stackParameters.envs.SCALING_CONFIG) as ScalingConfig)
+      : null
+
+    if (!scalingConfig) {
+      console.error('Scaling config is not defined')
+    }
 
     // ANCHOR Certificate
-    const certificate = new cdk.aws_certificatemanager.Certificate(this, 'Certificate', {
-      domainName: stackParameters.domainName,
-      validation: cdk.aws_certificatemanager.CertificateValidation.fromDns(props.hostedZone),
-    })
+    const certificate = new cdk.aws_certificatemanager.Certificate(
+      this,
+      'Certificate',
+      {
+        domainName: stackParameters.domainName,
+        validation: cdk.aws_certificatemanager.CertificateValidation.fromDns(
+          props.hostedZone
+        ),
+      }
+    )
 
     // ANCHOR Load balancer and Fargate service
     const ecsCluster = new cdk.aws_ecs.Cluster(this, 'Cluster', {
@@ -41,63 +59,108 @@ export class Web extends MultiEnvRootStack {
       vpc: props.vpc,
     })
 
-    this.fargateService = new cdk.aws_ecs_patterns.ApplicationLoadBalancedFargateService(this, 'FargateService', {
-      domainName: stackParameters.domainName,
-      domainZone: props.hostedZone,
-      certificate: certificate,
-      circuitBreaker: { rollback: true },
-      cloudMapOptions: { cloudMapNamespace: props.cloudMapNamespace, name: id },
-      cluster: ecsCluster,
-      memoryLimitMiB: 2048,
-      desiredCount: 3,
-      cpu: 1024,
-      redirectHTTP: true,
-
-      taskImageOptions: {
-        containerPort: Web.port,
-        environment: {
-          ...stackParameters.envs,
-          NEXT_PUBLIC_GRAPHQL_API_URL: props.graphQlApiUrl,
-        },
-        secrets: {
-          ALCHEMY_API_KEY: cdk.aws_ecs.Secret.fromSecretsManager(props.secretsSecret, 'ALCHEMY_API_KEY'),
-          HASURA_GRAPHQL_JWT_SECRET: cdk.aws_ecs.Secret.fromSecretsManager(props.secretsSecret, 'HASURA_GRAPHQL_JWT_SECRET'),
-          INTERNAL_ENDPOINTS_SECRET: cdk.aws_ecs.Secret.fromSecretsManager(props.internalEndpointSecret),
-        },
-        logDriver: cdk.aws_ecs.LogDrivers.firelens({
-          options: {
-            Name: 'datadog',
-            Host: 'http-intake.logs.datadoghq.com',
-            dd_service: id,
-            dd_source: 'nodejs',
-            dd_tags: `app:${this.node.tryGetContext('app')}, env:${this.node.tryGetContext('env').id}`,
-            TLS: 'on',
-            provider: 'ecs',
+    this.fargateService =
+      new cdk.aws_ecs_patterns.ApplicationLoadBalancedFargateService(
+        this,
+        'FargateService',
+        {
+          domainName: stackParameters.domainName,
+          domainZone: props.hostedZone,
+          certificate: certificate,
+          circuitBreaker: { rollback: true },
+          cloudMapOptions: {
+            cloudMapNamespace: props.cloudMapNamespace,
+            name: id,
           },
+          cluster: ecsCluster,
+          memoryLimitMiB: scalingConfig?.taskDefinition.memoryLimitMiB || 1024,
+          desiredCount: 3,
+          cpu: scalingConfig?.taskDefinition.cpu || 512,
+          redirectHTTP: true,
 
-          secretOptions: { apikey: cdk.aws_ecs.Secret.fromSecretsManager(props.dataDogApiKeySecret) },
-        }),
+          taskImageOptions: {
+            containerPort: Web.port,
+            environment: {
+              ...stackParameters.envs,
+              NEXT_PUBLIC_GRAPHQL_API_URL: props.graphQlApiUrl,
+            },
+            secrets: {
+              ALCHEMY_API_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'ALCHEMY_API_KEY'
+              ),
+              HASURA_GRAPHQL_JWT_SECRET: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'HASURA_GRAPHQL_JWT_SECRET'
+              ),
+              INTERNAL_ENDPOINTS_SECRET: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.internalEndpointSecret
+              ),
+            },
+            logDriver: cdk.aws_ecs.LogDrivers.firelens({
+              options: {
+                Name: 'datadog',
+                Host: 'http-intake.logs.datadoghq.com',
+                dd_service: id,
+                dd_source: 'nodejs',
+                dd_tags: `app:${this.node.tryGetContext('app')}, env:${
+                  this.node.tryGetContext('env').id
+                }`,
+                TLS: 'on',
+                provider: 'ecs',
+              },
 
-        image: cdk.aws_ecs.ContainerImage.fromAsset(path.dirname(require.resolve('../../../web/Dockerfile'))),
-      },
-    })
+              secretOptions: {
+                apikey: cdk.aws_ecs.Secret.fromSecretsManager(
+                  props.dataDogApiKeySecret
+                ),
+              },
+            }),
 
-    this.fargateService.targetGroup.setAttribute('deregistration_delay.timeout_seconds', '10')
-    this.fargateService.service.connections.allowFromAnyIpv4(cdk.aws_ec2.Port.tcp(Web.port))
+            image: cdk.aws_ecs.ContainerImage.fromAsset(
+              path.dirname(require.resolve('../../../web/Dockerfile'))
+            ),
+          },
+        }
+      )
+
+    this.fargateService.targetGroup.setAttribute(
+      'deregistration_delay.timeout_seconds',
+      '10'
+    )
+    this.fargateService.service.connections.allowFromAnyIpv4(
+      cdk.aws_ec2.Port.tcp(Web.port)
+    )
 
     // ANCHOR Health check
     this.fargateService.targetGroup.configureHealthCheck({
       enabled: true,
-      healthyThresholdCount: 3,
-      interval: cdk.Duration.seconds(5),
-      path: '/api/health',
-      timeout: cdk.Duration.seconds(3),
+      healthyThresholdCount:
+        scalingConfig?.healthCheck.healthyThresholdCount ?? 2,
+      interval: cdk.Duration.seconds(scalingConfig?.healthCheck.interval ?? 5),
+      path: scalingConfig?.healthCheck.path ?? '/api/health',
+      timeout: cdk.Duration.seconds(scalingConfig?.healthCheck.timeout ?? 2),
     })
 
     // ANCHOR Autoscaling
-    this.scalableTarget = this.fargateService.service.autoScaleTaskCount({ minCapacity: 3, maxCapacity: 50 })
-    this.scalableTarget.scaleOnCpuUtilization('CpuScaling', { targetUtilizationPercent: 50 })
-    this.scalableTarget.scaleOnMemoryUtilization('MemoryScaling', { targetUtilizationPercent: 70 })
+    this.scalableTarget = this.fargateService.service.autoScaleTaskCount({
+      minCapacity:
+        scalingConfig?.autoscaling.autoScaleTaskCount.minCapacity ?? 1,
+      maxCapacity:
+        scalingConfig?.autoscaling.autoScaleTaskCount.maxCapacity ?? 30,
+    })
+
+    this.scalableTarget.scaleOnCpuUtilization('CpuScaling', {
+      targetUtilizationPercent:
+        scalingConfig?.autoscaling.scaleOnCpuUtilization
+          .targetUtilizationPercent ?? 40,
+    })
+
+    this.scalableTarget.scaleOnMemoryUtilization('MemoryScaling', {
+      targetUtilizationPercent:
+        scalingConfig?.autoscaling.scaleOnMemoryUtilization
+          .targetUtilizationPercent ?? 50,
+    })
 
     // ANCHOR Set up logging
     new DataDog(this, 'DataDog', {
@@ -114,29 +177,39 @@ export class Web extends MultiEnvRootStack {
     this.fargateService.loadBalancer.logAccessLogs(logsBucket)
 
     NagSuppressions.addResourceSuppressions(logsBucket, [
-      { id: 'AwsSolutions-S1', reason: 'Breaking logs bucket needs to store access logs recursion.' },
+      {
+        id: 'AwsSolutions-S1',
+        reason: 'Breaking logs bucket needs to store access logs recursion.',
+      },
     ])
 
     NagSuppressions.addResourceSuppressions(
       this.fargateService.loadBalancer,
       [{ id: 'AwsSolutions-EC23', reason: 'Public ELB' }],
-      true,
+      true
     )
 
     NagSuppressions.addResourceSuppressions(
       this.fargateService.service,
-      [{ id: 'AwsSolutions-EC23', reason: 'Public sevice' }],
-      true,
+      [{ id: 'AwsSolutions-EC23', reason: 'Public service' }],
+      true
     )
 
-    NagSuppressions.addResourceSuppressions(this.fargateService.taskDefinition, [
-      { id: 'AwsSolutions-ECS2', reason: 'Avoiding env variables is to much hassle.' },
-      {
-        appliesTo: ['Resource::*'],
-        id: 'AwsSolutions-IAM5',
-        reason:
-          'ecr:GrantAuthorizationToken can not be applied to a certain resource and thus is applied to [Resource::*].',
-      },
-    ], true)
+    NagSuppressions.addResourceSuppressions(
+      this.fargateService.taskDefinition,
+      [
+        {
+          id: 'AwsSolutions-ECS2',
+          reason: 'Avoiding env variables is to much hassle.',
+        },
+        {
+          appliesTo: ['Resource::*'],
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'ecr:GrantAuthorizationToken can not be applied to a certain resource and thus is applied to [Resource::*].',
+        },
+      ],
+      true
+    )
   }
 }

@@ -40,12 +40,13 @@ module.exports = {
         DEFAULT: "#00c313",
       },
       warning: {
-        DEFAULT: "#ff5a76",
+        DEFAULT: "#ff5a76", // FIXME: This color is actually danger
       },
       ...mirrorHexColors([
         "#000000",
         "#191c20",
         "#3c4040",
+        "#487b8f",
         "#626467",
         "#777e90",
         "#a39dff",
@@ -61,6 +62,7 @@ module.exports = {
         "#fbfbfb",
         "#fcfbfe",
         "#ff6848",
+        "#ffc700", // FIXME: this color is actually warning
         "#fff0ed",
         "#ffffff",
       ]),
@@ -113,6 +115,7 @@ module.exports = {
       zIndex: {
         dropdown: "50",
         header: "100",
+        modal: "1000",
       },
     },
   },

@@ -32,27 +32,9 @@ jobs:
       - name: Deploy CDK stacks
         run: cdk deploy --all --context stage=staging --require-approval never
         working-directory: infrastructure
-
-  db-migrations-staging:
-    name: Migrate DB
-    environment:
-      name: Staging
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-          cache-dependency-path: deploy-staging/yarn.lock
       - name: Install Hasura CLI
         run: |
-          yarn global add hasura-cli@2.6.1
+          yarn global add hasura-cli@2.12.0
       - name: Apply DB migrations
         run: |
           cd hasura

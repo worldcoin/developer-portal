@@ -1,3 +1,10 @@
+import { EnvironmentType } from "types";
+
+export const ENVIRONMENTS: EnvironmentType[] = [
+  { name: "Production", value: "production", icon: { name: "rocket" } },
+  { name: "Staging", value: "staging", icon: { name: "chart" } },
+];
+
 /**
  * Validates a string is a valid URL
  * @param candidate
