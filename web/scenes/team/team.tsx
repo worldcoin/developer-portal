@@ -12,11 +12,13 @@ import { FieldInput } from "common/FieldInput";
 import { useToggle } from "common/hooks";
 import { text } from "common/styles";
 import { Members } from "./Members";
+import { InviteModal } from "./InviteModal";
 
 export function Team(): JSX.Element | null {
   const { team } = useValues(teamLogic);
   const { deleteTeam } = useActions(teamLogic);
   const deleteModal = useToggle();
+  const inviteModal = useToggle();
   const [deleteTeamInput, setDeleteTeamInput] = useState<string>("");
 
   const handleDeleteTeam = (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,7 +46,7 @@ export function Team(): JSX.Element | null {
         </Widget>
 
         <Widget className="mt-8" title="Team members">
-          <Members />
+          <Members openModal={inviteModal.toggleOn} />
         </Widget>
 
         <Button
@@ -93,6 +95,8 @@ export function Team(): JSX.Element | null {
           </Button>
         </form>
       </Modal>
+
+      <InviteModal modalState={inviteModal} />
     </Fragment>
   );
 }

@@ -11,6 +11,7 @@ export const Button = (
         fontFamily: "Sora, sans-serif",
         display: "block",
         textAlign: "center",
+        textTransform: "uppercase",
         color: "#ffffff",
         background: "#4940E0",
         boxShadow:

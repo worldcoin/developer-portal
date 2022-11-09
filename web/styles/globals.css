@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 @import "react-toastify/dist/ReactToastify.css";
+@import "@yaireo/tagify/dist/tagify.css";
 
 /* Begin Toastify overrides */
 
@@ -15,3 +16,38 @@
 }
 
 /* End Toastify overrides */
+
+/* Begin Tagify overrides */
+
+:root {
+  --tags-border-color: theme(colors.f0edf9);
+  --tag-bg: theme(colors.f0edf9/30);
+  --tag-text-color: theme(colors.191c20);
+  --tag-hide-transition: 0s !important;
+}
+
+.tagify {
+  font-size: 14px;
+  line-height: 1.14;
+  font-family: theme(fontFamily.rubik);
+}
+
+.tagify__tag x {
+  display: none;
+}
+
+.tagify__tag {
+  border: 1px solid theme(colors.f0edf9);
+  background: theme(colors.f0edf9/30) !important;
+  border-radius: 8px !important;
+}
+
+.tagify__tag > div::before {
+  display: none;
+}
+
+.tagify--focus {
+  border-color: theme(colors.primary.DEFAULT) !important;
+}
+
+/* End Tagify overrides */

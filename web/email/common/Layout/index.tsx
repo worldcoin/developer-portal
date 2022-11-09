@@ -2,9 +2,14 @@
 /* eslint-disable @next/next/no-page-custom-font */
 /* eslint-disable @next/next/no-img-element */
 import { Link } from "common/Link";
-import { Fragment, ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
-export const Layout = (props: { title: string; children: ReactNode }) => {
+export const Layout = (props: {
+  title: string;
+  children: ReactNode;
+  style: CSSProperties;
+  wrapperStyle?: CSSProperties;
+}) => {
   return (
     <html>
       <head>
@@ -36,7 +41,7 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
       <body
         style={{
           fontSize: 16,
-          lineHeight: "20px",
+          lineHeight: 1.3,
           color: "#191C20",
           fontFamily: "Rubik, sans-serif",
         }}
@@ -46,6 +51,7 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
             padding: "40px 60px 90px",
             background:
               "linear-gradient(90deg, rgba(255, 240, 237, 0.5) 0%, rgba(237, 236, 252, 0.5) 100%), #FFFFFF",
+            ...props.wrapperStyle,
           }}
         >
           <div style={{ width: "100%", textAlign: "center" }}>
@@ -60,12 +66,16 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
 
           <div
             style={{
+              width: "100%",
+              maxWidth: 650,
+              margin: "0 auto",
               padding: "40px",
               background: "#FFFFFF",
               boxShadow:
                 "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04)",
               borderRadius: 12,
               marginTop: 65,
+              ...props.style,
             }}
           >
             {props.children}
@@ -83,7 +93,7 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
             <table
               style={{
                 margin: "0 auto",
-                paddingTop: 40,
+                marginTop: 40,
                 fontSize: 14,
               }}
             >
@@ -115,7 +125,7 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
               </tr>
             </table>
 
-            <table style={{ margin: "0 auto", paddingTop: 24 }}>
+            <table style={{ margin: "0 auto", marginTop: 24 }}>
               <tr>
                 <td>
                   <address
@@ -134,9 +144,10 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
               </tr>
             </table>
 
-            <table style={{ margin: "0 auto", paddingTop: 26, fontSize: 14 }}>
+            <table style={{ margin: "0 auto", marginTop: 24, fontSize: 14 }}>
               <tr>
                 <td style={{ paddingRight: 25 }}>
+                  {/* FIXME: add link */}
                   <a href="#!">
                     <img
                       src={`${process.env.NEXT_PUBLIC_APP_URL}/email/twitter.png`}
@@ -148,6 +159,7 @@ export const Layout = (props: { title: string; children: ReactNode }) => {
                 </td>
 
                 <td>
+                  {/* FIXME: add link */}
                   <a href="#!">
                     <img
                       src={`${process.env.NEXT_PUBLIC_APP_URL}/email/discord.png`}

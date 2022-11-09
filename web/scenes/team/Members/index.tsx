@@ -9,8 +9,9 @@ import { useActions, useValues } from "kea";
 import { teamLogic } from "logics/teamLogic";
 import { Preloader } from "common/Preloader";
 import { teamMembersLogic } from "logics/teamMembersLogic";
+import { Button } from "common/Button";
 
-export const Members = memo(function Members() {
+export const Members = memo(function Members(props: { openModal: () => void }) {
   const { members, teamLoading } = useValues(teamLogic);
   const { deleteTeamMember } = useActions(teamMembersLogic);
   const { user } = useValues(authLogic);
@@ -20,7 +21,7 @@ export const Members = memo(function Members() {
       {teamLoading && <Preloader className="w-20 h-20" />}
       {!teamLoading && members && (
         <Fragment>
-          <div className="grid mb-8 grid-cols-1fr/auto">
+          <div className="grid mb-8 grid-cols-1fr/auto gap-4">
             <FieldInput
               className="pl-12"
               type="text"
@@ -36,15 +37,15 @@ export const Members = memo(function Members() {
                 </FieldInputAddon>
               }
             />
-            {/* @FIXME add filter button here */}
-            {/*<Button*/}{" "}
-            {/* @FIXME uncomment after invitation mechanism appears */}
-            {/*  variant="contained"*/}
-            {/*  color="primary"*/}
-            {/*  type="button"*/}
-            {/*>*/}
-            {/*  Invite new member*/}
-            {/*</Button>*/}
+            {/* FIXME: add filter button here */}
+            <Button
+              variant="contained"
+              color="primary"
+              type="button"
+              onClick={props.openModal}
+            >
+              Invite new member
+            </Button>
           </div>
 
           <div className="max-w-full overflow-x-auto">

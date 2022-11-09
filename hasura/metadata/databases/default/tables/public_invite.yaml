@@ -1,0 +1,39 @@
+table:
+  schema: public
+  name: invite
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - email
+        - team_id
+        - user_id
+      backend_only: false
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - team_id
+        - user_id
+        - email
+        - expires_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - email
+        - expires_at
+        - id
+        - team_id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}
