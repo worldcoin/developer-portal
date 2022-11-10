@@ -1,16 +1,19 @@
 table:
   schema: public
   name: invite
+object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
 insert_permissions:
   - role: user
     permission:
       check:
-        user_id:
-          _eq: X-Hasura-User-Id
+        team_id:
+          _eq: X-Hasura-Team-Id
       columns:
         - email
         - team_id
-        - user_id
       backend_only: false
 select_permissions:
   - role: service
@@ -18,7 +21,6 @@ select_permissions:
       columns:
         - id
         - team_id
-        - user_id
         - email
         - expires_at
       filter: {}
@@ -29,10 +31,9 @@ select_permissions:
         - expires_at
         - id
         - team_id
-        - user_id
       filter:
-        user_id:
-          _eq: X-Hasura-User-Id
+        team_id:
+          _eq: X-Hasura-Team-Id
 delete_permissions:
   - role: service
     permission:

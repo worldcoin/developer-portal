@@ -175,12 +175,12 @@ event_triggers:
     definition:
       enable_manual: false
       insert:
-        columns: "*"
+        columns: '*'
     retry_conf:
       num_retries: 5
       interval_sec: 10
       timeout_sec: 20
-    webhook: "{{NEXT_API_URL}}/_gen-hashed-action-id"
+    webhook: '{{NEXT_API_URL}}/_gen-hashed-action-id'
     headers:
       - name: Authorization
         value_from_env: INTERNAL_ENDPOINTS_SECRET

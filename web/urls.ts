@@ -22,4 +22,12 @@ export const urls = {
   team: (): "/team" => "/team",
 
   debugger: (): "/debugger" => "/debugger",
+
+  invite: (jwt: string, absolute: boolean = false) => {
+    let prefix = "";
+    if (absolute) {
+      prefix = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    }
+    return `${prefix}/invite/${jwt}`;
+  },
 };

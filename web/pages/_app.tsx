@@ -13,6 +13,7 @@ const UNPROTECTED_ROUTES = [
   /^\/signup$/,
   /^\/hosted\/.*/,
   /^\/kiosk\/.*/,
+  /^\/invite\/.*/,
 ];
 const ONLY_UNAUTHENTICATED = [/^\/login(\?.*)?$/, /\/signup$/];
 

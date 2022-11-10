@@ -7,6 +7,7 @@ export const Invite = (props: {
   email: string;
   invitedBy: { name: string; email: string };
   teamName: string;
+  link: string;
 }) => {
   return (
     <Layout
@@ -61,7 +62,7 @@ export const Invite = (props: {
         <p>to join team {props.teamName}.</p>
       </div>
 
-      <Button href="#!" style={{ marginTop: 64, marginBottom: 16 }}>
+      <Button href={props.link} style={{ marginTop: 64, marginBottom: 16 }}>
         Join the team
       </Button>
 

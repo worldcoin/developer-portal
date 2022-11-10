@@ -87,13 +87,13 @@ const updateUserInterfacesQuery = gql`
 
 const updateUserInterface = gql`mutation UpdateInterfaceConfig($action_id: String!, $public_description: String, $return_url: String, $user_interfaces: jsonb) {
   update_action_by_pk(
-    pk_columns: {id: $action_id}, 
+    pk_columns: {id: $action_id},
     _set: {
-      public_description: $public_description, 
-      return_url: $return_url, 
+      public_description: $public_description,
+      return_url: $return_url,
       user_interfaces: $user_interfaces
     }
-  ) 
+  )
   {
     ${actionQueryParams(true)}
   }

@@ -1,17 +1,17 @@
 import { gql } from "@apollo/client";
-import { runCors } from "../../../cors";
+import { runCors } from "../../../../cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
   errorUnauthenticated,
 } from "errors";
-import { graphQLRequest } from "frontend-api";
 import { NextApiRequest, NextApiResponse } from "next";
-import { authLogic } from "logics/authLogic";
 import { getAPISSRClient } from "ssr-graphql";
 import { sendEmail } from "email/common/helpers/send-email";
 import { Invite } from "email/Invite";
+import { generateInviteJWT } from "api-utils";
+import { urls } from "urls";
 
 const userWithTeamQuery = gql`
   query User {
@@ -44,6 +44,7 @@ const insertInviteQuery = gql`
     insert_invite(objects: $objects) {
       returning {
         id
+        team_id
         email
       }
     }
@@ -55,11 +56,12 @@ type insertInviteRequestResult = {
     returning: Array<{
       id: string;
       email: string;
+      team_id: string;
     }>;
   };
 };
 
-export default async function sendInvite(
+export default async function inviteSend(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -97,7 +99,6 @@ export default async function sendInvite(
     variables: {
       objects: emails.map((email) => ({
         team_id: userWithTeam.team.id,
-        user_id: userWithTeam.id,
         email,
       })),
     },
@@ -119,6 +120,7 @@ export default async function sendInvite(
             email: invite.email,
             invitedBy: userWithTeam,
             teamName: userWithTeam.team.name,
+            link: urls.invite(await generateInviteJWT(invite), true),
           }),
           subject: "Teamate invited you",
         })

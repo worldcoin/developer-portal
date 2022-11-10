@@ -129,6 +129,19 @@ export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
 };
 
 /**
+ * Generates a JWT for invite
+ * @param invite
+ * @returns
+ */
+export const generateInviteJWT = async (invite: {
+  id: string;
+  team_id: string;
+  email: string | null;
+}): Promise<string> => {
+  return await _generateJWT(invite);
+};
+
+/**
  * Generates a secure password hash to store in the DB
  * @param rawPassword
  * @param salt (optional), if a specific salt should be used (e.g. when verifying passwords), if empty, a salt will be generated

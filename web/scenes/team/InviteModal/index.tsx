@@ -2,19 +2,19 @@ import { Button } from "common/Button";
 import { useToggle } from "common/hooks";
 import { Modal } from "common/Modal";
 import { Field, Form } from "kea-forms";
-import { inviteLogic } from "logics/inviteLogic";
 import { memo, useCallback } from "react";
 import { Icon } from "common/Icon";
 import Tags from "@yaireo/tagify/dist/react.tagify";
 import cn from "classnames";
 import { useActions, useValues } from "kea";
 import { Link } from "common/Link";
+import { teamLogic } from "logics/teamLogic";
 
 export const InviteModal = memo(function InviteModal(props: {
   modalState: ReturnType<typeof useToggle>;
 }) {
-  const { isInviteValid, isInviteSubmitting } = useValues(inviteLogic);
-  const { resetInvite, submitInvite } = useActions(inviteLogic);
+  const { isInviteValid, isInviteSubmitting } = useValues(teamLogic);
+  const { resetInvite, submitInvite } = useActions(teamLogic);
   const handleClose = useCallback(() => {
     resetInvite();
     props.modalState.toggleOff();
@@ -39,7 +39,7 @@ export const InviteModal = memo(function InviteModal(props: {
         </Button>
       </div>
 
-      <Form formKey="invite" logic={inviteLogic} className="p-8 space-y-8">
+      <Form formKey="invite" logic={teamLogic} className="p-8 space-y-8">
         <div className="space-y-2">
           <label className="text-14 font-rubik font-medium">
             Invite by email
