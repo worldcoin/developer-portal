@@ -136,7 +136,7 @@ export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
 export const generateInviteJWT = async (invite: {
   id: string;
   team_id: string;
-  email: string | null;
+  email?: string | null;
 }): Promise<string> => {
   return await _generateJWT(invite);
 };

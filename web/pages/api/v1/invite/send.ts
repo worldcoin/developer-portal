@@ -87,7 +87,12 @@ export default async function inviteSend(
   });
 
   if (userResult.data.user.length <= 0) {
-    errorResponse(res, 400, "unexpected");
+    return errorResponse(
+      res,
+      500,
+      "not_found",
+      "Your account not found, probably session has expired"
+    );
   }
 
   const emails = req.body.emails as Array<string>;
@@ -105,7 +110,7 @@ export default async function inviteSend(
   });
 
   if (invitesResult.data.insert_invite.returning?.length <= 0) {
-    errorResponse(res, 400, "unexpected");
+    return errorResponse(res, 500, "create_invite", "Error create invite");
   }
 
   const invites = invitesResult.data.insert_invite.returning;

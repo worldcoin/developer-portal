@@ -64,15 +64,8 @@ const deleteTeamQuery = gql`
   }
 `;
 
-export type InviteFormValues = {
-  emails: Array<string>;
-};
-
 export const teamLogic = kea<teamLogicType>([
   path(["logics", "teamLogic"]),
-  connect({
-    values: [authLogic, ["token"]],
-  }),
   actions({
     deleteTeam: true,
   }),
@@ -82,7 +75,7 @@ export const teamLogic = kea<teamLogicType>([
     },
   })),
   // @ts-ignore FIXME bug with kea-typegen
-  forms(({ actions, values }) => ({
+  forms(({ values }) => ({
     team: {
       defaults: { name: "" } as TeamType,
       submit: async (payload, breakpoint) => {
@@ -101,47 +94,6 @@ export const teamLogic = kea<teamLogicType>([
 
         toast.success("Team updated successfully!");
         return response.data?.update_team_by_pk || null;
-      },
-    },
-    invite: {
-      defaults: { emails: [] } as InviteFormValues,
-      errors: (values: { emails: Array<string> }) => ({
-        emails:
-          values.emails.length <= 0 ||
-          values.emails.filter(
-            (email: string) => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)
-          ).length
-            ? "You must enter at least one email"
-            : null,
-      }),
-      submit: async (payload, breakpoint) => {
-        if (!values.token || !payload.emails.length) {
-          return null;
-        }
-
-        breakpoint();
-
-        try {
-          const result = await restAPIRequest<{ status: string }>(
-            "/invite/send",
-            {
-              method: "POST",
-              json: payload,
-              customErrorHandling: true,
-              headers: {
-                authorization: `Bearer ${values.token}`,
-              },
-            }
-          );
-
-          if (result.status === "ok") {
-            toast.success(`Successfully sending invites`);
-            actions.resetInvite();
-          }
-        } catch (err) {
-          toast.error("Something went wrong");
-          console.log(err);
-        }
       },
     },
   })),

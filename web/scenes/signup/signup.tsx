@@ -58,7 +58,7 @@ export function Signup(props: {
           label="Email"
           type="email"
           name="email"
-          disabled={isSignupSubmitting || !!props.invite}
+          disabled={isSignupSubmitting || !!props.invite?.email}
         />
 
         <AuthField

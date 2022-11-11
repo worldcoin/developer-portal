@@ -1,7 +1,18 @@
 import { isSSR } from "common/helpers/is-ssr";
 import { restAPIRequest } from "frontend-api";
-import { actions, afterMount, kea, listeners, path, reducers } from "kea";
+import {
+  actions,
+  afterMount,
+  connect,
+  kea,
+  listeners,
+  path,
+  reducers,
+} from "kea";
+import { forms } from "kea-forms";
 import Router from "next/router";
+import { toast } from "react-toastify";
+import { authLogic } from "./authLogic";
 import type { inviteLogicType } from "./inviteLogicType";
 
 export type InviteType = {
@@ -14,13 +25,23 @@ export type InviteType = {
   };
 };
 
+export type InviteFormValues = {
+  emails: Array<string>;
+};
+
 export const inviteLogic = kea<inviteLogicType>([
   path(["logics", "inviteLogic"]),
+  connect({
+    values: [authLogic, ["token"]],
+  }),
   actions({
     loadInvite: true,
     setInvite: (invite) => ({ invite }),
     setExpired: (expired) => ({ expired }),
     setError: (error) => ({ error }),
+    setLink: (link) => ({ link }),
+    copyLink: true,
+    setIsLinkCopied: true,
   }),
   reducers({
     error: [
@@ -52,8 +73,15 @@ export const inviteLogic = kea<inviteLogicType>([
         setExpired: (_, { expired }) => expired,
       },
     ],
+    isLinkCopied: [
+      false,
+      {
+        copyLink: () => true,
+        setIsLinkCopied: () => false,
+      },
+    ],
   }),
-  listeners(({ actions }) => ({
+  listeners(({ actions, values }) => ({
     loadInvite: async () => {
       if (isSSR()) {
         return actions.setInvite(null);
@@ -91,6 +119,76 @@ export const inviteLogic = kea<inviteLogicType>([
 
         actions.setError("Unexpected error");
       }
+    },
+    copyLink: async () => {
+      if (isSSR()) {
+        return undefined;
+      }
+
+      try {
+        const response = await restAPIRequest<{ link: string }>(
+          "/invite/get-link",
+          {
+            method: "POST",
+            customErrorHandling: true,
+            headers: {
+              authorization: `Bearer ${values.token}`,
+            },
+          }
+        );
+        await navigator.clipboard.writeText(response.link);
+        toast.success("Success copy link");
+      } catch (err) {
+        toast.error("Error with copy link");
+      }
+
+      setTimeout(actions.setIsLinkCopied, 3500);
+    },
+  })),
+  // @ts-ignore FIXME bug with kea-typegen
+  forms(({ actions, values }) => ({
+    newInvite: {
+      defaults: { emails: [] } as InviteFormValues,
+      errors: (
+        values: InviteFormValues
+      ): Record<string, string | undefined> => ({
+        emails:
+          values.emails.length <= 0 ||
+          values.emails.filter(
+            (email: string) => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)
+          ).length
+            ? "You must enter at least one email"
+            : undefined,
+      }),
+      submit: async (payload, breakpoint) => {
+        if (!values.token || !payload.emails.length) {
+          return null;
+        }
+
+        breakpoint();
+
+        try {
+          const result = await restAPIRequest<{ status: string }>(
+            "/invite/send",
+            {
+              method: "POST",
+              json: payload,
+              customErrorHandling: true,
+              headers: {
+                authorization: `Bearer ${values.token}`,
+              },
+            }
+          );
+
+          if (result.status === "ok") {
+            toast.success(`Successfully sending invites`);
+            actions.resetNewInvite();
+          }
+        } catch (err) {
+          toast.error("Something went wrong");
+          console.log(err);
+        }
+      },
     },
   })),
   afterMount(({ actions }) => {
