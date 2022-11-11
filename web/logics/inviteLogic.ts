@@ -20,8 +20,16 @@ export const inviteLogic = kea<inviteLogicType>([
     loadInvite: true,
     setInvite: (invite) => ({ invite }),
     setExpired: (expired) => ({ expired }),
+    setError: (error) => ({ error }),
   }),
   reducers({
+    error: [
+      null as null | string,
+      {
+        loadInvite: () => null,
+        setError: (_, { error }) => error,
+      },
+    ],
     invite: [
       null as null | InviteType,
       {
@@ -32,6 +40,7 @@ export const inviteLogic = kea<inviteLogicType>([
       true,
       {
         loadInvite: () => true,
+        setError: () => false,
         setInvite: () => false,
         setExpired: () => false,
       },
@@ -39,6 +48,7 @@ export const inviteLogic = kea<inviteLogicType>([
     expired: [
       false,
       {
+        loadInvite: () => false,
         setExpired: (_, { expired }) => expired,
       },
     ],
@@ -55,20 +65,31 @@ export const inviteLogic = kea<inviteLogicType>([
         return actions.setInvite(null);
       }
 
-      const response = await restAPIRequest<{
-        status?: string;
-        invite?: InviteType;
-      }>("/invite", {
-        method: "POST",
-        json: { jwt },
-      });
+      try {
+        const response = await restAPIRequest<{
+          code?: string;
+          detail?: string;
+          status?: string;
+          invite?: InviteType;
+        }>("/invite", {
+          method: "POST",
+          json: { jwt },
+        });
 
-      if (response.status === "expired") {
-        actions.setExpired(true);
-      }
+        return actions.setInvite(response.invite);
+      } catch (err) {
+        if (typeof err === "object") {
+          const errorRes = err as Record<string, string>;
+          if (errorRes.code === "invalid_jwt") {
+            return actions.setError(errorRes.detail);
+          }
 
-      if (response.invite) {
-        actions.setInvite(response.invite);
+          if (errorRes.code === "expired") {
+            return actions.setExpired(true);
+          }
+        }
+
+        actions.setError("Unexpected error");
       }
     },
   })),

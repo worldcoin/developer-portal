@@ -4,18 +4,40 @@ import { AuthField } from "common/Auth/AuthField";
 import { EyeAddon } from "common/Auth/AuthField/EyeAddon";
 import { Link } from "common/Link";
 import { Button } from "common/Button";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Field, Form } from "kea-forms";
 import { FieldError } from "common/FieldError";
 import { signupLogic } from "./signupLogic";
 import { worldcoinLegalCenter } from "common/helpers/worldcoin-legal-center";
-import { useValues } from "kea";
+import { useActions, useValues } from "kea";
 import { text } from "common/styles";
 import cn from "classnames";
 
-export function Signup() {
+export function Signup(props: {
+  invite?: {
+    id: string;
+    email: string | null;
+    team: {
+      id: string;
+      name: string;
+    };
+  };
+}) {
   const { isSignupSubmitting } = useValues(signupLogic);
+  const { setSignupValues } = useActions(signupLogic);
   const [passwordShown, setPasswordShown] = useState(false);
+
+  // NOTE: fill up fields if invite
+  useEffect(() => {
+    if (props.invite) {
+      setSignupValues({
+        invite_id: props.invite.id,
+        email: props.invite.email || "",
+        team_id: props.invite.team.id,
+        team_name: props.invite.team.name,
+      });
+    }
+  }, [props.invite, setSignupValues]);
 
   return (
     <Auth
@@ -36,7 +58,7 @@ export function Signup() {
           label="Email"
           type="email"
           name="email"
-          disabled={isSignupSubmitting}
+          disabled={isSignupSubmitting || !!props.invite}
         />
 
         <AuthField
@@ -55,7 +77,7 @@ export function Signup() {
         <AuthField
           label="Team name"
           name="team_name"
-          disabled={isSignupSubmitting}
+          disabled={isSignupSubmitting || !!props.invite}
         />
 
         <div className="grid gap-y-4">

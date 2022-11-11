@@ -91,9 +91,10 @@ export default async function handleSignup(
       $name: String!
       $email: String!
       $password: String!
-      $team_name: String!
+      $team_name: String
       $ironclad_id: String!
       $is_subscribed: Boolean
+      $team_id: String
     ) {
       insert_user_one(
         object: {
@@ -102,7 +103,11 @@ export default async function handleSignup(
           password: $password
           is_subscribed: $is_subscribed
           ironclad_id: $ironclad_id
-          team: { data: { name: $team_name } }
+          ${
+            req.body.team_id
+              ? `team_id: $team_id`
+              : `team: { data: { name: $team_name } }`
+          }
         }
       ) {
         id
@@ -120,8 +125,25 @@ export default async function handleSignup(
       password: generatePassword(req.body.password),
       is_subscribed: req.body.is_subscribed ?? false,
       ironclad_id: req.body.ironclad_id,
+      team_id: req.body.team_id,
     },
   });
+
+  // ANCHOR: remove used invite
+  if (req.body.invite_id) {
+    const removeInviteQuery = gql`
+      mutation DeleteInvite($id: String!) {
+        delete_invite_by_pk(id: $id) {
+          id
+        }
+      }
+    `;
+
+    await client.query({
+      query: removeInviteQuery,
+      variables: { id: req.body.invite_id },
+    });
+  }
 
   const createdUser = response.data.insert_user_one;
 

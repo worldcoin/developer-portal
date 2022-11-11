@@ -9,11 +9,13 @@ import { validateEmail } from "utils";
 
 export interface SignupInterface {
   name: string;
-  team_name: string;
+  team_name?: string;
+  team_id?: string;
   email: string;
   password: string;
   is_subscribed?: boolean;
   termsAccepted: boolean;
+  invite_id?: string;
 }
 
 interface SignupResponse {
@@ -50,8 +52,10 @@ export const signupLogic = kea<signupLogicType>([
         email: "",
         password: "",
         team_name: "",
+        team_id: undefined,
         name: "",
         termsAccepted: false,
+        invite_id: "",
       } as SignupInterface,
       errors: ({ email, password, team_name, name, termsAccepted }) => ({
         email: !email

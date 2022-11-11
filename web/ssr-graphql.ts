@@ -20,8 +20,6 @@ const httpLink = createHttpLink({
 export const getAPISSRClient = async (
   req: NextApiRequest
 ): Promise<ApolloClient<NormalizedCacheObject>> => {
-  console.log(req.headers);
-
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,

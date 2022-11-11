@@ -138,7 +138,8 @@ export const teamLogic = kea<teamLogicType>([
             actions.resetInvite();
           }
         } catch (err) {
-          console.log("test", err);
+          toast.error("Something went wrong");
+          console.log(err);
         }
       },
     },

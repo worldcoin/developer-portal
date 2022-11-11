@@ -15,7 +15,7 @@ const UNPROTECTED_ROUTES = [
   /^\/kiosk\/.*/,
   /^\/invite\/.*/,
 ];
-const ONLY_UNAUTHENTICATED = [/^\/login(\?.*)?$/, /\/signup$/];
+const ONLY_UNAUTHENTICATED = [/^\/login(\?.*)?$/, /\/signup$/, /^\/invite\/.*/];
 
 function MyApp({ Component, pageProps }: AppProps): JSX.Element {
   const router = useRouter();

@@ -46,7 +46,13 @@ export default async function invite(
     return errorRequiredAttribute("jwt", res);
   }
 
-  const payload = decodeJwt(req.body.jwt);
+  let payload;
+
+  try {
+    payload = decodeJwt(req.body.jwt);
+  } catch (err) {
+    return errorResponse(res, 500, "invalid", "Your invite invalid");
+  }
 
   const client = await getAPIServiceClient();
 
@@ -57,13 +63,13 @@ export default async function invite(
     },
   });
 
+  if (!inviteResponse.data.invite_by_pk) {
+    return errorResponse(res, 500, "not_found", "Your invite not found");
+  }
+
   if (dayjs(dayjs()).isAfter(inviteResponse.data.invite_by_pk.expires_at)) {
-    return res.status(200).json({ status: "expired" });
+    return errorResponse(res, 500, "expired", "Your invite has expired");
   }
 
-  if (inviteResponse.data.invite_by_pk.id) {
-    return res.status(200).json({ invite: inviteResponse.data.invite_by_pk });
-  }
-
-  errorResponse(res, 500, "unexpected");
+  return res.status(200).json({ invite: inviteResponse.data.invite_by_pk });
 }
