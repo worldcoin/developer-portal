@@ -1,3 +1,8 @@
+- name: Clear expired invites
+  webhook: '{{NEXT_API_URL}}/_clear-expiret-invites'
+  schedule: 0 * * * *
+  include_in_metadata: true
+  payload: {}
 - name: Update ENS addresses
   webhook: '{{NEXT_API_URL}}/_ens'
   schedule: 0 * * * *
