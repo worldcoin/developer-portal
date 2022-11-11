@@ -173,7 +173,7 @@ export const appsLogic = kea<appsLogicType>([
   forms(({ actions, values }) => ({
     newApp: {
       defaults: { name: "" } as CreateAppFormValues,
-      errors: ({ name }) => ({
+      errors: ({ name }: CreateAppFormValues) => ({
         name: !name ? "Please enter a name for your app" : undefined,
       }),
       submit: async (payload, breakpoint) => {

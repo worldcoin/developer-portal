@@ -110,7 +110,7 @@ export const appLogic = kea<appLogicType>([
         name: "",
       } as UpdateAppFormValues,
 
-      errors: ({ name }) => ({
+      errors: ({ name }: UpdateAppFormValues) => ({
         name: !name ? "Please enter a name for your app" : undefined,
       }),
 

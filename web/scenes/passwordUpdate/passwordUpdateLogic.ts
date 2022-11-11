@@ -18,7 +18,11 @@ export const passwordUpdateLogic = kea<passwordUpdateLogicType>([
         new_password: "",
         new_password_repeat: "",
       } as PasswordUpdateInterface,
-      errors: ({ current_password, new_password, new_password_repeat }) => ({
+      errors: ({
+        current_password,
+        new_password,
+        new_password_repeat,
+      }: PasswordUpdateInterface) => ({
         current_password: !current_password
           ? "Please enter your current password"
           : undefined,

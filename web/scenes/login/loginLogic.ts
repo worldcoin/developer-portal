@@ -31,7 +31,7 @@ export const loginLogic = kea<loginLogicType>([
   forms(({ actions }) => ({
     login: {
       defaults: { email: "", password: "" } as LoginInterface,
-      errors: ({ email, password }) => ({
+      errors: ({ email, password }: LoginInterface) => ({
         email: !email
           ? "Please enter your email"
           : !validateEmail(email)

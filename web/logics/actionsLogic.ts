@@ -241,7 +241,12 @@ export const actionsLogic = kea<actionsLogicType>([
   forms(({ actions, values }) => ({
     newAction: {
       defaults: { name: "", description: "" } as CreateActionFormValues,
-      errors: ({ name, engine, environment, app_id }) => ({
+      errors: ({
+        name,
+        engine,
+        environment,
+        app_id,
+      }: CreateActionFormValues): Record<string, string | undefined> => ({
         name: !name ? "Please enter a name for your action" : undefined,
         engine: !engine
           ? "Please select an engine before continuing"

@@ -54,7 +54,11 @@ export const debuggerLogic = kea<debuggerLogicType>([
         advanced_use_raw_signal: false,
         environment: "production",
       } as DebuggerFormInterface,
-      errors: ({ action_id, signal, verificationResponse }) => ({
+      errors: ({
+        action_id,
+        signal,
+        verificationResponse,
+      }: DebuggerFormInterface) => ({
         action_id: !action_id
           ? "Please enter a name for your action"
           : undefined,

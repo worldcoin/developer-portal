@@ -15,7 +15,7 @@ export const profileSettingsLogic = kea<profileSettingsLogicType>([
         name: "No name",
         team_name: "the Team",
       } as ProfileSettingsInterface,
-      errors: ({ name, team_name }) => ({
+      errors: ({ name, team_name }: ProfileSettingsInterface) => ({
         name: !name ? "Please enter a valid name" : undefined,
         team_name: !team_name ? "Please enter a vailid team name" : undefined,
       }),

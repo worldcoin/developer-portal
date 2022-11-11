@@ -4,7 +4,7 @@ import { actions, afterMount, kea, listeners, path, reducers } from "kea";
 import Router from "next/router";
 import type { inviteLogicType } from "./inviteLogicType";
 
-type InviteType = {
+export type InviteType = {
   id: string;
   email: string | null;
   expires_at: Date;

@@ -57,7 +57,13 @@ export const signupLogic = kea<signupLogicType>([
         termsAccepted: false,
         invite_id: "",
       } as SignupInterface,
-      errors: ({ email, password, team_name, name, termsAccepted }) => ({
+      errors: ({
+        email,
+        password,
+        team_name,
+        name,
+        termsAccepted,
+      }: SignupInterface) => ({
         email: !email
           ? "Please enter your email"
           : !validateEmail(email)

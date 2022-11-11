@@ -116,6 +116,10 @@ const getStatsQuery = gql`
   }
 `;
 
+export type HostedPageConfigInterface = {
+  return_url: string;
+};
+
 export const actionLogic = kea<actionLogicType>([
   path(["logics", "actionLogic"]),
   connect({
@@ -428,7 +432,7 @@ export const actionLogic = kea<actionLogicType>([
         return_url: "",
       } as InterfaceConfigFormValues,
 
-      errors: ({ return_url }) => ({
+      errors: ({ return_url }: InterfaceConfigFormValues) => ({
         return_url: values.interfaceConfig["hosted_page"]
           ? !return_url
             ? "Please enter a return URL"
@@ -484,10 +488,8 @@ export const actionLogic = kea<actionLogicType>([
       },
     },
     hostedPageConfig: {
-      defaults: { return_url: "" } as {
-        return_url: string;
-      },
-      errors: ({ return_url }) => ({
+      defaults: { return_url: "" } as HostedPageConfigInterface,
+      errors: ({ return_url }: HostedPageConfigInterface) => ({
         return_url: !return_url
           ? "Please enter a return URL"
           : !validateUrl(return_url, !values.currentAction?.is_staging)
@@ -503,7 +505,11 @@ export const actionLogic = kea<actionLogicType>([
     },
     contractsConfig: {
       defaults: { smart_contract_address: "" },
-      errors: ({ smart_contract_address }) => ({
+      errors: ({
+        smart_contract_address,
+      }: {
+        smart_contract_address: string;
+      }) => ({
         // FIXME: improve validation
         smart_contract_address:
           smart_contract_address &&

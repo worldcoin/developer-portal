@@ -64,7 +64,7 @@ const deleteTeamQuery = gql`
   }
 `;
 
-type InviteFormValues = {
+export type InviteFormValues = {
   emails: Array<string>;
 };
 
@@ -81,6 +81,7 @@ export const teamLogic = kea<teamLogicType>([
       actions.loadTeam();
     },
   })),
+  // @ts-ignore FIXME bug with kea-typegen
   forms(({ actions, values }) => ({
     team: {
       defaults: { name: "" } as TeamType,
