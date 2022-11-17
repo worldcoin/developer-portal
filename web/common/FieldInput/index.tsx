@@ -23,8 +23,6 @@ export const FieldInput = memo(function FieldInput(props: FieldInputInterface) {
     ...otherProps
   } = props;
 
-  console.log(error);
-
   return (
     <FieldInputContext.Provider value={props}>
       <div>

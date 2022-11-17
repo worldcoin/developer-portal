@@ -4,9 +4,10 @@ import { actionLogic } from "logics/actionLogic";
 import cn from "classnames";
 import { Field as ActionField } from "scenes/action/ActionHeader/Field";
 import { Field } from "kea-forms";
+import { validateUrl } from "utils";
 
 export function HostedPage(props: { actionId: string }) {
-  const { actionUrls } = useValues(actionLogic);
+  const { actionUrls, currentAction } = useValues(actionLogic);
 
   return (
     <div className="grid gap-y-6">
@@ -49,7 +50,18 @@ export function HostedPage(props: { actionId: string }) {
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 name="return_url"
-                error={error}
+                // FIXME: temorary fix form validate, wait for close this https://github.com/keajs/kea-forms/issues/1
+                error={
+                  error
+                    ? error
+                    : value.length <= 0
+                    ? "Please enter a return URL"
+                    : !validateUrl(value, currentAction?.is_staging)
+                    ? `Please enter a valid URL${
+                        !currentAction?.is_staging ? " over https://" : ""
+                      }`
+                    : ""
+                }
                 type="text"
               />
             )}
