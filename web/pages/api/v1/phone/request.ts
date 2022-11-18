@@ -37,6 +37,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // ANCHOR: Validate request
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
@@ -69,7 +70,7 @@ export default async function handler(
     );
   }
 
-  // Check action ID
+  // ANCHOR: Check action ID
   const localClient = await getAPIServiceClient();
 
   const {
@@ -142,13 +143,34 @@ export default async function handler(
     try {
       const { sendCodeAttempts, lookup } = await twilioClient.verify.v2
         .services(process.env.TWILIO_VERIFY_SERVICE)
-        .verifications.create({ to: phone_number, channel: "sms" }); // TODO: channel
+        .verifications.create({
+          to: phone_number,
+          channel: "sms",
+          rateLimits: {
+            rate_limit_phone_number: phone_number, // TODO: This should be the nullifier as Twilio does not recognize this as PII
+          },
+        }); // TODO: channel
       const attemptsCount = sendCodeAttempts.length;
       const { type } = lookup.carrier; // voip, landline, mobile, etc.
     } catch (e) {
-      if ((e as Record<string, any>).code === 60605) {
+      const errorCode = (e as Record<string, any>).code;
+      if (errorCode === 60605) {
         console.warn("Blocked Twilio verify attempt for blocked country.");
         // NOTE: We deliberately do not send an error response to the client to avoid leaking information about blocked countries.
+      } else if (errorCode === 60203) {
+        return errorResponse(
+          res,
+          429,
+          "max_attempts",
+          "Maximum attempts reached for this phone number. Please try again in 10 minutes."
+        );
+      } else if (errorCode === 20429) {
+        return errorResponse(
+          res,
+          429,
+          "timeout",
+          "Please wait 1 minute before requesting another code."
+        );
       } else {
         console.error("Twilio verification failed. Error:", e);
         return errorResponse(
