@@ -138,12 +138,27 @@ export default async function handler(
   } else {
     // TODO: Rate limiting
     console.info(`User is not registered in Worldcoin app. Sending OTP SMS.`);
-    const { sendCodeAttempts, lookup } = await twilioClient.verify.v2
-      .services(process.env.TWILIO_VERIFY_SERVICE)
-      .verifications.create({ to: phone_number, channel: "sms" }); // TODO: channel
 
-    const attemptsCount = sendCodeAttempts.length;
-    const { type } = lookup.carrier; // voip, landline, mobile, etc.
+    try {
+      const { sendCodeAttempts, lookup } = await twilioClient.verify.v2
+        .services(process.env.TWILIO_VERIFY_SERVICE)
+        .verifications.create({ to: phone_number, channel: "sms" }); // TODO: channel
+      const attemptsCount = sendCodeAttempts.length;
+      const { type } = lookup.carrier; // voip, landline, mobile, etc.
+    } catch (e) {
+      if ((e as Record<string, any>).code === 60605) {
+        console.warn("Blocked Twilio verify attempt for blocked country.");
+        // NOTE: We deliberately do not send an error response to the client to avoid leaking information about blocked countries.
+      } else {
+        console.error("Twilio verification failed. Error:", e);
+        return errorResponse(
+          res,
+          500,
+          "server_error",
+          "Verification could not be completed."
+        );
+      }
+    }
 
     // TODO: Report request to PostHog anonymously for analytics
   }
