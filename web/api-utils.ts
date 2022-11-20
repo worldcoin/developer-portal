@@ -8,6 +8,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorValidation } from "errors";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { utils as widgetUtils } from "@worldcoin/id";
+import argon2 from "argon2";
 
 export const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
 export const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";
@@ -357,4 +358,17 @@ export const parseVerifyProofRequestInputs = (
   }
 
   return { proof, nullifier_hash, action_id_hash, signal_hash, merkle_root };
+};
+
+export const hashPhoneNumber = async (number: string, app_id: string) => {
+  // TODO: Secret
+  const argon2hash = await argon2.hash(`${app_id}_${number}`, {
+    timeCost: 10, // Number of iterations
+    salt: Buffer.from("secret_here"), // NOTE: Important to keep this static to guarantee deterministic hashes
+  });
+
+  // SHA256 the output (consistent hash, friendly encoding, hide the salt)
+  const sha256Hash = crypto.createHash("sha256");
+  sha256Hash.update(argon2hash);
+  return sha256Hash.digest("hex");
 };

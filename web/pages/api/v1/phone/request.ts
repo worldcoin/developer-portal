@@ -12,6 +12,7 @@ import {
 } from "errors";
 import { ActionType } from "types";
 import twilio from "twilio";
+import { hashPhoneNumber } from "api-utils";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
 
@@ -72,7 +73,6 @@ export default async function handler(
 
   // ANCHOR: Check action ID
   const localClient = await getAPIServiceClient();
-
   const {
     data: { action: actionList },
   } = await localClient.query<ActionsQueryInterface>({
@@ -106,6 +106,9 @@ export default async function handler(
   const { is_staging } = actionList[0];
 
   console.info(`Starting phone verification request for action: ${action_id}.`);
+
+  const hashed = await hashPhoneNumber(phone_number, "app_123");
+  return res.status(200).json({ hashed });
 
   // Check if phone was linked to a WLD account
   const wldAppClient = await getWLDAppBackendServiceClient(is_staging);
