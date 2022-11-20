@@ -107,9 +107,6 @@ export default async function handler(
 
   console.info(`Starting phone verification request for action: ${action_id}.`);
 
-  const hashed = await hashPhoneNumber(phone_number, "app_123");
-  return res.status(200).json({ hashed });
-
   // Check if phone was linked to a WLD account
   const wldAppClient = await getWLDAppBackendServiceClient(is_staging);
   const {
@@ -129,6 +126,8 @@ export default async function handler(
       phone_number,
     },
   });
+
+  const hashedPhoneNumber = hashPhoneNumber(phone_number, action_id);
 
   const twilioClient = twilio(
     process.env.TWILIO_ACCOUNT_SID,

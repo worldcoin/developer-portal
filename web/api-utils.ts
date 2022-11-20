@@ -360,9 +360,9 @@ export const parseVerifyProofRequestInputs = (
   return { proof, nullifier_hash, action_id_hash, signal_hash, merkle_root };
 };
 
-export const hashPhoneNumber = async (number: string, app_id: string) => {
+export const hashPhoneNumber = async (number: string, action_id: string) => {
   // TODO: Secret
-  const argon2hash = await argon2.hash(`${app_id}_${number}`, {
+  const argon2hash = await argon2.hash(`${action_id}_${number}`, {
     timeCost: 10, // Number of iterations
     salt: Buffer.from("secret_here"), // NOTE: Important to keep this static to guarantee deterministic hashes
   });
