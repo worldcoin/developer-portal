@@ -361,10 +361,12 @@ export const parseVerifyProofRequestInputs = (
 };
 
 export const hashPhoneNumber = async (number: string, action_id: string) => {
-  // TODO: Secret
+  if (!process.env.PHONE_NULLIFIER_SALT) {
+    throw new Error("PHONE_NULLIFIER_SALT not set");
+  }
   const argon2hash = await argon2.hash(`${action_id}_${number}`, {
     timeCost: 10, // Number of iterations
-    salt: Buffer.from("secret_here"), // NOTE: Important to keep this static to guarantee deterministic hashes
+    salt: Buffer.from(process.env.PHONE_NULLIFIER_SALT), // NOTE: Important to keep this static to guarantee deterministic hashes
   });
 
   // SHA256 the output (consistent hash, friendly encoding, hide the salt)
