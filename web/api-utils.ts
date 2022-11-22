@@ -372,3 +372,35 @@ export const hashPhoneNumber = async (number: string, action_id: string) => {
   sha256Hash.update(argon2hash);
   return sha256Hash.digest("hex");
 };
+
+export const reportAPIEventToPostHog = async (
+  event: string,
+  distinct_id: string,
+  props: Record<string, any>
+): Promise<void> => {
+  try {
+    const response = await fetch("https://app.posthog.com/capture", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        api_key: process.env.NEXT_PUBLIC_POSTHOG_API_KEY,
+        event,
+        properties: {
+          $lib: "worldcoin-server", // NOTE: This is required for PostHog to discard any IP data (or the server's address will be incorrectly attributed to the user)
+          distinct_id: distinct_id || `srv-${randomUUID()}`,
+          ...props,
+        },
+      }),
+    });
+    if (!response.ok) {
+      console.error(
+        `Error reporting ${event} to PostHog. Non-200 response: ${response.status}`,
+        await response.text()
+      );
+    }
+  } catch (e) {
+    console.error(`Error reporting ${event} to PostHog`, e);
+  }
+};

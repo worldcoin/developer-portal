@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
-import {
-  getAPIServiceClient,
-  getWLDAppBackendServiceClient,
-} from "api-graphql";
+import { getAPIServiceClient } from "api-graphql";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -12,6 +9,10 @@ import {
 } from "errors";
 import { ActionType } from "types";
 import twilio from "twilio";
+import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
+import crypto from "crypto";
+import { exit } from "process";
+import { ethers } from "ethers";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
 
@@ -47,7 +48,16 @@ export default async function handler(
     );
   }
 
-  const { phone_number, action_id, code } = req.body as Record<string, string>;
+  if (!process.env.PHONE_NULLIFIER_SIGNING_KEY) {
+    throw new Error(
+      'Improperly configured. Missing "PHONE_NULLIFIER_SIGNING_KEY" env var.'
+    );
+  }
+
+  const { phone_number, action_id, code, ph_distinct_id } = req.body as Record<
+    string,
+    string
+  >;
 
   if (!phone_number) {
     return errorRequiredAttribute("phoneNumber", res);
@@ -70,17 +80,20 @@ export default async function handler(
     );
   }
 
-  // Check action ID
-  // TODO: Check if nullifier has been used and decline unless app supports repeated nullifier use
+  // ANCHOR: Check action ID
+  // NOTE: Phone verification does not offer uniqueness check on Dev Portal (apps should implement their own logic). To ensure privacy, we don't store nullifiers.
   const localClient = await getAPIServiceClient();
   const {
     data: { action: actionList },
   } = await localClient.query<ActionsQueryInterface>({
-    // TODO: check whitelist
     query: gql`
       query GetAction($action_id: String!) {
         action(
-          where: { id: { _eq: $action_id }, status: { _eq: "active" } }
+          where: {
+            id: { _eq: $action_id }
+            status: { _eq: "active" }
+            tmp_phone_signal_whitelist: { _eq: true }
+          }
           limit: 1
         ) {
           id
@@ -94,7 +107,6 @@ export default async function handler(
   });
 
   if (actionList.length === 0) {
-    console.warn("no action!!!!");
     return errorResponse(
       res,
       404,
@@ -114,22 +126,47 @@ export default async function handler(
     .verificationChecks.create({ to: phone_number, code });
 
   if (status === "approved") {
-    // FIXME:  Report request to PostHog anonymously for analytics
+    const nullifier_hash = await hashPhoneNumber(phone_number, action_id);
+
+    await reportAPIEventToPostHog(
+      "phone verification verified",
+      ph_distinct_id,
+      {
+        action_id,
+        channel,
+        is_staging,
+      }
+    );
+
+    const timestamp = new Date().getTime();
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify({ timestamp, nullifier_hash }))
+      .digest("hex");
+
+    const signingKey = new ethers.utils.SigningKey(
+      process.env.PHONE_NULLIFIER_SIGNING_KEY
+    );
+
+    const signature = signingKey.signDigest(`0x${hash}`).compact;
 
     // FIXME: Insert nullifier into DB
 
-    return (
-      res
-        .status(200)
-        // FIXME: Nullifier & signature
-        .json({ success: true, nullifier_hash: "0x0", signature: "0y0" })
-    );
+    return res.status(200).json({
+      success: true,
+      nullifier_hash,
+      timestamp,
+      signature,
+      public_key: signingKey.publicKey,
+    });
   } else {
     return errorResponse(
       res,
       400,
       "invalid_code",
-      "Invalid code. Please try again."
+      "Invalid code. Please try again.",
+      "code"
     );
   }
 }
