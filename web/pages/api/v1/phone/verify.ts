@@ -115,7 +115,7 @@ export default async function handler(
     );
   }
 
-  const { is_staging } = actionList[0];
+  const action = actionList[0];
 
   const twilioClient = twilio(
     process.env.TWILIO_ACCOUNT_SID,
@@ -134,10 +134,11 @@ export default async function handler(
       {
         action_id,
         channel,
-        is_staging,
+        is_staging: action.is_staging,
       }
     );
 
+    // ANCHOR: Sign nullifier
     const timestamp = new Date().getTime();
 
     const hash = crypto
@@ -151,14 +152,41 @@ export default async function handler(
 
     const signature = signingKey.signDigest(`0x${hash}`).compact;
 
-    // FIXME: Insert nullifier into DB
+    // ANCHOR: Insert nullifier (redacted) in DB
+    const insertNullifierQuery = gql`
+      mutation InsertNullifier(
+        $nullifier_hash: String!
+        $action_id: String!
+        $nullifier_type: String!
+      ) {
+        insert_nullifier_one(
+          object: {
+            nullifier_hash: $nullifier_hash
+            nullifier_type: $nullifier_type
+            action_id: $action_id
+          }
+        ) {
+          nullifier_hash
+          created_at
+        }
+      }
+    `;
+
+    const client = await getAPIServiceClient();
+    await client.query({
+      query: insertNullifierQuery,
+      variables: {
+        nullifier_hash: "redacted",
+        action_id: action.id,
+        nullifier_type: "phone",
+      },
+    });
 
     return res.status(200).json({
       success: true,
       nullifier_hash,
       timestamp,
       signature,
-      public_key: signingKey.publicKey,
     });
   } else {
     return errorResponse(

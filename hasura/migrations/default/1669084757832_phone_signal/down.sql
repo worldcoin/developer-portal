@@ -1,3 +1,5 @@
+ALTER TABLE "public"."nullifier" ALTER COLUMN "merkle_root" drop default;
+
 alter table "public"."nullifier" drop constraint "nullifier_type_choices";
 
 alter table "public"."nullifier" drop column "nullifier_type";
