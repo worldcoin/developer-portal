@@ -11,7 +11,6 @@ import { ActionType } from "types";
 import twilio from "twilio";
 import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
 import crypto from "crypto";
-import { exit } from "process";
 import { ethers } from "ethers";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
