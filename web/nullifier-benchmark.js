@@ -38,9 +38,10 @@ async function main() {
   // NOTE: This is non-parallel execution
   const daysToBreak = (avgTime / 1000 / 60 / 60 / 24) * 10 ** 9;
   console.log(
-    `Days to compute entire rainbow table knowing the hash: ${daysToBreak}`
+    `Days to compute entire rainbow table knowing the salt: ${Math.floor(
+      daysToBreak
+    )} (${daysToBreak / 365} years)`
   );
-  console.log(`Years: ${daysToBreak / 365}`);
 }
 
 main();
