@@ -83,6 +83,7 @@ export class Web extends MultiEnvRootStack {
             environment: {
               ...stackParameters.envs,
               NEXT_PUBLIC_GRAPHQL_API_URL: props.graphQlApiUrl,
+              TWILIO_VERIFY_SERVICE: 'VAe3ef1fb47793216069edadea3cc094c9',
             },
             secrets: {
               ALCHEMY_API_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
@@ -96,6 +97,32 @@ export class Web extends MultiEnvRootStack {
               INTERNAL_ENDPOINTS_SECRET: cdk.aws_ecs.Secret.fromSecretsManager(
                 props.internalEndpointSecret
               ),
+              CONSUMER_BACKEND_JWT: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'CONSUMER_BACKEND_JWT'
+              ),
+              CONSUMER_BACKEND_JWT_STAGING:
+                cdk.aws_ecs.Secret.fromSecretsManager(
+                  props.secretsSecret,
+                  'CONSUMER_BACKEND_JWT_STAGING'
+                ),
+              TWILIO_ACCOUNT_SID: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'TWILIO_ACCOUNT_SID'
+              ),
+              TWILIO_AUTH_TOKEN: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'TWILIO_AUTH_TOKEN'
+              ),
+              PHONE_NULLIFIER_SALT: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'PHONE_NULLIFIER_SALT'
+              ),
+              PHONE_NULLIFIER_SIGNING_KEY:
+                cdk.aws_ecs.Secret.fromSecretsManager(
+                  props.secretsSecret,
+                  'PHONE_NULLIFIER_SIGNING_KEY'
+                ),
             },
             logDriver: cdk.aws_ecs.LogDrivers.firelens({
               options: {

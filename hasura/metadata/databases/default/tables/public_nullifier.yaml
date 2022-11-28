@@ -16,6 +16,7 @@ insert_permissions:
         - action_id
         - merkle_root
         - nullifier_hash
+        - nullifier_type
       backend_only: false
 select_permissions:
   - role: api_key
@@ -26,6 +27,7 @@ select_permissions:
         - id
         - merkle_root
         - nullifier_hash
+        - nullifier_type
         - updated_at
       filter:
         action:
@@ -42,12 +44,13 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - action_id
+        - created_at
+        - id
         - merkle_root
         - nullifier_hash
-        - created_at
+        - nullifier_type
         - updated_at
-        - action_id
-        - id
       filter:
         action:
           app:

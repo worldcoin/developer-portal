@@ -8,6 +8,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorValidation } from "errors";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { utils as widgetUtils } from "@worldcoin/id";
+import argon2 from "argon2";
 
 export const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
 export const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";
@@ -357,4 +358,51 @@ export const parseVerifyProofRequestInputs = (
   }
 
   return { proof, nullifier_hash, action_id_hash, signal_hash, merkle_root };
+};
+
+export const hashPhoneNumber = async (number: string, action_id: string) => {
+  if (!process.env.PHONE_NULLIFIER_SALT) {
+    throw new Error("PHONE_NULLIFIER_SALT not set");
+  }
+  const argon2hash = await argon2.hash(`${action_id}_${number}`, {
+    timeCost: 10, // Number of iterations
+    salt: Buffer.from(process.env.PHONE_NULLIFIER_SALT), // NOTE: Important to keep this static to guarantee deterministic hashes
+  });
+
+  // SHA256 the output (consistent hash, friendly encoding, hide the salt)
+  const sha256Hash = crypto.createHash("sha256");
+  sha256Hash.update(argon2hash);
+  return sha256Hash.digest("hex");
+};
+
+export const reportAPIEventToPostHog = async (
+  event: string,
+  distinct_id: string,
+  props: Record<string, any>
+): Promise<void> => {
+  try {
+    const response = await fetch("https://app.posthog.com/capture", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        api_key: process.env.NEXT_PUBLIC_POSTHOG_API_KEY,
+        event,
+        properties: {
+          $lib: "worldcoin-server", // NOTE: This is required for PostHog to discard any IP data (or the server's address will be incorrectly attributed to the user)
+          distinct_id: distinct_id || `srv-${randomUUID()}`,
+          ...props,
+        },
+      }),
+    });
+    if (!response.ok) {
+      console.error(
+        `Error reporting ${event} to PostHog. Non-200 response: ${response.status}`,
+        await response.text()
+      );
+    }
+  } catch (e) {
+    console.error(`Error reporting ${event} to PostHog`, e);
+  }
 };
