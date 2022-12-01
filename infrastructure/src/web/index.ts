@@ -83,7 +83,6 @@ export class Web extends MultiEnvRootStack {
             environment: {
               ...stackParameters.envs,
               NEXT_PUBLIC_GRAPHQL_API_URL: props.graphQlApiUrl,
-              TWILIO_VERIFY_SERVICE: 'VAe3ef1fb47793216069edadea3cc094c9',
             },
             secrets: {
               ALCHEMY_API_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
@@ -106,6 +105,10 @@ export class Web extends MultiEnvRootStack {
                   props.secretsSecret,
                   'CONSUMER_BACKEND_JWT_STAGING'
                 ),
+              TWILIO_VERIFY_SERVICE: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'TWILIO_VERIFY_SERVICE'
+              ),
               TWILIO_ACCOUNT_SID: cdk.aws_ecs.Secret.fromSecretsManager(
                 props.secretsSecret,
                 'TWILIO_ACCOUNT_SID'
