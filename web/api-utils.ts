@@ -365,7 +365,7 @@ export const hashPhoneNumber = async (number: string, action_id: string) => {
     throw new Error("PHONE_NULLIFIER_SALT not set");
   }
   const argon2hash = await argon2.hash(`${action_id}_${number}`, {
-    timeCost: 10, // Number of iterations
+    timeCost: 36, // Number of iterations; see `nullifier-benchmark.js` for further details
     salt: Buffer.from(process.env.PHONE_NULLIFIER_SALT), // NOTE: Important to keep this static to guarantee deterministic hashes
   });
 

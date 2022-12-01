@@ -29,6 +29,8 @@ interface CheckPhoneQueryInterface {
   }[];
 }
 
+// TODO: This endpoint needs e2e functional testing
+
 /**
  * Initiates the phone verification request
  * WARNING: This is an ALPHA feature. Not ready for widespread use. Phone credentials will eventually move to self-custodial wallet.
@@ -168,6 +170,7 @@ export default async function handler(
       .verifications.create({
         to: phone_number,
         channel: channel || "sms",
+        // TODO: Terraform (or equivalent) the rate limits & buckets to have proper syncing and version control
         rateLimits: {
           rate_limit_phone_number: hashedPhoneNumber, // TODO: Ensure Twilio does not store this for extra privacy
           rate_limit_ip_address: hashedIpAddress,

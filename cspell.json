@@ -3,12 +3,7 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": [
-    "typescript",
-    "node",
-    "npm",
-    "html"
-  ],
+  "dictionaries": ["typescript", "node", "npm", "html"],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -31,6 +26,7 @@
     "keccak",
     "merkle",
     "nullifer",
+    "secp256k1",
     "signup",
     "timestamptz",
     "toastify",
