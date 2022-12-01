@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:16.17-bullseye-slim
+FROM --platform=linux/amd64 node:16.18.1-bullseye-slim
 WORKDIR /app
 ENV key=value
 COPY . .
