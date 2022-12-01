@@ -29,6 +29,8 @@ interface CheckPhoneQueryInterface {
   }[];
 }
 
+// TODO: This endpoint needs e2e functional testing
+
 /**
  * Initiates the phone verification request
  * WARNING: This is an ALPHA feature. Not ready for widespread use. Phone credentials will eventually move to self-custodial wallet.

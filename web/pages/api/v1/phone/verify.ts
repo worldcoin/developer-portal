@@ -10,7 +10,6 @@ import {
 import { ActionType } from "types";
 import twilio from "twilio";
 import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
-import crypto from "crypto";
 import { ethers } from "ethers";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
@@ -19,13 +18,7 @@ interface ActionsQueryInterface {
   action: Pick<ActionType, "id" | "is_staging">[];
 }
 
-interface CheckPhoneQueryInterface {
-  user: {
-    publicKeyId: string;
-    phoneNumber: string;
-    isPushNotificationsEnabled: boolean;
-  }[];
-}
+// TODO: This endpoint needs e2e functional testing
 
 /**
  * Verifies a phone number OTP and issues nullifier
@@ -140,16 +133,15 @@ export default async function handler(
     // ANCHOR: Sign nullifier
     const timestamp = new Date().getTime();
 
-    const hash = crypto
-      .createHash("sha256")
-      .update(JSON.stringify({ timestamp, nullifier_hash }))
-      .digest("hex");
+    // Hashes payload using keccak256
+    const hash = ethers.utils.keccak256(
+      Buffer.from(`${timestamp}.${nullifier_hash}`)
+    );
 
     const signingKey = new ethers.utils.SigningKey(
       process.env.PHONE_NULLIFIER_SIGNING_KEY
     );
-
-    const signature = signingKey.signDigest(`0x${hash}`).compact;
+    const signature = signingKey.signDigest(hash).compact; // Uses `secp256k1` curve, friendly with EVM
 
     // ANCHOR: Insert nullifier (redacted) in DB
     const insertNullifierQuery = gql`
