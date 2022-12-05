@@ -11,7 +11,7 @@ import { ActionType } from "types";
 import twilio from "twilio";
 import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
 import { ethers } from "ethers";
-import { runCors } from "cors";
+import { runCors } from "../../../../cors";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
 
