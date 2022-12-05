@@ -14,6 +14,7 @@ import { ActionType } from "types";
 import twilio from "twilio";
 import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
 import requestIp from "request-ip";
+import { runCors } from "cors";
 
 const E_164_REGEX = /^\+[1-9]\d{10,14}$/;
 
@@ -41,6 +42,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  await runCors(req, res);
+
   // ANCHOR: Validate client request
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
