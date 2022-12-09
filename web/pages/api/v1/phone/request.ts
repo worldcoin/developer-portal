@@ -59,7 +59,7 @@ export default async function handler(
     req.body as Record<string, string>;
 
   if (!phone_number) {
-    return errorRequiredAttribute("phoneNumber", res);
+    return errorRequiredAttribute("phone_number", res);
   }
 
   if (!action_id) {
