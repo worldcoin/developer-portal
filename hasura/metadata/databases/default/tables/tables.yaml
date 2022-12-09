@@ -3,6 +3,7 @@
 - "!include public_api_key.yaml"
 - "!include public_app.yaml"
 - "!include public_cache.yaml"
+- "!include public_doc_check.yaml"
 - "!include public_jwks.yaml"
 - "!include public_nullifier.yaml"
 - "!include public_team.yaml"

@@ -1,0 +1,40 @@
+table:
+  schema: public
+  name: doc_check
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - document_hash
+        - identity_commitment
+        - session_id
+      backend_only: false
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - created_at
+        - document_hash
+        - error_details
+        - id
+        - identity_commitment
+        - session_id
+        - status
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - document_hash
+        - error_details
+        - identity_commitment
+        - session_id
+        - status
+      filter: {}
+      check: null
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}
