@@ -1,7 +1,11 @@
+import { gql } from "@apollo/client";
+import { getAPIServiceClient } from "api-graphql";
 import { errorRequiredAttribute } from "errors";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const VERIFF_BASE_URL = "https://stationapi.veriff.com";
+
+// FIXME: Currently these endpoints assume only staging environment. We need to add support for production
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,11 +30,9 @@ export default async function handler(
     body: JSON.stringify({
       verification: {
         timestamp: new Date().toISOString(),
-        callback: `${process.env.NEXT_PUBLIC_APP_URL}/api/v-alpha/kyc-webhook`,
-        vendorData: identity_commitment, // FIXME: something even more private
-        document: {
-          type: "PASSPORT",
-        },
+        // document: {
+        //   type: "PASSPORT",
+        // },
       },
     }),
   });
@@ -45,8 +47,31 @@ export default async function handler(
   }
 
   const {
-    verification: { url },
+    verification: { url, id: session_id },
   } = await veriffResponse.json();
 
-  return res.status(200).json({ url });
+  // Store session ID in the database so we can later match it to the callback
+  const query = gql`
+    mutation InsertDocCheck(
+      $identity_commitment: String!
+      $session_id: String!
+    ) {
+      insert_doc_check_one(
+        object: {
+          identity_commitment: $identity_commitment
+          session_id: $session_id
+        }
+      ) {
+        id
+      }
+    }
+  `;
+
+  const client = await getAPIServiceClient();
+  await client.query({
+    query,
+    variables: { identity_commitment, session_id },
+  });
+
+  return res.status(200).json({ url, session_id });
 }

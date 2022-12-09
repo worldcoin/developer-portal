@@ -1,4 +1,4 @@
-CREATE TABLE "public"."doc_check" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('docc'), "session_id" varchar NOT NULL, "document_hash" varchar NOT NULL DEFAULT '', "status" varchar NOT NULL DEFAULT 'created', "identity_commitment" varchar NOT NULL, "error_details" varchar NOT NULL DEFAULT '', PRIMARY KEY ("id") , UNIQUE ("id"));
+CREATE TABLE "public"."doc_check" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('docc'), "session_id" varchar NOT NULL, "document_hash" varchar NOT NULL DEFAULT '', "status" varchar NOT NULL DEFAULT 'created', "identity_commitment" varchar NOT NULL, "error_details" varchar NOT NULL DEFAULT '', PRIMARY KEY ("id") , UNIQUE ("id"), UNIQUE("session_id"), UNIQUE("document_hash") );
 
 alter table "public"."doc_check" add column "created_at" timestamptz not null default now();
 
