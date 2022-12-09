@@ -82,20 +82,46 @@ export default async function handler(
       }
     `;
 
-    try {
-      const { data, errors } = await client.query({
-        query,
-        variables: {
-          session_id: verification.id,
-          document_hash: hashedDocument,
-        },
-      });
-      console.log("good errors", errors);
-    } catch (e) {
-      console.log("caught error", e);
-    }
+    const { data, errors } = await client.query({
+      query,
+      variables: {
+        session_id: verification.id,
+        document_hash: hashedDocument,
+      },
+      errorPolicy: "all",
+    });
 
-    // TODO: Better error handling for repeated doc hash
+    // ANCHOR: Handle duplicate submission (same document)
+    if (errors) {
+      for (const error of errors) {
+        if (error["extensions"]["code"] === "constraint-violation") {
+          console.warn("Attempted to registered user with duplicate document.");
+          const query = gql`
+            mutation UpdateDocCheck(
+              $session_id: String!
+              $error_details: String!
+            ) {
+              update_doc_check(
+                where: { session_id: { _eq: $session_id } }
+                _set: { status: "errored", error_details: $error_details }
+              ) {
+                affected_rows
+              }
+            }
+          `;
+
+          await client.query({
+            query,
+            variables: {
+              session_id: verification.id,
+              error_details:
+                "You have previously verified with World ID. You can only verify once.",
+            },
+          });
+          return res.status(204).end();
+        }
+      }
+    }
 
     const identity_commitment =
       data.update_doc_check.returning[0].identity_commitment;
@@ -125,8 +151,6 @@ export default async function handler(
         verification.id
       );
     }
-
-    // TODO: signup sequencer
   } else if (verification.code === 9104) {
     // NOTE: Expired or abandoned, delete the session information from the DB
     const query = gql`
@@ -173,8 +197,6 @@ export default async function handler(
       },
     });
   }
-
-  console.log(req.body);
 
   return res.status(204).end();
 }
