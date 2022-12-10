@@ -101,3 +101,10 @@ export enum Credentials {
   Identity = "identity",
   Orb = "orb",
 }
+
+export interface CredentialType {
+  credential_type: Credentials;
+  error_details?: string;
+  status: "created" | "verified" | "errored";
+  credential_data?: Record<string, any>;
+}

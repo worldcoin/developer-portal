@@ -197,7 +197,7 @@ export default async function handler(
         $error_details: String!
       ) {
         update_credential(
-          where: { session_id: { _eq: $verification_session_id } }
+          where: { verification_session_id: { _eq: $verification_session_id } }
           _set: { status: "errored", error_details: $error_details }
         ) {
           affected_rows
