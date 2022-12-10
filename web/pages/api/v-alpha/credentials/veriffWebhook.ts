@@ -55,7 +55,7 @@ export default async function handler(
 
   // ANCHOR: Handle successful verification
   if (verification.code === 9001) {
-    // TODO: Store the datapacket temporarily in the DB so the user can retrieve it
+    // TODO: Check structure of the data and sign
     const dataPacket = {
       first_name: verification.person.firstName,
       last_name: verification.person.lastName,
@@ -66,14 +66,22 @@ export default async function handler(
 
     const hashedDocument = await hashPhoneNumber(
       `${verification.document.country}_${verification.document.number}`,
-      "v0_doc-check"
+      "v0_identity"
     );
 
     const query = gql`
-      mutation UpdateDocCheck($session_id: String!, $document_hash: String!) {
-        update_doc_check(
-          where: { session_id: { _eq: $session_id } }
-          _set: { status: "verified", document_hash: $document_hash }
+      mutation UpdateCredential(
+        $verification_session_id: String!
+        $credential_hash: String!
+        $credential_data: json!
+      ) {
+        update_credential(
+          where: { verification_session_id: { _eq: $verification_session_id } }
+          _set: {
+            status: "verified"
+            credential_hash: $credential_hash
+            credential_data: $credential_data
+          }
         ) {
           returning {
             identity_commitment
@@ -85,8 +93,9 @@ export default async function handler(
     const { data, errors } = await client.query({
       query,
       variables: {
-        session_id: verification.id,
-        document_hash: hashedDocument,
+        verification_session_id: verification.id,
+        credential_hash: hashedDocument,
+        credential_data: dataPacket,
       },
       errorPolicy: "all",
     });
@@ -97,12 +106,14 @@ export default async function handler(
         if (error["extensions"]["code"] === "constraint-violation") {
           console.warn("Attempted to registered user with duplicate document.");
           const query = gql`
-            mutation UpdateDocCheck(
-              $session_id: String!
+            mutation UpdateCredential(
+              $verification_session_id: String!
               $error_details: String!
             ) {
-              update_doc_check(
-                where: { session_id: { _eq: $session_id } }
+              update_credential(
+                where: {
+                  verification_session_id: { _eq: $verification_session_id }
+                }
                 _set: { status: "errored", error_details: $error_details }
               ) {
                 affected_rows
@@ -113,7 +124,7 @@ export default async function handler(
           await client.query({
             query,
             variables: {
-              session_id: verification.id,
+              verification_session_id: verification.id,
               error_details:
                 "You have previously verified with World ID. You can only verify once.",
             },
@@ -124,7 +135,7 @@ export default async function handler(
     }
 
     const identity_commitment =
-      data.update_doc_check.returning[0].identity_commitment;
+      data.update_credential.returning[0].identity_commitment;
 
     if (!identity_commitment) {
       throw new Error(
@@ -133,29 +144,31 @@ export default async function handler(
     }
 
     // ANCHOR: Insert identity on signup sequencer to Merkle tree
-    const sequencerResponse = await fetch(
-      `${SIGNUP_SEQUENCER_URL}/insertIdentity`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
-      }
-    );
+    // const sequencerResponse = await fetch(
+    //   `${SIGNUP_SEQUENCER_URL}/insertIdentity`,
+    //   {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
+    //   }
+    // );
 
-    if (!sequencerResponse.ok) {
-      // TODO: Probably want to add some retry mechanism
-      throw new Error(
-        "Failed to insert identity into Merkle tree.",
-        verification.id
-      );
-    }
+    // if (!sequencerResponse.ok) {
+    //   // TODO: Probably want to add some retry mechanism
+    //   throw new Error(
+    //     "Failed to insert identity into Merkle tree.",
+    //     verification.id
+    //   );
+    // }
   } else if (verification.code === 9104) {
     // NOTE: Expired or abandoned, delete the session information from the DB
     const query = gql`
-      mutation DeleteDocCheck($session_id: String!) {
-        delete_doc_check(where: { session_id: { _eq: $session_id } }) {
+      mutation DeleteCredential($verification_session_id: String!) {
+        delete_credential(
+          where: { verification_session_id: { _eq: $verification_session_id } }
+        ) {
           affected_rows
         }
       }
@@ -163,10 +176,10 @@ export default async function handler(
 
     await client.query({
       query,
-      variables: { session_id: verification.id },
+      variables: { verification_session_id: verification.id },
     });
 
-    console.log("Deleted verification session as it expired or was abandoned");
+    console.log("Deleted verification session as it expired or was abandoned.");
   } else if (verification.code === 9102 || verification.code === 9103) {
     if (verification.code === 9102) {
       // NOTE: Verification failed due to fraud or hard negative reason
@@ -179,9 +192,12 @@ export default async function handler(
     }
 
     const query = gql`
-      mutation UpdateDocCheck($session_id: String!, $error_details: String!) {
-        update_doc_check(
-          where: { session_id: { _eq: $session_id } }
+      mutation DeleteCredential(
+        $verification_session_id: String!
+        $error_details: String!
+      ) {
+        update_credential(
+          where: { session_id: { _eq: $verification_session_id } }
           _set: { status: "errored", error_details: $error_details }
         ) {
           affected_rows
@@ -192,7 +208,7 @@ export default async function handler(
     await client.query({
       query,
       variables: {
-        session_id: verification.id,
+        verification_session_id: verification.id,
         error_details: "Verification failed. Please try again.",
       },
     });

@@ -95,3 +95,9 @@ export type EnvironmentType = {
   value: "production" | "staging";
   icon: { name: IconType; noMask?: boolean };
 };
+
+export enum Credentials {
+  Phone = "phone",
+  Identity = "identity",
+  Orb = "orb",
+}
