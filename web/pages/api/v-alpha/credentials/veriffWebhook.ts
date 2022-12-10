@@ -144,24 +144,24 @@ export default async function handler(
     }
 
     // ANCHOR: Insert identity on signup sequencer to Merkle tree
-    // const sequencerResponse = await fetch(
-    //   `${SIGNUP_SEQUENCER_URL}/insertIdentity`,
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
-    //   }
-    // );
+    const sequencerResponse = await fetch(
+      `${SIGNUP_SEQUENCER_URL}/insertIdentity`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
+      }
+    );
 
-    // if (!sequencerResponse.ok) {
-    //   // TODO: Probably want to add some retry mechanism
-    //   throw new Error(
-    //     "Failed to insert identity into Merkle tree.",
-    //     verification.id
-    //   );
-    // }
+    if (!sequencerResponse.ok) {
+      // TODO: Probably want to add some retry mechanism
+      throw new Error(
+        "Failed to insert identity into Merkle tree.",
+        verification.id
+      );
+    }
   } else if (verification.code === 9104) {
     // NOTE: Expired or abandoned, delete the session information from the DB
     const query = gql`
