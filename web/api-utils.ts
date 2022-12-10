@@ -406,3 +406,17 @@ export const reportAPIEventToPostHog = async (
     console.error(`Error reporting ${event} to PostHog`, e);
   }
 };
+
+/**
+ * Get the raw request body as a string for API endpoints that do not use Next's parsing.
+ * @param req
+ * @returns
+ */
+export async function getRawRequestBody(req: NextApiRequest) {
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  const buffer = Buffer.concat(chunks);
+  return buffer.toString("utf-8");
+}

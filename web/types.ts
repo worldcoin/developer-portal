@@ -95,3 +95,16 @@ export type EnvironmentType = {
   value: "production" | "staging";
   icon: { name: IconType; noMask?: boolean };
 };
+
+export enum Credentials {
+  Phone = "phone",
+  Identity = "identity",
+  Orb = "orb",
+}
+
+export interface CredentialType {
+  credential_type: Credentials;
+  error_details?: string;
+  status: "created" | "verified" | "errored";
+  credential_data?: Record<string, any>;
+}
