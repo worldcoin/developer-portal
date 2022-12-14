@@ -150,7 +150,7 @@ export default async function handler(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "", // TODO
+          Authorization: `Basic ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`,
         },
         body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
       }
