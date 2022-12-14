@@ -1,4 +1,4 @@
-import { getRawRequestBody, hashPhoneNumber } from "api-utils";
+import { getRawRequestBody, hashCredentialV0 } from "api-utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import { gql } from "@apollo/client";
@@ -64,7 +64,7 @@ export default async function handler(
       date_of_birth: verification.person.dateOfBirth,
     };
 
-    const hashedDocument = await hashPhoneNumber(
+    const hashedDocument = await hashCredentialV0(
       `${verification.document.country}_${verification.document.number}`,
       "v0_identity"
     );
@@ -150,6 +150,7 @@ export default async function handler(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: "", // TODO
         },
         body: JSON.stringify([DOC_CHECK_GROUP_ID, identity_commitment]),
       }

@@ -117,15 +117,32 @@ export class Web extends MultiEnvRootStack {
                 props.secretsSecret,
                 'TWILIO_AUTH_TOKEN'
               ),
-              PHONE_NULLIFIER_SALT: cdk.aws_ecs.Secret.fromSecretsManager(
+              PHONE_NULLIFIER_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
                 props.secretsSecret,
-                'PHONE_NULLIFIER_SALT'
+                'PHONE_NULLIFIER_KEY'
               ),
               PHONE_NULLIFIER_SIGNING_KEY:
                 cdk.aws_ecs.Secret.fromSecretsManager(
                   props.secretsSecret,
                   'PHONE_NULLIFIER_SIGNING_KEY'
                 ),
+              VERIFF_PUBLIC_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'VERIFF_PUBLIC_KEY'
+              ),
+              VERIFF_PRIVATE_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'VERIFF_PRIVATE_KEY'
+              ),
+              STAGING_SIGNUP_SEQUENCER_KEY:
+                cdk.aws_ecs.Secret.fromSecretsManager(
+                  props.secretsSecret,
+                  'STAGING_SIGNUP_SEQUENCER_KEY'
+                ),
+              GENERAL_SECRET_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'GENERAL_SECRET_KEY'
+              ),
             },
             logDriver: cdk.aws_ecs.LogDrivers.firelens({
               options: {

@@ -9,7 +9,7 @@ import {
 } from "errors";
 import { ActionType } from "types";
 import twilio from "twilio";
-import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
+import { hashCredentialV0, reportAPIEventToPostHog } from "api-utils";
 import { ethers } from "ethers";
 import { runCors } from "../../../../cors";
 
@@ -121,7 +121,7 @@ export default async function handler(
     .verificationChecks.create({ to: phone_number, code });
 
   if (status === "approved") {
-    const nullifier_hash = await hashPhoneNumber(phone_number, action_id);
+    const nullifier_hash = await hashCredentialV0(phone_number, action_id);
 
     await reportAPIEventToPostHog(
       "phone verification verified",
@@ -141,10 +141,10 @@ export default async function handler(
       Buffer.from(`${timestamp}.${nullifier_hash}`)
     );
 
-    const signingKey = new ethers.utils.SigningKey(
+    const signingKey = new ethers.Wallet(
       process.env.PHONE_NULLIFIER_SIGNING_KEY
     );
-    const signature = signingKey.signDigest(hash).compact; // Uses `secp256k1` curve, friendly with EVM
+    const signature = await signingKey.signMessage(hash); // Uses `secp256k1` curve, friendly with EVM
 
     // ANCHOR: Insert nullifier (redacted) in DB
     const insertNullifierQuery = gql`
