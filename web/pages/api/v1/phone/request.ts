@@ -12,7 +12,7 @@ import {
 } from "errors";
 import { ActionType } from "types";
 import twilio from "twilio";
-import { hashPhoneNumber, reportAPIEventToPostHog } from "api-utils";
+import { hashRateLimitV0, reportAPIEventToPostHog } from "api-utils";
 import requestIp from "request-ip";
 import { runCors } from "../../../../cors";
 
@@ -141,8 +141,8 @@ export default async function handler(
     },
   });
 
-  const hashedPhoneNumber = await hashPhoneNumber(phone_number, action_id);
-  const hashedIpAddress = await hashPhoneNumber(
+  const hashedPhoneNumber = await hashRateLimitV0(phone_number, "phone");
+  const hashedIpAddress = await hashRateLimitV0(
     requestIp.getClientIp(req) ?? "invalid_ip",
     "ipAddr"
   );

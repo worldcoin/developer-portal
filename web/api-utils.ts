@@ -8,7 +8,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorValidation } from "errors";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { utils as widgetUtils } from "@worldcoin/id";
-import argon2 from "argon2";
 
 export const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
 export const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";
@@ -360,19 +359,32 @@ export const parseVerifyProofRequestInputs = (
   return { proof, nullifier_hash, action_id_hash, signal_hash, merkle_root };
 };
 
-export const hashPhoneNumber = async (number: string, action_id: string) => {
-  if (!process.env.PHONE_NULLIFIER_SALT) {
-    throw new Error("PHONE_NULLIFIER_SALT not set");
+export const hashCredentialV0 = async (number: string, action_id: string) => {
+  if (!process.env.PHONE_NULLIFIER_KEY) {
+    throw new Error("`PHONE_NULLIFIER_KEY` not set");
   }
-  const argon2hash = await argon2.hash(`${action_id}_${number}`, {
-    timeCost: 36, // Number of iterations; see `nullifier-benchmark.js` for further details
-    salt: Buffer.from(process.env.PHONE_NULLIFIER_SALT), // NOTE: Important to keep this static to guarantee deterministic hashes
-  });
 
-  // SHA256 the output (consistent hash, friendly encoding, hide the salt)
-  const sha256Hash = crypto.createHash("sha256");
-  sha256Hash.update(argon2hash);
-  return sha256Hash.digest("hex");
+  return crypto
+    .createHmac("sha256", process.env.PHONE_NULLIFIER_KEY)
+    .update(`${action_id}_${number}`)
+    .digest("hex");
+};
+
+export const hashRateLimitV0 = async (
+  rateLimitParam: string,
+  paramType: "ipAddr" | "phone"
+) => {
+  if (!process.env.GENERAL_SECRET_KEY) {
+    throw new Error("`GENERAL_SECRET_KEY` not set");
+  }
+
+  // NOTE: We generate day-based hashes as an additional layer of protection against RT brute-forcing
+  return crypto
+    .createHmac("sha256", process.env.GENERAL_SECRET_KEY)
+    .update(
+      `${paramType}_${rateLimitParam}_${new Date().toLocaleDateString("en-GB")}`
+    )
+    .digest("hex");
 };
 
 export const reportAPIEventToPostHog = async (
