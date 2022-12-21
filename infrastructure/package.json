@@ -42,7 +42,7 @@
     "asserts": "4.0.2",
     "aws-cdk-lib": "^2.41.0",
     "cdk-nag": "2.12.47",
-    "constructs": "^10.0.5",
+    "constructs": "^10.1.175",
     "ts-node": "10.9.1"
   },
   "license": "",
