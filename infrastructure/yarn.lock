@@ -1228,10 +1228,10 @@ case@1.6.3, case@^1.6.3:
   resolved "https://registry.npmjs.org/case/-/case-1.6.3.tgz"
   integrity sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==
 
-cdk-nag@2.12.47:
-  version "2.12.47"
-  resolved "https://registry.npmjs.org/cdk-nag/-/cdk-nag-2.12.47.tgz"
-  integrity sha512-c9KD3w5VCrE69xjmi0PZx3yh1lsoFVQSvRZ0QAufdvl4k+5iY+keLcFlFYFTxb5kx9y9vDvN0SN8EPWgOiqDEw==
+cdk-nag@2.21.17:
+  version "2.21.17"
+  resolved "https://registry.yarnpkg.com/cdk-nag/-/cdk-nag-2.21.17.tgz#3544c5713a685b309d34dd2b2a182d07a8aefc90"
+  integrity sha512-Ph9Wo/sF6GGWeD2RzMrEEZF5T8eQTMdi1bFwxLC4Lp45uufQHuAM8WOlpqOKtPh06L4iecIy0PJ76mzvrLzj1w==
 
 chalk@^2.0.0:
   version "2.4.2"
