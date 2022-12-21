@@ -364,10 +364,13 @@ export const hashCredentialV0 = async (number: string, action_id: string) => {
     throw new Error("`PHONE_NULLIFIER_KEY` not set");
   }
 
-  return crypto
-    .createHmac("sha256", process.env.PHONE_NULLIFIER_KEY)
-    .update(`${action_id}_${number}`)
-    .digest("hex");
+  return (
+    "0x" +
+    crypto
+      .createHmac("sha256", process.env.PHONE_NULLIFIER_KEY)
+      .update(`${action_id}_${number}`)
+      .digest("hex")
+  );
 };
 
 export const hashRateLimitV0 = async (
