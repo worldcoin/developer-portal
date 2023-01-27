@@ -41,6 +41,7 @@ select_permissions:
         - created_at
         - nullifier_hash
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:
