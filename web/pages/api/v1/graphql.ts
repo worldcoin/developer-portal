@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-graphql";
-import { generateAPIKeyJWT } from "api-utils";
+import { generateAnalyticsJWT, generateAPIKeyJWT } from "api-utils";
 import { errorUnauthenticated } from "errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
@@ -53,6 +53,16 @@ export default async function handleGraphQL(
       "Authorization",
       `Bearer ${await generateAPIKeyJWT(response.data.api_key[0].team_id)}`
     );
+  }
+
+  // Check if request is from the analytics service
+  if (authorization?.startsWith("analytics_")) {
+    if (authorization !== process.env.ANALYTICS_API_KEY) {
+      return errorUnauthenticated("Invalid analytics API key", res);
+    }
+
+    headers.delete("Authorization");
+    headers.append("Authorization", `Bearer ${await generateAnalyticsJWT()}`);
   }
 
   let body: string | undefined = undefined;
