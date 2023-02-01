@@ -19,6 +19,13 @@ insert_permissions:
         - nullifier_type
       backend_only: false
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - created_at
+        - nullifier_hash
+      filter: {}
+      allow_aggregations: true
   - role: api_key
     permission:
       columns:
@@ -41,6 +48,7 @@ select_permissions:
         - created_at
         - nullifier_hash
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:

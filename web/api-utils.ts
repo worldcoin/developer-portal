@@ -1,13 +1,13 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
-import { JwtConfig } from "./types";
-import * as jose from "jose";
-import crypto, { randomUUID } from "crypto";
-import { NextApiRequest, NextApiResponse } from "next";
-import { errorValidation } from "errors";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { utils as widgetUtils } from "@worldcoin/id";
+import crypto, { randomUUID } from "crypto";
+import { errorValidation } from "errors";
+import * as jose from "jose";
+import { NextApiRequest, NextApiResponse } from "next";
+import { JwtConfig } from "./types";
 
 export const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
 export const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";
@@ -122,6 +122,22 @@ export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
       "x-hasura-allowed-roles": ["api_key"],
       "x-hasura-default-role": "api_key",
       "x-hasura-team-id": team_id,
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+/**
+ * Generates a JWT for the analytics service.
+ * @returns
+ */
+export const generateAnalyticsJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "analytics_service",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["analytics"],
+      "x-hasura-default-role": "analytics",
     },
   };
 
