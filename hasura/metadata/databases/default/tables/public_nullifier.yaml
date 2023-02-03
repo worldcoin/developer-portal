@@ -22,7 +22,9 @@ select_permissions:
   - role: analytics
     permission:
       columns:
+        - action_id
         - created_at
+        - id
         - nullifier_hash
       filter: {}
       allow_aggregations: true
