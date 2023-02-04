@@ -40,7 +40,14 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
       token &&
       ONLY_UNAUTHENTICATED.find((route) => route.test(router.pathname))
     ) {
-      router.push([router.query.returnTo].flat().shift() || "/");
+      try {
+        const returnTo = router.query.returnTo
+          ? encodeURIComponent([router.query.returnTo].flat()[0] || "/")
+          : "/";
+        router.push(new URL(returnTo, process.env.NEXT_PUBLIC_APP_URL));
+      } catch {
+        router.push("/");
+      }
     }
   }
 
