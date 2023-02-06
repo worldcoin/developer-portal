@@ -143,6 +143,10 @@ export class Web extends MultiEnvRootStack {
                 props.secretsSecret,
                 'GENERAL_SECRET_KEY'
               ),
+              ANALYTICS_API_KEY: cdk.aws_ecs.Secret.fromSecretsManager(
+                props.secretsSecret,
+                'ANALYTICS_API_KEY'
+              ),
             },
             logDriver: cdk.aws_ecs.LogDrivers.firelens({
               options: {
