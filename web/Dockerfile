@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:16.18.1-bullseye-slim
+FROM --platform=linux/amd64 node:16.19-bullseye-slim
 WORKDIR /app
 COPY . .
 RUN yarn install --legacy-peer-deps
