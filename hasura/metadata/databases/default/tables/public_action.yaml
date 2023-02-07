@@ -52,6 +52,11 @@ insert_permissions:
         - max_verifications_per_person
       backend_only: false
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - is_staging
+      filter: {}
   - role: api_key
     permission:
       columns:

@@ -23,6 +23,7 @@ select_permissions:
     permission:
       columns:
         - created_at
+        - id
         - nullifier_hash
       filter: {}
       allow_aggregations: true
