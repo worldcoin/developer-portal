@@ -1779,10 +1779,10 @@
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.1.3.tgz"
   integrity sha512-WiBSI6JBIhC6LRIsB2Kwh8DsGTlbBU+mLRxJmAe3LjHTdkDpwIbEOZgoXBbZilk/vlfjK8i6nKRAvIRn1XaIMw==
 
-"@sentry/types@^7.2.0":
-  version "7.15.0"
-  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.15.0.tgz#50c57c924993d4dd16b43172d310c66384d17463"
-  integrity sha512-MN9haDRh9ZOsTotoDTHu2BT3sT8Vs1F0alhizUpDyjN2YgBCqR6JV+AbAE1XNHwS2+5zbppch1PwJUVeE58URQ==
+"@sentry/types@7.22.0":
+  version "7.22.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.22.0.tgz#58e4ce77b523048e0f31e2ea4b597946d76f6079"
+  integrity sha512-LhCL+wb1Jch+OesB2CIt6xpfO1Ab6CRvoNYRRzVumWPLns1T3ZJkarYfhbLaOEIb38EIbPgREdxn2AJT560U4Q==
 
 "@sinclair/typebox@^0.23.3":
   version "0.23.5"
@@ -5662,12 +5662,12 @@ posthog-js-lite@0.0.5:
   resolved "https://registry.npmjs.org/posthog-js-lite/-/posthog-js-lite-0.0.5.tgz"
   integrity sha512-xHVZ9qbBdoqK7G1JVA4k6nheWu50aiEwjJIPQw7Zhi705aX5wr2W8zxdmvtadeEE5qbJNg+/uZ7renOQoqcbJw==
 
-posthog-js@^1.30.0:
-  version "1.32.4"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.32.4.tgz#77c997f381519b076f89da91bf663cac97e71068"
-  integrity sha512-92ZAF62HsA5wEPJoD3T6A4GSqPg4mxD0571Gq7xLPos8bAIkB4BGFnuP3TcjobJG8elLAPNXOuW8u9dz3DoPEA==
+posthog-js@^1.39.5:
+  version "1.43.1"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.43.1.tgz#b6874062076bcaab72127d4f77f3a8eac58cc18b"
+  integrity sha512-X8Z09nwfVlyrLXvLN3Yj1Vc5XQuAwopsUJgkwhUSVUAplwEVUFuFv4mFcPRAEUZaiRw86/fxNJfK/ccNjmqqzA==
   dependencies:
-    "@sentry/types" "^7.2.0"
+    "@sentry/types" "7.22.0"
     fflate "^0.4.1"
     rrweb-snapshot "^1.1.14"
 
