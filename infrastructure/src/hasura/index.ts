@@ -61,7 +61,7 @@ export class Hasura extends MultiEnvRootStack {
 
     taskDefinition.addContainer('Hasura', {
       containerName: id,
-      image: cdk.aws_ecs.ContainerImage.fromRegistry('hasura/graphql-engine:v2.10.0'),
+      image: cdk.aws_ecs.ContainerImage.fromRegistry('hasura/graphql-engine:v2.18.0'),
       command: [
         '/bin/sh',
         '-c',
