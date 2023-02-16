@@ -10,13 +10,4 @@ select_permissions:
     permission:
       columns:
         - action_id
-        - date
-        - total
-        - total_cumulative
-      filter:
-        action:
-          app:
-            team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+      filter: {}

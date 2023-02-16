@@ -13,17 +13,6 @@ array_relationships:
         table:
           schema: public
           name: action
-computed_fields:
-  - name: is_verified
-    definition:
-      function:
-        schema: public
-        name: get_app_is_verified
-  - name: verified_app_logo
-    definition:
-      function:
-        schema: public
-        name: get_verified_app_logo
 insert_permissions:
   - role: api_key
     permission:
@@ -31,7 +20,6 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
-        - logo_url
         - name
       backend_only: false
   - role: user
@@ -40,7 +28,6 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
-        - logo_url
         - name
       backend_only: false
 select_permissions:
@@ -48,12 +35,8 @@ select_permissions:
     permission:
       columns:
         - id
-        - logo_url
         - name
         - team_id
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -61,21 +44,14 @@ select_permissions:
     permission:
       columns:
         - name
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter: {}
       limit: 1
   - role: user
     permission:
       columns:
         - id
-        - logo_url
         - name
         - team_id
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -83,7 +59,6 @@ update_permissions:
   - role: api_key
     permission:
       columns:
-        - logo_url
         - name
       filter:
         team_id:
@@ -92,7 +67,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - logo_url
         - name
       filter:
         team_id:
