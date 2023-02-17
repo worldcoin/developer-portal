@@ -1,4 +1,12 @@
-CREATE TABLE "public"."api_key" ("id" character varying NOT NULL DEFAULT gen_random_friendly_id('key'), "team_id" character varying NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(), "is_active" boolean NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("team_id") REFERENCES "public"."team"("id") ON UPDATE restrict ON DELETE cascade);
+CREATE TABLE "public"."api_key" (
+  "id" character varying NOT NULL DEFAULT gen_random_friendly_id('key'),
+  "team_id" character varying NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "is_active" boolean NOT NULL, PRIMARY KEY ("id"),
+  FOREIGN KEY ("team_id") REFERENCES "public"."team"("id") ON UPDATE restrict ON DELETE cascade
+);
+
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at"()
 RETURNS TRIGGER AS $$
 DECLARE

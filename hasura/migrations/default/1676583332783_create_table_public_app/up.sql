@@ -1,4 +1,22 @@
-CREATE TABLE "public"."app" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('app'), "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(), "team_id" character varying NOT NULL, "name" character varying NOT NULL, "logo_url" text NOT NULL, "verified_at" timestamptz, "description" text NOT NULL, "is_staging" boolean NOT NULL DEFAULT true, "engine" text NOT NULL DEFAULT 'cloud', "status" text NOT NULL DEFAULT 'active', "user_interfaces" jsonb NOT NULL, "is_archived" Boolean NOT NULL DEFAULT false, PRIMARY KEY ("id") , FOREIGN KEY ("team_id") REFERENCES "public"."team"("id") ON UPDATE restrict ON DELETE cascade, UNIQUE ("id"));
+CREATE TABLE "public"."app" (
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('app'),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "team_id" character varying NOT NULL,
+  "name" character varying NOT NULL,
+  "logo_url" text NOT NULL,
+  "verified_at" timestamptz,
+  "description" text NOT NULL,
+  "is_staging" boolean NOT NULL DEFAULT true,
+  "engine" text NOT NULL DEFAULT 'cloud',
+  "status" text NOT NULL DEFAULT 'active',
+  "user_interfaces" jsonb NOT NULL,
+  "is_archived" Boolean NOT NULL DEFAULT false,
+  PRIMARY KEY ("id"),
+  FOREIGN KEY ("team_id") REFERENCES "public"."team"("id") ON UPDATE restrict ON DELETE cascade, 
+  UNIQUE ("id")
+);
+
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at"()
 RETURNS TRIGGER AS $$
 DECLARE

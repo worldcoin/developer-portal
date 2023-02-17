@@ -1,6 +1,6 @@
 table:
-  schema: public
   name: action
+  schema: public
 object_relationships:
   - name: app
     using:
@@ -11,8 +11,8 @@ array_relationships:
       foreign_key_constraint_on:
         column: action_id
         table:
-          schema: public
           name: nullifier
+          schema: public
 select_permissions:
   - role: user
     permission:
@@ -20,7 +20,7 @@ select_permissions:
         - app_id
         - description
         - id
-        - max_n
+        - max_accounts_per_user
         - max_verifications
         - name
       filter:

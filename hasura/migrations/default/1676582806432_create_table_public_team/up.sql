@@ -1,4 +1,12 @@
-CREATE TABLE "public"."team" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('team'), "name" varchar, "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(), PRIMARY KEY ("id") , UNIQUE ("name"));COMMENT ON TABLE "public"."team" IS E'A team of users';
+CREATE TABLE "public"."team" (
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('team'),
+  "name" varchar, 
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  UNIQUE ("name")
+);
+
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at"()
 RETURNS TRIGGER AS $$
 DECLARE

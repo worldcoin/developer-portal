@@ -1,4 +1,13 @@
-CREATE TABLE "public"."cache" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('cc'), "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(), "key" text NOT NULL, "value" text, PRIMARY KEY ("id") , UNIQUE ("key"));
+CREATE TABLE "public"."cache" (
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('cc'),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "key" text NOT NULL,
+  "value" text,
+  PRIMARY KEY ("id"),
+  UNIQUE ("key")
+);
+
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at"()
 RETURNS TRIGGER AS $$
 DECLARE

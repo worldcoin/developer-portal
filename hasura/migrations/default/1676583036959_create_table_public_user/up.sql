@@ -1,4 +1,17 @@
-CREATE TABLE "public"."user" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('usr'), "created_at" timestamptz NOT NULL DEFAULT now(), "updated_at" timestamptz NOT NULL DEFAULT now(), "name" character varying, "email" varchar NOT NULL, "team_id" varchar(50) NOT NULL, "password" varchar NOT NULL, "is_subscribed" boolean NOT NULL DEFAULT false, "ironclad_id" character varying NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("team_id") REFERENCES "public"."team"("id") ON UPDATE restrict ON DELETE cascade, UNIQUE ("email"));
+CREATE TABLE "public"."user" (
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('usr'),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "email" varchar NOT NULL DEFAULT '',
+  "team_id" varchar(50) NOT NULL,
+  "world_id_nullifier" varchar NOT NULL,
+  "is_subscribed" boolean NOT NULL DEFAULT FALSE,
+  "ironclad_id" character varying NOT NULL,
+  PRIMARY KEY ("id"),
+  FOREIGN KEY ("team_id") REFERENCES "public"."team" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
+  UNIQUE ("email")
+);
+
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at"()
 RETURNS TRIGGER AS $$
 DECLARE
