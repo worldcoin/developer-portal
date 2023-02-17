@@ -109,7 +109,7 @@ export class Core extends MultiEnvRootStack {
         zone: this.hostedZone,
 
         // A temporary name for the new dev portal domain
-        recordName: 'dev2.worldcoin.org',
+        recordName: 'legacy.developer.worldcoin.org',
 
         // REVIEW Find a way to import these values frm staging account, intstead of hardcoding
         values: [
