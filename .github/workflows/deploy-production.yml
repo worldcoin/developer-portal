@@ -1,10 +1,9 @@
 name: Deploy Production
 
 on:
-  release:
-    types: [published, unpublished]
+  push:
     branches:
-      - main
+      - v1-snapshot
 
 jobs:
   diff:
