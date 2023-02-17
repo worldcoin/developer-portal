@@ -29,9 +29,9 @@ export default async function handleGenerateHashedActionId(
     mutation HashedIDMutation($action_id: String!, $hashed_id: String!) {
       update_action_by_pk(
         pk_columns: { id: $action_id }
-        _set: { hashed_id: $hashed_id }
+        _set: { external_nullifier: $hashed_id }
       ) {
-        hashed_id
+        external_nullifier
       }
     }
   `;
@@ -43,7 +43,7 @@ export default async function handleGenerateHashedActionId(
     variables: { action_id, hashed_id },
   });
 
-  if (response.data.update_action_by_pk?.hashed_id === hashed_id) {
+  if (response.data.update_action_by_pk?.external_nullifier === hashed_id) {
     res.status(200).json({ success: true });
   }
 
