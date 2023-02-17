@@ -5,9 +5,10 @@
   payload: {}
   retry_conf:
     num_retries: 3
+    retry_interval_seconds: 100
     timeout_seconds: 60
     tolerance_seconds: 21600
-    retry_interval_seconds: 100
   headers:
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: ""

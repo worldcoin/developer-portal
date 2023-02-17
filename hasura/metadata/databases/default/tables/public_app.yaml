@@ -1,6 +1,6 @@
 table:
-  schema: public
   name: app
+  schema: public
 object_relationships:
   - name: team
     using:
@@ -11,19 +11,19 @@ array_relationships:
       foreign_key_constraint_on:
         column: app_id
         table:
-          schema: public
           name: action
+          schema: public
 computed_fields:
   - name: is_verified
     definition:
       function:
-        schema: public
         name: get_app_is_verified
+        schema: public
   - name: verified_app_logo
     definition:
       function:
-        schema: public
         name: get_verified_app_logo
+        schema: public
 insert_permissions:
   - role: api_key
     permission:
@@ -33,7 +33,6 @@ insert_permissions:
       columns:
         - logo_url
         - name
-      backend_only: false
   - role: user
     permission:
       check: {}
@@ -42,7 +41,6 @@ insert_permissions:
       columns:
         - logo_url
         - name
-      backend_only: false
 select_permissions:
   - role: api_key
     permission:
