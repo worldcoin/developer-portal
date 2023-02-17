@@ -68,6 +68,6 @@ jobs:
       - name: Apply DB migrations
         run: |
           cd hasura
-          hasura migrate apply --endpoint=https://api.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}' --all-databases
-          hasura metadata apply --endpoint=https://api.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
-          hasura metadata reload --endpoint=https://api.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+          hasura migrate apply --endpoint=https://api.legacy.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}' --all-databases
+          hasura metadata apply --endpoint=https://api.legacy.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+          hasura metadata reload --endpoint=https://api.legacy.developer.worldcoin.org/ --admin-secret='${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'

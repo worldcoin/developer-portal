@@ -11,7 +11,7 @@ export const production = (params: {
     NEXT_PUBLIC_IRONCLAD_GROUP_KEY: 'group-sk1enjwk9',
     NEXT_PUBLIC_POSTHOG_API_KEY:
       'phc_QttqgDbMQDYHX1EMH7FnT6ECBVzdp0kGUq92aQaVQ6I',
-    NEXT_PUBLIC_APP_URL: 'https://developer.worldcoin.org',
+    NEXT_PUBLIC_APP_URL: 'https://legacy.developer.worldcoin.org',
     SCALING_CONFIG: process.env.WEB_SCALING_CONFIG_JSON,
   },
 })
