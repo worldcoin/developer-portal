@@ -104,21 +104,6 @@ export class Core extends MultiEnvRootStack {
           'ns-1150.awsdns-15.org',
         ],
       })
-
-      new cdk.aws_route53.NsRecord(this, 'new-production', {
-        zone: this.hostedZone,
-
-        // A temporary name for the new dev portal domain
-        recordName: 'legacy.developer.worldcoin.org',
-
-        // REVIEW Find a way to import these values frm staging account, intstead of hardcoding
-        values: [
-          'ns-583.awsdns-08.net',
-          'ns-1979.awsdns-55.co.uk',
-          'ns-291.awsdns-36.com',
-          'ns-1150.awsdns-15.org',
-        ],
-      })
     }
 
     // ANCHOR Exports
