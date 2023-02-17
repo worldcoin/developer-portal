@@ -105,11 +105,11 @@ export class Core extends MultiEnvRootStack {
         ],
       })
 
-      new cdk.aws_route53.NsRecord(this, 'staging-ns', {
-        zone: 'developer.worldcoin.org',
-        recordName: parameters({
-          environment: { ...this.node.tryGetContext('env'), stage: 'staging' },
-        }).hostedZoneName,
+      new cdk.aws_route53.NsRecord(this, 'new-production', {
+        zone: this.hostedZone,
+
+        // A temporary name for the new dev portal domain
+        recordName: 'dev2.worldcoin.org',
 
         // REVIEW Find a way to import these values frm staging account, intstead of hardcoding
         values: [
