@@ -104,6 +104,13 @@ export class Core extends MultiEnvRootStack {
           'ns-1150.awsdns-15.org',
         ],
       })
+
+      // developer.worldcoin.org and legacy.developer.worldcoin.org must point at the same host temporarily
+      new cdk.aws_route53.CnameRecord(this, 'legacy', {
+        zone: this.hostedZone,
+        recordName: 'legacy.developer.worldcoin.org',
+        domainName: 'developer.worldcoin.org',
+      })
     }
 
     // ANCHOR Exports
