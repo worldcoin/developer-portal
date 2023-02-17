@@ -42,7 +42,7 @@
     "next": "12.3.4",
     "next-logger": "3.0.1",
     "next-redux-wrapper": "^7.0.5",
-    "posthog-js": "^1.30.0",
+    "posthog-js": "^1.42.2",
     "qr-code-styling": "^1.6.0-rc.1",
     "react": "17.0.2",
     "react-chartjs-2": "^4.2.0",
