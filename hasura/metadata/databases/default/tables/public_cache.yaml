@@ -1,6 +1,6 @@
 table:
-  schema: public
   name: cache
+  schema: public
 insert_permissions:
   - role: service
     permission:
@@ -8,7 +8,6 @@ insert_permissions:
       columns:
         - key
         - value
-      backend_only: false
 select_permissions:
   - role: service
     permission:

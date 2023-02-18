@@ -1,6 +1,6 @@
 table:
-  schema: public
   name: user
+  schema: public
 object_relationships:
   - name: team
     using:
@@ -13,17 +13,14 @@ insert_permissions:
         - email
         - ironclad_id
         - is_subscribed
-        - name
-        - password
+        - world_id_nullifier
         - team_id
-      backend_only: false
 select_permissions:
   - role: service
     permission:
       columns:
         - email
-        - name
-        - password
+        - world_id_nullifier
         - created_at
         - updated_at
         - id
@@ -36,7 +33,6 @@ select_permissions:
         - email
         - id
         - is_subscribed
-        - name
         - team_id
       filter:
         team:
@@ -48,8 +44,7 @@ update_permissions:
     permission:
       columns:
         - email
-        - name
-        - password
+        - world_id_nullifier
       filter:
         id:
           _eq: X-Hasura-User-Id
