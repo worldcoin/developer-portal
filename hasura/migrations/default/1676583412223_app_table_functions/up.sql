@@ -12,14 +12,16 @@ SELECT CASE
   END $$ LANGUAGE sql STABLE;
 -- FUNCTION: create_default_action_for_app
 CREATE OR REPLACE FUNCTION create_default_action_for_app() RETURNS trigger AS $$ BEGIN
-INSERT INTO action (app_id, name)
+INSERT INTO action (app_id, name, description, raw_action)
 VALUES (
     NEW.id,
-    COALESCE(NULLIF(NEW.name, ''), 'Default Action')
+    COALESCE(NULLIF(NEW.name, ''), 'Default Action'),
+    COALESCE(NULLIF(NEW.description, ''), 'description'),
+    'default_action'
   );
 RETURN null;
 END;
 $$ LANGUAGE 'plpgsql';
 CREATE TRIGGER trigger_insert_app_create_default_action
 after
-insert on "public"."team" for each row execute procedure create_default_action_for_app();
+insert on "public"."app" for each row execute procedure create_default_action_for_app();
