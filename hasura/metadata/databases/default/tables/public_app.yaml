@@ -46,6 +46,7 @@ select_permissions:
     permission:
       columns:
         - id
+        - is_staging
         - logo_url
         - name
         - team_id
@@ -58,7 +59,16 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - description
+        - engine
+        - id
+        - is_archived
+        - is_staging
+        - logo_url
         - name
+        - status
+        - user_interfaces
+        - verified_at
       computed_fields:
         - is_verified
         - verified_app_logo

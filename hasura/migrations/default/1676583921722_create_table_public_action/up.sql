@@ -5,7 +5,7 @@ CREATE TABLE "public"."action" (
   "name" text NOT NULL,
   "description" text NOT NULL,
   "raw_action" text NOT NULL,
-  "external_nullifier" text NOT NULL,
+  "external_nullifier" text NOT NULL DEFAULT '',
   "app_id" varchar(50) NOT NULL,
   "max_accounts_per_user" integer NOT NULL DEFAULT 1,
   "max_verifications" integer NOT NULL DEFAULT 1,

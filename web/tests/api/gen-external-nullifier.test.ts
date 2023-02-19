@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleGenerateHashedActionId from "pages/api/_gen-hashed-action-id";
+import handleGenerateHashedActionId from "pages/api/_gen-external-nullifier";
 
 const HASURA_EVENT_TRIGGER_PAYLOAD = {
   event: {

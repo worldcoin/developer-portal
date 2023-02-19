@@ -13,7 +13,56 @@ array_relationships:
         table:
           name: nullifier
           schema: public
+insert_permissions:
+  - role: api_key
+    permission:
+      check:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+      columns:
+        - app_id
+        - description
+        - external_nullifier
+        - max_accounts_per_user
+        - max_verifications
+        - name
+        - raw_action
 select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - app_id
+        - description
+        - external_nullifier
+        - id
+        - max_accounts_per_user
+        - max_verifications
+        - name
+        - raw_action
+      filter:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+  - role: service
+    permission:
+      columns:
+        - app_id
+        - description
+        - external_nullifier
+        - id
+        - max_accounts_per_user
+        - max_verifications
+        - name
+        - raw_action
+      filter:
+        _and:
+          - app:
+              status:
+                _eq: active
+          - app:
+              is_archived:
+                _eq: false
   - role: user
     permission:
       columns:
@@ -27,14 +76,43 @@ select_permissions:
         app:
           team_id:
             _eq: X-Hasura-Team-Id
+update_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - description
+        - name
+      filter:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+      check: null
+  - role: service
+    permission:
+      columns:
+        - external_nullifier
+      filter:
+        external_nullifier:
+          _eq: ""
+      check: null
+delete_permissions:
+  - role: api_key
+    permission:
+      filter:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
 event_triggers:
-  - name: generate_hash_action_id
+  - name: generate_external_nullifier
     definition:
       enable_manual: false
       insert:
-        columns: '*'
+        columns: "*"
     retry_conf:
       interval_sec: 10
       num_retries: 5
       timeout_sec: 20
-    webhook: '{{NEXT_API_URL}}/_gen-hashed-action-id'
+    webhook: "{{NEXT_API_URL}}/_gen-external-nullifier"
+    headers:
+      - name: Authorization
+        value_from_env: INTERNAL_ENDPOINTS_SECRET
