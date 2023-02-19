@@ -26,17 +26,20 @@ interface ENSActionQuery {
     key: string;
     value: string;
   }[];
-  action: {
+
+  app: {
     id: string;
-    is_staging: boolean;
-    engine: "cloud" | "on-chain";
-    return_url: string;
-    max_verifications_per_person: number;
-    nullifiers: {
-      nullifier_hash: string;
-      created_at: string;
+    is_staging: true;
+    engine: string;
+    actions: {
+      id: string;
+      nullifiers: {
+        nullifier_hash: string;
+      }[];
+      max_verifications: number;
     }[];
   }[];
+
   jwks: {
     id: string;
     private_jwk: jose.JWK;
@@ -56,7 +59,7 @@ export default async function handleVerify(
     "proof",
     "nullifier_hash",
     "merkle_root",
-    "action_id",
+    "app_id",
     "signal",
   ]) {
     if (!req.body[attr]) {
@@ -65,9 +68,10 @@ export default async function handleVerify(
   }
 
   // Check action ID is valid & fetch smart contract address
+  // @REVIEW: How we should pick action? Should we add external_nullifier here too?
   const query = gql`
     query ENSActionQuery(
-      $action_id: String!
+      $app_id: String!
       $nullifier_hash: String!
       $now: timestamptz!
     ) {
@@ -82,18 +86,20 @@ export default async function handleVerify(
         key
         value
       }
-
-      action(where: { id: { _eq: $action_id }, status: { _eq: "active" } }) {
+      app(where: { id: { _eq: $app_id }, status: { _eq: "active" } }) {
         id
         is_staging
         engine
-        return_url
-        max_verifications_per_person
-        nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-          nullifier_hash
+        actions(
+          where: { nullifiers: { nullifier_hash: { _eq: $nullifier_hash } } }
+        ) {
+          id
+          max_verifications
+          nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+            nullifier_hash
+          }
         }
       }
-
       jwks(limit: 1, where: { expires_at: { _gt: $now } }) {
         id
         private_jwk
@@ -105,26 +111,29 @@ export default async function handleVerify(
   const ensActionQuery = await client.query<ENSActionQuery>({
     query,
     variables: {
-      action_id: req.body.action_id,
+      app_id: req.body.app_id,
       nullifier_hash: req.body.nullifier_hash,
       now: new Date().toISOString(),
     },
   });
 
-  // Return error response if action does not exist or is no longer active
-  if (!ensActionQuery.data.action.length) {
+  if (!ensActionQuery.data.app.length) {
     return errorResponse(
       res,
       404,
       "not_found",
-      "We couldn't find an action with this ID. Action may be no longer active."
+      "We couldn't find an app with this ID. Action may be no longer active."
     );
   }
 
-  const action = ensActionQuery.data.action[0];
+  const app = ensActionQuery.data.app[0];
 
-  // Return error response if action should not run on `cloud` engine
-  if (action.engine !== "cloud") {
+  // Return error response if action does not exist or is no longer active
+  if (!app.actions.length) {
+    return errorResponse(res, 404, "not_found", "We couldn't find action.");
+  }
+
+  if (app.engine !== "cloud") {
     return errorValidation(
       "invalid_engine",
       "This action runs on-chain and can't be verified here.",
@@ -133,14 +142,16 @@ export default async function handleVerify(
     );
   }
 
+  const action = app.actions[0];
+
+  // Return error response if action should not run on `cloud` engine
+
   // Return error response if person has already verified before and exceeded the max number of times to verify
-  if (
-    !canVerifyForAction(action.nullifiers, action.max_verifications_per_person)
-  ) {
+  if (!canVerifyForAction(action.nullifiers, action.max_verifications)) {
     const errorMsg =
-      action.max_verifications_per_person === 1
+      action.max_verifications === 1
         ? "This person has already verified for this action."
-        : `This person has already verified for this action the maximum number of times (${action.max_verifications_per_person}).`;
+        : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
     return errorValidation("already_verified", errorMsg, null, res);
   }
 
@@ -151,7 +162,7 @@ export default async function handleVerify(
   }
 
   // Obtain appropriate Semaphore contract address
-  const ensName = action.is_staging
+  const ensName = app.is_staging
     ? "staging.semaphore.wld.eth"
     : "semaphore.wld.eth";
   const contractRecord = ensActionQuery.data.cache.find(
@@ -189,7 +200,7 @@ export default async function handleVerify(
     ],
   };
   const ethCallRequest = await fetch(
-    `${action.is_staging ? STAGING_RPC : PRODUCTION_RPC}/v2/${
+    `${app.is_staging ? STAGING_RPC : PRODUCTION_RPC}/v2/${
       process.env.ALCHEMY_API_KEY
     }`,
     {
@@ -249,27 +260,29 @@ export default async function handleVerify(
     },
   });
 
-  let return_url: string | null = null;
+  // TODO: implement return_url
+  // let return_url: string | null = null;
 
-  if (action.return_url) {
-    const parsedReturnUrl = new URL(action.return_url);
-    parsedReturnUrl.searchParams.append(
-      "verification_jwt",
-      await generateVerificationJWT(
-        ensActionQuery.data.jwks[0].private_jwk,
-        ensActionQuery.data.jwks[0].id,
-        req.body.signal,
-        req.body.nullifier_hash
-      )
-    );
-    parsedReturnUrl.searchParams.append("success", "true");
-    return_url = parsedReturnUrl.toString();
-  }
+  // if (action.return_url) {
+  //   const parsedReturnUrl = new URL(action.return_url);
+  //   parsedReturnUrl.searchParams.append(
+  //     "verification_jwt",
+  //     await generateVerificationJWT(
+  //       ensActionQuery.data.jwks[0].private_jwk,
+  //       ensActionQuery.data.jwks[0].id,
+  //       req.body.signal,
+  //       req.body.nullifier_hash
+  //     )
+  //   );
+  //   parsedReturnUrl.searchParams.append("success", "true");
+  //   return_url = parsedReturnUrl.toString();
+  // }
 
   res.status(200).json({
     success: true,
+    action_id: action.id ?? null,
     nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
     created_at: insertResponse.data.insert_nullifier_one.created_at,
-    return_url,
+    // return_url,
   });
 }
