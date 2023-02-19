@@ -55,7 +55,6 @@ select_permissions:
         - max_verifications
         - name
         - raw_action
-        - redirect_url
       filter:
         _and:
           - app:
@@ -82,10 +81,7 @@ update_permissions:
     permission:
       columns:
         - description
-        - external_nullifier
-        - id
         - name
-        - raw_action
       filter:
         app:
           team_id:
@@ -107,16 +103,16 @@ delete_permissions:
           team_id:
             _eq: X-Hasura-Team-Id
 event_triggers:
-  - name: generate_hash_action_id
+  - name: generate_external_nullifier
     definition:
       enable_manual: false
       insert:
-        columns: '*'
+        columns: "*"
     retry_conf:
       interval_sec: 10
       num_retries: 5
       timeout_sec: 20
-    webhook: '{{NEXT_API_URL}}/_gen-hashed-action-id'
+    webhook: "{{NEXT_API_URL}}/_gen-external-nullifier"
     headers:
       - name: Authorization
         value_from_env: INTERNAL_ENDPOINTS_SECRET

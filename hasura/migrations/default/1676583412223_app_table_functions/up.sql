@@ -16,8 +16,8 @@ INSERT INTO action (app_id, name, description, raw_action)
 VALUES (
     NEW.id,
     COALESCE(NULLIF(NEW.name, ''), 'Default Action'),
-    COALESCE(NULLIF(NEW.description, ''), 'description'),
-    'default_action'
+    COALESCE(NULLIF(NEW.description, ''), 'Sign in with World ID'),
+    'sign_in'
   );
 RETURN null;
 END;
