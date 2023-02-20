@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-graphql";
-import { errorNotAllowed } from "errors";
+import { errorNotAllowed } from "api-helpers/errors";
 
 /**
  * Fetches the World ID contract addresses (Semaphore) from the local cache.

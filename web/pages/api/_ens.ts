@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { ethers } from "ethers";
 import { gql } from "@apollo/client";
-import { errorNotAllowed } from "../../errors";
+import { errorNotAllowed } from "../../api-helpers/errors";
 import { protectInternalEndpoint } from "api-helpers/utils";
 import { getAPIServiceClient } from "api-graphql";
 

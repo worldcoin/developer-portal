@@ -4,7 +4,7 @@ import {
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
-} from "../../../errors";
+} from "../../../api-helpers/errors";
 import { runCors } from "../../../cors";
 import { ethers } from "ethers";
 import { gql } from "@apollo/client";

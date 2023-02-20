@@ -20,6 +20,7 @@
     "Hasura",
     "healthz",
     "hexlify",
+    "IDKit",
     "JWK",
     "jwks",
     "JWT",

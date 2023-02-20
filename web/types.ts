@@ -1,5 +1,10 @@
 import { IconType } from "common/Icon";
 
+export enum CredentialType {
+  Orb = "orb",
+  Phone = "phone",
+}
+
 export interface JwtConfig {
   key: string;
   type: "HS512" | "HS384" | "HS256";
@@ -102,11 +107,4 @@ export enum Credentials {
   Phone = "phone",
   Identity = "identity",
   Orb = "orb",
-}
-
-export interface CredentialType {
-  credential_type: Credentials;
-  error_details?: string;
-  status: "created" | "verified" | "errored";
-  credential_data?: Record<string, any>;
 }

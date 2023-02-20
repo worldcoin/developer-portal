@@ -7,7 +7,7 @@ import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
-} from "../../../../errors";
+} from "../../../../api-helpers/errors";
 
 interface AppPrecheckQueryInterface {
   app: AppAttrs[];
