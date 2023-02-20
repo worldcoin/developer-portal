@@ -91,6 +91,7 @@ const createActionQuery = gql`
         action: $action
         name: ""
         description: ""
+        creation_mode: "dynamic"
       }
     ) {
       external_nullifier
