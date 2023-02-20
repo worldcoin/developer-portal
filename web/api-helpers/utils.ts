@@ -7,7 +7,7 @@ import crypto, { randomUUID } from "crypto";
 import { errorValidation } from "errors";
 import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
-import { JwtConfig } from "./types";
+import { JwtConfig } from "../types";
 
 export const STAGING_RPC = "https://polygon-mumbai.g.alchemy.com";
 export const PRODUCTION_RPC = "https://polygon-mainnet.g.alchemy.com";

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { errorNotAllowed } from "../../errors";
-import { protectInternalEndpoint } from "api-utils";
+import { protectInternalEndpoint } from "api-helpers/utils";
 import { getAPIServiceClient } from "api-graphql";
 import { utils } from "@worldcoin/id";
 import { ActionType } from "types";
