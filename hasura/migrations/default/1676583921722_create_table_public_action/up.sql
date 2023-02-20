@@ -9,8 +9,10 @@ CREATE TABLE "public"."action" (
   "app_id" varchar(50) NOT NULL,
   "max_accounts_per_user" integer NOT NULL DEFAULT 1,
   "max_verifications" integer NOT NULL DEFAULT 1,
+  "creation_mode" varchar(50) NOT NULL DEFAULT 'developer_portal',
   PRIMARY KEY ("id"),
   FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
+  CONSTRAINT "creation_mode_choices" CHECK (verification_level = ANY (ARRAY['developer_portal'::text, 'dynamic'::text]))
   UNIQUE ("id")
 );
 

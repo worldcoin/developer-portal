@@ -19,9 +19,12 @@ export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];
 };
 
+// FIXME: Out of date type
 export interface ActionType {
   id: string;
   name: string;
+  action: string;
+  external_nullifier: string;
   is_staging: boolean;
   is_archived: boolean;
   public_description: string;
@@ -30,12 +33,10 @@ export interface ActionType {
   created_at: string; // timestamp
   updated_at: string; // timestamp
   status: "created" | "active" | "inactive";
-  crypto_chain: string;
   return_url: string;
-  hashed_id?: string;
-  smart_contract_address: string;
   user_interfaces: ActionUserInterfaces;
   app: AppType;
+  app_id: string;
   nullifiers_aggregate?: {
     aggregate: {
       count: number;
@@ -50,6 +51,7 @@ export interface TeamType {
   users: Array<UserType>;
 }
 
+// FIXME: Out of date type
 export interface AppType {
   id: string;
   name: string;
