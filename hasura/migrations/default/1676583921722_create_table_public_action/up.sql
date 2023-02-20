@@ -12,8 +12,8 @@ CREATE TABLE "public"."action" (
   "creation_mode" varchar(50) NOT NULL DEFAULT 'developer_portal',
   PRIMARY KEY ("id"),
   FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
-  CONSTRAINT "creation_mode_choices" CHECK (verification_level = ANY (ARRAY['developer_portal'::text, 'dynamic'::text]))
-  UNIQUE ("id")
+  UNIQUE ("id"),
+  CONSTRAINT "creation_mode_choices" CHECK (creation_mode = ANY (ARRAY['developer_portal'::text, 'dynamic'::text]))
 );
 
 comment on column "public"."action"."name" is E'Friendly name given to an action in the Developer Portal.';
