@@ -53,6 +53,7 @@ export default async function handler(
 
   const client = await getAPIServiceClient();
 
+  // Mutation will fail anyways if external nullifier is already set due to permissions.
   const response = await client.query({
     query: mutation,
     variables: { action_id: action.id, external_nullifier },
