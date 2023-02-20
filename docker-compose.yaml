@@ -5,6 +5,11 @@ services:
     image: postgres:14
     ports:
       - "5432:5432"
+    healthcheck:
+      test: "pg_isready -U postgres"
+      interval: 2s
+      timeout: 10s
+      retries: 5
     environment:
       POSTGRES_PASSWORD: password
 
@@ -13,7 +18,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - "postgres"
+      postgres:
+        condition: service_healthy
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:password@postgres:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
