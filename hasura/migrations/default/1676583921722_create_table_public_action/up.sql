@@ -4,7 +4,7 @@ CREATE TABLE "public"."action" (
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "name" text NOT NULL,
   "description" text NOT NULL,
-  "raw_action" text NOT NULL,
+  "action" text NOT NULL,
   "external_nullifier" text NOT NULL DEFAULT '',
   "app_id" varchar(50) NOT NULL,
   "max_accounts_per_user" integer NOT NULL DEFAULT 1,
@@ -13,6 +13,17 @@ CREATE TABLE "public"."action" (
   FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
   UNIQUE ("id")
 );
+
+comment on column "public"."action"."name" is E'Friendly name given to an action in the Developer Portal.';
+comment on column "public"."action"."action" is E'Raw action value as passed by the dev to IDKit.';
+comment on column "public"."action"."external_nullifier" is E'Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs.';
+comment on column "public"."action"."max_verifications" is E'Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action.';
+comment on column "public"."action"."max_accounts_per_user" is E'Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app.';
+
+
+-- unique constaints
+alter table "public"."action" add constraint "action_app_id_external_nullifier_key" unique ("app_id", "external_nullifier");
+alter table "public"."action" add constraint "action_app_id_action_key" unique ("app_id", "action");
 
 CREATE OR REPLACE FUNCTION "public"."set_current_timestamp_updated_at" ()
   RETURNS TRIGGER

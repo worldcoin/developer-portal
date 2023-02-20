@@ -27,7 +27,7 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - raw_action
+        - action
   - role: service
     permission:
       check: {}
@@ -38,7 +38,7 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - raw_action
+        - action
 select_permissions:
   - role: api_key
     permission:
@@ -50,7 +50,7 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - raw_action
+        - action
       filter:
         app:
           team_id:
@@ -65,7 +65,7 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - raw_action
+        - action
       filter:
         _and:
           - app:
