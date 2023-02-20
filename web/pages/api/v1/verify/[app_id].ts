@@ -71,10 +71,11 @@ export default async function handleVerify(
   const { app } = data;
   const { action } = app;
 
-  // NOTE: If `action != ""`, action is NOT for Sign in with World ID
+  // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
   if (action.action !== "") {
-    // Return error response if person has already verified before and exceeded the max number of times to verify
+    // NOTE: If `action != ""`, action is NOT for Sign in with World ID
     if (!canVerifyForAction(action.nullifiers, action.max_verifications)) {
+      // Return error response if person has already verified before and exceeded the max number of times to verify
       const errorMsg =
         action.max_verifications === 1
           ? "This person has already verified for this action."
@@ -83,14 +84,23 @@ export default async function handleVerify(
     }
   }
 
-  // Parse & validate inputs
+  if (!action.external_nullifier) {
+    return errorResponse(
+      res,
+      400,
+      "verification_error",
+      "This action does not have a valid external nullifier set."
+    );
+  }
+
+  // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
       signal: req.body.signal,
       proof: req.body.proof,
       merkle_root: req.body.merkle_root,
       nullifier_hash: req.body.nullifier_hash,
-      external_nullifier: "", // FIXME
+      external_nullifier: action.external_nullifier,
     },
     {
       contract_address: data.contractAddress,
