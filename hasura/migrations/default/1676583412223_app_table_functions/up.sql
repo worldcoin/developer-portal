@@ -12,12 +12,13 @@ SELECT CASE
   END $$ LANGUAGE sql STABLE;
 -- FUNCTION: create_default_action_for_app
 CREATE OR REPLACE FUNCTION create_default_action_for_app() RETURNS trigger AS $$ BEGIN
-INSERT INTO action (app_id, name, description, action)
+INSERT INTO action (app_id, name, description, action, max_verifications)
 VALUES (
     NEW.id,
     COALESCE(NULLIF(NEW.name, ''), 'Sign in with World ID'),
     COALESCE(NULLIF(NEW.description, ''), 'Sign in with World ID'),
-    ''
+    '',
+    0
   );
 RETURN null;
 END;
