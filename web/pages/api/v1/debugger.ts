@@ -4,7 +4,7 @@ import {
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
-} from "../../../errors";
+} from "../../../api-helpers/errors";
 import { runCors } from "../../../cors";
 import { ethers } from "ethers";
 import { gql } from "@apollo/client";
@@ -14,7 +14,7 @@ import {
   KNOWN_ERROR_CODES,
   CONTRACT_ABI,
   parseVerifyProofRequestInputs,
-} from "api-utils";
+} from "api-helpers/utils";
 import { getAPIServiceClient } from "api-graphql";
 
 interface ENSQuery {

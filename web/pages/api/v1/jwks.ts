@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-graphql";
 import { runCors } from "../../../cors";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed } from "errors";
+import { errorNotAllowed } from "api-helpers/errors";
 
 /**
  * Retrieves JWKs to verify proofs

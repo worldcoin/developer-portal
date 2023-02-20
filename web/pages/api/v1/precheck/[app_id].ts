@@ -1,13 +1,13 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-graphql";
-import { canVerifyForAction } from "api-utils";
+import { canVerifyForAction } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "../../../../cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
-} from "../../../../errors";
+} from "../../../../api-helpers/errors";
 
 interface AppPrecheckQueryInterface {
   app: AppAttrs[];

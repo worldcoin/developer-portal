@@ -3,9 +3,9 @@ import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorValidation,
-} from "../../../errors";
+} from "../../../api-helpers/errors";
 import { gql } from "@apollo/client";
-import { generatePassword, generateUserJWT } from "api-utils";
+import { generatePassword, generateUserJWT } from "api-helpers/utils";
 import { runCors } from "../../../cors";
 import { getAPIServiceClient } from "api-graphql";
 import { validateEmail } from "utils";
