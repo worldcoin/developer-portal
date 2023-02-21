@@ -123,25 +123,6 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
 };
 
 /**
- * Generates a secure password hash to store in the DB
- * @param rawPassword
- * @param salt (optional), if a specific salt should be used (e.g. when verifying passwords), if empty, a salt will be generated
- * @returns
- */
-export const generatePassword = (
-  rawPassword: string,
-  salt: string = ""
-): string => {
-  salt = salt || crypto.randomBytes(16).toString("hex");
-
-  const hashedPwd = crypto
-    .pbkdf2Sync(rawPassword, salt, 50_000, 256, `sha512`)
-    .toString(`hex`);
-
-  return `${salt}@${hashedPwd}`;
-};
-
-/**
  * Generates an asymmetric key pair in JWK format
  * @returns
  */
@@ -229,37 +210,6 @@ export const canVerifyForAction = (
   return nullifiers.length < max_verifications_per_person;
 };
 
-export const hashCredentialV0 = async (number: string, action_id: string) => {
-  if (!process.env.PHONE_NULLIFIER_KEY) {
-    throw new Error("`PHONE_NULLIFIER_KEY` not set");
-  }
-
-  return (
-    "0x" +
-    crypto
-      .createHmac("sha256", process.env.PHONE_NULLIFIER_KEY)
-      .update(`${action_id}_${number}`)
-      .digest("hex")
-  );
-};
-
-export const hashRateLimitV0 = async (
-  rateLimitParam: string,
-  paramType: "ipAddr" | "phone"
-) => {
-  if (!process.env.GENERAL_SECRET_KEY) {
-    throw new Error("`GENERAL_SECRET_KEY` not set");
-  }
-
-  // NOTE: We generate day-based hashes as an additional layer of protection against RT brute-forcing
-  return crypto
-    .createHmac("sha256", process.env.GENERAL_SECRET_KEY)
-    .update(
-      `${paramType}_${rateLimitParam}_${new Date().toLocaleDateString("en-GB")}`
-    )
-    .digest("hex");
-};
-
 export const reportAPIEventToPostHog = async (
   event: string,
   distinct_id: string,
@@ -291,17 +241,3 @@ export const reportAPIEventToPostHog = async (
     console.error(`Error reporting ${event} to PostHog`, e);
   }
 };
-
-/**
- * Get the raw request body as a string for API endpoints that do not use Next's parsing.
- * @param req
- * @returns
- */
-export async function getRawRequestBody(req: NextApiRequest) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-  }
-  const buffer = Buffer.concat(chunks);
-  return buffer.toString("utf-8");
-}
