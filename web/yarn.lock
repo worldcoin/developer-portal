@@ -10,7 +10,7 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@apollo/client@^3.7.0":
+"@apollo/client@^3.7.9":
   version "3.7.9"
   resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.7.9.tgz#459454dc4a7c81adaa66e13e626ce41f633dc862"
   integrity sha512-YnJvrJOVWrp4y/zdNvUaM8q4GuSHCEIecsRDTJhK/veT33P/B7lfqGJ24NeLdKMj8tDEuXYF7V0t+th4+rgC+Q==
@@ -2230,10 +2230,10 @@
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.1.3.tgz"
   integrity sha512-WiBSI6JBIhC6LRIsB2Kwh8DsGTlbBU+mLRxJmAe3LjHTdkDpwIbEOZgoXBbZilk/vlfjK8i6nKRAvIRn1XaIMw==
 
-"@sentry/types@^7.2.0":
-  version "7.15.0"
-  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.15.0.tgz#50c57c924993d4dd16b43172d310c66384d17463"
-  integrity sha512-MN9haDRh9ZOsTotoDTHu2BT3sT8Vs1F0alhizUpDyjN2YgBCqR6JV+AbAE1XNHwS2+5zbppch1PwJUVeE58URQ==
+"@sentry/types@7.22.0":
+  version "7.22.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.22.0.tgz#58e4ce77b523048e0f31e2ea4b597946d76f6079"
+  integrity sha512-LhCL+wb1Jch+OesB2CIt6xpfO1Ab6CRvoNYRRzVumWPLns1T3ZJkarYfhbLaOEIb38EIbPgREdxn2AJT560U4Q==
 
 "@sinclair/typebox@^0.23.3":
   version "0.23.5"
@@ -4050,7 +4050,7 @@ date-fns@^2.16.1:
   resolved "https://registry.npmjs.org/date-fns/-/date-fns-2.28.0.tgz"
   integrity sha512-8d35hViGYx/QH0icHYCeLmsLmMUheMmTyV9Fcm6gvNwdw31yXXH+O85sOBJ+OLnLQMKZowvpKb6FgMIQjcpvQw==
 
-dayjs@^1.11.3:
+dayjs@^1.11.7:
   version "1.11.7"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.7.tgz#4b296922642f70999544d1144a2c25730fce63e2"
   integrity sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==
@@ -6901,12 +6901,12 @@ posthog-js-lite@2.0.0:
   resolved "https://registry.yarnpkg.com/posthog-js-lite/-/posthog-js-lite-2.0.0.tgz#27e3ffa291f67f0ca68a24eb8ee8776f6a82421a"
   integrity sha512-q6y0LWF7/faYtsMpX8tLoYDBsvhinMIVoVuubaK4K/md4VYYrfWgiOuhmqj48L2fWkkU2Qjv1gSuA9lsqrcVNw==
 
-posthog-js@^1.30.0:
-  version "1.32.4"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.32.4.tgz#77c997f381519b076f89da91bf663cac97e71068"
-  integrity sha512-92ZAF62HsA5wEPJoD3T6A4GSqPg4mxD0571Gq7xLPos8bAIkB4BGFnuP3TcjobJG8elLAPNXOuW8u9dz3DoPEA==
+posthog-js@^1.45.1:
+  version "1.45.1"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.45.1.tgz#da5029843b9a22f604e985740eab99c0ef136ac6"
+  integrity sha512-dHB0agl9qc/PIhHhfnJB4hxzcO/wBS8z7U2OLrAAAyrmWU+3K1XnIipyZX3tEFq6hk1yL+tJuidBw+gqgMvo4g==
   dependencies:
-    "@sentry/types" "^7.2.0"
+    "@sentry/types" "7.22.0"
     fflate "^0.4.1"
     rrweb-snapshot "^1.1.14"
 
