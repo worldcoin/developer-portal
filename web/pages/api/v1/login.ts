@@ -7,7 +7,7 @@ import {
 import { gql } from "@apollo/client";
 import { generatePassword, generateUserJWT } from "api-helpers/utils";
 import { getAPIServiceClient } from "api-graphql";
-import { runCors } from "../../../cors";
+import { runCors } from "../../../api-helpers/cors";
 
 interface UserPasswordQuery {
   id: string;

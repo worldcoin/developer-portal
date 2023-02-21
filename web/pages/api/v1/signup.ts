@@ -6,7 +6,7 @@ import {
 } from "../../../api-helpers/errors";
 import { gql } from "@apollo/client";
 import { generatePassword, generateUserJWT } from "api-helpers/utils";
-import { runCors } from "../../../cors";
+import { runCors } from "../../../api-helpers/cors";
 import { getAPIServiceClient } from "api-graphql";
 import { validateEmail } from "utils";
 

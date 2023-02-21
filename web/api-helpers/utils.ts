@@ -1,10 +1,7 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { utils as widgetUtils } from "@worldcoin/id";
-import crypto, { randomUUID } from "crypto";
-import { errorValidation } from "api-helpers/errors";
+import { randomUUID } from "crypto";
 import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
 import { JwtConfig } from "../types";
