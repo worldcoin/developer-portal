@@ -1,8 +1,8 @@
 import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import * as jose from "jose";
 import { validateABILikeEncoding, worldIDHash } from "@worldcoin/idkit";
 import { ethers } from "ethers";
+import * as jose from "jose";
 import { CredentialType } from "types";
 
 const CONTRACT_ABI = [
@@ -121,7 +121,8 @@ interface IVerifyParams {
 export const fetchActionForProof = async (
   graphQLClient: ApolloClient<NormalizedCacheObject>,
   app_id: string,
-  nullifier_hash: string
+  nullifier_hash: string,
+  action: string
 ) => {
   const result = await graphQLClient.query<IAppActionWithContractAddress>({
     query: queryFetchAppActionWithContractAddress,
@@ -129,6 +130,7 @@ export const fetchActionForProof = async (
       app_id,
       nullifier_hash,
       now: new Date().toISOString(),
+      action,
     },
   });
 

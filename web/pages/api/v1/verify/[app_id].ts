@@ -1,15 +1,15 @@
+import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
+import { runCors } from "../../../../api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
 } from "../../../../api-helpers/errors";
-import { runCors } from "../../../../api-helpers/cors";
-import { gql } from "@apollo/client";
 
-import { canVerifyForAction } from "api-helpers/utils";
 import { getAPIServiceClient } from "api-helpers/graphql";
+import { canVerifyForAction } from "api-helpers/utils";
 import { fetchActionForProof, verifyProof } from "api-helpers/verify";
 import { CredentialType } from "types";
 
@@ -42,7 +42,7 @@ export default async function handleVerify(
     return errorRequiredAttribute("action", res);
   }
 
-  if (!Object.keys(CredentialType).includes(req.body.credential_type)) {
+  if (!Object.values(CredentialType).includes(req.body.credential_type)) {
     return errorValidation(
       "invalid",
       "Invalid credential type.",
@@ -55,6 +55,7 @@ export default async function handleVerify(
   const data = await fetchActionForProof(
     client,
     req.query.app_id?.toString(),
+    req.body.nullifier_hash,
     req.body.action
   );
 
