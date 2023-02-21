@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { integrationDBSetup, integrationDBTearDown } from "./setup";
 
 // FIXME: Consider moving this to a generalized jest environment

@@ -5,11 +5,11 @@ import {
   errorResponse,
   errorValidation,
 } from "../../../../api-helpers/errors";
-import { runCors } from "../../../../cors";
+import { runCors } from "../../../../api-helpers/cors";
 import { gql } from "@apollo/client";
 
 import { canVerifyForAction } from "api-helpers/utils";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { fetchActionForProof, verifyProof } from "api-helpers/verify";
 import { CredentialType } from "types";
 

@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleVerifyPrecheck from "../../pages/api/v1/precheck/[action_id]";
+import handleVerifyPrecheck from "../../pages/api/v1/precheck/[app_id]";
 
 const requestReturnFn = jest.fn();
 

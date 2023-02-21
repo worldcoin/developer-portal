@@ -1,6 +1,14 @@
 table:
   name: jwks
   schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - expires_at
+        - private_jwk
+        - public_jwk
 select_permissions:
   - role: service
     permission:

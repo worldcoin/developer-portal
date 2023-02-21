@@ -46,7 +46,6 @@ engine
 created_at
 updated_at
 status
-crypto_chain
 return_url
 user_interfaces
 smart_contract_address

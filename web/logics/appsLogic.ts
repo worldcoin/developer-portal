@@ -45,7 +45,6 @@ actions {
   is_staging
   description
   engine
-  crypto_chain
   created_at
   app_id
   is_archived

@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { gql } from "@apollo/client";
 import { errorNotAllowed } from "../../api-helpers/errors";
 import { protectInternalEndpoint } from "api-helpers/utils";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 
 /**
  * Updates the cache for the Semaphore contracts through ENS

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { errorNotAllowed } from "../../api-helpers/errors";
 import { protectInternalEndpoint } from "api-helpers/utils";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { utils } from "@worldcoin/id";
 import { ActionType } from "types";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
