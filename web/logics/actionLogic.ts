@@ -501,24 +501,6 @@ export const actionLogic = kea<actionLogicType>([
         actions.updateAction({ attr: "return_url", value: return_url });
       },
     },
-    contractsConfig: {
-      defaults: { smart_contract_address: "" },
-      errors: ({ smart_contract_address }) => ({
-        // FIXME: improve validation
-        smart_contract_address:
-          smart_contract_address &&
-          !/^0x[\da-f]{28,}$/i.test(smart_contract_address)
-            ? "Please enter a valid smart contract address"
-            : undefined,
-      }),
-      submit: async ({ smart_contract_address }, breakpoint) => {
-        breakpoint();
-        actions.updateAction({
-          attr: "smart_contract_address",
-          value: smart_contract_address,
-        });
-      },
-    },
   })),
   selectors({
     actionUrls: [
@@ -639,20 +621,6 @@ export const actionLogic = kea<actionLogicType>([
               ) ?? false,
           },
         ];
-      },
-    ],
-    chainUrlAddress: [
-      (s) => [s.currentAction],
-      (currentAction): string | undefined => {
-        // FIXME implement other chains
-        switch (currentAction?.crypto_chain) {
-          case "polygon":
-            return currentAction.is_staging
-              ? `${process.env.NEXT_PUBLIC_CHAIN_URL_POLYGONSCAN_STAGING}${currentAction.smart_contract_address}`
-              : `${process.env.NEXT_PUBLIC_CHAIN_URL_POLYGONSCAN_PRODUCTION}${currentAction.smart_contract_address}`;
-          default:
-            return undefined;
-        }
       },
     ],
   }),
