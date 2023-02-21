@@ -1,4 +1,9 @@
 import { IconType } from "common/Icon";
+import { NextApiRequest } from "next";
+
+export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
+  body: T;
+};
 
 export enum CredentialType {
   Orb = "orb",

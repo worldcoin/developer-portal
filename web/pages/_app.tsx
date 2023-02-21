@@ -121,7 +121,7 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
 
         <meta name="twitter:description" content={metaDescription} />
       </Head>
-      <div className="bg-warning flex justify-center items-center text-ffffff py-4 text-lg fixed right-0 left-0 z-50 top-0">
+      {/* <div className="bg-warning flex justify-center items-center text-ffffff py-4 text-lg fixed right-0 left-0 z-50 top-0">
         ⚠️ Thanks for using World ID Alpha! This version of the developer portal
         is <b className="pl-1">deprecated</b>. Please contact us on{" "}
         <a
@@ -133,7 +133,7 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
           Discord
         </a>
         for details on the new version.
-      </div>
+      </div> */}
       <div className="mb-14"></div>
 
       <Component {...pageProps} />
