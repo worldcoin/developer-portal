@@ -1,10 +1,21 @@
 table:
   name: nullifier
   schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - action_id
+        - id
+        - merkle_root
+        - nullifier_hash
+        - verification_level
 select_permissions:
   - role: service
     permission:
       columns:
+        - action_id
         - id
         - merkle_root
         - nullifier_hash
