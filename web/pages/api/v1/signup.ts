@@ -7,7 +7,7 @@ import {
 import { gql } from "@apollo/client";
 import { generatePassword, generateUserJWT } from "api-helpers/utils";
 import { runCors } from "../../../api-helpers/cors";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { validateEmail } from "utils";
 
 interface InsertedUser {

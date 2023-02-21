@@ -15,7 +15,7 @@ import {
   CONTRACT_ABI,
   parseVerifyProofRequestInputs,
 } from "api-helpers/utils";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 
 interface ENSQuery {
   cache: {

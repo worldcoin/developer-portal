@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "../../../../api-helpers/cors";

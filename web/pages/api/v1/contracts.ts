@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { errorNotAllowed } from "api-helpers/errors";
 
 /**
