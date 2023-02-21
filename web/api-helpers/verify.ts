@@ -1,10 +1,7 @@
 import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import * as jose from "jose";
-import {
-  validateABILikeEncoding,
-  worldIDHash,
-} from "@worldcoin/idkit/build/lib/hashing";
+import { validateABILikeEncoding, worldIDHash } from "@worldcoin/idkit";
 import { ethers } from "ethers";
 import { CredentialType } from "types";
 

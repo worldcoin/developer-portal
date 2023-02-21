@@ -3154,10 +3154,10 @@
     posthog-js-lite "0.0.5"
     qr-code-styling-new "1.6.1"
 
-"@worldcoin/idkit@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.3.1.tgz#e5f996947c80ba8545741453b57a336e4cd4873e"
-  integrity sha512-5v92ok+fsg/edDkUTXwVhK4Je6wYbaykwf8LIHZk3NpRhTLv52KtW7LLTIPF4rCwgVv6thtunUqEskz3RsQtIw==
+"@worldcoin/idkit@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.3.3.tgz#353ebc28a23b68abf48a69ebc0490a918dd5c0e9"
+  integrity sha512-NKQZKn8NU6zVCfrkmXKwROYWyt0hFccfQVeNxsmldlk9OGffs/UZEM/ZlJwr3/0OKEVvutrvyd59emfpnJG0ZQ==
   dependencies:
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/solidity" "^5.7.0"
