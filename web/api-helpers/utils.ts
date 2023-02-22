@@ -192,7 +192,7 @@ export const protectInternalEndpoint = (
  * @param res
  * @returns
  */
-export const protectBackendEndpoint = (
+export const protectConsumerBackendEndpoint = (
   req: NextApiRequest,
   res: NextApiResponse
 ): boolean => {
