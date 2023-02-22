@@ -17,7 +17,7 @@ export const Illustration = memo(function Illustration(
     <div
       className={cn(
         className,
-        "grid items-center justify-center w-20 h-20 rounded-full",
+        "grid items-center justify-center w-[88px] h-[88px] rounded-full",
         { "bg-primary-light": color === "primary" },
         { "bg-success-light": color === "success" }
       )}
@@ -42,6 +42,14 @@ export const Illustration = memo(function Illustration(
             name={icon}
           />
         </div>
+
+        {color === "success" && (
+          <Icon
+            className="absolute -top-[190px] -left-[190px] w-[420px] h-[420px]"
+            name="success-illustration"
+            noMask
+          />
+        )}
       </div>
     </div>
   );
