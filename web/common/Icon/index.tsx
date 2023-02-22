@@ -75,6 +75,7 @@ const iconNames = [
   "warning",
   "window",
   "wld-logo",
+  "wld-signin",
   "worldcoin",
   "withdraw",
 ] as const;

@@ -11,7 +11,6 @@ export const Button = memo(function Button(props: ButtonInterface) {
       className={cn(
         className,
         "flex items-center justify-center text-center font-sora font-semibold text-16 text-ffffff leading-5 rounded-2xl",
-        "",
         {
           "bg-neutral-primary hover:bg-neutral-primary/95 hover:active:bg-neutral-primary/90 shadow-button":
             !disabled,
