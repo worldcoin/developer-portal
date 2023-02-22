@@ -90,7 +90,7 @@ export function Login() {
             onClick={() =>
               handleVerify({
                 proof: "proof",
-                nullifier_hash: "0x123456789",
+                nullifier_hash: "0x12345678",
                 merkle_root: "merkle_root",
                 credential_type: CredentialType.Orb,
               })

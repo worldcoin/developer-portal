@@ -80,7 +80,7 @@ const iconNames = [
   "withdraw",
 ] as const;
 
-export type IconType = typeof iconNames[number];
+export type IconType = (typeof iconNames)[number];
 
 export const Icon = memo(function Icon(
   props: {
