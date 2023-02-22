@@ -23,7 +23,7 @@ const actionPayload = {
 };
 
 jest.mock(
-  "api-graphql",
+  "api-helpers/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,

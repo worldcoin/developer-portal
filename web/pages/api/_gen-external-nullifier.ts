@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { utils } from "@worldcoin/id";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { protectInternalEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -30,12 +29,10 @@ export default async function handler(
     return res.status(200).json({ success: true, already_generated: true });
   }
 
-  const hashedAction = utils.worldIDHash(action.action).hash;
-  const hashedAppId = utils.worldIDHash(action.id).hash;
-  const external_nullifier = abi.encode(
-    ["uint256", "uint256"],
-    [hashedAppId, hashedAction]
-  );
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
+    action.app_id,
+    action.action
+  ).digest;
 
   const mutation = gql`
     mutation ActionExternalNullifierMutation(
