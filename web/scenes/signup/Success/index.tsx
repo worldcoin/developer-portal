@@ -1,6 +1,7 @@
 import { Fragment, memo } from "react";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
+import { Typography } from "common/Auth/Typography";
 
 interface SuccessInterface {
   onContinue: () => void;
@@ -11,13 +12,13 @@ export const Success = memo(function Success(props: SuccessInterface) {
     <Fragment>
       <Illustration icon="success" color="success" />
 
-      <div className="mt-8 font-sora font-semibold text-32 text-center leading-10">
+      <Typography className="mt-8" variant="title">
         Welcome!
-      </div>
+      </Typography>
 
-      <div className="max-w-[260px] mt-2 font-rubik text-16 text-center text-neutral-medium leading-5">
+      <Typography className="max-w-[260px] mt-2" variant="subtitle">
         You’re good to go, let’s start privately verifying unique humans
-      </div>
+      </Typography>
 
       <Button
         className="max-w-[327px] w-full h-[64px] mt-8"

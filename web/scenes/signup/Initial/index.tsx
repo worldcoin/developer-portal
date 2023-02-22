@@ -5,6 +5,7 @@ import { FieldText } from "common/Auth/FieldText";
 import { Checkbox } from "common/Auth/Checkbox";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
+import { Typography } from "common/Auth/Typography";
 
 interface InitialInterface {
   onSuccess: () => void;
@@ -15,13 +16,13 @@ export const Initial = memo(function Initial(props: InitialInterface) {
     <Fragment>
       <Illustration icon="user-solid" />
 
-      <div className="mt-8 font-sora font-semibold text-32 text-center leading-10">
+      <Typography className="mt-8" variant="title">
         Nice to meet you
-      </div>
+      </Typography>
 
-      <div className="mt-2 font-rubik text-16 text-center text-neutral-medium leading-5">
+      <Typography className="mt-2" variant="subtitle">
         Just a few details to create your account
-      </div>
+      </Typography>
 
       <div className="flex flex-col mt-8 w-full">
         <FieldLabel className="mb-2">Email</FieldLabel>
