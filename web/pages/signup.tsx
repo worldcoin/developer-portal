@@ -1,28 +1,21 @@
-import { GetServerSideProps } from "next";
+import { useAuthContext } from "contexts/AuthContext";
+import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
-import { useCallback, useMemo, useState } from "react";
-import { LoginRequestBody, SignupInternalData } from "./api/login";
+import { useCallback, useState } from "react";
+import { SignupRequestBody, SignupResponse } from "./api/signup";
 
 const Register = () => {
-  const router = useRouter();
-
-  const data = useMemo(
-    () => router.query as SignupInternalData,
-    [router.query]
-  );
-
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
+  const router = useRouter();
+  const { setToken } = useAuthContext();
 
   const submit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      const tempToken = sessionStorage.getItem("tempSignupToken");
 
-      if (!data) {
-        return;
-      }
-
-      const result = await fetch("/api/signup", {
+      fetch("/api/signup", {
         method: "POST",
 
         headers: {
@@ -32,13 +25,16 @@ const Register = () => {
         body: JSON.stringify({
           email,
           teamName,
-          ...data,
-        }),
-      });
-
-      console.log(result);
+          tempToken,
+        } as SignupRequestBody),
+      })
+        .then((res) => res.json())
+        .then((data: SignupResponse) => {
+          setToken(data.token);
+          router.push("/dashboard");
+        });
     },
-    [data, email, teamName]
+    [email, router, setToken, teamName]
   );
 
   return (

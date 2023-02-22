@@ -1,8 +1,9 @@
 import { gql } from "@apollo/client";
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { utils } from "@worldcoin/id";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectInternalEndpoint } from "api-helpers/utils";
+import {
+  generateExternalNullifier,
+  protectInternalEndpoint,
+} from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ActionType } from "types";
 import { errorNotAllowed } from "../../api-helpers/errors";
@@ -30,12 +31,10 @@ export default async function handler(
     return res.status(200).json({ success: true, already_generated: true });
   }
 
-  const hashedAction = utils.worldIDHash(action.action).hash;
-  const hashedAppId = utils.worldIDHash(action.id).hash;
-  const external_nullifier = abi.encode(
-    ["uint256", "uint256"],
-    [hashedAppId, hashedAction]
-  );
+  const external_nullifier = generateExternalNullifier({
+    id: action.id,
+    action: action.action,
+  });
 
   const mutation = gql`
     mutation ActionExternalNullifierMutation(

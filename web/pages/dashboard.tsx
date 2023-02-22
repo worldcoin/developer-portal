@@ -1,13 +1,17 @@
 import { AuthRequired } from "common/AuthRequired";
 import { useAuthContext } from "contexts/AuthContext";
-import { useEffect } from "react";
 
-export default function Logout(): JSX.Element {
+const Dashboard = () => {
   const { logout } = useAuthContext();
-  useEffect(() => logout(), [logout]);
+
   return (
     <AuthRequired>
-      <div>Logging out...</div>
+      <div>Dashboard</div>
+      <button type="button" onClick={logout}>
+        Logout
+      </button>
     </AuthRequired>
   );
-}
+};
+
+export default Dashboard;
