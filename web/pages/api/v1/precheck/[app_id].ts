@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -13,6 +13,7 @@ interface AppPrecheckQueryInterface {
   app: AppAttrs[];
 }
 
+// TODO: Sync typing from types.ts
 interface AppAttrs {
   id: string;
   is_staging: boolean;
@@ -24,11 +25,10 @@ interface AppAttrs {
   verified_app_logo: string;
   verified_at: string | null;
   engine: "cloud" | "on-chain";
-  description: string;
   actions: Array<{
     external_nullifier: string;
-    description: string;
     name: string;
+    description: string;
     max_verifications: number;
     max_accounts_per_user: number;
     action: string;
@@ -68,6 +68,7 @@ const appPrecheckQuery = gql`
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
+        description
         max_verifications
         max_accounts_per_user
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
@@ -96,6 +97,7 @@ const createActionQuery = gql`
     ) {
       external_nullifier
       name
+      description
       max_verifications
       max_accounts_per_user
       action
@@ -165,15 +167,31 @@ export default async function handleVerifyPrecheck(
       );
     }
 
-    const createActionResponse = await client.mutate({
-      mutation: createActionQuery,
-      variables: {
-        app_id,
-        external_nullifier,
-        action,
-      },
-    });
-    app.actions.push(createActionResponse.data.insert_action_one);
+    try {
+      const createActionResponse = await client.mutate({
+        mutation: createActionQuery,
+        variables: {
+          app_id,
+          external_nullifier,
+          action,
+        },
+        errorPolicy: "none",
+      });
+      app.actions.push(createActionResponse.data.insert_action_one);
+    } catch (e) {
+      const error = e as ApolloError;
+      if (
+        error.graphQLErrors?.[0]?.extensions?.code === "constraint-violation"
+      ) {
+        return errorResponse(
+          res,
+          400,
+          "external_nullifier_mismatch",
+          "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
+          "external_nullifier"
+        );
+      }
+    }
   }
 
   const nullifiers = app.actions[0].nullifiers;

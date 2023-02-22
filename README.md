@@ -82,12 +82,3 @@ If you will update anything related to Hasura (database model, permissions, etc.
 > **Warning** Make sure to only make the changes in the Hasura console (usually `http://localhost:9665`), if you make changes on `http://localhost:8080`the migrations will not be generated and your changes will be lost.
 
 > 💡 The admin secret in stored in `docker-compose.yml` file in the root of the repo.
-
-### Production logs
-
-Production logs are streamed to DataDog. To check the logs simply add the following search query in DataDog logs,
-
-```
-app:dev-portal
-``
-```
