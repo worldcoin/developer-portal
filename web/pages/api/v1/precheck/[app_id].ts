@@ -1,13 +1,13 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
-import { canVerifyForAction } from "api-utils";
+import { getAPIServiceClient } from "api-helpers/graphql";
+import { canVerifyForAction } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { runCors } from "../../../../cors";
+import { runCors } from "../../../../api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
-} from "../../../../errors";
+} from "../../../../api-helpers/errors";
 
 interface AppPrecheckQueryInterface {
   app: AppAttrs[];
@@ -91,6 +91,7 @@ const createActionQuery = gql`
         action: $action
         name: ""
         description: ""
+        creation_mode: "dynamic"
       }
     ) {
       external_nullifier

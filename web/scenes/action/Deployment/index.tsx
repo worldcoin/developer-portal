@@ -9,7 +9,6 @@ import { Button } from "common/Button";
 import { FieldInput } from "common/FieldInput";
 import { Interface } from "./Interface";
 import { Kiosk } from "./Kiosk";
-import { OnChainWidget } from "./OnChainWidget";
 import { Field, Form } from "kea-forms";
 import { CloudWidgetInstructions } from "./CloudWidget/Instructions";
 import { HostedPageInstructions } from "./HostedPage/Instructions";
@@ -201,9 +200,7 @@ export function Deployment() {
               instructions={
                 <OnChainWidgetInstructions actionId={currentAction.id} />
               }
-            >
-              {isInterfaceEnabled("widget") && <OnChainWidget />}
-            </Interface>
+            ></Interface>
           )}
 
           <Interface

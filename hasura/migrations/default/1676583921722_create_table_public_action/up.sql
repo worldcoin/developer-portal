@@ -2,16 +2,18 @@ CREATE TABLE "public"."action" (
   "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('action'),
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
-  "name" text NOT NULL,
-  "description" text NOT NULL,
+  "name" text NOT NULL DEFAULT '',
+  "description" text NOT NULL DEFAULT '',
   "action" text NOT NULL,
   "external_nullifier" text NOT NULL DEFAULT '',
   "app_id" varchar(50) NOT NULL,
   "max_accounts_per_user" integer NOT NULL DEFAULT 1,
   "max_verifications" integer NOT NULL DEFAULT 1,
+  "creation_mode" varchar(50) NOT NULL DEFAULT 'developer_portal',
   PRIMARY KEY ("id"),
   FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
-  UNIQUE ("id")
+  UNIQUE ("id"),
+  CONSTRAINT "creation_mode_choices" CHECK (creation_mode = ANY (ARRAY['developer_portal'::text, 'dynamic'::text]))
 );
 
 comment on column "public"."action"."name" is E'Friendly name given to an action in the Developer Portal.';

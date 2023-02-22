@@ -1,9 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { ethers } from "ethers";
 import { gql } from "@apollo/client";
-import { errorNotAllowed } from "../../errors";
-import { protectInternalEndpoint } from "api-utils";
-import { getAPIServiceClient } from "api-graphql";
+import { getAPIServiceClient } from "api-helpers/graphql";
+import { protectInternalEndpoint } from "api-helpers/utils";
+import { ethers } from "ethers";
+import { NextApiRequest, NextApiResponse } from "next";
+import { errorNotAllowed } from "../../api-helpers/errors";
 
 /**
  * Updates the cache for the Semaphore contracts through ENS

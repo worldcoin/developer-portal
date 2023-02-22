@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
-import { generateAnalyticsJWT, generateAPIKeyJWT } from "api-utils";
-import { errorUnauthenticated } from "errors";
+import { getAPIServiceClient } from "api-helpers/graphql";
+import { generateAnalyticsJWT, generateAPIKeyJWT } from "api-helpers/utils";
+import { errorUnauthenticated } from "api-helpers/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
