@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -167,15 +167,31 @@ export default async function handleVerifyPrecheck(
       );
     }
 
-    const createActionResponse = await client.mutate({
-      mutation: createActionQuery,
-      variables: {
-        app_id,
-        external_nullifier,
-        action,
-      },
-    });
-    app.actions.push(createActionResponse.data.insert_action_one);
+    try {
+      const createActionResponse = await client.mutate({
+        mutation: createActionQuery,
+        variables: {
+          app_id,
+          external_nullifier,
+          action,
+        },
+        errorPolicy: "none",
+      });
+      app.actions.push(createActionResponse.data.insert_action_one);
+    } catch (e) {
+      const error = e as ApolloError;
+      if (
+        error.graphQLErrors?.[0]?.extensions?.code === "constraint-violation"
+      ) {
+        return errorResponse(
+          res,
+          400,
+          "external_nullifier_mismatch",
+          "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
+          "external_nullifier"
+        );
+      }
+    }
   }
 
   const nullifiers = app.actions[0].nullifiers;
