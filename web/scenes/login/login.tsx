@@ -20,6 +20,17 @@ export function Login() {
         <Button className="max-w-[327px] w-full h-[64px] mt-8">
           Sign in with World ID
         </Button>
+
+        <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
+          Don’t have World ID?
+
+          <a
+            className="text-primary hover:text-primary/80"
+            href="#" // FIXME: Add link
+          >
+            Download the World App
+          </a>
+        </div>
       </div>
     </Auth>
   );
