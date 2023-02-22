@@ -4,5 +4,6 @@
 - "!include public_cache.yaml"
 - "!include public_jwks.yaml"
 - "!include public_nullifier.yaml"
+- "!include public_revocation.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
