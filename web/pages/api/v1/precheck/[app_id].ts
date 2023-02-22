@@ -13,6 +13,7 @@ interface AppPrecheckQueryInterface {
   app: AppAttrs[];
 }
 
+// TODO: Sync typing from types.ts
 interface AppAttrs {
   id: string;
   is_staging: boolean;
@@ -24,11 +25,10 @@ interface AppAttrs {
   verified_app_logo: string;
   verified_at: string | null;
   engine: "cloud" | "on-chain";
-  description: string;
   actions: Array<{
     external_nullifier: string;
-    description: string;
     name: string;
+    description: string;
     max_verifications: number;
     max_accounts_per_user: number;
     action: string;
@@ -68,6 +68,7 @@ const appPrecheckQuery = gql`
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
+        description
         max_verifications
         max_accounts_per_user
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
@@ -96,6 +97,7 @@ const createActionQuery = gql`
     ) {
       external_nullifier
       name
+      description
       max_verifications
       max_accounts_per_user
       action
