@@ -1,1 +1,1 @@
-DROP TABLE "public"."revoke";
+DROP TABLE "public"."revocation";
