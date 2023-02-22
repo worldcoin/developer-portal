@@ -1,6 +1,9 @@
 import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { validateABILikeEncoding, worldIDHash } from "@worldcoin/idkit";
+import {
+  validateABILikeEncoding,
+  hashToField,
+} from "@worldcoin/idkit/build/internal";
 import { ethers } from "ethers";
 import * as jose from "jose";
 import { CredentialType } from "types";
@@ -287,7 +290,7 @@ export const parseProofInputs = (params: IInputParams) => {
       };
     }
   } else {
-    signal_hash = worldIDHash(params.signal).hash;
+    signal_hash = hashToField(params.signal).hash;
   }
 
   return {
