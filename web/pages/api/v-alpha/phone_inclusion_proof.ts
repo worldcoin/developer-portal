@@ -1,11 +1,28 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
-import { errorNotAllowed, errorValidation } from "errors";
+import {
+  errorNotAllowed,
+  errorRequiredAttribute,
+  errorValidation,
+} from "api-helpers/errors";
+import { getAPIServiceClient } from "api-helpers/graphql";
+import {
+  PHONE_GROUP_ID,
+  PHONE_SEQUENCER,
+  PHONE_SEQUENCER_STAGING,
+} from "consts";
 import { NextApiRequest, NextApiResponse } from "next";
+
+const existsQuery = gql`
+  query IdentityCommitmentExists($identity_commitment: String!) {
+    revocation(where: { identity_commitment: { _eq: $identity_commitment } }) {
+      identity_commitment
+    }
+  }
+`;
 
 /**
  * Checks if the given identity commitment is in the revocation table, and if false,
- * queries an inclusion proof from the signup sequencer
+ * queries an inclusion proof from the phone signup sequencer
  * @param req
  * @param res
  */
@@ -17,26 +34,38 @@ export default async function handleInclusionProof(
     return errorNotAllowed(req.method, res);
   }
 
-  // Check if the identity commitment does not exist
-  const existsQuery = gql`
-    query IdentityCommitmentExists($identity_commitment: String!) {
-      revoke(where: { identity_commitment: { _eq: $identity_commitment } }) {
-        identity_commitment
-      }
+  for (const attr of ["identity_commitment", "env"]) {
+    if (!req.body[attr]) {
+      return errorRequiredAttribute(attr, res);
     }
-  `;
+  }
+
+  // TODO: Type environments
+  if (!["staging", "production"].includes(req.body.env)) {
+    return errorValidation(
+      "invalid",
+      "Invalid environment value. `staging` or `production` expected.",
+      "env",
+      res
+    );
+  }
 
   const client = await getAPIServiceClient();
+
+  // ANCHOR: Check if the identity commitment has been revoked
   const identityCommitmentExistsResponse = await client.query({
     query: existsQuery,
     variables: { identity_commitment: req.body.identity_commitment },
   });
 
-  // Commitment is in the revoke table, deny the proof request
+  // Commitment is in the revocation table, deny the proof request
+  console.info(
+    `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`
+  );
   if (identityCommitmentExistsResponse.data.revoke.length) {
     return errorValidation(
-      "invalid_commitment",
-      "This identity commitment has been revoked.",
+      "unverified_identity",
+      "This identity is not verified for the phone credential.",
       "identity_commitment",
       res
     );
@@ -49,10 +78,11 @@ export default async function handleInclusionProof(
     `Bearer ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`
   );
   headers.append("Content-Type", "application/json");
-  const body = JSON.stringify([1, req.body.identity_commitment]); // TODO: Change group id to '10' after phone sequencer is deployed
+  const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
 
+  // FIXME: Currently using the orb staging sequencer while phone sequencer gets deployed
   const response = await fetch(
-    "https://signup.stage-crypto.worldcoin.dev/inclusionProof",
+    req.body.env === "production" ? PHONE_SEQUENCER : PHONE_SEQUENCER_STAGING,
     {
       method: "POST",
       headers,
@@ -61,7 +91,7 @@ export default async function handleInclusionProof(
   );
 
   if (response.status === 200) {
-    res.status(response.status).json({
+    res.status(200).json({
       inclusion_proof: await response.json(),
     });
   } else if (response.status === 202) {
