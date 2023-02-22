@@ -34,7 +34,7 @@ export default async function handleInclusionProof(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["identity_commitment", "env"]) {
+  for (const attr of ["identity_commitment", "env", "credential_type"]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
@@ -46,6 +46,16 @@ export default async function handleInclusionProof(
       "invalid",
       "Invalid environment value. `staging` or `production` expected.",
       "env",
+      res
+    );
+  }
+
+  // TODO: Only phone credential supported for now
+  if (req.body.credential_type !== "phone") {
+    return errorValidation(
+      "invalid",
+      "Invalid credential type. Only `phone` is supported for now.",
+      "credential_type",
       res
     );
   }
