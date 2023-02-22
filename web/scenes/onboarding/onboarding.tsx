@@ -1,14 +1,14 @@
-import { Fragment, memo } from "react";
-import { Button } from "common/Auth/Button";
+import { useState } from "react";
+import { Auth } from "common/Auth";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
-import { Icon } from "common/Icon";
+import { Button } from "common/Auth/Button";
 
-interface SigninInterface {}
+export function Onboarding() {
+  const [state, setState] = useState<"initial" | "success">("initial");
 
-export const Signin = memo(function Signin(props: SigninInterface) {
   return (
-    <Fragment>
+    <Auth pageTitle="Login" pageUrl="onboarding">
       <Illustration icon="user-solid" />
 
       <Typography className="max-w-[320px] mt-8" variant="title">
@@ -20,19 +20,18 @@ export const Signin = memo(function Signin(props: SigninInterface) {
       </Typography>
 
       <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-        <Icon name="wld-signin" className="w-[30px] h-[30px] mr-3" />
-        Sign in with World ID
+        Join the Waitlist
       </Button>
 
       <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
-        Don’t have World ID?
+        Already have an invite?
         <a
-          className="text-primary hover:text-primary/80"
-          href="#" // FIXME: Add link
+          className="text-primary hover:text-primary/80 cursor-pointer"
+          onClick={() => {}}
         >
-          Download the World App
+          Sign in
         </a>
       </div>
-    </Fragment>
+    </Auth>
   );
-});
+}
