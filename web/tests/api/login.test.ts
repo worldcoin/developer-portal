@@ -1,19 +1,18 @@
-export {};
 // FIXME: Update tests
-// import { createMocks } from "node-mocks-http";
+import { createMocks } from "node-mocks-http";
 // import * as jose from "jose";
 // import handleLogin from "../../pages/api/v1/login";
 
-// const requestReturnFn = jest.fn();
+const requestReturnFn = jest.fn();
 
-// jest.mock(
-//   "api-graphql",
-//   jest.fn(() => ({
-//     getAPIServiceClient: () => ({
-//       query: requestReturnFn,
-//     }),
-//   }))
-// );
+jest.mock(
+  "api-helpers/graphql",
+  jest.fn(() => ({
+    getAPIServiceClient: () => ({
+      query: requestReturnFn,
+    }),
+  }))
+);
 
 // const validPayload = {
 //   email: "test@worldcoin.org",
@@ -68,30 +67,30 @@ export {};
 //   });
 // });
 
-// describe("/api/v1/login [error cases]", () => {
-//   test("user cannot login with inexistent email", async () => {
-//     const { req, res } = createMocks({
-//       method: "POST",
-//       body: { ...validPayload },
-//     });
+describe("/api/v1/login [error cases]", () => {
+  test("user cannot login with inexistent email", async () => {
+    //     const { req, res } = createMocks({
+    //       method: "POST",
+    //       body: { ...validPayload },
+  });
 
-//     requestReturnFn.mockResolvedValue({
-//       data: {
-//         user: [],
-//       },
-//     });
+  //     requestReturnFn.mockResolvedValue({
+  //       data: {
+  //         user: [],
+  //       },
+  //     });
 
-//     await handleLogin(req, res);
+  //     await handleLogin(req, res);
 
-//     expect(res._getStatusCode()).toBe(400);
-//     expect(res._getJSONData()).toEqual(
-//       expect.objectContaining({
-//         detail: "Invalid email or password.",
-//         code: "invalid_credentials",
-//         attribute: null,
-//       })
-//     );
-//   });
+  //     expect(res._getStatusCode()).toBe(400);
+  //     expect(res._getJSONData()).toEqual(
+  //       expect.objectContaining({
+  //         detail: "Invalid email or password.",
+  //         code: "invalid_credentials",
+  //         attribute: null,
+  //       })
+  //   );
+});
 
 //   test("user cannot login with incorrect password", async () => {
 //     const { req, res } = createMocks({

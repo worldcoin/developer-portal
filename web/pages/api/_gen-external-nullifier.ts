@@ -32,7 +32,7 @@ export default async function handler(
   const external_nullifier = IDKitInternal.generateExternalNullifier(
     action.app_id,
     action.action
-  );
+  ).digest;
 
   const mutation = gql`
     mutation ActionExternalNullifierMutation(
