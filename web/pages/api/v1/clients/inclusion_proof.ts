@@ -5,6 +5,7 @@ import {
   errorValidation,
 } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
+import { protectBackendEndpoint } from "api-helpers/utils";
 import {
   PHONE_GROUP_ID,
   PHONE_SEQUENCER,
@@ -30,6 +31,10 @@ export default async function handleInclusionProof(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (!protectBackendEndpoint) {
+    return;
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }

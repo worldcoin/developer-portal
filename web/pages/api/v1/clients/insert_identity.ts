@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 import { errorNotAllowed, errorRequiredAttribute } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
+import { protectBackendEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const existsQuery = gql`
@@ -32,6 +33,10 @@ export default async function handleInsert(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (!protectBackendEndpoint(req, res)) {
+    return;
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }

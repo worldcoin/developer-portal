@@ -187,6 +187,31 @@ export const protectInternalEndpoint = (
 };
 
 /**
+ * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend -> Next.js API
+ * @param req
+ * @param res
+ * @returns
+ */
+export const protectBackendEndpoint = (
+  req: NextApiRequest,
+  res: NextApiResponse
+): boolean => {
+  if (
+    !process.env.BACKEND_ENDPOINTS_SECRET ||
+    req.headers.authorization?.replace("Bearer ", "") !==
+      process.env.BACKEND_ENDPOINTS_SECRET
+  ) {
+    res.status(403).json({
+      code: "permission_denied",
+      detail: "You do not have permission to perform this action.",
+      attr: null,
+    });
+    return false;
+  }
+  return true;
+};
+
+/**
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
