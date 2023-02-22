@@ -1,9 +1,5 @@
 import { gql } from "@apollo/client";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorValidation,
-} from "api-helpers/errors";
+import { errorNotAllowed, errorRequiredAttribute } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -15,25 +11,24 @@ const existsQuery = gql`
   }
 `;
 
-const insertQuery = gql`
-  mutation InsertRevoke($type: String!, $identity_commitment: String!) {
-    insert_revocation(
-      objects: { identity_commitment: $identity_commitment, type: $type }
+const deleteQuery = gql`
+  mutation DeleteRevoke($identity_commitment: String!) {
+    delete_revocation(
+      where: { identity_commitment: { _eq: $identity_commitment } }
     ) {
       returning {
         id
-        revoked_at
       }
     }
   }
 `;
 
 /**
- * Adds the passed identity commitment to the revoke table, if does not already exist
+ * Check if the identity commitment already exists in the revocation table, and delete it if so
  * @param req
  * @param res
  */
-export default async function handleRevoke(
+export default async function handleInsert(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -50,38 +45,30 @@ export default async function handleRevoke(
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
-  // TODO: The checking and revocation can be done in a single transaction
   const revokeExistsResponse = await client.query({
     query: existsQuery,
     variables: { identity_commitment: req.body.identity_commitment },
   });
 
-  if (revokeExistsResponse.data.revocation.length) {
-    return errorValidation(
-      "already_revoked",
-      "This identity commitment has already been revoked.",
-      "identity_commitment",
-      res
-    );
+  // Identity commitment is new, so just ignore it
+  if (!revokeExistsResponse.data.revocation.length) {
+    return res.status(204).end();
   }
 
-  // Insert the unique identity commitment to the table
-  const insertRevokeResponse = await client.mutate({
-    mutation: insertQuery,
+  // Identity commitment has been revoked before, so remove it from the table
+  const deleteRevokeResponse = await client.mutate({
+    mutation: deleteQuery,
     variables: {
-      type: req.body.type,
       identity_commitment: req.body.identity_commitment,
     },
   });
 
-  if (insertRevokeResponse?.data?.insert_revocation?.returning.length) {
+  if (deleteRevokeResponse?.data) {
     res.status(204).end();
   } else {
-    return errorValidation(
-      "not_inserted",
-      "The identity commitment was not inserted",
-      "identity_commitment",
-      res
-    );
+    res.status(503).json({
+      code: "server_error",
+      detail: "Something went wrong. Please try again.",
+    });
   }
 }
