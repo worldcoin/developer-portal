@@ -1,0 +1,23 @@
+table:
+  name: revocation
+  schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - identity_commitment
+        - type
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - identity_commitment
+        - revoked_at
+        - type
+      filter: {}
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}

@@ -85,6 +85,19 @@ export const generateUserJWT = async (
   return await _generateJWT(payload);
 };
 
+// REVIEW
+export const generateUserTempJWT = async (nullifier_hash: string) => {
+  const payload = {
+    sub: nullifier_hash,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["user"],
+      "x-hasura-default-role": "user",
+    },
+  };
+
+  return await _generateJWT(payload, "1h");
+};
+
 /**
  * Generates a JWT for a specific API key.
  * @param team_id

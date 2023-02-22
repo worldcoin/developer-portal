@@ -6,28 +6,25 @@ import {
 
 import { NextApiResponse } from "next";
 import { gql } from "@apollo/client";
-import { CredentialType, NextApiRequestWithBody } from "types";
+import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
+import { decodeJwt } from "jose";
+import { generateUserJWT } from "api-helpers/utils";
 
-type RegisterRequestBody = {
-  action_id?: string;
-  nullifier_hash?: string;
-  merkle_root?: string;
-  verification_level?: CredentialType;
+export type SignupRequestBody = {
   email?: string;
   teamName?: string;
+  tempToken?: string;
 };
+
+export type SignupResponse = { redirectTo: string; token: string };
 
 const mutation = gql`
   mutation Signup(
-    $action_id: String
     $nullifier_hash: String!
-    $merkle_root: String!
-    $verification_level: String!
     $team_name: String!
     $email: String!
     $ironclad_id: String!
-    $world_id_nullifier: String
   ) {
     insert_team_one(
       object: {
@@ -36,7 +33,7 @@ const mutation = gql`
           data: {
             email: $email
             ironclad_id: $ironclad_id
-            world_id_nullifier: $world_id_nullifier
+            world_id_nullifier: $nullifier_hash
           }
         }
       }
@@ -50,62 +47,29 @@ const mutation = gql`
         world_id_nullifier
       }
     }
-
-    insert_nullifier_one(
-      object: {
-        action_id: $action_id
-        nullifier_hash: $nullifier_hash
-        merkle_root: $merkle_root
-        verification_level: $verification_level
-      }
-    ) {
-      id
-      nullifier_hash
-      merkle_root
-      verification_level
-    }
   }
 `;
 
 export default async function login(
-  req: NextApiRequestWithBody<RegisterRequestBody>,
-  res: NextApiResponse
+  req: NextApiRequestWithBody<SignupRequestBody>,
+  res: NextApiResponse<SignupResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 
-  const {
-    action_id,
-    nullifier_hash,
-    merkle_root,
-    verification_level,
-    email,
-    teamName,
-  } = req.body;
-
-  const invalidBody =
-    !action_id ||
-    !nullifier_hash ||
-    !merkle_root ||
-    !verification_level ||
-    !email ||
-    !teamName;
+  const { tempToken, email, teamName } = req.body;
+  const invalidBody = !tempToken || !email || !teamName;
 
   if (invalidBody) {
     const missingAttribute = (
-      [
-        "action_id",
-        "nullifier_hash",
-        "merkle_root",
-        "verification_level",
-        "email",
-        "teamName",
-      ] as Array<keyof RegisterRequestBody>
+      ["tempToken", "email", "teamName"] as Array<keyof SignupRequestBody>
     ).find((param) => !req.body[param]);
 
     return errorRequiredAttribute(missingAttribute, res);
   }
+
+  const nullifier_hash = decodeJwt(tempToken).sub;
 
   let client;
 
@@ -121,10 +85,7 @@ export default async function login(
     signupResult = await client.mutate({
       mutation,
       variables: {
-        action_id,
         nullifier_hash,
-        merkle_root,
-        verification_level,
         team_name: teamName,
         email,
         ironclad_id: "",
@@ -137,13 +98,17 @@ export default async function login(
     return errorResponse(res, 500, "Failed to signup");
   }
 
-  const nullifier = signupResult?.data?.insert_nullifier_one;
+  const team = signupResult.data.insert_team_one;
+  const user = team.users[0];
 
-  if (!nullifier) {
-    return errorResponse(res, 500, "Failed to create nullifier");
+  if (!team || !user) {
+    return errorResponse(res, 500, "Failed to signup");
   }
 
+  const token = await generateUserJWT(user.id, team.id);
+
   res.status(200).json({
-    success: true,
+    redirectTo: "/dashboard",
+    token,
   });
 }
