@@ -1,5 +1,5 @@
 table:
-  name: revoke
+  name: revocation
   schema: public
 insert_permissions:
   - role: service
