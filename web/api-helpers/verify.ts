@@ -1,9 +1,6 @@
 import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import {
-  validateABILikeEncoding,
-  hashToField,
-} from "@worldcoin/idkit/build/internal";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
 import * as jose from "jose";
 import { CredentialType } from "types";
@@ -274,7 +271,7 @@ export const parseProofInputs = (params: IInputParams) => {
     };
   }
 
-  if (validateABILikeEncoding(params.signal)) {
+  if (IDKitInternal.validateABILikeEncoding(params.signal)) {
     try {
       signal_hash = abi.decode(["uint256"], params.signal)[0] as BigInt;
     } catch (e) {
@@ -290,7 +287,7 @@ export const parseProofInputs = (params: IInputParams) => {
       };
     }
   } else {
-    signal_hash = hashToField(params.signal).hash;
+    signal_hash = IDKitInternal.hashToField(params.signal).hash;
   }
 
   return {

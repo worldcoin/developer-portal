@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { generateExternalNullifier } from "@worldcoin/idkit/build/internal";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { protectInternalEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -29,7 +29,7 @@ export default async function handler(
     return res.status(200).json({ success: true, already_generated: true });
   }
 
-  const external_nullifier = generateExternalNullifier(
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
     action.app_id,
     action.action
   );
