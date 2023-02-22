@@ -1,9 +1,7 @@
 import { gql } from "@apollo/client";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import {
-  generateExternalNullifier,
-  protectInternalEndpoint,
-} from "api-helpers/utils";
+import { protectInternalEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ActionType } from "types";
 import { errorNotAllowed } from "../../api-helpers/errors";
@@ -31,10 +29,10 @@ export default async function handler(
     return res.status(200).json({ success: true, already_generated: true });
   }
 
-  const external_nullifier = generateExternalNullifier({
-    id: action.id,
-    action: action.action,
-  });
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
+    action.app_id,
+    action.action
+  ).digest;
 
   const mutation = gql`
     mutation ActionExternalNullifierMutation(

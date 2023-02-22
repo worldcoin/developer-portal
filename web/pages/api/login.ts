@@ -7,14 +7,11 @@ import {
 import { gql } from "@apollo/client";
 import { CredentialType, NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import {
-  generateExternalNullifier,
-  generateUserJWT,
-  generateUserTempJWT,
-} from "api-helpers/utils";
+import { generateUserJWT, generateUserTempJWT } from "api-helpers/utils";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
 import dayjs from "dayjs";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 
 export type LoginRequestBody = {
   proof?: string;
@@ -66,10 +63,10 @@ export default async function login(
     return errorRequiredAttribute(missingAttribute, res);
   }
 
-  const external_nullifier = generateExternalNullifier({
-    id: "app_developer_portal",
-    action: "",
-  });
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
+    "app_developer_portal",
+    ""
+  ).digest;
 
   const result = await verifyProof(
     {

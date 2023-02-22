@@ -1,12 +1,10 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
-import { worldIDHash } from "@worldcoin/idkit";
 import { randomUUID } from "crypto";
 import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
 import { JwtConfig } from "../types";
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
 
 const JWK_ALG = "PS256";
 
@@ -252,16 +250,4 @@ export const reportAPIEventToPostHog = async (
   } catch (e) {
     console.error(`Error reporting ${event} to PostHog`, e);
   }
-};
-
-export const generateExternalNullifier = ({
-  id,
-  action,
-}: {
-  id: string;
-  action: string;
-}) => {
-  const hashedId = worldIDHash(id).hash;
-  const hashedAction = worldIDHash(action).hash;
-  return abi.encode(["uint256", "uint256"], [hashedId, hashedAction]);
 };

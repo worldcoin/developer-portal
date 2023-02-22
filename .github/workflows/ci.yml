@@ -32,6 +32,28 @@ jobs:
       - name: Check Typescript
         run: yarn typecheck
 
+  build:
+    name: Test build
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
   apiTests:
     name: API Tests
     runs-on: ubuntu-20.04
