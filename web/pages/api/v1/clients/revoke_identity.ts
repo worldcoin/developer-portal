@@ -5,7 +5,7 @@ import {
   errorValidation,
 } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectBackendEndpoint } from "api-helpers/utils";
+import { protectConsumerBackendEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const existsQuery = gql`
@@ -38,7 +38,7 @@ export default async function handleRevoke(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!protectBackendEndpoint(req, res)) {
+  if (!protectConsumerBackendEndpoint(req, res)) {
     return;
   }
 

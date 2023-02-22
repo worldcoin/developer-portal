@@ -5,11 +5,10 @@ import {
   errorValidation,
 } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectBackendEndpoint } from "api-helpers/utils";
 import {
   PHONE_GROUP_ID,
-  PHONE_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
+  PHONE_SEQUENCER_INCLUSION_PROOF,
+  PHONE_SEQUENCER_STAGING_INCLUSION_PROOF,
 } from "consts";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -31,10 +30,6 @@ export default async function handleInclusionProof(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!protectBackendEndpoint) {
-    return;
-  }
-
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
@@ -90,13 +85,17 @@ export default async function handleInclusionProof(
   const headers = new Headers();
   headers.append(
     "Authorization",
-    `Bearer ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`
+    req.body.env === "production"
+      ? `Bearer ${process.env.SIGNUP_SEQUENCER_KEY}`
+      : `Bearer ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`
   );
   headers.append("Content-Type", "application/json");
   const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
 
   const response = await fetch(
-    req.body.env === "production" ? PHONE_SEQUENCER : PHONE_SEQUENCER_STAGING,
+    req.body.env === "production"
+      ? PHONE_SEQUENCER_INCLUSION_PROOF
+      : PHONE_SEQUENCER_STAGING_INCLUSION_PROOF,
     {
       method: "POST",
       headers,
