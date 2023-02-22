@@ -1,81 +1,25 @@
 import { Auth } from "common/Auth";
-import { AuthField } from "common/Auth/AuthField";
-import { EyeAddon } from "common/Auth/AuthField/EyeAddon";
-import { Link } from "common/Link";
-import { Button } from "common/Button";
-import { memo, useState } from "react";
-import { Form } from "kea-forms";
-import { loginLogic } from "./loginLogic";
-import { useValues } from "kea";
-import { text } from "common/styles";
-import cn from "classnames";
+import { Illustration } from "common/Auth/Illustration";
+import { Button } from "common/Auth/Button";
 
-export const Login = memo(function Login() {
-  const { loginError, isLoginSubmitting } = useValues(loginLogic);
-  const [passwordShown, setPasswordShown] = useState(false);
-
+export function Login() {
   return (
-    <Auth
-      pageTitle="Login"
-      pageUrl="login"
-      title="Welcome back!"
-      caption="Enter your credentials to access your account."
-    >
-      <Form
-        className="mt-12 grid gap-8"
-        logic={loginLogic}
-        formKey="login"
-        enableFormOnSubmit
-        name="login-form"
-      >
-        <AuthField
-          label="Email"
-          type="email"
-          name="email"
-          placeholder="me@petorbz.com"
-          disabled={isLoginSubmitting}
-        />
+    <Auth pageTitle="Sign Up" pageUrl="signup">
+      <div className="flex flex-col items-center max-w-[544px] p-12">
+        <Illustration icon="user-solid" />
 
-        <AuthField
-          label="Password"
-          // FIXME: Password recovery not yet supported
-          // labelLink={
-          //   <Link className="text-primary" href="/forgot">
-          //     Forgot password?
-          //   </Link>
-          // }
-          type={passwordShown ? "text" : "password"}
-          name="password"
-          placeholder="········"
-          disabled={isLoginSubmitting}
-          addon={
-            <EyeAddon
-              active={passwordShown}
-              onChangeActive={setPasswordShown}
-            />
-          }
-          error={loginError}
-        />
+        <div className="max-w-[320px] mt-8 font-sora font-semibold text-32 text-center leading-10">
+          World ID is&nbsp;currently in&nbsp;beta
+        </div>
 
-        <Button
-          className="mt-4"
-          variant="contained"
-          color="primary"
-          fullWidth
-          type="submit"
-          loading={isLoginSubmitting}
-          name="login-submit"
-        >
-          Log in
+        <div className="mt-2 font-rubik text-16 text-center text-neutral-medium leading-5">
+          Sign in with World ID or join our waitlist
+        </div>
+
+        <Button className="max-w-[327px] w-full h-[64px] mt-8">
+          Sign in with World ID
         </Button>
-      </Form>
-
-      <p className={cn(text.caption, "mt-6 text-center leading-5")}>
-        Don&apos;t have an account?&nbsp;
-        <Link className="font-medium" href="/signup">
-          Sign Up
-        </Link>
-      </p>
+      </div>
     </Auth>
   );
-});
+}

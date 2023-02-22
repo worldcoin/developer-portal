@@ -118,7 +118,7 @@ export const authLogic = kea<authLogicType>([
       }
 
       if (shouldDisable) {
-        posthog.opt_out_capturing();
+        //posthog.opt_out_capturing();
       }
     },
   })),
