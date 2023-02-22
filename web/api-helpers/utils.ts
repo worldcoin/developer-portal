@@ -187,7 +187,7 @@ export const protectInternalEndpoint = (
 };
 
 /**
- * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend -> Next.js API
+ * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend (World App) -> Developer Portal API
  * @param req
  * @param res
  * @returns
