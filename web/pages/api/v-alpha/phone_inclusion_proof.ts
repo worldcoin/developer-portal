@@ -80,7 +80,6 @@ export default async function handleInclusionProof(
   headers.append("Content-Type", "application/json");
   const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
 
-  // FIXME: Currently using the orb staging sequencer while phone sequencer gets deployed
   const response = await fetch(
     req.body.env === "production" ? PHONE_SEQUENCER : PHONE_SEQUENCER_STAGING,
     {
@@ -100,10 +99,20 @@ export default async function handleInclusionProof(
       detail:
         "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
     });
-  } else {
+  } else if (response.status === 400) {
     res.status(400).json({
-      code: "unverified_identity",
-      detail: "This identity is not verified for the phone credential.",
+      code: "inclusion_pending",
+      detail:
+        "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
+    });
+  } else {
+    console.error(
+      "Unexpected error fetching proof from phone sequencer",
+      response.text()
+    );
+    res.status(503).json({
+      code: "server_error",
+      detail: "Something went wrong. Please try again.",
     });
   }
 }

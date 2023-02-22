@@ -1,11 +1,19 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-graphql";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorValidation,
-} from "errors";
+} from "api-helpers/errors";
+import { getAPIServiceClient } from "api-helpers/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
+
+const existsQuery = gql`
+  query RevokeExists($identity_commitment: String!) {
+    revoke(where: { identity_commitment: { _eq: $identity_commitment } }) {
+      identity_commitment
+    }
+  }
+`;
 
 /**
  * Adds the passed identity commitment to the revoke table, if does not already exist
@@ -29,14 +37,7 @@ export default async function handleRevoke(
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
-  const existsQuery = gql`
-    query RevokeExists($identity_commitment: String!) {
-      revoke(where: { identity_commitment: { _eq: $identity_commitment } }) {
-        identity_commitment
-      }
-    }
-  `;
-
+  // TODO: The checking and revocation can be done in a single transaction
   const revokeExistsResponse = await client.query({
     query: existsQuery,
     variables: { identity_commitment: req.body.identity_commitment },
