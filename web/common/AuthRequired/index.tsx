@@ -10,8 +10,6 @@ export const AuthRequired = memo(function AuthRequired(props: {
   const router = useRouter();
 
   useEffect(() => {
-    console.log(token);
-
     if (!token) {
       redirectWithReturn("/login");
     }

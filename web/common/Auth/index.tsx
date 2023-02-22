@@ -2,11 +2,13 @@ import { Fragment, memo, ReactNode } from "react";
 import { ToastContainer } from "react-toastify";
 import { Meta } from "common/Meta";
 import { CookieBanner } from "common/CookieBanner/CookieBanner";
+import cn from "classnames";
 
 export const Auth = memo(function Auth(props: {
   pageTitle: string;
   pageUrl: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <Fragment>
@@ -14,7 +16,12 @@ export const Auth = memo(function Auth(props: {
       <Meta title={props.pageTitle} url={props.pageUrl} />
       <ToastContainer />
       <CookieBanner />
-      <div className="min-h-screen grid items-center justify-center text-neutral-primary">
+      <div
+        className={cn(
+          "grid justify-center justify-items-center content-center min-h-screen text-neutral-primary",
+          props.className
+        )}
+      >
         {props.children}
       </div>
     </Fragment>

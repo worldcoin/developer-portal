@@ -3,6 +3,7 @@ import { Auth } from "common/Auth";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
 import { Button } from "common/Auth/Button";
+import Link from "next/link";
 
 export function Onboarding() {
   const [state, setState] = useState<"initial" | "success">("initial");
@@ -25,12 +26,11 @@ export function Onboarding() {
 
       <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
         Already have an invite?
-        <a
-          className="text-primary hover:text-primary/80 cursor-pointer"
-          onClick={() => {}}
-        >
-          Sign in
-        </a>
+        <Link href="/login">
+          <a className="text-primary hover:text-primary/80 cursor-pointer">
+            Sign in
+          </a>
+        </Link>
       </div>
     </Auth>
   );

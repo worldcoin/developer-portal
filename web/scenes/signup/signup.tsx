@@ -1,45 +1,20 @@
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { Auth } from "common/Auth";
 import { Initial } from "./Initial";
 import { Success } from "./Success";
 import { useRouter } from "next/router";
-import { useAuthContext } from "contexts/AuthContext";
-import { SignupRequestBody, SignupResponse } from "pages/api/signup";
 
 export function Signup() {
   const [state, setState] = useState<"initial" | "success">("initial");
-
-  const [email, setEmail] = useState("");
-  const [teamName, setTeamName] = useState("");
   const router = useRouter();
-  const { setToken } = useAuthContext();
 
-  const submit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const tempToken = sessionStorage.getItem("tempSignupToken");
-
-      fetch("/api/signup", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          email,
-          teamName,
-          tempToken,
-        } as SignupRequestBody),
-      })
-        .then((res) => res.json())
-        .then((data: SignupResponse) => {
-          setToken(data.token);
-          router.push("/dashboard");
-        });
-    },
-    [email, router, setToken, teamName]
-  );
+  useEffect(() => {
+    const tempToken = sessionStorage.getItem("tempSignupToken");
+    if (!tempToken) {
+      router.push("/login");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
+  }, []);
 
   return (
     <Auth pageTitle="Sign Up" pageUrl="signup">
@@ -49,7 +24,7 @@ export function Signup() {
         )}
 
         {state === "success" && (
-          <Success onContinue={() => setState("success")} />
+          <Success onContinue={() => router.push("/dashboard")} />
         )}
       </div>
     </Auth>
