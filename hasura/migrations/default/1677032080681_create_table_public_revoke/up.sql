@@ -1,0 +1,1 @@
+CREATE TABLE "public"."revoke" ("id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('revoke'), "identity_commitment" text NOT NULL DEFAULT '', "type" text NOT NULL DEFAULT '', "revoked_at" timestamptz NOT NULL DEFAULT now(), PRIMARY KEY ("id") , UNIQUE ("id"));
