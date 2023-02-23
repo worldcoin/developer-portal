@@ -1,3 +1,8 @@
+/**
+ * This file contains the main types for both the frontend and backend.
+ * Types referring to Hasura models should be defined in models.ts.
+ */
+
 import { IconType } from "common/Icon";
 
 export enum CredentialType {
@@ -5,12 +10,22 @@ export enum CredentialType {
   Phone = "phone",
 }
 
+export enum EngineType {
+  OnChain = "on-chain",
+  Cloud = "cloud",
+}
+
+export enum AppStatusType {
+  Active = "active",
+  Inactive = "inactive",
+}
+
 export interface JwtConfig {
   key: string;
   type: "HS512" | "HS384" | "HS256";
 }
 
-// Models
+// FIXME: Should be removed
 export interface UserType {
   id: string;
   name: string;
@@ -24,7 +39,7 @@ export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];
 };
 
-// FIXME: Out of date type
+// FIXME: Should be removed
 export interface ActionType {
   id: string;
   name: string;
@@ -49,6 +64,7 @@ export interface ActionType {
   };
 }
 
+// FIXME: Should be removed
 export interface TeamType {
   id: string;
   name: string;
@@ -56,7 +72,7 @@ export interface TeamType {
   users: Array<UserType>;
 }
 
-// FIXME: Out of date type
+// FIXME: Should be removed
 export interface AppType {
   id: string;
   name: string;
@@ -78,6 +94,7 @@ export interface PublicNullifier {
   nullifier_hash: string;
 }
 
+// FIXME: Should be removed
 export interface ModelPublicAction
   extends Pick<
     ActionType,
@@ -103,8 +120,14 @@ export type EnvironmentType = {
   icon: { name: IconType; noMask?: boolean };
 };
 
-export enum Credentials {
-  Phone = "phone",
-  Identity = "identity",
-  Orb = "orb",
+export enum OIDCResponseType {
+  Code = "code",
+  Implicit = "id_token%20token", // (https://openid.net/specs/openid-connect-implicit-1_0.html#AuthenticationRequest)
+}
+
+export interface IInternalError {
+  message: string;
+  code: string;
+  statusCode?: number;
+  attribute?: string | null;
 }
