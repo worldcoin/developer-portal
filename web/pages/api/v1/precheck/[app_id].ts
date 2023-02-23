@@ -1,6 +1,7 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
+import { ActionModel, AppModel, NullifierModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "../../../../api-helpers/cors";
 import {
@@ -9,37 +10,40 @@ import {
   errorResponse,
 } from "../../../../api-helpers/errors";
 
-interface AppPrecheckQueryInterface {
-  app: AppAttrs[];
+type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
+interface _Action
+  extends Pick<
+    ActionModel,
+    | "name"
+    | "description"
+    | "max_verifications"
+    | "max_accounts_per_user"
+    | "action"
+    | "external_nullifier"
+    | "__typename"
+  > {
+  nullifiers: _Nullifier[];
 }
 
-// TODO: Sync typing from types.ts
-interface AppAttrs {
-  id: string;
-  is_staging: boolean;
-  is_verified: boolean;
-  logo_url: string;
-  name: string;
-  status: string;
-  user_interfaces: string[];
-  verified_app_logo: string;
-  verified_at: string | null;
-  engine: "cloud" | "on-chain";
-  actions: Array<{
-    external_nullifier: string;
-    name: string;
-    description: string;
-    max_verifications: number;
-    max_accounts_per_user: number;
-    action: string;
-    redirect_url: "";
-    nullifiers: Array<{
-      nullifier_hash: string;
-      __typename: "nullifier";
-    }>;
-    __typename: "action";
-  }>;
-  __typename: "app";
+interface _App
+  extends Pick<
+    AppModel,
+    | "__typename"
+    | "id"
+    | "engine"
+    | "is_staging"
+    | "is_verified"
+    | "logo_url"
+    | "name"
+    | "user_interfaces"
+    | "verified_at"
+    | "verified_app_logo"
+  > {
+  actions: _Action[];
+}
+
+interface AppPrecheckQueryInterface {
+  app: _App[];
 }
 
 const appPrecheckQuery = gql`
@@ -60,7 +64,6 @@ const appPrecheckQuery = gql`
       is_verified
       logo_url
       name
-      status
       user_interfaces
       verified_app_logo
       verified_at
