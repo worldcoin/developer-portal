@@ -1,5 +1,4 @@
 import { useAuthContext } from "contexts/AuthContext";
-import { setCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { SignupRequestBody, SignupResponse } from "./api/signup";

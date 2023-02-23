@@ -93,7 +93,7 @@ export default async function login(
   if (result.error && !result.success) {
     return errorResponse(
       res,
-      result.error.statusCode,
+      result.error.statusCode ?? 500,
       result.error.code,
       result.error.message,
       result.error.attribute
