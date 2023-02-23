@@ -239,6 +239,31 @@ export const protectInternalEndpoint = (
 };
 
 /**
+ * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend (World App) -> Developer Portal API
+ * @param req
+ * @param res
+ * @returns
+ */
+export const protectConsumerBackendEndpoint = (
+  req: NextApiRequest,
+  res: NextApiResponse
+): boolean => {
+  if (
+    !process.env.CONSUMER_BACKEND_SECRET ||
+    req.headers.authorization?.replace("Bearer ", "") !==
+      process.env.CONSUMER_BACKEND_SECRET
+  ) {
+    res.status(403).json({
+      code: "permission_denied",
+      detail: "You do not have permission to perform this action.",
+      attr: null,
+    });
+    return false;
+  }
+  return true;
+};
+
+/**
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
