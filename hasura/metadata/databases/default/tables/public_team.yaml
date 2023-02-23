@@ -21,6 +21,7 @@ insert_permissions:
     permission:
       check: {}
       columns:
+        - id
         - name
 select_permissions:
   - role: api_key
@@ -33,6 +34,14 @@ select_permissions:
       filter:
         id:
           _eq: X-Hasura-Team-Id
+  - role: service
+    permission:
+      columns:
+        - created_at
+        - id
+        - name
+        - updated_at
+      filter: {}
   - role: user
     permission:
       columns:

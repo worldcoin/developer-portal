@@ -3,6 +3,9 @@ import cn from "classnames";
 import usePortal from "react-useportal";
 import { Icon } from "common/Icon";
 
+/* FIXME: react-useportal does not work with react18, we need to redo the modal window components without using it.
+          We can get the portal from radix-ui but it is better to get the ready-made modal window implementation
+          from radix-ui or headless-ui */
 export const Modal = memo(function Modal(props: {
   children: ReactNode;
   className?: string;

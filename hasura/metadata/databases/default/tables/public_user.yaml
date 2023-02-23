@@ -19,12 +19,13 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - email
-        - world_id_nullifier
         - created_at
-        - updated_at
+        - email
         - id
+        - ironclad_id
         - team_id
+        - updated_at
+        - world_id_nullifier
       filter: {}
   - role: user
     permission:

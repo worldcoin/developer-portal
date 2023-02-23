@@ -3,7 +3,7 @@ import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
 import * as jose from "jose";
-import { CredentialType } from "types";
+import { CredentialType, IInternalError } from "types";
 
 const CONTRACT_ABI = [
   "function verifyProof (uint256 root, uint256 groupId, uint256 signalHash, uint256 nullifierHash, uint256 externalNullifierHash, uint256[8] calldata proof)",
@@ -70,10 +70,6 @@ const queryFetchAppActionWithContractAddress = gql`
         }
       }
     }
-    jwks(limit: 1, where: { expires_at: { _gt: $now } }) {
-      id
-      private_jwk
-    }
   }
 `;
 
@@ -96,11 +92,6 @@ interface IAppActionWithContractAddress {
       }[];
       max_verifications: number;
     }[];
-  }[];
-
-  jwks: {
-    id: string;
-    private_jwk: jose.JWK;
   }[];
 }
 
@@ -186,7 +177,6 @@ export const fetchActionForProof = async (
   }
 
   return {
-    jwk: result.data.jwks[0],
     contractAddress: contractRecord.value,
     app: { ...app, action: app.actions[0], actions: undefined },
   };
@@ -307,7 +297,7 @@ export const parseProofInputs = (params: IInputParams) => {
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams
-) => {
+): Promise<{ success?: true; error?: IInternalError }> => {
   const parsed = parseProofInputs(proofParams);
   if (parsed.error || !parsed.params) {
     return { error: parsed.error };

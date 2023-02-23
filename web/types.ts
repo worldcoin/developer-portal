@@ -1,8 +1,36 @@
+/**
+ * This file contains the main types for both the frontend and backend.
+ * Types referring to Hasura models should be defined in models.ts.
+ */
+
 import { IconType } from "common/Icon";
+import { NextApiRequest } from "next";
+
+export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
+  body: T;
+};
 
 export enum CredentialType {
   Orb = "orb",
   Phone = "phone",
+}
+
+export enum EngineType {
+  OnChain = "on-chain",
+  Cloud = "cloud",
+}
+
+export enum AppStatusType {
+  Active = "active",
+  Inactive = "inactive",
+}
+
+// Options for the `can_user_verify` attribute in the /precheck endpoint
+export enum CanUserVerifyType {
+  Yes = "yes",
+  No = "no",
+  Undetermined = "undetermined",
+  OnChain = "on-chain",
 }
 
 export interface JwtConfig {
@@ -10,7 +38,7 @@ export interface JwtConfig {
   type: "HS512" | "HS384" | "HS256";
 }
 
-// Models
+// FIXME: Should be removed
 export interface UserType {
   id: string;
   name: string;
@@ -19,12 +47,12 @@ export interface UserType {
 }
 
 export const userInterfaces = ["widget", "hosted_page", "kiosk"] as const;
-export type UserInterfacesType = typeof userInterfaces[number];
+export type UserInterfacesType = (typeof userInterfaces)[number];
 export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];
 };
 
-// FIXME: Out of date type
+// FIXME: Should be removed
 export interface ActionType {
   id: string;
   name: string;
@@ -49,6 +77,7 @@ export interface ActionType {
   };
 }
 
+// FIXME: Should be removed
 export interface TeamType {
   id: string;
   name: string;
@@ -56,7 +85,7 @@ export interface TeamType {
   users: Array<UserType>;
 }
 
-// FIXME: Out of date type
+// FIXME: Should be removed
 export interface AppType {
   id: string;
   name: string;
@@ -78,6 +107,7 @@ export interface PublicNullifier {
   nullifier_hash: string;
 }
 
+// FIXME: Should be removed
 export interface ModelPublicAction
   extends Pick<
     ActionType,
@@ -103,8 +133,14 @@ export type EnvironmentType = {
   icon: { name: IconType; noMask?: boolean };
 };
 
-export enum Credentials {
-  Phone = "phone",
-  Identity = "identity",
-  Orb = "orb",
+export enum OIDCResponseType {
+  Code = "code",
+  Implicit = "implicit", // (https://openid.net/specs/openid-connect-implicit-1_0.html#AuthenticationRequest)
+}
+
+export interface IInternalError {
+  message: string;
+  code: string;
+  statusCode?: number;
+  attribute?: string | null;
 }

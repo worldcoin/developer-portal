@@ -1,9 +1,13 @@
-import { useActions } from "kea";
-import { authLogic } from "logics/authLogic";
+import { AuthRequired } from "common/AuthRequired";
+import { useAuthContext } from "contexts/AuthContext";
 import { useEffect } from "react";
 
 export default function Logout(): JSX.Element {
-  const { logout } = useActions(authLogic);
+  const { logout } = useAuthContext();
   useEffect(() => logout(), [logout]);
-  return <></>;
+  return (
+    <AuthRequired>
+      <div>Logging out...</div>
+    </AuthRequired>
+  );
 }
