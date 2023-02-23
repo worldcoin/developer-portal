@@ -1,18 +1,17 @@
-import { deleteCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/router";
+
 import {
   createContext,
   memo,
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 
 type AuthContextValue = {
-  token?: string;
+  token: string | null;
   logout: () => void;
   setToken: (token: string) => void;
   redirectWithReturn: (path: string) => void;
@@ -20,6 +19,7 @@ type AuthContextValue = {
 };
 
 export const AuthContext = createContext<AuthContextValue>({
+  token: null,
   logout: () => {},
   setToken: () => {},
   redirectWithReturn: () => {},
@@ -28,18 +28,18 @@ export const AuthContext = createContext<AuthContextValue>({
 
 export const AuthProvider = memo(function AuthProvider(props: {
   children: ReactNode;
-  token?: string;
+  token: string | null;
 }) {
   const router = useRouter();
-  const [token, updateToken] = useState<string | undefined>(props.token);
+  const [token, updateToken] = useState<string | null>(props.token);
 
   const logout = useCallback(() => {
-    deleteCookie("token");
-    updateToken(undefined);
+    localStorage.removeItem("token");
+    updateToken(null);
   }, []);
 
   const setToken = useCallback((token: string) => {
-    setCookie("token", token);
+    localStorage.setItem("token", token);
     updateToken(token);
   }, []);
 

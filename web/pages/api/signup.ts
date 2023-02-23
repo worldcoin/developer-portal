@@ -70,15 +70,7 @@ export default async function login(
   }
 
   const nullifier_hash = decodeJwt(tempToken).sub;
-
-  let client;
-
-  try {
-    client = await getAPIServiceClient();
-  } catch (err) {
-    return errorResponse(res, 500, "Failed to connect to database");
-  }
-
+  const client = await getAPIServiceClient();
   let signupResult;
 
   try {
@@ -89,8 +81,6 @@ export default async function login(
         team_name: teamName,
         email,
         ironclad_id: "",
-        //REVIEW: Should we use externall_nullifier here?
-        world_id_nullifier: "0x123",
       },
     });
   } catch (error) {

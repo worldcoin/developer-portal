@@ -27,7 +27,8 @@ export const Initial = memo(function Initial(props: InitialInterface) {
   const { setToken } = useAuthContext();
 
   const submit = useCallback(
-    (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
       const tempToken = sessionStorage.getItem("tempSignupToken");
 
       fetch("/api/signup", {
