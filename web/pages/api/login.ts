@@ -76,23 +76,21 @@ export default async function login(
     ""
   ).digest;
 
-  const result = { success: true };
-
-  // const result = await verifyProof(
-  //   {
-  //     merkle_root,
-  //     signal,
-  //     nullifier_hash,
-  //     external_nullifier,
-  //     proof,
-  //   },
-  //   {
-  //     credential_type,
-  //     is_staging: process.env.NODE_ENV === "development" ? true : false,
-  //     //TODO: add relevant contract address
-  //     contract_address: "",
-  //   }
-  // );
+  const result = await verifyProof(
+    {
+      merkle_root,
+      signal,
+      nullifier_hash,
+      external_nullifier,
+      proof,
+    },
+    {
+      credential_type,
+      is_staging: process.env.NODE_ENV === "development" ? true : false,
+      //TODO: add relevant contract address
+      contract_address: "",
+    }
+  );
 
   if (result.error && !result.success) {
     return errorResponse(
