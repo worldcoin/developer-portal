@@ -87,15 +87,22 @@ export const generateUserJWT = async (
 
 // REVIEW
 export const generateUserTempJWT = async (nullifier_hash: string) => {
+  const generalSecretKey = process.env.GENERAL_SECRET_KEY;
+  if (!generalSecretKey) {
+    return null;
+  }
+
   const payload = {
     sub: nullifier_hash,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user"],
-      "x-hasura-default-role": "user",
-    },
   };
 
-  return await _generateJWT(payload, "1h");
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer("https://developer.worldcoin.org")
+    .setExpirationTime("1h")
+    .sign(Buffer.from(generalSecretKey));
+
+  return token;
 };
 
 /**

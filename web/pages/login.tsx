@@ -1,14 +1,14 @@
 import { ISuccessResult } from "@worldcoin/idkit";
 import { useAuthContext } from "contexts/AuthContext";
 import { setCookie } from "cookies-next";
+import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 import { LoginRequestBody, LoginResponse } from "./api/login";
 
 const Login = () => {
   const router = useRouter();
-  const { token, setToken, enterApp } = useAuthContext();
-  console.log("login token: ", { token });
+  const { setToken, enterApp } = useAuthContext();
 
   //FIXME: Just a mock for now
   //ANCHOR: Some success function that will be passed to the IDKit
@@ -33,22 +33,22 @@ const Login = () => {
           nullifier_hash,
           merkle_root: proof_payload.merkle_root,
           signal_type,
-          signal: "test",
+          signal: dayjs().unix().toString(),
           external_nullifier,
         } as LoginRequestBody),
       })
         .then((res) => res.json())
         .then((result: LoginResponse) => {
-          if (!result.token && !result.tempToken) {
+          if (!Object.hasOwn(result, "new_user")) {
             return console.error("Error while logging in.");
           }
 
-          if (result.tempToken) {
-            sessionStorage.setItem("tempSignupToken", result.tempToken);
+          if (result.new_user && result.signup_token) {
+            sessionStorage.setItem("tempSignupToken", result.signup_token);
             router.push("/signup");
           }
 
-          if (result.token) {
+          if (!result.new_user && result.token) {
             setToken(result.token);
             enterApp();
           }
