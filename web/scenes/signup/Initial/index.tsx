@@ -12,8 +12,7 @@ import { Checkbox } from "common/Auth/Checkbox";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
-import { SignupRequestBody, SignupResponse } from "pages/api/signup";
-import { useRouter } from "next/router";
+import { SignupResponse } from "pages/api/signup";
 import { useAuthContext } from "contexts/AuthContext";
 
 interface InitialInterface {
@@ -23,7 +22,6 @@ interface InitialInterface {
 export const Initial = memo(function Initial(props: InitialInterface) {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
-  const router = useRouter();
   const { setToken } = useAuthContext();
 
   const submit = useCallback(
@@ -43,7 +41,7 @@ export const Initial = memo(function Initial(props: InitialInterface) {
           team_name: teamName,
           signup_token,
           // FIXME: missing `ironclad_id` & ToS signature stuff
-        } as SignupRequestBody),
+        }),
       })
         .then((res) => res.json())
         .then((data: SignupResponse) => {

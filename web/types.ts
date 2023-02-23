@@ -39,7 +39,7 @@ export interface UserType {
 }
 
 export const userInterfaces = ["widget", "hosted_page", "kiosk"] as const;
-export type UserInterfacesType = (typeof userInterfaces)[number];
+export type UserInterfacesType = typeof userInterfaces[number];
 export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];
 };
