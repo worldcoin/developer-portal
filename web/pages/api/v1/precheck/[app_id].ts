@@ -3,6 +3,7 @@ import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
 import { ActionModel, AppModel, NullifierModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
+import { CanUserVerifyType, EngineType } from "types";
 import { runCors } from "../../../../api-helpers/cors";
 import {
   errorNotAllowed,
@@ -202,17 +203,29 @@ export default async function handleVerifyPrecheck(
   const response = {
     ...app,
     sign_in_with_world_id: action === "",
-    user_can_verify: null as null | boolean, // By default we cannot determine if the user can verify, unless a nullifier_hash is provided; further, this is not applicable for sign in with World ID
+    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
     action: { ...app.actions[0], nullifiers: undefined },
     actions: undefined,
   };
 
-  // ANCHOR: If a nullifier hash is provided, determine if the user can verify
-  if (nullifier_hash && response.action) {
-    response.user_can_verify = canVerifyForAction(
-      nullifiers,
-      response.action.max_verifications
-    );
+  if (app.engine === EngineType.OnChain) {
+    // On-chain actions uniqueness cannot be verified in the Developer Portal
+    response.can_user_verify = CanUserVerifyType.OnChain;
+  } else {
+    if (response.sign_in_with_world_id) {
+      // User can always verify for sign in with World ID
+      response.can_user_verify = CanUserVerifyType.Yes;
+    }
+
+    // ANCHOR: If a nullifier hash is provided, determine if the user can verify
+    if (nullifier_hash && response.action) {
+      response.can_user_verify = canVerifyForAction(
+        nullifiers,
+        response.action.max_verifications
+      )
+        ? CanUserVerifyType.Yes
+        : CanUserVerifyType.No;
+    }
   }
 
   res.status(200).json(response);
