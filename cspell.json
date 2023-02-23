@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -30,6 +35,7 @@
     "nullifer",
     "OIDC",
     "secp256k1",
+    "signin",
     "signup",
     "timestamptz",
     "toastify",

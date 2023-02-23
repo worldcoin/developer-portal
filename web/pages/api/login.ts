@@ -5,18 +5,19 @@ import {
 } from "api-helpers/errors";
 
 import { gql } from "@apollo/client";
-import { CredentialType, NextApiRequestWithBody } from "types";
+import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { generateUserJWT, generateUserTempJWT } from "api-helpers/utils";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
+import { CredentialType } from "@worldcoin/idkit/build/types";
 
 export type LoginRequestBody = {
   proof?: string;
   nullifier_hash?: string;
   merkle_root?: string;
-  signal_type?: CredentialType;
+  credential_type?: CredentialType;
   signal?: string;
 };
 
@@ -50,10 +51,11 @@ export default async function login(
     return errorNotAllowed(req.method, res);
   }
 
-  const { proof, nullifier_hash, merkle_root, signal_type, signal } = req.body;
+  const { proof, nullifier_hash, merkle_root, credential_type, signal } =
+    req.body;
 
   const invalidBody =
-    !proof || !nullifier_hash || !merkle_root || !signal_type || !signal;
+    !proof || !nullifier_hash || !merkle_root || !credential_type || !signal;
 
   if (invalidBody) {
     const missingAttribute = (
@@ -61,7 +63,7 @@ export default async function login(
         "proof",
         "nullifier_hash",
         "merkle_root",
-        "signal_type",
+        "credential_type",
         "signal",
       ] as Array<keyof LoginRequestBody>
     ).find((param) => !req.body[param]);
@@ -83,7 +85,7 @@ export default async function login(
       proof,
     },
     {
-      credential_type: signal_type,
+      credential_type,
       is_staging: process.env.NODE_ENV === "development" ? true : false,
       //TODO: add relevant contract address
       contract_address: "",
