@@ -1,3 +1,4 @@
+import { runCors } from "api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -21,6 +22,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (req.body.response_type === OIDCResponseType.Implicit) {
+    // NOTE: CORS only for the implicit flow, because the authorization code flow is called from the backend (security reasons)
+    await runCors(req, res);
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }

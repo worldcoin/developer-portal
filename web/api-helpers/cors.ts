@@ -5,7 +5,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 const cors = Cors({
   methods: ["GET", "POST", "HEAD"],
   // Please check out https://github.com/expressjs/cors for details on how to set a cors domain
-  origin: process.env.NEXT_CORS_DOMAIN || "*", // FIXME Maybe have a safer default
+  origin: "*",
 });
 
 // Helper method to wait for a middleware to execute before continuing
