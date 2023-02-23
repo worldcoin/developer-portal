@@ -36,14 +36,6 @@ if (!GENERAL_SECRET_KEY) {
  * @returns
  */
 export const generateServiceJWT = async (): Promise<string> => {
-  const JWT_CONFIG: JwtConfig = JSON.parse(
-    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
-  );
-
-  if (!JWT_CONFIG) {
-    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
-  }
-
   const payload = {
     sub: "service_account",
     "https://hasura.io/jwt/claims": {
