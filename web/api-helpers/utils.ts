@@ -1,26 +1,41 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
+import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import * as jose from "jose";
+import { CacheModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, JwtConfig } from "../types";
+import { getAPIServiceClient } from "./graphql";
+import { jwtVerify } from "jose";
 
 const JWK_ALG = "PS256";
+const JWT_ISSUER = process.env.JWT_ISSUER;
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+const JWT_CONFIG: JwtConfig = JSON.parse(
+  process.env.HASURA_GRAPHQL_JWT_SECRET || ""
+);
+
+if (!JWT_ISSUER) {
+  throw new Error("Improperly configured. `JWT_ISSUER` env var must be set!");
+}
+
+if (!JWT_CONFIG) {
+  throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
+}
+
+if (!GENERAL_SECRET_KEY) {
+  throw new Error(
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+  );
+}
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
  * @returns
  */
 export const generateServiceJWT = async (): Promise<string> => {
-  const JWT_CONFIG: JwtConfig = JSON.parse(
-    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
-  );
-
-  if (!JWT_CONFIG) {
-    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
-  }
-
   const payload = {
     sub: "service_account",
     "https://hasura.io/jwt/claims": {
@@ -31,7 +46,7 @@ export const generateServiceJWT = async (): Promise<string> => {
 
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWT_CONFIG.type })
-    .setIssuer("https://developer.worldcoin.org")
+    .setIssuer(JWT_ISSUER)
     .setExpirationTime("1m")
     .sign(Buffer.from(JWT_CONFIG.key));
 
@@ -45,17 +60,9 @@ const _generateJWT = async (
   payload: Record<string, any>,
   expiration: string = "24h"
 ): Promise<string> => {
-  const JWT_CONFIG: JwtConfig = JSON.parse(
-    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
-  );
-
-  if (!JWT_CONFIG) {
-    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
-  }
-
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWT_CONFIG.type })
-    .setIssuer("https://developer.worldcoin.org")
+    .setIssuer(JWT_ISSUER)
     .setExpirationTime(expiration)
     .sign(Buffer.from(JWT_CONFIG.key));
 
@@ -83,6 +90,41 @@ export const generateUserJWT = async (
   };
 
   return await _generateJWT(payload);
+};
+
+/**
+ * Generates a temporary JWT used to sign up a user.
+ * After a user logs in with World ID if they don't have an account, we generate this temporary token. If they complete account creation, we exchange this token.
+ * @param nullifier_hash
+ * @returns
+ */
+export const generateSignUpJWT = async (nullifier_hash: string) => {
+  const payload = {
+    sub: nullifier_hash,
+  };
+
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("1h")
+    .sign(Buffer.from(GENERAL_SECRET_KEY));
+
+  return token;
+};
+
+/**
+ * Verifies a sign up token. Returns the nullifier hash. If the token is invalid, throws an error.
+ * @param token
+ */
+export const verifySignUpJWT = async (token: string): Promise<string> => {
+  const { payload } = await jwtVerify(token, Buffer.from(GENERAL_SECRET_KEY), {
+    issuer: JWT_ISSUER,
+  });
+  const { sub } = payload;
+  if (!sub) {
+    throw new Error("JWT does not contain valid `sub` claim.");
+  }
+  return sub;
 };
 
 /**
@@ -166,7 +208,7 @@ export const generateVerificationJWT = async ({
 
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWK_ALG, kid })
-    .setIssuer(process.env.NEXT_PUBLIC_APP_URL || "")
+    .setIssuer(JWT_ISSUER)
     .setExpirationTime("1h")
     .sign(await jose.importJWK(privateJwk, JWK_ALG));
 };
@@ -247,4 +289,42 @@ export const reportAPIEventToPostHog = async (
   } catch (e) {
     console.error(`Error reporting ${event} to PostHog`, e);
   }
+};
+
+export const fetchSmartContractAddress = async (
+  is_staging: boolean
+): Promise<string> => {
+  const fetchContractsQuery = gql`
+    query FetchContracts() {
+      cache(
+        where: {
+          _or: [
+            { key: { _eq: "semaphore.wld.eth" } }
+            { key: { _eq: "staging.semaphore.wld.eth" } }
+          ]
+        }
+      ) {
+        key
+        value
+      }
+    }
+  `;
+
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<{
+    cache: Array<Pick<CacheModel, "key" | "value">>;
+  }>({ query: fetchContractsQuery });
+
+  const contractKey = is_staging
+    ? "staging.semaphore.wld.eth"
+    : "semaphore.wld.eth";
+  const contract = data.cache.find((c) => c.key === contractKey);
+
+  if (!contract) {
+    throw new Error(
+      `Improperly configured. Could not find smart contract address for ${contractKey}.`
+    );
+  }
+
+  return contract.value;
 };

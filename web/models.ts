@@ -67,3 +67,15 @@ export interface JWKModel {
   updated_at: DateTime;
   __typename: "jwks";
 }
+
+export interface UserModel {
+  id: string;
+  email: string;
+  team_id: string;
+  world_id_nullifier: string;
+  is_subscribed: boolean;
+  ironclad_id: string;
+  created_at: DateTime;
+  updated_at: DateTime;
+  __typename: "jwks";
+}

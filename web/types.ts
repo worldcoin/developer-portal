@@ -4,6 +4,11 @@
  */
 
 import { IconType } from "common/Icon";
+import { NextApiRequest } from "next";
+
+export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
+  body: T;
+};
 
 export enum CredentialType {
   Orb = "orb",
@@ -42,7 +47,7 @@ export interface UserType {
 }
 
 export const userInterfaces = ["widget", "hosted_page", "kiosk"] as const;
-export type UserInterfacesType = typeof userInterfaces[number];
+export type UserInterfacesType = (typeof userInterfaces)[number];
 export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];
 };
