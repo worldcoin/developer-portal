@@ -1,0 +1,1 @@
+alter table "public"."action" drop column "return_url"
