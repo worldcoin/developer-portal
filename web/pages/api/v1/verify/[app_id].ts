@@ -9,7 +9,7 @@ import {
 } from "../../../../api-helpers/errors";
 
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { canVerifyForAction } from "api-helpers/utils";
+import { canVerifyForAction } from "api-helpers/jwts";
 import { fetchActionForProof, verifyProof } from "api-helpers/verify";
 import { CredentialType } from "types";
 

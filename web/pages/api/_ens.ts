@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectInternalEndpoint } from "api-helpers/utils";
+import { protectInternalEndpoint } from "api-helpers/jwts";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed } from "../../api-helpers/errors";

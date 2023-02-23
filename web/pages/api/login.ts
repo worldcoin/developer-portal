@@ -11,7 +11,7 @@ import {
   generateUserJWT,
   generateSignUpJWT,
   fetchSmartContractAddress,
-} from "api-helpers/utils";
+} from "api-helpers/jwts";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
 import { CredentialType } from "@worldcoin/idkit/build/types";

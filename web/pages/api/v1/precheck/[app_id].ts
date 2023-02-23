@@ -1,6 +1,6 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { canVerifyForAction } from "api-helpers/utils";
+import { canVerifyForAction } from "api-helpers/jwts";
 import { ActionModel, AppModel, NullifierModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "types";
