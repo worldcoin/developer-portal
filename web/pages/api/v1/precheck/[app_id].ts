@@ -1,6 +1,7 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import { canVerifyForAction } from "api-helpers/utils";
+import { ActionModel, AppModel, NullifierModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "../../../../api-helpers/cors";
 import {
@@ -9,37 +10,40 @@ import {
   errorResponse,
 } from "../../../../api-helpers/errors";
 
-interface AppPrecheckQueryInterface {
-  app: AppAttrs[];
+type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
+interface _Action
+  extends Pick<
+    ActionModel,
+    | "name"
+    | "description"
+    | "max_verifications"
+    | "max_accounts_per_user"
+    | "action"
+    | "external_nullifier"
+    | "__typename"
+  > {
+  nullifiers: _Nullifier[];
 }
 
-interface AppAttrs {
-  id: string;
-  is_staging: boolean;
-  is_verified: boolean;
-  logo_url: string;
-  name: string;
-  status: string;
-  user_interfaces: string[];
-  verified_app_logo: string;
-  verified_at: string | null;
-  engine: "cloud" | "on-chain";
-  description: string;
-  actions: Array<{
-    external_nullifier: string;
-    description: string;
-    name: string;
-    max_verifications: number;
-    max_accounts_per_user: number;
-    action: string;
-    redirect_url: "";
-    nullifiers: Array<{
-      nullifier_hash: string;
-      __typename: "nullifier";
-    }>;
-    __typename: "action";
-  }>;
-  __typename: "app";
+interface _App
+  extends Pick<
+    AppModel,
+    | "__typename"
+    | "id"
+    | "engine"
+    | "is_staging"
+    | "is_verified"
+    | "logo_url"
+    | "name"
+    | "user_interfaces"
+    | "verified_at"
+    | "verified_app_logo"
+  > {
+  actions: _Action[];
+}
+
+interface AppPrecheckQueryInterface {
+  app: _App[];
 }
 
 const appPrecheckQuery = gql`
@@ -60,7 +64,6 @@ const appPrecheckQuery = gql`
       is_verified
       logo_url
       name
-      status
       user_interfaces
       verified_app_logo
       verified_at
@@ -68,6 +71,7 @@ const appPrecheckQuery = gql`
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
+        description
         max_verifications
         max_accounts_per_user
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
@@ -96,6 +100,7 @@ const createActionQuery = gql`
     ) {
       external_nullifier
       name
+      description
       max_verifications
       max_accounts_per_user
       action
@@ -165,15 +170,31 @@ export default async function handleVerifyPrecheck(
       );
     }
 
-    const createActionResponse = await client.mutate({
-      mutation: createActionQuery,
-      variables: {
-        app_id,
-        external_nullifier,
-        action,
-      },
-    });
-    app.actions.push(createActionResponse.data.insert_action_one);
+    try {
+      const createActionResponse = await client.mutate({
+        mutation: createActionQuery,
+        variables: {
+          app_id,
+          external_nullifier,
+          action,
+        },
+        errorPolicy: "none",
+      });
+      app.actions.push(createActionResponse.data.insert_action_one);
+    } catch (e) {
+      const error = e as ApolloError;
+      if (
+        error.graphQLErrors?.[0]?.extensions?.code === "constraint-violation"
+      ) {
+        return errorResponse(
+          res,
+          400,
+          "external_nullifier_mismatch",
+          "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
+          "external_nullifier"
+        );
+      }
+    }
   }
 
   const nullifiers = app.actions[0].nullifiers;
