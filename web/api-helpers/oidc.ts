@@ -3,6 +3,7 @@ import { ActionModel, AppModel } from "models";
 import { IInternalError } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
+import { defaultApp } from "default-app";
 
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
@@ -16,7 +17,7 @@ const fetchAppQuery = gql`
     ) {
       id
       is_staging
-      actions(where: { action: { _eq: "" } }) {
+      actions(where: { action: { _eq: ${defaultApp.action} } }) {
         external_nullifier
       }
     }

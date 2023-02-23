@@ -10,6 +10,7 @@ import { Icon } from "common/Icon";
 import { ISuccessResult, IDKitWidget } from "@worldcoin/idkit";
 import dayjs from "dayjs";
 import { urls } from "urls";
+import { defaultApp } from "default-app";
 
 export function Login() {
   const router = useRouter();
@@ -68,10 +69,10 @@ export function Login() {
           Sign in with World ID or join our waitlist
         </Typography>
         <IDKitWidget
-          app_id="app_developer_portal"
+          app_id={defaultApp.id}
           signal={signal}
           // REVIEW: IDKit now loading QR code when action empty
-          action="sign_in"
+          action={defaultApp.action}
           handleVerify={handleVerify}
         >
           {({ open }) => (

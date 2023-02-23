@@ -6,10 +6,16 @@ const Dashboard = () => {
 
   return (
     <AuthRequired>
-      <div>Dashboard</div>
-      <button type="button" onClick={logout}>
-        Logout
-      </button>
+      <div className="grid justify-start">
+        <span>Dashboard</span>
+        <button
+          type="button"
+          className="border bg-primary hover:bg-primary/50 text-ffffff"
+          onClick={logout}
+        >
+          Logout
+        </button>
+      </div>
     </AuthRequired>
   );
 };

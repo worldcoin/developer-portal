@@ -12,6 +12,8 @@ import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { CredentialType } from "@worldcoin/idkit/build/types";
+import { fetchOIDCApp } from "api-helpers/oidc";
+import { defaultApp } from "default-app";
 
 export type LoginRequestBody = {
   proof?: string;
@@ -72,9 +74,21 @@ export default async function login(
   }
 
   const external_nullifier = IDKitInternal.generateExternalNullifier(
-    "app_developer_portal",
-    ""
+    defaultApp.id,
+    defaultApp.action
   ).digest;
+
+  const OIDCApp = await fetchOIDCApp(defaultApp.id);
+  const contract_address = OIDCApp.app?.contract_address;
+
+  if (!contract_address) {
+    return errorResponse(
+      res,
+      500,
+      "internal_error",
+      "Can't find contract address"
+    );
+  }
 
   const result = await verifyProof(
     {
@@ -87,8 +101,7 @@ export default async function login(
     {
       credential_type,
       is_staging: process.env.NODE_ENV === "development" ? true : false,
-      //TODO: add relevant contract address
-      contract_address: "",
+      contract_address,
     }
   );
 

@@ -1,3 +1,4 @@
+import { isSSR } from "common/helpers/is-ssr";
 import { useAuthContext } from "contexts/AuthContext";
 import { useRouter } from "next/router";
 import { Fragment, memo, ReactNode, useEffect, useMemo } from "react";
@@ -7,18 +8,10 @@ export const AuthRequired = memo(function AuthRequired(props: {
 }) {
   const { token, redirectWithReturn } = useAuthContext();
   const isAuthenticated = useMemo(() => Boolean(token), [token]);
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!token) {
-      redirectWithReturn("/login");
-    }
-  }, [redirectWithReturn, router, token]);
-
-  if (isAuthenticated) {
-    return <Fragment>{props.children}</Fragment>;
+  if (!isSSR() && !isAuthenticated) {
+    redirectWithReturn("/login");
   }
 
-  //TODO: make a preloader
-  return <div>Loading...</div>;
+  return <Fragment>{props.children}</Fragment>;
 });
