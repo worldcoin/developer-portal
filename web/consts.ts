@@ -12,17 +12,8 @@ export const ORB_SEQUENCER_STAGING =
 export const PHONE_GROUP_ID = 1; // FIXME should be 10 once it's deployed
 
 // FIXME
-export const PHONE_SEQUENCER_INCLUSION_PROOF =
-  "https://signup.stage-crypto.worldcoin.dev/inclusionProof";
+export const PHONE_SEQUENCER = "https://signup.stage-crypto.worldcoin.dev";
 
 // FIXME
-export const PHONE_SEQUENCER_STAGING_INCLUSION_PROOF =
-  "https://signup.stage-crypto.worldcoin.dev/inclusionProof";
-
-// FIXME
-export const PHONE_SEQUENCER_INSERT_IDENTITY =
-  "https://signup.stage-crypto.worldcoin.dev/insertIdentity";
-
-// FIXME
-export const PHONE_SEQUENCER_STAGING_INSERT_IDENTITY =
-  "https://signup.stage-crypto.worldcoin.dev/insertIdentity";
+export const PHONE_SEQUENCER_STAGING =
+  "https://signup.stage-crypto.worldcoin.dev";

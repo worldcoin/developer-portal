@@ -197,9 +197,9 @@ export const protectConsumerBackendEndpoint = (
   res: NextApiResponse
 ): boolean => {
   if (
-    !process.env.BACKEND_ENDPOINTS_SECRET ||
+    !process.env.CONSUMER_BACKEND_SECRET ||
     req.headers.authorization?.replace("Bearer ", "") !==
-      process.env.BACKEND_ENDPOINTS_SECRET
+      process.env.CONSUMER_BACKEND_SECRET
   ) {
     res.status(403).json({
       code: "permission_denied",

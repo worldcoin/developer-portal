@@ -7,7 +7,7 @@ insert_permissions:
       check: {}
       columns:
         - identity_commitment
-        - type
+        - credential_type
 select_permissions:
   - role: service
     permission:
@@ -15,7 +15,7 @@ select_permissions:
         - id
         - identity_commitment
         - revoked_at
-        - type
+        - credential_type
       filter: {}
 delete_permissions:
   - role: service
