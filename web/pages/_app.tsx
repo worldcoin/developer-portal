@@ -1,15 +1,14 @@
 import "../styles/globals.css";
 import type { AppContext, AppProps } from "next/app";
-import { Fragment, useContext, useEffect } from "react";
+import { Fragment } from "react";
 import { usePostHog } from "common/hooks/use-posthog";
 import Head from "next/head";
-import { getCookies } from "cookies-next";
 import { AuthProvider } from "contexts/AuthContext";
+import { isSSR } from "common/helpers/is-ssr";
 
-const App = ({
-  Component,
-  pageProps,
-}: AppProps<{ cookies: { token?: string } }>): JSX.Element => {
+const App = ({ Component, pageProps }: AppProps): JSX.Element => {
+  const token = !isSSR() ? localStorage.getItem("token") : "";
+
   usePostHog();
 
   const metaImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/images/meta.png`;
@@ -83,36 +82,13 @@ const App = ({
         <meta name="twitter:description" content={metaDescription} />
       </Head>
 
-      <AuthProvider token={pageProps.cookies.token}>
+      <AuthProvider token={token}>
         <Component {...pageProps} />
       </AuthProvider>
     </Fragment>
   );
 };
 
-App.getInitialProps = async (params: AppContext) => {
-  let pageProps = {};
-
-  try {
-    pageProps = params.Component.getInitialProps
-      ? await params.Component.getInitialProps(params.ctx)
-      : {};
-  } catch (error) {
-    // Is server side
-
-    if (params.ctx.res) {
-      params.ctx.res.statusCode = 500;
-    }
-
-    pageProps = { error: "Server error", statusCode: 500 };
-  }
-
-  return {
-    pageProps: {
-      ...pageProps,
-      cookies: getCookies({ req: params.ctx.req }),
-    },
-  };
-};
+App.getInitialProps = async (params: AppContext) => ({});
 
 export default App;

@@ -1,6 +1,4 @@
-import { ISuccessResult } from "@worldcoin/idkit";
 import { useAuthContext } from "contexts/AuthContext";
-import { setCookie } from "cookies-next";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
