@@ -46,7 +46,6 @@ export const AuthProvider = memo(function AuthProvider(props: {
 
   const redirectWithReturn = useCallback(
     (path: string) => {
-      console.log(router.asPath);
       sessionStorage.setItem("returnTo", router.asPath);
       router.push(path);
     },

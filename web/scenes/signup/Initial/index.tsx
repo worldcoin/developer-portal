@@ -29,7 +29,7 @@ export const Initial = memo(function Initial(props: InitialInterface) {
   const submit = useCallback(
     (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
-      const tempToken = sessionStorage.getItem("tempSignupToken");
+      const signup_token = sessionStorage.getItem("tempSignupToken");
 
       fetch("/api/signup", {
         method: "POST",
@@ -40,8 +40,9 @@ export const Initial = memo(function Initial(props: InitialInterface) {
 
         body: JSON.stringify({
           email,
-          teamName,
-          tempToken,
+          team_name: teamName,
+          signup_token,
+          // FIXME: missing `ironclad_id` & ToS signature stuff
         } as SignupRequestBody),
       })
         .then((res) => res.json())

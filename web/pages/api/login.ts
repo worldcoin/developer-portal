@@ -7,13 +7,17 @@ import {
 import { gql } from "@apollo/client";
 import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { generateUserJWT, generateUserTempJWT } from "api-helpers/utils";
+import {
+  generateUserJWT,
+  generateSignUpJWT,
+  fetchSmartContractAddress,
+} from "api-helpers/utils";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { CredentialType } from "@worldcoin/idkit/build/types";
 import { fetchOIDCApp } from "api-helpers/oidc";
-import { defaultApp } from "default-app";
+import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
+import { UserModel } from "models";
 
 export type LoginRequestBody = {
   proof?: string;
@@ -73,34 +77,21 @@ export default async function login(
     return errorRequiredAttribute(missingAttribute, res);
   }
 
-  const external_nullifier = IDKitInternal.generateExternalNullifier(
-    defaultApp.id,
-    defaultApp.action
-  ).digest;
-
-  const OIDCApp = await fetchOIDCApp(defaultApp.id);
-  const contract_address = OIDCApp.app?.contract_address;
-
-  if (!contract_address) {
-    return errorResponse(
-      res,
-      500,
-      "internal_error",
-      "Can't find contract address"
-    );
-  }
-
+  // ANCHOR: Authenticate the user with the ZKP from World ID
+  const runLoginInStaging =
+    process.env.NODE_ENV === "production" ? false : true;
+  const contract_address = await fetchSmartContractAddress(runLoginInStaging);
   const result = await verifyProof(
     {
       merkle_root,
       signal,
       nullifier_hash,
-      external_nullifier,
+      external_nullifier: DEVELOPER_PORTAL_AUTH_APP.external_nullifier,
       proof,
     },
     {
       credential_type,
-      is_staging: process.env.NODE_ENV === "development" ? true : false,
+      is_staging: runLoginInStaging,
       contract_address,
     }
   );
@@ -117,7 +108,10 @@ export default async function login(
 
   const client = await getAPIServiceClient();
 
-  const userQueryResult = await client.query({
+  // ANCHOR: Check if the user has an account
+  const userQueryResult = await client.query<{
+    user: Array<Pick<UserModel, "id" | "world_id_nullifier" | "team_id">>;
+  }>({
     query,
     variables: {
       nullifier_hash,
@@ -127,20 +121,12 @@ export default async function login(
   const user = userQueryResult.data.user[0];
 
   if (!user) {
-    const signupToken = await generateUserTempJWT(nullifier_hash);
-
-    if (!signupToken) {
-      return errorResponse(
-        res,
-        500,
-        "internal_error",
-        "Error while logging in"
-      );
-    }
-
-    return res.status(200).json({ new_user: true, signup_token: signupToken });
+    // NOTE: User does not have an account, generate a sign up token
+    const signup_token = await generateSignUpJWT(nullifier_hash);
+    return res.status(200).json({ new_user: true, signup_token });
   }
 
+  // NOTE: User has an account, generate a login token
   const token = await generateUserJWT(user.id, user.team_id);
   res.status(200).json({ new_user: false, token });
 }

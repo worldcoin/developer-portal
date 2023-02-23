@@ -2,6 +2,8 @@
  * Constants available to both backend and frontend.
  */
 
+import { internal as IDKitInternal } from "@worldcoin/idkit";
+
 // ANCHOR: Orb credential
 export const ORB_GROUP_ID = 1;
 
@@ -18,3 +20,14 @@ export const PHONE_SEQUENCER =
 // FIXME
 export const PHONE_SEQUENCER_STAGING =
   "https://signup.stage-crypto.worldcoin.dev/inclusionProof";
+
+// ANCHOR: Developer Portal Authentication
+const _devPortalAppId = "app_developer_portal";
+export const DEVELOPER_PORTAL_AUTH_APP = {
+  id: _devPortalAppId,
+  action: "",
+  external_nullifier: IDKitInternal.generateExternalNullifier(
+    _devPortalAppId,
+    ""
+  ).digest,
+};

@@ -4,21 +4,10 @@ import {
   errorRequiredAttribute,
 } from "api-helpers/errors";
 
-import { NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
-import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { jwtVerify } from "jose";
-import { generateUserJWT } from "api-helpers/utils";
-
-const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
-
-export type SignupRequestBody = {
-  email?: string;
-  teamName?: string;
-  tempToken?: string;
-};
+import { generateUserJWT, verifySignUpJWT } from "api-helpers/utils";
 
 export type SignupResponse = { redirectTo: string; token: string };
 
@@ -54,54 +43,35 @@ const mutation = gql`
 `;
 
 export default async function login(
-  req: NextApiRequestWithBody<SignupRequestBody>,
+  req: NextApiRequest,
   res: NextApiResponse<SignupResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 
-  const { tempToken, email, teamName } = req.body;
-  const invalidBody = !tempToken || !email || !teamName;
-
-  if (invalidBody) {
-    const missingAttribute = (
-      ["tempToken", "email", "teamName"] as Array<keyof SignupRequestBody>
-    ).find((param) => !req.body[param]);
-
-    return errorRequiredAttribute(missingAttribute, res);
+  for (const attr of ["signup_token", "team_name", "ironclad_id"]) {
+    if (!req.body[attr]) {
+      return errorRequiredAttribute(attr, res);
+    }
   }
 
-  if (!GENERAL_SECRET_KEY) {
-    return errorResponse(res, 500, "internal_error", "Missing secret key");
-  }
+  const { signup_token, email, team_name } = req.body;
 
-  const { payload } = await jwtVerify(
-    tempToken,
-    Buffer.from(GENERAL_SECRET_KEY),
-    { issuer: APP_URL }
-  );
-
-  const nullifier_hash = payload.sub;
+  const nullifier_hash = await verifySignUpJWT(signup_token);
   const client = await getAPIServiceClient();
-  let signupResult;
 
-  try {
-    signupResult = await client.mutate({
-      mutation,
-      variables: {
-        nullifier_hash,
-        team_name: teamName,
-        email,
-        ironclad_id: "",
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    return errorResponse(res, 500, "Failed to signup");
-  }
+  const { data } = await client.mutate({
+    mutation,
+    variables: {
+      nullifier_hash,
+      team_name,
+      email: email ?? "",
+      ironclad_id: req.body.ironclad_id,
+    },
+  });
 
-  const team = signupResult.data.insert_team_one;
+  const team = data.insert_team_one;
   const user = team.users[0];
 
   if (!team || !user) {
