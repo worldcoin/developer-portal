@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { urls } from "urls";
 
 type AuthContextValue = {
   token: string | null;
@@ -56,7 +57,7 @@ export const AuthProvider = memo(function AuthProvider(props: {
     const returnTo = sessionStorage.getItem("returnTo");
 
     if (!returnTo) {
-      router.push("/dashboard");
+      router.push(urls.dashboard());
       return;
     }
 
