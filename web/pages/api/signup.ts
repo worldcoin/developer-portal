@@ -8,8 +8,11 @@ import { NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { decodeJwt } from "jose";
+import { jwtVerify } from "jose";
 import { generateUserJWT } from "api-helpers/utils";
+
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 export type SignupRequestBody = {
   email?: string;
@@ -69,7 +72,17 @@ export default async function login(
     return errorRequiredAttribute(missingAttribute, res);
   }
 
-  const nullifier_hash = decodeJwt(tempToken).sub;
+  if (!GENERAL_SECRET_KEY) {
+    return errorResponse(res, 500, "internal_error", "Missing secret key");
+  }
+
+  const { payload } = await jwtVerify(
+    tempToken,
+    Buffer.from(GENERAL_SECRET_KEY),
+    { issuer: APP_URL }
+  );
+
+  const nullifier_hash = payload.sub;
   const client = await getAPIServiceClient();
   let signupResult;
 

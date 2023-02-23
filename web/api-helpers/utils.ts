@@ -7,6 +7,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, JwtConfig } from "../types";
 
 const JWK_ALG = "PS256";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
@@ -96,9 +97,17 @@ export const generateUserTempJWT = async (nullifier_hash: string) => {
     sub: nullifier_hash,
   };
 
+  if (!APP_URL) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Missing app url env.");
+    }
+
+    return null;
+  }
+
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: "HS512" })
-    .setIssuer("https://developer.worldcoin.org")
+    .setIssuer(APP_URL)
     .setExpirationTime("1h")
     .sign(Buffer.from(generalSecretKey));
 
