@@ -3,7 +3,7 @@ import { JWKModel } from "models";
 import { getAPIServiceClient } from "./graphql";
 
 const fetchJWKQuery = gql`
-  query FetchJWKQuery {
+  query FetchJWKQuery($now: timestamptz!) {
     jwks(limit: 1, where: { expires_at: { _gt: $now } }) {
       id
       private_jwk

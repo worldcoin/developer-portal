@@ -1,3 +1,22 @@
 table:
   name: auth_code
   schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - auth_code
+        - expires_at
+        - nullifier_hash
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - app_id
+        - auth_code
+        - expires_at
+        - id
+        - nullifier_hash
+      filter: {}

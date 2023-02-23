@@ -136,7 +136,7 @@ export const generateOIDCCode = async (
   nullifier_hash: string
 ): Promise<string> => {
   // Generate a random code
-  const auth_code = crypto.randomBytes(16).toString("hex");
+  const auth_code = crypto.randomBytes(12).toString("hex");
 
   const client = await getAPIServiceClient();
 
@@ -152,7 +152,7 @@ export const generateOIDCCode = async (
     },
   });
 
-  if (data?.insert_auth_code_one.auth_code === auth_code) {
+  if (data?.insert_auth_code_one.auth_code !== auth_code) {
     throw new Error("Failed to generate auth code.");
   }
 
