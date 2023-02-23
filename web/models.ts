@@ -57,3 +57,13 @@ export interface CacheModel {
   updated_at: DateTime;
   __typename: "cache";
 }
+
+export interface JWKModel {
+  id: string;
+  private_jwk: Record<string, string>;
+  public_jwk: Record<string, string>;
+  expires_at: DateTime;
+  created_at: DateTime;
+  updated_at: DateTime;
+  __typename: "jwks";
+}

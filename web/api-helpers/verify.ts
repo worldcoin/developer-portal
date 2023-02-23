@@ -70,10 +70,6 @@ const queryFetchAppActionWithContractAddress = gql`
         }
       }
     }
-    jwks(limit: 1, where: { expires_at: { _gt: $now } }) {
-      id
-      private_jwk
-    }
   }
 `;
 
@@ -96,11 +92,6 @@ interface IAppActionWithContractAddress {
       }[];
       max_verifications: number;
     }[];
-  }[];
-
-  jwks: {
-    id: string;
-    private_jwk: jose.JWK;
   }[];
 }
 
@@ -186,7 +177,6 @@ export const fetchActionForProof = async (
   }
 
   return {
-    jwk: result.data.jwks[0],
     contractAddress: contractRecord.value,
     app: { ...app, action: app.actions[0], actions: undefined },
   };

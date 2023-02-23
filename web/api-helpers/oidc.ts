@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
 import { IInternalError } from "types";
 import { getAPIServiceClient } from "./graphql";
+import crypto from "crypto";
 
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
@@ -30,6 +31,26 @@ const fetchAppQuery = gql`
     ) {
       key
       value
+    }
+  }
+`;
+
+const insertAuthCodeQuery = gql`
+  mutation InsertAuthCode(
+    $auth_code: String!
+    $expires_at: timestamptz!
+    $nullifier_hash: String!
+    $app_id: String!
+  ) {
+    insert_auth_code_one(
+      object: {
+        auth_code: $auth_code
+        expires_at: $expires_at
+        nullifier_hash: $nullifier_hash
+        app_id: $app_id
+      }
+    ) {
+      auth_code
     }
   }
 `;
@@ -108,4 +129,32 @@ export const fetchOIDCApp = async (
       contract_address: contractRecord.value,
     },
   };
+};
+
+export const generateOIDCCode = async (
+  app_id: string,
+  nullifier_hash: string
+): Promise<string> => {
+  // Generate a random code
+  const auth_code = crypto.randomBytes(16).toString("hex");
+
+  const client = await getAPIServiceClient();
+
+  const { data } = await client.mutate<{
+    insert_auth_code_one: { auth_code: string };
+  }>({
+    mutation: insertAuthCodeQuery,
+    variables: {
+      app_id,
+      auth_code,
+      expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
+      nullifier_hash,
+    },
+  });
+
+  if (data?.insert_auth_code_one.auth_code === auth_code) {
+    throw new Error("Failed to generate auth code.");
+  }
+
+  return auth_code;
 };

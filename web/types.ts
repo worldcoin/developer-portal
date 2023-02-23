@@ -122,7 +122,7 @@ export type EnvironmentType = {
 
 export enum OIDCResponseType {
   Code = "code",
-  Implicit = "id_token%20token", // (https://openid.net/specs/openid-connect-implicit-1_0.html#AuthenticationRequest)
+  Implicit = "implicit", // (https://openid.net/specs/openid-connect-implicit-1_0.html#AuthenticationRequest)
 }
 
 export interface IInternalError {

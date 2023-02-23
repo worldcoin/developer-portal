@@ -1,0 +1,3 @@
+table:
+  name: auth_code
+  schema: public
