@@ -2,6 +2,9 @@ import { Fragment, memo, ReactNode, useEffect } from "react";
 import usePortal from "react-useportal";
 import cn from "classnames";
 
+/* FIXME: react-useportal does not work with react18, we need to redo the modal window components without using it.
+          We can get the portal from radix-ui but it is better to get the ready-made modal window implementation
+          from radix-ui or headless-ui */
 export const ModalOverlay = memo(function ModalOverlay(props: {
   isOpen: boolean;
   close: () => void;
