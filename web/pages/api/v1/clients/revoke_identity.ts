@@ -17,15 +17,9 @@ const existsQuery = gql`
 `;
 
 const insertQuery = gql`
-  mutation InsertRevoke(
-    $credential_type: String!
-    $identity_commitment: String!
-  ) {
+  mutation InsertRevoke($type: String!, $identity_commitment: String!) {
     insert_revocation(
-      objects: {
-        identity_commitment: $identity_commitment
-        credential_type: $credential_type
-      }
+      objects: { identity_commitment: $identity_commitment, type: $type }
     ) {
       returning {
         id
@@ -52,7 +46,7 @@ export default async function handleRevoke(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["credential_type", "identity_commitment", "env"]) {
+  for (const attr of ["type", "identity_commitment"]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
@@ -80,7 +74,7 @@ export default async function handleRevoke(
   const insertRevokeResponse = await client.mutate({
     mutation: insertQuery,
     variables: {
-      credential_type: req.body.credential_type,
+      type: req.body.type,
       identity_commitment: req.body.identity_commitment,
     },
   });

@@ -7,8 +7,8 @@ import {
 import { getAPIServiceClient } from "api-helpers/graphql";
 import {
   PHONE_GROUP_ID,
-  PHONE_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
+  PHONE_SEQUENCER_INCLUSION_PROOF,
+  PHONE_SEQUENCER_STAGING_INCLUSION_PROOF,
 } from "consts";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -34,7 +34,7 @@ export default async function handleInclusionProof(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["credential_type", "identity_commitment", "env"]) {
+  for (const attr of ["identity_commitment", "env", "credential_type"]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
@@ -72,8 +72,7 @@ export default async function handleInclusionProof(
   console.info(
     `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`
   );
-
-  if (identityCommitmentExistsResponse.data.revocation.length) {
+  if (identityCommitmentExistsResponse.data.revoke.length) {
     return errorValidation(
       "unverified_identity",
       "This identity is not verified for the phone credential.",
@@ -87,16 +86,16 @@ export default async function handleInclusionProof(
   headers.append(
     "Authorization",
     req.body.env === "production"
-      ? `Bearer ${process.env.PHONE_SEQUENCER_KEY}`
-      : `Bearer ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+      ? `Bearer ${process.env.SIGNUP_SEQUENCER_KEY}`
+      : `Bearer ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`
   );
   headers.append("Content-Type", "application/json");
   const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
 
   const response = await fetch(
     req.body.env === "production"
-      ? `${PHONE_SEQUENCER}/inclusionProof`
-      : `${PHONE_SEQUENCER_STAGING}/inclusionProof`,
+      ? PHONE_SEQUENCER_INCLUSION_PROOF
+      : PHONE_SEQUENCER_STAGING_INCLUSION_PROOF,
     {
       method: "POST",
       headers,

@@ -4,8 +4,8 @@ import { getAPIServiceClient } from "api-helpers/graphql";
 import { protectConsumerBackendEndpoint } from "api-helpers/utils";
 import {
   PHONE_GROUP_ID,
-  PHONE_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
+  PHONE_SEQUENCER_INSERT_IDENTITY,
+  PHONE_SEQUENCER_STAGING_INSERT_IDENTITY,
 } from "consts";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -46,7 +46,7 @@ export default async function handleInsert(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["credential_type", "identity_commitment", "env"]) {
+  for (const attr of ["type", "identity_commitment", "env"]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
@@ -66,16 +66,16 @@ export default async function handleInsert(
     headers.append(
       "Authorization",
       req.body.env === "production"
-        ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
-        : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+        ? `Bearer ${process.env.SIGNUP_SEQUENCER_KEY}`
+        : `Bearer ${process.env.STAGING_SIGNUP_SEQUENCER_KEY}`
     );
     headers.append("Content-Type", "application/json");
     const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
 
     const response = await fetch(
       req.body.env === "production"
-        ? `${PHONE_SEQUENCER}/insertIdentity`
-        : `${PHONE_SEQUENCER_STAGING}/insertIdentity`,
+        ? PHONE_SEQUENCER_INSERT_IDENTITY
+        : PHONE_SEQUENCER_STAGING_INSERT_IDENTITY,
       {
         method: "POST",
         headers,
@@ -83,19 +83,9 @@ export default async function handleInsert(
       }
     );
 
-    if (response.status === 200) {
-      return res.status(204).end();
-    } else if (response.status === 400) {
-      return res.status(400).json({
-        code: "already_included",
-        detail: "The identity commitment is already included",
-      });
-    } else {
-      return res.status(503).json({
-        code: "server_error",
-        detail: "Something went wrong. Please try again.",
-      });
-    }
+    console.log(response); // DEBUG
+
+    return res.status(204).end();
   }
 
   // Identity commitment has been revoked before, so remove it from the table
