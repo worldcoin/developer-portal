@@ -9,11 +9,12 @@ import { Button } from "common/Auth/Button";
 import { Icon } from "common/Icon";
 import { ISuccessResult, IDKitWidget } from "@worldcoin/idkit";
 import dayjs from "dayjs";
-import { CredentialType } from "types";
+import { urls } from "urls";
 
 export function Login() {
   const router = useRouter();
   const { setToken, enterApp } = useAuthContext();
+  const signal = dayjs().unix().toString();
 
   const handleVerify = useCallback(
     (result: ISuccessResult) => {
@@ -30,7 +31,7 @@ export function Login() {
           nullifier_hash,
           merkle_root,
           credential_type,
-          signal: dayjs().unix().toString(),
+          signal,
         } as LoginRequestBody),
       })
         .then((res) => res.json())
@@ -41,7 +42,7 @@ export function Login() {
 
           if (result.new_user && result.signup_token) {
             sessionStorage.setItem("tempSignupToken", result.signup_token);
-            router.push("/signup");
+            router.push(urls.signup());
           }
 
           if (!result.new_user && result.token) {
@@ -53,7 +54,7 @@ export function Login() {
           console.error(err);
         });
     },
-    [enterApp, router, setToken]
+    [enterApp, router, setToken, signal]
   );
 
   return (
@@ -68,8 +69,9 @@ export function Login() {
         </Typography>
         <IDKitWidget
           app_id="app_developer_portal"
-          signal={dayjs().unix().toString()}
-          action=""
+          signal={signal}
+          // REVIEW: IDKit now loading QR code when action empty
+          action="sign_in"
           handleVerify={handleVerify}
         >
           {({ open }) => (
@@ -82,23 +84,6 @@ export function Login() {
             </Button>
           )}
         </IDKitWidget>
-
-        {/* FIXME: Remove when IDKit problem will be fixed */}
-        {process.env.NODE_ENV === "development" && (
-          <button
-            className="p-4 border mt-4"
-            onClick={() =>
-              handleVerify({
-                proof: "proof",
-                nullifier_hash: "0x12345678",
-                merkle_root: "merkle_root",
-                credential_type: CredentialType.Orb,
-              })
-            }
-          >
-            Success
-          </button>
-        )}
         <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
           Don’t have World ID?
           <a
