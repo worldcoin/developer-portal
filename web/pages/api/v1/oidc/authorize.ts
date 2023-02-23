@@ -29,7 +29,6 @@ export default async function handler(
     "proof", // ZKP param
     "nullifier_hash", // ZKP param
     "merkle_root", // ZKP param
-    "nonce", // `signal` in ZKP world
     "credential_type",
     "app_id",
   ]) {
@@ -89,7 +88,7 @@ export default async function handler(
       proof,
       nullifier_hash,
       merkle_root,
-      signal: nonce,
+      signal: nonce ?? "",
       external_nullifier: app.external_nullifier,
     },
     {
@@ -121,7 +120,7 @@ export default async function handler(
       nullifier_hash,
       credential_type,
       kid: jwk.kid,
-      nonce,
+      nonce: nonce ?? "",
       privateJwk: jwk.private_jwk,
     });
     res.status(200).json({ jwt });
