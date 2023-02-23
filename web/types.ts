@@ -20,6 +20,14 @@ export enum AppStatusType {
   Inactive = "inactive",
 }
 
+// Options for the `can_user_verify` attribute in the /precheck endpoint
+export enum CanUserVerifyType {
+  Yes = "yes",
+  No = "no",
+  Undetermined = "undetermined",
+  OnChain = "on-chain",
+}
+
 export interface JwtConfig {
   key: string;
   type: "HS512" | "HS384" | "HS256";
