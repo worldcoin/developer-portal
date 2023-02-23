@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.7.9",
-    "@ethersproject/abi": "^5.6.3",
+    "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.6.1",
     "@ethersproject/solidity": "^5.6.1",
     "@walletconnect/client": "^1.7.8",
