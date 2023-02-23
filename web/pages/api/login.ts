@@ -10,7 +10,6 @@ import { getAPIServiceClient } from "api-helpers/graphql";
 import { generateUserJWT, generateUserTempJWT } from "api-helpers/utils";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
-import dayjs from "dayjs";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { CredentialType } from "@worldcoin/idkit/build/types";
 
@@ -19,15 +18,18 @@ export type LoginRequestBody = {
   nullifier_hash?: string;
   merkle_root?: string;
   credential_type?: CredentialType;
+  signal?: string;
 };
 
 export type LoginResponse =
   | {
-      tempToken: string;
+      new_user: true;
+      signup_token: string;
       token?: never;
     }
   | {
-      tempToken?: never;
+      new_user: false;
+      signup_token?: never;
       token: string;
     };
 
@@ -37,7 +39,6 @@ const query = gql`
       id
       team_id
       world_id_nullifier
-      email
     }
   }
 `;
@@ -50,16 +51,21 @@ export default async function login(
     return errorNotAllowed(req.method, res);
   }
 
-  const { proof, nullifier_hash, merkle_root, credential_type } = req.body;
+  const { proof, nullifier_hash, merkle_root, credential_type, signal } =
+    req.body;
 
   const invalidBody =
-    !proof || !nullifier_hash || !merkle_root || !credential_type;
+    !proof || !nullifier_hash || !merkle_root || !credential_type || !signal;
 
   if (invalidBody) {
     const missingAttribute = (
-      ["proof", "nullifier_hash", "merkle_root", "signal_type"] as Array<
-        keyof LoginRequestBody
-      >
+      [
+        "proof",
+        "nullifier_hash",
+        "merkle_root",
+        "credential_type",
+        "signal",
+      ] as Array<keyof LoginRequestBody>
     ).find((param) => !req.body[param]);
 
     return errorRequiredAttribute(missingAttribute, res);
@@ -70,42 +76,26 @@ export default async function login(
     ""
   ).digest;
 
-  let result;
-
-  //FIXME: Remove this if statement after idkit problem fixed
-  if (process.env.NODE_ENV !== "development") {
-    result = await verifyProof(
-      {
-        merkle_root,
-        signal: dayjs().unix().toString(),
-        nullifier_hash,
-        external_nullifier,
-        proof,
-      },
-      {
-        credential_type: credential_type,
-        is_staging: false,
-        //TODO: add relevant contract address
-        contract_address: "",
-      }
-    );
-  }
-
-  //FIXME: Just a mock while idkit problem
-  result = {
-    success: true,
-    error: {
-      statusCode: 500,
-      attribute: "",
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Internal Server Error",
+  const result = await verifyProof(
+    {
+      merkle_root,
+      signal,
+      nullifier_hash,
+      external_nullifier,
+      proof,
     },
-  };
+    {
+      credential_type,
+      is_staging: process.env.NODE_ENV === "development" ? true : false,
+      //TODO: add relevant contract address
+      contract_address: "",
+    }
+  );
 
   if (result.error && !result.success) {
     return errorResponse(
       res,
-      result.error.statusCode,
+      result.error.statusCode ?? 500,
       result.error.code,
       result.error.message,
       result.error.attribute
@@ -124,11 +114,20 @@ export default async function login(
   const user = userQueryResult.data.user[0];
 
   if (!user) {
-    console.log("Nullifier not found. Redirecting to signup page...");
-    const tempToken = await generateUserTempJWT(nullifier_hash);
-    return res.status(200).json({ tempToken });
+    const signupToken = await generateUserTempJWT(nullifier_hash);
+
+    if (!signupToken) {
+      return errorResponse(
+        res,
+        500,
+        "internal_error",
+        "Error while logging in"
+      );
+    }
+
+    return res.status(200).json({ new_user: true, signup_token: signupToken });
   }
 
   const token = await generateUserJWT(user.id, user.team_id);
-  res.status(200).json({ token });
+  res.status(200).json({ new_user: false, token });
 }

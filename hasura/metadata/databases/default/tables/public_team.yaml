@@ -21,10 +21,8 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - created_at
         - id
         - name
-        - updated_at
 select_permissions:
   - role: api_key
     permission:

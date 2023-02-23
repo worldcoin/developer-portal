@@ -26,25 +26,25 @@ export function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          proof: proof,
+          proof,
           nullifier_hash,
-          merkle_root: merkle_root,
+          merkle_root,
           credential_type,
-          signal: "test",
+          signal: dayjs().unix().toString(),
         } as LoginRequestBody),
       })
         .then((res) => res.json())
         .then((result: LoginResponse) => {
-          if (!result.token && !result.tempToken) {
+          if (!Object.hasOwn(result, "new_user")) {
             return console.error("Error while logging in.");
           }
 
-          if (result.tempToken) {
-            sessionStorage.setItem("tempSignupToken", result.tempToken);
+          if (result.new_user && result.signup_token) {
+            sessionStorage.setItem("tempSignupToken", result.signup_token);
             router.push("/signup");
           }
 
-          if (result.token) {
+          if (!result.new_user && result.token) {
             setToken(result.token);
             enterApp();
           }

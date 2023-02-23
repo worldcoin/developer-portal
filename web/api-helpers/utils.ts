@@ -4,7 +4,7 @@
 import { randomUUID } from "crypto";
 import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
-import { JwtConfig } from "../types";
+import { CredentialType, JwtConfig } from "../types";
 
 const JWK_ALG = "PS256";
 
@@ -87,15 +87,22 @@ export const generateUserJWT = async (
 
 // REVIEW
 export const generateUserTempJWT = async (nullifier_hash: string) => {
+  const generalSecretKey = process.env.GENERAL_SECRET_KEY;
+  if (!generalSecretKey) {
+    return null;
+  }
+
   const payload = {
     sub: nullifier_hash,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user"],
-      "x-hasura-default-role": "user",
-    },
   };
 
-  return await _generateJWT(payload, "1h");
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer("https://developer.worldcoin.org")
+    .setExpirationTime("1h")
+    .sign(Buffer.from(generalSecretKey));
+
+  return token;
 };
 
 /**
@@ -148,28 +155,38 @@ export const generateJWK = async (): Promise<{
   return { privateJwk, publicJwk };
 };
 
+interface IVerificationJWT {
+  privateJwk: jose.JWK;
+  kid: string;
+  nonce: string;
+  nullifier_hash: string;
+  app_id: string;
+  credential_type: CredentialType;
+}
+
 /**
- * Generates a JWT that can be used to verify a proof through the hosted page
- * @param privateJwk JWK to use for token signature
- * @param payload Payload for the JWT
+ * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
  * @returns
  */
-export const generateVerificationJWT = async (
-  privateJwk: jose.JWK,
-  kid: string,
-  signal: string,
-  nullifier_hash: string
-): Promise<string> => {
+export const generateVerificationJWT = async ({
+  app_id,
+  nonce,
+  nullifier_hash,
+  privateJwk,
+  kid,
+  credential_type,
+}: IVerificationJWT): Promise<string> => {
   const payload = {
-    signal,
-    nullifier_hash,
-    verified: true,
+    nonce,
+    sub: nullifier_hash,
     jti: randomUUID(),
+    aud: app_id,
+    credential_type,
   };
 
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWK_ALG, kid })
-    .setIssuer("https://developer.worldcoin.org")
+    .setIssuer(process.env.NEXT_PUBLIC_APP_URL || "")
     .setExpirationTime("1h")
     .sign(await jose.importJWK(privateJwk, JWK_ALG));
 };

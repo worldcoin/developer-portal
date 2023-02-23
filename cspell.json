@@ -33,6 +33,7 @@
     "keccak",
     "merkle",
     "nullifer",
+    "OIDC",
     "secp256k1",
     "signin",
     "signup",
