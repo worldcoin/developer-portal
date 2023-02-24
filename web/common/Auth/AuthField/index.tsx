@@ -1,6 +1,7 @@
+// FIXME: deprecated, remove after refactoring
 import { Field } from "kea-forms";
 import { FieldGroup } from "common/FieldGroup";
-import { FieldInput } from "common/FieldInput";
+import { FieldInput } from "common/LegacyFieldInput";
 import { FieldError } from "common/FieldError";
 import { memo, ReactNode } from "react";
 

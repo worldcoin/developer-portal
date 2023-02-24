@@ -2,7 +2,7 @@ import cn from "classnames";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Link } from "common/Link";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { styles } from "common/styles";
 import { CheckboxCard } from "./CheckboxCard";
 import { Layout } from "common/Layout";

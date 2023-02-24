@@ -11,7 +11,7 @@ import { Stats } from "./Stats";
 import { Layout } from "common/Layout";
 import { ActionHeader } from "./ActionHeader";
 import { Footer } from "common/Footer";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 
 export function Action(): JSX.Element | null {
   const [isFooterVisible, setIsFooterVisible] = useState(false);

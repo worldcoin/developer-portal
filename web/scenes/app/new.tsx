@@ -7,7 +7,7 @@ import { appsLogic } from "logics/appsLogic";
 import { memo } from "react";
 import { styles } from "common/styles";
 import { useValues } from "kea";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 
 export const NewApp = memo(function NewApp() {
   const { newAppHasErrors, newAppTouched, isNewAppSubmitting } =

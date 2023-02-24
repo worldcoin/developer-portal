@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { StatusIcon } from "../StatusIcon";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;

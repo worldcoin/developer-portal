@@ -5,10 +5,10 @@ import cn from "classnames";
 import { InterfaceHeader } from "./InterfaceHeader";
 import { InterfaceOverview } from "./InterfaceOverview";
 import { Icon, IconType } from "common/Icon";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { Switch } from "common/Switch";
 import { Field } from "kea-forms";
-import { Modal } from "common/Modal";
+import { Modal } from "common/LegacyModal";
 import { Footer } from "common/Footer";
 
 interface InterfaceInterface {

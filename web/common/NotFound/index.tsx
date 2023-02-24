@@ -1,7 +1,7 @@
 import { CardWithSideGradient } from "common/CardWithSideGradient";
 import { Link } from "common/components/Link";
 import { Icon, IconType } from "common/Icon";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { memo } from "react";
 
 export const NotFound = memo(function NotFound(props: {

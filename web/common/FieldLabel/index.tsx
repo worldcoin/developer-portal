@@ -1,4 +1,3 @@
-// FIXME: use common component
 import { LabelHTMLAttributes, memo } from "react";
 import cn from "classnames";
 

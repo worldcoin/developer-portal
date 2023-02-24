@@ -1,7 +1,7 @@
 import { Fragment, memo, useCallback, useState } from "react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import { Modal } from "common/Modal";
+import { Modal } from "common/LegacyModal";
 
 export const Connected = memo(function Connected(props: {
   setScreen: (screen: string) => void;

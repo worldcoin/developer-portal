@@ -1,7 +1,7 @@
 import { FieldGroup } from "common/FieldGroup";
-import { FieldInput } from "common/FieldInput";
+import { FieldInput } from "common/LegacyFieldInput";
 import { FieldError } from "common/FieldError";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { ModalWindowSection } from "common/MultiModal/ModalWindowSection";
 import { Field, Form } from "kea-forms";
 import { memo, useEffect } from "react";
