@@ -1,0 +1,13 @@
+table:
+  name: redirect
+  schema: public
+object_relationships:
+  - name: action
+    using:
+      manual_configuration:
+        column_mapping:
+          action_id: id
+        insertion_order: null
+        remote_table:
+          name: action
+          schema: public

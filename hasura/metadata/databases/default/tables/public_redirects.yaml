@@ -1,0 +1,3 @@
+table:
+  name: redirects
+  schema: public
