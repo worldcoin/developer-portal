@@ -4,6 +4,13 @@ import { IInternalError } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
 
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+if (!GENERAL_SECRET_KEY) {
+  throw new Error(
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+  );
+}
+
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
     app(
@@ -188,7 +195,7 @@ export const authenticateOIDCEndpoint = async (
   auth_header: string
 ): Promise<string | null> => {
   const authToken = auth_header.replace("Basic ", "");
-  const [app_id, reported_client_secret] = Buffer.from(authToken, "base64")
+  const [app_id, client_secret] = Buffer.from(authToken, "base64")
     .toString()
     .split(":");
 
@@ -204,16 +211,21 @@ export const authenticateOIDCEndpoint = async (
     return null;
   }
 
-  const client_secret = data.app[0]?.actions?.[0]?.client_secret;
+  const hmac_secret = data.app[0]?.actions?.[0]?.client_secret;
 
-  if (!client_secret) {
+  if (!hmac_secret) {
     console.info(
       "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
     );
     return null;
   }
 
-  if (client_secret !== reported_client_secret) {
+  // ANCHOR: Verify client secret
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${app_id}.${client_secret}`);
+  const candidate_secret = hmac.digest("hex");
+
+  if (hmac_secret !== candidate_secret) {
     console.info("authenticateOIDCEndpoint - Invalid client secret.");
     return null;
   }
