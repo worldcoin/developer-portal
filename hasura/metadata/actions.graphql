@@ -1,0 +1,22 @@
+type Mutation {
+  reset_client_secret(
+    app_id: String!
+  ): ResetClientOutput
+}
+
+input Input {
+  app_id: String!
+}
+
+input ResetClientInput {
+  app_id: String!
+}
+
+type Output {
+  client_secret: String!
+}
+
+type ResetClientOutput {
+  client_secret: String!
+}
+
