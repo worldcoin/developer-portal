@@ -1,15 +1,11 @@
 import { Icon } from "common/Icon";
 import { LoggedUserDisplay } from "common/LoggedUserDisplay";
-import { useValues } from "kea";
-import { authLogic } from "logics/authLogic";
 import Link from "next/link";
 import { Fragment, ReactNode } from "react";
 import { NavItem } from "./NavItem";
 import { ToastContainer } from "react-toastify";
 import { Slide } from "react-toastify";
 import { urls } from "urls";
-import { appsLogic } from "logics/appsLogic";
-import { actionsLogic } from "logics/actionsLogic";
 import { useRouter } from "next/router";
 import { Meta } from "common/Meta";
 import cn from "classnames";
@@ -20,14 +16,7 @@ export const Layout = (props: {
   mainClassName?: string;
   children: ReactNode;
 }) => {
-  const { apps } = useValues(appsLogic);
-  const { sidebarActionList } = useValues(actionsLogic);
   const router = useRouter();
-
-  const { user } = useValues(authLogic);
-
-  // FIXME remove when real user image is available
-  const image = "";
 
   return (
     <Fragment>
@@ -55,38 +44,16 @@ export const Layout = (props: {
             </Link>
           </header>
 
-          <nav className="min-h-0 overflow-y-auto">
+          <nav className="min-h-0 overflow-y-auto self-center">
+            <NavItem name="Apps" icon="apps" href={urls.apps()} />
+
             <NavItem
-              name="Apps & Actions"
-              icon="apps-actions"
-              href={urls.actions()}
-              createButton={{ href: urls.actionNew() }}
-              options={[
-                ...sidebarActionList.map(({ name, id, status, app }) => ({
-                  id,
-                  name,
-                  href: urls.action(id),
-                  app,
-                  dotColor: cn(
-                    { "bg-warning": status === "created" },
-                    { "bg-success": status === "active" },
-                    { "bg-neutral": status === "inactive" }
-                  ),
-                })),
-                {
-                  name: "View all",
-                  icon: "angle-down",
-                  iconClassName: "-rotate-90",
-                  href: urls.actions(),
-                  reversed: true,
-                  withoutHighlight: true,
-                },
-              ]}
+              name="Proof Debugger"
+              icon="speed-test"
+              href={urls.debugger()}
             />
 
             <NavItem name="My Team" icon="team" href={urls.team()} />
-
-            <NavItem name="Debugger" icon="debugger" href={urls.debugger()} />
 
             <NavItem
               name="Simulator"
@@ -101,14 +68,8 @@ export const Layout = (props: {
             />
 
             <NavItem
-              name="System status"
-              icon="meter"
-              href="https://status.worldcoin.org/"
-            />
-
-            <NavItem
               name="Support (Discord)"
-              icon="shield"
+              icon="help"
               href="https://discord.gg/worldcoin"
             />
 
@@ -116,8 +77,7 @@ export const Layout = (props: {
               name="Log Out"
               icon="logout"
               href="/logout"
-              customColors
-              className="text-warning"
+              customColor="text-warning"
             />
           </nav>
 

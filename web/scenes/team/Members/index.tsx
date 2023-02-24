@@ -1,8 +1,8 @@
 import { authLogic } from "logics/authLogic";
 import { Fragment, memo } from "react";
 import { Item } from "./Item";
-import { FieldInput } from "common/FieldInput";
-import { FieldInputAddon } from "common/FieldInputAddon";
+import { FieldInput } from "common/LegacyFieldInput";
+import { FieldInputAddon } from "common/LegacyFieldInputAddon";
 import { FieldInputAddonAction } from "common/FieldInputAddonAction";
 import { Icon } from "common/Icon";
 import { useActions, useValues } from "kea";

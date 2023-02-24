@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { text } from "common/styles";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { Link } from "common/components/Link";
 
 export const SmartContractInstructions = memo(

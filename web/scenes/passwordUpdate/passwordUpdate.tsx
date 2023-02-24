@@ -1,5 +1,5 @@
 import { FieldGroup } from "common/FieldGroup";
-import { FieldInput } from "common/FieldInput";
+import { FieldInput } from "common/LegacyFieldInput";
 import { FieldError } from "common/FieldError";
 import { ModalWindowSection } from "common/MultiModal/ModalWindowSection";
 import { useActions, useValues } from "kea";
@@ -9,7 +9,7 @@ import cn from "classnames";
 import { passwordUpdateLogic } from "./passwordUpdateLogic";
 import { EyeAddon } from "common/Auth/AuthField/EyeAddon";
 import { Icon } from "common/Icon";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 
 export const PasswordUpdate = memo(function passwordUpdate() {
   const { isPasswordUpdateSubmitting } = useValues(passwordUpdateLogic);

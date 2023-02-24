@@ -43,9 +43,11 @@ export const Link = memo(function Link(props: LinkInterface) {
       )}
 
       {!external && (
-        <NextLink href={href}>
-          <a {...restProps} className={cn(props.className, "cursor-pointer")} />
-        </NextLink>
+        <NextLink
+          {...restProps}
+          className={cn(props.className, "cursor-pointer")}
+          href={href}
+        />
       )}
     </Fragment>
   );

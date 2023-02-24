@@ -7,7 +7,7 @@ export default page;
 export async function getServerSideProps() {
   return {
     redirect: {
-      destination: urls.onboarding(),
+      destination: urls.apps(),
       permanent: false,
     },
   };

@@ -7,8 +7,6 @@ import Link from "next/link";
 import { urls } from "urls";
 
 export function Onboarding() {
-  const [state, setState] = useState<"initial" | "success">("initial");
-
   return (
     <Auth pageTitle="Login" pageUrl="onboarding">
       <Illustration icon="user-solid" />

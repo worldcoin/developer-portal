@@ -1,3 +1,4 @@
+// FIXME: deprecated, remove after refactoring
 import cn from "classnames";
 import { memo, ReactNode } from "react";
 

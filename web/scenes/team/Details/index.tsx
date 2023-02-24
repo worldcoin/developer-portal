@@ -1,12 +1,12 @@
 import { Fragment, memo, useCallback } from "react";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { Icon } from "common/Icon";
 import { FieldGroup } from "common/FieldGroup";
-import { FieldInput } from "common/FieldInput";
+import { FieldInput } from "common/LegacyFieldInput";
 import { FieldUpload } from "common/FieldUpload";
-import { Modal } from "common/Modal";
-import { ModalHeader } from "common/ModalHeader";
-import { ModalMain } from "common/ModalMain";
+import { Modal } from "common/LegacyModal";
+import { ModalHeader } from "common/LegacyModalHeader";
+import { ModalMain } from "common/LegacyModalMain";
 import { useToggle } from "common/hooks";
 import { useValues } from "kea";
 import { teamLogic } from "logics/teamLogic";

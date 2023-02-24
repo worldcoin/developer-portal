@@ -1,3 +1,4 @@
+// FIXME: deprecated, remove after refactoring
 import { memo, ReactNode, useEffect } from "react";
 import cn from "classnames";
 import usePortal from "react-useportal";
