@@ -9,12 +9,9 @@ import { urls } from "urls";
 import { Appslist } from "./AppsList";
 
 export const Apps = memo(function Apps() {
-  const { userLoading } = useValues(authLogic);
-  const { apps } = useValues(appsLogic);
-
   return (
     <Layout>
-      {userLoading && (
+      {/* {userLoading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
         </div>
@@ -34,7 +31,9 @@ export const Apps = memo(function Apps() {
             />
           )}
         </Fragment>
-      )}
+      )} */}
+
+      <button className="p-3 border">CREATE NEW APP</button>
     </Layout>
   );
 });

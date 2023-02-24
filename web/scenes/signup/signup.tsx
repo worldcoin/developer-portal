@@ -3,6 +3,7 @@ import { Auth } from "common/Auth";
 import { Initial } from "./Initial";
 import { Success } from "./Success";
 import { useRouter } from "next/router";
+import { urls } from "urls";
 
 export function Signup() {
   const [state, setState] = useState<"initial" | "success">("initial");
@@ -11,7 +12,7 @@ export function Signup() {
   useEffect(() => {
     const tempToken = sessionStorage.getItem("tempSignupToken");
     if (!tempToken) {
-      router.push("/login");
+      router.push(urls.login());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
   }, []);
@@ -24,7 +25,7 @@ export function Signup() {
         )}
 
         {state === "success" && (
-          <Success onContinue={() => router.push("/dashboard")} />
+          <Success onContinue={() => router.push(urls.apps())} />
         )}
       </div>
     </Auth>

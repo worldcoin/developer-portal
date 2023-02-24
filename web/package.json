@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"yarn dev:app\" \"yarn dev:kea\" -n APP,KEA -c blue,green",
+    "dev": "yarn dev:app",
     "dev:app": "next dev",
     "dev:kea": "kea-typegen watch --write-paths",
     "typegen": "kea-typegen write",
