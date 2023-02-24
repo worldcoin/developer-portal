@@ -22,6 +22,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // FIXME: unblock the team
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
   if (req.body.response_type === OIDCResponseType.Implicit) {
     // NOTE: CORS only for the implicit flow, because the authorization code flow is called from the backend (security reasons)
     await runCors(req, res);
