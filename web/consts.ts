@@ -26,3 +26,6 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
     ""
   ).digest,
 };
+
+// ANCHOR: OIDC Issuer URI
+export const OIDC_ISSUER_URI = "https://oidc.worldcoin.org";
