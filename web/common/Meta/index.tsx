@@ -28,7 +28,10 @@ export const Meta = memo(function Meta(props: {
 
   return (
     <Head>
-      <title>{props.title}</title>
+      <title>
+        {props.title ? `${props.title} | Developer Portal` : "Developer Portal"}
+      </title>
+
       <meta key="og:title" property="og:title" content={title} />
       <meta key="og:url" property="og:url" content={url} />
       <meta key="twitter:title" name="twitter:title" content={title} />

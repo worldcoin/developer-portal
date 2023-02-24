@@ -17,7 +17,7 @@ export const Apps = memo(function Apps() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
-    <Layout>
+    <Layout title="Apps">
       {/* {userLoading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />

@@ -16,6 +16,9 @@ export function LoggedUserDisplay(props: { className?: string }) {
     name: "Test Name",
     email: "qwer@qwer.qwer",
     is_subscribed: false,
+    team: {
+      name: "Test Team",
+    },
   };
 
   // FIXME remove when real user image is available
@@ -32,14 +35,14 @@ export function LoggedUserDisplay(props: { className?: string }) {
         role="button"
         tabIndex={0}
         className={cn(
-          "grid grid-cols-auto/1fr items-center gap-x-3 cursor-default",
+          "grid grid-cols-auto/1fr gap-x-3 gap-y-1 cursor-default",
           { "cursor-pointer": user?.id },
           props.className
         )}
         onClick={() => modal.toggleOn()}
       >
         <div
-          className={cn("p-3 rounded-full overflow-hidden", {
+          className={cn("p-3 rounded-full overflow-hidden row-span-2", {
             "flex justify-center items-center bg-edecfc": !image,
           })}
         >
@@ -57,8 +60,12 @@ export function LoggedUserDisplay(props: { className?: string }) {
           {!image && <Icon name="user" className="w-5 h-5 text-primary" />}
         </div>
 
-        <span className="font-rubik text-neutral-dark text-13 leading-none">
-          {user?.email || "No @email"}
+        <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
+          {user?.email ?? "No @email"}
+        </span>
+
+        <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
+          {user?.team.name ?? "No Team name"}
         </span>
       </div>
     </Fragment>

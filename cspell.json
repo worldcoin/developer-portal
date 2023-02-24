@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -17,6 +22,8 @@
     "arrayify",
     "chartjs",
     "consts",
+    "ebecef",
+    "fbfbfc",
     "fren",
     "Hasura",
     "healthz",
@@ -32,6 +39,7 @@
     "OIDC",
     "secp256k1",
     "signup",
+    "siwi",
     "timestamptz",
     "toastify",
     "unarchived",

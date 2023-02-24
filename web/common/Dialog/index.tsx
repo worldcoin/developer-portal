@@ -18,9 +18,12 @@ export const Dialog = memo(function Dialog(props: DialogProps) {
       open={props.open}
       onClose={props.onClose}
     >
-      <div className="fixed inset-0 bg-neutral-primary/40" aria-hidden="true" />
+      <div
+        className="fixed inset-0 bg-neutral-primary/50 z-40"
+        aria-hidden="true"
+      />
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
         <BaseDialog.Panel
           className={cn(
             props.panelClassName,

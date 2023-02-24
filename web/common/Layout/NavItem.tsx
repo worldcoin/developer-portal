@@ -38,18 +38,18 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
       )}
     >
       <div
-        className={cn("p-3 text-0  transition-colors rounded-xl", {
+        className={cn("p-2.5 text-0 transition-colors rounded-xl", {
           "group-hover:bg-f3f4f5": !props.selected,
           "bg-neutral-primary": props.selected,
-          "": !props.selected,
         })}
       >
         <Icon
           name={props.icon}
           className={cn(
-            "h-6 w-6  transition-colors",
+            "h-5 w-5 transition-colors",
             {
-              "group-hover:text-28303f": !props.customColor && !props.selected,
+              "group-hover:text-neutral-secondary":
+                !props.customColor && !props.selected,
               "text-d6d9dd": !props.selected && !props.customColor,
               "text-ffffff": props.selected && !props.customColor,
             },
