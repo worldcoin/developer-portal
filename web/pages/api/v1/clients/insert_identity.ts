@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { errorNotAllowed, errorRequiredAttribute } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectConsumerBackendEndpoint } from "api-helpers/jwts";
+import { protectConsumerBackendEndpoint } from "api-helpers/utils";
 import {
   PHONE_GROUP_ID,
   PHONE_SEQUENCER,

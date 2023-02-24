@@ -5,7 +5,7 @@ import {
   errorValidation,
 } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectConsumerBackendEndpoint } from "api-helpers/jwts";
+import { protectConsumerBackendEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const existsQuery = gql`

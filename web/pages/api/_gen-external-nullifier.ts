@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { protectInternalEndpoint } from "api-helpers/jwts";
+import { protectInternalEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ActionType } from "types";
 import { errorNotAllowed } from "../../api-helpers/errors";
