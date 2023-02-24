@@ -81,3 +81,15 @@ export interface UserModel {
   updated_at: DateTime;
   __typename: "jwks";
 }
+
+export interface AuthCodeModel {
+  id: string;
+  auth_code: string;
+  app_id: string;
+  expires_at: DateTime;
+  nullifier_hash: string;
+  credential_type: CredentialType;
+  created_at: DateTime;
+  updated_at: DateTime;
+  __typename: "auth_code";
+}

@@ -119,7 +119,11 @@ export default async function handler(
   // ANCHOR: Proof is valid, issue a JWT or code
   if (response_type === OIDCResponseType.Code) {
     // For authorization code flow, issue a code
-    const code = await generateOIDCCode(app.id, nullifier_hash);
+    const code = await generateOIDCCode(
+      app.id,
+      nullifier_hash,
+      credential_type
+    );
     res.status(200).json({ code });
   } else {
     // For implicit flow, issue a JWT
@@ -128,9 +132,8 @@ export default async function handler(
       app_id: app.id,
       nullifier_hash,
       credential_type,
-      kid: jwk.kid,
       nonce: nonce ?? "",
-      privateJwk: jwk.private_jwk,
+      ...jwk,
     });
     res.status(200).json({ jwt });
   }

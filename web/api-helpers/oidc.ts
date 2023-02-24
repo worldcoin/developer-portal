@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
-import { IInternalError } from "types";
+import { CredentialType, IInternalError } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -48,6 +48,7 @@ const insertAuthCodeQuery = gql`
     $expires_at: timestamptz!
     $nullifier_hash: String!
     $app_id: String!
+    $credential_type: String!
   ) {
     insert_auth_code_one(
       object: {
@@ -55,6 +56,7 @@ const insertAuthCodeQuery = gql`
         expires_at: $expires_at
         nullifier_hash: $nullifier_hash
         app_id: $app_id
+        credential_type: $credential_type
       }
     ) {
       auth_code
@@ -139,7 +141,8 @@ export const fetchOIDCApp = async (
 
 export const generateOIDCCode = async (
   app_id: string,
-  nullifier_hash: string
+  nullifier_hash: string,
+  credential_type: CredentialType
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -155,6 +158,7 @@ export const generateOIDCCode = async (
       auth_code,
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
+      credential_type,
     },
   });
 
