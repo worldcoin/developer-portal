@@ -181,9 +181,9 @@ export const generateJWK = async (): Promise<{
 };
 
 interface IVerificationJWT {
-  privateJwk: jose.JWK;
+  private_jwk: jose.JWK;
   kid: string;
-  nonce: string;
+  nonce?: string;
   nullifier_hash: string;
   app_id: string;
   credential_type: CredentialType;
@@ -197,12 +197,11 @@ export const generateOIDCJWT = async ({
   app_id,
   nonce,
   nullifier_hash,
-  privateJwk,
+  private_jwk,
   kid,
   credential_type,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
-    nonce,
     sub: nullifier_hash,
     jti: randomUUID(),
     aud: app_id,
@@ -210,13 +209,17 @@ export const generateOIDCJWT = async ({
       likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
       credential_type,
     },
-  };
+  } as Record<string, any>;
+
+  if (nonce) {
+    payload.nonce = nonce;
+  }
 
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWK_ALG, kid })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime("1h")
-    .sign(await jose.importJWK(privateJwk, JWK_ALG));
+    .sign(await jose.importJWK(private_jwk, JWK_ALG));
 };
 
 export const verifyOIDCJWT = async (
