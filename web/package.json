@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently \"yarn dev:app\" \"yarn dev:kea\" -n APP,KEA -c blue,green",
+    "dev": "yarn dev:app",
     "dev:app": "next dev",
     "dev:kea": "kea-typegen watch --write-paths",
     "typegen": "kea-typegen write",
@@ -43,6 +43,7 @@
     "next": "^13.1.6",
     "next-logger": "3.0.1",
     "next-redux-wrapper": "^7.0.5",
+    "next-safe": "^3.4.1",
     "posthog-js": "^1.45.1",
     "qr-code-styling": "^1.6.0-rc.1",
     "react": "^18.2.0",

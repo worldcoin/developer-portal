@@ -1,5 +1,23 @@
+const nextSafe = require("next-safe");
+const isDev = process.env.NODE_ENV !== "production";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: nextSafe({
+          isDev,
+          contentSecurityPolicy: {
+            "font-src": "'self' 'https://fonts.googleapis.com'",
+          },
+          frameOptions: "SAMESITE",
+        }),
+      },
+    ];
+  },
+
   reactStrictMode: true,
   images: {
     domains: ["world-id-public.s3.amazonaws.com"],
