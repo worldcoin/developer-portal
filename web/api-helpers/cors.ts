@@ -1,4 +1,4 @@
-const Cors = require("cors");
+import Cors from "cors";
 import { NextApiRequest, NextApiResponse } from "next";
 
 // Initializing the cors middleware
