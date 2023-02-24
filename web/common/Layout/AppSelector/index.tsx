@@ -3,8 +3,8 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
-import { apps } from "../temp-data";
 import { useAppsStore } from "stores/app-store";
+import { apps } from "../temp-data";
 
 type App = (typeof apps)[number];
 

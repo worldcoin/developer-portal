@@ -1,7 +1,5 @@
 //FIXME: Temp data for testing
 
-import { randomUUID } from "crypto";
-
 export type App = (typeof apps)[0];
 
 export const apps = [
