@@ -113,6 +113,7 @@ export default async function handleRegister(
   }
 
   // Generate client_secret
+  // TODO: Move to /api-helpers (and verification too)
   const clientId = insertClientResponse.data.insert_team_one.apps[0].id;
   const clientSecret = "secret_" + crypto.randomBytes(16).toString("hex");
   const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY!);
