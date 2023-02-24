@@ -60,15 +60,16 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - action
         - app_id
+        - client_secret
+        - creation_mode
         - description
         - external_nullifier
         - id
         - max_accounts_per_user
         - max_verifications
         - name
-        - action
-        - creation_mode
       filter:
         _and:
           - app:
@@ -105,6 +106,7 @@ update_permissions:
   - role: service
     permission:
       columns:
+        - client_secret
         - external_nullifier
       filter:
         external_nullifier:

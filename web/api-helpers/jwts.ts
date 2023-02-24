@@ -219,7 +219,9 @@ export const generateOIDCJWT = async ({
     .sign(await jose.importJWK(privateJwk, JWK_ALG));
 };
 
-export const verifyOIDCJWT = async (token: string) => {
+export const verifyOIDCJWT = async (
+  token: string
+): Promise<jose.JWTPayload> => {
   const { kid } = jose.decodeProtectedHeader(token);
 
   if (!kid) {

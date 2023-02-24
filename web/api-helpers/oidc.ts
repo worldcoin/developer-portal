@@ -55,7 +55,6 @@ const insertAuthCodeQuery = gql`
   }
 `;
 
-// TODO: client_secret
 interface OIDCApp {
   id: AppModel["id"];
   is_staging: AppModel["is_staging"];
@@ -157,4 +156,67 @@ export const generateOIDCCode = async (
   }
 
   return auth_code;
+};
+
+const fetchAppSecretQuery = gql`
+  query FetchAppSecretQuery($app_id: String!) {
+    app(
+      where: {
+        id: { _eq: $app_id }
+        status: { _eq: "active" }
+        is_archived: { _eq: false }
+        engine: { _eq: "cloud" }
+      }
+    ) {
+      id
+      actions(limit: 1, where: { action: { _eq: "" } }) {
+        client_secret
+      }
+    }
+  }
+`;
+
+type FetchAppSecretResult = {
+  app: Array<
+    Pick<AppModel, "id"> & {
+      actions?: Array<Pick<ActionModel, "client_secret">>;
+    }
+  >;
+};
+
+export const authenticateOIDCEndpoint = async (
+  auth_header: string
+): Promise<string | null> => {
+  const authToken = auth_header.replace("Basic ", "");
+  const [app_id, reported_client_secret] = Buffer.from(authToken, "base64")
+    .toString()
+    .split(":");
+
+  // Fetch app
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<FetchAppSecretResult>({
+    query: fetchAppSecretQuery,
+    variables: { app_id },
+  });
+
+  if (data.app.length === 0) {
+    console.info("authenticateOIDCEndpoint - App not found or not active.");
+    return null;
+  }
+
+  const client_secret = data.app[0]?.actions?.[0]?.client_secret;
+
+  if (!client_secret) {
+    console.info(
+      "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
+    );
+    return null;
+  }
+
+  if (client_secret !== reported_client_secret) {
+    console.info("authenticateOIDCEndpoint - Invalid client secret.");
+    return null;
+  }
+
+  return app_id;
 };

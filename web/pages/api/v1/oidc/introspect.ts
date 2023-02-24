@@ -1,10 +1,12 @@
 import {
   errorNotAllowed,
   errorRequiredAttribute,
+  errorResponse,
   errorUnauthenticated,
   errorValidation,
 } from "api-helpers/errors";
 import { verifyOIDCJWT } from "api-helpers/jwts";
+import { authenticateOIDCEndpoint } from "api-helpers/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -24,28 +26,44 @@ export default async function handler(
     );
   }
 
-  const userToken = req.body.token;
+  const userToken = req.body.token as string;
   if (!userToken) {
     return errorRequiredAttribute("token", res);
   }
 
   // ANCHOR: Authenticate the request comes from the app
-  const bearerToken = req.headers.authorization?.replace("Bearer ", "");
+  const authToken = req.headers.authorization;
 
-  if (!bearerToken) {
+  if (!authToken) {
     return errorUnauthenticated(
       "Please provide your app authentication credentials.",
       res
     );
   }
 
-  // Decode Basic bearer token
-  const [clientId, clientSecret] = Buffer.from(bearerToken, "base64");
+  let app_id: string | null;
+  app_id = await authenticateOIDCEndpoint(authToken);
 
-  const payload = await verifyOIDCJWT(userToken);
+  if (!app_id) {
+    return errorUnauthenticated("Invalid authentication credentials.", res);
+  }
 
-  return {
-    sub: payload.sub,
-    "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],
-  };
+  try {
+    const payload = await verifyOIDCJWT(userToken);
+
+    return res.status(200).json({
+      active: true,
+      client_id: app_id,
+      exp: payload.exp,
+      sub: payload.sub,
+    });
+  } catch {
+    return errorResponse(
+      res,
+      401,
+      "invalid_token",
+      "Token is invalid or expired.",
+      "token"
+    );
+  }
 }

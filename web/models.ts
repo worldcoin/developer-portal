@@ -34,6 +34,7 @@ export interface ActionModel {
   max_verifications: number;
   max_accounts_per_user: number;
   app_id: string;
+  client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "action";
