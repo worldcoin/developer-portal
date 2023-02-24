@@ -41,11 +41,15 @@ export default async function handler(
 
   const client = await getAPIServiceClient();
 
-  // ANCHOR: Make sure the user can perform this client reset
-  const isAdmin =
-    req.body.session_variables["x-hasura-role"] === "admin" &&
-    process.env.NODE_ENV !== "production";
+  if (req.body.session_variables["x-hasura-role"] === "admin") {
+    return errorHasuraQuery({
+      res,
+      detail: "Admin is not allowed to run this query.",
+      code: "admin_not_allowed",
+    });
+  }
 
+  // ANCHOR: Make sure the user can perform this client reset
   const query = gql`
     query GetAppTeam($app_id: String!, $team_id: String!) {
       app(where: { id: { _eq: $app_id }, team_id: { _eq: $team_id } }) {
@@ -58,13 +62,11 @@ export default async function handler(
     query,
     variables: {
       app_id,
-      team_id: req.body.session_variables["x-hasura-team-id"],
+      team_id: req.body.session_variables["x-hasura-team-id"] ?? "",
     },
   });
 
-  console.log(appQuery.data, req.body.session_variables["x-hasura-team-id"]);
-
-  if (appQuery.data.app?.length && !isAdmin) {
+  if (!appQuery.data.app?.length) {
     return errorHasuraQuery({
       res,
       detail: "App ID is invalid.",
