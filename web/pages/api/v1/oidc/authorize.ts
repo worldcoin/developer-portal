@@ -1,3 +1,4 @@
+import { runCors } from "api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -6,7 +7,7 @@ import {
 } from "api-helpers/errors";
 import { fetchActiveJWK } from "api-helpers/jwks";
 import { fetchOIDCApp, generateOIDCCode } from "api-helpers/oidc";
-import { generateVerificationJWT } from "api-helpers/utils";
+import { generateOIDCJWT } from "api-helpers/jwts";
 import { verifyProof } from "api-helpers/verify";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "types";
@@ -21,6 +22,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (
+    req.body.response_type === OIDCResponseType.Implicit ||
+    req.method === "OPTIONS"
+  ) {
+    // NOTE: CORS only for the implicit flow, because the authorization code flow is called from the backend (security reasons)
+    await runCors(req, res);
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
@@ -115,7 +124,7 @@ export default async function handler(
   } else {
     // For implicit flow, issue a JWT
     const jwk = await fetchActiveJWK();
-    const jwt = await generateVerificationJWT({
+    const jwt = await generateOIDCJWT({
       app_id: app.id,
       nullifier_hash,
       credential_type,

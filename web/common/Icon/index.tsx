@@ -66,17 +66,21 @@ const iconNames = [
   "shield",
   "spinner-gradient",
   "spinner",
+  "success",
+  "success-illustration",
   "target",
   "team",
   "user",
+  "user-solid",
   "warning",
   "window",
   "wld-logo",
+  "wld-sign-in",
   "worldcoin",
   "withdraw",
 ] as const;
 
-export type IconType = typeof iconNames[number];
+export type IconType = (typeof iconNames)[number];
 
 export const Icon = memo(function Icon(
   props: {

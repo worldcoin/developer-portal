@@ -5,12 +5,32 @@ import {
   errorValidation,
 } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
+import { protectConsumerBackendEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
-    revoke(where: { identity_commitment: { _eq: $identity_commitment } }) {
+    revocation(where: { identity_commitment: { _eq: $identity_commitment } }) {
       identity_commitment
+    }
+  }
+`;
+
+const insertQuery = gql`
+  mutation InsertRevoke(
+    $credential_type: String!
+    $identity_commitment: String!
+  ) {
+    insert_revocation(
+      objects: {
+        identity_commitment: $identity_commitment
+        credential_type: $credential_type
+      }
+    ) {
+      returning {
+        id
+        revoked_at
+      }
     }
   }
 `;
@@ -24,11 +44,15 @@ export default async function handleRevoke(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (!protectConsumerBackendEndpoint(req, res)) {
+    return;
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["type", "identity_commitment"]) {
+  for (const attr of ["credential_type", "identity_commitment", "env"]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
@@ -43,7 +67,7 @@ export default async function handleRevoke(
     variables: { identity_commitment: req.body.identity_commitment },
   });
 
-  if (revokeExistsResponse.data.revoke.length) {
+  if (revokeExistsResponse.data.revocation.length) {
     return errorValidation(
       "already_revoked",
       "This identity commitment has already been revoked.",
@@ -53,28 +77,15 @@ export default async function handleRevoke(
   }
 
   // Insert the unique identity commitment to the table
-  const insertQuery = gql`
-    mutation InsertRevoke($type: String!, $identity_commitment: String!) {
-      insert_revoke(
-        objects: { identity_commitment: $identity_commitment, type: $type }
-      ) {
-        returning {
-          id
-          revoked_at
-        }
-      }
-    }
-  `;
-
   const insertRevokeResponse = await client.mutate({
     mutation: insertQuery,
     variables: {
-      type: req.body.type,
+      credential_type: req.body.credential_type,
       identity_commitment: req.body.identity_commitment,
     },
   });
 
-  if (insertRevokeResponse?.data?.insert_revoke?.returning.length) {
+  if (insertRevokeResponse?.data?.insert_revocation?.returning.length) {
     res.status(204).end();
   } else {
     return errorValidation(

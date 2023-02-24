@@ -1,175 +1,11 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
+import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
-import * as jose from "jose";
+import { CacheModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CredentialType, JwtConfig } from "../types";
-
-const JWK_ALG = "PS256";
-
-/**
- * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
- * @returns
- */
-export const generateServiceJWT = async (): Promise<string> => {
-  const JWT_CONFIG: JwtConfig = JSON.parse(
-    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
-  );
-
-  if (!JWT_CONFIG) {
-    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
-  }
-
-  const payload = {
-    sub: "service_account",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["service"],
-      "x-hasura-default-role": "service",
-    },
-  };
-
-  const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWT_CONFIG.type })
-    .setIssuer("https://developer.worldcoin.org")
-    .setExpirationTime("1m")
-    .sign(Buffer.from(JWT_CONFIG.key));
-
-  return token;
-};
-
-/**
- * Generates a JWT for a specific user.
- */
-const _generateJWT = async (
-  payload: Record<string, any>,
-  expiration: string = "24h"
-): Promise<string> => {
-  const JWT_CONFIG: JwtConfig = JSON.parse(
-    process.env.HASURA_GRAPHQL_JWT_SECRET || ""
-  );
-
-  if (!JWT_CONFIG) {
-    throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
-  }
-
-  const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWT_CONFIG.type })
-    .setIssuer("https://developer.worldcoin.org")
-    .setExpirationTime(expiration)
-    .sign(Buffer.from(JWT_CONFIG.key));
-
-  return token;
-};
-
-/**
- * Generates a JWT for a specific user.
- * @param user_id
- * @param team_id
- * @returns
- */
-export const generateUserJWT = async (
-  user_id: string,
-  team_id: string
-): Promise<string> => {
-  const payload = {
-    sub: user_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user"],
-      "x-hasura-default-role": "user",
-      "x-hasura-user-id": user_id,
-      "x-hasura-team-id": team_id,
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
-/**
- * Generates a JWT for a specific API key.
- * @param team_id
- * @returns
- */
-export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
-  const payload = {
-    sub: team_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["api_key"],
-      "x-hasura-default-role": "api_key",
-      "x-hasura-team-id": team_id,
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
-/**
- * Generates a JWT for the analytics service.
- * @returns
- */
-export const generateAnalyticsJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "analytics_service",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["analytics"],
-      "x-hasura-default-role": "analytics",
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
-/**
- * Generates an asymmetric key pair in JWK format
- * @returns
- */
-export const generateJWK = async (): Promise<{
-  privateJwk: jose.JWK;
-  publicJwk: jose.JWK;
-}> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(JWK_ALG);
-
-  const privateJwk = await jose.exportJWK(privateKey);
-  const publicJwk = await jose.exportJWK(publicKey);
-
-  return { privateJwk, publicJwk };
-};
-
-interface IVerificationJWT {
-  privateJwk: jose.JWK;
-  kid: string;
-  nonce: string;
-  nullifier_hash: string;
-  app_id: string;
-  credential_type: CredentialType;
-}
-
-/**
- * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
- * @returns
- */
-export const generateVerificationJWT = async ({
-  app_id,
-  nonce,
-  nullifier_hash,
-  privateJwk,
-  kid,
-  credential_type,
-}: IVerificationJWT): Promise<string> => {
-  const payload = {
-    nonce,
-    sub: nullifier_hash,
-    jti: randomUUID(),
-    aud: app_id,
-    credential_type,
-  };
-
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWK_ALG, kid })
-    .setIssuer(process.env.NEXT_PUBLIC_APP_URL || "")
-    .setExpirationTime("1h")
-    .sign(await jose.importJWK(privateJwk, JWK_ALG));
-};
+import { getAPIServiceClient } from "./graphql";
 
 /**
  * Ensures endpoint is properly authenticated using internal token. For interactions between Hasura -> Next.js API
@@ -185,6 +21,31 @@ export const protectInternalEndpoint = (
     !process.env.INTERNAL_ENDPOINTS_SECRET ||
     req.headers.authorization?.replace("Bearer ", "") !==
       process.env.INTERNAL_ENDPOINTS_SECRET
+  ) {
+    res.status(403).json({
+      code: "permission_denied",
+      detail: "You do not have permission to perform this action.",
+      attr: null,
+    });
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend (World App) -> Developer Portal API
+ * @param req
+ * @param res
+ * @returns
+ */
+export const protectConsumerBackendEndpoint = (
+  req: NextApiRequest,
+  res: NextApiResponse
+): boolean => {
+  if (
+    !process.env.CONSUMER_BACKEND_SECRET ||
+    req.headers.authorization?.replace("Bearer ", "") !==
+      process.env.CONSUMER_BACKEND_SECRET
   ) {
     res.status(403).json({
       code: "permission_denied",
@@ -247,4 +108,42 @@ export const reportAPIEventToPostHog = async (
   } catch (e) {
     console.error(`Error reporting ${event} to PostHog`, e);
   }
+};
+
+export const fetchSmartContractAddress = async (
+  is_staging: boolean
+): Promise<string> => {
+  const fetchContractsQuery = gql`
+    query FetchContracts() {
+      cache(
+        where: {
+          _or: [
+            { key: { _eq: "semaphore.wld.eth" } }
+            { key: { _eq: "staging.semaphore.wld.eth" } }
+          ]
+        }
+      ) {
+        key
+        value
+      }
+    }
+  `;
+
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<{
+    cache: Array<Pick<CacheModel, "key" | "value">>;
+  }>({ query: fetchContractsQuery });
+
+  const contractKey = is_staging
+    ? "staging.semaphore.wld.eth"
+    : "semaphore.wld.eth";
+  const contract = data.cache.find((c) => c.key === contractKey);
+
+  if (!contract) {
+    throw new Error(
+      `Improperly configured. Could not find smart contract address for ${contractKey}.`
+    );
+  }
+
+  return contract.value;
 };

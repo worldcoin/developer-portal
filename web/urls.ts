@@ -14,12 +14,15 @@ export const urls = {
 
   actionNew: (): "/actions/new" => "/actions/new",
   actionsArchived: (): "/actions?show_archived=1" => "/actions?show_archived=1",
+  dashboard: (): "/dashboard" => "/dashboard",
 
   hostedPage: (action_id: string): `/hosted/${string}` =>
     `/hosted/${action_id}`,
 
   kiosk: (action_id: string): `/kiosk/${string}` => `/kiosk/${action_id}`,
+  login: (): "/login" => "/login",
+  onboarding: (): "/onboarding" => "/onboarding",
+  signup: (): "/signup" => "/signup",
   team: (): "/team" => "/team",
-
   debugger: (): "/debugger" => "/debugger",
 };

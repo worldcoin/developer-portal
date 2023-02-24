@@ -25,19 +25,27 @@ module.exports = {
     borderWidth: {
       DEFAULT: "1px",
       none: "0",
+      2: "2px",
     },
 
     colors: {
       neutral: {
         DEFAULT: "#858494",
+        primary: "#191c20",
+        secondary: "#9ba3ae",
+
         dark: "#191c20",
+        medium: "#626467",
+
         muted: "#f0edf9",
       },
       primary: {
         DEFAULT: "#4940e0",
+        light: "#edecfc",
       },
       success: {
         DEFAULT: "#00c313",
+        light: "#e5f9e7",
       },
       warning: {
         DEFAULT: "#ff5a76", // FIXME: This color is actually danger
@@ -51,12 +59,15 @@ module.exports = {
         "#777e90",
         "#a39dff",
         "#d1d3d4",
+        "#d6d9dd",
         "#dbe3e8",
+        "#ebecef",
         "#edbd14",
         "#edecfc",
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
+        "#f3f4f5",
         "#f9f9f9",
         "#fafafa",
         "#fbfbfb",
@@ -72,7 +83,9 @@ module.exports = {
 
     extend: {
       boxShadow: {
-        box: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04);",
+        box: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04)",
+        input: "0px 10px 30px rgba(25, 28, 32, 0.1)",
+        button: "0px 10px 20px rgba(25, 28, 32, 0.2)",
       },
 
       fontFamily: {
@@ -92,6 +105,7 @@ module.exports = {
         20: "calc(20 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",
         30: "calc(30 * 1rem / 16)",
+        32: "calc(32 * 1rem / 16)",
       },
 
       gridTemplateColumns: {
