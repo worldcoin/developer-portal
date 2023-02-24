@@ -1,6 +1,6 @@
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { Checkbox } from "common/components/Checkbox";
-import { FieldInput } from "common/FieldInput";
+import { FieldInput } from "common/LegacyFieldInput";
 import { Icon } from "common/Icon";
 import { ListFilter } from "logics/actionsLogic";
 import { actionsLogicType } from "logics/actionsLogicType";

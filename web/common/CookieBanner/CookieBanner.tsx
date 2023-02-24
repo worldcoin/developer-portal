@@ -1,4 +1,4 @@
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import posthog from "posthog-js";
 import { useEffect } from "react";
 import { useState } from "react";

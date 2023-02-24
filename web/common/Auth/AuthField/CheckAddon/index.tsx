@@ -1,6 +1,6 @@
 import { memo, useContext } from "react";
-import { FieldInputContext } from "common/FieldInput";
-import { FieldInputAddon } from "common/FieldInputAddon";
+import { FieldInputContext } from "common/LegacyFieldInput";
+import { FieldInputAddon } from "common/LegacyFieldInputAddon";
 import { FieldInputAddonAction } from "common/FieldInputAddonAction";
 import { Icon } from "common/Icon";
 

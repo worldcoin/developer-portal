@@ -1,3 +1,4 @@
+// FIXME: use common component
 import {
   ChangeEvent,
   InputHTMLAttributes,

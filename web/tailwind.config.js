@@ -30,7 +30,7 @@ module.exports = {
 
     colors: {
       neutral: {
-        DEFAULT: "#858494",
+        DEFAULT: "#858494", // FIXME: This color may be #191c20
         primary: "#191c20",
         secondary: "#9ba3ae",
 
@@ -105,6 +105,7 @@ module.exports = {
         14: "calc(14 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
+        24: "calc(24 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",
         30: "calc(30 * 1rem / 16)",
         32: "calc(32 * 1rem / 16)",

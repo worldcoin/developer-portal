@@ -1,3 +1,4 @@
+// FIXME: use common component
 import { ButtonHTMLAttributes, memo } from "react";
 import cn from "classnames";
 
