@@ -13,6 +13,38 @@ const fetchJWKQuery = gql`
   }
 `;
 
+const retrieveJWKQuery = gql`
+  query RetrieveJWKQuery($kid: String!) {
+    jwks(limit: 1, where: { id: { _eq: $kid } }) {
+      id
+      public_jwk
+    }
+  }
+`;
+
+export const retrieveJWK = async (kid: string) => {
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<{
+    jwks: Array<Pick<JWKModel, "id" | "public_jwk">>;
+  }>({
+    query: retrieveJWKQuery,
+    variables: {
+      kid,
+    },
+  });
+
+  if (!data.jwks?.length) {
+    throw new Error("JWK not found.");
+  }
+
+  const { id, public_jwk } = data.jwks[0];
+  return { kid: id, public_jwk };
+};
+
+/**
+ * Retrieves an active JWK to sign requests
+ * @returns
+ */
 export const fetchActiveJWK = async () => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<{

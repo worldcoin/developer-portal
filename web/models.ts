@@ -3,6 +3,7 @@
  */
 
 import { AppStatusType, CredentialType, EngineType } from "types";
+import * as jose from "jose";
 
 type DateTime = string;
 
@@ -60,8 +61,8 @@ export interface CacheModel {
 
 export interface JWKModel {
   id: string;
-  private_jwk: Record<string, string>;
-  public_jwk: Record<string, string>;
+  private_jwk: jose.JWK;
+  public_jwk: jose.JWK;
   expires_at: DateTime;
   created_at: DateTime;
   updated_at: DateTime;

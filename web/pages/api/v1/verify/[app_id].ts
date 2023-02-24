@@ -9,7 +9,7 @@ import {
 } from "../../../../api-helpers/errors";
 
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { canVerifyForAction } from "api-helpers/jwts";
+import { canVerifyForAction } from "api-helpers/utils";
 import { fetchActionForProof, verifyProof } from "api-helpers/verify";
 import { CredentialType } from "types";
 
@@ -18,7 +18,7 @@ export default async function handleVerify(
   res: NextApiResponse
 ) {
   // NOTE: Lack of CORS headers, because this endpoint should not be called from the frontend (security reasons)
-  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
+  if (!req.method || !["POST"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 

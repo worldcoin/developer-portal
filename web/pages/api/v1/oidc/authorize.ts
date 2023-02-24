@@ -7,7 +7,7 @@ import {
 } from "api-helpers/errors";
 import { fetchActiveJWK } from "api-helpers/jwks";
 import { fetchOIDCApp, generateOIDCCode } from "api-helpers/oidc";
-import { generateVerificationJWT } from "api-helpers/jwts";
+import { generateOIDCJWT } from "api-helpers/jwts";
 import { verifyProof } from "api-helpers/verify";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "types";
@@ -121,7 +121,7 @@ export default async function handler(
   } else {
     // For implicit flow, issue a JWT
     const jwk = await fetchActiveJWK();
-    const jwt = await generateVerificationJWT({
+    const jwt = await generateOIDCJWT({
       app_id: app.id,
       nullifier_hash,
       credential_type,
