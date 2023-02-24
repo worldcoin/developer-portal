@@ -20,3 +20,7 @@ select_permissions:
         - id
         - nullifier_hash
       filter: {}
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}

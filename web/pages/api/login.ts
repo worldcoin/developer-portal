@@ -7,17 +7,14 @@ import {
 import { gql } from "@apollo/client";
 import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import {
-  generateUserJWT,
-  generateSignUpJWT,
-  fetchSmartContractAddress,
-} from "api-helpers/utils";
+import { generateUserJWT, generateSignUpJWT } from "api-helpers/jwts";
 import { NextApiResponse } from "next";
 import { verifyProof } from "api-helpers/verify";
 import { CredentialType } from "@worldcoin/idkit/build/types";
 import { fetchOIDCApp } from "api-helpers/oidc";
 import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { UserModel } from "models";
+import { fetchSmartContractAddress } from "api-helpers/utils";
 
 export type LoginRequestBody = {
   proof?: string;

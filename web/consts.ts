@@ -26,3 +26,6 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
     ""
   ).digest,
 };
+
+// ANCHOR: JWKs
+export const JWK_ALG = "PS256";

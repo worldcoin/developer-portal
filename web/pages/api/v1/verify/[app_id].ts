@@ -17,8 +17,8 @@ export default async function handleVerify(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  await runCors(req, res);
-  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
+  // NOTE: Lack of CORS headers, because this endpoint should not be called from the frontend (security reasons)
+  if (!req.method || !["POST"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 

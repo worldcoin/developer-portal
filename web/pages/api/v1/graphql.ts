@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { generateAnalyticsJWT, generateAPIKeyJWT } from "api-helpers/utils";
+import { generateAnalyticsJWT, generateAPIKeyJWT } from "api-helpers/jwts";
 import { errorUnauthenticated } from "api-helpers/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
