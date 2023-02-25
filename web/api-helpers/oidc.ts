@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
-import { CredentialType, IInternalError } from "types";
+import { CredentialType, IInternalError, OIDCResponseType } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -235,4 +235,10 @@ export const authenticateOIDCEndpoint = async (
   }
 
   return app_id;
+};
+
+export const OIDCResponseTypeMapping = {
+  code: OIDCResponseType.Code,
+  id_token: OIDCResponseType.JWT,
+  token: OIDCResponseType.JWT,
 };
