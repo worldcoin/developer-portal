@@ -66,3 +66,20 @@ export function errorOIDCResponse(
     error_description: detail, // OAuth 2.0 spec
   });
 }
+
+export function errorHasuraQuery({
+  res,
+  code,
+  detail,
+}: {
+  res: NextApiResponse;
+  code: string;
+  detail: string;
+}) {
+  return res.status(400).json({
+    message: detail,
+    extensions: {
+      code,
+    },
+  });
+}

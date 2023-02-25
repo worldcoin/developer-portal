@@ -1,0 +1,7 @@
+type Mutation {
+  reset_client_secret(app_id: String!): ResetClientOutput
+}
+
+type ResetClientOutput {
+  client_secret: String!
+}
