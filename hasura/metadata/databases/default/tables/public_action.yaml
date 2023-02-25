@@ -108,9 +108,7 @@ update_permissions:
       columns:
         - client_secret
         - external_nullifier
-      filter:
-        external_nullifier:
-          _eq: ""
+      filter: {}
       check: null
 delete_permissions:
   - role: api_key

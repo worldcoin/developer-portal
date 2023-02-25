@@ -79,6 +79,7 @@ select_permissions:
         - logo_url
         - name
         - status
+        - team_id
         - user_interfaces
         - verified_at
       computed_fields:
