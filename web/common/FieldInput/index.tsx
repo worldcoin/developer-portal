@@ -36,7 +36,7 @@ export const FieldInput = memo(function FieldInput(props: FieldInputInterface) {
     <input
       className={cn(
         className,
-        "flex items-center h-14 px-4 text-neutral-primary outline-0 border border-2 rounded-xl focus:shadow-input",
+        "flex items-center h-12 px-4 text-neutral-primary outline-0 border-2 rounded-xl focus:shadow-input",
         {
           "placeholder-neutral-secondary bg-f3f4f5 border-f1f5f8 focus:bg-ffffff focus:border-ebecef":
             isEmpty,

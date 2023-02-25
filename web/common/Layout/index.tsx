@@ -14,7 +14,6 @@ import { SystemStatus } from "./SystemStatus";
 import { NavItemGroup } from "./NavItemsGroup";
 import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { AppSelector } from "./AppSelector";
-import { apps } from "./temp-data";
 
 export const Layout = (props: {
   title?: string;
@@ -50,7 +49,7 @@ export const Layout = (props: {
           </header>
 
           <div className="grid gap-y-8 content-start">
-            <AppSelector currentApp={apps[0]} apps={apps} />
+            <AppSelector />
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">
