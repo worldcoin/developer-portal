@@ -1,17 +1,8 @@
-import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
-import { NotFound } from "common/NotFound";
 import { Preloader } from "common/Preloader";
 import { useAppsContext } from "contexts/AppsContext";
-import { GetServerSideProps } from "next";
-import Image from "next/image";
 import { useRouter } from "next/router";
-import { Fragment, memo, useCallback, useEffect, useState } from "react";
-import { ActionList } from "scenes/actions/ActionList";
-import { urls } from "urls";
-import { AppCard } from "./AppCard";
-import { Switch } from "@headlessui/react";
-import cn from "classnames";
+import { memo, useEffect, useState } from "react";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
@@ -19,12 +10,10 @@ import { Stats } from "./Stats";
 export const App = memo(function App(props: { appId: string }) {
   const { currentApp, selectAppById } = useAppsContext();
   const [loading, setLoading] = useState(true);
-  const [enabled, setEnabled] = useState(currentApp?.status === "active");
 
   useEffect(() => {
     selectAppById(props.appId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: setting app on mount
-  }, []);
+  }, [props.appId, selectAppById]);
 
   useEffect(() => {
     if (!currentApp) {
@@ -52,41 +41,6 @@ export const App = memo(function App(props: { appId: string }) {
           <Stats />
         </div>
       )}
-
-      {/* {!loading && (
-        <Fragment>
-          {!app && (
-            <NotFound
-              icon="actions-empty"
-              heading="Sorry, this app not found"
-              description="But you can create new one"
-              link={`${urls.appNew()}`}
-              linkLabel="Create new app"
-            />
-          )}
-
-          {app && (
-            <div className="grid gap-y-8">
-              <AppCard
-                app={app}
-                deleteAction={handleDeleteApp}
-                updateAction={handleUpdateApp}
-              />
-              {app ? (
-                <ActionList withoutCreateButton />
-              ) : (
-                <NotFound
-                  icon="actions-empty"
-                  heading="You don't have any actions yet"
-                  description="It's time to create your first action!"
-                  link={`${urls.actionNew()}`}
-                  linkLabel="Create new action"
-                />
-              )}
-            </div>
-          )}
-        </Fragment>
-      )} */}
     </Layout>
   );
 });

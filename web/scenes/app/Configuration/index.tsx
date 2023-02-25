@@ -23,14 +23,15 @@ const Label = memo(function Label(props: {
 export const Configuration = memo(function Configuration(props: {
   app: (typeof apps)[0];
 }) {
-  const [appName, setAppName] = useState<string>(props.app.name);
+  const [appName, setAppName] = useState<string>("");
   const [debouncedAppInput] = useDebounce(appName, 1000);
-
-  const [appDescription, setAppDescription] = useState<string>(
-    props.app.description_internal
-  );
-
+  const [appDescription, setAppDescription] = useState<string>("");
   const [debouncedAppDescription] = useDebounce(appDescription, 1000);
+
+  useEffect(() => {
+    setAppName(props.app.name);
+    setAppDescription(props.app.description_internal);
+  }, [props.app.name, props.app.description_internal]);
 
   //ANCHOR: Action after user stop typing for app name
   //TODO: Add app name updating

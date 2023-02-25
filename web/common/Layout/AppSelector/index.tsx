@@ -41,7 +41,6 @@ export const ButtonContent = memo(function ButtonContent(props: {
 
 export const AppSelector = memo(function AppsSelector() {
   const { apps, currentApp } = useAppsContext();
-  console.log({ apps, currentApp });
 
   const selector = useToggle();
 
@@ -94,7 +93,11 @@ export const AppSelector = memo(function AppsSelector() {
 
             <div className="grid">
               {appsToRender?.map((app) => (
-                <Link href={urls.app(app.id)} key={app.id}>
+                <Link
+                  onClick={selector.toggleOff}
+                  href={urls.app(app.id)}
+                  key={app.id}
+                >
                   <ButtonContent
                     app={app}
                     className={cn("px-4 py-3")}
@@ -105,6 +108,7 @@ export const AppSelector = memo(function AppsSelector() {
 
               <Link
                 href={urls.appNew()}
+                onClick={selector.toggleOff}
                 className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4"
               >
                 <Icon name="plus" className="w-5 h-5" />
