@@ -69,7 +69,6 @@ const iconNames = [
   "rocket",
   "search",
   "shield",
-  "siwi",
   "speed-test",
   "spinner-gradient",
   "spinner",

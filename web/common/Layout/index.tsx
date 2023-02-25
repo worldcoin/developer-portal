@@ -3,6 +3,7 @@ import { CookieBanner } from "common/CookieBanner/CookieBanner";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Meta } from "common/Meta";
+import { useAppsContext } from "contexts/AppsContext";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode } from "react";
@@ -20,6 +21,7 @@ export const Layout = (props: {
   mainClassName?: string;
   children: ReactNode;
 }) => {
+  const { currentApp } = useAppsContext();
   const router = useRouter();
   const newAppDialog = useToggle();
 
