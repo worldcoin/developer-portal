@@ -5,6 +5,7 @@ import { usePostHog } from "common/hooks/use-posthog";
 import Head from "next/head";
 import { AuthProvider } from "contexts/AuthContext";
 import { isSSR } from "common/helpers/is-ssr";
+import { AppsProvider } from "contexts/AppsContext";
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   const token = !isSSR() ? localStorage.getItem("token") : "";
@@ -83,7 +84,9 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
       </Head>
 
       <AuthProvider token={token}>
-        <Component {...pageProps} />
+        <AppsProvider>
+          <Component {...pageProps} />
+        </AppsProvider>
       </AuthProvider>
     </Fragment>
   );

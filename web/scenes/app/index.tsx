@@ -1,62 +1,59 @@
+import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
 import { NotFound } from "common/NotFound";
 import { Preloader } from "common/Preloader";
-import { useActions, useValues } from "kea";
-import { appLogic } from "logics/appLogic";
-import { appsLogic } from "logics/appsLogic";
+import { useAppsContext } from "contexts/AppsContext";
+import { GetServerSideProps } from "next";
+import Image from "next/image";
 import { useRouter } from "next/router";
-import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
+import { Fragment, memo, useCallback, useEffect, useState } from "react";
 import { ActionList } from "scenes/actions/ActionList";
-import { AppType } from "types";
 import { urls } from "urls";
 import { AppCard } from "./AppCard";
+import { Switch } from "@headlessui/react";
+import cn from "classnames";
+import { AppHeader } from "./AppHeader";
+import { Configuration } from "./Configuration";
+import { Stats } from "./Stats";
 
-export const App = memo(function App() {
-  const router = useRouter();
-  const { app, appLoading } = useValues(appLogic);
-  const { loadApp, updateApp } = useActions(appLogic);
-  const { deleteApp } = useActions(appsLogic);
-  const { appsLoading } = useValues(appsLogic);
+export const App = memo(function App(props: { appId: string }) {
+  const { currentApp, selectAppById } = useAppsContext();
+  const [loading, setLoading] = useState(true);
+  const [enabled, setEnabled] = useState(currentApp?.status === "active");
 
   useEffect(() => {
-    if (!router.query.app_id) {
+    selectAppById(props.appId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: setting app on mount
+  }, []);
+
+  useEffect(() => {
+    if (!currentApp) {
       return;
     }
-    loadApp({ app_id: router.query.app_id as string });
-  }, [loadApp, router.query.app_id]);
 
-  const loading = useMemo(
-    () => appsLoading || appLoading,
-    [appsLoading, appLoading]
-  );
+    setLoading(false);
+  }, [currentApp]);
 
-  const handleUpdateApp = useCallback(
-    ({ attr, value }: { attr: string; value: string }) => {
-      if (!app || !(attr in app)) {
-        return;
-      }
-      updateApp({ attr: attr as keyof AppType, value });
-    },
-    [app, updateApp]
-  );
-
-  const handleDeleteApp = useCallback(() => {
-    if (!app?.id) {
-      return null;
-    }
-
-    deleteApp({ app_id: app.id });
-  }, [app?.id, deleteApp]);
+  const router = useRouter();
 
   return (
     <Layout>
-      {loading && (
-        <div className="w-full h-full flex justify-center items-center">
-          <Preloader className="w-20 h-20" />
+      {loading ||
+        (!currentApp && (
+          <div className="w-full h-full flex justify-center items-center">
+            <Preloader className="w-20 h-20" />
+          </div>
+        ))}
+
+      {!loading && currentApp && (
+        <div className="grid gap-y-12">
+          <AppHeader app={currentApp} />
+          <Configuration app={currentApp} />
+          <Stats />
         </div>
       )}
 
-      {!loading && (
+      {/* {!loading && (
         <Fragment>
           {!app && (
             <NotFound
@@ -89,7 +86,7 @@ export const App = memo(function App() {
             </div>
           )}
         </Fragment>
-      )}
+      )} */}
     </Layout>
   );
 });
