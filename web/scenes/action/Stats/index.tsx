@@ -179,7 +179,7 @@ export function Stats() {
 
               scales: {
                 x: {
-                  grid: { display: false, drawBorder: false },
+                  grid: { display: false },
 
                   ticks: {
                     color: "#858494",
@@ -192,9 +192,7 @@ export function Stats() {
                   beginAtZero: true,
 
                   grid: {
-                    borderDash: [6, 10],
                     color: "rgba(25, 28, 32, 0.1)",
-                    drawBorder: false,
                     drawOnChartArea: true,
                     drawTicks: false,
                   },
