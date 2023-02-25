@@ -1,25 +1,25 @@
+import { gql } from "@apollo/client";
+import { filterApps } from "common/helpers/filter-apps";
+import { graphQLRequest } from "frontend-api";
 import {
-  kea,
-  path,
   actions,
-  reducers,
-  listeners,
   afterMount,
   connect,
+  kea,
+  listeners,
+  path,
+  reducers,
   selectors,
 } from "kea";
-import type { AppType } from "types";
-import type { appsLogicType } from "./appsLogicType";
 import { forms } from "kea-forms";
-import { graphQLRequest } from "frontend-api";
-import { toast } from "react-toastify";
-import Router from "next/router";
-import { urls } from "urls";
-import { gql } from "@apollo/client";
 import { loaders } from "kea-loaders";
+import Router from "next/router";
 import posthog from "posthog-js";
+import { toast } from "react-toastify";
+import type { AppType } from "types";
+import { urls } from "urls";
 import { actionsLogic } from "./actionsLogic";
-import { filterApps } from "common/helpers/filter-apps";
+import type { appsLogicType } from "./appsLogicType";
 
 // TODO support adding a logo on app creation
 export type CreateAppFormValues = {

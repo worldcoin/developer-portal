@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import { Auth } from "common/Auth";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { urls } from "urls";
 import { Initial } from "./Initial";
 import { Success } from "./Success";
-import { useRouter } from "next/router";
-import { urls } from "urls";
-import { apps } from "common/Layout/temp-data";
 
 export function Signup() {
   const [state, setState] = useState<"initial" | "success">("initial");
