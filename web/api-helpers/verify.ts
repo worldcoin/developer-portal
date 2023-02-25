@@ -37,7 +37,6 @@ const queryFetchAppActionWithContractAddress = gql`
     $app_id: String!
     $action: String!
     $nullifier_hash: String!
-    $now: timestamptz!
   ) {
     cache(
       where: {
@@ -120,7 +119,6 @@ export const fetchActionForProof = async (
     variables: {
       app_id,
       nullifier_hash,
-      now: new Date().toISOString(),
       action,
     },
   });

@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { runCors } from "../../../../api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -26,7 +25,6 @@ export default async function handleVerify(
     "proof",
     "nullifier_hash",
     "merkle_root",
-    "signal",
     "credential_type",
   ]) {
     if (!req.body[attr]) {
@@ -40,6 +38,10 @@ export default async function handleVerify(
 
   if (req.body.action === null || req.body.action === undefined) {
     return errorRequiredAttribute("action", res);
+  }
+
+  if (req.body.signal === null || req.body.signal === undefined) {
+    return errorRequiredAttribute("signal", res);
   }
 
   if (!Object.values(CredentialType).includes(req.body.credential_type)) {

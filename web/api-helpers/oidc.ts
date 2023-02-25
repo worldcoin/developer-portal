@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
-import { CredentialType, IInternalError } from "types";
+import { CredentialType, IInternalError, OIDCResponseType } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -10,6 +10,12 @@ if (!GENERAL_SECRET_KEY) {
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
 }
+
+export const OIDCResponseTypeMapping = {
+  code: OIDCResponseType.Code,
+  id_token: OIDCResponseType.JWT,
+  token: OIDCResponseType.JWT,
+};
 
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
