@@ -2,9 +2,7 @@
 
 export const urls = {
   home: (): "/" => "/",
-  apps: (): "/apps" => "/apps",
-  app: (app_id: string): `/apps/${string}` => `/apps/${app_id}`,
-  appNew: (): "/apps/new" => "/apps/new",
+  app: (app_id: string): `/app/${string}` => `/app/${app_id}`,
   actions: (): "/actions" => "/actions",
 
   action: (

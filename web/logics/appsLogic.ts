@@ -160,7 +160,7 @@ export const appsLogic = kea<appsLogicType>([
               values.apps.filter(({ id }) => id !== app_id)
             );
             if (Router.pathname === urls.app("[app_id]")) {
-              Router.push(urls.apps());
+              Router.push("/");
             }
           }
 

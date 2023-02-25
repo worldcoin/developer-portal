@@ -15,6 +15,8 @@ import { NavItemGroup } from "./NavItemsGroup";
 import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { AppSelector } from "./AppSelector";
 import { useAppsContext } from "contexts/AppsContext";
+import { NewAppDialog } from "./NewAppDialog";
+import { useToggle } from "common/hooks";
 
 export const Layout = (props: {
   title?: string;
@@ -23,6 +25,7 @@ export const Layout = (props: {
 }) => {
   const { currentApp } = useAppsContext();
   const router = useRouter();
+  const newAppDialog = useToggle();
 
   return (
     <Fragment>
@@ -31,6 +34,11 @@ export const Layout = (props: {
       <Meta title={props.title} url={router.asPath} />
 
       <div className="grid h-screen grid-cols-auto/1fr font-rubik">
+        <NewAppDialog
+          open={newAppDialog.isOn}
+          onClose={newAppDialog.toggleOff}
+        />
+
         <aside className="min-w-[304px] overflow-y-auto px-6 gap-y-4 pt-8 pb-6 grid grid-rows-auto/1fr/auto">
           <header className="cursor-pointer">
             <Link href="/">
@@ -51,7 +59,7 @@ export const Layout = (props: {
           </header>
 
           <div className="grid gap-y-8 content-start">
-            <AppSelector />
+            <AppSelector onNewAppClick={newAppDialog.toggleOn} />
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">

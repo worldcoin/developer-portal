@@ -31,10 +31,16 @@ export const ButtonContent = memo(function ButtonContent(props: {
   );
 });
 
-export const AppSelector = memo(function AppsSelector() {
+export const AppSelector = memo(function AppsSelector(props: {
+  onNewAppClick: () => void;
+}) {
   const { apps, currentApp } = useAppsContext();
-
   const selector = useToggle();
+
+  const handleNewAppClick = useCallback(() => {
+    selector.toggleOff();
+    props.onNewAppClick();
+  }, [props, selector]);
 
   const isSelected = useCallback(
     (app: App) => app?.id === currentApp?.id,
@@ -90,14 +96,13 @@ export const AppSelector = memo(function AppsSelector() {
                 </Link>
               ))}
 
-              <Link
-                href={urls.appNew()}
-                onClick={selector.toggleOff}
+              <button
+                onClick={handleNewAppClick}
                 className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4"
               >
                 <Icon name="plus" className="w-5 h-5" />
-                <span>Add new app</span>
-              </Link>
+                <span className="text-start leading-none">Add new app</span>
+              </button>
             </div>
           </Fragment>
         )}
