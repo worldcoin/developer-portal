@@ -14,7 +14,6 @@ export const ButtonContent = memo(function ButtonContent(props: {
   app: App;
   selected?: boolean;
   className?: string;
-  withoutArrow?: boolean;
 }) {
   return (
     <div
@@ -28,13 +27,6 @@ export const ButtonContent = memo(function ButtonContent(props: {
       <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto">
         {props.app?.name}
       </span>
-
-      {props.selected && !props.withoutArrow && (
-        <Icon
-          name="angle-down"
-          className="group-hover:translate-x-1 transition-transform w-5 h-5 -rotate-90 ml-auto"
-        />
-      )}
     </div>
   );
 });
@@ -56,13 +48,6 @@ export const AppSelector = memo(function AppsSelector() {
 
   return (
     <div className="relative h-12">
-      <Link
-        href={urls.app(currentApp?.id ?? "#")}
-        className="absolute top-0 -right-12 text-0 bg-fbfbfc border border-ebecef rounded-xl leading-none p-[11px]"
-      >
-        <Icon name="angle-down" className="w-5 h-5 -rotate-90" />
-      </Link>
-
       <div
         className={cn(
           "absolute inset-x-0 top-0 bg-fbfbfc border border-ebecef rounded-xl transition-[max-height] overflow-hidden min-h-[44px] z-10",
@@ -81,7 +66,6 @@ export const AppSelector = memo(function AppsSelector() {
               <ButtonContent
                 app={currentApp}
                 selected={isSelected(currentApp)}
-                withoutArrow
               />
               <Icon
                 name="angle-down"

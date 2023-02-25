@@ -234,7 +234,12 @@ export const Stats = memo(function Stats() {
 
           <div className="grid gap-y-2 content-center">
             <StatCard title="Verifications" value="1,234" icon="chart" />
-            <StatCard title="Unique users" value="1,234" icon="siwi" />
+
+            <StatCard
+              title="Unique users"
+              value="1,234"
+              icon="world-id-sign-in"
+            />
           </div>
         </div>
 

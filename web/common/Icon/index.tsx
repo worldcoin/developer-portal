@@ -66,7 +66,6 @@ const iconNames = [
   "rocket",
   "search",
   "shield",
-  "siwi",
   "speed-test",
   "spinner-gradient",
   "spinner",
@@ -80,6 +79,7 @@ const iconNames = [
   "window",
   "wld-logo",
   "wld-sign-in",
+  "world-id-sign-in",
   "worldcoin",
   "withdraw",
 ] as const;

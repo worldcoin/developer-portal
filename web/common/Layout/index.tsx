@@ -14,12 +14,14 @@ import { SystemStatus } from "./SystemStatus";
 import { NavItemGroup } from "./NavItemsGroup";
 import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { AppSelector } from "./AppSelector";
+import { useAppsContext } from "contexts/AppsContext";
 
 export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
 }) => {
+  const { currentApp } = useAppsContext();
   const router = useRouter();
 
   return (
@@ -29,7 +31,7 @@ export const Layout = (props: {
       <Meta title={props.title} url={router.asPath} />
 
       <div className="grid h-screen grid-cols-auto/1fr font-rubik">
-        <aside className="min-w-[304px] overflow-y-auto pl-6 pr-16 gap-y-4 pt-8 pb-6 grid grid-rows-auto/1fr/auto">
+        <aside className="min-w-[304px] overflow-y-auto px-6 gap-y-4 pt-8 pb-6 grid grid-rows-auto/1fr/auto">
           <header className="cursor-pointer">
             <Link href="/">
               <div className="grid justify-start gap-y-0.5">
@@ -53,10 +55,14 @@ export const Layout = (props: {
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">
-                <NavItem icon="apps" name="Apps" href={urls.apps()} />
+                <NavItem
+                  icon="apps"
+                  name="App Profile"
+                  href={urls.app(currentApp?.id ?? "#")}
+                />
 
                 <NavItem
-                  icon="siwi"
+                  icon="world-id-sign-in"
                   name="Sign in"
                   href={urls.app(DEVELOPER_PORTAL_AUTH_APP.id)}
                 />

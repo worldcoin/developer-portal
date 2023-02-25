@@ -88,7 +88,7 @@ export const NavItem = memo(function NavItem(props: NavItemProps) {
   }, [props.href]);
 
   const isCurrentSection = useMemo(
-    () => router.pathname === props.href,
+    () => router.asPath === props.href,
     [props, router]
   );
 
