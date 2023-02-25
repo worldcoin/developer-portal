@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { runCors } from "../../../../api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,

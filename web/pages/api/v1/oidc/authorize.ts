@@ -70,16 +70,19 @@ export default async function handler(
     );
   }
 
-  if (
-    response_type &&
-    !Object.values(OIDCResponseType).includes(response_type)
-  ) {
-    return errorValidation(
-      "invalid",
-      "Invalid response type. If you are unsure, use 'implicit'.",
-      "response_type",
-      res
-    );
+  const response_types = decodeURIComponent(
+    (response_type as string | string[]).toString()
+  ).split(" ");
+
+  for (const response_type of response_types) {
+    if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
+      return errorValidation(
+        "invalid",
+        `Invalid response type: ${response_type}.`,
+        "response_type",
+        res
+      );
+    }
   }
 
   // ANCHOR: Check the app is valid and fetch information
@@ -124,7 +127,6 @@ export default async function handler(
   // ANCHOR: Proof is valid, issue relevant codes
   const response = {} as { code?: string; id_token?: string; token?: string };
 
-  const response_types = response_type.split(" ");
   if (response_types.includes(OIDCResponseType.Code)) {
     response.code = await generateOIDCCode(
       app.id,
@@ -133,27 +135,26 @@ export default async function handler(
     );
   }
 
-  await Promise.all(
-    Object.keys(OIDCResponseTypeMapping).map(async (key) => {
-      let jwt: string | undefined = undefined;
-      if (
-        OIDCResponseTypeMapping[key as keyof typeof OIDCResponseTypeMapping] ===
-        OIDCResponseType.JWT
-      ) {
-        if (!jwt) {
-          const jwk = await fetchActiveJWK();
-          jwt = await generateOIDCJWT({
-            app_id: app.id,
-            nullifier_hash,
-            credential_type,
-            nonce: nonce ?? "",
-            ...jwk,
-          });
-        }
-        response[key as keyof typeof OIDCResponseTypeMapping] = jwt;
+  let jwt: string | undefined;
+  for (const response_type of response_types) {
+    if (
+      OIDCResponseTypeMapping[
+        response_type as keyof typeof OIDCResponseTypeMapping
+      ] === OIDCResponseType.JWT
+    ) {
+      if (!jwt) {
+        const jwk = await fetchActiveJWK();
+        jwt = await generateOIDCJWT({
+          app_id: app.id,
+          nullifier_hash,
+          credential_type,
+          nonce: nonce ?? "",
+          ...jwk,
+        });
       }
-    })
-  );
+      response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
+    }
+  }
 
   res.status(200).json(response);
 }

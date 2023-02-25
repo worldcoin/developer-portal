@@ -95,7 +95,7 @@ export default async function handler(
   // FIXME: Verify the redirect_uri coming in the body
 
   const client = await getAPIServiceClient();
-  const now = new Date().getTime();
+  const now = new Date().toISOString();
   const { data } = await client.query<{
     auth_code: Array<Pick<AuthCodeModel, "nullifier_hash" | "credential_type">>;
   }>({

@@ -156,7 +156,7 @@ export const generateOIDCCode = async (
     variables: {
       app_id,
       auth_code,
-      expires_at: new Date(Date.now() + 1000 * 60 * 10).getTime(), // 10 minutes
+      expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
       credential_type,
     },
