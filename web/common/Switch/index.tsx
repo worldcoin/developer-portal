@@ -1,6 +1,6 @@
-import { memo, useCallback, ChangeEvent } from "react";
-import cn from "classnames";
 import { Switch as BaseSwitch } from "@headlessui/react";
+import cn from "classnames";
+import { memo } from "react";
 
 interface SwitchInterface {
   className?: string;

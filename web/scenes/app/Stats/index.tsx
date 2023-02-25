@@ -1,20 +1,20 @@
-import { Selector } from "./Selector";
-import { memo, useMemo, useState } from "react";
-import { Icon, IconType } from "common/Icon";
-import dayjs from "dayjs";
 import cn from "classnames";
+import { Icon, IconType } from "common/Icon";
 import { stats as tempStats } from "common/Layout/temp-data";
+import dayjs from "dayjs";
+import { memo, useMemo, useState } from "react";
+import { Selector } from "./Selector";
 
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
   LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend,
-  Filler,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";

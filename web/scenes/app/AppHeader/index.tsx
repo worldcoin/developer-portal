@@ -1,9 +1,9 @@
+import cn from "classnames";
 import { Icon } from "common/Icon";
 import { apps } from "common/Layout/temp-data";
 import { Switch } from "common/Switch";
 import Image from "next/image";
-import { memo, useCallback, useEffect, useState } from "react";
-import cn from "classnames";
+import { memo, useEffect, useState } from "react";
 import { useAppsStore } from "stores/app-store";
 
 export const AppHeader = memo(function AppHeader(props: {
