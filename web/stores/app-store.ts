@@ -10,6 +10,7 @@ type Actions = {
   setCurrentApp: (app: App) => void;
   setCurrentAppById: (id: string) => void;
   fetchApps: () => Promise<void>;
+  toggleAppActivity: (status: boolean) => void;
 };
 
 export const useAppsStore = create<States & Actions>((set, get) => ({
@@ -27,5 +28,9 @@ export const useAppsStore = create<States & Actions>((set, get) => ({
   fetchApps: async () => {
     const apps = tempApps;
     set(() => ({ apps }));
+  },
+
+  toggleAppActivity: (status: boolean) => {
+    //TODO toggle app activity logic
   },
 }));

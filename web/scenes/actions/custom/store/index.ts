@@ -1,4 +1,9 @@
-import { CustomAction, customActions } from "common/Layout/temp-data";
+import {
+  CustomAction,
+  customActions,
+  SignInAction,
+  signInActions,
+} from "common/Layout/temp-data";
 import { create } from "zustand";
 
 type States = {
@@ -15,7 +20,7 @@ export const useActionStore = create<States & Actions>((set) => ({
   setActions: (actions: Array<CustomAction>) => set(() => ({ actions })),
 
   fetchActions: async (app_id: string) => {
-    const actions = await customActions[app_id];
+    const actions = customActions[app_id];
     set(() => ({ actions }));
   },
 }));

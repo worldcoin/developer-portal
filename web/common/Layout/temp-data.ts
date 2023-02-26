@@ -1,5 +1,7 @@
 //FIXME: Temp data for testing
 
+import { randomUUID } from "crypto";
+
 export type App = (typeof apps)[0];
 
 export const apps = [
@@ -458,4 +460,38 @@ export const customActions: { [key: string]: Array<CustomAction> } = {
       ],
     },
   ],
+};
+
+export type SignInAction = (typeof signInActions)[string];
+
+export const signInActions = {
+  [apps[0].id]: {
+    app_id: apps[0].id,
+    client_secret: "8923765612389571928374981237489123",
+    client_secret_seen_once: true,
+    enabled: true,
+
+    redirect: {
+      uri: [
+        "https://world.id/api/auth/callback",
+        "https://world.id/api/auth/callback-2",
+      ],
+      default: "https://world.id/api/auth/callback",
+    },
+
+    default_auth_link: "",
+  },
+  [apps[1].id]: {
+    app_id: apps[1].id,
+    client_secret: "14950656123895719283749812377548950",
+    client_secret_seen_once: true,
+    enabled: false,
+
+    redirect: {
+      uri: [],
+      default: null,
+    },
+
+    default_auth_link: "",
+  },
 };

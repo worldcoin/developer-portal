@@ -5,13 +5,12 @@ import { Dialog } from "common/Dialog";
 import { DialogHeader } from "common/DialogHeader";
 import { FieldInput } from "common/FieldInput";
 import { FieldLabel } from "common/FieldLabel";
-import { isSSR } from "common/helpers/is-ssr";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
 import { CustomAction } from "common/Layout/temp-data";
 import { useEffect, useMemo } from "react";
-import { useActionStore } from "stores/action-store";
+import { useActionStore } from "./store";
 import { useAppsStore } from "stores/app-store";
 import { shallow } from "zustand/shallow";
 import { Action } from "./Action";
@@ -69,9 +68,11 @@ export function Actions(props: {
         </Dialog>
 
         <div className="grid gap-y-12">
-          <section>
-            <h1 className="font-sora text-24 font-semibold">Custom Actions</h1>
-            <p className="text-18 text-neutral-secondary">
+          <section className="grid gap-y-3">
+            <h1 className="font-sora text-24 font-semibold leading-tight">
+              Custom Actions
+            </h1>
+            <p className="text-18 text-neutral-secondary leading-none">
               Prove unique humanness for unique actions within your application.
             </p>
           </section>

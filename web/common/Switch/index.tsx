@@ -6,6 +6,10 @@ interface SwitchInterface {
   className?: string;
   checked?: boolean;
   toggle: (checked: boolean) => void;
+  customColors?: {
+    checked?: string;
+    unchecked?: string;
+  };
 }
 
 export const Switch = memo(function Switch(props: SwitchInterface) {
@@ -15,8 +19,11 @@ export const Switch = memo(function Switch(props: SwitchInterface) {
       onChange={props.toggle}
       className={cn(
         "relative inline-flex w-11 h-6 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75",
-        { "bg-neutral-secondary": !props.checked },
-        { "bg-primary": props.checked }
+        {
+          [`${props.customColors?.unchecked ?? "bg-neutral-secondary"}`]:
+            !props.checked,
+        },
+        { [`${props.customColors?.checked ?? "bg-primary"}`]: props.checked }
       )}
     >
       <span

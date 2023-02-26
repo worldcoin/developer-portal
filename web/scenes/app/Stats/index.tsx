@@ -1,7 +1,6 @@
 import { Selector } from "./Selector";
 import { memo, useMemo, useState } from "react";
 import { Icon, IconType } from "common/Icon";
-import { App, useAppsContext } from "contexts/AppsContext";
 import dayjs from "dayjs";
 import cn from "classnames";
 import { stats as tempStats } from "common/Layout/temp-data";
