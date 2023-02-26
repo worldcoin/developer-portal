@@ -236,7 +236,7 @@ export const authenticateOIDCEndpoint = async (
   const candidate_secret = hmac.digest("hex");
 
   if (hmac_secret !== candidate_secret) {
-    console.info("authenticateOIDCEndpoint - Invalid client secret.");
+    console.warn("authenticateOIDCEndpoint - Invalid client secret.");
     return null;
   }
 
