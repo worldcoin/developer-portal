@@ -1,3 +1,12 @@
 table:
   name: api_key
   schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - team_id
+      filter:
+        is_active:
+          _eq: true
