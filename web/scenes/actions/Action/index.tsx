@@ -1,5 +1,12 @@
+import {
+  Fragment,
+  memo,
+  MouseEvent as ReactMouseEvent,
+  useCallback,
+  useMemo,
+} from "react";
+
 import { CustomAction } from "common/Layout/temp-data";
-import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
 import { Disclosure, Transition } from "@headlessui/react";
 import { ActionHeader } from "./ActionHeader";
 import dayjs from "dayjs";
@@ -72,7 +79,7 @@ export const Action = memo(function Action(props: { action: CustomAction }) {
               leaveTo="max-h-0"
             >
               <Disclosure.Panel
-                onClick={(e) => {
+                onClick={(e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => {
                   e.stopPropagation();
                 }}
                 className="text-gray-500 grid border-t border-f3f4f5 pt-4 px-6 pb-6 cursor-auto select-text"
