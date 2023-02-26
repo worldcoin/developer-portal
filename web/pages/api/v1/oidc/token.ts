@@ -49,6 +49,8 @@ export default async function handler(
     );
   }
 
+  console.log("Starting /token endpoint", req.body, req.headers);
+
   // ANCHOR: Authenticate the request
   let authToken = req.headers.authorization;
 

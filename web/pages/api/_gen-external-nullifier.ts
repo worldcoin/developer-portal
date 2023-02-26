@@ -59,7 +59,7 @@ export default async function handler(
   if (
     response.data.update_action_by_pk?.external_nullifier === external_nullifier
   ) {
-    res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
   }
 
   res.status(500).json({ success: false, hasura_response: response });
