@@ -46,7 +46,6 @@ insert_permissions:
         - id
         - logo_url
         - name
-        - redirect_uris
   - role: user
     permission:
       check: {}
@@ -87,7 +86,6 @@ select_permissions:
         - is_staging
         - logo_url
         - name
-        - redirect_uris
         - status
         - team_id
         - user_interfaces

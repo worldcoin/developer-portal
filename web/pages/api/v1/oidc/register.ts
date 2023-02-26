@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { errorNotAllowed, errorRequiredAttribute } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import crypto from "crypto";
+import { generateOIDCSecret } from "api-helpers/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -15,18 +15,11 @@ const insertClientQuery = gql`
   mutation InsertClient(
     $name: String = ""
     $logo_url: String = ""
-    $redirect_uris: jsonb = ""
     $team_name: String = ""
   ) {
     insert_team_one(
       object: {
-        apps: {
-          data: {
-            name: $name
-            logo_url: $logo_url
-            redirect_uris: $redirect_uris
-          }
-        }
+        apps: { data: { name: $name, logo_url: $logo_url } }
         name: $team_name
       }
     ) {
@@ -37,22 +30,6 @@ const insertClientQuery = gql`
     }
   }
 `;
-
-// const insertSecretQuery = gql`
-//   mutation InsertSecret($id: String = "", $client_secret: String = "") {
-//     update_app_by_pk(
-//       pk_columns: { id: $id }
-//       _set: { client_secret: $client_secret }
-//     ) {
-//       id
-//       name
-//       logo_url
-//       redirect_uris
-//       client_secret
-//       created_at
-//     }
-//   }
-// `;
 
 const updateSecretQuery = gql`
   mutation UpdateSecret($app_id: String = "", $client_secret: String = "") {
@@ -66,7 +43,7 @@ const updateSecretQuery = gql`
           id
           name
           logo_url
-          redirect_uris
+          # redirect_uris // TODO: Add back once redirect table is live
           created_at
         }
       }
@@ -97,7 +74,10 @@ export default async function handleRegister(
     try {
       const url = new URL(redirect);
       if (url.protocol !== "https:") {
-        throw Error();
+        return res.status(400).json({
+          error: "invalid_redirect_uri",
+          error_description: "All redirect_uris must use HTTPS",
+        });
       }
     } catch (error) {
       return res.status(400).json({
@@ -115,7 +95,6 @@ export default async function handleRegister(
     variables: {
       name: req.body.client_name,
       logo_url: req.body.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
-      redirect_uris: req.body.redirect_uris,
       team_name: req.body.client_name,
     },
   });
@@ -125,22 +104,16 @@ export default async function handleRegister(
   }
 
   // Generate client_secret
-  const clientId = insertClientResponse.data.insert_team_one.apps[0].id;
-  const clientSecret = "secret_" + crypto.randomBytes(16).toString("hex");
-  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY!);
-  hmac.update(`${clientId}.${clientSecret}`);
-
-  const hmacSecret = hmac.digest("hex");
+  const app_id = insertClientResponse.data.insert_team_one.apps[0].id;
+  const { client_secret, hashed_secret } = generateOIDCSecret(app_id);
 
   const updateSecretResponse = await client.mutate({
     mutation: updateSecretQuery,
     variables: {
-      app_id: clientId,
-      client_secret: hmacSecret,
+      app_id,
+      client_secret: hashed_secret,
     },
   });
-
-  console.log(updateSecretResponse.data.update_action.returning); // DEBUG
 
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
     const app = updateSecretResponse.data.update_action.returning[0].app;
@@ -149,11 +122,11 @@ export default async function handleRegister(
       client_id: app.id,
       client_id_issued_at: app.created_at,
       client_name: app.name,
-      client_secret: clientSecret,
+      client_secret,
       client_secret_expires_at: 0,
       grant_types: (req.body.grant_types = "authorization_code"),
       logo_uri: app.logo_url,
-      redirect_uris: app.redirect_uris,
+      // redirect_uris: app.redirect_uris, // TODO: Add back once redirect table is live
       response_types: (req.body.response_types = "code"),
     });
   } else {
