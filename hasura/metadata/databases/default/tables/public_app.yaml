@@ -39,6 +39,13 @@ insert_permissions:
         - name
         - status
         - user_interfaces
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - id
+        - logo_url
+        - name
   - role: user
     permission:
       check: {}
@@ -71,6 +78,7 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - created_at
         - description_internal
         - engine
         - id

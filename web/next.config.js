@@ -9,6 +9,14 @@ const nextConfig = {
       key.startsWith("NEXT_PUBLIC_")
     )
   ),
+  async rewrites() {
+    return [
+      {
+        source: "/.well-known/openid-configuration",
+        destination: "/api/v1/oidc/.well-known/openid-configuration",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

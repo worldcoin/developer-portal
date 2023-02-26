@@ -10,7 +10,7 @@ import { errorHasuraQuery, errorNotAllowed } from "../../api-helpers/errors";
  * @param req
  * @param res
  */
-export default async function handler(
+export default async function handleSecretReset(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
