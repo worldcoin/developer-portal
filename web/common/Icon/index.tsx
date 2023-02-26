@@ -11,6 +11,7 @@ const iconNames = [
   "apps-actions",
   "apps",
   "arbitrum",
+  "arrow-left",
   "arrow-right",
   "badge",
   "badge-check",
