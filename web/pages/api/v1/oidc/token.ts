@@ -137,7 +137,7 @@ export default async function handler(
     access_token: token,
     token_type: "Bearer",
     expires_in: 3600,
-    scope: code.scope,
+    scope: code.scope.join(" "),
     id_token: token,
   });
 }
