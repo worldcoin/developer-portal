@@ -87,10 +87,10 @@ export default async function handler(
     }
   }
 
-  // TODO: Validate scopes
+  // TODO: Validate scopes (min openid, not unsupported scopes, remove duplicates)
   const scopes = decodeURIComponent(
-    (scope as string | string[]).toString()
-  ).split("") as OIDCScopes[];
+    (scope as string | string[])?.toString()
+  ).split(" ") as OIDCScopes[];
   const sanitizedScopes: OIDCScopes[] = scopes.length ? scopes : ["openid"];
 
   // ANCHOR: Check the app is valid and fetch information
