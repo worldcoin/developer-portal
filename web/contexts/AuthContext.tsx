@@ -56,7 +56,7 @@ export const AuthProvider = memo(function AuthProvider(props: {
     const returnTo = sessionStorage.getItem("returnTo");
 
     if (!returnTo) {
-      router.push(urls.dashboard());
+      router.push(urls.app());
       return;
     }
 

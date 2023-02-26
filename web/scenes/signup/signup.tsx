@@ -26,7 +26,7 @@ export function Signup() {
         )}
 
         {state === "success" && (
-          <Success onContinue={() => router.push(urls.app(apps[0].id))} />
+          <Success onContinue={() => router.push(urls.app())} />
         )}
       </div>
     </Auth>

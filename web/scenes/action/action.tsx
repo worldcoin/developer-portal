@@ -160,7 +160,7 @@ export function Action(): JSX.Element | null {
             heading="Action not found"
             description="It seems like we can't find the action you're looking for. Please, try creating a new one!"
             icon="action-not-found"
-            link={urls.actions()}
+            link={urls.actions("custom")}
             linkLabel="Go to all actions"
           />
         )}
