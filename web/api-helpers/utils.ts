@@ -114,7 +114,7 @@ export const fetchSmartContractAddress = async (
   is_staging: boolean
 ): Promise<string> => {
   const fetchContractsQuery = gql`
-    query FetchContracts() {
+    query FetchContracts {
       cache(
         where: {
           _or: [
