@@ -43,7 +43,6 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - client_secret
         - id
         - logo_url
         - name
@@ -80,7 +79,6 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - client_secret
         - created_at
         - description_internal
         - engine
@@ -124,12 +122,6 @@ update_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
-      check: null
-  - role: service
-    permission:
-      columns:
-        - client_secret
-      filter: {}
       check: null
   - role: user
     permission:

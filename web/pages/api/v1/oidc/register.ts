@@ -1,9 +1,5 @@
 import { gql } from "@apollo/client";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "api-helpers/errors";
+import { errorNotAllowed, errorRequiredAttribute } from "api-helpers/errors";
 import { getAPIServiceClient } from "api-helpers/graphql";
 import crypto from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -42,24 +38,45 @@ const insertClientQuery = gql`
   }
 `;
 
-const insertSecretQuery = gql`
-  mutation InsertSecret($id: String = "", $client_secret: String = "") {
-    update_app_by_pk(
-      pk_columns: { id: $id }
+// const insertSecretQuery = gql`
+//   mutation InsertSecret($id: String = "", $client_secret: String = "") {
+//     update_app_by_pk(
+//       pk_columns: { id: $id }
+//       _set: { client_secret: $client_secret }
+//     ) {
+//       id
+//       name
+//       logo_url
+//       redirect_uris
+//       client_secret
+//       created_at
+//     }
+//   }
+// `;
+
+const updateSecretQuery = gql`
+  mutation UpdateSecret($app_id: String = "", $client_secret: String = "") {
+    update_action(
+      where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
       _set: { client_secret: $client_secret }
     ) {
-      id
-      name
-      logo_url
-      redirect_uris
-      client_secret
-      created_at
+      returning {
+        id
+        app {
+          id
+          name
+          logo_url
+          redirect_uris
+          created_at
+        }
+      }
     }
   }
 `;
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
+ * TODO: Add heavy rate limiting to the endpoint
  * @param req
  * @param res
  */
@@ -97,19 +114,14 @@ export default async function handleRegister(
     mutation: insertClientQuery,
     variables: {
       name: req.body.client_name,
-      logo_url: req.body.logo_uri,
+      logo_url: req.body.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
       redirect_uris: req.body.redirect_uris,
       team_name: req.body.client_name,
     },
   });
 
   if (!insertClientResponse?.data?.insert_team_one?.apps?.length) {
-    return errorResponse(
-      res,
-      500,
-      "insert_failed",
-      "Could not insert the client"
-    );
+    throw Error("Could not insert the client");
   }
 
   // Generate client_secret
@@ -120,19 +132,18 @@ export default async function handleRegister(
 
   const hmacSecret = hmac.digest("hex");
 
-  console.log(clientSecret); // DEBUG
-  console.log(hmacSecret); // DEBUG
-
-  const insertSecretResponse = await client.mutate({
-    mutation: insertSecretQuery,
+  const updateSecretResponse = await client.mutate({
+    mutation: updateSecretQuery,
     variables: {
-      id: clientId,
-      client_secret: clientSecret,
+      app_id: clientId,
+      client_secret: hmacSecret,
     },
   });
 
-  if (insertSecretResponse?.data?.update_app_by_pk) {
-    const app = insertSecretResponse.data.update_app_by_pk;
+  console.log(updateSecretResponse.data.update_action.returning); // DEBUG
+
+  if (updateSecretResponse?.data?.update_action?.returning?.length) {
+    const app = updateSecretResponse.data.update_action.returning[0].app;
     res.status(201).json({
       application_type: (req.body.application_type = "web"),
       client_id: app.id,
@@ -146,11 +157,6 @@ export default async function handleRegister(
       response_types: (req.body.response_types = "code"),
     });
   } else {
-    return errorResponse(
-      res,
-      500,
-      "insert_failed",
-      "Could not insert the client"
-    );
+    throw Error("Could not insert the client");
   }
 }
