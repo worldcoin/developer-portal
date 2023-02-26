@@ -27,8 +27,8 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
   ).digest,
 };
 
-// ANCHOR: OIDC Issuer URI
-export const OIDC_ISSUER = "https://id.worldcoin.org"; // TODO: Need to decide on domain name strategy
+// ANCHOR: OIDC Base URL
+export const OIDC_BASE_URL = "https://id.worldcoin.org";
 
 // ANCHOR: JWKs
 export const JWK_ALG = "PS256";

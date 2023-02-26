@@ -21,10 +21,6 @@ export default async function handler(
 
   const token = authorization.replace("Bearer ", "");
 
-  // FIXME: remove
-  console.log("Starting /userinfo endpoint");
-  console.log(req.body);
-
   try {
     const payload = await verifyOIDCJWT(token); // TODO: @igorosip0v Add test for expired tokens, invalid tokens, ...
     const response: Record<string, any> = {

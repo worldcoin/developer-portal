@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed } from "../../../../../api-helpers/errors";
-import { OIDC_ISSUER } from "../../../../../consts";
+import { errorNotAllowed } from "../../../../api-helpers/errors";
+import { OIDC_BASE_URL } from "../../../../consts";
+import { JWT_ISSUER } from "../../../../api-helpers/jwts";
+import { OIDCScopes } from "../../../../api-helpers/oidc";
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
@@ -16,13 +18,13 @@ export default async function handleOidcConfig(
   }
 
   res.status(200).json({
-    issuer: OIDC_ISSUER,
-    authorization_endpoint: `${OIDC_ISSUER}/api/v1/oidc/authorize`,
-    token_endpoint: `${OIDC_ISSUER}/api/v1/oidc/token`,
-    userinfo_endpoint: `${OIDC_ISSUER}/api/v1/oidc/userinfo`,
-    registration_endpoint: `${OIDC_ISSUER}/api/v1/oidc/register`,
-    jwks_uri: `${OIDC_ISSUER}/api/v1/oidc/jwks`,
-    scopes_supported: ["openid"],
+    issuer: JWT_ISSUER,
+    authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
+    token_endpoint: `${OIDC_BASE_URL}/token`,
+    userinfo_endpoint: `${OIDC_BASE_URL}/userinfo`,
+    registration_endpoint: `${OIDC_BASE_URL}/register`,
+    jwks_uri: `${OIDC_BASE_URL}/jwks.json`,
+    scopes_supported: Object.values(OIDCScopes),
     response_types_supported: [
       "code", // Authorization code flow
       "id_token", // Implicit flow
@@ -30,7 +32,7 @@ export default async function handleOidcConfig(
       "code id_token", // Hybrid flow
     ],
     grant_types_supported: ["authorization_code", "implicit"],
-    subject_types_supported: ["public"],
+    subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
     id_token_signing_alg_values_supported: ["RSA"],
   });
 }

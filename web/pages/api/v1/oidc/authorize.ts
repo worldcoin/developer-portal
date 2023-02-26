@@ -92,7 +92,9 @@ export default async function handler(
   const scopes = decodeURIComponent(
     (scope as string | string[])?.toString()
   ).split(" ") as OIDCScopes[];
-  const sanitizedScopes: OIDCScopes[] = scopes.length ? scopes : ["openid"];
+  const sanitizedScopes: OIDCScopes[] = scopes.length
+    ? scopes
+    : [OIDCScopes.OpenID];
 
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(app_id);
