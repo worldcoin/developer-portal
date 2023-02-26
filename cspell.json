@@ -43,6 +43,7 @@
     "timestamptz",
     "toastify",
     "unarchived",
-    "Worldcoin"
+    "Worldcoin",
+    "zustand"
   ]
 }

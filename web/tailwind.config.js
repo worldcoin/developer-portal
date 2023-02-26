@@ -66,7 +66,7 @@ module.exports = {
         "#dbe3e8",
         "#ebecef",
         "#edbd14",
-        "#edecfc",
+        "#edecfc", //FIXME: duplicate for primary-light
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
@@ -106,6 +106,7 @@ module.exports = {
         13: "calc(13 * 1rem / 16)",
         14: "calc(14 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
+        18: "calc(16 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
         24: "calc(24 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",
