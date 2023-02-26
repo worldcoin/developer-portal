@@ -9,6 +9,7 @@ import * as jose from "jose";
 import { CredentialType, JwtConfig } from "../types";
 import { JWK_ALG } from "consts";
 import { retrieveJWK } from "./jwks";
+import { OIDCScopes } from "./oidc";
 
 const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -187,6 +188,7 @@ interface IVerificationJWT {
   nullifier_hash: string;
   app_id: string;
   credential_type: CredentialType;
+  scope: OIDCScopes[];
 }
 
 /**
@@ -200,11 +202,13 @@ export const generateOIDCJWT = async ({
   private_jwk,
   kid,
   credential_type,
+  scope,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
     sub: nullifier_hash,
     jti: randomUUID(),
     aud: app_id,
+    scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {
       likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
       credential_type,

@@ -17,6 +17,8 @@ export const OIDCResponseTypeMapping = {
   token: OIDCResponseType.JWT,
 };
 
+export type OIDCScopes = "openid" | "email" | "profile";
+
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
     app(
@@ -55,6 +57,7 @@ const insertAuthCodeQuery = gql`
     $nullifier_hash: String!
     $app_id: String!
     $credential_type: String!
+    $scope: jsonb!
   ) {
     insert_auth_code_one(
       object: {
@@ -63,6 +66,7 @@ const insertAuthCodeQuery = gql`
         nullifier_hash: $nullifier_hash
         app_id: $app_id
         credential_type: $credential_type
+        scope: $scope
       }
     ) {
       auth_code
@@ -148,7 +152,8 @@ export const fetchOIDCApp = async (
 export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
-  credential_type: CredentialType
+  credential_type: CredentialType,
+  scope: OIDCScopes[]
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -165,6 +170,7 @@ export const generateOIDCCode = async (
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
       credential_type,
+      scope,
     },
   });
 
