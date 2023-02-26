@@ -31,7 +31,7 @@ export default async function handler(
       sub: payload.sub,
       "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],
     };
-    const scopes = payload.scope?.toString().split(" ");
+    const scopes = (payload.scope as string)?.toString().split(" ");
 
     if (scopes?.includes("email")) {
       response.email = "testemail@example.com";
