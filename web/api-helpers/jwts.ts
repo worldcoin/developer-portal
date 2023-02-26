@@ -7,11 +7,11 @@
 import { randomUUID } from "crypto";
 import * as jose from "jose";
 import { CredentialType, JwtConfig } from "../types";
-import { JWK_ALG, JWK_ALG_OIDC } from "consts";
+import { JWK_ALG_OIDC } from "consts";
 import { retrieveJWK } from "./jwks";
 import { OIDCScopes } from "./oidc";
 
-const JWT_ISSUER = process.env.JWT_ISSUER;
+export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 const JWT_CONFIG: JwtConfig = JSON.parse(
   process.env.HASURA_GRAPHQL_JWT_SECRET || ""

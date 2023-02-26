@@ -17,7 +17,11 @@ export const OIDCResponseTypeMapping = {
   token: OIDCResponseType.JWT,
 };
 
-export type OIDCScopes = "openid" | "email" | "profile";
+export enum OIDCScopes {
+  OpenID = "openid",
+  Email = "email",
+  Profile = "profile",
+}
 
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {

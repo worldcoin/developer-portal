@@ -13,7 +13,7 @@ const nextConfig = {
     return [
       {
         source: "/.well-known/openid-configuration",
-        destination: "/api/v1/oidc/.well-known/openid-configuration",
+        destination: "/api/v1/oidc/openid-configuration",
       },
     ];
   },

@@ -51,10 +51,6 @@ export default async function handler(
     );
   }
 
-  // FIXME: remove
-  console.log("Starting /token endpoint");
-  console.log(req.body);
-
   // ANCHOR: Authenticate the request
   let authToken = req.headers.authorization;
 
