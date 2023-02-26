@@ -9,12 +9,11 @@ const nextConfig = {
       key.startsWith("NEXT_PUBLIC_")
     )
   ),
-  async redirects() {
+  async rewrites() {
     return [
       {
-        source: "/api/v1/oidc/.well-known/openid-configuration",
-        destination: "/.well-known/openid-configuration",
-        permanent: true,
+        source: "/.well-known/openid-configuration",
+        destination: "/api/v1/oidc/.well-known/openid-configuration",
       },
     ];
   },

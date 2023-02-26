@@ -53,7 +53,6 @@ const updateSecretQuery = gql`
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
- * TODO: Add heavy rate limiting to the endpoint
  * @param req
  * @param res
  */
@@ -68,6 +67,8 @@ export default async function handleRegister(
   if (!req.body["redirect_uris"]) {
     return errorRequiredAttribute("redirect_uris", res);
   }
+
+  // TODO: Add heavy rate limiting to the endpoint
 
   // Parse redirect_uris into array and validate
   for (const redirect in req.body.redirects) {
