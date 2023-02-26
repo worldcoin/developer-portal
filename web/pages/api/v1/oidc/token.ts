@@ -28,6 +28,7 @@ const verifyAuthCodeQuery = gql`
     ) {
       nullifier_hash
       credential_type
+      scope
     }
   }
 `;
@@ -49,7 +50,9 @@ export default async function handler(
     );
   }
 
-  console.log("Starting /token endpoint", req.body, req.headers);
+  // FIXME: remove
+  console.log("Starting /token endpoint");
+  console.log(req.body);
 
   // ANCHOR: Authenticate the request
   let authToken = req.headers.authorization;
@@ -99,7 +102,9 @@ export default async function handler(
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
   const { data } = await client.query<{
-    auth_code: Array<Pick<AuthCodeModel, "nullifier_hash" | "credential_type">>;
+    auth_code: Array<
+      Pick<AuthCodeModel, "nullifier_hash" | "credential_type" | "scope">
+    >;
   }>({
     query: verifyAuthCodeQuery,
     variables: {
@@ -125,13 +130,14 @@ export default async function handler(
     nullifier_hash: code.nullifier_hash,
     credential_type: code.credential_type,
     ...jwk,
+    scope: code.scope,
   });
 
   return res.status(200).json({
     access_token: token,
     token_type: "Bearer",
     expires_in: 3600,
-    scope: "openid",
+    scope: code.scope.join(" "),
     id_token: token,
   });
 }

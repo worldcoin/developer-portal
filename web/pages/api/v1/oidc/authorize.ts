@@ -10,6 +10,7 @@ import {
   fetchOIDCApp,
   generateOIDCCode,
   OIDCResponseTypeMapping,
+  OIDCScopes,
 } from "api-helpers/oidc";
 import { generateOIDCJWT } from "api-helpers/jwts";
 import { verifyProof } from "api-helpers/verify";
@@ -59,6 +60,7 @@ export default async function handler(
     credential_type,
     response_type,
     app_id,
+    scope,
   } = req.body;
 
   if (!Object.values(CredentialType).includes(credential_type)) {
@@ -84,6 +86,12 @@ export default async function handler(
       );
     }
   }
+
+  // TODO: Validate scopes (min openid, not unsupported scopes, remove duplicates)
+  const scopes = decodeURIComponent(
+    (scope as string | string[])?.toString()
+  ).split(" ") as OIDCScopes[];
+  const sanitizedScopes: OIDCScopes[] = scopes.length ? scopes : ["openid"];
 
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(app_id);
@@ -131,7 +139,8 @@ export default async function handler(
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
-      credential_type
+      credential_type,
+      sanitizedScopes
     );
   }
 
@@ -149,6 +158,7 @@ export default async function handler(
           nullifier_hash,
           credential_type,
           nonce: nonce ?? "",
+          scope: sanitizedScopes,
           ...jwk,
         });
       }

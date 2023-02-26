@@ -13,6 +13,10 @@ export default async function handleJWKs(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // FIXME: remove
+  console.log("Starting /jwks endpoint");
+  console.log(req.body);
+
   await runCors(req, res);
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);

@@ -89,6 +89,7 @@ export interface AuthCodeModel {
   expires_at: DateTime;
   nullifier_hash: string;
   credential_type: CredentialType;
+  scope: [];
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "auth_code";
