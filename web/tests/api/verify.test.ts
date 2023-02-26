@@ -75,7 +75,7 @@ describe("/api/v1/verify", () => {
       method: "POST",
       body: { ...validPayload },
     });
-    const jwk = await generateJWK();
+    const jwk = await generateJWK("PS256");
 
     when(requestReturnFn)
       .calledWith(

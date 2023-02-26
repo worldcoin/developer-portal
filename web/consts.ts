@@ -29,3 +29,4 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
 
 // ANCHOR: JWKs
 export const JWK_ALG = "PS256";
+export const JWK_ALG_OIDC = "RS256";

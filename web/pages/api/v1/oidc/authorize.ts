@@ -16,6 +16,7 @@ import { generateOIDCJWT } from "api-helpers/jwts";
 import { verifyProof } from "api-helpers/verify";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "types";
+import { JWK_ALG_OIDC } from "consts";
 
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
@@ -87,7 +88,7 @@ export default async function handler(
     }
   }
 
-  // TODO: Validate scopes (min openid, not unsupported scopes, remove duplicates)
+  // TODO: Validate scopes (min openid, not unsupported scopes, remove duplicates, sort?)
   const scopes = decodeURIComponent(
     (scope as string | string[])?.toString()
   ).split(" ") as OIDCScopes[];
@@ -152,7 +153,7 @@ export default async function handler(
       ] === OIDCResponseType.JWT
     ) {
       if (!jwt) {
-        const jwk = await fetchActiveJWK();
+        const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
