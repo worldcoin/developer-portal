@@ -78,7 +78,7 @@ export const Layout = (props: {
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
-                  href={urls.actions()}
+                  href={urls.customActions()}
                 />
               </NavItemGroup>
 

@@ -12,6 +12,7 @@ export const urls = {
 
   actionNew: (): "/actions/new" => "/actions/new",
   actionsArchived: (): "/actions?show_archived=1" => "/actions?show_archived=1",
+  customActions: (): "/actions/custom" => "/actions/custom",
   dashboard: (): "/dashboard" => "/dashboard",
 
   hostedPage: (action_id: string): `/hosted/${string}` =>
