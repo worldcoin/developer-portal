@@ -1,19 +1,22 @@
 import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { Preloader } from "common/Preloader";
-import { useAppsContext } from "contexts/AppsContext";
 import { memo, useEffect, useState } from "react";
+import { useAppsStore } from "stores/app-store";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
+import { shallow } from "zustand/shallow";
 
 export const App = memo(function App(props: { appId: string }) {
-  const { currentApp, selectAppById } = useAppsContext();
-  const [loading, setLoading] = useState(true);
+  const { currentApp, fetchApps } = useAppsStore(
+    (state) => ({
+      ...state,
+    }),
+    shallow
+  );
 
-  useEffect(() => {
-    selectAppById(props.appId);
-  }, [props.appId, selectAppById]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!currentApp) {

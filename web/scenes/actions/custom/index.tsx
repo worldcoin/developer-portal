@@ -5,16 +5,32 @@ import { Dialog } from "common/Dialog";
 import { DialogHeader } from "common/DialogHeader";
 import { FieldInput } from "common/FieldInput";
 import { FieldLabel } from "common/FieldLabel";
+import { isSSR } from "common/helpers/is-ssr";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
+import { CustomAction } from "common/Layout/temp-data";
+import { useEffect, useMemo } from "react";
 import { useActionStore } from "stores/action-store";
+import { useAppsStore } from "stores/app-store";
+import { shallow } from "zustand/shallow";
 import { Action } from "./Action";
 
-export function Actions(): JSX.Element | null {
+export function Actions(props: {
+  actions: Array<CustomAction>;
+}): JSX.Element | null {
   const dialog = useToggle();
-  const actions = useActionStore((state) => state.actions);
-  console.log(actions);
+
+  const currentApp = useAppsStore((store) => store.currentApp);
+
+  const { actions, setActions, fetchActions } = useActionStore(
+    (store) => ({ ...store }),
+    shallow
+  );
+
+  useEffect(() => {
+    fetchActions(currentApp?.id ?? "");
+  }, [actions, currentApp?.id, fetchActions, setActions]);
 
   return (
     <AuthRequired>
@@ -88,7 +104,7 @@ export function Actions(): JSX.Element | null {
             </div>
 
             <div className="grid gap-y-4">
-              {actions.map((action) => (
+              {actions?.map((action) => (
                 <Action key={action.id} action={action} />
               ))}
             </div>

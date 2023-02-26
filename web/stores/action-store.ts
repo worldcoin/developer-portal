@@ -5,11 +5,17 @@ type States = {
   actions: Array<CustomAction>;
 };
 
-export const useActionStore = create<States>(() => ({
-  actions: customActions,
-}));
-
-export const fetchActions = async () => {
-  const actions = customActions;
-  return useActionStore.setState({ actions });
+type Actions = {
+  setActions: (actions: Array<CustomAction>) => void;
+  fetchActions: (app_id: string) => Promise<void>;
 };
+
+export const useActionStore = create<States & Actions>((set) => ({
+  actions: [],
+  setActions: (actions: Array<CustomAction>) => set(() => ({ actions })),
+
+  fetchActions: async (app_id: string) => {
+    const actions = await customActions[app_id];
+    set(() => ({ actions }));
+  },
+}));

@@ -89,8 +89,6 @@ export const Stats = memo(function Stats() {
   const [timespan, setTimespan] = useState(timespans[0]);
   const cumulative = true;
 
-  console.log(stats);
-
   const labelDateFormat = useMemo(() => {
     switch (timespan.value) {
       case "month":

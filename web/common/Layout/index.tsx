@@ -12,18 +12,16 @@ import cn from "classnames";
 import { CookieBanner } from "common/CookieBanner/CookieBanner";
 import { SystemStatus } from "./SystemStatus";
 import { NavItemGroup } from "./NavItemsGroup";
-import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { AppSelector } from "./AppSelector";
-import { useAppsContext } from "contexts/AppsContext";
 import { NewAppDialog } from "./NewAppDialog";
 import { useToggle } from "common/hooks";
+import { useAppsStore } from "stores/app-store";
 
 export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
 }) => {
-  const { currentApp } = useAppsContext();
   const router = useRouter();
   const newAppDialog = useToggle();
 
@@ -63,22 +61,18 @@ export const Layout = (props: {
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">
-                <NavItem
-                  icon="apps"
-                  name="App Profile"
-                  href={urls.app(currentApp?.id ?? "#")}
-                />
+                <NavItem icon="apps" name="App Profile" href={urls.app()} />
 
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign in"
-                  href={urls.app(DEVELOPER_PORTAL_AUTH_APP.id)}
+                  href={urls.actions("signin")}
                 />
 
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
-                  href={urls.customActions()}
+                  href={urls.actions("custom")}
                 />
               </NavItemGroup>
 
