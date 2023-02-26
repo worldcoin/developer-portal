@@ -29,3 +29,6 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
 
 // ANCHOR: OIDC Issuer URI
 export const OIDC_ISSUER_URI = "https://oidc.worldcoin.org";
+
+// ANCHOR: JWKs
+export const JWK_ALG = "PS256";

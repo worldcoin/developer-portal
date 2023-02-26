@@ -1,5 +1,5 @@
 import { AppLogo } from "common/AppLogo";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { Icon } from "common/Icon";
 import { Widget } from "common/Widget";
 import { memo } from "react";

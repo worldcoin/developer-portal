@@ -9,7 +9,14 @@ import { useToggle } from "common/hooks";
 
 export function LoggedUserDisplay(props: { className?: string }) {
   const modal = useToggle(false);
-  const { user } = useValues(authLogic);
+
+  //FIXME: Fetch user
+  const user = {
+    id: "usr_123",
+    name: "Test Name",
+    email: "qwer@qwer.qwer",
+    is_subscribed: false,
+  };
 
   // FIXME remove when real user image is available
   const image = "";
@@ -25,15 +32,15 @@ export function LoggedUserDisplay(props: { className?: string }) {
         role="button"
         tabIndex={0}
         className={cn(
-          "grid grid-cols-auto/1fr grid-rows-2 gap-x-3 cursor-default",
+          "grid grid-cols-auto/1fr items-center gap-x-3 cursor-default",
           { "cursor-pointer": user?.id },
           props.className
         )}
         onClick={() => modal.toggleOn()}
       >
         <div
-          className={cn("h-10 w-10 rounded-full overflow-hidden row-span-2", {
-            "flex justify-center items-center border border-f1f5f8": !image,
+          className={cn("p-3 rounded-full overflow-hidden", {
+            "flex justify-center items-center bg-edecfc": !image,
           })}
         >
           {image && (
@@ -42,18 +49,15 @@ export function LoggedUserDisplay(props: { className?: string }) {
               alt="avatar"
               layout="fixed"
               objectFit="cover"
-              width={40}
-              height={40}
+              width={44}
+              height={44}
             />
           )}
 
-          {!image && <Icon name="user" className="w-6 h-6 text-primary" />}
+          {!image && <Icon name="user" className="w-5 h-5 text-primary" />}
         </div>
 
-        <span className="font-medium text-neutral-dark text-14 leading-none">
-          {user?.name || "No name"}
-        </span>
-        <span className="text-13 text-neutral leading-none">
+        <span className="font-rubik text-neutral-dark text-13 leading-none">
           {user?.email || "No @email"}
         </span>
       </div>

@@ -12,10 +12,10 @@ import { styles, text } from "common/styles";
 import { Link } from "common/components/Link";
 import { appsLogic } from "logics/appsLogic";
 import { AppCard } from "./AppCard";
-import { Modal } from "common/Modal";
+import { Modal } from "common/LegacyModal";
 import { useToggle } from "common/hooks";
 import { Field, Form } from "kea-forms";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { InputError } from "common/InputError";
 import { appLogic } from "logics/appLogic";
 

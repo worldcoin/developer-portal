@@ -1,3 +1,4 @@
+import { runCors } from "api-helpers/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -5,14 +6,18 @@ import {
   errorResponse,
 } from "api-helpers/errors";
 import { fetchActiveJWK } from "api-helpers/jwks";
-import { fetchOIDCApp, generateOIDCCode } from "api-helpers/oidc";
-import { generateVerificationJWT } from "api-helpers/utils";
+import {
+  fetchOIDCApp,
+  generateOIDCCode,
+  OIDCResponseTypeMapping,
+} from "api-helpers/oidc";
+import { generateOIDCJWT } from "api-helpers/jwts";
 import { verifyProof } from "api-helpers/verify";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "types";
 
 /**
- * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT (implicit flow) or a code (authorization code flow)
+ * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
  * This endpoint is called by the Sign in with World ID page (or the app's own page if using IDKit [advanced])
  * @param req
  * @param res
@@ -21,6 +26,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (
+    req.method === "OPTIONS" ||
+    req.body.response_type === OIDCResponseType.Code
+  ) {
+    // NOTE: Authorization code flow only should be called backend-side, no CORS (security reasons)
+    // OPTIONS always returns CORS because browsers send an OPTIONS request first with no payload
+    await runCors(req, res);
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
@@ -56,16 +70,19 @@ export default async function handler(
     );
   }
 
-  if (
-    response_type &&
-    !Object.values(OIDCResponseType).includes(response_type)
-  ) {
-    return errorValidation(
-      "invalid",
-      "Invalid response type. If you are unsure, use 'implicit'.",
-      "response_type",
-      res
-    );
+  const response_types = decodeURIComponent(
+    (response_type as string | string[]).toString()
+  ).split(" ");
+
+  for (const response_type of response_types) {
+    if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
+      return errorValidation(
+        "invalid",
+        `Invalid response type: ${response_type}.`,
+        "response_type",
+        res
+      );
+    }
   }
 
   // ANCHOR: Check the app is valid and fetch information
@@ -107,22 +124,37 @@ export default async function handler(
     );
   }
 
-  // ANCHOR: Proof is valid, issue a JWT or code
-  if (response_type === OIDCResponseType.Code) {
-    // For authorization code flow, issue a code
-    const code = await generateOIDCCode(app.id, nullifier_hash);
-    res.status(200).json({ code });
-  } else {
-    // For implicit flow, issue a JWT
-    const jwk = await fetchActiveJWK();
-    const jwt = await generateVerificationJWT({
-      app_id: app.id,
+  // ANCHOR: Proof is valid, issue relevant codes
+  const response = {} as { code?: string; id_token?: string; token?: string };
+
+  if (response_types.includes(OIDCResponseType.Code)) {
+    response.code = await generateOIDCCode(
+      app.id,
       nullifier_hash,
-      credential_type,
-      kid: jwk.kid,
-      nonce: nonce ?? "",
-      privateJwk: jwk.private_jwk,
-    });
-    res.status(200).json({ jwt });
+      credential_type
+    );
   }
+
+  let jwt: string | undefined;
+  for (const response_type of response_types) {
+    if (
+      OIDCResponseTypeMapping[
+        response_type as keyof typeof OIDCResponseTypeMapping
+      ] === OIDCResponseType.JWT
+    ) {
+      if (!jwt) {
+        const jwk = await fetchActiveJWK();
+        jwt = await generateOIDCJWT({
+          app_id: app.id,
+          nullifier_hash,
+          credential_type,
+          nonce: nonce ?? "",
+          ...jwk,
+        });
+      }
+      response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
+    }
+  }
+
+  res.status(200).json(response);
 }

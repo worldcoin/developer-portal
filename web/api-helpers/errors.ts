@@ -50,3 +50,36 @@ export function errorValidation(
 ): void {
   return errorResponse(res, 400, code, detail, attribute);
 }
+
+export function errorOIDCResponse(
+  res: NextApiResponse,
+  statusCode: number,
+  code: string,
+  detail: string = "Something went wrong",
+  attribute: string | null = null
+): void {
+  res.status(statusCode).json({
+    code,
+    detail,
+    attribute,
+    error: code, // OAuth 2.0 spec
+    error_description: detail, // OAuth 2.0 spec
+  });
+}
+
+export function errorHasuraQuery({
+  res,
+  code,
+  detail,
+}: {
+  res: NextApiResponse;
+  code: string;
+  detail: string;
+}) {
+  return res.status(400).json({
+    message: detail,
+    extensions: {
+      code,
+    },
+  });
+}

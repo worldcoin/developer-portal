@@ -5,14 +5,14 @@ import { useToggle } from "common/hooks";
 import { UserInterfacesType } from "types";
 import { HostedPage } from "./HostedPage";
 import cn from "classnames";
-import { Button } from "common/Button";
-import { FieldInput } from "common/FieldInput";
+import { Button } from "common/LegacyButton";
+import { FieldInput } from "common/LegacyFieldInput";
 import { Interface } from "./Interface";
 import { Kiosk } from "./Kiosk";
 import { Field, Form } from "kea-forms";
 import { CloudWidgetInstructions } from "./CloudWidget/Instructions";
 import { HostedPageInstructions } from "./HostedPage/Instructions";
-import { Modal } from "common/Modal";
+import { Modal } from "common/LegacyModal";
 import { Preview } from "common/Preview";
 import { OnChainWidgetInstructions } from "./OnChainWidget/Instructions";
 

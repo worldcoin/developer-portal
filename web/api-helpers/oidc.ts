@@ -1,8 +1,21 @@
 import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
-import { IInternalError } from "types";
+import { CredentialType, IInternalError, OIDCResponseType } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
+
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+if (!GENERAL_SECRET_KEY) {
+  throw new Error(
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+  );
+}
+
+export const OIDCResponseTypeMapping = {
+  code: OIDCResponseType.Code,
+  id_token: OIDCResponseType.JWT,
+  token: OIDCResponseType.JWT,
+};
 
 const fetchAppQuery = gql`
   query FetchAppQuery($app_id: String!) {
@@ -41,6 +54,7 @@ const insertAuthCodeQuery = gql`
     $expires_at: timestamptz!
     $nullifier_hash: String!
     $app_id: String!
+    $credential_type: String!
   ) {
     insert_auth_code_one(
       object: {
@@ -48,6 +62,7 @@ const insertAuthCodeQuery = gql`
         expires_at: $expires_at
         nullifier_hash: $nullifier_hash
         app_id: $app_id
+        credential_type: $credential_type
       }
     ) {
       auth_code
@@ -55,7 +70,6 @@ const insertAuthCodeQuery = gql`
   }
 `;
 
-// TODO: client_secret
 interface OIDCApp {
   id: AppModel["id"];
   is_staging: AppModel["is_staging"];
@@ -133,7 +147,8 @@ export const fetchOIDCApp = async (
 
 export const generateOIDCCode = async (
   app_id: string,
-  nullifier_hash: string
+  nullifier_hash: string,
+  credential_type: CredentialType
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -149,6 +164,7 @@ export const generateOIDCCode = async (
       auth_code,
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
+      credential_type,
     },
   });
 
@@ -157,4 +173,80 @@ export const generateOIDCCode = async (
   }
 
   return auth_code;
+};
+
+const fetchAppSecretQuery = gql`
+  query FetchAppSecretQuery($app_id: String!) {
+    app(
+      where: {
+        id: { _eq: $app_id }
+        status: { _eq: "active" }
+        is_archived: { _eq: false }
+        engine: { _eq: "cloud" }
+      }
+    ) {
+      id
+      actions(limit: 1, where: { action: { _eq: "" } }) {
+        client_secret
+      }
+    }
+  }
+`;
+
+type FetchAppSecretResult = {
+  app: Array<
+    Pick<AppModel, "id"> & {
+      actions?: Array<Pick<ActionModel, "client_secret">>;
+    }
+  >;
+};
+
+export const authenticateOIDCEndpoint = async (
+  auth_header: string
+): Promise<string | null> => {
+  const authToken = auth_header.replace("Basic ", "");
+  const [app_id, client_secret] = Buffer.from(authToken, "base64")
+    .toString()
+    .split(":");
+
+  // Fetch app
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<FetchAppSecretResult>({
+    query: fetchAppSecretQuery,
+    variables: { app_id },
+  });
+
+  if (data.app.length === 0) {
+    console.info("authenticateOIDCEndpoint - App not found or not active.");
+    return null;
+  }
+
+  const hmac_secret = data.app[0]?.actions?.[0]?.client_secret;
+
+  if (!hmac_secret) {
+    console.info(
+      "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
+    );
+    return null;
+  }
+
+  // ANCHOR: Verify client secret
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${app_id}.${client_secret}`);
+  const candidate_secret = hmac.digest("hex");
+
+  if (hmac_secret !== candidate_secret) {
+    console.warn("authenticateOIDCEndpoint - Invalid client secret.");
+    return null;
+  }
+
+  return app_id;
+};
+
+export const generateOIDCSecret = (app_id: string) => {
+  const client_secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${app_id}.${client_secret}`);
+  const hashed_secret = hmac.digest("hex");
+  return { client_secret, hashed_secret };
 };

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { FieldInputAddon } from "common/FieldInputAddon";
+import { FieldInputAddon } from "common/LegacyFieldInputAddon";
 import { FieldInputAddonAction } from "common/FieldInputAddonAction";
 import { Icon } from "common/Icon";
 

@@ -8,7 +8,7 @@ import { Field, Form } from "kea-forms";
 import { InputError } from "common/InputError";
 import { debuggerLogic } from "logics/debuggerLogic";
 import { Checkbox } from "common/components/Checkbox";
-import { Button } from "common/Button";
+import { Button } from "common/LegacyButton";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { useValues } from "kea";

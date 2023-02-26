@@ -8,6 +8,7 @@ insert_permissions:
       columns:
         - app_id
         - auth_code
+        - credential_type
         - expires_at
         - nullifier_hash
 select_permissions:
@@ -16,7 +17,12 @@ select_permissions:
       columns:
         - app_id
         - auth_code
+        - credential_type
         - expires_at
         - id
         - nullifier_hash
+      filter: {}
+delete_permissions:
+  - role: service
+    permission:
       filter: {}

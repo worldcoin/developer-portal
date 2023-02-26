@@ -91,6 +91,7 @@ select_permissions:
         - name
         - redirect_uris
         - status
+        - team_id
         - user_interfaces
         - verified_at
       computed_fields:

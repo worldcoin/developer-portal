@@ -7,7 +7,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { generateUserJWT, verifySignUpJWT } from "api-helpers/utils";
+import { generateUserJWT, verifySignUpJWT } from "api-helpers/jwts";
 
 export type SignupResponse = { redirectTo: string; token: string };
 
