@@ -23,7 +23,7 @@ export const ActionSelect = memo(function ActionSelect(props: ActionSelectProps)
           >
             {value?.name ?? ''}
           </Listbox.Button>
-          <Listbox.Options className="absolute bottom-[100%] -mt-2 w-full py-2 bg-f3f4f5 rounded-xl">
+          <Listbox.Options className="absolute bottom-[100%] z-10 -mt-2 w-full py-2 bg-f3f4f5 rounded-xl">
             {options?.map((option) => (
               <Listbox.Option
                 key={option.id}

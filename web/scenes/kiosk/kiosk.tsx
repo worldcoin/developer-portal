@@ -1,16 +1,3 @@
-import { useActions, useValues } from "kea";
-//import { authLogic } from "logics/authLogic";
-//import { useRouter } from "next/router";
-//import { useEffect, useMemo } from "react";
-//import { urls } from "urls";
-//import { KioskError } from "./common/KioskError";
-//import { Connected } from "./Connected";
-//import { Intro } from "./Intro";
-import { kioskLogic } from "./kioskLogic";
-//import { Layout } from "./Layout";
-//import { Success } from "./Success";
-//import { Waiting } from "./Waiting";
-
 import cn from 'classnames'
 import {Icon} from 'common/Icon'
 import {useRouter} from 'next/router'
@@ -38,7 +25,8 @@ export function Kiosk() {
     // FIXME: load actions
     setActions([
       { id: '1', name: 'Custom Action 01'},
-      { id: '2', name: 'Custom Action 02'}
+      { id: '2', name: 'Custom Action 02'},
+      { id: '3', name: 'Custom Action 03'},
     ]);
   }, [router.query.action_id]);
 
@@ -62,12 +50,12 @@ export function Kiosk() {
         </div>
       </header>
 
-      <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center py-12">
+      <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center portrait:py-12 landscape:py-4">
         <div className="flex flex-col items-center">
           <h1 className="font-sora font-semibold text-32 leading-10">
             World ID Kiosk Verification
           </h1>
-          <div className="max-w-[400px] mt-12 grid grid-cols-auto/1fr items-center gap-x-3 p-4 bg-primary rounded-2xl">
+          <div className="max-w-[400px] portrait:mt-12 landscape:mt-6 grid grid-cols-auto/1fr items-center gap-x-3 p-4 bg-primary rounded-2xl">
             <div className="w-9 h-9 rounded-full bg-edecfc"/>
             <div className="font-rubik text-16 text-ffffff leading-5">
               Attending the ETH NY conference as a participant on June 2022.
@@ -75,21 +63,22 @@ export function Kiosk() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center py-12">
+        <div className="flex flex-col items-center portrait:py-12 landscape:py-6">
           <div className="flex items-center gap-x-6 mb-8 font-rubik font-medium text-16 leading-5">
             <Icon name="spinner" className="w-5 h-5 animate-spin" noMask/>
             Waiting for user to scan code with Worldcoin app
           </div>
           <div
-            className={cn('flex items-center justify-center relative w-[395px] h-[395px] border border-primary/10 rounded-sm',
+            className={cn('flex items-center justify-center relative border border-primary/10 rounded-sm',
+              'portrait:w-[395px] landscape:w-[299px] portrait:h-[395px] landscape:h-[299px]',
               'before:absolute before:-top-[1px] before:left-[40px] before:right-[40px] before:-bottom-[1px] before:bg-ffffff',
               'after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff'
             )}
           >
-            <div className="max-w-full max-h-full"/>
+            <div className="z-10 w-full h-full max-w-full max-h-full bg-neutral-secondary"/>
           </div>
           <button
-            className="h-9 mt-8 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg"
+            className="h-9 portrait:mt-8 landscape:mt-4 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg"
           >
             Copy QR code
           </button>
@@ -108,99 +97,4 @@ export function Kiosk() {
       </div>
     </div>
   )
-  // const router = useRouter();
-  // useEffect(() => {
-  //   kioskLogic({
-  //     action_id: router.query.action_id?.toString(),
-  //   });
-  // }, [router.query]);
-  // const { action, screen, verifiedProof } = useValues(kioskLogic);
-  // const { setScreen, verifyProof } = useActions(kioskLogic);
-  // //const { isAuthenticated } = useValues(authLogic);
-  //
-  // const backUrl = useMemo(() => {
-  //   if (!isAuthenticated || !action) return undefined;
-  //   return urls.action(action.id);
-  // }, [action, isAuthenticated]);
-  //
-  // return (
-  //   <Layout
-  //     actionId={kioskLogic.props.action_id}
-  //     app={action?.app}
-  //     description={action?.public_description}
-  //     title="World ID Kiosk Verification"
-  //     backUrl={backUrl}
-  //   >
-  //     {!screen ||
-  //       (screen === "intro" && (
-  //         <Intro actionId={kioskLogic.props.action_id} setScreen={setScreen} />
-  //       ))}
-  //
-  //     {screen === "waiting" && action !== null && (
-  //       <Waiting
-  //         setScreen={setScreen}
-  //         verifyProof={verifyProof}
-  //         action={action}
-  //         signal="kioskVerification"
-  //       />
-  //     )}
-  //
-  //     {screen === "connected" && <Connected setScreen={setScreen} />}
-  //     {screen === "success" && (
-  //       <Success
-  //         setScreen={setScreen}
-  //         confirmationId={verifiedProof?.nullifier_hash?.substring(
-  //           verifiedProof?.nullifier_hash?.length - 8,
-  //           verifiedProof?.nullifier_hash.length
-  //         )}
-  //         createdAt={verifiedProof?.created_at}
-  //       />
-  //     )}
-  //
-  //     {screen === "connectionError" && (
-  //       <KioskError
-  //         setScreen={setScreen}
-  //         title="Connection Error"
-  //         description="We cannot establish a connection to the Worldcoin app. Please refresh and try again."
-  //         buttonText="Retry"
-  //       />
-  //     )}
-  //
-  //     {screen === "alreadyVerified" && (
-  //       <KioskError
-  //         setScreen={setScreen}
-  //         title="Already verified"
-  //         description="This person has already verified for this action."
-  //         buttonText="New verification for another user"
-  //       />
-  //     )}
-  //
-  //     {screen === "verificationRejected" && (
-  //       <KioskError
-  //         setScreen={setScreen}
-  //         title="Verification rejected"
-  //         description="Verification rejected in the Worldcoin app."
-  //         buttonText="Try again"
-  //       />
-  //     )}
-  //
-  //     {screen === "invalidIdentity" && (
-  //       <KioskError
-  //         setScreen={setScreen}
-  //         title="User is not verified"
-  //         description="Looks like this user is not verified with World ID. They can visit an orb to verify."
-  //         buttonText="New verification for another user"
-  //       />
-  //     )}
-  //
-  //     {screen === "verificationError" && (
-  //       <KioskError
-  //         setScreen={setScreen}
-  //         title="Verification Error"
-  //         description="We couldn't verify this user. Please try again."
-  //         buttonText="Retry"
-  //       />
-  //     )}
-  //   </Layout>
-  // );
 }
