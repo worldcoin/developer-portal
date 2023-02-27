@@ -221,6 +221,16 @@ export const generateOIDCJWT = async ({
     payload.nonce = nonce;
   }
 
+  if (scope.includes(OIDCScopes.Email)) {
+    payload.email = `${nullifier_hash}@id.worldcoin.org`;
+  }
+
+  if (scope.includes(OIDCScopes.Profile)) {
+    payload.name = "World ID User";
+    payload.given_name = "World ID";
+    payload.family_name = "User";
+  }
+
   return await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: JWK_ALG_OIDC, kid })
     .setIssuer(JWT_ISSUER)
