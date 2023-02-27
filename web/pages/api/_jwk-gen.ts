@@ -3,7 +3,7 @@ import { getAPIServiceClient } from "api-helpers/graphql";
 import { generateJWK } from "api-helpers/jwts";
 import { protectInternalEndpoint } from "api-helpers/utils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed } from "../../api-helpers/errors";
+import { errorNotAllowed, errorValidation } from "../../api-helpers/errors";
 
 /**
  * Generates JWKs to verify proofs offline
@@ -22,14 +22,26 @@ export default async function handleJWKGen(
     return errorNotAllowed(req.method, res);
   }
 
-  const { publicJwk, privateJwk } = await generateJWK();
+  const alg = req.body.alg || "PS256";
+
+  if (!["PS256", "RS256"].includes(alg)) {
+    return errorValidation(
+      "invalid_algorithm",
+      "Invalid algorithm.",
+      "alg",
+      res
+    );
+  }
+
+  const { publicJwk, privateJwk } = await generateJWK(alg);
 
   const insertQuery = gql(`
-  mutation InsertKey($expires_at: timestamptz!, $private_jwk: jsonb!, $public_jwk: jsonb!) {
+  mutation InsertJWK($expires_at: timestamptz!, $private_jwk: jsonb!, $public_jwk: jsonb!, $alg: String!) {
     insert_jwks_one(object: {
         expires_at: $expires_at
         private_jwk: $private_jwk
         public_jwk: $public_jwk
+        alg: $alg
     })
     {
         id
@@ -46,6 +58,7 @@ export default async function handleJWKGen(
       expires_at: expiresAt.toISOString(),
       private_jwk: privateJwk,
       public_jwk: publicJwk,
+      alg,
     },
   });
 

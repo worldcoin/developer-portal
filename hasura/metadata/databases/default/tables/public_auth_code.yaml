@@ -11,6 +11,7 @@ insert_permissions:
         - credential_type
         - expires_at
         - nullifier_hash
+        - scope
 select_permissions:
   - role: service
     permission:
@@ -21,6 +22,7 @@ select_permissions:
         - expires_at
         - id
         - nullifier_hash
+        - scope
       filter: {}
 delete_permissions:
   - role: service

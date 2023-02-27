@@ -23,10 +23,23 @@ export default async function handler(
 
   try {
     const payload = await verifyOIDCJWT(token); // TODO: @igorosip0v Add test for expired tokens, invalid tokens, ...
-    return res.status(200).json({
+    const response: Record<string, any> = {
       sub: payload.sub,
       "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],
-    });
+    };
+    const scopes = (payload.scope as string)?.toString().split(" ");
+
+    if (scopes?.includes("email")) {
+      response.email = `${payload.sub}@id.worldcoin.org`;
+    }
+
+    if (scopes?.includes("profile")) {
+      response.name = "World ID User";
+      response.given_name = "World ID";
+      response.family_name = "User";
+    }
+
+    return res.status(200).json(response);
   } catch {
     return errorResponse(
       res,

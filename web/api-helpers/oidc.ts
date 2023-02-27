@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { ActionModel, AppModel } from "models";
-import { CredentialType, IInternalError } from "types";
+import { CredentialType, IInternalError, OIDCResponseType } from "types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -9,6 +9,18 @@ if (!GENERAL_SECRET_KEY) {
   throw new Error(
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
+}
+
+export const OIDCResponseTypeMapping = {
+  code: OIDCResponseType.Code,
+  id_token: OIDCResponseType.JWT,
+  token: OIDCResponseType.JWT,
+};
+
+export enum OIDCScopes {
+  OpenID = "openid",
+  Email = "email",
+  Profile = "profile",
 }
 
 const fetchAppQuery = gql`
@@ -49,6 +61,7 @@ const insertAuthCodeQuery = gql`
     $nullifier_hash: String!
     $app_id: String!
     $credential_type: String!
+    $scope: jsonb!
   ) {
     insert_auth_code_one(
       object: {
@@ -57,6 +70,7 @@ const insertAuthCodeQuery = gql`
         nullifier_hash: $nullifier_hash
         app_id: $app_id
         credential_type: $credential_type
+        scope: $scope
       }
     ) {
       auth_code
@@ -142,7 +156,8 @@ export const fetchOIDCApp = async (
 export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
-  credential_type: CredentialType
+  credential_type: CredentialType,
+  scope: OIDCScopes[]
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -159,6 +174,7 @@ export const generateOIDCCode = async (
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
       credential_type,
+      scope,
     },
   });
 
@@ -230,7 +246,7 @@ export const authenticateOIDCEndpoint = async (
   const candidate_secret = hmac.digest("hex");
 
   if (hmac_secret !== candidate_secret) {
-    console.info("authenticateOIDCEndpoint - Invalid client secret.");
+    console.warn("authenticateOIDCEndpoint - Invalid client secret.");
     return null;
   }
 

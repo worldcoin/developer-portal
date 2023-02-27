@@ -5,9 +5,10 @@ import * as jose from "jose";
 import { JWK_ALG } from "consts";
 
 const fetchJWKQuery = gql`
-  query FetchJWKQuery($now: timestamptz!) {
-    jwks(limit: 1, where: { expires_at: { _gt: $now } }) {
+  query FetchJWKQuery($now: timestamptz!, $alg: String!) {
+    jwks(limit: 1, where: { expires_at: { _gt: $now }, alg: { _eq: $alg } }) {
       id
+      alg
       private_jwk
     }
   }
@@ -45,7 +46,7 @@ export const retrieveJWK = async (kid: string) => {
  * Retrieves an active JWK to sign requests
  * @returns
  */
-export const fetchActiveJWK = async () => {
+export const fetchActiveJWK = async (alg: string) => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<{
     jwks: Array<Pick<JWKModel, "id" | "private_jwk">>;
@@ -53,6 +54,7 @@ export const fetchActiveJWK = async () => {
     query: fetchJWKQuery,
     variables: {
       now: new Date().toISOString(),
+      alg,
     },
   });
 

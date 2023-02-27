@@ -37,7 +37,7 @@ export type LoginResponse =
     };
 
 const query = gql`
-  query FindUserByNullifier($nullifier_hash: String) {
+  query FindUserByNullifier($nullifier_hash: String!) {
     user(where: { world_id_nullifier: { _eq: $nullifier_hash } }) {
       id
       team_id

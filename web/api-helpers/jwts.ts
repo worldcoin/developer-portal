@@ -7,10 +7,11 @@
 import { randomUUID } from "crypto";
 import * as jose from "jose";
 import { CredentialType, JwtConfig } from "../types";
-import { JWK_ALG } from "consts";
+import { JWK_ALG_OIDC } from "consts";
 import { retrieveJWK } from "./jwks";
+import { OIDCScopes } from "./oidc";
 
-const JWT_ISSUER = process.env.JWT_ISSUER;
+export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 const JWT_CONFIG: JwtConfig = JSON.parse(
   process.env.HASURA_GRAPHQL_JWT_SECRET || ""
@@ -168,11 +169,13 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
  * Generates an asymmetric key pair in JWK format
  * @returns
  */
-export const generateJWK = async (): Promise<{
+export const generateJWK = async (
+  alg: string
+): Promise<{
   privateJwk: jose.JWK;
   publicJwk: jose.JWK;
 }> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(JWK_ALG);
+  const { publicKey, privateKey } = await jose.generateKeyPair(alg);
 
   const privateJwk = await jose.exportJWK(privateKey);
   const publicJwk = await jose.exportJWK(publicKey);
@@ -187,6 +190,7 @@ interface IVerificationJWT {
   nullifier_hash: string;
   app_id: string;
   credential_type: CredentialType;
+  scope: OIDCScopes[];
 }
 
 /**
@@ -200,11 +204,13 @@ export const generateOIDCJWT = async ({
   private_jwk,
   kid,
   credential_type,
+  scope,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
     sub: nullifier_hash,
     jti: randomUUID(),
     aud: app_id,
+    scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {
       likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
       credential_type,
@@ -215,11 +221,21 @@ export const generateOIDCJWT = async ({
     payload.nonce = nonce;
   }
 
+  if (scope.includes(OIDCScopes.Email)) {
+    payload.email = `${nullifier_hash}@id.worldcoin.org`;
+  }
+
+  if (scope.includes(OIDCScopes.Profile)) {
+    payload.name = "World ID User";
+    payload.given_name = "World ID";
+    payload.family_name = "User";
+  }
+
   return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWK_ALG, kid })
+    .setProtectedHeader({ alg: JWK_ALG_OIDC, kid })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime("1h")
-    .sign(await jose.importJWK(private_jwk, JWK_ALG));
+    .sign(await jose.importJWK(private_jwk, JWK_ALG_OIDC));
 };
 
 export const verifyOIDCJWT = async (
@@ -239,7 +255,7 @@ export const verifyOIDCJWT = async (
 
   const { payload } = await jose.jwtVerify(
     token,
-    await jose.importJWK(public_jwk, JWK_ALG),
+    await jose.importJWK(public_jwk, JWK_ALG_OIDC),
     {
       issuer: JWT_ISSUER,
     }
