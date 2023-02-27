@@ -58,13 +58,12 @@ export const Kiosk = memo(function Kiosk() {
           </div>
         </div>
 
-        {screen === Screen.Waiting && <Waiting setScreen={setScreen} />}
-        {screen === Screen.Connected && <Connected setScreen={setScreen} />}
-        {screen === Screen.Success && <Success setScreen={setScreen} />}
+        {screen === Screen.Waiting && <Waiting />}
+        {screen === Screen.Connected && <Connected />}
+        {screen === Screen.Success && <Success />}
 
         {screen === Screen.ConnectionError && (
           <KioskError
-            setScreen={setScreen}
             title="Connection Error"
             description="We cannot establish a connection to the Worldcoin app. Please refresh and try again."
             buttonText="Retry"
@@ -73,7 +72,6 @@ export const Kiosk = memo(function Kiosk() {
 
         {screen === Screen.AlreadyVerified && (
           <KioskError
-            setScreen={setScreen}
             title="Already verified"
             description="This person has already verified for this action."
             buttonText="New verification for another user"
@@ -82,7 +80,6 @@ export const Kiosk = memo(function Kiosk() {
 
         {screen === Screen.VerificationRejected && (
           <KioskError
-            setScreen={setScreen}
             title="Verification rejected"
             description="Verification rejected in the Worldcoin app."
             buttonText="Try again"
@@ -91,7 +88,6 @@ export const Kiosk = memo(function Kiosk() {
 
         {screen === Screen.InvalidIdentity && (
           <KioskError
-            setScreen={setScreen}
             title="User is not verified"
             description="Looks like this user is not verified with World ID. They can visit an orb to verify."
             buttonText="New verification for another user"
@@ -100,7 +96,6 @@ export const Kiosk = memo(function Kiosk() {
 
         {screen === Screen.VerificationError && (
           <KioskError
-            setScreen={setScreen}
             title="Verification Error"
             description="We couldn't verify this user. Please try again."
             buttonText="Retry"

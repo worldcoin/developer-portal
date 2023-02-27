@@ -4,17 +4,18 @@ import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
 import { StatusIcon } from "../common/StatusIcon";
 import { Button } from "common/Button";
-import { Screen } from "../store/kiosk-store";
+import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 dayjs.extend(dayjsRelative);
 
 export const Success = memo(function Success(props: {
-  setScreen: (screen: Screen) => void;
   confirmationId?: string;
   createdAt?: string;
 }) {
+  const { setScreen } = useKioskStore(getKioskStore);
+
   const handleRestart = useCallback(
-    () => props.setScreen(Screen.Waiting),
-    [props]
+    () => setScreen(Screen.Waiting),
+    [setScreen]
   );
 
   const confirmedAt = useMemo(() => {

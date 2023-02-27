@@ -2,11 +2,11 @@ import { ErrorCodes } from "@worldcoin/idkit/build/types";
 import cn from "classnames";
 import { Icon } from "common/Icon";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Screen } from "../store/kiosk-store";
+import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 
-export const Waiting = memo(function Waiting(props: {
-  setScreen: (screen: Screen) => void;
-}) {
+export const Waiting = memo(function Waiting() {
+  const { setScreen } = useKioskStore(getKioskStore);
+
   const [copied, setCopied] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
 

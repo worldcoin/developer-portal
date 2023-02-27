@@ -3,11 +3,11 @@ import cn from "classnames";
 import { Icon } from "common/Icon";
 import { Modal } from "common/LegacyModal";
 import { Button } from "common/Button";
-import { Screen } from "../store/kiosk-store";
+import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 
-export const Connected = memo(function Connected(props: {
-  setScreen: (screen: Screen) => void;
-}) {
+export const Connected = memo(function Connected() {
+  const { setScreen } = useKioskStore(getKioskStore);
+
   const [isModalShow, setIsModalShow] = useState(false);
   const hideModal = useCallback(() => setIsModalShow(false), []);
   const showModal = useCallback(() => setIsModalShow(true), []);
