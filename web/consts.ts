@@ -27,5 +27,9 @@ export const DEVELOPER_PORTAL_AUTH_APP = {
   ).digest,
 };
 
+// ANCHOR: OIDC Base URL
+export const OIDC_BASE_URL = "https://id.worldcoin.org";
+
 // ANCHOR: JWKs
 export const JWK_ALG = "PS256";
+export const JWK_ALG_OIDC = "RS256";

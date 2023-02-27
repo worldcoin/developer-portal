@@ -134,8 +134,8 @@ export type EnvironmentType = {
 };
 
 export enum OIDCResponseType {
-  Code = "code",
-  Implicit = "implicit", // (https://openid.net/specs/openid-connect-implicit-1_0.html#AuthenticationRequest)
+  Code = "code", // authorization code
+  JWT = "jwt", // implicit flow
 }
 
 export interface IInternalError {

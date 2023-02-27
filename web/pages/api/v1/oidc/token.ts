@@ -10,6 +10,7 @@ import { getAPIServiceClient } from "api-helpers/graphql";
 import { fetchActiveJWK } from "api-helpers/jwks";
 import { generateOIDCJWT } from "api-helpers/jwts";
 import { authenticateOIDCEndpoint } from "api-helpers/oidc";
+import { JWK_ALG_OIDC } from "consts";
 import { AuthCodeModel } from "models";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -28,6 +29,7 @@ const verifyAuthCodeQuery = gql`
     ) {
       nullifier_hash
       credential_type
+      scope
     }
   }
 `;
@@ -97,7 +99,9 @@ export default async function handler(
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
   const { data } = await client.query<{
-    auth_code: Array<Pick<AuthCodeModel, "nullifier_hash" | "credential_type">>;
+    auth_code: Array<
+      Pick<AuthCodeModel, "nullifier_hash" | "credential_type" | "scope">
+    >;
   }>({
     query: verifyAuthCodeQuery,
     variables: {
@@ -117,19 +121,20 @@ export default async function handler(
   }
 
   const code = data.auth_code[0];
-  const jwk = await fetchActiveJWK();
+  const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
   const token = await generateOIDCJWT({
     app_id,
     nullifier_hash: code.nullifier_hash,
     credential_type: code.credential_type,
     ...jwk,
+    scope: code.scope,
   });
 
   return res.status(200).json({
     access_token: token,
     token_type: "Bearer",
     expires_in: 3600,
-    scope: "openid",
+    scope: code.scope.join(" "),
     id_token: token,
   });
 }

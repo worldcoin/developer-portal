@@ -16,6 +16,7 @@ select_permissions:
     permission:
       columns:
         - action_id
+        - created_at
         - id
         - merkle_root
         - nullifier_hash
