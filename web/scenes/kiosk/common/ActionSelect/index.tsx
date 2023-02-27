@@ -2,6 +2,7 @@ import { memo } from "react";
 import cn from "classnames";
 import { Listbox } from "@headlessui/react";
 import { Action } from "scenes/kiosk/types";
+import { Icon } from "common/Icon";
 
 interface ActionSelectProps {
   value?: Action;
@@ -20,15 +21,19 @@ export const ActionSelect = memo(function ActionSelect(
         <div className="relative">
           <Listbox.Button
             className={cn(
-              "flex items-center justify-start h-12 w-[336px] px-4 font-rubik text-14 text-left bg-f3f4f5 rounded-xl",
-              {
-                "": open,
-              }
+              "flex items-center justify-between h-12 w-[336px] px-4 font-rubik text-14 text-left bg-f3f4f5 rounded-xl"
             )}
           >
-            {value?.name ?? ""}
+            <span>{value?.name ?? ""}</span>
+            <Icon
+              name="angle-down"
+              className={cn("w-4 h-4 transition-transform", {
+                "rotate-180": open,
+              })}
+            />
           </Listbox.Button>
-          <Listbox.Options className="absolute bottom-[100%] z-10 -mt-2 w-full py-2 bg-f3f4f5 rounded-xl">
+
+          <Listbox.Options className="absolute bottom-[110%] z-10 -mt-2 w-full py-2 bg-f3f4f5 rounded-xl">
             {options?.map((option) => (
               <Listbox.Option
                 key={option.id}

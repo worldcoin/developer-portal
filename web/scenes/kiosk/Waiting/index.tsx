@@ -1,24 +1,11 @@
-import {
-  Fragment,
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { Icon } from "common/Icon";
+import { ErrorCodes } from "@worldcoin/idkit/build/types";
 import cn from "classnames";
-import { kioskLogic } from "../kioskLogic";
-import { Field } from "scenes/action/ActionCard/Field";
-import { ModelPublicAction } from "types";
-import { Link } from "common/Link";
-import { ErrorCodes, ExpectedErrorResponse, utils } from "@worldcoin/id";
+import { Icon } from "common/Icon";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { Screen } from "../store/kiosk-store";
 
 export const Waiting = memo(function Waiting(props: {
-  signal: string;
-  action: Required<ModelPublicAction>;
-  setScreen: (screen: string) => void;
-  verifyProof: typeof kioskLogic.actions.verifyProof;
+  setScreen: (screen: Screen) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
@@ -60,138 +47,98 @@ export const Waiting = memo(function Waiting(props: {
       .finally(() => setCopied(false));
   }, [qrData]);
 
-  useEffect(() => {
-    import("@walletconnect/client").then(async ({ default: WalletConnect }) => {
-      const connector = new WalletConnect({
-        bridge: "https://bridge.walletconnect.org",
-        clientMeta: {
-          description: "World ID Kiosk",
-          url: "https://id.worldcoin.org/docs/",
-          icons: ["https://id.worldcoin.org/img/logomark.svg"],
-          name: "World ID Kiosk",
-        },
-      });
+  //FIXME: Add connection logic
+  // useEffect(() => {
+  //   import("@walletconnect/client").then(async ({ default: WalletConnect }) => {
+  //     const connector = new WalletConnect({
+  //       bridge: "https://bridge.walletconnect.org",
+  //       clientMeta: {
+  //         description: "World ID Kiosk",
+  //         url: "https://id.worldcoin.org/docs/",
+  //         icons: ["https://id.worldcoin.org/img/logomark.svg"],
+  //         name: "World ID Kiosk",
+  //       },
+  //     });
 
-      try {
-        if (connector.connected) {
-          await connector.killSession();
-        }
+  //     try {
+  //       if (connector.connected) {
+  //         await connector.killSession();
+  //       }
 
-        connector.on("session_update", (error, _payload) => {
-          if (error) throw error;
-        });
+  //       connector.on("session_update", (error, _payload) => {
+  //         if (error) throw error;
+  //       });
 
-        connector.on("disconnect", (error, _payload) => {
-          if (error) throw error;
-        });
+  //       connector.on("disconnect", (error, _payload) => {
+  //         if (error) throw error;
+  //       });
 
-        await connector.createSession();
+  //       await connector.createSession();
 
-        // Session has been created
-        const url = utils.buildQRData(connector);
+  //       // Session has been created
+  //       const url = utils.buildQRData(connector);
 
-        setQrData(url.toString());
+  //       setQrData(url.toString());
 
-        await new Promise<void>((resolve, reject) => {
-          connector.on("connect", (err) => (err ? reject(err) : resolve()));
-        });
+  //       await new Promise<void>((resolve, reject) => {
+  //         connector.on("connect", (err) => (err ? reject(err) : resolve()));
+  //       });
 
-        // Connection has been established
-        props.setScreen("connected");
+  //       // Connection has been established
+  //       props.setScreen(Screen.Connected);
 
-        const verificationResponse = await connector.sendCustomRequest(
-          utils.buildVerificationRequest({
-            action_id: props.action.id,
-            signal: props.signal,
-            on_success: () => null,
-          })
-        );
+  //       const verificationResponse = await connector.sendCustomRequest(
+  //         utils.buildVerificationRequest({
+  //           action_id: props.action.id,
+  //           signal: props.signal,
+  //           on_success: () => null,
+  //         })
+  //       );
 
-        props.verifyProof({
-          verificationResponse,
-          action_id: props.action.id,
-          signal: props.signal,
-        });
-      } catch (error) {
-        // Unhandled error ocurred (if proof verification fails, it's properly handled by `kioskLogic`)
-        const errorMessage = (error as ExpectedErrorResponse).message;
+  //       props.verifyProof({
+  //         verificationResponse,
+  //         action_id: props.action.id,
+  //         signal: props.signal,
+  //       });
+  //     } catch (error) {
+  //       // Unhandled error ocurred (if proof verification fails, it's properly handled by `kioskLogic`)
+  //       const errorMessage = (error as ExpectedErrorResponse).message;
 
-        if (errorMessage === ErrorCodes.AlreadySigned) {
-          return props.setScreen("alreadyVerified");
-        }
+  //       if (errorMessage === ErrorCodes.AlreadySigned) {
+  //         return props.setScreen("alreadyVerified");
+  //       }
 
-        if (errorMessage === ErrorCodes.VerificationRejected) {
-          return props.setScreen("verificationRejected");
-        }
+  //       if (errorMessage === ErrorCodes.VerificationRejected) {
+  //         return props.setScreen("verificationRejected");
+  //       }
 
-        props.setScreen("connectionError");
-      } finally {
-        if (connector?.connected)
-          connector.killSession().catch(console.error.bind(console));
-      }
-    });
-  }, [props]);
+  //       props.setScreen("connectionError");
+  //     } finally {
+  //       if (connector?.connected)
+  //         connector.killSession().catch(console.error.bind(console));
+  //     }
+  //   });
+  // }, [props]);
 
   return (
-    <div className="grid justify-items-center gap-y-8">
-      <div className="grid items-center grid-flow-col auto-cols-max gap-x-6">
-        <Icon noMask className="w-8 h-8 animate-spin" name="spinner-gradient" />
-        <p>Waiting for user to scan code with Worldcoin app</p>
+    <div className="flex flex-col items-center portrait:py-12 landscape:py-6">
+      <div className="flex items-center gap-x-6 mb-8 font-rubik font-medium text-16 leading-5">
+        <Icon name="spinner" className="w-5 h-5 animate-spin" noMask />
+        Waiting for user to scan code with Worldcoin app
       </div>
-
       <div
         className={cn(
-          "relative p-5 w-[395px] h-[395px] border-[1.45px] border-primary/10 dark:border-none",
-          "after:absolute after:-inset-0.5 after:bg-[#ffffff] dark:after:opacity-0",
-          `after:[clip-path:polygon(0_50px,_50px_0,_calc(100%_-_50px)_0%,_100%_50px,_100%_calc(100%_-_50px),_calc(100%_-_50px)_100%,_50px_100%,_0_calc(100%_-_50px))]`
+          "flex items-center justify-center relative border border-primary/10 rounded-sm",
+          "portrait:w-[395px] landscape:w-[299px] portrait:h-[395px] landscape:h-[299px]",
+          "before:absolute before:-top-[1px] before:left-[40px] before:right-[40px] before:-bottom-[1px] before:bg-ffffff",
+          "after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff"
         )}
       >
-        <div className="relative z-10" ref={qrReference} />
+        <div className="z-10 w-full h-full max-w-full max-h-full bg-neutral-secondary" />
       </div>
-
-      <button
-        className={cn(
-          "grid grid-flow-col auto-cols-min whitespace-nowrap gap-x-1.5 items-center text-[14px] leading-[1.2]",
-          "text-neutral dark:text-ffffff rounded-full px-[15px] py-[13.5px] bg-[#f1f2f2] dark:bg-[transparent]"
-        )}
-        onClick={handleCopy}
-      >
-        {copied ? (
-          <Fragment>
-            <span className="relative p-2 rounded-full whitespace-nowrap bg-success">
-              <Icon
-                className="absolute z-10 inset-1 text-ffffff"
-                name="check"
-              />
-            </span>
-            Copied!
-          </Fragment>
-        ) : (
-          "Copy QR code"
-        )}
+      <button className="h-9 portrait:mt-8 landscape:mt-4 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg">
+        Copy QR code
       </button>
-
-      {props.action.is_staging && (
-        <div className="grid items-center grid-flow-col gap-x-8">
-          <Field
-            fieldClassName="!bg-[#edbd14]/10 border-[#edbd14]/50 text-[#edbd14]"
-            icon="chart"
-            name={""}
-            value={"Staging"}
-          />
-
-          <Link
-            className={cn(
-              "grid items-center grid-flow-col transition-opacity auto-cols-max"
-            )}
-            external
-            href="https://simulator.worldcoin.org/"
-          >
-            Scan with Simulator{" "}
-            <Icon className="w-6 h-6 -rotate-90" name="angle-down" />
-          </Link>
-        </div>
-      )}
     </div>
   );
 });

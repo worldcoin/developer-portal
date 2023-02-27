@@ -1,18 +1,23 @@
 import { memo } from "react";
 import { StatusIcon } from "../StatusIcon";
-import { Button } from "common/LegacyButton";
+import { Button } from "common/Button";
+import { Screen } from "scenes/kiosk/store/kiosk-store";
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;
   description?: string;
-  setScreen: (screen: string) => void;
+  setScreen: (screen: Screen) => void;
   title: string;
 }) {
   return (
-    <div className="grid text-center justify-items-center gap-y-12">
-      <StatusIcon icon="close" />
+    <div className="grid text-center justify-items-center gap-y-6">
+      <StatusIcon
+        icon="close"
+        className="bg-warning-light"
+        iconClassname="text-warning"
+      />
 
-      <div className="grid gap-y-4">
+      <div className="grid gap-y-2">
         <h2 className="text-neutral-dark font-sora text-[26px] leading-[1.2] font-semibold">
           {props.title}
         </h2>
@@ -26,10 +31,9 @@ export const KioskError = memo(function KioskError(props: {
 
       {props.buttonText && (
         <Button
-          className="min-w-[250px] max-w-full"
-          variant="contained"
+          className="min-w-[250px] max-w-full py-4 px-8"
           color="primary"
-          onClick={() => props.setScreen("intro")}
+          onClick={() => props.setScreen(Screen.Waiting)}
         >
           {props.buttonText}
         </Button>
