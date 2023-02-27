@@ -81,13 +81,14 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - action
         - app_id
+        - creation_mode
         - description
         - id
         - max_accounts_per_user
         - max_verifications
         - name
-        - creation_mode
       filter:
         app:
           team_id:

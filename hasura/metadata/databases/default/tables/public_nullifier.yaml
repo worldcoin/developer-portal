@@ -1,6 +1,10 @@
 table:
   name: nullifier
   schema: public
+object_relationships:
+  - name: action
+    using:
+      foreign_key_constraint_on: action_id
 insert_permissions:
   - role: service
     permission:
@@ -12,6 +16,17 @@ insert_permissions:
         - nullifier_hash
         - verification_level
 select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - created_at
+        - id
+        - nullifier_hash
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
   - role: service
     permission:
       columns:
@@ -22,3 +37,14 @@ select_permissions:
         - nullifier_hash
         - verification_level
       filter: {}
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - nullifier_hash
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
