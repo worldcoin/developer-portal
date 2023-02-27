@@ -22,12 +22,12 @@ RUN yarn build
 FROM base AS runner
 WORKDIR /app
 
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+
 # Support for logging
 # TODO: Improve this so we don't need to reinstall additional packages (600MB goes down to 200MB, plus faster build times)
 RUN npm install next-logger@3.0.1 dd-trace@3.14.1 next@13.1.6
 COPY --from=builder --chown=nextjs:nodejs /app/datadog.js ./datadog.js
-
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
