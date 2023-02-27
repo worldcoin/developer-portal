@@ -209,6 +209,7 @@ export const generateOIDCJWT = async ({
   const payload = {
     sub: nullifier_hash,
     jti: randomUUID(),
+    iat: new Date().getTime(),
     aud: app_id,
     scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {
