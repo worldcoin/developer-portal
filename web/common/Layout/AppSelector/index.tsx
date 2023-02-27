@@ -1,12 +1,10 @@
 import cn from "classnames";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
-import { Link } from "common/components/Link";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
-import { urls } from "urls";
 import { apps } from "../temp-data";
-import { useAppsContext } from "contexts/AppsContext";
+import { useAppsStore } from "stores/app-store";
 
 type App = (typeof apps)[number];
 
@@ -34,8 +32,29 @@ export const ButtonContent = memo(function ButtonContent(props: {
 export const AppSelector = memo(function AppsSelector(props: {
   onNewAppClick: () => void;
 }) {
-  const { apps, currentApp } = useAppsContext();
   const selector = useToggle();
+
+  const { apps, currentApp, fetchApps, setCurrentApp } = useAppsStore(
+    (state) => ({
+      ...state,
+    })
+  );
+
+  useEffect(() => {
+    fetchApps();
+
+    if (!currentApp) {
+      setCurrentApp(apps[0]);
+    }
+  }, [apps, currentApp, fetchApps, setCurrentApp]);
+
+  const selectApp = useCallback(
+    (app: App) => {
+      setCurrentApp(app);
+      selector.toggleOff();
+    },
+    [setCurrentApp, selector]
+  );
 
   const handleNewAppClick = useCallback(() => {
     selector.toggleOff();
@@ -83,17 +102,13 @@ export const AppSelector = memo(function AppsSelector(props: {
 
             <div className="grid">
               {appsToRender?.map((app) => (
-                <Link
-                  onClick={selector.toggleOff}
-                  href={urls.app(app.id)}
-                  key={app.id}
-                >
+                <button onClick={() => selectApp(app)} key={app.id}>
                   <ButtonContent
                     app={app}
                     className={cn("px-4 py-3")}
                     selected={isSelected(app)}
                   />
-                </Link>
+                </button>
               ))}
 
               <button

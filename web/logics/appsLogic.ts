@@ -159,7 +159,7 @@ export const appsLogic = kea<appsLogicType>([
             actions.updateAppList(
               values.apps.filter(({ id }) => id !== app_id)
             );
-            if (Router.pathname === urls.app("[app_id]")) {
+            if (Router.pathname === urls.app()) {
               Router.push("/");
             }
           }
@@ -188,7 +188,7 @@ export const appsLogic = kea<appsLogicType>([
           actions.resetNewApp();
           toast.success(`${app.name} app created successfully!`);
           actions.updateAppList([...values.apps, app]);
-          Router.push(urls.app(app.id));
+          Router.push(urls.app());
         }
       },
     },

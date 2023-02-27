@@ -1,7 +1,6 @@
 import { Selector } from "./Selector";
 import { memo, useMemo, useState } from "react";
 import { Icon, IconType } from "common/Icon";
-import { App, useAppsContext } from "contexts/AppsContext";
 import dayjs from "dayjs";
 import cn from "classnames";
 import { stats as tempStats } from "common/Layout/temp-data";
@@ -88,8 +87,6 @@ export const Stats = memo(function Stats() {
   const stats = tempStats["app_staging_58fcda7a3ec5dc181f91b46e1954a8fc"];
   const [timespan, setTimespan] = useState(timespans[0]);
   const cumulative = true;
-
-  console.log(stats);
 
   const labelDateFormat = useMemo(() => {
     switch (timespan.value) {

@@ -12,10 +12,7 @@ interface StatusInterface {
 export const Status = memo(function Status(props: StatusInterface) {
   const router = useRouter();
 
-  const actionEditLink = useMemo(
-    () => urls.action(props.action.id),
-    [props.action.id]
-  );
+  const actionEditLink = useMemo(() => urls.actions("custom"), []);
 
   const handleClickAwaitingDeployment = useCallback<
     MouseEventHandler<HTMLSpanElement>

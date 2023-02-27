@@ -42,6 +42,7 @@ const iconNames = [
   "kiosk-restart-page",
   "kiosk-success-page",
   "kiosk",
+  "lock",
   "logo",
   "logout",
   "magnifier",

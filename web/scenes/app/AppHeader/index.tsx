@@ -4,13 +4,13 @@ import { Switch } from "common/Switch";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useState } from "react";
 import cn from "classnames";
-import { useAppsContext } from "contexts/AppsContext";
+import { useAppsStore } from "stores/app-store";
 
 export const AppHeader = memo(function AppHeader(props: {
   app: (typeof apps)[0];
 }) {
   const [copied, setCopied] = useState(false);
-  const { toggleAppActivity } = useAppsContext();
+  const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity);
 
   useEffect(() => {
     if (copied) {

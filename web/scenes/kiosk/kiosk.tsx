@@ -24,7 +24,7 @@ export function Kiosk() {
 
   const backUrl = useMemo(() => {
     if (!isAuthenticated || !action) return undefined;
-    return urls.action(action.id);
+    return urls.actions("custom");
   }, [action, isAuthenticated]);
 
   return (
