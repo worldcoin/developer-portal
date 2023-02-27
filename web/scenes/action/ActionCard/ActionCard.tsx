@@ -19,10 +19,7 @@ export const ActionCard = memo(function ActionCard(props: {
 }) {
   const router = useRouter();
 
-  const actionEditLink = useMemo(
-    () => urls.action(props.action.id),
-    [props.action.id]
-  );
+  const actionEditLink = useMemo(() => urls.actions("custom"), []);
 
   const handleUpdateField = useCallback(
     ({ attr, value }: { attr: string; value: string }) => {
