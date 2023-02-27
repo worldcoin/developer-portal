@@ -8,7 +8,7 @@ import { getKioskStore, Screen, useKioskStore } from "./store/kiosk-store";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
 
-export const Kiosk = memo(function Kiosk() {
+export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
   const { actions, selectedAction, setSelectedAction, screen, setScreen } =
     useKioskStore(getKioskStore);
@@ -58,7 +58,7 @@ export const Kiosk = memo(function Kiosk() {
           </div>
         </div>
 
-        {screen === Screen.Waiting && <Waiting />}
+        {screen === Screen.Waiting && <Waiting appId={props.appId} />}
         {screen === Screen.Connected && <Connected />}
         {screen === Screen.Success && <Success />}
 

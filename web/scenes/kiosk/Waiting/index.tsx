@@ -1,124 +1,22 @@
-import { ErrorCodes } from "@worldcoin/idkit/build/types";
+import { internal } from "@worldcoin/idkit";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
+import { memo, useCallback, useState } from "react";
+import { getKioskStore, useKioskStore } from "../store/kiosk-store";
 
-export const Waiting = memo(function Waiting() {
-  const { setScreen } = useKioskStore(getKioskStore);
-
+export const Waiting = memo(function Waiting(props: { appId: string }) {
   const [copied, setCopied] = useState(false);
-  const [qrData, setQrData] = useState<string | null>(null);
-
-  const qrReference = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!qrReference.current || !qrData) {
-      return;
-    }
-
-    const QRElement = qrReference.current;
-
-    import("qr-code-styling").then((mod) => {
-      const qr = new mod.default({
-        backgroundOptions: { color: "transparent" },
-        cornersDotOptions: { type: "dot" },
-        cornersSquareOptions: { type: "extra-rounded" },
-        data: qrData,
-        dotsOptions: { color: "currentColor", type: "dots" },
-        height: QRElement.offsetWidth,
-        image: "/icons/worldcoin-small-color.svg",
-        imageOptions: { margin: 4 },
-        type: "svg",
-        width: QRElement.offsetWidth,
-      });
-
-      QRElement.innerHTML = "";
-      qr.append(QRElement);
-    });
-  }, [qrData]);
+  const { qrData } = internal.useAppConnection(props.appId, "action");
 
   const handleCopy = useCallback(() => {
     if (!qrData) return;
 
     navigator.clipboard
-      .writeText(qrData)
+      .writeText(qrData.default)
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
   }, [qrData]);
-
-  //FIXME: Add connection logic
-  // useEffect(() => {
-  //   import("@walletconnect/client").then(async ({ default: WalletConnect }) => {
-  //     const connector = new WalletConnect({
-  //       bridge: "https://bridge.walletconnect.org",
-  //       clientMeta: {
-  //         description: "World ID Kiosk",
-  //         url: "https://id.worldcoin.org/docs/",
-  //         icons: ["https://id.worldcoin.org/img/logomark.svg"],
-  //         name: "World ID Kiosk",
-  //       },
-  //     });
-
-  //     try {
-  //       if (connector.connected) {
-  //         await connector.killSession();
-  //       }
-
-  //       connector.on("session_update", (error, _payload) => {
-  //         if (error) throw error;
-  //       });
-
-  //       connector.on("disconnect", (error, _payload) => {
-  //         if (error) throw error;
-  //       });
-
-  //       await connector.createSession();
-
-  //       // Session has been created
-  //       const url = utils.buildQRData(connector);
-
-  //       setQrData(url.toString());
-
-  //       await new Promise<void>((resolve, reject) => {
-  //         connector.on("connect", (err) => (err ? reject(err) : resolve()));
-  //       });
-
-  //       // Connection has been established
-  //       props.setScreen(Screen.Connected);
-
-  //       const verificationResponse = await connector.sendCustomRequest(
-  //         utils.buildVerificationRequest({
-  //           action_id: props.action.id,
-  //           signal: props.signal,
-  //           on_success: () => null,
-  //         })
-  //       );
-
-  //       props.verifyProof({
-  //         verificationResponse,
-  //         action_id: props.action.id,
-  //         signal: props.signal,
-  //       });
-  //     } catch (error) {
-  //       // Unhandled error ocurred (if proof verification fails, it's properly handled by `kioskLogic`)
-  //       const errorMessage = (error as ExpectedErrorResponse).message;
-
-  //       if (errorMessage === ErrorCodes.AlreadySigned) {
-  //         return props.setScreen("alreadyVerified");
-  //       }
-
-  //       if (errorMessage === ErrorCodes.VerificationRejected) {
-  //         return props.setScreen("verificationRejected");
-  //       }
-
-  //       props.setScreen("connectionError");
-  //     } finally {
-  //       if (connector?.connected)
-  //         connector.killSession().catch(console.error.bind(console));
-  //     }
-  //   });
-  // }, [props]);
 
   return (
     <div className="flex flex-col items-center portrait:py-12 landscape:py-6">
@@ -134,10 +32,15 @@ export const Waiting = memo(function Waiting() {
           "after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff"
         )}
       >
-        <div className="z-10 w-full h-full max-w-full max-h-full bg-ffffff" />
+        <div className="z-50">
+          {qrData && <internal.QRCode data={qrData.default} />}
+        </div>
       </div>
-      <button className="h-9 portrait:mt-8 landscape:mt-4 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg">
-        Copy QR code
+      <button
+        onClick={handleCopy}
+        className="h-9 portrait:mt-8 landscape:mt-4 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg"
+      >
+        {copied ? "Copied!" : "Copy QR code"}
       </button>
     </div>
   );
