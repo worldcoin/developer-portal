@@ -30,7 +30,7 @@ export default async function handler(
     const scopes = (payload.scope as string)?.toString().split(" ");
 
     if (scopes?.includes("email")) {
-      response.email = "testemail@example.com";
+      response.email = `${payload.sub}@id.worldcoin.org`;
     }
 
     if (scopes?.includes("profile")) {
