@@ -134,7 +134,7 @@ export const Waiting = memo(function Waiting() {
           "after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff"
         )}
       >
-        <div className="z-10 w-full h-full max-w-full max-h-full bg-neutral-secondary" />
+        <div className="z-10 w-full h-full max-w-full max-h-full bg-ffffff" />
       </div>
       <button className="h-9 portrait:mt-8 landscape:mt-4 px-4 font-rubik font-medium text-14 bg-f3f4f5 rounded-lg">
         Copy QR code
