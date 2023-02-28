@@ -2,7 +2,6 @@ import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
-import * as jose from "jose";
 import { CredentialType, IInternalError } from "types";
 
 const CONTRACT_ABI = [
@@ -114,6 +113,7 @@ export const fetchActionForProof = async (
   nullifier_hash: string,
   action: string
 ) => {
+  console.log(app_id, nullifier_hash, action); // DEBUG
   const result = await graphQLClient.query<IAppActionWithContractAddress>({
     query: queryFetchAppActionWithContractAddress,
     variables: {
@@ -137,6 +137,7 @@ export const fetchActionForProof = async (
   const app = result.data.app[0];
 
   if (!app.actions.length) {
+    console.log(app); // DEBUG
     return {
       error: {
         message: "We couldn't find the relevant action.",

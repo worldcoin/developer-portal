@@ -3016,10 +3016,10 @@
     posthog-js-lite "0.0.5"
     qr-code-styling-new "1.6.1"
 
-"@worldcoin/idkit@0.4.3":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.4.3.tgz#c6b3a2c46be3c4a1d1384475fc65034db2822b1e"
-  integrity sha512-U6ThwMKWLxxe4StdzwBfx9Cb/MFLPEdMCjiNPnjM65zCoVq/g21i5P0paiW2AkiK2OtpmYlGD0u+zgFN7z3BAg==
+"@worldcoin/idkit@0.4.0-alpha.6":
+  version "0.4.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.4.0-alpha.6.tgz#add6ba5cf92deb2e2bfb163857d4281552371f3b"
+  integrity sha512-Cwa4e1rAuqp40imAVQLXtnTG1sgL79qyKn+XHr4P/oLJpTpxqYphcbVDBL/oyXi3kR+vEZtNaK35jZOWmYV7Ug==
   dependencies:
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/solidity" "^5.7.0"
@@ -7089,6 +7089,11 @@ qrcode-generator@^1.4.3:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/qrcode-generator/-/qrcode-generator-1.4.4.tgz#63f771224854759329a99048806a53ed278740e7"
   integrity sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==
+
+qrcode.react@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/qrcode.react/-/qrcode.react-3.1.0.tgz#5c91ddc0340f768316fbdb8fff2765134c2aecd8"
+  integrity sha512-oyF+Urr3oAMUG/OiOuONL3HXM+53wvuH3mtIWQrYmsXoAq0DkvZp2RYUWFSMFtbdOpuS++9v+WAkzNVkMlNW6Q==
 
 qrcode@^1.5.1:
   version "1.5.1"

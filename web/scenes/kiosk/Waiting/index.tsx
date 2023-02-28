@@ -1,22 +1,21 @@
-import { internal } from "@worldcoin/idkit";
 import cn from "classnames";
 import { Icon } from "common/Icon";
+import { QRCodeSVG } from "qrcode.react";
 import { memo, useCallback, useState } from "react";
-import { getKioskStore, useKioskStore } from "../store/kiosk-store";
 
-export const Waiting = memo(function Waiting(props: { appId: string }) {
+export const Waiting = memo(function Waiting(props: { appId: string; qrData }) {
   const [copied, setCopied] = useState(false);
-  const { qrData } = internal.useAppConnection(props.appId, "action");
+  console.log("qrData:", props.qrData);
 
   const handleCopy = useCallback(() => {
-    if (!qrData) return;
+    if (!props.qrData) return;
 
     navigator.clipboard
-      .writeText(qrData.default)
+      .writeText(props.qrData.default)
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
-  }, [qrData]);
+  }, [props.qrData]);
 
   return (
     <div className="flex flex-col items-center portrait:py-12 landscape:py-6">
@@ -33,7 +32,14 @@ export const Waiting = memo(function Waiting(props: { appId: string }) {
         )}
       >
         <div className="z-50">
-          {qrData && <internal.QRCode data={qrData.default} />}
+          {props.qrData && (
+            // <internal.QRCode
+            //   data={props.qrData.default}
+            //   logoSize={0}
+            //   size={600}
+            // />
+            <QRCodeSVG value={props.qrData.default} size={500} />
+          )}
         </div>
       </div>
       <button
