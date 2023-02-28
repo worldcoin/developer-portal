@@ -68,7 +68,7 @@ export function Debugger(): JSX.Element {
       )}
     >
       <div className="space-y-12">
-        <div className="grid grid-flow-col gap-6 items-center">
+        <div className="grid grid-flow-col auto-cols-max gap-6 items-center">
           <Illustration icon="speed-test" />
 
           <div className="flex flex-col gap-1">
