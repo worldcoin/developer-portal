@@ -1,9 +1,15 @@
+import { internal } from "@worldcoin/idkit";
 import cn from "classnames";
 import { Icon } from "common/Icon";
 import { QRCodeSVG } from "qrcode.react";
 import { memo, useCallback, useState } from "react";
 
-export const Waiting = memo(function Waiting(props: { appId: string; qrData }) {
+type QRData = ReturnType<typeof internal.useAppConnection>["qrData"];
+
+export const Waiting = memo(function Waiting(props: {
+  appId: string;
+  qrData: QRData;
+}) {
   const [copied, setCopied] = useState(false);
   console.log("qrData:", props.qrData);
 
@@ -26,7 +32,7 @@ export const Waiting = memo(function Waiting(props: { appId: string; qrData }) {
       <div
         className={cn(
           "flex items-center justify-center relative border border-primary/10 rounded-sm",
-          "portrait:w-[395px] landscape:w-[299px] portrait:h-[395px] landscape:h-[299px]",
+          "portrait:w-[395px] landscape:w-[300px] portrait:h-[395px] landscape:h-[300px]",
           "before:absolute before:-top-[1px] before:left-[40px] before:right-[40px] before:-bottom-[1px] before:bg-ffffff",
           "after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff"
         )}
@@ -38,7 +44,10 @@ export const Waiting = memo(function Waiting(props: { appId: string; qrData }) {
             //   logoSize={0}
             //   size={600}
             // />
-            <QRCodeSVG value={props.qrData.default} size={500} />
+            <QRCodeSVG
+              value={props.qrData.default}
+              className="portrait:w-[375px] landscape:w-[280px] portrait:h-[375px] landscape:h-[280px]"
+            />
           )}
         </div>
       </div>
