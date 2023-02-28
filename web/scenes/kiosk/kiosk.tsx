@@ -22,11 +22,14 @@ type ProofResponse = {
 
 export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
-  const [currentState, setCurrentState] = useState();
+
   const { actions, selectedAction, setSelectedAction, screen, setScreen } =
     useKioskStore(getKioskStore);
+
   const { result, errorCode, verificationState, qrData } =
     internal.useAppConnection(props.appId, "test");
+
+  const [currentState, setCurrentState] = useState<typeof verificationState>();
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
