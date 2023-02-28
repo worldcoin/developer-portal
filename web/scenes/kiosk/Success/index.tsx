@@ -35,7 +35,7 @@ export const Success = memo(function Success(props: {
         </p>
 
         <p className="font-rubik px-1 text-neutral text-[18px] leading-[1.3]">
-          We&apos;ve successfully verified unique humanness for this user.
+          You are a human doing only this once
         </p>
       </div>
 
