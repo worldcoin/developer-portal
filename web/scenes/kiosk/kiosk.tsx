@@ -22,13 +22,11 @@ type ProofResponse = {
 
 export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
-  const [state, setState] = useState();
+  const [currentState, setCurrentState] = useState();
   const { actions, selectedAction, setSelectedAction, screen, setScreen } =
     useKioskStore(getKioskStore);
   const { result, errorCode, verificationState, qrData } =
-    internal.useAppConnection(props.appId, "");
-
-  console.log(result, errorCode, verificationState);
+    internal.useAppConnection(props.appId, "test");
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
@@ -41,7 +39,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           `/verify/${props.appId}`,
           {
             method: "POST",
-            json: { action: "", signal: "", ...result }, // TODO: Pull action and signal from store
+            json: { action: "test", signal: "", ...result }, // TODO: Pull action and signal from store
           }
         );
 
@@ -62,6 +60,11 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
     [props.appId]
   );
 
+  useEffect(() => {
+    console.log("setSelectedAction()");
+    setSelectedAction(actions[0]);
+  }, [actions, setSelectedAction]);
+
   // Change the shown screen based on /verify response
   useEffect(() => {
     if (!result) return;
@@ -80,51 +83,47 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
     });
   }, [result, verifyProof, setScreen]);
 
-  // useEffect(() => {
-  //   console.log("setSelectedAction()");
-  //   setSelectedAction(actions[0]);
-  // }, [actions, setSelectedAction]);
-
   // Change the shown screen based on current verificationState and errorCode
-  // useEffect(() => {
-  if (verificationState && state !== verificationState) {
-    //return;
-    switch (verificationState) {
-      case "loading_widget":
-        break;
-      case "awaiting_connection":
-        break;
-      // setScreen(Screen.Waiting);
-      // break;
-      case "awaiting_verification":
-        setScreen(Screen.Connected);
-        break;
-      case "confirmed":
-        setScreen(Screen.Success);
-        break;
-      case "failed":
-        switch (errorCode) {
-          case "connection_failed":
-            setScreen(Screen.ConnectionError);
-            break;
-          case "already_signed":
-            setScreen(Screen.AlreadyVerified);
-            break;
-          case "verification_rejected":
-            setScreen(Screen.VerificationRejected);
-            break;
-          case "unexpected_response":
-            break;
-          case "generic_error":
-            break;
-        }
-        setScreen(Screen.VerificationError);
-        break;
+  useEffect(() => {
+    console.log(
+      "currentState:",
+      currentState,
+      " | ",
+      "verificationState:",
+      verificationState
+    ); // DEBUG
+    if (verificationState && currentState !== verificationState) {
+      switch (verificationState) {
+        case "loading_widget":
+        case "awaiting_connection":
+          setScreen(Screen.Waiting);
+          break;
+        case "awaiting_verification":
+          setScreen(Screen.Connected);
+          break;
+        case "confirmed":
+          setScreen(Screen.Success);
+          break;
+        case "failed":
+          console.log("errorCode:", errorCode); // DEBUG
+          switch (errorCode) {
+            case "connection_failed":
+              setScreen(Screen.ConnectionError);
+              break;
+            case "already_signed":
+              setScreen(Screen.AlreadyVerified);
+              break;
+            case "verification_rejected":
+              setScreen(Screen.VerificationRejected);
+              break;
+            case "unexpected_response":
+            case "generic_error":
+          }
+          setScreen(Screen.VerificationError);
+      }
+      setCurrentState(verificationState);
     }
-    setState(verificationState);
-  }
-  // console.log("Screen updated:", screen);
-  // }, [errorCode, setScreen, verificationState]);
+  }, [currentState, errorCode, setScreen, verificationState]);
 
   return (
     <div className="flex flex-col h-screen">

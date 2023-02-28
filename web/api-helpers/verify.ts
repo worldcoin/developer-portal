@@ -113,6 +113,7 @@ export const fetchActionForProof = async (
   nullifier_hash: string,
   action: string
 ) => {
+  console.log(app_id, nullifier_hash, action); // DEBUG
   const result = await graphQLClient.query<IAppActionWithContractAddress>({
     query: queryFetchAppActionWithContractAddress,
     variables: {
