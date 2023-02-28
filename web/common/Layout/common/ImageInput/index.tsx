@@ -1,10 +1,12 @@
 import { ChangeEvent, memo, useCallback, useEffect, useState } from "react";
 import { DialogHeaderIcon } from "common/DialogHeaderIcon";
-import { Icon } from "common/Icon";
+import { Icon, IconType } from "common/Icon";
 import cn from "classnames";
 
 export interface ImageInputProps {
   className?: string;
+  icon: IconType;
+  setImage?: (props: { file?: File; dataURI?: string }) => void;
 }
 
 export const ImageInput = memo(function ImageInput(props: ImageInputProps) {
@@ -18,7 +20,9 @@ export const ImageInput = memo(function ImageInput(props: ImageInputProps) {
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result) {
-            setImageFileUrl(reader.result.toString());
+            const dataURI = reader.result.toString();
+            setImageFileUrl(dataURI);
+            props.setImage?.({ dataURI });
           }
         };
         reader.readAsDataURL(imageFile);
@@ -27,7 +31,7 @@ export const ImageInput = memo(function ImageInput(props: ImageInputProps) {
         active = false;
       };
     }
-  }, [imageFile]);
+  }, [imageFile, props]);
 
   const handleImageChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -50,7 +54,7 @@ export const ImageInput = memo(function ImageInput(props: ImageInputProps) {
       )}
       style={{ backgroundImage: `url(${imageFileUrl})` }}
     >
-      {!imageFileUrl && <DialogHeaderIcon icon="apps" />}
+      {!imageFileUrl && <DialogHeaderIcon icon={props.icon} />}
       <div className="absolute right-0 bottom-0 flex items-center justify-center w-6 h-6 bg-ffffff rounded-full">
         <Icon name="camera" className="w-4 h-4 text-primary" />
         <input type="file" className="sr-only" onChange={handleImageChange} />
