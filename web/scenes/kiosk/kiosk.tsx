@@ -2,7 +2,7 @@ import { internal, ISuccessResult } from "@worldcoin/idkit";
 import { Icon } from "common/Icon";
 import { restAPIRequest } from "frontend-api";
 import { useRouter } from "next/router";
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { ActionSelect } from "scenes/kiosk/common/ActionSelect";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
@@ -22,49 +22,17 @@ type ProofResponse = {
 
 export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
+  const [state, setState] = useState();
   const { actions, selectedAction, setSelectedAction, screen, setScreen } =
     useKioskStore(getKioskStore);
-  const { result, errorCode, verificationState } = internal.useAppConnection(
-    props.appId,
-    "test"
-  );
+  const { result, errorCode, verificationState, qrData } =
+    internal.useAppConnection(props.appId, "");
+
+  console.log(result, errorCode, verificationState);
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
   }, [router]);
-
-  // Change the shown screen based on current verificationState and errorCode
-  useEffect(() => {
-    if (!verificationState) return;
-    switch (verificationState) {
-      case "loading_widget":
-      case "awaiting_connection":
-        setScreen(Screen.Waiting);
-        break;
-      case "awaiting_verification":
-        setScreen(Screen.Connected);
-        break;
-      case "confirmed":
-        setScreen(Screen.Success);
-        break;
-      case "failed":
-        switch (errorCode) {
-          case "connection_failed":
-            setScreen(Screen.ConnectionError);
-            break;
-          case "already_signed":
-            setScreen(Screen.AlreadyVerified);
-            break;
-          case "verification_rejected":
-            setScreen(Screen.VerificationRejected);
-            break;
-          case "unexpected_response":
-          case "generic_error":
-        }
-        setScreen(Screen.VerificationError);
-        break;
-    }
-  }, [verificationState, errorCode, setScreen]);
 
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
@@ -98,6 +66,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   useEffect(() => {
     if (!result) return;
 
+    console.log("verifyProof()");
     verifyProof(result).then((response: ProofResponse) => {
       if (response?.success) {
         setScreen(Screen.Success);
@@ -106,13 +75,56 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
       } else if (response?.code === "invalid_merkle_root") {
         setScreen(Screen.InvalidIdentity);
       } else {
+        setScreen(Screen.VerificationError);
       }
     });
   }, [result, verifyProof, setScreen]);
 
-  useEffect(() => {
-    setSelectedAction(actions[0]);
-  }, [actions, setSelectedAction]);
+  // useEffect(() => {
+  //   console.log("setSelectedAction()");
+  //   setSelectedAction(actions[0]);
+  // }, [actions, setSelectedAction]);
+
+  // Change the shown screen based on current verificationState and errorCode
+  // useEffect(() => {
+  if (verificationState && state !== verificationState) {
+    //return;
+    switch (verificationState) {
+      case "loading_widget":
+        break;
+      case "awaiting_connection":
+        break;
+      // setScreen(Screen.Waiting);
+      // break;
+      case "awaiting_verification":
+        setScreen(Screen.Connected);
+        break;
+      case "confirmed":
+        setScreen(Screen.Success);
+        break;
+      case "failed":
+        switch (errorCode) {
+          case "connection_failed":
+            setScreen(Screen.ConnectionError);
+            break;
+          case "already_signed":
+            setScreen(Screen.AlreadyVerified);
+            break;
+          case "verification_rejected":
+            setScreen(Screen.VerificationRejected);
+            break;
+          case "unexpected_response":
+            break;
+          case "generic_error":
+            break;
+        }
+        setScreen(Screen.VerificationError);
+        break;
+    }
+    setState(verificationState);
+  }
+  // console.log("Screen updated:", screen);
+  // }, [errorCode, setScreen, verificationState]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -151,7 +163,9 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           </div>
         </div>
 
-        {screen === Screen.Waiting && <Waiting appId={props.appId} />}
+        {screen === Screen.Waiting && (
+          <Waiting appId={props.appId} qrData={qrData} />
+        )}
         {screen === Screen.Connected && <Connected />}
         {screen === Screen.Success && <Success />}
 
