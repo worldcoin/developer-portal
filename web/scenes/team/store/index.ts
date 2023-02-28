@@ -32,6 +32,8 @@ type TeamStore = {
   team: Team | null;
   setTeam: (team: Team) => void;
   fetchTeam: () => Promise<void>;
+  inviteMembers: (members: TeamMember[]) => Promise<void>;
+  removeMember: (email: string) => Promise<void>;
 };
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
@@ -41,10 +43,37 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
     const team = tempTeam;
     set(() => ({ team }));
   },
+
+  inviteMembers: async (members: TeamMember[]) => {
+    const team = get().team;
+
+    //TODO: Replace with relevant logic
+    if (team) {
+      set(() => ({
+        team: { ...team, members: [...team.members, ...members] },
+      }));
+    }
+  },
+
+  removeMember: async (email: string) => {
+    const team = get().team;
+
+    const updatedList = team?.members.filter(
+      (member) => member.email !== email
+    );
+
+    if (team && updatedList) {
+      set(() => ({
+        team: { ...team, members: updatedList },
+      }));
+    }
+  },
 }));
 
 export const getTeamStore = (store: TeamStore) => ({
   team: store.team,
   setTeam: store.setTeam,
   fetchTeam: store.fetchTeam,
+  inviteMembers: store.inviteMembers,
+  removeMember: store.removeMember,
 });
