@@ -2,7 +2,6 @@ import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
-import * as jose from "jose";
 import { CredentialType, IInternalError } from "types";
 
 const CONTRACT_ABI = [

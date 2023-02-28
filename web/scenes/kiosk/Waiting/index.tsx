@@ -1,8 +1,8 @@
 import { internal } from "@worldcoin/idkit";
 import cn from "classnames";
 import { Icon } from "common/Icon";
+import { QRCodeSVG } from "qrcode.react";
 import { memo, useCallback, useState } from "react";
-import { getKioskStore, useKioskStore } from "../store/kiosk-store";
 
 export const Waiting = memo(function Waiting(props: { appId: string }) {
   const [copied, setCopied] = useState(false);
@@ -33,7 +33,10 @@ export const Waiting = memo(function Waiting(props: { appId: string }) {
         )}
       >
         <div className="z-50">
-          {qrData && <internal.QRCode data={qrData.default} />}
+          {qrData && (
+            // <internal.QRCode data={qrData.default} logoSize={0} size={600} />
+            <QRCodeSVG value={qrData.default} size={500} />
+          )}
         </div>
       </div>
       <button

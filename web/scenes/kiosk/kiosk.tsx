@@ -1,6 +1,8 @@
+import { internal, ISuccessResult } from "@worldcoin/idkit";
 import { Icon } from "common/Icon";
+import { restAPIRequest } from "frontend-api";
 import { useRouter } from "next/router";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { ActionSelect } from "scenes/kiosk/common/ActionSelect";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
@@ -8,14 +10,105 @@ import { getKioskStore, Screen, useKioskStore } from "./store/kiosk-store";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
 
+type ProofResponse = {
+  success: boolean;
+  action_id?: string;
+  nullifier_hash?: string;
+  created_at?: string;
+  code?: string;
+  detail?: string;
+  attribute?: string;
+};
+
 export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
   const { actions, selectedAction, setSelectedAction, screen, setScreen } =
     useKioskStore(getKioskStore);
+  const { result, errorCode, verificationState } = internal.useAppConnection(
+    props.appId,
+    "test"
+  );
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
   }, [router]);
+
+  // Change the shown screen based on current verificationState and errorCode
+  useEffect(() => {
+    if (!verificationState) return;
+    switch (verificationState) {
+      case "loading_widget":
+      case "awaiting_connection":
+        setScreen(Screen.Waiting);
+        break;
+      case "awaiting_verification":
+        setScreen(Screen.Connected);
+        break;
+      case "confirmed":
+        setScreen(Screen.Success);
+        break;
+      case "failed":
+        switch (errorCode) {
+          case "connection_failed":
+            setScreen(Screen.ConnectionError);
+            break;
+          case "already_signed":
+            setScreen(Screen.AlreadyVerified);
+            break;
+          case "verification_rejected":
+            setScreen(Screen.VerificationRejected);
+            break;
+          case "unexpected_response":
+          case "generic_error":
+        }
+        setScreen(Screen.VerificationError);
+        break;
+    }
+  }, [verificationState, errorCode, setScreen]);
+
+  const verifyProof = useCallback(
+    async (result: ISuccessResult) => {
+      try {
+        const response = await restAPIRequest<ProofResponse>(
+          `/verify/${props.appId}`,
+          {
+            method: "POST",
+            json: { action: "", signal: "", ...result }, // TODO: Pull action and signal from store
+          }
+        );
+
+        return response;
+      } catch (e) {
+        console.warn("Error verifying proof. Please check network logs.");
+        try {
+          if ((e as Record<string, any>).code) {
+            return {
+              success: false,
+              code: (e as Record<string, any>).code,
+            };
+          }
+        } catch {}
+        return { success: false, code: "unknown" };
+      }
+    },
+    [props.appId]
+  );
+
+  // Change the shown screen based on /verify response
+  useEffect(() => {
+    if (!result) return;
+
+    verifyProof(result).then((response: ProofResponse) => {
+      if (response?.success) {
+        setScreen(Screen.Success);
+      } else if (response?.code === "already_verified") {
+        setScreen(Screen.AlreadyVerified);
+      } else if (response?.code === "invalid_merkle_root") {
+        setScreen(Screen.InvalidIdentity);
+      } else {
+      }
+    });
+  }, [result, verifyProof, setScreen]);
 
   useEffect(() => {
     setSelectedAction(actions[0]);
