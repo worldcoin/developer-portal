@@ -59,10 +59,7 @@ export const Interface = memo(function Interface(props: InterfaceInterface) {
         )}
         <Field noStyle name={props.name}>
           {({ value, onChange }) => (
-            <Switch
-              checked={value}
-              onChangeChecked={(value) => onChange(value)}
-            />
+            <Switch checked={value} toggle={(value) => onChange(value)} />
           )}
         </Field>
       </InterfaceHeader>

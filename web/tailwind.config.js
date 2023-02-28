@@ -48,7 +48,8 @@ module.exports = {
         light: "#e5f9e7",
       },
       warning: {
-        DEFAULT: "#ff5a76", // FIXME: This color is actually danger
+        DEFAULT: "#ff5a76", // FIXME: This color is actually danger,
+        light: "#fff0ed", //FIXME:
       },
       ...mirrorHexColors([
         "#000000",
@@ -65,14 +66,16 @@ module.exports = {
         "#dbe3e8",
         "#ebecef",
         "#edbd14",
-        "#edecfc",
+        "#edecfc", //FIXME: duplicate for primary-light
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
         "#f3f4f5",
         "#f9f9f9",
+        "#f9fafb",
         "#fafafa",
         "#fbfbfb",
+        "#fbfbfc",
         "#fcfbfe",
         "#ff6848",
         "#ffc700", // FIXME: this color is actually warning
@@ -104,6 +107,7 @@ module.exports = {
         13: "calc(13 * 1rem / 16)",
         14: "calc(14 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
+        18: "calc(16 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
         24: "calc(24 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",

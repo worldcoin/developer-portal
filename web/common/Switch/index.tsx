@@ -1,43 +1,39 @@
 import { memo, useCallback, ChangeEvent } from "react";
 import cn from "classnames";
+import { Switch as BaseSwitch } from "@headlessui/react";
 
 interface SwitchInterface {
   className?: string;
   checked?: boolean;
-  onChangeChecked: (checked: boolean) => void;
+  toggle: (checked: boolean) => void;
+  customColors?: {
+    checked?: string;
+    unchecked?: string;
+  };
 }
 
 export const Switch = memo(function Switch(props: SwitchInterface) {
-  const { onChangeChecked } = props;
-
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      onChangeChecked(event.target.checked);
-    },
-    [onChangeChecked]
-  );
-
   return (
-    <label
+    <BaseSwitch
+      checked={props.checked}
+      onChange={props.toggle}
       className={cn(
-        "relative w-16 h-8 border rounded-2xl cursor-pointer transition-colors after:transition-[left]",
-        "after:absolute after:w-[26px] after:h-[26px] after:top-0.5 after:bg-ffffff after:rounded-full",
+        "relative inline-flex w-11 h-6 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75",
         {
-          "border-primary/10 bg-primary/5 after:left-0.5 ": !props.checked,
+          [`${props.customColors?.unchecked ?? "bg-neutral-secondary"}`]:
+            !props.checked,
         },
-        {
-          "border-primary bg-primary after:left-[calc(100%-28px)]":
-            props.checked,
-        },
-        props.className
+        { [`${props.customColors?.checked ?? "bg-primary"}`]: props.checked }
       )}
     >
-      <input
-        className="sr-only"
-        type="checkbox"
-        checked={props.checked}
-        onChange={handleChange}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-ffffff shadow-lg ring-0 transition duration-200 ease-in-out",
+          { "translate-x-5": props.checked },
+          { "translate-x-0": !props.checked }
+        )}
       />
-    </label>
+    </BaseSwitch>
   );
 });
