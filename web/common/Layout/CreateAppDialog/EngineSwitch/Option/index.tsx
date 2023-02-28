@@ -21,7 +21,7 @@ export const Option = memo(function Option(props: OptionProps) {
   return (
     <button
       className={cn(
-        "relative flex items-center gap-x-4 w-full p-4 pr-5 text-left border rounded-2xl",
+        "relative flex items-center gap-x-4 w-full p-4 pr-5 text-left border rounded-2xl transition-colors",
         {
           "bg-191c20 border-transparent": props.checked,
           "border-f0edf9": !props.checked,
@@ -31,7 +31,7 @@ export const Option = memo(function Option(props: OptionProps) {
     >
       <div
         className={cn(
-          "shrink-0 flex items-center justify-center w-12 h-12 rounded-full",
+          "shrink-0 flex items-center justify-center w-12 h-12 rounded-full transition-colors",
           {
             "bg-ffffff/10 text-ffffff": checked,
             "bg-f3f4f5": !checked,
@@ -43,19 +43,25 @@ export const Option = memo(function Option(props: OptionProps) {
 
       <div>
         <div
-          className={cn("font-sora font-semibold text-16 leading-4", {
-            "text-ffffff": checked,
-            "text-191c20": !checked,
-          })}
+          className={cn(
+            "font-sora font-semibold text-16 leading-4 transition-colors",
+            {
+              "text-ffffff": checked,
+              "text-191c20": !checked,
+            }
+          )}
         >
           {title}
         </div>
 
         <div
-          className={cn("mt-1.5 font-rubik text-14 leading-4", {
-            "text-ffffff/60": checked,
-            "text-neutral": !checked,
-          })}
+          className={cn(
+            "mt-1.5 font-rubik text-14 leading-4 transition-colors",
+            {
+              "text-ffffff/60": checked,
+              "text-neutral": !checked,
+            }
+          )}
         >
           {description}
         </div>
@@ -64,7 +70,7 @@ export const Option = memo(function Option(props: OptionProps) {
       {easiest && (
         <div
           className={cn(
-            "absolute top-[8px] right-[8px] flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg",
+            "absolute top-[8px] right-[8px] flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg transition-colors",
             {
               "bg-ffffff/10 text-ffffff": checked,
               "bg-f3f4f5": !checked,

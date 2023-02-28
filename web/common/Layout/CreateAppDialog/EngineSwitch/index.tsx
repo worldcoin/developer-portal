@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Option } from "scenes/apps/CreateAppDialog/EngineSwitch/Option";
+import { Option } from "./Option";
 
 export interface EngineSwitchProps {
   value: "cloud" | "on-chain";

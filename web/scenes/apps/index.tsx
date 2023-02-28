@@ -6,9 +6,7 @@ import { appsLogic } from "logics/appsLogic";
 import { authLogic } from "logics/authLogic";
 import { Fragment, memo, useState } from "react";
 import { urls } from "urls";
-import { Appslist } from "./AppsList";
 import { AuthRequired } from "common/AuthRequired";
-import { CreateAppDialog } from "scenes/apps/CreateAppDialog";
 
 export const Apps = memo(function Apps() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,11 +39,6 @@ export const Apps = memo(function Apps() {
         <button className="p-3 border" onClick={() => setDialogOpen(true)}>
           CREATE NEW APP
         </button>
-
-        <CreateAppDialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-        />
       </Layout>
     </AuthRequired>
   );

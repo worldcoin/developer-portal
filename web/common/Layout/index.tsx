@@ -13,9 +13,9 @@ import { CookieBanner } from "common/CookieBanner/CookieBanner";
 import { SystemStatus } from "./SystemStatus";
 import { NavItemGroup } from "./NavItemsGroup";
 import { AppSelector } from "./AppSelector";
-import { NewAppDialog } from "./NewAppDialog";
 import { useToggle } from "common/hooks";
 import { useAppsStore } from "stores/app-store";
+import { CreateAppDialog } from "./CreateAppDialog";
 
 export const Layout = (props: {
   title?: string;
@@ -32,7 +32,7 @@ export const Layout = (props: {
       <Meta title={props.title} url={router.asPath} />
 
       <div className="grid h-screen grid-cols-auto/1fr font-rubik">
-        <NewAppDialog
+        <CreateAppDialog
           open={newAppDialog.isOn}
           onClose={newAppDialog.toggleOff}
         />

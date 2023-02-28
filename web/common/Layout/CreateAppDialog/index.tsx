@@ -4,8 +4,8 @@ import { FieldLabel } from "common/FieldLabel";
 import { FieldInput } from "common/FieldInput";
 import { Button } from "common/Button";
 import { Dialog } from "common/Dialog";
-import { ImageInput } from "scenes/apps/CreateAppDialog/ImageInput";
-import { EngineSwitch } from "scenes/apps/CreateAppDialog/EngineSwitch";
+import { ImageInput } from "./ImageInput";
+import { EngineSwitch } from "./EngineSwitch";
 
 export interface CreateAppDialogProps {
   open: boolean;
@@ -23,15 +23,24 @@ export const CreateAppDialog = memo(function CreateAppDialog(
 
       <div>
         <div className="flex flex-col gap-y-2">
-          <FieldLabel required>Name</FieldLabel>
+          <FieldLabel className="font-rubik" required>
+            Name
+          </FieldLabel>
 
-          <FieldInput className="w-full" placeholder="Add apps name" required />
+          <FieldInput
+            className="w-full font-rubik"
+            placeholder="Add apps name"
+            required
+          />
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel className="font-rubik">Description</FieldLabel>
           {/* FIXME: use textarea instead of input */}
-          <FieldInput className="w-full" placeholder="Add description" />
+          <FieldInput
+            className="w-full font-rubik"
+            placeholder="Add description"
+          />
         </div>
 
         <EngineSwitch value={engine} onChange={setEngine} />
