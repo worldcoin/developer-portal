@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useValues } from "kea";
 import { authLogic } from "logics/authLogic";
 import { Icon } from "common/Icon";
-import { ProfileSettingsModal } from "./ProfileSettingsModal";
+import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "common/hooks";
 
 export function LoggedUserDisplay(props: { className?: string }) {
@@ -26,9 +26,9 @@ export function LoggedUserDisplay(props: { className?: string }) {
 
   return (
     <Fragment>
-      <ProfileSettingsModal
-        isOpen={Boolean(user?.id) && modal.isOn}
-        close={modal.toggleOff}
+      <ProfileSettingsDialog
+        open={Boolean(user?.id) && modal.isOn}
+        onClose={modal.toggleOff}
       />
 
       <div
