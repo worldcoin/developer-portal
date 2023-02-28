@@ -59,10 +59,7 @@ export const ActionDropdown = memo(function ActionDropdown(props: {
         containerClassName="bg-ffffff rounded-lg shadow-lg z-50"
       >
         {!isActionPage && (
-          <Link
-            href={urls.action(props.action.id)}
-            className={getItemClassName()}
-          >
+          <Link href={urls.home()} className={getItemClassName()}>
             Edit action
           </Link>
         )}
