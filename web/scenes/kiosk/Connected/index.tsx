@@ -2,42 +2,41 @@ import { Fragment, memo, useCallback, useState } from "react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
 import { Modal } from "common/LegacyModal";
+import { Button } from "common/Button";
+import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 
-export const Connected = memo(function Connected(props: {
-  setScreen: (screen: string) => void;
-}) {
+export const Connected = memo(function Connected() {
+  const { setScreen } = useKioskStore(getKioskStore);
+
   const [isModalShow, setIsModalShow] = useState(false);
   const hideModal = useCallback(() => setIsModalShow(false), []);
   const showModal = useCallback(() => setIsModalShow(true), []);
 
   const handleRestart = useCallback(() => {
-    import("@walletconnect/client")
-      .then(async ({ default: WalletConnect }) => {
-        const connector = new WalletConnect({
-          bridge: "https://bridge.walletconnect.org",
-        });
-        if (!connector.connected) return;
-        return Promise.all([
-          new Promise((resolve) => connector.on("disconnect", resolve)),
-          new Promise((resolve) => setTimeout(resolve, 500)),
-          connector.killSession(new Error(`Restarted`)),
-        ]);
-      })
-      .then(() => localStorage.removeItem("walletconnect"))
-      .catch(console.error.bind(console))
-      .finally(() => {
-        props.setScreen("waiting");
-      });
-  }, [props]);
+    //FIXME: Use WC2.0
+    // import("@walletconnect/client")
+    //   .then(async ({ default: WalletConnect }) => {
+    //     const connector = new WalletConnect({
+    //       bridge: "https://bridge.walletconnect.org",
+    //     });
+    //     if (!connector.connected) return;
+    //     return Promise.all([
+    //       new Promise((resolve) => connector.on("disconnect", resolve)),
+    //       new Promise((resolve) => setTimeout(resolve, 500)),
+    //       connector.killSession(new Error(`Restarted`)),
+    //     ]);
+    //   })
+    //   .then(() => localStorage.removeItem("walletconnect"))
+    //   .catch(console.error.bind(console))
+    //   .finally(() => {
+    //     props.setScreen(Screen.Waiting);
+    //   });
+  }, []);
 
   return (
     <Fragment>
-      <div className="grid grid-flow-row text-center auto-cols-min gap-y-12 justify-items-center">
-        <Icon
-          className="w-16 h-16 animate-spin"
-          name="spinner-gradient"
-          noMask
-        />
+      <div className="grid grid-flow-row text-center justify-center auto-cols-min gap-y-12 justify-items-center">
+        <Icon className="w-16 h-16 animate-spin" name="spinner" noMask />
 
         <div className="grid gap-y-4">
           <p className="font-sora text-[26px] leading-[1.2] font-semibold">
@@ -46,15 +45,14 @@ export const Connected = memo(function Connected(props: {
           <p className="text-neutral">Awaiting confirmation from user</p>
         </div>
 
-        <button
+        <Button
           className={cn(
-            "border-[2px] border-primary min-w-[320px] rounded-xl p-4.5 uppercase font-sora font-semibold leading-[1.2]",
-            "text-primary hover:opacity-70 transition-opacity"
+            "min-w-[320px] p-4.5 uppercase font-sora font-semibold leading-[1.2]"
           )}
           onClick={showModal}
         >
           restart
-        </button>
+        </Button>
       </div>
 
       <Modal
