@@ -45,10 +45,10 @@ export function Initial(props: InitialInterface) {
       </div>
 
       <form className="flex flex-col gap-8 w-full" onSubmit={handleSubmit}>
-        <FieldGroup label="Email">
+        <FieldGroup className="font-rubik" label="Email">
           <span className="flex items-center relative">
             <FieldInput
-              className="w-full"
+              className="w-full font-rubik"
               type="email"
               onChange={handleChangeEmail}
               value={email}
@@ -67,6 +67,7 @@ export function Initial(props: InitialInterface) {
         </FieldGroup>
 
         <FieldGroup
+          className="font-rubik"
           label={
             <>
               Tell us about your project{" "}
@@ -74,7 +75,7 @@ export function Initial(props: InitialInterface) {
             </>
           }
         >
-          <FieldTextArea id="waitlist-email" />
+          <FieldTextArea id="waitlist-email" className="font-rubik" />
         </FieldGroup>
 
         <Button className="py-5 px-14 mx-auto" disabled={!emailValid}>
