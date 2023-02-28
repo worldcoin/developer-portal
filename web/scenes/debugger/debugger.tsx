@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { Illustration } from "common/Auth/Illustration";
 import { Button } from "common/Button";
 import { FieldGroup } from "common/FieldGroup";
@@ -58,9 +59,16 @@ export function Debugger(): JSX.Element {
   const { apps } = useAppsStore(handleFirstLoad);
 
   return (
-    <Layout title="Debugger" mainClassName="grid grid-cols-1fr/auto gap-16">
+    <Layout
+      title="Debugger"
+      mainClassName={classNames(
+        "grid gap-16",
+        // NOTE: container - card - gap
+        "grid-cols-[calc(100%-380px-64px)_380px]"
+      )}
+    >
       <div className="space-y-12">
-        <div className="flex gap-6 items-center">
+        <div className="grid grid-flow-col gap-6 items-center">
           <Illustration icon="speed-test" />
 
           <div className="flex flex-col gap-1">
@@ -140,12 +148,12 @@ export function Debugger(): JSX.Element {
               Verification Response
             </h3>
 
-            <pre className="p-4 px-6">{code}</pre>
+            <pre className="p-4 px-6 overflow-x-auto max-w-[120ch]">{code}</pre>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[380px] pr-10 self-center">
+      <div className="pr-10 self-center">
         <div className="rounded-xl p-6 border border-f0edf9 space-y-6">
           <div className="space-y-4">
             <h4 className="font-sora font-semibold">Debugging results</h4>
