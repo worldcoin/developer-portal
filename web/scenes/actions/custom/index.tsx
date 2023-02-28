@@ -9,18 +9,18 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
 import { CustomAction } from "common/Layout/temp-data";
-import { useEffect, useMemo } from "react";
-import { useActionStore } from "./store";
-import { useAppsStore } from "stores/app-store";
+import { useEffect } from "react";
+import { getAppStore, useAppStore } from "stores/app-store";
 import { shallow } from "zustand/shallow";
 import { Action } from "./Action";
+import { useActionStore } from "./store";
 
 export function Actions(props: {
   actions: Array<CustomAction>;
 }): JSX.Element | null {
   const dialog = useToggle();
 
-  const currentApp = useAppsStore((store) => store.currentApp);
+  const { currentApp } = useAppStore(getAppStore);
 
   const { actions, setActions, fetchActions } = useActionStore(
     (store) => ({ ...store }),

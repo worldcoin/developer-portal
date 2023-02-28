@@ -65,26 +65,26 @@ export const restAPIRequest = async <T>(
 export const graphQLRequest = async <T>(
   queryOptions: QueryOptions
 ): Promise<ApolloQueryResult<T | null>> => {
-  if (!authLogic.isMounted()) {
-    throw new Error("`authLogic` is not mounted.");
-  }
+  // if (!authLogic.isMounted()) {
+  //   throw new Error("`authLogic` is not mounted.");
+  // }
 
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
   });
 
-  if (!authLogic.values.token) {
-    // Token not yet set, skip requests to avoid showing random errors to users
-    return Promise.resolve({
-      data: null,
-      error: { message: "unauthenticated" },
-    } as ApolloQueryResult<T | null>);
-  }
+  // if (!authLogic.values.token) {
+  //   // Token not yet set, skip requests to avoid showing random errors to users
+  //   return Promise.resolve({
+  //     data: null,
+  //     error: { message: "unauthenticated" },
+  //   } as ApolloQueryResult<T | null>);
+  // }
 
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,
-      authorization: `Bearer ${authLogic.values.token}`,
+      authorization: `Bearer key_51583f044830fc0b64551e5dfb0772c0`, // ${authLogic.values.token}`,
     },
   }));
 

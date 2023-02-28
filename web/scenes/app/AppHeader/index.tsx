@@ -1,16 +1,15 @@
+import cn from "classnames";
 import { Icon } from "common/Icon";
 import { apps } from "common/Layout/temp-data";
 import { Switch } from "common/Switch";
 import Image from "next/image";
-import { memo, useCallback, useEffect, useState } from "react";
-import cn from "classnames";
-import { useAppsStore } from "stores/app-store";
+import { memo, useEffect, useState } from "react";
 
 export const AppHeader = memo(function AppHeader(props: {
   app: (typeof apps)[0];
 }) {
   const [copied, setCopied] = useState(false);
-  const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity);
+  // const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity); // TODO: Add app activity toggle
 
   useEffect(() => {
     if (copied) {
@@ -109,8 +108,8 @@ export const AppHeader = memo(function AppHeader(props: {
               {props.app.status}
             </span>
           </div>
-
-          <Switch checked={props.app.is_verified} toggle={toggleAppActivity} />
+          {/* TODO: Add app activity toggle */}
+          <Switch checked={props.app.is_verified} toggle={() => true} />
         </div>
       </div>
     </section>

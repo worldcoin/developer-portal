@@ -1,17 +1,17 @@
 import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { memo, useEffect } from "react";
-import { useAppsStore } from "stores/app-store";
+import { getAppStore, useAppStore } from "stores/app-store";
 import { shallow } from "zustand/shallow";
-import { useSignInActionStore } from "./store";
-import { Header } from "./Header";
-import { Status } from "./Status";
 import { Credentials } from "./Credentials";
-import { Redirects } from "./Redirects";
 import { DefaultAuthorizationLink } from "./DefaultAuthorizationLink";
+import { Header } from "./Header";
+import { Redirects } from "./Redirects";
+import { Status } from "./Status";
+import { useSignInActionStore } from "./store";
 
 export const SignIn = memo(function SignIn() {
-  const currentApp = useAppsStore((state) => state.currentApp);
+  const { currentApp } = useAppStore(getAppStore);
   const { signInAction, fetchSignInAction } = useSignInActionStore(
     (state) => ({ ...state }),
     shallow

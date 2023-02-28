@@ -3,8 +3,8 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
+import { getAppStore, useAppStore } from "stores/app-store";
 import { apps } from "../temp-data";
-import { useAppsStore } from "stores/app-store";
 
 type App = (typeof apps)[number];
 
@@ -33,12 +33,8 @@ export const AppSelector = memo(function AppsSelector(props: {
   onNewAppClick: () => void;
 }) {
   const selector = useToggle();
-
-  const { apps, currentApp, fetchApps, setCurrentApp } = useAppsStore(
-    (state) => ({
-      ...state,
-    })
-  );
+  const { apps, currentApp, setCurrentApp, fetchApps } =
+    useAppStore(getAppStore);
 
   useEffect(() => {
     fetchApps();
