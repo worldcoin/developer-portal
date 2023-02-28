@@ -24,10 +24,6 @@ WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# Support for logging
-RUN npm install next-logger@3.0.1
-# COPY --from=builder --chown=nextjs:nodejs /app/datadog.js ./datadog.js
-
 COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
@@ -38,7 +34,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 EXPOSE 3000
-
-ENV NODE_OPTIONS='-r next-logger'
 
 CMD [ "node" , "server.js" ]
