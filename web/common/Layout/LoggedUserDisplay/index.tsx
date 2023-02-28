@@ -1,8 +1,6 @@
 import { Fragment, memo } from "react";
 import cn from "classnames";
 import Image from "next/image";
-import { useValues } from "kea";
-import { authLogic } from "logics/authLogic";
 import { Icon } from "common/Icon";
 import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "common/hooks";
@@ -21,7 +19,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
     },
   };
 
-  // FIXME remove when real user image is available
+  // FIXME: remove when real user image is available
   const image = "";
 
   return (
@@ -50,8 +48,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
             <Image
               src={image}
               alt="avatar"
-              layout="fixed"
-              objectFit="cover"
+              style={{ objectFit: "cover" }}
               width={44}
               height={44}
             />
