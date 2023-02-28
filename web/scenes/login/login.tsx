@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Auth } from "common/Auth";
 import { useRouter } from "next/router";
 import { useAuthContext } from "contexts/AuthContext";
@@ -7,15 +7,17 @@ import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
 import { Button } from "common/Auth/Button";
 import { Icon } from "common/Icon";
-import { ISuccessResult, IDKitWidget } from "@worldcoin/idkit";
+import { ISuccessResult } from "@worldcoin/idkit";
 import dayjs from "dayjs";
 import { urls } from "urls";
-import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
+import { ILoginPageProps } from "pages/login";
 
-export function Login() {
+export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const { setToken, enterApp } = useAuthContext();
   const signal = dayjs().unix().toString();
+
+  console.log(loginUrl);
 
   const handleVerify = useCallback(
     (result: ISuccessResult) => {
@@ -68,27 +70,22 @@ export function Login() {
         <Typography className="mt-2" variant="subtitle">
           Sign in with World ID or join our waitlist
         </Typography>
-        <IDKitWidget
-          app_id={DEVELOPER_PORTAL_AUTH_APP.id}
-          signal={signal}
-          action={DEVELOPER_PORTAL_AUTH_APP.action}
-          handleVerify={handleVerify}
-        >
-          {({ open }) => (
-            <Button
-              className="max-w-[327px] w-full h-[64px] mt-8 font-medium"
-              onClick={open}
-            >
-              <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
-              Sign in with World ID
-            </Button>
-          )}
-        </IDKitWidget>
+        <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
+          Join the Waitlist
+        </Button>
+        <a className="w-full" href={loginUrl}>
+          <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
+            <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
+            Sign in with World ID
+          </Button>
+        </a>
         <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
-          Don’t have World ID?
+          Don&apos;t have World ID?
           <a
             className="text-primary hover:text-primary/80"
-            href="#" // FIXME: Add link
+            href="https://worldcoin.org/download"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Download the World App
           </a>

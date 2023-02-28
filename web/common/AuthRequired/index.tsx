@@ -10,7 +10,7 @@ export const AuthRequired = memo(function AuthRequired(props: {
   const isAuthenticated = useMemo(() => Boolean(token), [token]);
 
   if (!isSSR() && !isAuthenticated) {
-    redirectWithReturn(urls.onboarding());
+    redirectWithReturn(urls.login());
   }
 
   return <Fragment>{props.children}</Fragment>;
