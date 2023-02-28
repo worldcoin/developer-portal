@@ -14,6 +14,7 @@ const iconNames = [
   "arrow-right",
   "badge",
   "badge-check",
+  "camera",
   "chart",
   "check",
   "checkbox-on",
