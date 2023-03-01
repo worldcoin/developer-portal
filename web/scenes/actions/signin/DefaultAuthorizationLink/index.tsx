@@ -33,7 +33,7 @@ export const DefaultAuthorizationLink = memo(
                   </Menu.Button>
                   <Menu.Items className="border-t border-neutral-secondary/20">
                     {redirectInputs.map((value, index) => (
-                      <Menu.Item key={`signin-default-redirect-item-${index}`}>
+                      <Menu.Item key={`sign-in-default-redirect-item-${index}`}>
                         {({ active }) => (
                           <button className="py-3 px-4 hover:bg-neutral-secondary/10 w-full">
                             <div
