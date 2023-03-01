@@ -14,25 +14,6 @@ import { Toggler } from "./Toggler";
 
 // FIXME: mocked
 
-const code = `{
-  “proof”: “0x123”,
-  “merkle_root”: “0x123”,
-  “nullifier_hash”: “0x123”
-}
-
-@Override
-
-public void onCreate() {
-
-// Create a PostHog client with the given context, API key and host.
-
-PostHog posthog = new PostHog
-  .Builder(this, POSTHOG_API_KEY, POSTHOG_HOST)
-  .captureApplicationLifecycleEvents() // Record certain application events autom
-  .recordScreenViews() // Record screen views automatically!
-  .recordScreenViews() // Record screen views automatically!
-});`;
-
 const modes = ["Sign in with World ID", "Actions"];
 const envs = [
   { name: "Production", icon: "rocket" },
@@ -137,7 +118,7 @@ export function Debugger(): JSX.Element {
           </FieldGroup>
         </div>
 
-        <div>
+        <div className="space-y-4">
           <div className="flex flex-col gap-1">
             <h2 className="font-sora font-semibold">Output parameters</h2>
 
@@ -152,7 +133,7 @@ export function Debugger(): JSX.Element {
               Verification Response
             </h3>
 
-            <pre className="p-4 px-6 overflow-x-auto max-w-[120ch]">{code}</pre>
+            <textarea className="w-full min-h-[340px] p-6"></textarea>
           </div>
         </div>
       </div>
