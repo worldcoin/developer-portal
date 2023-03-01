@@ -129,7 +129,7 @@ export function Debugger(): JSX.Element {
           <FieldGroup
             label={<FieldLabel className="!text-14">Action</FieldLabel>}
           >
-            <FieldInput placeholder="0x...." />
+            <FieldInput placeholder="my_action" />
           </FieldGroup>
         </div>
 
