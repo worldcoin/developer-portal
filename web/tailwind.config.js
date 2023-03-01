@@ -78,8 +78,10 @@ module.exports = {
         "#fbfbfc",
         "#fcfbfe",
         "#ff6848",
+        "#ffb11b",
         "#ffc700", // FIXME: this color is actually warning
         "#fff0ed",
+        "#fff9e5",
         "#ffffff",
       ]),
       current: "currentColor",

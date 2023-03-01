@@ -1,297 +1,169 @@
-import { CardWithSideGradient } from "common/CardWithSideGradient";
+import classNames from "classnames";
+import { Illustration } from "common/Auth/Illustration";
+import { Button } from "common/Button";
+import { FieldGroup } from "common/FieldGroup";
+import { FieldInput } from "common/FieldInput";
+import { FieldLabel } from "common/FieldLabel";
+import { Icon, IconType } from "common/Icon";
 import { Layout } from "common/Layout";
-import { Fragment } from "react";
-import cn from "classnames";
-import { styles, text } from "common/styles";
-import { Widget } from "common/Widget";
-import { Field, Form } from "kea-forms";
-import { InputError } from "common/InputError";
-import { debuggerLogic } from "logics/debuggerLogic";
-import { Checkbox } from "common/components/Checkbox";
-import { Button } from "common/LegacyButton";
-import { useToggle } from "common/hooks";
-import { Icon } from "common/Icon";
-import { useValues } from "kea";
+import { App } from "common/Layout/temp-data";
+import { Selector } from "common/Selector";
+import { useCallback, useState } from "react";
+import { useAppsStore } from "stores/app-store";
+import { Toggler } from "./Toggler";
 
-const ERROR_DETAILS: Record<string, string | JSX.Element> = {
-  invalid_merkle_root: (
-    <>
-      Looks like the identity is not verified by World ID. If you verified with
-      the <b>simulator</b>, make sure you set the environment to <b>staging</b>.
-    </>
-  ),
-  invalid_proof:
-    "Looks like your proof is invalid. The signal may be wrong or there might be an encoding issue with some parameter.",
-  invalid:
-    "We do not know what went wrong, but something did. Your proof may be okay, but we cannot verify it. Please check the console and try again.",
-};
+// FIXME: mocked
 
-function ResultBox(): JSX.Element | null {
-  const { verificationResult } = useValues(debuggerLogic);
-  if (!verificationResult) {
-    return <div className="text-neutral">Debugger not run yet.</div>;
-  }
+const modes = ["Sign in with World ID", "Actions"];
+const envs = [
+  { name: "Production", icon: "rocket" },
+  { name: "Staging", icon: "cloud" },
+] as Array<{ name: string; icon: IconType }>;
 
-  const errorCode = verificationResult.code ?? "invalid";
-  const color = verificationResult.success ? "success" : "warning";
-  const title = verificationResult.success
-    ? "All good, fren!"
-    : "Emm... your proof is not valid ser";
-  const caption = verificationResult.success
-    ? "🎉🎉 Hooray for zero-knowledge proofs, your proof is 100% valid."
-    : ERROR_DETAILS[errorCode];
-
-  // TODO: Warning states for improper encoding #ffc700
-  return (
-    <div
-      className={`flex border border-${color} bg-${color} bg-opacity-10 rounded-xl p-4`}
-    >
-      <div className="pr-4">
-        <Icon name="warning" className={`w-6 h-6 text-${color}`} />
-      </div>
-      <div>
-        <h3 className={`text-${color} text-xl font-bold`}>{title}</h3>
-        <div className="text-neutral">{caption}</div>
-      </div>
-    </div>
-  );
-}
+// end mocked
 
 export function Debugger(): JSX.Element {
-  const envSelect = useToggle();
-  const { environments, debuggerForm, isDebuggerFormSubmitting } =
-    useValues(debuggerLogic);
+  const [currentApp, setCurrentApp] = useState<App | null>(null);
+  const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
+  const [currentMode, setCurrentMode] = useState(modes[0]);
+
+  const handleFirstLoad = useCallback(
+    (state: { apps: Array<App> }) => {
+      if (!currentApp) {
+        setCurrentApp(state.apps[0]);
+      }
+      return state;
+    },
+    [currentApp]
+  );
+
+  const { apps } = useAppsStore(handleFirstLoad);
 
   return (
-    <Fragment>
-      <Layout title="Debugger">
-        <CardWithSideGradient>
-          <h1 className={cn(text.h1)}>Proof debugger</h1>
-          <p className="mt-2 leading-4 font-sora text-14 text-neutral">
-            This will check all your parameters and validate a World ID ZKP with
-            the official smart contract.
-          </p>
-        </CardWithSideGradient>
+    <Layout
+      title="Debugger"
+      mainClassName={classNames(
+        "grid gap-16",
+        // NOTE: container - card - gap
+        "grid-cols-[calc(100%-380px-64px)_380px]"
+      )}
+    >
+      <div className="space-y-12">
+        <div className="grid grid-flow-col auto-cols-max gap-6 items-center">
+          <Illustration icon="speed-test" />
 
-        <Form
-          className="grid grid-cols-10 gap-4"
-          logic={debuggerLogic}
-          formKey="debuggerForm"
-          enableFormOnSubmit
-        >
-          <div className="col-span-6">
-            <Widget
-              className="mt-8"
-              title="Input parameters"
-              description="Parameters you send to the JS widget"
-            >
-              <label className="grid leading-tight w-full">
-                <span className="text-16 font-medium">Action ID</span>
-                <Field noStyle name="action_id">
-                  {({ value, onChange, error }) => (
-                    <>
-                      <input
-                        type="text"
-                        name="action_id"
-                        className={cn(
-                          "p-5 text-14 w-full",
-                          styles.container.flat,
-                          {
-                            "border-ff5a76": error,
-                          }
-                        )}
-                        onChange={(e) => onChange(e.target.value)}
-                        value={value}
-                        autoFocus
-                        placeholder="wid_7fa9fec9fe0de"
-                        disabled={isDebuggerFormSubmitting}
-                      />
+          <div className="flex flex-col gap-1">
+            <h1 className="font-sora text-20 font-semibold">Proof debugger</h1>
 
-                      {error && (
-                        <div className="mt-2 mb-2">
-                          <InputError error={error} />
-                        </div>
-                      )}
-                    </>
-                  )}
-                </Field>
-              </label>
+            <span className="text-14 text-neutral-secondary">
+              This will check all your parameters and validate a World ID ZKP
+              with the official smart contract.
+            </span>
+          </div>
+        </div>
 
-              <div className="mb-8 mt-2">
-                <Field noStyle name="advanced_use_raw_action_id">
-                  {({ value, onChange }) => (
-                    <Checkbox
-                      checked={value}
-                      onChange={onChange}
-                      disabled={isDebuggerFormSubmitting}
-                      label={
-                        <span>
-                          <b>Advanced.</b> Use raw action ID
-                        </span>
-                      }
-                    />
-                  )}
-                </Field>
-              </div>
+        <div className="space-y-1">
+          <h2 className="font-semibold font-sora">Input parameters</h2>
 
-              <label className="grid gap-y-4 leading-tight w-full">
-                <span className="text-16 font-medium">Signal</span>
-                <Field noStyle name="signal">
-                  {({ value, onChange, error }) => (
-                    <div className="grid gap-y-2">
-                      <input
-                        type="text"
-                        name="signal"
-                        className={cn(
-                          "p-5 text-14 w-full",
-                          styles.container.flat,
-                          {
-                            "border-ff5a76": error,
-                          }
-                        )}
-                        onChange={(e) => onChange(e.target.value)}
-                        value={value}
-                        placeholder="mySignal"
-                        disabled={isDebuggerFormSubmitting}
-                      />
+          <span className="text-14 text-neutral-secondary">
+            Parameters you send to the JS widget to get a World ID proof.
+          </span>
+        </div>
 
-                      {error && (
-                        <div className="mt-2 mb-2">
-                          <InputError error={error} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Field>
-              </label>
+        <div className="space-y-8">
+          <FieldGroup label="App" className="!text-14">
+            <Selector
+              values={apps}
+              value={currentApp}
+              setValue={setCurrentApp}
+              render={(item) => <>{item ? item.name : "Loading"}</>}
+            />
+          </FieldGroup>
 
-              <div className="mb-8 mt-2">
-                <Field noStyle name="advanced_use_raw_signal">
-                  {({ value, onChange }) => (
-                    <Checkbox
-                      checked={value}
-                      onChange={onChange}
-                      disabled={isDebuggerFormSubmitting}
-                      label={
-                        <span>
-                          <b>Advanced.</b> Use raw signal
-                        </span>
-                      }
-                    />
-                  )}
-                </Field>
-              </div>
+          <FieldGroup label="Mode" className="!text-14">
+            <Toggler
+              values={modes}
+              value={currentMode}
+              setValue={setCurrentMode}
+              render={(item) => <>{item}</>}
+            />
+          </FieldGroup>
 
-              <Field noStyle name="environment">
-                {({ value, onChange, error }) => (
-                  <label
-                    className={cn(
-                      "field grid gap-y-4 font-rubik leading-tight z-10",
-                      { "field-error": error }
-                    )}
-                  >
-                    <div className="grid gap-y-2">
-                      <span className="text-16 font-medium">Environment</span>
-                    </div>
-                    <div className="grid gap-y-2">
-                      <div className="w-full h-[64px]">
-                        <ul
-                          className={cn(
-                            "relative cursor-pointer overflow-hidden select-none transition-all",
-                            styles.container.flat,
-                            { "max-h-[64px]": !envSelect.isOn },
-                            { "max-h-[1000px]": envSelect.isOn }
-                          )}
-                          onClick={envSelect.toggle}
-                        >
-                          {environments.map((environment, index) => (
-                            <li
-                              key={`environment-${index}`}
-                              value={environment.value}
-                              className={cn(
-                                "p-5 grid grid-cols-auto/1fr items-center gap-x-3",
-                                {
-                                  "hover:bg-neutral-muted":
-                                    value !== environment.value,
-                                }
-                              )}
-                              onClick={() => onChange(environment.value)}
-                            >
-                              <Icon
-                                name={environment.icon.name}
-                                className="w-6 h-6 text-primary"
-                              />
-                              <span>{environment.name}</span>
-                            </li>
-                          ))}
-                          <Icon
-                            name="angle-down"
-                            className="w-6 h-6 absolute top-5 right-5"
-                          />
-                        </ul>
-                      </div>
+          <FieldGroup label="Environment" className="!text-14">
+            <Selector
+              values={envs}
+              value={currentEnv}
+              setValue={setCurrentEnv}
+              render={(item) => (
+                <span className="flex items-center gap-2.5 text-14">
+                  <Icon className="w-4.5 h-4.5" name={item.icon} />
+                  {item.name}
+                </span>
+              )}
+            />
+            <span className="text-12 text-neutral-secondary">
+              We’ll verify the proof in the right network and make sure you have
+              a valid identity too.
+            </span>
+          </FieldGroup>
 
-                      <InputError error={error} />
-                    </div>
-                  </label>
-                )}
-              </Field>
-            </Widget>
+          <FieldGroup
+            className="group"
+            label={<FieldLabel className="!text-14">Action</FieldLabel>}
+          >
+            <FieldInput placeholder="my_action" className="w-full" />
+            <span className="text-12 text-neutral-secondary">
+              Enter your action as passed to IDKit
+            </span>
+          </FieldGroup>
+        </div>
 
-            <Widget
-              className="mt-8"
-              title="Output parameters"
-              description="Params you get from the JS widget. Just paste the object below."
-            >
-              <Field noStyle name="verificationResponse">
-                {({ value, onChange, error }) => (
-                  <>
-                    <textarea
-                      name="verificationResponse"
-                      className={cn(
-                        "p-5 text-14 w-full font-ibm bg-neutral-muted bg-opacity-40",
-                        styles.container.flat,
-                        {
-                          "border-ff5a76": error,
-                        }
-                      )}
-                      rows={7}
-                      onChange={(e) => onChange(e.target.value)}
-                      value={value}
-                      placeholder={`{\n  "proof": "0x",\n  "merkle_root": "0x",\n  "nullifier_hash": "0x"\n}`}
-                      disabled={isDebuggerFormSubmitting}
-                    ></textarea>
+        <div className="space-y-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-sora font-semibold">Output parameters</h2>
 
-                    {error && (
-                      <div className="mt-2 mb-2">
-                        <InputError error={error} />
-                      </div>
-                    )}
-                  </>
-                )}
-              </Field>
-            </Widget>
+            <span className="text-14 text-neutral-secondary">
+              These are the parameters you get from the JS widget. Just paste
+              the object directly below.
+            </span>
           </div>
 
-          <div className="col-span-4">
-            <Widget className="mt-8" title="Debugging results">
-              <ResultBox />
+          <div className="rounded-xl border border-ebecef overflow-clip font-mono">
+            <h3 className="p-4 px-6 text-14 bg-fbfbfc border-b border-[inherit]">
+              Verification Response
+            </h3>
 
-              <Button
-                type="submit"
-                disabled={isDebuggerFormSubmitting}
-                maxWidth="xs"
-                fullWidth
-                color="primary"
-                variant="contained"
-                className="mt-8"
-              >
-                validate proof
-              </Button>
-            </Widget>
+            <textarea className="w-full min-h-[340px] p-6"></textarea>
           </div>
-        </Form>
-      </Layout>
-    </Fragment>
+        </div>
+      </div>
+
+      <div className="pr-10 self-center">
+        <div className="rounded-xl p-6 border border-f0edf9 space-y-6">
+          <div className="space-y-4">
+            <h4 className="font-sora font-semibold">Debugging results</h4>
+
+            <div className="bg-fff9e5 grid grid-flow-col gap-4 p-6">
+              <Icon name="warning-triangle" className="w-4.5 h-4.5" noMask />
+
+              <div className="space-y-1.5">
+                <p className="text-ffb11b text-14 font-bold font-sora">
+                  Warning
+                </p>
+
+                <p className="text-12 leading-4.5 text-657080 font-mono">
+                  Your proof is almost valid. Looks like you are using custom
+                  advanced encoding but the action_id is not properly encoded.
+                  Check this guide on how to encode it or remove the advanced
+                  option.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Button className="w-full p-4">Validate Proof</Button>
+        </div>
+      </div>
+    </Layout>
   );
 }
