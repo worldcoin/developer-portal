@@ -14,10 +14,6 @@ import {
   verifyOIDCJWT,
 } from "api-helpers/jwts";
 import { NextApiResponse } from "next";
-import { verifyProof } from "api-helpers/verify";
-import { CredentialType } from "@worldcoin/idkit";
-import { fetchOIDCApp } from "api-helpers/oidc";
-import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { UserModel } from "models";
 import { JWTPayload } from "jose";
 import { verifyLoginNonce } from "api-helpers/login-internal";
