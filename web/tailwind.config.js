@@ -53,6 +53,7 @@ module.exports = {
       },
       warning: {
         DEFAULT: "#ffc700",
+        light: "#FFF9E5",
       },
       ...mirrorHexColors([
         "#000000",

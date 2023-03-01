@@ -1,25 +1,14 @@
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import cn from "classnames";
 import Image from "next/image";
-import { useValues } from "kea";
-import { authLogic } from "logics/authLogic";
 import { Icon } from "common/Icon";
 import { ProfileSettingsModal } from "./ProfileSettingsModal";
 import { useToggle } from "common/hooks";
+import useAuth from "hooks/useAuth";
 
 export function LoggedUserDisplay(props: { className?: string }) {
   const modal = useToggle(false);
-
-  //FIXME: Fetch user
-  const user = {
-    id: "usr_123",
-    name: "Test Name",
-    email: "qwer@qwer.qwer",
-    is_subscribed: false,
-    team: {
-      name: "Test Team",
-    },
-  };
+  const { user } = useAuth();
 
   // FIXME remove when real user image is available
   const image = "";
@@ -61,11 +50,12 @@ export function LoggedUserDisplay(props: { className?: string }) {
         </div>
 
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
-          {user?.email ?? "No @email"}
+          {user?.email}
+          {!user?.email && <span className="font-medium">Add your email</span>}
         </span>
 
         <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
-          {user?.team.name ?? "No Team name"}
+          {user?.team.name}
         </span>
       </div>
     </Fragment>

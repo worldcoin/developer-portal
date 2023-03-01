@@ -7,6 +7,14 @@ import * as jose from "jose";
 
 type DateTime = string;
 
+export interface TeamModel {
+  id: string;
+  name: string;
+  created_at: DateTime;
+  updated_at: DateTime;
+  __typename: "team";
+}
+
 export interface AppModel {
   id: string;
   name: string;

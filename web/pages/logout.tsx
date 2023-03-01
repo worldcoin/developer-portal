@@ -1,13 +1,21 @@
 import { AuthRequired } from "common/AuthRequired";
-import { useAuthContext } from "contexts/AuthContext";
+import { Spinner } from "common/Spinner";
+import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { IAuthStore, useAuthStore } from "stores/authStore";
+
+const getParam = (store: IAuthStore) => store.logout;
 
 export default function Logout(): JSX.Element {
-  const { logout } = useAuthContext();
-  useEffect(() => logout(), [logout]);
+  const logout = useAuthStore(getParam);
+  const router = useRouter();
+  useEffect(() => {
+    logout();
+    setTimeout(() => (window.location.href = "/login"), 300);
+  }, [logout]);
   return (
-    <AuthRequired>
-      <div>Logging out...</div>
-    </AuthRequired>
+    <div className="flex h-screen w-full justify-center items-center">
+      <Spinner />
+    </div>
   );
 }

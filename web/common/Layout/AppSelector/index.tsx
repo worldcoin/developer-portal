@@ -4,7 +4,7 @@ import { Icon } from "common/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
 import { apps } from "../temp-data";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 
 type App = (typeof apps)[number];
 

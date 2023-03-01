@@ -15,7 +15,6 @@ import { NavItemGroup } from "./NavItemsGroup";
 import { AppSelector } from "./AppSelector";
 import { NewAppDialog } from "./NewAppDialog";
 import { useToggle } from "common/hooks";
-import { useAppsStore } from "stores/app-store";
 
 export const Layout = (props: {
   title?: string;
@@ -66,7 +65,7 @@ export const Layout = (props: {
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign in"
-                  href={urls.actions("signin")}
+                  href={urls.actions("")}
                 />
 
                 <NavItem

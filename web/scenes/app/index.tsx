@@ -2,7 +2,7 @@ import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { Preloader } from "common/Preloader";
 import { memo, useEffect, useState } from "react";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";

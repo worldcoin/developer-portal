@@ -1,18 +1,25 @@
 import { isSSR } from "common/helpers/is-ssr";
-import { useAuthContext } from "contexts/AuthContext";
+import { useRouter } from "next/router";
 import { Fragment, memo, ReactNode, useEffect } from "react";
-import { urls } from "urls";
+import { IAuthStore, useAuthStore } from "stores/authStore";
+
+const getParams = (store: IAuthStore) => ({
+  redirectWithReturn: store.redirectWithReturn,
+  token: store.token,
+});
 
 export const AuthRequired = memo(function AuthRequired(props: {
   children: ReactNode;
 }) {
-  const { isAuthenticated, redirectWithReturn } = useAuthContext();
+  const router = useRouter();
+  const { redirectWithReturn, token } = useAuthStore(getParams);
 
   useEffect(() => {
-    if (!isSSR() && !isAuthenticated) {
-      redirectWithReturn(urls.login());
+    if (!isSSR() && !token) {
+      redirectWithReturn(router);
     }
-  }, [isAuthenticated, redirectWithReturn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   return <Fragment>{props.children}</Fragment>;
 });

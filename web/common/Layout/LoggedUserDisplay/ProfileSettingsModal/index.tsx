@@ -2,7 +2,7 @@ import { ModalOverlay } from "common/MultiModal/ModalOverlay";
 import { ModalWindow } from "common/MultiModal/ModalWindow";
 import { ModalWindowHeader } from "common/MultiModal/ModalWindowHeader";
 import { memo, useEffect, useState } from "react";
-import { ProfileSettings } from "scenes/profileSettings/profileSettings";
+import { ProfileModal } from "scenes/profile/ProfileModal";
 
 enum ModalState {
   profileSettings,
@@ -26,11 +26,11 @@ export const ProfileSettingsModal = memo(function ProfileSettingsModal(props: {
         <ModalWindow>
           <ModalWindowHeader
             displayCloseButton
-            title="Profile settings"
+            title="Your Account"
             close={props.close}
             className="mb-8"
           />
-          <ProfileSettings onPasswordChange={() => {}} />
+          <ProfileModal />
         </ModalWindow>
       )}
     </ModalOverlay>

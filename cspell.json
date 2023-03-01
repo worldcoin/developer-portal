@@ -3,12 +3,7 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": [
-    "typescript",
-    "node",
-    "npm",
-    "html"
-  ],
+  "dictionaries": ["typescript", "node", "npm", "html"],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -18,7 +13,6 @@
     "json"
   ],
   "words": [
-    "arbitrum",
     "arrayify",
     "chartjs",
     "consts",
@@ -37,10 +31,9 @@
     "merkle",
     "nullifer",
     "OIDC",
+    "partialize",
     "secp256k1",
-    "signin",
     "signup",
-    "siwi",
     "timestamptz",
     "toastify",
     "unarchived",
