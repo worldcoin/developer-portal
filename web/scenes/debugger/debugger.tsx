@@ -41,7 +41,6 @@ function ResultBox(): JSX.Element | null {
     ? "🎉🎉 Hooray for zero-knowledge proofs, your proof is 100% valid."
     : ERROR_DETAILS[errorCode];
 
-  // TODO: Warning states for improper encoding #ffc700
   return (
     <div
       className={`flex border border-${color} bg-${color} bg-opacity-10 rounded-xl p-4`}

@@ -34,7 +34,7 @@ export const Item = memo(function Item(props: {
       <td className="h-16 px-5 text-right border-t border-neutral-muted">
         {!props.isCurrentUser && (
           <button
-            className="p-3 text-warning disabled:opacity-20"
+            className="p-3 text-danger disabled:opacity-20"
             onClick={remove}
             disabled={deletedTeamMemberLoading}
           >

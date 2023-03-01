@@ -1,14 +1,18 @@
 import { generateLoginNonce } from "api-helpers/login-internal";
 import { OIDC_BASE_URL } from "consts";
+import { GetServerSidePropsContext } from "next";
 import { Login } from "scenes/login/login";
 export default Login;
 
 export interface ILoginPageProps {
-  loginUrl: string;
+  loginUrl?: string;
 }
 
-export async function getServerSideProps() {
-  console.log(process.env.GENERAL_SECRET_KEY);
+export async function getServerSideProps(ctx: GetServerSidePropsContext) {
+  if (ctx.query?.id_token) {
+    // If `id_token` is passed, it means that user has been redirected back from the IdP.
+    return { props: {} };
+  }
   const nonce = await generateLoginNonce();
 
   const loginUrl = new URL(`${OIDC_BASE_URL}/authorize`);

@@ -10,8 +10,8 @@ export const InputError = memo(function InputError(props: { error?: string }) {
         { "invisible opacity-0 pointer-events-none": !props.error }
       )}
     >
-      <Icon name="warning" className="w-4 h-4 text-warning" />
-      <span className="text-warning text-12 leading-none">{props.error}</span>
+      <Icon name="warning" className="w-4 h-4 text-danger" />
+      <span className="text-danger text-12 leading-none">{props.error}</span>
     </div>
   );
 });

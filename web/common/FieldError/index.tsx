@@ -6,7 +6,7 @@ export const FieldError = memo(function FieldError(props: {
   children: ReactNode;
 }) {
   return (
-    <div className={cn("text-14 text-warning", props.className)}>
+    <div className={cn("text-14 text-warndangering", props.className)}>
       {props.children}
     </div>
   );

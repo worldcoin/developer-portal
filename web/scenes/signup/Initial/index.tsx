@@ -12,7 +12,6 @@ import { Checkbox } from "common/Auth/Checkbox";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
-import { SignupResponse } from "pages/api/signup";
 import { useAuthContext } from "contexts/AuthContext";
 
 interface InitialInterface {
@@ -25,29 +24,31 @@ export const Initial = memo(function Initial(props: InitialInterface) {
   const { setToken } = useAuthContext();
 
   const submit = useCallback(
-    (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
+    async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
-      const signup_token = sessionStorage.getItem("tempSignupToken");
-
-      fetch("/api/signup", {
+      const signup_token = localStorage.getItem("signup_token");
+      // FIXME: move to axios
+      const response = await fetch("/api/signup", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           email,
           team_name: teamName,
           signup_token,
+          ironclad_id: "temp",
           // FIXME: missing `ironclad_id` & ToS signature stuff
         }),
-      })
-        .then((res) => res.json())
-        .then((data: SignupResponse) => {
-          setToken(data.token);
-          props.onSuccess();
-        });
+      });
+
+      if (response.ok) {
+        const { token } = await response.json();
+        setToken(token);
+        localStorage.removeItem("signup_token");
+        props.onSuccess();
+      }
+      // FIXME: Handle errors
     },
     [email, props, setToken, teamName]
   );

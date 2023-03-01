@@ -6,8 +6,7 @@ import { urls } from "urls";
 export const AuthRequired = memo(function AuthRequired(props: {
   children: ReactNode;
 }) {
-  const { token, redirectWithReturn } = useAuthContext();
-  const isAuthenticated = useMemo(() => Boolean(token), [token]);
+  const { isAuthenticated, redirectWithReturn } = useAuthContext();
 
   if (!isSSR() && !isAuthenticated) {
     redirectWithReturn(urls.login());

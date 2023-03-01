@@ -88,14 +88,14 @@ export const AppHeader = memo(function AppHeader(props: {
             className={cn(
               "grid grid-cols-auto/1fr items-center gap-x-1 px-2 py-1 rounded-full",
               { "bg-primary-light": props.app.status === "active" },
-              { "bg-warning-light": props.app.status === "inactive" }
+              { "bg-danger-light": props.app.status === "inactive" }
             )}
           >
             <div
               className={cn(
                 "w-1.5 h-1.5 rounded-full",
                 { "bg-primary": props.app.status === "active" },
-                { "bg-warning": props.app.status === "inactive" }
+                { "bg-danger": props.app.status === "inactive" }
               )}
             />
 
@@ -103,7 +103,7 @@ export const AppHeader = memo(function AppHeader(props: {
               className={cn(
                 "first-letter:capitalize",
                 { "text-primary": props.app.status === "active" },
-                { "text-warning": props.app.status === "inactive" }
+                { "text-danger": props.app.status === "inactive" }
               )}
             >
               {props.app.status}

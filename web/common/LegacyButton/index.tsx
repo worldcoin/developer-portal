@@ -64,13 +64,13 @@ export const Button = memo(function Button<C extends ElementType = "button">(
         },
         { "px-0": variant === "default" },
         {
-          "text-warning":
+          "text-danger":
             (variant === "default" || variant === "outlined") &&
             color === "danger",
         },
 
         {
-          "bg-warning text-ffffff":
+          "bg-danger text-ffffff":
             variant === "contained" && color === "danger",
         },
         className

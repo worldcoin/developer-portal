@@ -73,7 +73,7 @@ export const ActionDropdown = memo(function ActionDropdown(props: {
 
         <button
           className={getItemClassName(
-            "border-t border-t-f9f9f9 text-warning hover:bg-warning hover:text-ffffff hover:border-t-warning"
+            "border-t border-t-f9f9f9 text-danger hover:bg-danger hover:text-ffffff hover:border-t-danger"
           )}
           onClick={deleteModal.toggleOn}
         >

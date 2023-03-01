@@ -13,6 +13,7 @@ import { Field } from "scenes/action/ActionCard/Field";
 import { ModelPublicAction } from "types";
 import { Link } from "common/Link";
 import { ErrorCodes, ExpectedErrorResponse, utils } from "@worldcoin/id";
+import { Spinner } from "common/Spinner";
 
 export const Waiting = memo(function Waiting(props: {
   signal: string;
@@ -135,7 +136,7 @@ export const Waiting = memo(function Waiting(props: {
   return (
     <div className="grid justify-items-center gap-y-8">
       <div className="grid items-center grid-flow-col auto-cols-max gap-x-6">
-        <Icon noMask className="w-8 h-8 animate-spin" name="spinner-gradient" />
+        <Spinner />
         <p>Waiting for user to scan code with Worldcoin app</p>
       </div>
 

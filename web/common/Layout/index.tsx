@@ -105,7 +105,7 @@ export const Layout = (props: {
                   name="Log Out"
                   icon="logout"
                   href="/logout"
-                  customColor="text-warning"
+                  customColor="text-danger"
                 />
               </NavItemGroup>
             </nav>

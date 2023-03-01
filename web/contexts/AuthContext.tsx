@@ -1,3 +1,4 @@
+import { decodeJwt, JWTPayload } from "jose";
 import { useRouter } from "next/router";
 
 import {
@@ -6,6 +7,7 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -17,6 +19,7 @@ type AuthContextValue = {
   setToken: (token: string) => void;
   redirectWithReturn: (path: string) => void;
   enterApp: () => void;
+  isAuthenticated: boolean;
 };
 
 export const AuthContext = createContext<AuthContextValue>({
@@ -25,6 +28,7 @@ export const AuthContext = createContext<AuthContextValue>({
   setToken: () => {},
   redirectWithReturn: () => {},
   enterApp: () => {},
+  isAuthenticated: false,
 });
 
 export const AuthProvider = memo(function AuthProvider(props: {
@@ -46,14 +50,14 @@ export const AuthProvider = memo(function AuthProvider(props: {
 
   const redirectWithReturn = useCallback(
     (path: string) => {
-      sessionStorage.setItem("returnTo", router.asPath);
+      localStorage.setItem("returnTo", router.asPath);
       router.push(path);
     },
     [router]
   );
 
   const enterApp = useCallback(() => {
-    const returnTo = sessionStorage.getItem("returnTo");
+    const returnTo = localStorage.getItem("returnTo");
 
     if (!returnTo) {
       router.push(urls.app());
@@ -61,8 +65,10 @@ export const AuthProvider = memo(function AuthProvider(props: {
     }
 
     router.push(returnTo);
-    sessionStorage.removeItem("returnTo");
+    localStorage.removeItem("returnTo");
   }, [router]);
+
+  const isAuthenticated = useMemo(() => !!token, [token]);
 
   const value = useMemo(
     () => ({
@@ -71,9 +77,30 @@ export const AuthProvider = memo(function AuthProvider(props: {
       logout,
       redirectWithReturn,
       enterApp,
+      isAuthenticated,
     }),
-    [logout, redirectWithReturn, enterApp, setToken, token]
+    [logout, redirectWithReturn, enterApp, setToken, token, isAuthenticated]
   );
+
+  useEffect(() => {
+    const candidateToken = localStorage.getItem("token");
+    let decodedToken: JWTPayload | undefined;
+
+    if (candidateToken) {
+      try {
+        decodedToken = decodeJwt(candidateToken);
+      } catch {}
+      if (
+        decodedToken &&
+        new Date().getTime() / 1000 < (decodedToken.exp ?? 0)
+      ) {
+        setToken(localStorage.getItem("token") as string);
+      } else {
+        logout();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>
