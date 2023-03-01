@@ -20,13 +20,13 @@ export const useAuthStore = create<IAuthStore>()(
       returnTo: null,
 
       setToken: async (token) => set({ token }),
-
       logout: () => {
         set({ token: null });
       },
 
       redirectWithReturn: (router) => {
-        set({ returnTo: router.asPath });
+        const returnTo = router.asPath === urls.logout() ? null : router.asPath;
+        set({ returnTo });
         router.push(urls.login());
       },
 
