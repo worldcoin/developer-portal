@@ -68,6 +68,7 @@ const tempTeam = {
 
 type TeamStore = {
   team: Team | null;
+  setMembers: (members: Array<TeamMember>) => void;
   setTeam: (team: Team) => void;
   fetchTeam: () => Promise<void>;
   filter: Filter;
@@ -86,6 +87,16 @@ type TeamStore = {
 
 export const useTeamStore = create<TeamStore>((set, get) => ({
   team: null,
+
+  setMembers: (members) => {
+    const { team, applyFilter } = get();
+
+    if (team) {
+      set(() => ({ team: { ...team, members } }));
+      applyFilter();
+    }
+  },
+
   setTeam: (team: Team) => set({ team }),
 
   fetchTeam: async () => {
@@ -103,7 +114,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   applyFilter: () => {
     const { query } = get().filter;
     set(() => ({
-      filteredMembers: tempTeam.members.filter((member) => {
+      filteredMembers: get().team?.members.filter((member) => {
         return member.name.includes(query) || member.email.includes(query);
       }),
     }));
@@ -128,29 +139,23 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   inviteMembers: async () => {
     set(() => ({ inviteMembersState: InviteMembersState.LOADING }));
 
-    const { team, membersForInvite } = get();
+    const { team, setMembers, membersForInvite, setMembersForInvite } = get();
 
     //TODO: Replace with relevant logic
     if (team) {
       setTimeout(() => {
-        set(() => ({
-          team: {
-            ...team,
-            members: [
-              ...team.members,
-              ...membersForInvite.map((item) => ({
-                image: "",
-                email: item,
-                name: `New Member ${team.members.length + 1}`,
-                verified: false,
-              })),
-            ],
-          },
-        }));
-        set(() => ({
-          inviteMembersState: InviteMembersState.SUCCESS,
-          membersForInvite: [],
-        }));
+        setMembers({
+          ...team.members,
+          ...membersForInvite.map((item, idx) => ({
+            image: "",
+            email: item,
+            name: `New Member ${team.members.length + idx + 1}`,
+            verified: false,
+          })),
+        });
+
+        set(() => ({ inviteMembersState: InviteMembersState.SUCCESS }));
+        setMembersForInvite([]);
         setTimeout(() => set(() => ({ inviteMembersState: null })), 5000);
       }, 1500);
     }
@@ -164,17 +169,14 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   removeMemberState: null,
 
   removeMember: async () => {
-    const team = get().team;
+    const { team, setMembers } = get();
 
     const updatedList = team?.members.filter(
       (member) => member !== get().memberForRemove
     );
 
     if (team && updatedList) {
-      set(() => ({
-        team: { ...team, members: updatedList },
-        memberForRemove: null,
-      }));
+      setMembers(updatedList);
     }
   },
 }));
