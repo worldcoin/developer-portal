@@ -35,6 +35,7 @@ export const Button = memo(function Button(props: ButtonInterface) {
             variant === "plain",
         }
       )}
+      disabled={disabled}
       {...otherProps}
     />
   );
