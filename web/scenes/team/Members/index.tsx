@@ -62,12 +62,12 @@ export const Members = memo(function Members() {
               </thead>
               <tbody>
                 {members?.length ? (
-                  members.map((item) => (
+                  members.map((item, i) => (
                     <Item
-                      key={item.id}
+                      key={i}
                       item={item}
                       onRemove={deleteTeamMember}
-                      isCurrentUser={item.id === user?.id}
+                      //isCurrentUser={item.id === user?.id}
                     />
                   ))
                 ) : (
