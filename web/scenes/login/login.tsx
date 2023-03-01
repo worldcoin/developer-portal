@@ -11,7 +11,7 @@ import { urls } from "urls";
 import { ILoginPageProps } from "pages/login";
 import { Spinner } from "common/Spinner";
 
-export function Login({ loginUrl }: ILoginPageProps) {
+export function Login({ loginUrl, devToken }: ILoginPageProps) {
   const router = useRouter();
   const { setToken, enterApp } = useAuthContext();
   const [loading, setLoading] = useState(true);
@@ -107,6 +107,21 @@ export function Login({ loginUrl }: ILoginPageProps) {
                 Download the World App
               </a>
             </div>
+
+            {devToken && (
+              <div className="bg-warning-light px-6 py-4 rounded-md text-warning font-medium mt-10 max-w-[327px] w-full text-center">
+                Dev mode!{" "}
+                <span
+                  className="cursor-pointer underline font-normal"
+                  onClick={() => {
+                    setToken(devToken);
+                    enterApp();
+                  }}
+                >
+                  Log in with test user
+                </span>
+              </div>
+            )}
           </>
         )}
       </div>

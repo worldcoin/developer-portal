@@ -6,6 +6,7 @@
 import { gql } from "@apollo/client";
 import crypto from "crypto";
 import { getAPIServiceClient } from "./graphql";
+import { generateUserJWT } from "./jwts";
 
 const GenerateLoginNonceQuery = gql`
   mutation GenerateLoginNonce($key: String!) {
@@ -21,6 +22,15 @@ const GetAndExpireLoginNonceQuery = gql`
       where: { key: { _eq: $key }, created_at: { _gt: $max_time } }
     ) {
       affected_rows
+    }
+  }
+`;
+
+const GetFirstUserQuery = gql`
+  query GetFirstUser {
+    user(limit: 1) {
+      id
+      team_id
     }
   }
 `;
@@ -50,4 +60,21 @@ export const verifyLoginNonce = async (nonce: string): Promise<boolean> => {
   });
 
   return data?.delete_cache?.affected_rows === 1;
+};
+
+export const getDevToken = async (): Promise<string | undefined> => {
+  const client = await getAPIServiceClient();
+  const { data } = await client.query({
+    query: GetFirstUserQuery,
+  });
+
+  const user = data?.user?.[0];
+
+  if (!user) {
+    return undefined;
+  }
+
+  const token = await generateUserJWT(user.id, user.team_id);
+
+  return token;
 };
