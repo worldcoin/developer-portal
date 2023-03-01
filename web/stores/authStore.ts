@@ -1,44 +1,82 @@
+import { deleteCookie, getCookie, getCookies, setCookie } from "cookies-next";
+import { GetServerSideProps } from "next";
 import { NextRouter, Router } from "next/router";
 import { urls } from "urls";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface IAuthStore {
-  token: string | null;
-  returnTo: string | null;
-
   logout: () => void;
-  setToken: (token: string) => void;
-  redirectWithReturn: (router: NextRouter) => void;
   enterApp: (router: NextRouter) => void;
+  isAuthCookiesValid: (ctx?: Parameters<GetServerSideProps>[0]) => boolean;
+  setAuthCookies: (
+    token: string | null,
+    returnTo?: string,
+    ctx?: Parameters<GetServerSideProps>[0]
+  ) => void;
 }
 
-export const useAuthStore = create<IAuthStore>()(
-  persist(
-    (set, get) => ({
-      token: null,
-      returnTo: null,
+export const useAuthStore = create<IAuthStore>()((set, get) => ({
+  logout: () => {
+    deleteCookie("auth");
+  },
 
-      setToken: async (token) => set({ token }),
-      logout: () => {
-        set({ token: null });
-      },
+  isAuthCookiesValid: (ctx?: Parameters<GetServerSideProps>[0]) => {
+    let auth;
 
-      redirectWithReturn: (router) => {
-        const returnTo = router.asPath === urls.logout() ? null : router.asPath;
-        set({ returnTo });
-        router.push(urls.login());
-      },
-
-      enterApp: (router) => {
-        const returnTo = get().returnTo || urls.app();
-        set({ returnTo: null });
-        router.push(returnTo);
-      },
-    }),
-    {
-      name: "auth",
-      partialize: (state) => ({ token: state.token, returnTo: state.returnTo }),
+    if (!ctx) {
+      auth = getCookie("auth") as string | undefined;
     }
-  )
-);
+
+    if (ctx) {
+      auth = getCookies(ctx).auth;
+    }
+
+    if (!auth || !JSON.parse(auth).token) {
+      return false;
+    }
+
+    //TODO: validate token
+
+    return true;
+  },
+
+  setAuthCookies: (
+    token: string | null,
+    returnTo?: string,
+    ctx?: Parameters<GetServerSideProps>[0]
+  ) => {
+    let auth;
+
+    if (!ctx) {
+      auth = getCookie("auth") as string | undefined;
+    }
+
+    if (ctx) {
+      auth = getCookies(ctx).auth;
+    }
+
+    setCookie(
+      "auth",
+      JSON.stringify({
+        token,
+        returnTo: auth && !returnTo ? JSON.parse(auth).returnTo : returnTo,
+      }),
+      {
+        maxAge: 60 * 60 * 24 * 7, // 7d
+        sameSite: true,
+        req: ctx?.req,
+        res: ctx?.res,
+      }
+    );
+  },
+
+  enterApp: (router) => {
+    const auth = getCookie("auth") as string | undefined;
+
+    if (!auth || !JSON.parse(auth).returnTo) {
+      return router.push(urls.app());
+    }
+
+    router.push(JSON.parse(auth).returnTo);
+  },
+}));

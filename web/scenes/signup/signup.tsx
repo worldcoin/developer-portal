@@ -4,6 +4,7 @@ import {
   useState,
   MouseEvent as ReactMouseEvent,
 } from "react";
+
 import { Auth } from "common/Auth";
 import { useRouter } from "next/router";
 import { urls } from "urls";
@@ -14,19 +15,17 @@ import { Checkbox } from "common/Auth/Checkbox";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
-import { IAuthStore, useAuthStore } from "stores/authStore";
-import { shallow } from "zustand/shallow";
-
-const getParams = (store: IAuthStore) => ({
-  setToken: store.setToken,
-});
+import { useAuthStore } from "stores/authStore";
 
 export function Signup() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setToken } = useAuthStore(getParams, shallow);
+
+  const { setAuthCookies } = useAuthStore((state) => ({
+    setAuthCookies: state.setAuthCookies,
+  }));
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -51,14 +50,14 @@ export function Signup() {
       if (response.ok) {
         const { token } = await response.json();
         localStorage.removeItem("signup_token");
-        setToken(token);
-        router.push("/app"); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
+        setAuthCookies(token);
+        router.push(urls.app()); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);
       }
       // FIXME: Handle errors
     },
-    [email, setToken, teamName, router]
+    [email, teamName, setAuthCookies, router]
   );
 
   useEffect(() => {

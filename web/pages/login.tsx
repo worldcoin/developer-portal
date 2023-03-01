@@ -1,5 +1,6 @@
 import { generateLoginNonce, getDevToken } from "api-helpers/login-internal";
 import { OIDC_BASE_URL } from "consts";
+import { getCookie } from "cookies-next";
 import { GetServerSidePropsContext } from "next";
 import { Login } from "scenes/login/login";
 export default Login;

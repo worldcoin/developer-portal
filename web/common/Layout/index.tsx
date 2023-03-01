@@ -65,7 +65,7 @@ export const Layout = (props: {
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign in"
-                  href={urls.actions("")}
+                  href={urls.actions("signin")}
                 />
 
                 <NavItem

@@ -1,25 +1,24 @@
 import { isSSR } from "common/helpers/is-ssr";
 import { useRouter } from "next/router";
-import { Fragment, memo, ReactNode, useEffect } from "react";
+import { Fragment, memo, ReactNode, useEffect, useLayoutEffect } from "react";
 import { IAuthStore, useAuthStore } from "stores/authStore";
 
-const getParams = (store: IAuthStore) => ({
-  redirectWithReturn: store.redirectWithReturn,
-  token: store.token,
+const getState = (state: IAuthStore) => ({
+  isAuthCookiesValid: state.isAuthCookiesValid,
+  setAuthCookies: state.setAuthCookies,
 });
 
 export const AuthRequired = memo(function AuthRequired(props: {
   children: ReactNode;
 }) {
+  const { isAuthCookiesValid, setAuthCookies } = useAuthStore(getState);
   const router = useRouter();
-  const { redirectWithReturn, token } = useAuthStore(getParams);
 
-  useEffect(() => {
-    if (!isSSR() && !token) {
-      redirectWithReturn(router);
+  useLayoutEffect(() => {
+    if (!isSSR() && !isAuthCookiesValid()) {
+      return setAuthCookies(null, router.asPath);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [isAuthCookiesValid, router, setAuthCookies]);
 
   return <Fragment>{props.children}</Fragment>;
 });
