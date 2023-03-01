@@ -58,7 +58,15 @@ export default async function login(
 
   const { signup_token, email, team_name } = req.body;
 
-  const nullifier_hash = await verifySignUpJWT(signup_token);
+  let nullifier_hash: string | undefined;
+  try {
+    nullifier_hash = await verifySignUpJWT(signup_token);
+  } catch {}
+
+  if (!nullifier_hash) {
+    return errorResponse(res, 401, "Invalid signup token.");
+  }
+
   const client = await getAPIServiceClient();
 
   const { data } = await client.mutate({

@@ -18,7 +18,6 @@ import { ActionType, EnvironmentType } from "types";
 import { urls } from "urls";
 import { ENVIRONMENTS } from "utils";
 import type { actionsLogicType } from "./actionsLogicType";
-import { authLogic } from "./authLogic";
 
 interface LoadActionsInterface {
   action: ActionType[];
@@ -147,10 +146,11 @@ export const actionsLogic = kea<actionsLogicType>([
         loadActions: async (_, breakpoint) => {
           // REVIEW this fixes load actions problem
           await breakpoint(100);
-          if (!authLogic.isMounted()) {
-            actions.loadActions();
-            return [];
-          }
+          // if (!authLogic.isMounted()) {
+          //   actions.loadActions();
+          //   return [];
+          // }
+          return [];
           breakpoint();
           try {
             const response = await graphQLRequest<LoadActionsInterface>({

@@ -6,8 +6,8 @@ import {
   QueryOptions,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import { authLogic } from "logics/authLogic";
 import { toast } from "react-toastify";
+import { useAuthStore } from "stores/authStore";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
@@ -65,15 +65,13 @@ export const restAPIRequest = async <T>(
 export const graphQLRequest = async <T>(
   queryOptions: QueryOptions
 ): Promise<ApolloQueryResult<T | null>> => {
-  if (!authLogic.isMounted()) {
-    throw new Error("`authLogic` is not mounted.");
-  }
+  const token = useAuthStore.getState().token;
 
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
   });
 
-  if (!authLogic.values.token) {
+  if (!token) {
     // Token not yet set, skip requests to avoid showing random errors to users
     return Promise.resolve({
       data: null,
@@ -84,7 +82,7 @@ export const graphQLRequest = async <T>(
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,
-      authorization: `Bearer ${authLogic.values.token}`,
+      authorization: `Bearer ${token}`,
     },
   }));
 
@@ -102,7 +100,7 @@ export const graphQLRequest = async <T>(
     return await client.query(queryOptions);
   } catch (e) {
     if ((e as Error).toString().includes("JWTExpired")) {
-      authLogic.actions.logout();
+      window.location.href = "/logout";
       throw "JWT is expired. Please log in again.";
     } else {
       handleError(e);

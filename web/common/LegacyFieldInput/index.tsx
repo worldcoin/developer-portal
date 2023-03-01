@@ -38,7 +38,7 @@ export const FieldInput = memo(function FieldInput(props: FieldInputInterface) {
               { "h-[50px] px-3 text-14 rounded-lg": variant === "small" },
               { "text-neutral bg-fbfbfb": props.readOnly || props.disabled },
               { "border-neutral-muted": !error },
-              { "border-warning": error },
+              { "border-danger": error },
               { "pr-12": addon }
             )}
             {...otherProps}
@@ -46,7 +46,7 @@ export const FieldInput = memo(function FieldInput(props: FieldInputInterface) {
           {addon}
         </span>
 
-        <span className="text-warning text-12">{error}</span>
+        <span className="text-danger text-12">{error}</span>
       </div>
     </FieldInputContext.Provider>
   );

@@ -1,27 +1,25 @@
 import {
-  errorResponse,
   errorNotAllowed,
   errorRequiredAttribute,
+  errorUnauthenticated,
+  errorValidation,
 } from "api-helpers/errors";
 
 import { gql } from "@apollo/client";
 import { NextApiRequestWithBody } from "types";
 import { getAPIServiceClient } from "api-helpers/graphql";
-import { generateUserJWT, generateSignUpJWT } from "api-helpers/jwts";
+import {
+  generateUserJWT,
+  generateSignUpJWT,
+  verifyOIDCJWT,
+} from "api-helpers/jwts";
 import { NextApiResponse } from "next";
-import { verifyProof } from "api-helpers/verify";
-import { CredentialType } from "@worldcoin/idkit";
-import { fetchOIDCApp } from "api-helpers/oidc";
-import { DEVELOPER_PORTAL_AUTH_APP } from "consts";
 import { UserModel } from "models";
-import { fetchSmartContractAddress } from "api-helpers/utils";
+import { JWTPayload } from "jose";
+import { verifyLoginNonce } from "api-helpers/login-internal";
 
 export type LoginRequestBody = {
-  proof?: string;
-  nullifier_hash?: string;
-  merkle_root?: string;
-  credential_type?: CredentialType;
-  signal?: string;
+  sign_in_with_world_id_token?: string;
 };
 
 export type LoginResponse =
@@ -37,7 +35,7 @@ export type LoginResponse =
     };
 
 const query = gql`
-  query FindUserByNullifier($nullifier_hash: String!) {
+  query FindUserByWorldID($nullifier_hash: String!) {
     user(where: { world_id_nullifier: { _eq: $nullifier_hash } }) {
       id
       team_id
@@ -54,64 +52,45 @@ export default async function login(
     return errorNotAllowed(req.method, res);
   }
 
-  const { proof, nullifier_hash, merkle_root, credential_type, signal } =
-    req.body;
+  const { sign_in_with_world_id_token } = req.body;
 
-  const invalidBody =
-    !proof || !nullifier_hash || !merkle_root || !credential_type || !signal;
-
-  if (invalidBody) {
-    const missingAttribute = (
-      [
-        "proof",
-        "nullifier_hash",
-        "merkle_root",
-        "credential_type",
-        "signal",
-      ] as Array<keyof LoginRequestBody>
-    ).find((param) => !req.body[param]);
-
-    return errorRequiredAttribute(missingAttribute, res);
+  if (!sign_in_with_world_id_token) {
+    return errorRequiredAttribute("sign_in_with_world_id_token", res);
   }
 
-  // ANCHOR: Authenticate the user with the ZKP from World ID
-  const runLoginInStaging =
-    process.env.NODE_ENV === "production" ? false : true;
-  const contract_address = await fetchSmartContractAddress(runLoginInStaging);
-  const result = await verifyProof(
-    {
-      merkle_root,
-      signal,
-      nullifier_hash,
-      external_nullifier: DEVELOPER_PORTAL_AUTH_APP.external_nullifier,
-      proof,
-    },
-    {
-      credential_type,
-      is_staging: runLoginInStaging,
-      contract_address,
-    }
-  );
-
-  if (result.error && !result.success) {
-    return errorResponse(
-      res,
-      result.error.statusCode ?? 500,
-      result.error.code,
-      result.error.message,
-      result.error.attribute
+  // ANCHOR: Verify the received JWT from Sign in with World ID
+  // NOTE: Normally we would call the certificates/JWKs endpoint from the IdP, but as we're the IdP, taking a shortcut
+  let payload: JWTPayload | undefined;
+  try {
+    payload = await verifyOIDCJWT(sign_in_with_world_id_token);
+  } catch (e) {
+    console.error(
+      "Error verifying received login JWT from Sign in with World ID",
+      e
     );
   }
 
-  const client = await getAPIServiceClient();
+  if (!payload?.sub) {
+    return errorUnauthenticated("Invalid or expired token.", res);
+  }
+
+  if (!payload.nonce || !verifyLoginNonce(payload.nonce as string)) {
+    return errorValidation(
+      "expired_request",
+      "This request has expired. Please try again.",
+      "nonce",
+      res
+    );
+  }
 
   // ANCHOR: Check if the user has an account
+  const client = await getAPIServiceClient();
   const userQueryResult = await client.query<{
     user: Array<Pick<UserModel, "id" | "world_id_nullifier" | "team_id">>;
   }>({
     query,
     variables: {
-      nullifier_hash,
+      nullifier_hash: payload.sub,
     },
   });
 
@@ -119,7 +98,7 @@ export default async function login(
 
   if (!user) {
     // NOTE: User does not have an account, generate a sign up token
-    const signup_token = await generateSignUpJWT(nullifier_hash);
+    const signup_token = await generateSignUpJWT(payload.sub);
     return res.status(200).json({ new_user: true, signup_token });
   }
 

@@ -2,14 +2,14 @@ import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { Preloader } from "common/Preloader";
 import { memo, useEffect, useState } from "react";
-import { useAppsStore } from "stores/app-store";
+import { useAppStore } from "stores/appStore";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
 import { shallow } from "zustand/shallow";
 
 export const App = memo(function App(props: { appId: string }) {
-  const { currentApp, fetchApps } = useAppsStore(
+  const { currentApp, fetchApps } = useAppStore(
     (state) => ({
       ...state,
     }),

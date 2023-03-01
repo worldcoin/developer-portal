@@ -37,7 +37,7 @@ export const Tabs = memo(function Tabs(props: {
               {tab.label || tab.name}
             </span>
             {tab.notifications > 0 && (
-              <div className="relative top-[1px] flex justify-center items-center text-warning">
+              <div className="relative top-[1px] flex justify-center items-center text-danger">
                 <Icon className="w-4 h-4" name="warning" />
               </div>
             )}

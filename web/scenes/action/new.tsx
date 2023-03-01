@@ -90,7 +90,7 @@ export function NewAction() {
                         "px-5 py-3 text-14 w-full",
                         styles.container.flat,
                         {
-                          "border-warning": error,
+                          "border-danger": error,
                         }
                       )}
                       onChange={(e) => onChange(e.target.value)}

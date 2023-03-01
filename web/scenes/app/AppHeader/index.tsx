@@ -2,15 +2,15 @@ import { Icon } from "common/Icon";
 import { apps } from "common/Layout/temp-data";
 import { Switch } from "common/Switch";
 import Image from "next/image";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import cn from "classnames";
-import { useAppsStore } from "stores/app-store";
+import { useAppStore } from "stores/appStore";
 
 export const AppHeader = memo(function AppHeader(props: {
   app: (typeof apps)[0];
 }) {
   const [copied, setCopied] = useState(false);
-  const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity);
+  const toggleAppActivity = useAppStore((state) => state.toggleAppActivity);
 
   useEffect(() => {
     if (copied) {
@@ -88,14 +88,14 @@ export const AppHeader = memo(function AppHeader(props: {
             className={cn(
               "grid grid-cols-auto/1fr items-center gap-x-1 px-2 py-1 rounded-full",
               { "bg-primary-light": props.app.status === "active" },
-              { "bg-warning-light": props.app.status === "inactive" }
+              { "bg-danger-light": props.app.status === "inactive" }
             )}
           >
             <div
               className={cn(
                 "w-1.5 h-1.5 rounded-full",
                 { "bg-primary": props.app.status === "active" },
-                { "bg-warning": props.app.status === "inactive" }
+                { "bg-danger": props.app.status === "inactive" }
               )}
             />
 
@@ -103,7 +103,7 @@ export const AppHeader = memo(function AppHeader(props: {
               className={cn(
                 "first-letter:capitalize",
                 { "text-primary": props.app.status === "active" },
-                { "text-warning": props.app.status === "inactive" }
+                { "text-danger": props.app.status === "inactive" }
               )}
             >
               {props.app.status}

@@ -25,3 +25,7 @@ update_permissions:
         - value
       filter: {}
       check: null
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}

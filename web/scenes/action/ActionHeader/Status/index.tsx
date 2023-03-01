@@ -40,7 +40,7 @@ export const Status = memo(function Status(props: StatusInterface) {
       className={cn(
         "grid items-center grid-cols-auto/1fr gap-x-2 whitespace-nowrap",
         {
-          "text-warning":
+          "text-danger":
             !props.action?.is_archived && props.action?.status === "created",
         },
         {

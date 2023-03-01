@@ -59,7 +59,7 @@ export const ActionCard = memo(function ActionCard(props: {
           <div
             className={cn("grid items-center grid-cols-auto/1fr gap-x-2", {
               [`${cn({
-                "text-warning": props.action.status === "created",
+                "text-danger": props.action.status === "created",
                 "text-success": props.action.status === "active",
                 "text-neutral": props.action.status === "inactive",
               })}`]: !props.action.is_archived,

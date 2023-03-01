@@ -9,9 +9,9 @@ import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
 import { CustomAction } from "common/Layout/temp-data";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useActionStore } from "./store";
-import { useAppsStore } from "stores/app-store";
+import { useAppStore } from "stores/appStore";
 import { shallow } from "zustand/shallow";
 import { Action } from "./Action";
 
@@ -20,7 +20,7 @@ export function Actions(props: {
 }): JSX.Element | null {
   const dialog = useToggle();
 
-  const currentApp = useAppsStore((store) => store.currentApp);
+  const currentApp = useAppStore((store) => store.currentApp);
 
   const { actions, setActions, fetchActions } = useActionStore(
     (store) => ({ ...store }),
