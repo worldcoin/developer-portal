@@ -13,8 +13,6 @@ export function LoggedUserDisplay(props: { className?: string }) {
   // FIXME remove when real user image is available
   const image = "";
 
-  console.log(user);
-
   return (
     <Fragment>
       <ProfileSettingsModal
