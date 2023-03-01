@@ -21,7 +21,10 @@ export const Success = memo(function Success() {
         </Typography>
       </div>
 
-      <Button className="p-5 px-12" onClick={() => router.push("#!")}>
+      <Button
+        className="p-5 px-12"
+        onClick={() => window.open("https://docs.worldcoin.org", "_blank")}
+      >
         Learn more about World ID
       </Button>
     </Fragment>
