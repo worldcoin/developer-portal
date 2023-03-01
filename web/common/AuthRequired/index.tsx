@@ -1,6 +1,6 @@
 import { isSSR } from "common/helpers/is-ssr";
 import { useAuthContext } from "contexts/AuthContext";
-import { Fragment, memo, ReactNode, useEffect, useMemo } from "react";
+import { Fragment, memo, ReactNode, useEffect } from "react";
 import { urls } from "urls";
 
 export const AuthRequired = memo(function AuthRequired(props: {
@@ -8,9 +8,11 @@ export const AuthRequired = memo(function AuthRequired(props: {
 }) {
   const { isAuthenticated, redirectWithReturn } = useAuthContext();
 
-  if (!isSSR() && !isAuthenticated) {
-    redirectWithReturn(urls.login());
-  }
+  useEffect(() => {
+    if (!isSSR() && !isAuthenticated) {
+      redirectWithReturn(urls.login());
+    }
+  }, [isAuthenticated, redirectWithReturn]);
 
   return <Fragment>{props.children}</Fragment>;
 });

@@ -102,7 +102,7 @@ export const graphQLRequest = async <T>(
     return await client.query(queryOptions);
   } catch (e) {
     if ((e as Error).toString().includes("JWTExpired")) {
-      authLogic.actions.logout();
+      // authLogic.actions.logout();
       throw "JWT is expired. Please log in again.";
     } else {
       handleError(e);

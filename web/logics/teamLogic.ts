@@ -119,7 +119,7 @@ export const teamLogic = kea<teamLogicType>([
               "Your team and all related data has been successfully deleted."
             );
             await breakpoint(2000);
-            window.location.href = "/logout";
+            //window.location.href = "/logout";
             return true;
           }
           return false;

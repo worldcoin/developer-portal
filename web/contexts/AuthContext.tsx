@@ -44,8 +44,8 @@ export const AuthProvider = memo(function AuthProvider(props: {
   }, []);
 
   const setToken = useCallback((token: string) => {
-    localStorage.setItem("token", token);
     updateToken(token);
+    localStorage.setItem("token", token);
   }, []);
 
   const redirectWithReturn = useCallback(
@@ -83,20 +83,23 @@ export const AuthProvider = memo(function AuthProvider(props: {
   );
 
   useEffect(() => {
-    const candidateToken = localStorage.getItem("token");
-    let decodedToken: JWTPayload | undefined;
-
-    if (candidateToken) {
-      try {
-        decodedToken = decodeJwt(candidateToken);
-      } catch {}
-      if (
-        decodedToken &&
-        new Date().getTime() / 1000 < (decodedToken.exp ?? 0)
-      ) {
-        setToken(localStorage.getItem("token") as string);
-      } else {
-        logout();
+    if (!token) {
+      const candidateToken = localStorage.getItem("token");
+      let decodedToken: JWTPayload | undefined;
+      if (candidateToken) {
+        try {
+          decodedToken = decodeJwt(candidateToken);
+        } catch (e) {
+          console.warn(`Error decoding stored token.`, e);
+        }
+        if (
+          decodedToken &&
+          new Date().getTime() / 1000 < (decodedToken.exp ?? 0)
+        ) {
+          setToken(localStorage.getItem("token") as string);
+        } else {
+          logout();
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

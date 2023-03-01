@@ -59,17 +59,17 @@ export const authLogic = kea<authLogicType>([
         return;
       }
 
-      if (token) {
-        window.localStorage.setItem("token", token);
-        actions.loadUser();
-      } else {
-        window.localStorage.removeItem("token");
-      }
+      // if (token) {
+      //   window.localStorage.setItem("token", token);
+      //   actions.loadUser();
+      // } else {
+      //   window.localStorage.removeItem("token");
+      // }
     },
     loadToken: async () => {
-      if (!isSSR()) {
-        actions.setToken(window.localStorage.getItem("token"));
-      }
+      // if (!isSSR()) {
+      //   actions.setToken(window.localStorage.getItem("token"));
+      // }
     },
     logout: async () => {
       if (isSSR()) {
@@ -136,7 +136,7 @@ export const authLogic = kea<authLogicType>([
           try {
             decodedToken = decodeJwt(values.token);
           } catch (err) {
-            actions.logout();
+            // actions.logout();
             console.warn(
               "User token is no longer valid. Redirecting to login."
             );
@@ -177,7 +177,7 @@ export const authLogic = kea<authLogicType>([
     ],
   }),
   afterMount(({ actions }) => {
-    actions.loadToken();
+    // actions.loadToken();
     actions.loadContracts();
     actions.initTelemetry();
   }),
