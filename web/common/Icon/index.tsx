@@ -31,6 +31,7 @@ const iconNames = [
   "dots",
   "edit",
   "edit-alt",
+  "envelope",
   "eth",
   "export",
   "external",
