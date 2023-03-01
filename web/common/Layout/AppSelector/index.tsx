@@ -4,7 +4,7 @@ import { Icon } from "common/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
 import { apps } from "../temp-data";
-import { useAppsStore } from "stores/appStore";
+import { useAppStore } from "stores/appStore";
 
 type App = (typeof apps)[number];
 
@@ -34,7 +34,7 @@ export const AppSelector = memo(function AppsSelector(props: {
 }) {
   const selector = useToggle();
 
-  const { apps, currentApp, fetchApps, setCurrentApp } = useAppsStore(
+  const { apps, currentApp, fetchApps, setCurrentApp } = useAppStore(
     (state) => ({
       ...state,
     })

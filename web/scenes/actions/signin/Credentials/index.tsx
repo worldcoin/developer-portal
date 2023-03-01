@@ -1,11 +1,11 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { useAppsStore } from "stores/appStore";
+import { useAppStore } from "stores/appStore";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";
 import { Credential } from "./Credential";
 
 export const Credentials = memo(function Credentials() {
-  const currentApp = useAppsStore((state) => state.currentApp);
+  const currentApp = useAppStore((state) => state.currentApp);
   const { signInAction, clientSecretSeenOnce, setClientSecretSeenOnce } =
     useSignInActionStore((state) => ({ ...state }), shallow);
 

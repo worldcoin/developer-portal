@@ -2,15 +2,15 @@ import { Icon } from "common/Icon";
 import { apps } from "common/Layout/temp-data";
 import { Switch } from "common/Switch";
 import Image from "next/image";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import cn from "classnames";
-import { useAppsStore } from "stores/appStore";
+import { useAppStore } from "stores/appStore";
 
 export const AppHeader = memo(function AppHeader(props: {
   app: (typeof apps)[0];
 }) {
   const [copied, setCopied] = useState(false);
-  const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity);
+  const toggleAppActivity = useAppStore((state) => state.toggleAppActivity);
 
   useEffect(() => {
     if (copied) {

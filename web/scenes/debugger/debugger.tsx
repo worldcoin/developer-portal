@@ -9,7 +9,7 @@ import { Layout } from "common/Layout";
 import { App } from "common/Layout/temp-data";
 import { Selector } from "common/Selector";
 import { useCallback, useState } from "react";
-import { useAppsStore } from "stores/app-store";
+import { useAppStore } from "stores/appStore";
 import { Toggler } from "./Toggler";
 
 // FIXME: mocked
@@ -37,7 +37,7 @@ export function Debugger(): JSX.Element {
     [currentApp]
   );
 
-  const { apps } = useAppsStore(handleFirstLoad);
+  const { apps } = useAppStore(handleFirstLoad);
 
   return (
     <Layout

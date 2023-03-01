@@ -13,7 +13,7 @@ type Actions = {
   toggleAppActivity: (status: boolean) => void;
 };
 
-export const useAppsStore = create<States & Actions>((set, get) => ({
+export const useAppStore = create<States & Actions>((set, get) => ({
   apps: [],
   currentApp: null,
   setCurrentApp: (currentApp: App) => set(() => ({ currentApp })),
