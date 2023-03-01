@@ -4,7 +4,7 @@ import { Switch } from "common/Switch";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useState } from "react";
 import cn from "classnames";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 
 export const AppHeader = memo(function AppHeader(props: {
   app: (typeof apps)[0];

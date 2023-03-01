@@ -11,7 +11,7 @@ import { Layout } from "common/Layout";
 import { CustomAction } from "common/Layout/temp-data";
 import { useEffect, useMemo } from "react";
 import { useActionStore } from "./store";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 import { shallow } from "zustand/shallow";
 import { Action } from "./Action";
 

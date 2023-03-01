@@ -7,7 +7,7 @@ import { useToggle } from "common/hooks";
 
 const EMAIL_PLACEHOLDER = "no@email";
 
-export const ProfileSettings = memo(function ProfileSettings() {
+export const ProfileModal = memo(function ProfileModal() {
   const nameEdit = useToggle(false);
   const teamNameEdit = useToggle(false);
 

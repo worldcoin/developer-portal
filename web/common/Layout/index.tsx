@@ -15,7 +15,7 @@ import { NavItemGroup } from "./NavItemsGroup";
 import { AppSelector } from "./AppSelector";
 import { NewAppDialog } from "./NewAppDialog";
 import { useToggle } from "common/hooks";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 
 export const Layout = (props: {
   title?: string;

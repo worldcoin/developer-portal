@@ -1,7 +1,7 @@
 import { Link } from "common/components/Link";
 import { Icon } from "common/Icon";
 import { memo } from "react";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 
 export const Header = memo(function Header() {
   const currentApp = useAppsStore((state) => state.currentApp);

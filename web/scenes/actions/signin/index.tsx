@@ -1,7 +1,7 @@
 import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { memo, useEffect } from "react";
-import { useAppsStore } from "stores/app-store";
+import { useAppsStore } from "stores/appStore";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "./store";
 import { Header } from "./Header";
