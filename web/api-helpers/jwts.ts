@@ -13,7 +13,7 @@ import { OIDCScopes } from "./oidc";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
-const JWT_CONFIG: JwtConfig = JSON.parse(
+const HASURA_GRAPHQL_JWT_SECRET: JwtConfig = JSON.parse(
   process.env.HASURA_GRAPHQL_JWT_SECRET || ""
 );
 
@@ -21,7 +21,7 @@ if (!JWT_ISSUER) {
   throw new Error("Improperly configured. `JWT_ISSUER` env var must be set!");
 }
 
-if (!JWT_CONFIG) {
+if (!HASURA_GRAPHQL_JWT_SECRET) {
   throw "Improperly configured. `HASURA_GRAPHQL_JWT_SECRET` env var must be set!";
 }
 
@@ -45,10 +45,10 @@ export const generateServiceJWT = async (): Promise<string> => {
   };
 
   const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWT_CONFIG.type })
+    .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime("1m")
-    .sign(Buffer.from(JWT_CONFIG.key));
+    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
 
   return token;
 };
@@ -61,10 +61,10 @@ const _generateJWT = async (
   expiration: string = "24h"
 ): Promise<string> => {
   const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWT_CONFIG.type })
+    .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime(expiration)
-    .sign(Buffer.from(JWT_CONFIG.key));
+    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
 
   return token;
 };

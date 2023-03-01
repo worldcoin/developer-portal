@@ -54,7 +54,7 @@ jobs:
       - name: Build
         env:
           GENERAL_SECRET_KEY: unsafe_test_key
-          JWT_CONFIG: invalid_config
+          HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
           JWT_ISSUER: invalid.localhost
         run: yarn build
 
