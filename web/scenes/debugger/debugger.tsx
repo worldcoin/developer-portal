@@ -127,9 +127,13 @@ export function Debugger(): JSX.Element {
           </FieldGroup>
 
           <FieldGroup
+            className="group"
             label={<FieldLabel className="!text-14">Action</FieldLabel>}
           >
-            <FieldInput placeholder="my_action" />
+            <FieldInput placeholder="my_action" className="w-full" />
+            <span className="text-12 text-neutral-secondary">
+              Enter your action as passed to IDKit
+            </span>
           </FieldGroup>
         </div>
 
