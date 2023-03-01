@@ -26,11 +26,11 @@ export const ProfileSettingsModal = memo(function ProfileSettingsModal(props: {
         <ModalWindow>
           <ModalWindowHeader
             displayCloseButton
-            title="Profile settings"
+            title="Your Account"
             close={props.close}
             className="mb-8"
           />
-          <ProfileSettings onPasswordChange={() => {}} />
+          <ProfileSettings />
         </ModalWindow>
       )}
     </ModalOverlay>

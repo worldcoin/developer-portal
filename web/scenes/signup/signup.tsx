@@ -7,7 +7,6 @@ import {
 import { Auth } from "common/Auth";
 import { useRouter } from "next/router";
 import { urls } from "urls";
-import { useAuthContext } from "contexts/AuthContext";
 import { FieldLabel } from "common/Auth/FieldLabel";
 import { FieldInput } from "common/Auth/FieldInput";
 import { FieldText } from "common/Auth/FieldText";
@@ -15,13 +14,19 @@ import { Checkbox } from "common/Auth/Checkbox";
 import { Button } from "common/Auth/Button";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
+import { IAuthStore, useAuthStore } from "stores/authStore";
+import { shallow } from "zustand/shallow";
+
+const getParams = (store: IAuthStore) => ({
+  setToken: store.setToken,
+});
 
 export function Signup() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setToken, enterApp } = useAuthContext();
+  const { setToken } = useAuthStore(getParams, shallow);
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {

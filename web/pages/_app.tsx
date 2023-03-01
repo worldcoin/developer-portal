@@ -3,12 +3,8 @@ import type { AppContext, AppProps } from "next/app";
 import { Fragment } from "react";
 import { usePostHog } from "common/hooks/use-posthog";
 import Head from "next/head";
-import { AuthProvider } from "contexts/AuthContext";
-import { isSSR } from "common/helpers/is-ssr";
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
-  const token = !isSSR() ? localStorage.getItem("token") : "";
-
   usePostHog();
 
   const metaImageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/images/meta.png`;
@@ -82,9 +78,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         <meta name="twitter:description" content={metaDescription} />
       </Head>
 
-      <AuthProvider token={token}>
-        <Component {...pageProps} />
-      </AuthProvider>
+      <Component {...pageProps} />
     </Fragment>
   );
 };

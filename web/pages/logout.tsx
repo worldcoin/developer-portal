@@ -1,13 +1,18 @@
 import { AuthRequired } from "common/AuthRequired";
-import { useAuthContext } from "contexts/AuthContext";
+import { Spinner } from "common/Spinner";
 import { useEffect } from "react";
+import { IAuthStore, useAuthStore } from "stores/authStore";
+
+const getParam = (store: IAuthStore) => store.logout;
 
 export default function Logout(): JSX.Element {
-  const { logout } = useAuthContext();
+  const logout = useAuthStore(getParam);
   useEffect(() => logout(), [logout]);
   return (
     <AuthRequired>
-      <div>Logging out...</div>
+      <div className="flex h-screen w-full justify-center items-center">
+        <Spinner />
+      </div>
     </AuthRequired>
   );
 }

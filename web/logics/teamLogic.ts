@@ -6,7 +6,6 @@ import { forms } from "kea-forms";
 import { loaders } from "kea-loaders";
 import { toast } from "react-toastify";
 import { TeamType } from "types";
-import { authLogic } from "./authLogic";
 import type { teamLogicType } from "./teamLogicType";
 
 interface TeamQueryResponse {
@@ -128,10 +127,7 @@ export const teamLogic = kea<teamLogicType>([
     ],
   })),
   selectors({
-    members: [
-      (s) => [s.team],
-      (team) => (authLogic.isMounted() ? team?.users ?? [] : []),
-    ],
+    members: [(s) => [s.team], (team) => []],
   }),
   afterMount(({ actions }) => {
     actions.loadTeam();

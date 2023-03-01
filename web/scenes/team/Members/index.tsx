@@ -1,4 +1,3 @@
-import { authLogic } from "logics/authLogic";
 import { Fragment, memo } from "react";
 import { Item } from "./Item";
 import { FieldInput } from "common/LegacyFieldInput";
@@ -9,11 +8,12 @@ import { useActions, useValues } from "kea";
 import { teamLogic } from "logics/teamLogic";
 import { Preloader } from "common/Preloader";
 import { teamMembersLogic } from "logics/teamMembersLogic";
+import useAuth from "hooks/useAuth";
 
 export const Members = memo(function Members() {
   const { members, teamLoading } = useValues(teamLogic);
   const { deleteTeamMember } = useActions(teamMembersLogic);
-  const { user } = useValues(authLogic);
+  const { user } = useAuth();
 
   return (
     <Fragment>

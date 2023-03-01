@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "common/Auth";
 import { useRouter } from "next/router";
-import { useAuthContext } from "contexts/AuthContext";
 import { LoginRequestBody } from "pages/api/login";
 import { Illustration } from "common/Auth/Illustration";
 import { Typography } from "common/Auth/Typography";
@@ -10,13 +9,21 @@ import { Icon } from "common/Icon";
 import { urls } from "urls";
 import { ILoginPageProps } from "pages/login";
 import { Spinner } from "common/Spinner";
+import useAuth from "hooks/useAuth";
+import { IAuthStore, useAuthStore } from "stores/authStore";
+import { shallow } from "zustand/shallow";
+
+const getParams = (store: IAuthStore) => ({
+  setToken: store.setToken,
+  enterApp: store.enterApp,
+});
 
 export function Login({ loginUrl, devToken }: ILoginPageProps) {
   const router = useRouter();
-  const { setToken, enterApp } = useAuthContext();
+  const { setToken, enterApp } = useAuthStore(getParams, shallow);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuth();
 
   const doLogin = useCallback(
     async (token: string) => {
@@ -44,7 +51,7 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
 
       if (!payload.new_user && payload.token) {
         setToken(payload.token);
-        enterApp();
+        enterApp(router);
       }
     },
     [router, setToken, enterApp, setLoading]
@@ -65,9 +72,9 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      enterApp();
+      enterApp(router);
     }
-  }, [isAuthenticated, enterApp]);
+  }, [isAuthenticated, enterApp, router]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
@@ -115,7 +122,7 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
                   className="cursor-pointer underline font-normal"
                   onClick={() => {
                     setToken(devToken);
-                    enterApp();
+                    enterApp(router);
                   }}
                 >
                   Log in with test user
