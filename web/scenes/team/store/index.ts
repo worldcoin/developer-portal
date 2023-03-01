@@ -174,7 +174,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
   removeMemberState: null,
 
   removeMember: async () => {
-    const { team, setMembers } = get();
+    const { team, setMembers, setMemberForRemove } = get();
 
     const updatedList = team?.members.filter(
       (member) => member !== get().memberForRemove
@@ -182,6 +182,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
     if (team && updatedList) {
       setMembers(updatedList);
+      setMemberForRemove(null);
     }
   },
 }));
