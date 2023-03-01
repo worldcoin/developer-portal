@@ -106,27 +106,33 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   filter: { query: "" },
 
-  setFilter: (filter: Filter | ((prevState: Filter) => Filter)) =>
+  setFilter: (filter) =>
     set(() => ({
       filter: typeof filter === "function" ? filter(get().filter) : filter,
     })),
 
   applyFilter: () => {
-    const { query } = get().filter;
-    set(() => ({
-      filteredMembers: get().team?.members.filter((member) => {
-        return member.name.includes(query) || member.email.includes(query);
-      }),
-    }));
+    const {
+      filter: { query },
+      team,
+    } = get();
+
+    console.log(team);
+
+    if (team) {
+      set(() => ({
+        filteredMembers: team.members.filter((member) => {
+          return member.name.includes(query) || member.email.includes(query);
+        }),
+      }));
+    }
   },
 
   filteredMembers: tempTeam.members,
 
   membersForInvite: [],
 
-  setMembersForInvite: (
-    members: Array<string> | ((prevState: Array<string>) => Array<string>)
-  ) => {
+  setMembersForInvite: (members) => {
     if (typeof members === "function") {
       set(() => ({ membersForInvite: members(get().membersForInvite) }));
     } else {
@@ -144,7 +150,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
     //TODO: Replace with relevant logic
     if (team) {
       setTimeout(() => {
-        setMembers({
+        setMembers([
           ...team.members,
           ...membersForInvite.map((item, idx) => ({
             image: "",
@@ -152,7 +158,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
             name: `New Member ${team.members.length + idx + 1}`,
             verified: false,
           })),
-        });
+        ]);
 
         set(() => ({ inviteMembersState: InviteMembersState.SUCCESS }));
         setMembersForInvite([]);
@@ -163,8 +169,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   memberForRemove: null,
 
-  setMemberForRemove: (member: TeamMember | null) =>
-    set(() => ({ memberForRemove: member })),
+  setMemberForRemove: (member) => set(() => ({ memberForRemove: member })),
 
   removeMemberState: null,
 
