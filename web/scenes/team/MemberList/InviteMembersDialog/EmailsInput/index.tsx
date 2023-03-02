@@ -16,7 +16,7 @@ export interface EmailsInputProps {
   onChange: (value: string[]) => void;
 }
 
-const SEPARATORS = [",", "Enter"];
+const SEPARATORS = [",", "Enter", " "];
 
 /**
  * EmailsInput
