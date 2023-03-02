@@ -5,17 +5,21 @@ import { memo, useCallback, useMemo } from "react";
 import { Button } from "src/components/Button";
 
 import { StatusIcon } from "src/scenes/kiosk/common/StatusIcon";
-import { getKioskStore, Screen, useKioskStore } from "src/stores/kioskStore";
+import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 dayjs.extend(dayjsRelative);
+
+const getKioskStoreParams = (store: IKioskStore) => ({
+  setScreen: store.setScreen,
+});
 
 export const Success = memo(function Success(props: {
   confirmationId?: string;
   createdAt?: string;
 }) {
-  const { setScreen } = useKioskStore(getKioskStore);
+  const { setScreen } = useKioskStore(getKioskStoreParams);
 
   const handleRestart = useCallback(
-    () => setScreen(Screen.Waiting),
+    () => setScreen(KioskScreen.Waiting),
     [setScreen]
   );
 

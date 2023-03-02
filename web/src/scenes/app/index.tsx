@@ -2,13 +2,17 @@ import { memo, useEffect, useState } from "react";
 import { AuthRequired } from "src/components/AuthRequired";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
-import { getAppStore, useAppStore } from "stores/appStore";
+import { IAppStore, useAppStore } from "@/stores/appStore";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
 
+const getStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+});
+
 export const App = memo(function App(props: { appId: string }) {
-  const { currentApp } = useAppStore(getAppStore);
+  const { currentApp } = useAppStore(getStoreParams);
 
   const [loading, setLoading] = useState(true);
 

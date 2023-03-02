@@ -1,9 +1,8 @@
-import { internal as IDKitInternal } from "@worldcoin/idkit";
-import { restAPIRequest } from "frontend-api";
+import { restAPIRequest } from "@/lib/frontend-api";
+import { AppModel } from "src/lib/models";
 import { create } from "zustand";
-import { AppType } from "./appStore";
 
-export enum Screen {
+export enum KioskScreen {
   Waiting,
   Connected,
   AlreadyVerified,
@@ -14,43 +13,25 @@ export enum Screen {
   VerificationError,
 }
 
-type KioskStore = {
-  kioskApp: AppType | null;
-  screen: Screen;
-  setKioskApp: (app: AppType) => void;
-  setScreen: (screen: Screen) => void;
+export type IKioskStore = {
+  kioskApp: AppModel | null;
+  screen: KioskScreen;
+  setKioskApp: (app: AppModel) => void;
+  setScreen: (screen: KioskScreen) => void;
   fetchPrecheck: (app_id: string, action: string) => void;
 };
 
-export const getKioskStore = ({
-  kioskApp: kioskApp,
-  screen,
-  setKioskApp: setApp,
-  setScreen,
-  fetchPrecheck,
-}: KioskStore) => ({
-  kioskApp,
-  screen,
-  setApp,
-  setScreen,
-  fetchPrecheck,
-});
-export const useKioskStore = create<KioskStore>((set, get) => ({
+export const useKioskStore = create<IKioskStore>((set, get) => ({
   kioskApp: null,
-  screen: Screen.Waiting,
-  setKioskApp: (kioskApp: AppType) => set({ kioskApp }),
-  setScreen: (screen: Screen) => set({ screen }),
+  screen: KioskScreen.Waiting,
+  setKioskApp: (kioskApp: AppModel) => set({ kioskApp }),
+  setScreen: (screen: KioskScreen) => set({ screen }),
   fetchPrecheck: async (app_id: string, action: string) => {
-    const external_nullifier = IDKitInternal.generateExternalNullifier(
-      app_id,
-      action
-    ).digest;
-
+    // FIXME: Paolo
     const response = await restAPIRequest(`/precheck/${app_id}`, {
       method: "POST",
       json: {
         action,
-        external_nullifier,
       },
     });
 

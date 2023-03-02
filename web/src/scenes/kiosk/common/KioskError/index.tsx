@@ -2,14 +2,18 @@ import { memo } from "react";
 import { Button } from "src/components/Button";
 import { StatusIcon } from "../StatusIcon";
 
-import { getKioskStore, Screen, useKioskStore } from "src/stores/kioskStore";
+import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
+
+const getKioskStoreParams = (store: IKioskStore) => ({
+  setScreen: store.setScreen,
+});
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;
   description?: string;
   title: string;
 }) {
-  const { setScreen } = useKioskStore(getKioskStore);
+  const { setScreen } = useKioskStore(getKioskStoreParams);
 
   return (
     <div className="grid text-center justify-items-center gap-y-6">
@@ -35,7 +39,7 @@ export const KioskError = memo(function KioskError(props: {
         <Button
           className="min-w-[250px] max-w-full py-4 px-8"
           color="primary"
-          onClick={() => setScreen(Screen.Waiting)}
+          onClick={() => setScreen(KioskScreen.Waiting)}
         >
           {props.buttonText}
         </Button>

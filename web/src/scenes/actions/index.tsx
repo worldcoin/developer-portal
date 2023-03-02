@@ -1,23 +1,28 @@
-import { AuthRequired } from "common/AuthRequired";
-import { Button } from "common/Button";
-import { Link } from "common/components/Link";
-import { Dialog } from "common/Dialog";
-import { DialogHeader } from "common/DialogHeader";
-import { FieldInput } from "common/FieldInput";
-import { FieldLabel } from "common/FieldLabel";
-import { useToggle } from "common/hooks";
-import { Icon } from "common/Icon";
-import { Layout } from "common/Layout";
+import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
-import { getActionStore, useActionStore } from "stores/actionStore";
-import { AppType, getAppStore, useAppStore } from "stores/appStore";
+import { AuthRequired } from "@/components/AuthRequired";
+import { DialogHeader } from "@/components/DialogHeader";
+import { FieldInput } from "@/components/FieldInput";
+import { FieldLabel } from "@/components/FieldLabel";
+import { Layout } from "@/components/Layout";
+import { useToggle } from "@/hooks/useToggle";
+import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Action } from "./Action";
+import { getActionStore, useActionStore } from "@/stores/actionStore";
+import { AppModel } from "src/lib/models";
+import { Button } from "@/components/Button";
+import { Link } from "@/components/Link";
+import { Icon } from "@/components/Icon";
+
+const getStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+});
 
 export function Actions(): JSX.Element | null {
   const dialog = useToggle();
-  const { currentApp } = useAppStore(getAppStore);
+  const { currentApp } = useAppStore(getStoreParams);
   const { actions, fetchCustomActions } = useActionStore(getActionStore);
-  const [prevApp, setPrevApp] = useState<AppType | null>(null);
+  const [prevApp, setPrevApp] = useState<AppModel | null>(null);
 
   useEffect(() => {
     if (currentApp && prevApp !== currentApp) {

@@ -9,7 +9,11 @@ import {
   getActionStore,
   useActionStore,
 } from "src/stores/actionStore";
-import { getKioskStore, Screen, useKioskStore } from "../../stores/kioskStore";
+import {
+  IKioskStore,
+  KioskScreen,
+  useKioskStore,
+} from "../../stores/kioskStore";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
 import { Success } from "./Success";
@@ -25,14 +29,21 @@ type ProofResponse = {
   attribute?: string;
 };
 
-export const Kiosk = memo(function Kiosk(props: { appId: string }) {
+const getKioskStoreParams = (store: IKioskStore) => ({
+  setScreen: store.setScreen,
+  screen: store.screen,
+  kioskApp: store.kioskApp,
+  fetchPrecheck: store.fetchPrecheck,
+});
+
+export const Kiosk = memo(function Kiosk() {
   const router = useRouter();
   const { app_id, action } = router.query;
 
   const { actions, currentAction, setCurrentAction } =
     useActionStore(getActionStore);
   const { kioskApp, screen, setScreen, fetchPrecheck } =
-    useKioskStore(getKioskStore);
+    useKioskStore(getKioskStoreParams);
   const { result, errorCode, verificationState, qrData, reset } =
     internal.useAppConnection(app_id as string, action as string);
 
@@ -118,13 +129,13 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
     verifyProof(result).then((response: ProofResponse) => {
       setResponse(response);
       if (response?.success) {
-        setScreen(Screen.Success);
+        setScreen(KioskScreen.Success);
       } else if (response?.code === "already_verified") {
-        setScreen(Screen.AlreadyVerified);
+        setScreen(KioskScreen.AlreadyVerified);
       } else if (response?.code === "invalid_merkle_root") {
-        setScreen(Screen.InvalidIdentity);
+        setScreen(KioskScreen.InvalidIdentity);
       } else {
-        setScreen(Screen.VerificationError);
+        setScreen(KioskScreen.VerificationError);
       }
     });
   }, [result, setScreen, verifyProof]);
@@ -135,29 +146,29 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
       switch (verificationState) {
         case "loading_widget":
         case "awaiting_connection":
-          setScreen(Screen.Waiting);
+          setScreen(KioskScreen.Waiting);
           break;
         case "awaiting_verification":
-          setScreen(Screen.Connected);
+          setScreen(KioskScreen.Connected);
           break;
         case "confirmed":
-          setScreen(Screen.Success);
+          setScreen(KioskScreen.Success);
           break;
         case "failed":
           switch (errorCode) {
             case "connection_failed":
-              setScreen(Screen.ConnectionError);
+              setScreen(KioskScreen.ConnectionError);
               break;
             case "already_signed":
-              setScreen(Screen.AlreadyVerified);
+              setScreen(KioskScreen.AlreadyVerified);
               break;
             case "verification_rejected":
-              setScreen(Screen.VerificationRejected);
+              setScreen(KioskScreen.VerificationRejected);
               break;
             case "unexpected_response":
             case "generic_error":
           }
-          setScreen(Screen.VerificationError);
+          setScreen(KioskScreen.VerificationError);
       }
       setCurrentState(verificationState);
     }
@@ -199,9 +210,9 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
             </div>
           </div>
         </div>
-        {screen === Screen.Waiting && <Waiting qrData={qrData} />}
-        {screen === Screen.Connected && <Connected reset={reset} />}
-        {screen === Screen.Success && (
+        {screen === KioskScreen.Waiting && <Waiting qrData={qrData} />}
+        {screen === KioskScreen.Connected && <Connected reset={reset} />}
+        {screen === KioskScreen.Success && (
           <Success
             createdAt={response?.created_at}
             confirmationId={response?.nullifier_hash
@@ -210,7 +221,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {screen === Screen.ConnectionError && (
+        {screen === KioskScreen.ConnectionError && (
           <KioskError
             title="Connection Error"
             description="We cannot establish a connection to the Worldcoin app. Please refresh and try again."
@@ -218,7 +229,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {screen === Screen.AlreadyVerified && (
+        {screen === KioskScreen.AlreadyVerified && (
           <KioskError
             title="Already verified"
             description="This person has already verified for this action."
@@ -226,7 +237,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {screen === Screen.VerificationRejected && (
+        {screen === KioskScreen.VerificationRejected && (
           <KioskError
             title="Verification rejected"
             description="Verification rejected in the Worldcoin app."
@@ -234,7 +245,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {screen === Screen.InvalidIdentity && (
+        {screen === KioskScreen.InvalidIdentity && (
           <KioskError
             title="User is not verified"
             description="Looks like this user is not verified with World ID. They can visit an orb to verify."
@@ -242,7 +253,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {screen === Screen.VerificationError && (
+        {screen === KioskScreen.VerificationError && (
           <KioskError
             title="Verification Error"
             description="We couldn't verify this user. Please try again."

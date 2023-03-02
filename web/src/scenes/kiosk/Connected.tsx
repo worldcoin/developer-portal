@@ -3,14 +3,18 @@ import { Fragment, memo, useCallback, useState } from "react";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Modal } from "src/components/LegacyModal";
-import { getKioskStore, useKioskStore } from "src/stores/kioskStore";
+import { useKioskStore, IKioskStore, KioskScreen } from "@/stores/kioskStore";
+
+const getKioskStoreParams = (store: IKioskStore) => ({
+  setScreen: store.setScreen,
+});
 
 export const Connected = memo(function Connected({
   reset,
 }: {
   reset: () => void;
 }) {
-  const { setScreen } = useKioskStore(getKioskStore);
+  const { setScreen } = useKioskStore(getKioskStoreParams);
 
   const [isModalShow, setIsModalShow] = useState(false);
   const hideModal = useCallback(() => setIsModalShow(false), []);
@@ -18,7 +22,7 @@ export const Connected = memo(function Connected({
 
   const handleRestart = useCallback(() => {
     reset();
-    setScreen(Screen.Waiting);
+    setScreen(KioskScreen.Waiting);
   }, [reset, setScreen]);
 
   return (

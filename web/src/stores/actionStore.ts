@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import { create } from "zustand";
 
 // Types

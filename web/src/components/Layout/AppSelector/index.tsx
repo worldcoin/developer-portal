@@ -1,15 +1,13 @@
 import cn from "classnames";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
-import { Icon } from "src/components/Icon";
-import { useToggle } from "src/hooks/useToggle";
-import { getAppStore, useAppStore } from "src/stores/appStore";
-import { apps } from "../temp-data";
-
-type App = (typeof apps)[number];
+import { Icon } from "@/components/Icon";
+import { useToggle } from "@/hooks/useToggle";
+import { AppModel } from "@/lib/models";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 
 export const ButtonContent = memo(function ButtonContent(props: {
-  app: App;
+  app: AppModel;
   selected?: boolean;
   className?: string;
 }) {
@@ -29,12 +27,19 @@ export const ButtonContent = memo(function ButtonContent(props: {
   );
 });
 
+const getStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+  apps: store.apps,
+  setCurrentApp: store.setCurrentApp,
+  fetchApps: store.fetchApps,
+});
+
 export const AppSelector = memo(function AppsSelector(props: {
   onNewAppClick: () => void;
 }) {
   const selector = useToggle();
   const { apps, currentApp, setCurrentApp, fetchApps } =
-    useAppStore(getAppStore);
+    useAppStore(getStoreParams);
 
   useEffect(() => {
     if (!apps.length) {
@@ -47,7 +52,7 @@ export const AppSelector = memo(function AppsSelector(props: {
   }, [apps, currentApp, fetchApps, setCurrentApp]);
 
   const selectApp = useCallback(
-    (app: App) => {
+    (app: AppModel) => {
       setCurrentApp(app);
       selector.toggleOff();
     },
@@ -60,7 +65,7 @@ export const AppSelector = memo(function AppsSelector(props: {
   }, [props, selector]);
 
   const isSelected = useCallback(
-    (app: App) => app?.id === currentApp?.id,
+    (app: AppModel) => app?.id === currentApp?.id,
     [currentApp]
   );
 
