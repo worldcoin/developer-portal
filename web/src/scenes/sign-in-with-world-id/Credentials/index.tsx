@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { getAppStore, useAppStore } from "stores/appStore";
+import { getAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";
 import { Credential } from "./Credential";

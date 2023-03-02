@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
 import { Icon } from "src/components/Icon";
 import { useToggle } from "src/hooks/useToggle";
-import { getAppStore, useAppStore } from "stores/appStore";
+import { getAppStore, useAppStore } from "src/stores/appStore";
 import { apps } from "../temp-data";
 
 type App = (typeof apps)[number];

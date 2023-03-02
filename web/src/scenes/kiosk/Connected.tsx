@@ -1,9 +1,9 @@
 import cn from "classnames";
-import { Button } from "common/Button";
-import { Icon } from "common/Icon";
-import { Modal } from "common/LegacyModal";
 import { Fragment, memo, useCallback, useState } from "react";
-import { getKioskStore, useKioskStore } from "../../../stores/kioskStore";
+import { Button } from "src/components/Button";
+import { Icon } from "src/components/Icon";
+import { Modal } from "src/components/LegacyModal";
+import { getKioskStore, useKioskStore } from "src/stores/kioskStore";
 
 export const Connected = memo(function Connected({
   reset,

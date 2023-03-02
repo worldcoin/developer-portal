@@ -1,14 +1,11 @@
 import cn from "classnames";
-import { Button } from "common/Button";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
 import { memo, useCallback, useMemo } from "react";
-import {
-  getKioskStore,
-  Screen,
-  useKioskStore,
-} from "../../../stores/kioskStore";
-import { StatusIcon } from "../common/StatusIcon";
+import { Button } from "src/components/Button";
+
+import { StatusIcon } from "src/scenes/kiosk/common/StatusIcon";
+import { getKioskStore, Screen, useKioskStore } from "src/stores/kioskStore";
 dayjs.extend(dayjsRelative);
 
 export const Success = memo(function Success(props: {
