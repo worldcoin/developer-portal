@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleENS from "pages/api/_ens";
+import handleENS from "src/pages/api/_ens";
 
 // FIXME
 describe("/api/_ens", () => {

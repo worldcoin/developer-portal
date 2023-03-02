@@ -3,7 +3,7 @@
  * Types referring to Hasura models should be defined in models.ts.
  */
 
-import { IconType } from "common/Icon";
+import { IconType } from "src/common/Icon";
 import { NextApiRequest } from "next";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
