@@ -78,6 +78,7 @@ const iconNames = [
   "target",
   "team",
   "user",
+  "user-add",
   "user-solid",
   "warning",
   "warning-triangle",

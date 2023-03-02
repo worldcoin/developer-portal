@@ -39,6 +39,13 @@ module.exports = {
 
         muted: "#f0edf9",
       },
+      accents: {
+        success: {
+          DEFAULT: "#00c313",
+          700: "#00c313",
+          300: "#d6f6d9",
+        },
+      },
       primary: {
         DEFAULT: "#4940e0",
         light: "#edecfc",
