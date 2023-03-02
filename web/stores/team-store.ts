@@ -81,8 +81,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
       team,
     } = get();
 
-    console.log(team);
-
     if (team) {
       set(() => ({
         filteredMembers: team.members.filter((member) => {
