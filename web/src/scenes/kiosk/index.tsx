@@ -33,6 +33,7 @@ const getKioskStoreParams = (store: IKioskStore) => ({
   setKioskAction: store.setKioskAction,
   setSuccessParams: store.setSuccessParams,
   proofResult: store.proofResult,
+  successParams: store.successParams,
 });
 
 export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
@@ -45,6 +46,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
     setKioskAction,
     proofResult,
     setSuccessParams,
+    successParams,
   } = useKioskStore(getKioskStoreParams);
 
   useEffect(() => {
@@ -88,7 +90,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
         setSuccessParams({
           timestamp: dayjs(response.created_at),
           confirmationCode:
-            response.nullifier_hash?.slice(-8).toLocaleUpperCase() ?? "",
+            response.nullifier_hash?.slice(-5).toLocaleUpperCase() ?? "",
         });
         setScreen(KioskScreen.Success);
       } else {
@@ -105,10 +107,10 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
   );
 
   useEffect(() => {
-    if (proofResult) {
+    if (proofResult && !successParams) {
       verifyProof(proofResult);
     }
-  }, [proofResult, verifyProof]);
+  }, [proofResult, verifyProof, successParams]);
 
   return (
     <div className="flex flex-col h-screen">
