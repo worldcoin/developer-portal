@@ -1,27 +1,98 @@
 import { useToggle } from "common/hooks";
-import { memo } from "react";
+import { Icon } from "common/Icon";
+import { memo, useCallback } from "react";
+import { TeamMember, useTeamStore } from "../../../stores/team-store";
+
 import { Controls } from "./Controls";
 import { InviteMembersDialog } from "./InviteMembersDialog";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
 
 export const MemberList = memo(function MemberList() {
   const inviteDialog = useToggle();
-  const removeDialog = useToggle();
+
+  const {
+    filter,
+    setFilter,
+    filteredMembers: members,
+    setMemberForRemove,
+    applyFilter,
+  } = useTeamStore();
+
+  const handleDelete = useCallback(
+    (member: TeamMember) => {
+      setMemberForRemove(member);
+    },
+    [setMemberForRemove]
+  );
+
+  const handleChangeSearch = useCallback(
+    (query: string) => {
+      setFilter((prevState) => ({ ...prevState, query }));
+      if (query.length <= 0) {
+        applyFilter();
+      }
+    },
+    [applyFilter, setFilter]
+  );
 
   return (
-    <div>
+    <div className="space-y-4">
       <InviteMembersDialog
         open={inviteDialog.isOn}
         onClose={inviteDialog.toggleOff}
       />
 
-      <RemoveMemberDialog
-        open={removeDialog.isOn}
-        onClose={removeDialog.toggleOff}
-      />
+      <RemoveMemberDialog />
 
-      <Controls onInviteClick={inviteDialog.toggleOn} />
-      <div>MemberList</div>
+      <div className="space-y-8">
+        <Controls
+          onInviteClick={inviteDialog.toggleOn}
+          onFilterClick={applyFilter}
+          searchValue={filter.query}
+          onSearchChange={handleChangeSearch}
+        />
+
+        <div className="space-x-2 text-neutral text-14">
+          <span>Member</span>
+
+          <span className="bg-ebecef py-1 px-1.5 rounded-[4px]">
+            {members.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {members.map((member, key) => (
+          <div
+            key={key}
+            className="flex items-center bg-ffffff rounded-xl shadow-lg p-4 gap-3"
+          >
+            <div className="relative w-10 h-10 grid place-items-center bg-success-light rounded-full">
+              <Icon name="user-solid" className="w-4 h-4 bg-success" />
+
+              {member.verified && (
+                <Icon
+                  name="badge-verification"
+                  className="absolute w-5 h-5 -bottom-1 -right-1"
+                  noMask
+                />
+              )}
+            </div>
+
+            <div className="flex-1 space-y-1">
+              <h5>{member.name}</h5>
+              <p className="text-12">{member.email}</p>
+            </div>
+
+            <button
+              className="text-warning hover:opacity-75 transition-opacity"
+              onClick={() => handleDelete(member)}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 });

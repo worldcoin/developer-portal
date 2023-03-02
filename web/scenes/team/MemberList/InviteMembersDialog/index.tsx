@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from "react";
-import { getTeamStore, useTeamStore } from "scenes/team/store";
+import { getTeamStore, useTeamStore } from "stores/team-store";
 import { Dialog } from "common/Dialog";
 import { DialogHeader } from "common/DialogHeader";
 import { FieldLabel } from "common/FieldLabel";
