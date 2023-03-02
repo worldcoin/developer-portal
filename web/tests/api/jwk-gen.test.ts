@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleJWKGen from "pages/api/_jwk-gen";
+import handleJWKGen from "src/pages/api/_jwk-gen";
 
 // FIXME
 describe("/api/v1/_jwk-gen", () => {

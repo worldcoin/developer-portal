@@ -1,4 +1,4 @@
-import { canVerifyForAction } from "api-helpers/utils";
+import { canVerifyForAction } from "src/backend/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
