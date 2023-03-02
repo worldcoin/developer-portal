@@ -2,17 +2,21 @@ import cn from "classnames";
 import { useToggle } from "src/hooks/useToggle";
 import { Icon } from "src/components/Icon";
 import Image from "next/image";
-import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
-import { apps } from "../temp-data";
-import { useAppStore } from "src/stores/appStore";
-
-type App = (typeof apps)[number];
+import { Fragment, memo, useCallback, useMemo, useState } from "react";
+import { AppStore, useAppStore } from "src/stores/appStore";
+import { shallow } from "zustand/shallow";
+import { AppModel } from "src/lib/models";
+import useApps from "src/hooks/useApps";
+import { Link } from "src/components/Link";
+import { useRouter } from "next/router";
 
 export const ButtonContent = memo(function ButtonContent(props: {
-  app: App;
+  app: AppModel;
   selected?: boolean;
   className?: string;
 }) {
+  const [image, setImage] = useState<string | null>(props.app.logo_url);
+
   return (
     <div
       className={cn(
@@ -21,35 +25,47 @@ export const ButtonContent = memo(function ButtonContent(props: {
         props.className
       )}
     >
-      <Image src={props.app?.logo_url} width={20} height={20} alt="app logo" />
-      <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto">
+      <div>
+        {image && (
+          <Image
+            src={props.app?.logo_url}
+            width={20}
+            height={20}
+            alt="app logo"
+            onError={() => setImage(null)}
+          />
+        )}
+
+        {!image && (
+          <div className="w-5 h-5 rounded-full bg-primary-light flex justify-center items-center">
+            <span className="text-primary text-12">{props.app.name[0]}</span>
+          </div>
+        )}
+      </div>
+      <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto text-neutral-dark">
         {props.app?.name}
       </span>
     </div>
   );
 });
 
+const getStore = (store: AppStore) => ({
+  apps: store.apps,
+  currentApp: store.currentApp,
+  setApps: store.setApps,
+  setCurrentApp: store.setCurrentApp,
+});
+
 export const AppSelector = memo(function AppsSelector(props: {
   onNewAppClick: () => void;
 }) {
   const selector = useToggle();
-
-  const { apps, currentApp, fetchApps, setCurrentApp } = useAppStore(
-    (state) => ({
-      ...state,
-    })
-  );
-
-  useEffect(() => {
-    fetchApps();
-
-    if (!currentApp) {
-      setCurrentApp(apps[0]);
-    }
-  }, [apps, currentApp, fetchApps, setCurrentApp]);
+  const { apps } = useApps();
+  const { currentApp, setCurrentApp } = useAppStore(getStore, shallow);
+  const router = useRouter();
 
   const selectApp = useCallback(
-    (app: App) => {
+    (app: AppModel) => {
       setCurrentApp(app);
       selector.toggleOff();
     },
@@ -62,13 +78,26 @@ export const AppSelector = memo(function AppsSelector(props: {
   }, [props, selector]);
 
   const isSelected = useCallback(
-    (app: App) => app?.id === currentApp?.id,
+    (app: AppModel) => app?.id === currentApp?.id,
     [currentApp]
   );
 
   const appsToRender = useMemo(
     () => apps?.filter((app) => !isSelected(app)),
     [apps, isSelected]
+  );
+
+  const getHref = useCallback(
+    (id: string) => {
+      const route = router.pathname.replace("/app/[app_id]", "");
+
+      if (!route) {
+        return `/app/${id}`;
+      }
+
+      return `/app/${id}${route}`;
+    },
+    [router.pathname]
   );
 
   return (
@@ -102,13 +131,17 @@ export const AppSelector = memo(function AppsSelector(props: {
 
             <div className="grid">
               {appsToRender?.map((app) => (
-                <button onClick={() => selectApp(app)} key={app.id}>
+                <Link
+                  href={getHref(app.id)}
+                  onClick={() => selectApp(app)}
+                  key={app.id}
+                >
                   <ButtonContent
                     app={app}
                     className={cn("px-4 py-3")}
                     selected={isSelected(app)}
                   />
-                </button>
+                </Link>
               ))}
 
               <button

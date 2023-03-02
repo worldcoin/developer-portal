@@ -1,7 +1,7 @@
 import { Icon } from "src/components/Icon";
 import { LoggedUserDisplay } from "./LoggedUserDisplay";
 import Link from "next/link";
-import { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, useEffect } from "react";
 import { NavItem } from "./NavItem";
 import { ToastContainer } from "react-toastify";
 import { Slide } from "react-toastify";
@@ -15,14 +15,32 @@ import { NavItemGroup } from "./NavItemsGroup";
 import { AppSelector } from "./AppSelector";
 import { NewAppDialog } from "./NewAppDialog";
 import { useToggle } from "src/hooks/useToggle";
+import { AppStore, useAppStore } from "src/stores/appStore";
+import useApps from "src/hooks/useApps";
+
+const getStore = (store: AppStore) => ({
+  currentApp: store.currentApp,
+  setCurrentAppById: store.setCurrentAppById,
+});
 
 export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
 }) => {
-  const router = useRouter();
   const newAppDialog = useToggle();
+  const router = useRouter();
+
+  const { setCurrentAppById } = useAppStore(getStore);
+  const { apps } = useApps();
+
+  useEffect(() => {
+    if (!router.query.app_id || !apps) {
+      return;
+    }
+
+    setCurrentAppById(router.query.app_id as string);
+  }, [apps, router.query.app_id, setCurrentAppById]);
 
   return (
     <Fragment>
@@ -60,20 +78,24 @@ export const Layout = (props: {
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">
-                <NavItem icon="apps" name="App Profile" href={urls.app()} />
+                <NavItem
+                  icon="apps"
+                  name="App Profile"
+                  href={urls.app(router.query.app_id as string)}
+                />
 
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign in"
                   // FIXME: Proper app id
-                  href={urls.appSignIn("app_123")}
+                  href={urls.appSignIn(router.query.app_id as string)}
                 />
 
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
                   // FIXME: Proper app id
-                  href={urls.appActions("app_123")}
+                  href={urls.appActions(router.query.app_id as string)}
                 />
               </NavItemGroup>
 

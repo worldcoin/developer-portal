@@ -1,16 +1,20 @@
 import { Icon } from "src/components/Icon";
-import { apps } from "src/components/Layout/temp-data";
 import { Switch } from "src/components/Switch";
 import Image from "next/image";
 import { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
+import { AppModel } from "src/lib/models";
+import useApps from "src/hooks/useApps";
 
-export const AppHeader = memo(function AppHeader(props: {
-  app: (typeof apps)[0];
-}) {
+export const AppHeader = memo(function AppHeader() {
+  const currentApp = useAppStore((store) => store.currentApp);
   const [copied, setCopied] = useState(false);
-  const toggleAppActivity = useAppStore((state) => state.toggleAppActivity);
+
+  const [image, setImage] = useState<string | null>(
+    currentApp?.logo_url ?? null
+  );
+  const { toggleAppActivity } = useApps();
 
   useEffect(() => {
     if (copied) {
@@ -26,14 +30,25 @@ export const AppHeader = memo(function AppHeader(props: {
     <section className="grid gap-y-8">
       <div className="grid gap-x-6 grid-cols-auto/1fr grid-rows-2">
         <div className="relative p-3.5 border border-f3f4f5 rounded-full row-span-2">
-          <Image
-            src={props.app.logo_url}
-            alt="app logo"
-            width={44}
-            height={44}
-          />
+          <div>
+            {image && (
+              <Image
+                src={currentApp?.logo_url ?? ""}
+                alt="app logo"
+                width={44}
+                height={44}
+                onError={() => setImage(null)}
+              />
+            )}
 
-          {props.app.is_verified && (
+            {!image && (
+              <div className="w-11 h-11 rounded-full bg-primary-light flex justify-center items-center">
+                <span className="text-primary">{currentApp?.name[0]}</span>
+              </div>
+            )}
+          </div>
+
+          {currentApp?.is_verified && (
             <Icon
               name="badge"
               className="absolute bottom-0 right-1 h-4 w-4"
@@ -43,10 +58,10 @@ export const AppHeader = memo(function AppHeader(props: {
         </div>
 
         <h1 className="text-20 font-sora font-semibold self-end">
-          {props.app.name}
+          {currentApp?.name}
         </h1>
         <span className="text-14 text-657080 truncate self-start">
-          {props.app.description_internal}
+          {currentApp?.description_internal}
         </span>
       </div>
 
@@ -54,7 +69,7 @@ export const AppHeader = memo(function AppHeader(props: {
         <div className="grid lg:grid-flow-col justify-start gap-y-2 gap-x-12">
           <div className="grid items-center gap-x-1 grid-flow-col justify-start text-14">
             <span className="mr-1 text-neutral-secondary">App ID:</span>
-            <span>{props.app.id}</span>
+            <span>{currentApp?.id}</span>
 
             <button
               className="outline-none hover:opacity-80 transition-opacity text-0"
@@ -68,18 +83,18 @@ export const AppHeader = memo(function AppHeader(props: {
 
           <div className="grid grid-cols-auto/1fr gap-x-2 items-center">
             <Icon
-              name={props.app.is_staging ? "api" : "rocket"}
+              name={currentApp?.is_staging ? "api" : "rocket"}
               className="w-4 h-4"
             />
-            <span>{props.app.is_staging ? "Staging" : "Production"}</span>
+            <span>{currentApp?.is_staging ? "Staging" : "Production"}</span>
           </div>
 
           <div className="grid grid-cols-auto/1fr gap-x-2 items-center">
             <Icon
-              name={props.app.engine === "cloud" ? "cloud" : "on-chain"}
+              name={currentApp?.engine === "cloud" ? "cloud" : "on-chain"}
               className="w-4 h-4"
             />
-            <span>{props.app.engine === "cloud" ? "Cloud" : "On-Chain"}</span>
+            <span>{currentApp?.engine === "cloud" ? "Cloud" : "On-Chain"}</span>
           </div>
         </div>
 
@@ -87,30 +102,33 @@ export const AppHeader = memo(function AppHeader(props: {
           <div
             className={cn(
               "grid grid-cols-auto/1fr items-center gap-x-1 px-2 py-1 rounded-full",
-              { "bg-primary-light": props.app.status === "active" },
-              { "bg-danger-light": props.app.status === "inactive" }
+              { "bg-primary-light": currentApp?.status === "active" },
+              { "bg-danger-light": currentApp?.status === "inactive" }
             )}
           >
             <div
               className={cn(
                 "w-1.5 h-1.5 rounded-full",
-                { "bg-primary": props.app.status === "active" },
-                { "bg-danger": props.app.status === "inactive" }
+                { "bg-primary": currentApp?.status === "active" },
+                { "bg-danger": currentApp?.status === "inactive" }
               )}
             />
 
             <span
               className={cn(
                 "first-letter:capitalize",
-                { "text-primary": props.app.status === "active" },
-                { "text-danger": props.app.status === "inactive" }
+                { "text-primary": currentApp?.status === "active" },
+                { "text-danger": currentApp?.status === "inactive" }
               )}
             >
-              {props.app.status}
+              {currentApp?.status}
             </span>
           </div>
 
-          <Switch checked={props.app.is_verified} toggle={toggleAppActivity} />
+          <Switch
+            checked={currentApp?.status === "active"}
+            toggle={toggleAppActivity}
+          />
         </div>
       </div>
     </section>
