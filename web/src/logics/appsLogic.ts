@@ -18,7 +18,6 @@ import { urls } from "src/lib/urls";
 import { gql } from "@apollo/client";
 import { loaders } from "kea-loaders";
 import posthog from "posthog-js";
-import { actionsLogic, ListFilter } from "./actionsLogic";
 
 // TODO support adding a logo on app creation
 export type CreateAppFormValues = {
@@ -31,77 +30,6 @@ interface LoadAppsInterface {
   insert_app_one?: AppType;
   delete_app_by_pk?: { id: string };
 }
-
-type FilterAppsProps = {
-  apps: Array<AppType>;
-  listFilter: ListFilter;
-  listFilterApplied: boolean;
-};
-
-export const filterApps = ({
-  apps,
-  listFilter,
-  listFilterApplied,
-}: FilterAppsProps): Array<AppType> => {
-  const searchQuery = listFilter.search_query?.toLowerCase() || "";
-
-  const isDesiredAction = (action: AppType["actions"][0]) => {
-    const satisfiesArchivedCondition =
-      listFilter.show_archived || !action.is_archived;
-
-    const satisfiesSearchCondition =
-      action.name.toLowerCase().includes(searchQuery) ||
-      action.description.toLowerCase().includes(searchQuery);
-
-    const satisfiesStatusCondition =
-      listFilter.status === "all" ||
-      (listFilter.status === "staging" && action.is_staging) ||
-      (listFilter.status === "production" && !action.is_staging);
-
-    if (
-      !satisfiesArchivedCondition ||
-      !satisfiesSearchCondition ||
-      !satisfiesStatusCondition
-    ) {
-      return false;
-    }
-
-    return true;
-  };
-
-  if (!listFilterApplied) {
-    return apps.map((app) => ({
-      ...app,
-      actions: app.actions.filter((action) => !action.is_archived),
-    }));
-  }
-
-  if (listFilter.app_id && !listFilterApplied) {
-    return apps.filter((app) => listFilter.app_id === app.id);
-  }
-
-  if (listFilter.app_id && listFilterApplied) {
-    const app = apps.find((app) => listFilter.app_id === app.id);
-
-    if (!app) {
-      return [];
-    }
-
-    return [
-      {
-        ...app,
-        actions: app?.actions.filter((action) => isDesiredAction(action)),
-      },
-    ];
-  }
-
-  return apps
-    .filter((app) => app.actions.some((action) => isDesiredAction(action)))
-    .map((app) => ({
-      ...app,
-      actions: app.actions.filter((action) => isDesiredAction(action)),
-    }));
-};
 
 export const appQueryParams = `
 id
@@ -156,10 +84,6 @@ const deleteAppQuery = gql`
 
 export const appsLogic = kea<appsLogicType>([
   path(["logics", "appsLogic"]),
-  connect({
-    values: [actionsLogic, ["listFilter", "listFilterApplied"]],
-    actions: [actionsLogic, ["replaceActionAtList", "updateActionList"]],
-  }),
   actions({
     loadApps: true,
     updateAppList: (apps: Array<AppType>) => ({ apps }),
@@ -190,14 +114,6 @@ export const appsLogic = kea<appsLogicType>([
             oldApp.id === updatedApp.id ? updatedApp : oldApp
           );
         },
-      },
-    ],
-  }),
-  selectors({
-    filteredAppsList: [
-      (s) => [s.apps, s.listFilter, s.listFilterApplied],
-      (apps: Array<AppType>, listFilter, listFilterApplied): AppType[] => {
-        return filterApps({ apps, listFilter, listFilterApplied });
       },
     ],
   }),

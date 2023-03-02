@@ -1,2 +1,2 @@
-import { Actions } from "@/scenes/actions/custom";
+import { Actions } from "@/scenes/actions";
 export default Actions;

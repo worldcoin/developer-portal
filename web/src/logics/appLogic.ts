@@ -5,7 +5,6 @@ import { forms } from "kea-forms";
 import { loaders } from "kea-loaders";
 import { toast } from "react-toastify";
 import { AppType } from "src/lib/types";
-import { actionsLogic } from "./actionsLogic";
 import type { appLogicType } from "./appLogicType";
 import { appQueryParams, appsLogic } from "./appsLogic";
 
@@ -34,9 +33,6 @@ const updateAppQuery = (attr: string) => gql`
 export const appLogic = kea<appLogicType>([
   path(["logics", "appLogic"]),
   connect({
-    actions: [actionsLogic, ["loadActions", "updateListFilter"]],
-  }),
-  connect({
     values: [appsLogic, ["apps"]],
     actions: [appsLogic, ["replaceAppAtList"]],
   }),
@@ -56,7 +52,7 @@ export const appLogic = kea<appLogicType>([
           const app = values.apps.filter((app) => app.id === app_id)[0] || null;
 
           if (app) {
-            actions.updateListFilter({ app_id: app.id });
+            //   actions.updateListFilter({ app_id: app.id });
             return app;
           }
 
