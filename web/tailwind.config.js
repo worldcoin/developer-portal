@@ -55,6 +55,8 @@ module.exports = {
         DEFAULT: "#ffc700",
         light: "#FFF9E5",
       },
+      white: "#ffffff",
+      black: "#010101",
       ...mirrorHexColors([
         "#000000",
         "#191c20",

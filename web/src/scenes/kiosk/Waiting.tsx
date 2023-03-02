@@ -3,7 +3,6 @@ import cn from "classnames";
 import { Spinner } from "src/components/Spinner";
 import { memo, useCallback, useState } from "react";
 import { IKioskStore, useKioskStore } from "src/stores/kioskStore";
-
 const getKioskStoreParams = (store: IKioskStore) => ({
   qrData: store.qrData,
 });
@@ -27,7 +26,9 @@ export const Waiting = memo(function Waiting() {
       <div className="flex items-center gap-x-6 mb-8 font-rubik font-medium text-16 leading-5">
         <Spinner />
         Waiting for person to scan code with World App
+        <div className="text-white dark:text-black">.</div>
       </div>
+
       <div
         className={cn(
           "flex items-center justify-center relative border border-primary/10 rounded-sm",

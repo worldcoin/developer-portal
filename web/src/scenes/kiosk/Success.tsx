@@ -1,9 +1,8 @@
 import cn from "classnames";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback } from "react";
 import { Button } from "src/components/Button";
-
 import { StatusIcon } from "src/scenes/kiosk/common/StatusIcon";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 dayjs.extend(dayjsRelative);
