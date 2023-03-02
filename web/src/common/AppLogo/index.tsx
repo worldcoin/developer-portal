@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import cn from "classnames";
 import Image from "next/image";
-import { AppType } from "types";
+import { AppType } from "src/lib/types";
 import { Icon } from "src/common/Icon";
 import styles from "./styles.module.css";
 

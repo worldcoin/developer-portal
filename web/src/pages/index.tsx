@@ -1,4 +1,4 @@
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 
 const page = () => null;
 export default page;

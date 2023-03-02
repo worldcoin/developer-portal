@@ -6,7 +6,7 @@ import { Dropdown } from "src/common/Dropdown";
 import { useToggle } from "src/hooks/useToggle";
 import { Modal } from "src/common/LegacyModal";
 import { Fragment, memo, useCallback } from "react";
-import { AppType } from "types";
+import { AppType } from "src/lib/types";
 import { appLogicType } from "src/logics/appLogicType";
 
 export const AppCard = memo(function AppCard(props: {

@@ -2,7 +2,7 @@ import { memo } from "react";
 import cn from "classnames";
 import { Link } from "src/common/components/Link";
 import { AppLogo } from "src/common/AppLogo";
-import { AppType } from "types";
+import { AppType } from "src/lib/types";
 
 interface PreviewInterface {
   app: AppType;

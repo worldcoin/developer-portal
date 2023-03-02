@@ -1,5 +1,5 @@
 import { ListFilter } from "src/logics/actionsLogic";
-import { AppType } from "types";
+import { AppType } from "src/lib/types";
 
 type Props = {
   apps: Array<AppType>;

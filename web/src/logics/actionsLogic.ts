@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import {
   actions,
   kea,
@@ -14,9 +14,9 @@ import { loaders } from "kea-loaders";
 import Router from "next/router";
 import { toast } from "react-toastify";
 import { CreateActionFormValues } from "src/scenes/action/types";
-import { ActionType, EnvironmentType } from "types";
-import { urls } from "urls";
-import { ENVIRONMENTS } from "utils";
+import { ActionType, EnvironmentType } from "src/lib/types";
+import { urls } from "src/lib/urls";
+import { ENVIRONMENTS } from "src/lib/utils";
 import type { actionsLogicType } from "./actionsLogicType";
 
 interface LoadActionsInterface {

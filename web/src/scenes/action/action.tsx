@@ -5,7 +5,7 @@ import { useActions, useValues } from "kea";
 import { actionLogic, InterfaceConfigFormValues } from "src/logics/actionLogic";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { Deployment } from "./Deployment";
 import { Stats } from "./Stats";
 import { Layout } from "src/common/Layout";

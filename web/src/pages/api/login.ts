@@ -6,7 +6,7 @@ import {
 } from "src/backend/errors";
 
 import { gql } from "@apollo/client";
-import { NextApiRequestWithBody } from "types";
+import { NextApiRequestWithBody } from "src/lib/types";
 import { getAPIServiceClient } from "src/backend/graphql";
 import {
   generateUserJWT,
@@ -14,7 +14,7 @@ import {
   verifyOIDCJWT,
 } from "src/backend/jwts";
 import { NextApiResponse } from "next";
-import { UserModel } from "models";
+import { UserModel } from "src/lib/models";
 import { JWTPayload } from "jose";
 import { verifyLoginNonce } from "src/backend/login-internal";
 

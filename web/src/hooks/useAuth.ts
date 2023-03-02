@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import { decodeJwt } from "jose";
-import { TeamModel, UserModel } from "models";
+import { TeamModel, UserModel } from "src/lib/models";
 import { useAuthStore } from "src/stores/authStore";
 import useSWR from "swr";
 

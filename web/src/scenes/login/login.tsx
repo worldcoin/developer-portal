@@ -6,7 +6,7 @@ import { Illustration } from "src/common/Auth/Illustration";
 import { Typography } from "src/common/Auth/Typography";
 import { Button } from "src/common/Auth/Button";
 import { Icon } from "src/common/Icon";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { ILoginPageProps } from "src/pages/login";
 import { Spinner } from "src/common/Spinner";
 import useAuth from "src/hooks/useAuth";

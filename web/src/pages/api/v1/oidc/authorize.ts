@@ -15,7 +15,7 @@ import {
 import { generateOIDCJWT } from "src/backend/jwts";
 import { verifyProof } from "src/backend/verify";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CredentialType, OIDCResponseType } from "types";
+import { CredentialType, OIDCResponseType } from "src/lib/types";
 import { JWK_ALG_OIDC } from "src/lib/constants";
 
 /**

@@ -3,7 +3,7 @@ import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { ActionType } from "types";
+import { ActionType } from "src/lib/types";
 import { errorNotAllowed } from "../../backend/errors";
 
 /**

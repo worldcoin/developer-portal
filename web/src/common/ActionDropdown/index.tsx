@@ -8,8 +8,8 @@ import { useActions, useValues } from "kea";
 import { actionsLogic } from "src/logics/actionsLogic";
 import { useRouter } from "next/router";
 import { Fragment, memo, useCallback, useMemo } from "react";
-import { ActionType } from "types";
-import { urls } from "urls";
+import { ActionType } from "src/lib/types";
+import { urls } from "src/lib/urls";
 
 export const ActionDropdown = memo(function ActionDropdown(props: {
   action: ActionType;

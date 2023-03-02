@@ -5,7 +5,7 @@ import { Fragment, ReactNode } from "react";
 import { NavItem } from "./NavItem";
 import { ToastContainer } from "react-toastify";
 import { Slide } from "react-toastify";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { useRouter } from "next/router";
 import { Meta } from "src/common/Meta";
 import cn from "classnames";

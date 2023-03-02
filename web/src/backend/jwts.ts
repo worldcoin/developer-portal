@@ -6,7 +6,7 @@
  */
 import { randomUUID } from "crypto";
 import * as jose from "jose";
-import { CredentialType, JwtConfig } from "../../types";
+import { CredentialType, JwtConfig } from "../lib/types";
 import { JWK_ALG_OIDC } from "src/lib/constants";
 import { retrieveJWK } from "./jwks";
 import { OIDCScopes } from "./oidc";

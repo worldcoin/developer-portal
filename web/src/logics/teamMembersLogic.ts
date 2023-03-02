@@ -2,7 +2,7 @@ import { actions, connect, kea, path, listeners } from "kea";
 import { loaders } from "kea-loaders";
 import { teamLogic, UpdateTeamInterface } from "./teamLogic";
 import { gql } from "@apollo/client";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import type { teamMembersLogicType } from "./teamMembersLogicType";
 import { toast } from "react-toastify";
 

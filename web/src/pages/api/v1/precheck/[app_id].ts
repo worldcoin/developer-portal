@@ -1,9 +1,9 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction } from "src/backend/utils";
-import { ActionModel, AppModel, NullifierModel } from "models";
+import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CanUserVerifyType, EngineType } from "types";
+import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "../../../../backend/cors";
 import {
   errorNotAllowed,

@@ -6,7 +6,7 @@ import {
 } from "react";
 import { Auth } from "src/common/Auth";
 import { useRouter } from "next/router";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { FieldLabel } from "src/common/Auth/FieldLabel";
 import { FieldInput } from "src/common/Auth/FieldInput";
 import { FieldText } from "src/common/Auth/FieldText";

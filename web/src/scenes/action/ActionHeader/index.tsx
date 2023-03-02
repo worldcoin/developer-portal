@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { ActionType } from "types";
+import { ActionType } from "src/lib/types";
 import { actionsLogicType } from "src/logics/actionsLogicType";
 import { actionLogicType } from "src/logics/actionLogicType";
 import { Header } from "src/common/Header";

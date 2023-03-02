@@ -1,8 +1,8 @@
-import { restAPIRequest } from "frontend-api";
+import { restAPIRequest } from "src/lib/frontend-api";
 import { actions, kea, path, reducers, selectors } from "kea";
 import { forms } from "kea-forms";
-import { EnvironmentType } from "types";
-import { ENVIRONMENTS } from "utils";
+import { EnvironmentType } from "src/lib/types";
+import { ENVIRONMENTS } from "src/lib/utils";
 
 import type { debuggerLogicType } from "./debuggerLogicType";
 import { MaybeValidProofResponse, ValidProofResponse } from "./publicLogic";

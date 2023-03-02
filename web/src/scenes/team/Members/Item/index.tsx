@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import { Icon } from "src/common/Icon";
-import { TeamType } from "types";
+import { TeamType } from "src/lib/types";
 import { useValues } from "kea";
 import { teamMembersLogic } from "src/logics/teamMembersLogic";
 

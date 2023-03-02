@@ -2,7 +2,7 @@ import { useValues } from "kea";
 import { actionLogic } from "src/logics/actionLogic";
 import { useCallback } from "react";
 import { useToggle } from "src/hooks/useToggle";
-import { UserInterfacesType } from "types";
+import { UserInterfacesType } from "src/lib/types";
 import { HostedPage } from "./HostedPage";
 import cn from "classnames";
 import { Button } from "src/common/LegacyButton";

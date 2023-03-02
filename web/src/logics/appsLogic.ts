@@ -8,13 +8,13 @@ import {
   connect,
   selectors,
 } from "kea";
-import type { AppType } from "types";
+import type { AppType } from "src/lib/types";
 import type { appsLogicType } from "./appsLogicType";
 import { forms } from "kea-forms";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import { toast } from "react-toastify";
 import Router from "next/router";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { gql } from "@apollo/client";
 import { loaders } from "kea-loaders";
 import posthog from "posthog-js";

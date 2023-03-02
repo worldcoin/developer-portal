@@ -2,7 +2,7 @@ import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
-import { CredentialType, IInternalError } from "types";
+import { CredentialType, IInternalError } from "src/lib/types";
 
 const CONTRACT_ABI = [
   "function verifyProof (uint256 root, uint256 groupId, uint256 signalHash, uint256 nullifierHash, uint256 externalNullifierHash, uint256[8] calldata proof)",

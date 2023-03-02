@@ -2,7 +2,7 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
-import { AppStatusType, CredentialType, EngineType } from "types";
+import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
 import * as jose from "jose";
 
 type DateTime = string;

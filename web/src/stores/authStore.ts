@@ -1,5 +1,5 @@
 import { NextRouter, Router } from "next/router";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 

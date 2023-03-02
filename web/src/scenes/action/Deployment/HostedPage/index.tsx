@@ -4,7 +4,7 @@ import { actionLogic } from "src/logics/actionLogic";
 import cn from "classnames";
 import { Field as ActionField } from "src/scenes/action/ActionHeader/Field";
 import { Field } from "kea-forms";
-import { validateUrl } from "utils";
+import { validateUrl } from "src/lib/utils";
 
 export function HostedPage(props: { actionId: string }) {
   const { actionUrls, currentAction } = useValues(actionLogic);

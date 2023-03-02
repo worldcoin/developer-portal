@@ -1,7 +1,7 @@
-import { restAPIRequest } from "frontend-api";
+import { restAPIRequest } from "src/lib/frontend-api";
 import { kea, path } from "kea";
 import { loaders } from "kea-loaders";
-import { ModelPublicAction } from "types";
+import { ModelPublicAction } from "src/lib/types";
 import type { publicLogicType } from "./publicLogicType";
 import { VerificationResponse } from "@worldcoin/id";
 

@@ -1,11 +1,11 @@
 import { Fragment, memo, MouseEventHandler, useCallback, useMemo } from "react";
-import { ActionType } from "types";
+import { ActionType } from "src/lib/types";
 import { CardWithSideGradient } from "src/common/CardWithSideGradient";
 import cn from "classnames";
 import { Field } from "./Field";
 import { Input } from "./Input";
 import { text } from "src/common/styles";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import { useRouter } from "next/router";
 import { ActionDropdown } from "src/common/ActionDropdown";
 import { actionsLogicType } from "src/logics/actionsLogicType";

@@ -1,7 +1,7 @@
 import { memo, MouseEventHandler, useCallback, useMemo } from "react";
-import { ActionType } from "types";
+import { ActionType } from "src/lib/types";
 import { useRouter } from "next/router";
-import { urls } from "urls";
+import { urls } from "src/lib/urls";
 import cn from "classnames";
 
 interface StatusInterface {

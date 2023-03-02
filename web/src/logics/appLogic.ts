@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
-import { graphQLRequest } from "frontend-api";
+import { graphQLRequest } from "src/lib/frontend-api";
 import { kea, path, connect, actions } from "kea";
 import { forms } from "kea-forms";
 import { loaders } from "kea-loaders";
 import { toast } from "react-toastify";
-import { AppType } from "types";
+import { AppType } from "src/lib/types";
 import { actionsLogic } from "./actionsLogic";
 import type { appLogicType } from "./appLogicType";
 import { appQueryParams, appsLogic } from "./appsLogic";

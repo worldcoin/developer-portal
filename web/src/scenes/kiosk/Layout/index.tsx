@@ -5,7 +5,7 @@ import { Icon } from "src/common/Icon";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { Fragment, memo, ReactNode, useCallback, useMemo } from "react";
-import { ModelPublicAction } from "types";
+import { ModelPublicAction } from "src/lib/types";
 
 export const Layout = memo(function Layout(props: {
   actionId?: string;

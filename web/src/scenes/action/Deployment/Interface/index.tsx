@@ -1,5 +1,5 @@
 import { memo, ReactNode, useCallback } from "react";
-import { UserInterfacesType } from "types";
+import { UserInterfacesType } from "src/lib/types";
 import { useToggle } from "src/hooks/useToggle";
 import cn from "classnames";
 import { InterfaceHeader } from "./InterfaceHeader";

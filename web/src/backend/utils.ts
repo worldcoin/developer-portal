@@ -3,7 +3,7 @@
  */
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
-import { CacheModel } from "models";
+import { CacheModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "./graphql";
 

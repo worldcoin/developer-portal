@@ -1,6 +1,6 @@
 import { internal, ISuccessResult } from "@worldcoin/idkit";
 import { Icon } from "src/common/Icon";
-import { restAPIRequest } from "frontend-api";
+import { restAPIRequest } from "src/lib/frontend-api";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect, useState } from "react";
 import { ActionSelect } from "src/scenes/kiosk/common/ActionSelect";

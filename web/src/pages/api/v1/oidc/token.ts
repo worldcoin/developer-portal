@@ -11,7 +11,7 @@ import { fetchActiveJWK } from "src/backend/jwks";
 import { generateOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { JWK_ALG_OIDC } from "src/lib/constants";
-import { AuthCodeModel } from "models";
+import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const verifyAuthCodeQuery = gql`

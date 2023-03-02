@@ -10,7 +10,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "types";
+import { CredentialType } from "src/lib/types";
 
 export default async function handleVerify(
   req: NextApiRequest,

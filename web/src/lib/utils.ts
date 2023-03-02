@@ -1,4 +1,4 @@
-import { EnvironmentType } from "types";
+import { EnvironmentType } from "src/lib/types";
 
 export const ENVIRONMENTS: EnvironmentType[] = [
   { name: "Production", value: "production", icon: { name: "rocket" } },
