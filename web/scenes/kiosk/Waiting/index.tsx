@@ -6,12 +6,8 @@ import { memo, useCallback, useState } from "react";
 
 type QRData = ReturnType<typeof internal.useAppConnection>["qrData"];
 
-export const Waiting = memo(function Waiting(props: {
-  appId: string;
-  qrData: QRData;
-}) {
+export const Waiting = memo(function Waiting(props: { qrData: QRData }) {
   const [copied, setCopied] = useState(false);
-  console.log("qrData:", props.qrData);
 
   const handleCopy = useCallback(() => {
     if (!props.qrData) return;

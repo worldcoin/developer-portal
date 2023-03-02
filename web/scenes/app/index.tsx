@@ -1,3 +1,4 @@
+import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { Preloader } from "common/Preloader";
 import { memo, useEffect, useState } from "react";
@@ -20,23 +21,23 @@ export const App = memo(function App(props: { appId: string }) {
   }, [currentApp]);
 
   return (
-    // <AuthRequired>
-    <Layout>
-      {loading ||
-        (!currentApp && (
-          <div className="w-full h-full flex justify-center items-center">
-            <Preloader className="w-20 h-20" />
-          </div>
-        ))}
+    <AuthRequired>
+      <Layout>
+        {loading ||
+          (!currentApp && (
+            <div className="w-full h-full flex justify-center items-center">
+              <Preloader className="w-20 h-20" />
+            </div>
+          ))}
 
-      {!loading && currentApp && (
-        <div className="grid gap-y-12">
-          <AppHeader app={currentApp} />
-          <Configuration app={currentApp} />
-          <Stats />
-        </div>
-      )}
-    </Layout>
-    // </AuthRequired>
+        {!loading && currentApp && (
+          <div className="grid gap-y-12">
+            <AppHeader app={currentApp} />
+            <Configuration app={currentApp} />
+            <Stats />
+          </div>
+        )}
+      </Layout>
+    </AuthRequired>
   );
 });

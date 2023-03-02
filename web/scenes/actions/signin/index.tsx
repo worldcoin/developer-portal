@@ -1,3 +1,4 @@
+import { AuthRequired } from "common/AuthRequired";
 import { Layout } from "common/Layout";
 import { memo, useEffect } from "react";
 import { getActionStore, useActionStore } from "stores/action-store";
@@ -17,14 +18,14 @@ export const SignIn = memo(function SignIn() {
   }, [currentApp?.id, fetchSignInAction]);
 
   return (
-    // <AuthRequired>
-    <Layout title="Sign in" mainClassName="grid gap-y-12 content-start">
-      <Header />
-      <Status />
-      <Credentials />
-      <Redirects />
-      <DefaultAuthorizationLink />
-    </Layout>
-    // </AuthRequired>
+    <AuthRequired>
+      <Layout title="Sign in" mainClassName="grid gap-y-12 content-start">
+        <Header />
+        <Status />
+        <Credentials />
+        <Redirects />
+        <DefaultAuthorizationLink />
+      </Layout>
+    </AuthRequired>
   );
 });

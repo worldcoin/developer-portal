@@ -29,25 +29,15 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
   const { app_id, action } = router.query;
 
-  // const { currentApp, fetchAppById } = useAppStore(getAppStore);
-  const {
-    actions,
-    setActions,
-    currentAction,
-    setCurrentAction,
-    fetchCustomActions,
-  } = useActionStore(getActionStore);
+  const { actions, currentAction, setCurrentAction } =
+    useActionStore(getActionStore);
   const { kioskApp, screen, setScreen, fetchPrecheck } =
     useKioskStore(getKioskStore);
-
   const { result, errorCode, verificationState, qrData, reset } =
-    internal.useAppConnection(app_id, action);
-
-  console.log("app_id:", app_id, "action:", action); // DEBUG
+    internal.useAppConnection(app_id as string, action as string);
 
   const [response, setResponse] = useState<ProofResponse>();
   const [currentState, setCurrentState] = useState<typeof verificationState>();
-  const [loading, setLoading] = useState(true);
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
@@ -89,11 +79,11 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   // Fetch application details via /precheck endpoint
   useEffect(() => {
     if (app_id && action) {
-      console.log(app_id, action);
       fetchPrecheck(app_id as string, action as string);
     }
   }, [app_id, action, fetchPrecheck]);
 
+  // TODO: Add back once authenticated user kiosks are needed
   // Fetch the application by passed ID
   // useEffect(() => {
   //   if (props.appId && !currentApp) {
@@ -209,9 +199,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
             </div>
           </div>
         </div>
-        {screen === Screen.Waiting && (
-          <Waiting appId={app_id} qrData={qrData} />
-        )}
+        {screen === Screen.Waiting && <Waiting qrData={qrData} />}
         {screen === Screen.Connected && <Connected reset={reset} />}
         {screen === Screen.Success && (
           <Success

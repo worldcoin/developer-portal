@@ -54,8 +54,6 @@ export const useKioskStore = create<KioskStore>((set, get) => ({
       },
     });
 
-    console.log("precheck:", response); // DEBUG
-
     if (response) {
       set({});
     } else {

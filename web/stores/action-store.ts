@@ -131,9 +131,10 @@ export const useActionStore = create<ActionStore>((set, get) => ({
       },
     });
 
+    console.log("response:", response);
+
     if (response?.data?.action) {
       set({ actions: response.data.action });
-      // return response;
     } else {
       console.error("Could not retrieve custom actions");
     }
