@@ -1,5 +1,5 @@
-import { restAPIRequest } from "@/lib/frontend-api";
-import { AppModel } from "src/lib/models";
+import dayjs from "dayjs";
+import { ActionKioskType } from "src/lib/types";
 import { create } from "zustand";
 
 export enum KioskScreen {
@@ -11,34 +11,49 @@ export enum KioskScreen {
   Success,
   InvalidIdentity,
   VerificationError,
+  InvalidRequest,
+}
+
+interface ISuccessResult {
+  timestamp: dayjs.Dayjs;
+  confirmationCode: string;
 }
 
 export type IKioskStore = {
-  kioskApp: AppModel | null;
+  kioskAction: ActionKioskType | null;
   screen: KioskScreen;
-  setKioskApp: (app: AppModel) => void;
+  verificationState: string | null;
+  qrData: { mobile: string; default: string } | null;
+  resetWC: (() => void) | null; // Resets the WalletConnect session
+  successResult: ISuccessResult | null;
+
   setScreen: (screen: KioskScreen) => void;
-  fetchPrecheck: (app_id: string, action: string) => void;
+  setQrData: (qrData: { mobile: string; default: string }) => void;
+  setKioskAction: (kioskAction: ActionKioskType) => void;
+  setVerificationState: (verificationState: string) => void; // TODO: Fix typing of verificationState, should be VerificationState from IDKit
+  setWCReset: (fn: () => void) => void;
+  setSuccessResult: (result: ISuccessResult) => void;
 };
 
 export const useKioskStore = create<IKioskStore>((set, get) => ({
-  kioskApp: null,
+  kioskAction: null,
   screen: KioskScreen.Waiting,
-  setKioskApp: (kioskApp: AppModel) => set({ kioskApp }),
-  setScreen: (screen: KioskScreen) => set({ screen }),
-  fetchPrecheck: async (app_id: string, action: string) => {
-    // FIXME: Paolo
-    const response = await restAPIRequest(`/precheck/${app_id}`, {
-      method: "POST",
-      json: {
-        action,
-      },
-    });
-
-    if (response) {
-      set({});
-    } else {
-      console.error("Could not retrieve kiosk app");
+  verificationState: null,
+  qrData: null,
+  resetWC: null,
+  successResult: null,
+  setScreen: (screen: KioskScreen) => {
+    if (screen !== get().screen && screen === KioskScreen.Waiting) {
+      // Reset WC when going back to the initial screen (e.g. after an error or a success)
+      get().resetWC?.();
+      set({ successResult: null });
     }
+    set({ screen });
   },
+  setQrData: (qrData: { mobile: string; default: string }) => set({ qrData }),
+  setKioskAction: (kioskAction: ActionKioskType) => set({ kioskAction }),
+  setVerificationState: (verificationState: string) =>
+    set({ verificationState }),
+  setWCReset: (fn: () => void) => set({ resetWC: fn }),
+  setSuccessResult: (result: ISuccessResult) => set({ successResult: result }),
 }));

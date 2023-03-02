@@ -5,6 +5,7 @@
 
 import { IconType } from "src/components/Icon";
 import { NextApiRequest } from "next";
+import { ActionModel, AppModel } from "./models";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
@@ -144,3 +145,13 @@ export interface IInternalError {
   statusCode?: number;
   attribute?: string | null;
 }
+
+export type ActionKioskType = Pick<
+  ActionModel,
+  "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
+> & {
+  app: Pick<
+    AppModel,
+    "id" | "name" | "logo_url" | "is_staging" | "is_verified" | "__typename"
+  >;
+};

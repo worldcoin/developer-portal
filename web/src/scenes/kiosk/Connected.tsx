@@ -9,11 +9,7 @@ const getKioskStoreParams = (store: IKioskStore) => ({
   setScreen: store.setScreen,
 });
 
-export const Connected = memo(function Connected({
-  reset,
-}: {
-  reset: () => void;
-}) {
+export const Connected = memo(function Connected() {
   const { setScreen } = useKioskStore(getKioskStoreParams);
 
   const [isModalShow, setIsModalShow] = useState(false);
@@ -21,9 +17,8 @@ export const Connected = memo(function Connected({
   const showModal = useCallback(() => setIsModalShow(true), []);
 
   const handleRestart = useCallback(() => {
-    reset();
     setScreen(KioskScreen.Waiting);
-  }, [reset, setScreen]);
+  }, [setScreen]);
 
   return (
     <Fragment>

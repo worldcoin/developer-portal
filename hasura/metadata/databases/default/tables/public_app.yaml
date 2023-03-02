@@ -25,19 +25,6 @@ computed_fields:
         name: get_verified_app_logo
         schema: public
 insert_permissions:
-  - role: api_key
-    permission:
-      check: {}
-      set:
-        team_id: x-hasura-Team-Id
-      columns:
-        - description_internal
-        - engine
-        - is_archived
-        - is_staging
-        - logo_url
-        - name
-        - status
   - role: service
     permission:
       check: {}
@@ -45,104 +32,19 @@ insert_permissions:
         - id
         - logo_url
         - name
-  - role: user
-    permission:
-      check: {}
-      set:
-        team_id: x-hasura-Team-Id
-      columns:
-        - description_internal
-        - engine
-        - is_archived
-        - is_staging
-        - logo_url
-        - name
-        - status
 select_permissions:
-  - role: api_key
-    permission:
-      columns:
-        - created_at
-        - description_internal
-        - engine
-        - id
-        - is_archived
-        - is_staging
-        - logo_url
-        - name
-        - status
-        - team_id
-        - updated_at
-      computed_fields:
-        - is_verified
-        - verified_app_logo
-      filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
   - role: service
     permission:
       columns:
-        - created_at
-        - description_internal
-        - engine
         - id
         - is_archived
         - is_staging
         - logo_url
         - name
         - status
-        - team_id
-        - verified_at
       computed_fields:
         - is_verified
-        - verified_app_logo
       filter: {}
-      limit: 1
-  - role: user
-    permission:
-      columns:
-        - created_at
-        - description_internal
-        - engine
-        - id
-        - is_archived
-        - is_staging
-        - logo_url
-        - name
-        - status
-        - team_id
-        - updated_at
-      computed_fields:
-        - is_verified
-        - verified_app_logo
-      filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
-update_permissions:
-  - role: api_key
-    permission:
-      columns:
-        - description_internal
-        - is_archived
-        - logo_url
-        - name
-        - status
-      filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
-      check: null
-  - role: user
-    permission:
-      columns:
-        - description_internal
-        - is_archived
-        - logo_url
-        - name
-        - status
-      filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
-      check: null
 delete_permissions:
   - role: api_key
     permission:
