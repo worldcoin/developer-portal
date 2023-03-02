@@ -1,5 +1,5 @@
-import cn from "classnames";
-import { memo, ReactNode, useEffect, useState } from "react";
+import Image from "next/image";
+import { memo, useEffect, useState } from "react";
 
 export const File = memo(function File(props: { file: File }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export const File = memo(function File(props: { file: File }) {
       {!previewUrl ? (
         <span>...</span> // @FIXME replace with loader
       ) : (
-        <img className="max-w-16 max-h-16" src={previewUrl} />
+        <Image className="max-w-16 max-h-16" src={previewUrl} alt="" />
       )}
     </span>
   );

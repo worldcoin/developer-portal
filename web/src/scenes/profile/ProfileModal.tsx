@@ -16,6 +16,7 @@ export const ProfileModal = memo(function ProfileModal() {
       nameEdit.toggleOff();
       teamNameEdit.toggleOff();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // FIXME: Wire up this page
   return (

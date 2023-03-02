@@ -96,6 +96,7 @@ export function CookieBanner(): JSX.Element | null {
               className="ml-2 text-primary"
               href="https://worldcoin.pactsafe.io/rjd5nsvyq.html#contract-sjfypzwki"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Learn more
             </a>
