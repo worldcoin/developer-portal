@@ -25,7 +25,7 @@ export const EngineSwitch = memo(function EngineSwitch(
       <Option
         icon="on-chain"
         title="On-chain"
-        description="For actions that are validated and executed on chain."
+        description="For actions that are validated and executed on the blockchain."
         checked={value === "on-chain"}
         onCheckedChange={() => onChange("on-chain")}
       />
