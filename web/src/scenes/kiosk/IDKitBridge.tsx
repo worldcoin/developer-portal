@@ -16,7 +16,7 @@ const getKioskStoreParams = (store: IKioskStore) => ({
   screen: store.screen,
   setQrData: store.setQrData,
   setWCReset: store.setWCReset,
-  setSuccessResult: store.setSuccessResult,
+  setProofResult: store.setProofResult,
 });
 
 export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
@@ -26,7 +26,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
     setVerificationState,
     setQrData,
     setWCReset,
-    setSuccessResult,
+    setProofResult,
   } = useKioskStore(getKioskStoreParams);
   const {
     result,
@@ -52,9 +52,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
         break;
       case IDKitInternal.VerificationState.AwaitingVerification:
         setScreen(KioskScreen.Connected);
-        break;
-      case IDKitInternal.VerificationState.Confirmed:
-        setScreen(KioskScreen.Success);
         break;
       case IDKitInternal.VerificationState.Failed:
         switch (errorCode) {
@@ -91,37 +88,9 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
 
   useEffect(() => {
     if (result) {
-      setSuccessResult(result);
+      setProofResult(result);
     }
-  }, [result, setSuccessResult]);
-
-  const verifyProof = useCallback(
-    async (result: ISuccessResult) => {
-      try {
-        const response = await restAPIRequest<ProofResponse>(
-          `/verify/${kioskAction?.app.id}`,
-          {
-            method: "POST",
-            json: { action: kioskAction?.action, signal: "", ...result },
-          }
-        );
-
-        return response;
-      } catch (e) {
-        console.warn("Error verifying proof. Please check network logs.");
-        try {
-          if ((e as Record<string, any>).code) {
-            return {
-              success: false,
-              code: (e as Record<string, any>).code,
-            };
-          }
-        } catch {}
-        return { success: false, code: "unknown" };
-      }
-    },
-    [kioskAction]
-  );
+  }, [result, setProofResult]);
 
   return <></>;
 });

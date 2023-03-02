@@ -36,6 +36,7 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - engine
         - id
         - is_archived
         - is_staging

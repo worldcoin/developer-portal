@@ -1,3 +1,4 @@
+import { ISuccessResult } from "@worldcoin/idkit";
 import dayjs from "dayjs";
 import { ActionKioskType } from "src/lib/types";
 import { create } from "zustand";
@@ -14,7 +15,7 @@ export enum KioskScreen {
   InvalidRequest,
 }
 
-interface ISuccessResult {
+interface ISuccessParams {
   timestamp: dayjs.Dayjs;
   confirmationCode: string;
 }
@@ -25,14 +26,16 @@ export type IKioskStore = {
   verificationState: string | null;
   qrData: { mobile: string; default: string } | null;
   resetWC: (() => void) | null; // Resets the WalletConnect session
-  successResult: ISuccessResult | null;
+  successParams: ISuccessParams | null; // Success result from /verify endpoint
+  proofResult: ISuccessResult | null; // Proof result from IDKit
 
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: { mobile: string; default: string }) => void;
   setKioskAction: (kioskAction: ActionKioskType) => void;
   setVerificationState: (verificationState: string) => void; // TODO: Fix typing of verificationState, should be VerificationState from IDKit
   setWCReset: (fn: () => void) => void;
-  setSuccessResult: (result: ISuccessResult) => void;
+  setSuccessParams: (successParams: ISuccessParams) => void;
+  setProofResult: (proofResult: ISuccessResult) => void;
 };
 
 export const useKioskStore = create<IKioskStore>((set, get) => ({
@@ -41,12 +44,14 @@ export const useKioskStore = create<IKioskStore>((set, get) => ({
   verificationState: null,
   qrData: null,
   resetWC: null,
-  successResult: null,
+  successParams: null,
+  proofResult: null,
   setScreen: (screen: KioskScreen) => {
     if (screen !== get().screen && screen === KioskScreen.Waiting) {
       // Reset WC when going back to the initial screen (e.g. after an error or a success)
       get().resetWC?.();
-      set({ successResult: null });
+      set({ successParams: null });
+      set({ proofResult: null });
     }
     set({ screen });
   },
@@ -55,5 +60,6 @@ export const useKioskStore = create<IKioskStore>((set, get) => ({
   setVerificationState: (verificationState: string) =>
     set({ verificationState }),
   setWCReset: (fn: () => void) => set({ resetWC: fn }),
-  setSuccessResult: (result: ISuccessResult) => set({ successResult: result }),
+  setSuccessParams: (successParams: ISuccessParams) => set({ successParams }),
+  setProofResult: (proofResult: ISuccessResult) => set({ proofResult }),
 }));
