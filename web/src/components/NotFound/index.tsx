@@ -1,5 +1,5 @@
 import { CardWithSideGradient } from "src/components/CardWithSideGradient";
-import { Link } from "src/components/components/Link";
+import { Link } from "src/components/Link";
 import { Icon, IconType } from "src/components/Icon";
 import { Button } from "src/components/LegacyButton";
 import { memo } from "react";

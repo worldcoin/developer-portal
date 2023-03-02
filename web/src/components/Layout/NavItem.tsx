@@ -1,5 +1,5 @@
 import { Icon, IconType } from "src/components/Icon";
-import { Link } from "src/components/components/Link";
+import { Link } from "src/components/Link";
 import { useRouter } from "next/router";
 import { Fragment, memo, useMemo } from "react";
 import cn from "classnames";

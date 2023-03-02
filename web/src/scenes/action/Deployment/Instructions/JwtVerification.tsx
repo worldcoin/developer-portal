@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { CodeBlock } from "src/components/CodeBlock";
-import { Link } from "src/components/components/Link";
-import { Code } from "src/components/components/code";
+import { Link } from "src/components/Link";
+import { Code } from "src/components/Code";
 
 interface JwtVerificationInstructionsInterface {
   actionId: string;

@@ -1,6 +1,6 @@
 import { AuthRequired } from "src/components/AuthRequired";
 import { Button } from "src/components/Button";
-import { Link } from "src/components/components/Link";
+import { Link } from "src/components/Link";
 import { Dialog } from "src/components/Dialog";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldInput } from "src/components/FieldInput";

@@ -15,7 +15,7 @@ import { Selector } from "./Selector";
 import { useActions, useValues } from "kea";
 import dayjs from "dayjs";
 import { actionLogic } from "src/logics/actionLogic";
-import { Checkbox } from "src/components/components/Checkbox";
+import { Checkbox } from "src/components/Checkbox";
 
 ChartJS.register(
   CategoryScale,

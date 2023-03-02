@@ -1,6 +1,6 @@
 import { memo } from "react";
 import cn from "classnames";
-import { Link } from "src/components/components/Link";
+import { Link } from "src/components/Link";
 import { AppLogo } from "src/components/AppLogo";
 import { AppType } from "src/lib/types";
 

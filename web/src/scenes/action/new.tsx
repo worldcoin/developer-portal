@@ -1,7 +1,6 @@
 import cn from "classnames";
 import { useToggle } from "src/hooks/useToggle";
 import { Icon } from "src/components/Icon";
-import { Link } from "src/components/Link";
 import { Button } from "src/components/LegacyButton";
 import { styles } from "src/components/styles";
 import { CheckboxCard } from "./CheckboxCard";
@@ -15,6 +14,7 @@ import { FormEventHandler, useCallback, useRef } from "react";
 import { Header } from "src/components/Header";
 import { HeaderText } from "src/components/HeaderText";
 import { Footer } from "src/components/Footer";
+import { Link } from "src/components/Link";
 
 export function NewAction() {
   const {

@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { Button } from "src/components/LegacyButton";
-import { Link } from "src/components/components/Link";
+import { Link } from "src/components/Link";
 import { Dropdown } from "src/components/Dropdown";
 import { useToggle } from "src/hooks/useToggle";
 import { Modal } from "src/components/LegacyModal";
