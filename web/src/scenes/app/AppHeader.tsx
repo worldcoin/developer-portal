@@ -4,7 +4,6 @@ import Image from "next/image";
 import { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
-import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 
 export const AppHeader = memo(function AppHeader() {

@@ -18,7 +18,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setCurrentAppById: (id: string) => {
     const app = get().apps.find((app) => app.id === id);
-    console.log("app", app);
     if (app) {
       set(() => ({ currentApp: app }));
     }
