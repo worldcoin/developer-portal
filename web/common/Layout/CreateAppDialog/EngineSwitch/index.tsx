@@ -16,7 +16,7 @@ export const EngineSwitch = memo(function EngineSwitch(
       <Option
         icon="cloud"
         title="Cloud"
-        description="For actions that are triggered with an API or used in person."
+        description="For actions that are triggered with the API or Sign in with World ID."
         easiest
         checked={value === "cloud"}
         onCheckedChange={() => onChange("cloud")}
