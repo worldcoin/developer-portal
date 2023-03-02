@@ -2,7 +2,6 @@ import cn from "classnames";
 import { memo, useCallback, useState } from "react";
 import { useDropzone, Accept, FileError } from "react-dropzone";
 import { File } from "./File";
-import { text } from "src/components/styles";
 
 interface FieldUploadInterface {
   className?: string;
@@ -43,7 +42,12 @@ export const FieldUpload = memo(function FieldInput(
       {files.length ? (
         files.map((file, i) => <File key={i} file={file} />)
       ) : (
-        <span className={cn(text.caption, "leading-5")}>
+        <span
+          className={cn(
+            "font-rubik text-14 text-neutral", // TODO: Refactor to tailwind config: `caption`
+            "leading-5"
+          )}
+        >
           Drop image here or upload
         </span>
       )}

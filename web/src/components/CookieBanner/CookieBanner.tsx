@@ -1,4 +1,4 @@
-import { Button } from "src/components/LegacyButton";
+import { Button } from "@/components/Button";
 import posthog from "posthog-js";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -113,20 +113,10 @@ export function CookieBanner(): JSX.Element | null {
           </span>
         </div>
         <div className="grid pr-6 grid-cols-2 gap-4 pt-2">
-          <Button
-            variant="outlined"
-            size="md"
-            color="danger"
-            onClick={() => handleClick(false)}
-          >
+          <Button color="danger" onClick={() => handleClick(false)}>
             Reject all
           </Button>
-          <Button
-            variant="outlined"
-            size="md"
-            color="primary"
-            onClick={() => handleClick(true)}
-          >
+          <Button color="primary" onClick={() => handleClick(true)}>
             Yeah, okay
           </Button>
         </div>

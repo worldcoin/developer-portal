@@ -1,7 +1,6 @@
 import cn from "classnames";
 import { Icon } from "src/components/Icon";
 import { memo, ReactNode } from "react";
-import { text } from "src/components/styles";
 
 export const Checkbox = memo(function Checkbox(props: {
   checked: boolean;
@@ -19,7 +18,7 @@ export const Checkbox = memo(function Checkbox(props: {
   return (
     <label
       className={cn(
-        text.caption,
+        "font-rubik text-14 text-neutral", // TODO: Refactor to tailwind config: `caption`
         "grid grid-cols-auto/1fr gap-x-4 leading-5 cursor-pointer",
         props.className
       )}
