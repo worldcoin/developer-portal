@@ -34,6 +34,8 @@ export default async function handler(
     action.action
   ).digest;
 
+  console.log(external_nullifier); // DEBUG
+
   const mutation = gql`
     mutation ActionExternalNullifierMutation(
       $action_id: String!

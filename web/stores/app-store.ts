@@ -4,7 +4,7 @@ import { graphQLRequest } from "frontend-api";
 import { create } from "zustand";
 
 // Types
-type AppType = {
+export type AppType = {
   id: string;
   engine: string;
   description_internal: string;
@@ -37,6 +37,7 @@ export type AppStore = {
   setCurrentApp: (currentApp: AppType) => void;
   setAppStats: (appStats: Array<AppStats>) => void;
   fetchApps: () => void;
+  fetchAppById: (app_id: string) => void;
   fetchAppStats: () => void;
 };
 
@@ -44,6 +45,22 @@ export type AppStore = {
 const selectAppsQuery = gql`
   query SelectApps {
     app {
+      id
+      engine
+      description_internal
+      is_archived
+      is_verified
+      logo_url
+      is_staging
+      name
+      status
+    }
+  }
+`;
+
+const selectAppByIdQuery = gql`
+  query SelectAppById($app_id: String = "") {
+    app(where: { id: { _eq: $app_id } }) {
       id
       engine
       description_internal
@@ -71,6 +88,7 @@ export const getAppStore = ({
   setCurrentApp,
   setAppStats,
   fetchApps,
+  fetchAppById,
 }: AppStore) => ({
   apps,
   currentApp,
@@ -79,6 +97,7 @@ export const getAppStore = ({
   setCurrentApp,
   setAppStats,
   fetchApps,
+  fetchAppById,
 });
 
 // App store
@@ -98,6 +117,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ apps: response.data.app });
     } else {
       console.error("Could not retrieve apps");
+    }
+  },
+  fetchAppById: async (app_id) => {
+    const response = await graphQLRequest({
+      query: selectAppByIdQuery,
+      variables: {
+        app_id: app_id,
+      },
+    });
+
+    if (response?.data?.app?.length) {
+      set({ currentApp: response.data.app[0] });
     }
   },
   fetchAppStats: async () => {

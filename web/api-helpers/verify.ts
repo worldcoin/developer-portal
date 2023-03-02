@@ -113,7 +113,6 @@ export const fetchActionForProof = async (
   nullifier_hash: string,
   action: string
 ) => {
-  console.log(app_id, nullifier_hash, action); // DEBUG
   const result = await graphQLClient.query<IAppActionWithContractAddress>({
     query: queryFetchAppActionWithContractAddress,
     variables: {
@@ -137,7 +136,6 @@ export const fetchActionForProof = async (
   const app = result.data.app[0];
 
   if (!app.actions.length) {
-    console.log(app); // DEBUG
     return {
       error: {
         message: "We couldn't find the relevant action.",

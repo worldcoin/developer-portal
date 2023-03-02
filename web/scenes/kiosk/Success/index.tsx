@@ -1,10 +1,14 @@
 import cn from "classnames";
-import { memo, useCallback, useMemo } from "react";
+import { Button } from "common/Button";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
+import { memo, useCallback, useMemo } from "react";
+import {
+  getKioskStore,
+  Screen,
+  useKioskStore,
+} from "../../../stores/kiosk-store";
 import { StatusIcon } from "../common/StatusIcon";
-import { Button } from "common/Button";
-import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 dayjs.extend(dayjsRelative);
 
 export const Success = memo(function Success(props: {
@@ -22,7 +26,7 @@ export const Success = memo(function Success(props: {
     if (!props.createdAt) return "recently";
 
     const date = dayjs(props.createdAt);
-    return `${date.fromNow()} (${date.format("HH-mm-ss, MMMMM YY")})`;
+    return `${date.fromNow()}`;
   }, [props.createdAt]);
 
   return (

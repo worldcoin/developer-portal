@@ -1,11 +1,19 @@
-import { Fragment, memo, useCallback, useState } from "react";
 import cn from "classnames";
+import { Button } from "common/Button";
 import { Icon } from "common/Icon";
 import { Modal } from "common/LegacyModal";
-import { Button } from "common/Button";
-import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
+import { Fragment, memo, useCallback, useState } from "react";
+import {
+  getKioskStore,
+  Screen,
+  useKioskStore,
+} from "../../../stores/kiosk-store";
 
-export const Connected = memo(function Connected() {
+export const Connected = memo(function Connected({
+  reset,
+}: {
+  reset: () => void;
+}) {
   const { setScreen } = useKioskStore(getKioskStore);
 
   const [isModalShow, setIsModalShow] = useState(false);
@@ -13,25 +21,9 @@ export const Connected = memo(function Connected() {
   const showModal = useCallback(() => setIsModalShow(true), []);
 
   const handleRestart = useCallback(() => {
-    //FIXME: Use WC2.0
-    // import("@walletconnect/client")
-    //   .then(async ({ default: WalletConnect }) => {
-    //     const connector = new WalletConnect({
-    //       bridge: "https://bridge.walletconnect.org",
-    //     });
-    //     if (!connector.connected) return;
-    //     return Promise.all([
-    //       new Promise((resolve) => connector.on("disconnect", resolve)),
-    //       new Promise((resolve) => setTimeout(resolve, 500)),
-    //       connector.killSession(new Error(`Restarted`)),
-    //     ]);
-    //   })
-    //   .then(() => localStorage.removeItem("walletconnect"))
-    //   .catch(console.error.bind(console))
-    //   .finally(() => {
-    //     props.setScreen(Screen.Waiting);
-    //   });
-  }, []);
+    reset();
+    setScreen(Screen.Waiting);
+  }, [reset, setScreen]);
 
   return (
     <Fragment>

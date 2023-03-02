@@ -37,7 +37,9 @@ export const AppSelector = memo(function AppsSelector(props: {
     useAppStore(getAppStore);
 
   useEffect(() => {
-    fetchApps();
+    if (!apps.length) {
+      fetchApps();
+    }
 
     if (!currentApp) {
       setCurrentApp(apps[0]);

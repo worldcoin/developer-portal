@@ -39,8 +39,6 @@ export const Configuration = memo(function Configuration(props: {
     if (!debouncedAppInput) {
       return;
     }
-
-    console.log("debouncedAppInput: ", debouncedAppInput);
   }, [debouncedAppInput]);
 
   //ANCHOR: Action after user stop typing for app description
@@ -49,8 +47,6 @@ export const Configuration = memo(function Configuration(props: {
     if (!debouncedAppDescription) {
       return;
     }
-
-    console.log("debouncedAppDescription: ", debouncedAppDescription);
   }, [debouncedAppDescription]);
 
   return (

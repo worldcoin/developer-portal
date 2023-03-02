@@ -4,9 +4,14 @@ import { restAPIRequest } from "frontend-api";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect, useState } from "react";
 import { ActionSelect } from "scenes/kiosk/common/ActionSelect";
+import {
+  ActionType,
+  getActionStore,
+  useActionStore,
+} from "stores/action-store";
+import { getKioskStore, Screen, useKioskStore } from "../../stores/kiosk-store";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
-import { getKioskStore, Screen, useKioskStore } from "./store/kiosk-store";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
 
@@ -22,27 +27,45 @@ type ProofResponse = {
 
 export const Kiosk = memo(function Kiosk(props: { appId: string }) {
   const router = useRouter();
+  const { app_id, action } = router.query;
 
-  const { actions, selectedAction, setSelectedAction, screen, setScreen } =
+  // const { currentApp, fetchAppById } = useAppStore(getAppStore);
+  const {
+    actions,
+    setActions,
+    currentAction,
+    setCurrentAction,
+    fetchCustomActions,
+  } = useActionStore(getActionStore);
+  const { kioskApp, screen, setScreen, fetchPrecheck } =
     useKioskStore(getKioskStore);
 
-  const { result, errorCode, verificationState, qrData } =
-    internal.useAppConnection(props.appId, "test");
+  const { result, errorCode, verificationState, qrData, reset } =
+    internal.useAppConnection(app_id, action);
 
+  console.log("app_id:", app_id, "action:", action); // DEBUG
+
+  const [response, setResponse] = useState<ProofResponse>();
   const [currentState, setCurrentState] = useState<typeof verificationState>();
+  const [loading, setLoading] = useState(true);
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
   }, [router]);
 
+  const handleActionChange = (action: ActionType) => {
+    setCurrentAction(action);
+    reset();
+  };
+
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
       try {
         const response = await restAPIRequest<ProofResponse>(
-          `/verify/${props.appId}`,
+          `/verify/${app_id}`,
           {
             method: "POST",
-            json: { action: "test", signal: "", ...result }, // TODO: Pull action and signal from store
+            json: { action, signal: "", ...result },
           }
         );
 
@@ -60,20 +83,50 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
         return { success: false, code: "unknown" };
       }
     },
-    [props.appId]
+    [app_id, action]
   );
 
+  // Fetch application details via /precheck endpoint
   useEffect(() => {
-    console.log("setSelectedAction()");
-    setSelectedAction(actions[0]);
-  }, [actions, setSelectedAction]);
+    if (app_id && action) {
+      console.log(app_id, action);
+      fetchPrecheck(app_id as string, action as string);
+    }
+  }, [app_id, action, fetchPrecheck]);
+
+  // Fetch the application by passed ID
+  // useEffect(() => {
+  //   if (props.appId && !currentApp) {
+  //     fetchAppById(props.appId);
+  //   }
+  // }, [props.appId, currentApp, fetchAppById]);
+
+  // Fetch all custom actions for the application
+  // useEffect(() => {
+  //   if (!actions.length) {
+  //     fetchCustomActions(props.appId).then((response) => {
+  //       if (response.data.action.length) {
+  //         setActions(response.data.action);
+  //         setCurrentAction(response.data.action[0]);
+  //         setLoading(false);
+  //       }
+  //     });
+  //   }
+  // }, [actions, fetchCustomActions, props.appId, setActions, setCurrentAction]);
+
+  // Update the current actions after they are fetched
+  // useEffect(() => {
+  //   if (!currentAction) {
+  //     setCurrentAction(actions[0]);
+  //   }
+  // }, [actions, currentAction, setCurrentAction]);
 
   // Change the shown screen based on /verify response
   useEffect(() => {
     if (!result) return;
 
-    console.log("verifyProof()");
     verifyProof(result).then((response: ProofResponse) => {
+      setResponse(response);
       if (response?.success) {
         setScreen(Screen.Success);
       } else if (response?.code === "already_verified") {
@@ -84,17 +137,10 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
         setScreen(Screen.VerificationError);
       }
     });
-  }, [result, verifyProof, setScreen]);
+  }, [result, setScreen, verifyProof]);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    console.log(
-      "currentState:",
-      currentState,
-      " | ",
-      "verificationState:",
-      verificationState
-    ); // DEBUG
     if (verificationState && currentState !== verificationState) {
       switch (verificationState) {
         case "loading_widget":
@@ -108,7 +154,6 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           setScreen(Screen.Success);
           break;
         case "failed":
-          console.log("errorCode:", errorCode); // DEBUG
           switch (errorCode) {
             case "connection_failed":
               setScreen(Screen.ConnectionError);
@@ -126,7 +171,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
       }
       setCurrentState(verificationState);
     }
-  }, [currentState, errorCode, setScreen, verificationState]);
+  }, [verificationState, currentState, setScreen, errorCode]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -145,8 +190,10 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
         </div>
 
         <div className="absolute top-0 bottom-0 right-0 flex items-center gap-x-4 pr-6">
-          <div className="font-rubik font-medium text-14">App Name</div>
-          <div className="w-11 h-11 rounded-full bg-edecfc" />
+          <div className="font-rubik font-medium text-14">
+            {kioskApp?.name ?? "Loading..."}
+          </div>
+          <Icon path={kioskApp?.logo_url} className="w-11 h-11 rounded-full" />
         </div>
       </header>
 
@@ -157,19 +204,23 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           </h1>
 
           <div className="max-w-[400px] portrait:mt-12 landscape:mt-6 grid grid-cols-auto/1fr items-center gap-x-3 p-4 bg-primary rounded-2xl">
-            <div className="w-9 h-9 rounded-full bg-edecfc" />
-
             <div className="font-rubik text-16 text-ffffff leading-5">
-              Attending the ETH NY conference as a participant on June 2022.
+              {currentAction?.description ?? "Loading..."}
             </div>
           </div>
         </div>
-
         {screen === Screen.Waiting && (
-          <Waiting appId={props.appId} qrData={qrData} />
+          <Waiting appId={app_id} qrData={qrData} />
         )}
-        {screen === Screen.Connected && <Connected />}
-        {screen === Screen.Success && <Success />}
+        {screen === Screen.Connected && <Connected reset={reset} />}
+        {screen === Screen.Success && (
+          <Success
+            createdAt={response?.created_at}
+            confirmationId={response?.nullifier_hash
+              ?.slice(-8)
+              .toLocaleUpperCase()}
+          />
+        )}
 
         {screen === Screen.ConnectionError && (
           <KioskError
@@ -211,15 +262,15 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
           />
         )}
 
-        {actions.length > 0 && selectedAction && (
+        {actions.length > 0 && currentAction && (
           <div className="flex flex-col items-center gap-y-2">
             <div className="font-rubik font-medium text-16 leading-5">
               Choose Action
             </div>
 
             <ActionSelect
-              value={selectedAction}
-              onChange={setSelectedAction}
+              value={currentAction}
+              onChange={handleActionChange}
               options={actions}
             />
           </div>
