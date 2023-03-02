@@ -19,9 +19,12 @@ select_permissions:
   - role: api_key
     permission:
       columns:
+        - action_id
         - created_at
         - id
+        - merkle_root
         - nullifier_hash
+        - verification_level
       filter:
         action:
           app:
@@ -40,9 +43,12 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - action_id
         - created_at
         - id
+        - merkle_root
         - nullifier_hash
+        - verification_level
       filter:
         action:
           app:

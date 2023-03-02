@@ -64,6 +64,7 @@ select_permissions:
   - role: api_key
     permission:
       columns:
+        - created_at
         - description_internal
         - engine
         - id
@@ -73,6 +74,8 @@ select_permissions:
         - name
         - status
         - team_id
+        - updated_at
+        - user_interfaces
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -102,6 +105,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - created_at
         - description_internal
         - engine
         - id
@@ -111,6 +115,8 @@ select_permissions:
         - name
         - status
         - team_id
+        - updated_at
+        - user_interfaces
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -125,6 +131,7 @@ update_permissions:
         - is_archived
         - logo_url
         - name
+        - status
         - user_interfaces
       filter:
         team_id:
@@ -137,6 +144,7 @@ update_permissions:
         - is_archived
         - logo_url
         - name
+        - status
         - user_interfaces
       filter:
         team_id:
