@@ -8,28 +8,33 @@ import { Layout } from "@/components/Layout";
 import { useToggle } from "@/hooks/useToggle";
 import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Action } from "./Action";
-import { getActionStore, useActionStore } from "@/stores/actionStore";
+import { IActionStore, useActionStore } from "@/stores/actionStore";
 import { AppModel } from "src/lib/models";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { Icon } from "@/components/Icon";
 
-const getStoreParams = (store: IAppStore) => ({
+const getAppStoreParams = (store: IAppStore) => ({
   currentApp: store.currentApp,
+});
+
+const getStoreParams = (store: IActionStore) => ({
+  fetchActions: store.fetchActions,
+  actions: store.actions,
 });
 
 export function Actions(): JSX.Element | null {
   const dialog = useToggle();
-  const { currentApp } = useAppStore(getStoreParams);
-  const { actions, fetchCustomActions } = useActionStore(getActionStore);
+  const { currentApp } = useAppStore(getAppStoreParams);
+  const { actions, fetchActions } = useActionStore(getStoreParams);
   const [prevApp, setPrevApp] = useState<AppModel | null>(null);
 
   useEffect(() => {
-    if (currentApp && prevApp !== currentApp) {
-      fetchCustomActions(currentApp.id);
+    if (currentApp && (prevApp !== currentApp || !actions.length)) {
+      fetchActions(currentApp.id);
       setPrevApp(currentApp);
     }
-  }, [currentApp, fetchCustomActions, prevApp]);
+  }, [currentApp, fetchActions, prevApp, actions]);
 
   return (
     <AuthRequired>

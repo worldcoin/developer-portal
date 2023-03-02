@@ -3,13 +3,12 @@ import cn from "classnames";
 import { memo } from "react";
 import { Icon } from "src/components/Icon";
 import { ActionModel } from "src/lib/models";
-import { ActionType } from "src/stores/actionStore";
 
 type _Action = Pick<ActionModel, "id" | "name">;
 interface ActionSelectProps {
-  value?: ActionType;
-  onChange: (value: ActionType) => void;
-  options?: ActionType[];
+  value?: _Action;
+  onChange: (value: _Action) => void;
+  options?: _Action[];
 }
 
 export const ActionSelect = memo(function ActionSelect(

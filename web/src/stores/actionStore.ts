@@ -1,32 +1,13 @@
 import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
+import { ActionModel, NullifierModel } from "src/lib/models";
 import { create } from "zustand";
 
-// Types
-export type ActionType = {
-  id: string;
-  app_id: string;
-  action: string;
-  max_verifications: number;
-  max_accounts_per_user: number;
-  name: string;
-  description: string;
-  nullifiers: Array<{
-    id: string;
-    nullifier_hash: string;
-    created_at: string;
-  }>;
-};
-
-export type ActionStore = {
-  actions: Array<ActionType>;
-  currentAction: ActionType | null;
-  setActions: (actions: Array<ActionType>) => void;
-  setCurrentAction: (currentAction: ActionType) => void;
-  fetchAllActions: (app_id: string) => void;
-  fetchCustomActions: (app_id: string) => void;
-  fetchSignInAction: (app_id: string) => void;
-};
+export interface ActionModelWithNullifiers extends ActionModel {
+  nullifiers: Array<
+    Pick<NullifierModel, "id" | "nullifier_hash" | "created_at">
+  >;
+}
 
 // GraphQL queries
 const selectAllActionsQuery = gql`
@@ -48,109 +29,33 @@ const selectAllActionsQuery = gql`
   }
 `;
 
-const selectCustomActionsQuery = gql`
-  query SelectCustomActions($app_id: String = "") {
-    action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }) {
-      id
-      app_id
-      action
-      max_verifications
-      max_accounts_per_user
-      name
-      description
-      nullifiers {
-        id
-        nullifier_hash
-        created_at
-      }
-    }
-  }
-`;
+export type IActionStore = {
+  actions: Array<ActionModelWithNullifiers>;
 
-const selectSignInActionQuery = gql`
-  query SelectSignInActions($app_id: String = "") {
-    action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
-      id
-      app_id
-      action
-      max_verifications
-      max_accounts_per_user
-      name
-      description
-      nullifiers {
-        id
-        nullifier_hash
-        created_at
-      }
-    }
-  }
-`;
+  currentAction: ActionModelWithNullifiers | null;
+  setCurrentAction: (currentAction: ActionModelWithNullifiers) => void;
+  fetchActions: (app_id: string) => void;
+};
 
-export const getActionStore = ({
-  actions,
-  currentAction,
-  setActions,
-  setCurrentAction,
-  fetchAllActions,
-  fetchCustomActions,
-  fetchSignInAction,
-}: ActionStore) => ({
-  actions,
-  currentAction,
-  setActions,
-  setCurrentAction,
-  fetchAllActions,
-  fetchCustomActions,
-  fetchSignInAction,
-});
-
-export const useActionStore = create<ActionStore>((set, get) => ({
-  actions: [] as ActionType[],
+export const useActionStore = create<IActionStore>((set, get) => ({
+  actions: [] as ActionModelWithNullifiers[],
   currentAction: null,
-  setActions: (actions: ActionType[]) => set({ actions }),
-  setCurrentAction: (currentAction: ActionType) => set({ currentAction }),
-  fetchAllActions: async (app_id) => {
-    const response = await graphQLRequest({
+  setCurrentAction: (currentAction: ActionModelWithNullifiers) =>
+    set({ currentAction }),
+  fetchActions: async (app_id) => {
+    const { data } = await graphQLRequest<{
+      action: Array<ActionModelWithNullifiers>;
+    }>({
       query: selectAllActionsQuery,
       variables: {
         app_id: app_id,
       },
     });
-
-    if (response?.data?.action) {
-      set({ actions: response.data.action });
+    if (data?.action) {
+      set({ actions: data.action });
     } else {
-      console.error("Could not retrieve all actions");
+      console.error("Could not retrieve actions for app.");
     }
   },
-  fetchCustomActions: async (app_id) => {
-    const response = await graphQLRequest({
-      query: selectCustomActionsQuery,
-      variables: {
-        app_id: app_id,
-      },
-    });
-
-    console.log("response:", response);
-
-    if (response?.data?.action) {
-      set({ actions: response.data.action });
-    } else {
-      console.error("Could not retrieve custom actions");
-    }
-  },
-  fetchSignInAction: async (app_id) => {
-    const response = await graphQLRequest({
-      query: selectSignInActionQuery,
-      variables: {
-        app_id: app_id,
-      },
-    });
-
-    if (response?.data?.action?.length) {
-      set({ currentAction: response.data.action[0] });
-    } else {
-      console.error("Could not retrieve sign in actions");
-    }
-  },
+  // TODO: Extend with immer (reducer equivalent) to extract sign in with world id action
 }));

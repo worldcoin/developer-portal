@@ -1,19 +1,19 @@
 import cn from "classnames";
-import { CookieBanner } from "common/CookieBanner/CookieBanner";
-import { useToggle } from "common/hooks";
-import { Icon } from "common/Icon";
-import { Meta } from "common/Meta";
+import { CookieBanner } from "@/components/CookieBanner/CookieBanner";
+import { useToggle } from "@/hooks/useToggle";
+import { Icon } from "@/components/Icon";
+import { Meta } from "@/components/Meta";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode } from "react";
 import { Slide, ToastContainer } from "react-toastify";
-import { urls } from "urls";
 import { AppSelector } from "./AppSelector";
 import { LoggedUserDisplay } from "./LoggedUserDisplay";
 import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
+import { urls } from "@/lib/urls";
 
 export const Layout = (props: {
   title?: string;

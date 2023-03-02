@@ -1,13 +1,12 @@
 import cn from "classnames";
-import { Icon } from "common/Icon";
-import { apps } from "common/Layout/temp-data";
-import { Switch } from "common/Switch";
+import { Icon } from "@/components/Icon";
+import { apps } from "@/components/Layout/temp-data";
+import { Switch } from "@/components/Switch";
 import Image from "next/image";
 import React, { memo, useEffect, useState } from "react";
+import { AppModel } from "src/lib/models";
 
-export const AppHeader = memo(function AppHeader(props: {
-  app: (typeof apps)[0];
-}) {
+export const AppHeader = memo(function AppHeader(props: { app: AppModel }) {
   const [copied, setCopied] = useState(false);
   // const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity); // TODO: Add app activity toggle
 

@@ -26,7 +26,7 @@ export interface AppModel {
   team_id: string;
   engine: EngineType;
   status: AppStatusType;
-  user_interfaces: Record<string, unknown>;
+  is_archived: boolean;
   created_at: DateTime;
   updated_at?: DateTime;
   __typename: "app";

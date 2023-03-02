@@ -40,7 +40,6 @@ logo_url
 is_staging
 name
 status
-user_interfaces
 created_at
 `;
 

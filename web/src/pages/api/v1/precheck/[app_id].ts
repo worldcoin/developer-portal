@@ -36,8 +36,6 @@ interface _App
     | "is_verified"
     | "logo_url"
     | "name"
-    | "user_interfaces"
-    | "verified_at"
     | "verified_app_logo"
   > {
   actions: _Action[];
@@ -65,9 +63,7 @@ const appPrecheckQuery = gql`
       is_verified
       logo_url
       name
-      user_interfaces
       verified_app_logo
-      verified_at
       engine
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
