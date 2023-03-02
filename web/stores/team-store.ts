@@ -39,10 +39,7 @@ type TeamStore = {
   setFilter: Dispatch<SetStateAction<Filter>>;
   applyFilter: () => void;
   filteredMembers: Array<TeamMember>;
-  // membersForInvite: Array<string>;
-  // setMembersForInvite: Dispatch<SetStateAction<Array<string>>>;
-  // inviteMembersState: null | InviteMembersState;
-  // inviteMembers: () => Promise<void>;
+  inviteMembers: (members: TeamMember[]) => Promise<void>;
   memberForRemove: null | TeamMember;
   setMemberForRemove: (member: TeamMember | null) => void;
   removeMemberState: null | RemoveMembersState;
@@ -92,42 +89,17 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   filteredMembers: tempTeam.members,
 
-  // membersForInvite: [],
+  membersForInvite: [],
+  inviteMembers: async (members: TeamMember[]) => {
+    const team = get().team;
 
-  // setMembersForInvite: (members) => {
-  //   if (typeof members === "function") {
-  //     set(() => ({ membersForInvite: members(get().membersForInvite) }));
-  //   } else {
-  //     set(() => ({ membersForInvite: members }));
-  //   }
-  // },
-
-  // inviteMembersState: null,
-
-  // inviteMembers: async () => {
-  //   set(() => ({ inviteMembersState: InviteMembersState.LOADING }));
-
-  //   const { team, setMembers, membersForInvite, setMembersForInvite } = get();
-
-  //   //TODO: Replace with relevant logic
-  //   if (team) {
-  //     setTimeout(() => {
-  //       setMembers([
-  //         ...team.members,
-  //         ...membersForInvite.map((item, idx) => ({
-  //           image: "",
-  //           email: item,
-  //           name: `New Member ${team.members.length + idx + 1}`,
-  //           verified: false,
-  //         })),
-  //       ]);
-
-  //       set(() => ({ inviteMembersState: InviteMembersState.SUCCESS }));
-  //       setMembersForInvite([]);
-  //       setTimeout(() => set(() => ({ inviteMembersState: null })), 5000);
-  //     }, 1500);
-  //   }
-  // },
+    //TODO: Replace with relevant logic
+    if (team) {
+      set(() => ({
+        team: { ...team, members: [...team.members, ...members] },
+      }));
+    }
+  },
 
   memberForRemove: null,
 
@@ -156,9 +128,6 @@ export const getTeamStore = (store: TeamStore) => ({
   filter: store.filter,
   setFilter: store.setFilter,
   applyFilter: store.applyFilter,
-  membersForInvite: store.membersForInvite,
-  setMembersForInvite: store.setMembersForInvite,
-  inviteMembersStatus: store.inviteMembersState,
   inviteMembers: store.inviteMembers,
   memberForRemove: store.memberForRemove,
   setMemberForRemove: store.setMemberForRemove,
