@@ -41,7 +41,7 @@ export const CreateAppDialog = memo(function CreateAppDialog(
 
           <FieldInput
             className="w-full font-rubik"
-            placeholder="Add apps name"
+            placeholder="Add your app name (visible to users)"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
