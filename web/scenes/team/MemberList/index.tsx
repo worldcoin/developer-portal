@@ -36,7 +36,7 @@ export const MemberList = memo(function MemberList() {
   );
 
   return (
-    <div className="space-y-4">
+    <div>
       <InviteMembersDialog
         open={inviteDialog.isOn}
         onClose={inviteDialog.toggleOff}
@@ -44,7 +44,7 @@ export const MemberList = memo(function MemberList() {
 
       <RemoveMemberDialog />
 
-      <div className="space-y-8">
+      <div className="grid gap-y-4">
         <Controls
           onInviteClick={inviteDialog.toggleOn}
           onFilterClick={applyFilter}
@@ -52,46 +52,46 @@ export const MemberList = memo(function MemberList() {
           onSearchChange={handleChangeSearch}
         />
 
-        <div className="space-x-2 text-neutral text-14">
+        <div className="space-x-2 text-neutral text-14 mt-4">
           <span>Member</span>
 
           <span className="bg-ebecef py-1 px-1.5 rounded-[4px]">
             {members.length}
           </span>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        {members.map((member, key) => (
-          <div
-            key={key}
-            className="flex items-center bg-ffffff rounded-xl shadow-lg p-4 gap-3"
-          >
-            <div className="relative w-10 h-10 grid place-items-center bg-success-light rounded-full">
-              <Icon name="user-solid" className="w-4 h-4 bg-success" />
-
-              {member.verified && (
-                <Icon
-                  name="badge-verification"
-                  className="absolute w-5 h-5 -bottom-1 -right-1"
-                  noMask
-                />
-              )}
-            </div>
-
-            <div className="flex-1 space-y-1">
-              <h5>{member.name}</h5>
-              <p className="text-12">{member.email}</p>
-            </div>
-
-            <button
-              className="text-warning hover:opacity-75 transition-opacity"
-              onClick={() => handleDelete(member)}
+        <div className="grid gap-y-4">
+          {members.map((member, key) => (
+            <div
+              key={key}
+              className="flex items-center bg-ffffff rounded-xl shadow-lg p-4 gap-3"
             >
-              Remove
-            </button>
-          </div>
-        ))}
+              <div className="relative w-10 h-10 grid place-items-center bg-success-light rounded-full">
+                <Icon name="user-solid" className="w-4 h-4 bg-success" />
+
+                {member.verified && (
+                  <Icon
+                    name="badge-verification"
+                    className="absolute w-5 h-5 -bottom-1 -right-1"
+                    noMask
+                  />
+                )}
+              </div>
+
+              <div className="flex-1 space-y-1">
+                <h5>{member.name}</h5>
+                <p className="text-12">{member.email}</p>
+              </div>
+
+              <button
+                className="text-warning hover:opacity-75 transition-opacity"
+                onClick={() => handleDelete(member)}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

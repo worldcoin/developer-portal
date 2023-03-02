@@ -10,7 +10,7 @@ export const Controls = memo(function Controls(props: {
   onSearchChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-8">
+    <div className="grid gap-y-8">
       <h3 className="text-14 font-medium">Team members</h3>
 
       <div className="flex gap-16">

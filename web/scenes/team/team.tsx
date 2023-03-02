@@ -15,7 +15,7 @@ export const Team = memo(function Team() {
 
   return (
     <AuthRequired>
-      <Layout>
+      <Layout mainClassName="grid gap-y-8">
         <Header />
         <Details />
         <MemberList />

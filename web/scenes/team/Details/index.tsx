@@ -4,7 +4,7 @@ import { memo } from "react";
 
 export const Details = memo(function Details() {
   return (
-    <div className="space-y-12">
+    <div className="grid gap-y-12">
       <h2 className="font-semibold font-sora">My Team Details</h2>
 
       <FieldGroup label="Team name">
