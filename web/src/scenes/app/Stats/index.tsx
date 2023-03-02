@@ -104,7 +104,7 @@ export const Stats = memo(function Stats() {
       return { labels: [] as Array<string>, datasets: [] };
     }
 
-    // FIXME: Move the reducing and the `cumulative` state to Kea
+    // TODO: Optimize this with zustand?
     return stats.reduce(
       (
         accumulator: {
