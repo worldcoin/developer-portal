@@ -1,6 +1,6 @@
-import { isSSR } from "src/components/helpers/is-ssr";
 import { useRouter } from "next/router";
 import { Fragment, memo, ReactNode, useEffect } from "react";
+import { isSSR } from "src/lib/utils";
 import { IAuthStore, useAuthStore } from "src/stores/authStore";
 
 const getParams = (store: IAuthStore) => ({

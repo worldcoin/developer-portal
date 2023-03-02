@@ -203,39 +203,6 @@ export function Deployment() {
             ></Interface>
           )}
 
-          <Interface
-            name="hosted_page"
-            icon="window"
-            title="Hosted page"
-            description="Redirect the user to our page for verification, we’ll redirect the user back upon success."
-            enabled={isInterfaceEnabled("hosted_page")}
-            overviewItems={[
-              {
-                icon: "overview-request",
-                text: "You redirect the user to our URL",
-              },
-              {
-                icon: "overview-qr",
-                text: "User verifies with World ID on your site",
-              },
-              {
-                icon: "overview-response",
-                text: "We redirect the user back to your site",
-              },
-              {
-                icon: "overview-signature",
-                text: "You verify the response (JWT signature)",
-              },
-            ]}
-            instructions={
-              <HostedPageInstructions actionId={currentAction.id} />
-            }
-          >
-            {isInterfaceEnabled("hosted_page") && (
-              <HostedPage actionId={currentAction.id} />
-            )}
-          </Interface>
-
           {currentAction.engine === "cloud" && (
             <Interface
               name="kiosk"

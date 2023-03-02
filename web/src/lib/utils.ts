@@ -39,3 +39,5 @@ export const validateEmail = (candidate: string): boolean => {
     )
   );
 };
+
+export const isSSR = () => typeof window === "undefined";

@@ -46,7 +46,7 @@ export interface UserType {
   is_subscribed?: boolean;
 }
 
-export const userInterfaces = ["widget", "hosted_page", "kiosk"] as const;
+export const userInterfaces = ["widget", "kiosk"] as const;
 export type UserInterfacesType = (typeof userInterfaces)[number];
 export type ActionUserInterfaces = {
   enabled_interfaces?: UserInterfacesType[];

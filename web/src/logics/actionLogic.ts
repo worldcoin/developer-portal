@@ -22,10 +22,9 @@ import {
   ActionUserInterfaces,
 } from "src/lib/types";
 import { urls } from "src/lib/urls";
-import { validateUrl } from "src/lib/utils";
+import { isSSR, validateUrl } from "src/lib/utils";
 import { actionQueryParams, actionsLogic } from "./actionsLogic";
 import type { actionLogicType } from "./actionLogicType";
-import { isSSR } from "src/components/helpers/is-ssr";
 
 interface LoadActionsInterface {
   action: ActionType[];
@@ -50,7 +49,6 @@ export interface ActionUrlsInterface {
 export interface InterfaceConfigFormValues {
   public_description?: string;
   widget?: boolean;
-  hosted_page?: boolean;
   return_url?: string;
   kiosk?: boolean;
 }
@@ -179,11 +177,6 @@ export const actionLogic = kea<actionLogicType>([
           widget:
             values.currentAction?.user_interfaces.enabled_interfaces?.some(
               (userInterface) => userInterface === "widget"
-            ),
-
-          hosted_page:
-            values.currentAction?.user_interfaces.enabled_interfaces?.some(
-              (userInterface) => userInterface === "hosted_page"
             ),
 
           return_url: values.currentAction?.return_url,
@@ -428,18 +421,6 @@ export const actionLogic = kea<actionLogicType>([
         return_url: "",
       } as InterfaceConfigFormValues,
 
-      errors: ({ return_url }) => ({
-        return_url: values.interfaceConfig["hosted_page"]
-          ? !return_url
-            ? "Please enter a return URL"
-            : !validateUrl(return_url, !values.currentAction?.is_staging)
-            ? `Please enter a valid URL ${
-                !values.currentAction?.is_staging ? " over https://" : ""
-              }`
-            : undefined
-          : undefined,
-      }),
-
       submit: (formValues, breakpoint) => {
         type InterfaceConfigurationCheckboxValues = Omit<
           InterfaceConfigFormValues,
@@ -553,44 +534,6 @@ export const actionLogic = kea<actionLogicType>([
         return currentAction?.engine !== "on-chain"
           ? [...baseTabs, { name: "stats", label: "Stats", notifications: 0 }]
           : [...baseTabs];
-      },
-    ],
-    hostedPageSteps: [
-      (s) => [s.currentAction],
-      (currentAction): { steps: ProgressStep[]; currentStep: ProgressStep } => {
-        const hostedPageEnabled = Boolean(
-          currentAction?.user_interfaces.enabled_interfaces?.includes(
-            "hosted_page"
-          )
-        );
-        const steps: ProgressStep[] = [
-          { name: "Select user interface", value: "select", finished: true },
-          {
-            name: "Configure your hosted page",
-            value: "configure",
-            finished: Boolean(currentAction?.return_url),
-          },
-          {
-            name: "Integrate hosted page",
-            value: "integrate",
-            finished: hostedPageEnabled,
-          },
-          {
-            name: "Integration is live!",
-            value: "live",
-            finished: hostedPageEnabled,
-          },
-        ];
-        let currentStep = steps[1];
-        if (hostedPageEnabled) {
-          currentStep = steps[3];
-        } else if (currentAction?.return_url) {
-          currentStep = steps[2];
-        }
-        return {
-          currentStep,
-          steps,
-        };
       },
     ],
     apiWidgetSteps: [

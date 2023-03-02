@@ -1,5 +1,4 @@
 import { gql } from "@apollo/client";
-import { isSSR } from "src/components/helpers/is-ssr";
 import { graphQLRequest } from "src/lib/frontend-api";
 import { kea, path, actions, listeners, afterMount, selectors } from "kea";
 import { forms } from "kea-forms";
@@ -7,6 +6,7 @@ import { loaders } from "kea-loaders";
 import { toast } from "react-toastify";
 import { TeamType } from "src/lib/types";
 import type { teamLogicType } from "./teamLogicType";
+import { isSSR } from "src/lib/utils";
 
 interface TeamQueryResponse {
   team: Array<TeamType>;

@@ -45,12 +45,6 @@ export function Action(): JSX.Element | null {
         (userInterface) => userInterface === "widget"
       ),
 
-      hosted_page: currentAction?.user_interfaces.enabled_interfaces?.some(
-        (userInterface) => userInterface === "hosted_page"
-      ),
-
-      hosted_page_return_url: currentAction?.return_url,
-
       kiosk: currentAction?.user_interfaces.enabled_interfaces?.some(
         (userInterface) => userInterface === "kiosk"
       ),
@@ -58,7 +52,6 @@ export function Action(): JSX.Element | null {
 
     [
       currentAction?.public_description,
-      currentAction?.return_url,
       currentAction?.user_interfaces.enabled_interfaces,
     ]
   );

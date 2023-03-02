@@ -1,12 +1,18 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { useToggle } from "src/hooks/useToggle";
-import { Icon } from "src/components/Icon";
-import { SelectItem } from "src/components/types/select-item";
+import { Icon, IconType } from "src/components/Icon";
+
+interface ISelectItem {
+  icon: { name: IconType; noMask?: boolean };
+  name: string;
+  value: string;
+  disabled?: boolean;
+}
 
 export const Select = memo(function Select(props: {
   className?: string;
-  items?: Array<SelectItem>;
+  items?: Array<ISelectItem>;
   itemClassName?: string;
   changeValue: (value: string) => void;
   notSelectedText: string;
