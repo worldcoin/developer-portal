@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 
 const cards = [
   {

@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { text } from "src/common/styles";
-import { Button } from "src/common/LegacyButton";
-import { Link } from "src/common/components/Link";
+import { text } from "src/components/styles";
+import { Button } from "src/components/LegacyButton";
+import { Link } from "src/components/components/Link";
 
 export const SmartContractInstructions = memo(
   function SmartContractInstructions() {

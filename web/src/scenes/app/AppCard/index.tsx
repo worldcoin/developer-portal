@@ -1,10 +1,10 @@
 import cn from "classnames";
 import { Input } from "src/scenes/action/ActionCard/Input";
-import { Button } from "src/common/LegacyButton";
-import { CardWithSideGradient } from "src/common/CardWithSideGradient";
-import { Dropdown } from "src/common/Dropdown";
+import { Button } from "src/components/LegacyButton";
+import { CardWithSideGradient } from "src/components/CardWithSideGradient";
+import { Dropdown } from "src/components/Dropdown";
 import { useToggle } from "src/hooks/useToggle";
-import { Modal } from "src/common/LegacyModal";
+import { Modal } from "src/components/LegacyModal";
 import { Fragment, memo, useCallback } from "react";
 import { AppType } from "src/lib/types";
 import { appLogicType } from "src/logics/appLogicType";

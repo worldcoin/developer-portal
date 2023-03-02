@@ -1,5 +1,5 @@
 import { memo, ReactNode } from "react";
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 
 interface InterfaceOverviewInterface {
   className?: string;

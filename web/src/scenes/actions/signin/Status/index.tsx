@@ -1,9 +1,9 @@
-import { Switch } from "src/common/Switch";
+import { Switch } from "src/components/Switch";
 import { memo } from "react";
 import cn from "classnames";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 
 export const Status = memo(function Status() {
   const { enabled, toggleSignInAction } = useSignInActionStore(

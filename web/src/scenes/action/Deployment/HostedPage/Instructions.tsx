@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
-import { text } from "src/common/styles";
-import { Button } from "src/common/LegacyButton";
+import { text } from "src/components/styles";
+import { Button } from "src/components/LegacyButton";
 import cn from "classnames";
 import { ApiVerificationInstructions } from "../Instructions/ApiVerification";
 import { JwtVerificationInstructions } from "../Instructions/JwtVerification";

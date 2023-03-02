@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect } from "react";
 import { useToggle } from "src/hooks/useToggle";
 import { usePopperTooltip } from "react-popper-tooltip";
 import cn from "classnames";
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 
 interface FieldInterface {
   className?: string;

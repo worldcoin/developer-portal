@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { Tab } from "src/common/Tabs/types";
+import { Tab } from "src/components/Tabs/types";
 import dayjs from "dayjs";
 import { graphQLRequest } from "src/lib/frontend-api";
 import {
@@ -25,7 +25,7 @@ import { urls } from "src/lib/urls";
 import { validateUrl } from "src/lib/utils";
 import { actionQueryParams, actionsLogic } from "./actionsLogic";
 import type { actionLogicType } from "./actionLogicType";
-import { isSSR } from "src/common/helpers/is-ssr";
+import { isSSR } from "src/components/helpers/is-ssr";
 
 interface LoadActionsInterface {
   action: ActionType[];

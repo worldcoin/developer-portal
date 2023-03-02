@@ -1,9 +1,9 @@
 import { Selector } from "./Selector";
 import { memo, useMemo, useState } from "react";
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 import dayjs from "dayjs";
 import cn from "classnames";
-import { stats as tempStats } from "src/common/Layout/temp-data";
+import { stats as tempStats } from "src/components/Layout/temp-data";
 
 import {
   Chart as ChartJS,

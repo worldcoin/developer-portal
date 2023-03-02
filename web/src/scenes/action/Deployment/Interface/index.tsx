@@ -4,12 +4,12 @@ import { useToggle } from "src/hooks/useToggle";
 import cn from "classnames";
 import { InterfaceHeader } from "./InterfaceHeader";
 import { InterfaceOverview } from "./InterfaceOverview";
-import { Icon, IconType } from "src/common/Icon";
-import { Button } from "src/common/LegacyButton";
-import { Switch } from "src/common/Switch";
+import { Icon, IconType } from "src/components/Icon";
+import { Button } from "src/components/LegacyButton";
+import { Switch } from "src/components/Switch";
 import { Field } from "kea-forms";
-import { Modal } from "src/common/LegacyModal";
-import { Footer } from "src/common/Footer";
+import { Modal } from "src/components/LegacyModal";
+import { Footer } from "src/components/Footer";
 
 interface InterfaceInterface {
   className?: string;

@@ -1,12 +1,12 @@
-import { Illustration } from "src/common/Auth/Illustration";
-import { Typography } from "src/common/Auth/Typography";
-import { Button } from "src/common/Auth/Button";
-import { FieldInput } from "src/common/FieldInput";
-import { FieldGroup } from "src/common/FieldGroup";
+import { Illustration } from "src/components/Auth/Illustration";
+import { Typography } from "src/components/Auth/Typography";
+import { Button } from "src/components/Auth/Button";
+import { FieldInput } from "src/components/FieldInput";
+import { FieldGroup } from "src/components/FieldGroup";
 import { ChangeEvent, FormEvent, Fragment, useCallback, useState } from "react";
-import { FieldTextArea } from "src/common/FieldTextArea";
+import { FieldTextArea } from "src/components/FieldTextArea";
 import classNames from "classnames";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 
 interface InitialInterface {
   onSuccess: () => void;

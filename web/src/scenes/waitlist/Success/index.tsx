@@ -1,8 +1,8 @@
 import { Fragment, memo } from "react";
-import { Illustration } from "src/common/Auth/Illustration";
-import { Typography } from "src/common/Auth/Typography";
+import { Illustration } from "src/components/Auth/Illustration";
+import { Typography } from "src/components/Auth/Typography";
 import { useRouter } from "next/router";
-import { Button } from "src/common/Button";
+import { Button } from "src/components/Button";
 
 export const Success = memo(function Success() {
   const router = useRouter();

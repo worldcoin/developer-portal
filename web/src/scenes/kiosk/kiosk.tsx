@@ -1,5 +1,5 @@
 import { internal, ISuccessResult } from "@worldcoin/idkit";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import { restAPIRequest } from "src/lib/frontend-api";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect, useState } from "react";

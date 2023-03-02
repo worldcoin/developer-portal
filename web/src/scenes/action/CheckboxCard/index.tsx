@@ -1,6 +1,6 @@
 import cn from "classnames";
-import { Icon, IconType } from "src/common/Icon";
-import { Button } from "src/common/LegacyButton";
+import { Icon, IconType } from "src/components/Icon";
+import { Button } from "src/components/LegacyButton";
 import { memo, ReactNode } from "react";
 import { CreateActionFormValues } from "../types";
 

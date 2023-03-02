@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { StatusIcon } from "../StatusIcon";
-import { Button } from "src/common/Button";
+import { Button } from "src/components/Button";
 
 import {
   getKioskStore,

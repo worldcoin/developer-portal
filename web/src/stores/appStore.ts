@@ -1,4 +1,4 @@
-import { App, apps as tempApps } from "src/common/Layout/temp-data";
+import { App, apps as tempApps } from "src/components/Layout/temp-data";
 import { create } from "zustand";
 
 type States = {

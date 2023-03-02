@@ -1,4 +1,4 @@
-import { FieldInput } from "src/common/LegacyFieldInput";
+import { FieldInput } from "src/components/LegacyFieldInput";
 import { useValues } from "kea";
 import { actionLogic } from "src/logics/actionLogic";
 import cn from "classnames";

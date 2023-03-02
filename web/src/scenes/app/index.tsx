@@ -1,6 +1,6 @@
-import { AuthRequired } from "src/common/AuthRequired";
-import { Layout } from "src/common/Layout";
-import { Preloader } from "src/common/Preloader";
+import { AuthRequired } from "src/components/AuthRequired";
+import { Layout } from "src/components/Layout";
+import { Preloader } from "src/components/Preloader";
 import { memo, useEffect, useState } from "react";
 import { useAppStore } from "src/stores/appStore";
 import { AppHeader } from "./AppHeader";

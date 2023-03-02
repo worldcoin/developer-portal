@@ -1,4 +1,4 @@
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 import { memo, MouseEventHandler } from "react";
 import cn from "classnames";
 

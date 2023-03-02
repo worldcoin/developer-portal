@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import { useToggle } from "src/hooks/useToggle";
 
 interface InputInterface {

@@ -1,12 +1,12 @@
 import { Fragment, memo } from "react";
 import { Item } from "./Item";
-import { FieldInput } from "src/common/LegacyFieldInput";
-import { FieldInputAddon } from "src/common/LegacyFieldInputAddon";
-import { FieldInputAddonAction } from "src/common/FieldInputAddonAction";
-import { Icon } from "src/common/Icon";
+import { FieldInput } from "src/components/LegacyFieldInput";
+import { FieldInputAddon } from "src/components/LegacyFieldInputAddon";
+import { FieldInputAddonAction } from "src/components/FieldInputAddonAction";
+import { Icon } from "src/components/Icon";
 import { useActions, useValues } from "kea";
 import { teamLogic } from "src/logics/teamLogic";
-import { Preloader } from "src/common/Preloader";
+import { Preloader } from "src/components/Preloader";
 import { teamMembersLogic } from "src/logics/teamMembersLogic";
 import useAuth from "src/hooks/useAuth";
 

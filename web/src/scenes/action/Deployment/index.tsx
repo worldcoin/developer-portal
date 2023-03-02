@@ -5,15 +5,15 @@ import { useToggle } from "src/hooks/useToggle";
 import { UserInterfacesType } from "src/lib/types";
 import { HostedPage } from "./HostedPage";
 import cn from "classnames";
-import { Button } from "src/common/LegacyButton";
-import { FieldInput } from "src/common/LegacyFieldInput";
+import { Button } from "src/components/LegacyButton";
+import { FieldInput } from "src/components/LegacyFieldInput";
 import { Interface } from "./Interface";
 import { Kiosk } from "./Kiosk";
 import { Field, Form } from "kea-forms";
 import { CloudWidgetInstructions } from "./CloudWidget/Instructions";
 import { HostedPageInstructions } from "./HostedPage/Instructions";
-import { Modal } from "src/common/LegacyModal";
-import { Preview } from "src/common/Preview";
+import { Modal } from "src/components/LegacyModal";
+import { Preview } from "src/components/Preview";
 import { OnChainWidgetInstructions } from "./OnChainWidget/Instructions";
 
 export function Deployment() {

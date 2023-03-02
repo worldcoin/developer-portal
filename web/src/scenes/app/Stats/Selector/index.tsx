@@ -1,6 +1,6 @@
 import { Dispatch, Fragment, memo, SetStateAction, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import cn from "classnames";
 
 export type Option = { label: string; value: string };

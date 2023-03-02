@@ -1,7 +1,7 @@
 import cn from "classnames";
-import { AppLogo } from "src/common/AppLogo";
+import { AppLogo } from "src/components/AppLogo";
 import { useColorScheme } from "src/hooks/useColorScheme";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { Fragment, memo, ReactNode, useCallback, useMemo } from "react";

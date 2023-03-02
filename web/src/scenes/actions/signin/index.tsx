@@ -1,5 +1,5 @@
-import { AuthRequired } from "src/common/AuthRequired";
-import { Layout } from "src/common/Layout";
+import { AuthRequired } from "src/components/AuthRequired";
+import { Layout } from "src/components/Layout";
 import { memo, useEffect } from "react";
 import { useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";

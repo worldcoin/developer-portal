@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import { TeamType } from "src/lib/types";
 import { useValues } from "kea";
 import { teamMembersLogic } from "src/logics/teamMembersLogic";

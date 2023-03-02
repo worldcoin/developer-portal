@@ -1,16 +1,16 @@
 import cn from "classnames";
-import { Layout } from "src/common/Layout";
+import { Layout } from "src/components/Layout";
 import { Fragment, useState } from "react";
-import { CardWithSideGradient } from "src/common/CardWithSideGradient";
-import { Button } from "src/common/LegacyButton";
-import { Widget } from "src/common/Widget";
+import { CardWithSideGradient } from "src/components/CardWithSideGradient";
+import { Button } from "src/components/LegacyButton";
+import { Widget } from "src/components/Widget";
 import { Details } from "./Details";
 import { useActions, useValues } from "kea";
 import { teamLogic } from "src/logics/teamLogic";
-import { Modal } from "src/common/LegacyModal";
-import { FieldInput } from "src/common/LegacyFieldInput";
+import { Modal } from "src/components/LegacyModal";
+import { FieldInput } from "src/components/LegacyFieldInput";
 import { useToggle } from "src/hooks/useToggle";
-import { text } from "src/common/styles";
+import { text } from "src/components/styles";
 import { Members } from "./Members";
 
 export function Team(): JSX.Element | null {

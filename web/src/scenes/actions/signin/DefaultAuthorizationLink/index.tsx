@@ -1,6 +1,6 @@
 import { Menu } from "@headlessui/react";
-import { Button } from "src/common/Button";
-import { Icon } from "src/common/Icon";
+import { Button } from "src/components/Button";
+import { Icon } from "src/components/Icon";
 import { Fragment, memo } from "react";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";

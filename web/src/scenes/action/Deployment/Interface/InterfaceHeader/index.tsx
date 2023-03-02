@@ -1,6 +1,6 @@
 import { memo, ReactNode } from "react";
 import cn from "classnames";
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 
 interface InterfaceHeaderInterface {
   className?: string;

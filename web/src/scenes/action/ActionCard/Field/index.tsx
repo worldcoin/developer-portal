@@ -1,4 +1,4 @@
-import { Icon, IconType } from "src/common/Icon";
+import { Icon, IconType } from "src/components/Icon";
 import { Fragment, memo, ReactNode, useCallback, useEffect } from "react";
 import cn from "classnames";
 import { FieldControl } from "./FieldControl";

@@ -1,5 +1,5 @@
-import { FieldInput } from "src/common/FieldInput";
-import { apps } from "src/common/Layout/temp-data";
+import { FieldInput } from "src/components/FieldInput";
+import { apps } from "src/components/Layout/temp-data";
 import { ChangeEvent, memo, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 

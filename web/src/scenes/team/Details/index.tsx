@@ -1,17 +1,17 @@
 import { Fragment, memo, useCallback } from "react";
-import { Button } from "src/common/LegacyButton";
-import { Icon } from "src/common/Icon";
-import { FieldGroup } from "src/common/FieldGroup";
-import { FieldInput } from "src/common/LegacyFieldInput";
-import { FieldUpload } from "src/common/FieldUpload";
-import { Modal } from "src/common/LegacyModal";
-import { ModalHeader } from "src/common/LegacyModalHeader";
-import { ModalMain } from "src/common/LegacyModalMain";
+import { Button } from "src/components/LegacyButton";
+import { Icon } from "src/components/Icon";
+import { FieldGroup } from "src/components/FieldGroup";
+import { FieldInput } from "src/components/LegacyFieldInput";
+import { FieldUpload } from "src/components/FieldUpload";
+import { Modal } from "src/components/LegacyModal";
+import { ModalHeader } from "src/components/LegacyModalHeader";
+import { ModalMain } from "src/components/LegacyModalMain";
 import { useToggle } from "src/hooks/useToggle";
 import { useValues } from "kea";
 import { teamLogic } from "src/logics/teamLogic";
 import { Field, Form } from "kea-forms";
-import { text } from "src/common/styles";
+import { text } from "src/components/styles";
 import cn from "classnames";
 
 export function Details(): JSX.Element | null {

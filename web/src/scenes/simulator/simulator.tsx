@@ -1,4 +1,4 @@
-import { Layout } from "src/common/Layout";
+import { Layout } from "src/components/Layout";
 import { memo } from "react";
 
 export const Simulator = memo(function Simulator() {

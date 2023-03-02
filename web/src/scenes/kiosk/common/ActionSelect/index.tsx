@@ -2,7 +2,7 @@ import { memo } from "react";
 import cn from "classnames";
 import { Listbox } from "@headlessui/react";
 import { Action } from "src/scenes/kiosk/types";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 
 interface ActionSelectProps {
   value?: Action;

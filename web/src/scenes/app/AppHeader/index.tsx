@@ -1,6 +1,6 @@
-import { Icon } from "src/common/Icon";
-import { apps } from "src/common/Layout/temp-data";
-import { Switch } from "src/common/Switch";
+import { Icon } from "src/components/Icon";
+import { apps } from "src/components/Layout/temp-data";
+import { Switch } from "src/components/Switch";
 import Image from "next/image";
 import { memo, useEffect, useState } from "react";
 import cn from "classnames";

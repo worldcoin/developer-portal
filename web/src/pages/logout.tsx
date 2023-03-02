@@ -1,5 +1,5 @@
-import { AuthRequired } from "src/common/AuthRequired";
-import { Spinner } from "src/common/Spinner";
+import { AuthRequired } from "src/components/AuthRequired";
+import { Spinner } from "src/components/Spinner";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { IAuthStore, useAuthStore } from "src/stores/authStore";

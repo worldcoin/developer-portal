@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useToggle } from "src/hooks/useToggle";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 
 interface InputInterface {
   className?: string;

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { CodeBlock } from "src/common/CodeBlock";
+import { CodeBlock } from "src/components/CodeBlock";
 
 interface JsWidgetInstructionsInterface {
   actionId: string;

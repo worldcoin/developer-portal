@@ -1,6 +1,6 @@
-import { NotFound } from "src/common/NotFound";
-import { Preloader } from "src/common/Preloader";
-import { Tab } from "src/common/Tabs/types";
+import { NotFound } from "src/components/NotFound";
+import { Preloader } from "src/components/Preloader";
+import { Tab } from "src/components/Tabs/types";
 import { useActions, useValues } from "kea";
 import { actionLogic, InterfaceConfigFormValues } from "src/logics/actionLogic";
 import { useRouter } from "next/router";
@@ -8,10 +8,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { urls } from "src/lib/urls";
 import { Deployment } from "./Deployment";
 import { Stats } from "./Stats";
-import { Layout } from "src/common/Layout";
+import { Layout } from "src/components/Layout";
 import { ActionHeader } from "./ActionHeader";
-import { Footer } from "src/common/Footer";
-import { Button } from "src/common/LegacyButton";
+import { Footer } from "src/components/Footer";
+import { Button } from "src/components/LegacyButton";
 
 export function Action(): JSX.Element | null {
   const [isFooterVisible, setIsFooterVisible] = useState(false);

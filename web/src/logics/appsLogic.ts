@@ -19,7 +19,7 @@ import { gql } from "@apollo/client";
 import { loaders } from "kea-loaders";
 import posthog from "posthog-js";
 import { actionsLogic } from "./actionsLogic";
-import { filterApps } from "src/common/helpers/filter-apps";
+import { filterApps } from "src/components/helpers/filter-apps";
 
 // TODO support adding a logo on app creation
 export type CreateAppFormValues = {

@@ -1,6 +1,6 @@
-import { Button } from "src/common/Button";
-import { FieldInput } from "src/common/FieldInput";
-import { Icon } from "src/common/Icon";
+import { Button } from "src/components/Button";
+import { FieldInput } from "src/components/FieldInput";
+import { Icon } from "src/components/Icon";
 import { memo, useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";

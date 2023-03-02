@@ -1,7 +1,7 @@
 import { internal } from "@worldcoin/idkit";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
-import { Spinner } from "src/common/Spinner";
+import { Icon } from "src/components/Icon";
+import { Spinner } from "src/components/Spinner";
 import { QRCodeSVG } from "qrcode.react";
 import { memo, useCallback, useState } from "react";
 

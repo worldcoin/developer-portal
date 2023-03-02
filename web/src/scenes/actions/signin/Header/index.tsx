@@ -1,5 +1,5 @@
-import { Link } from "src/common/components/Link";
-import { Icon } from "src/common/Icon";
+import { Link } from "src/components/components/Link";
+import { Icon } from "src/components/Icon";
 import { memo } from "react";
 import { useAppStore } from "src/stores/appStore";
 

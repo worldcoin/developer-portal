@@ -1,7 +1,7 @@
-import { FieldGroup } from "src/common/FieldGroup";
-import { FieldInput } from "src/common/LegacyFieldInput";
-import { Button } from "src/common/LegacyButton";
-import { ModalWindowSection } from "src/common/MultiModal/ModalWindowSection";
+import { FieldGroup } from "src/components/FieldGroup";
+import { FieldInput } from "src/components/LegacyFieldInput";
+import { Button } from "src/components/LegacyButton";
+import { ModalWindowSection } from "src/components/MultiModal/ModalWindowSection";
 import { memo, useEffect } from "react";
 import { useToggle } from "src/hooks/useToggle";
 

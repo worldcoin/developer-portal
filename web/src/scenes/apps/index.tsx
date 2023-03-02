@@ -1,10 +1,10 @@
-import { AuthRequired } from "src/common/AuthRequired";
-import { Button } from "src/common/Button";
-import { Dialog } from "src/common/Dialog";
-import { DialogHeader } from "src/common/DialogHeader";
-import { FieldInput } from "src/common/FieldInput";
-import { FieldLabel } from "src/common/FieldLabel";
-import { Layout } from "src/common/Layout";
+import { AuthRequired } from "src/components/AuthRequired";
+import { Button } from "src/components/Button";
+import { Dialog } from "src/components/Dialog";
+import { DialogHeader } from "src/components/DialogHeader";
+import { FieldInput } from "src/components/FieldInput";
+import { FieldLabel } from "src/components/FieldLabel";
+import { Layout } from "src/components/Layout";
 import { memo, useState } from "react";
 
 export const Apps = memo(function Apps() {

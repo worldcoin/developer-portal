@@ -3,7 +3,7 @@ import { memo, useCallback, useMemo } from "react";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
 import { StatusIcon } from "../common/StatusIcon";
-import { Button } from "src/common/Button";
+import { Button } from "src/components/Button";
 import { getKioskStore, Screen, useKioskStore } from "../store/kiosk-store";
 dayjs.extend(dayjsRelative);
 

@@ -1,4 +1,4 @@
-import { Auth } from "src/common/Auth";
+import { Auth } from "src/components/Auth";
 import { useCallback, useState } from "react";
 import { Initial } from "./Initial";
 import { Success } from "./Success";

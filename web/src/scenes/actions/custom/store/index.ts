@@ -3,7 +3,7 @@ import {
   customActions,
   SignInAction,
   signInActions,
-} from "src/common/Layout/temp-data";
+} from "src/components/Layout/temp-data";
 import { create } from "zustand";
 
 type States = {

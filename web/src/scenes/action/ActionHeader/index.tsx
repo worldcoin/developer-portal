@@ -2,14 +2,14 @@ import { memo, useCallback } from "react";
 import { ActionType } from "src/lib/types";
 import { actionsLogicType } from "src/logics/actionsLogicType";
 import { actionLogicType } from "src/logics/actionLogicType";
-import { Header } from "src/common/Header";
-import { HeaderText } from "src/common/HeaderText";
+import { Header } from "src/components/Header";
+import { HeaderText } from "src/components/HeaderText";
 import { Input } from "./Input";
 import { Field } from "./Field";
 import { Status } from "./Status";
-import { Tabs } from "src/common/Tabs";
-import { Tab } from "src/common/Tabs/types";
-import { ActionDropdown } from "src/common/ActionDropdown";
+import { Tabs } from "src/components/Tabs";
+import { Tab } from "src/components/Tabs/types";
+import { ActionDropdown } from "src/components/ActionDropdown";
 
 interface ActionHeaderInterface {
   action: ActionType;

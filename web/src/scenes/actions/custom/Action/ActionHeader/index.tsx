@@ -2,8 +2,8 @@ import { useToggle } from "src/hooks/useToggle";
 import { memo, useCallback, useState } from "react";
 import { VerificationBadges } from "../VerificationBadges";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
-import { CustomAction } from "src/common/Layout/temp-data";
+import { Icon } from "src/components/Icon";
+import { CustomAction } from "src/components/Layout/temp-data";
 
 const Input = memo(function Input(props: {
   value: string;

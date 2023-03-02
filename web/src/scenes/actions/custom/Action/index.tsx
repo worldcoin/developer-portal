@@ -6,13 +6,13 @@ import {
   useMemo,
 } from "react";
 
-import { CustomAction } from "src/common/Layout/temp-data";
+import { CustomAction } from "src/components/Layout/temp-data";
 import { Disclosure, Transition } from "@headlessui/react";
 import { ActionHeader } from "./ActionHeader";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Icon } from "src/common/Icon";
-import { Switch } from "src/common/Switch";
+import { Icon } from "src/components/Icon";
+import { Switch } from "src/components/Switch";
 import { useToggle } from "src/hooks/useToggle";
 
 dayjs.extend(relativeTime);

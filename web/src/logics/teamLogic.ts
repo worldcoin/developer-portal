@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { isSSR } from "src/common/helpers/is-ssr";
+import { isSSR } from "src/components/helpers/is-ssr";
 import { graphQLRequest } from "src/lib/frontend-api";
 import { kea, path, actions, listeners, afterMount, selectors } from "kea";
 import { forms } from "kea-forms";

@@ -1,20 +1,20 @@
 import cn from "classnames";
 import { useToggle } from "src/hooks/useToggle";
-import { Icon } from "src/common/Icon";
-import { Link } from "src/common/Link";
-import { Button } from "src/common/LegacyButton";
-import { styles } from "src/common/styles";
+import { Icon } from "src/components/Icon";
+import { Link } from "src/components/Link";
+import { Button } from "src/components/LegacyButton";
+import { styles } from "src/components/styles";
 import { CheckboxCard } from "./CheckboxCard";
-import { Layout } from "src/common/Layout";
+import { Layout } from "src/components/Layout";
 import { Form, Field } from "kea-forms";
 import { useActions, useValues } from "kea";
-import { InputError } from "src/common/InputError";
+import { InputError } from "src/components/InputError";
 import { actionsLogic } from "src/logics/actionsLogic";
 import { appsLogic } from "src/logics/appsLogic";
 import { FormEventHandler, useCallback, useRef } from "react";
-import { Header } from "src/common/Header";
-import { HeaderText } from "src/common/HeaderText";
-import { Footer } from "src/common/Footer";
+import { Header } from "src/components/Header";
+import { HeaderText } from "src/components/HeaderText";
+import { Footer } from "src/components/Footer";
 
 export function NewAction() {
   const {

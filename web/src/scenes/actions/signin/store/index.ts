@@ -1,4 +1,4 @@
-import { SignInAction, signInActions } from "src/common/Layout/temp-data";
+import { SignInAction, signInActions } from "src/components/Layout/temp-data";
 import { create } from "zustand";
 
 type States = {

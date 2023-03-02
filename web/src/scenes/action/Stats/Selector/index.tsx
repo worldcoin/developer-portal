@@ -1,6 +1,6 @@
 import { memo, useRef } from "react";
 import cn from "classnames";
-import { Icon } from "src/common/Icon";
+import { Icon } from "src/components/Icon";
 import { useClickOutside } from "src/hooks/useClickOutside";
 import { StatsArgs } from "src/logics/actionLogic";
 import { useToggle } from "src/hooks/useToggle";

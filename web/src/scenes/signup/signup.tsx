@@ -4,16 +4,16 @@ import {
   useState,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import { Auth } from "src/common/Auth";
+import { Auth } from "src/components/Auth";
 import { useRouter } from "next/router";
 import { urls } from "src/lib/urls";
-import { FieldLabel } from "src/common/Auth/FieldLabel";
-import { FieldInput } from "src/common/Auth/FieldInput";
-import { FieldText } from "src/common/Auth/FieldText";
-import { Checkbox } from "src/common/Auth/Checkbox";
-import { Button } from "src/common/Auth/Button";
-import { Illustration } from "src/common/Auth/Illustration";
-import { Typography } from "src/common/Auth/Typography";
+import { FieldLabel } from "src/components/Auth/FieldLabel";
+import { FieldInput } from "src/components/Auth/FieldInput";
+import { FieldText } from "src/components/Auth/FieldText";
+import { Checkbox } from "src/components/Auth/Checkbox";
+import { Button } from "src/components/Auth/Button";
+import { Illustration } from "src/components/Auth/Illustration";
+import { Typography } from "src/components/Auth/Typography";
 import { IAuthStore, useAuthStore } from "src/stores/authStore";
 import { shallow } from "zustand/shallow";
 
