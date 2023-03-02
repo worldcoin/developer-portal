@@ -1,7 +1,7 @@
-import "../styles/globals.css";
+import "@/globals.css";
 import type { AppContext, AppProps } from "next/app";
 import { Fragment } from "react";
-import { usePostHog } from "src/hooks/usePostHog";
+import { usePostHog } from "@/hooks/usePostHog";
 import Head from "next/head";
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
@@ -11,7 +11,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   const metaSiteName = "Worldcoin Developer Portal";
 
   const metaDescription =
-    "Build apps using Worldcoin and World ID, the privacy-preserving proof-of-personhood protocol.";
+    "Build apps using Worldcoin and World ID, the privacy-preserving global identity protocol.";
 
   return (
     <Fragment>

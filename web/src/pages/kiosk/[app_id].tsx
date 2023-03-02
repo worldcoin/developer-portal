@@ -1,5 +1,5 @@
-import { GetServerSideProps, NextPageContext } from "next";
-import { Kiosk } from "src/scenes/kiosk/kiosk";
+import { NextPageContext } from "next";
+import { Kiosk } from "src/scenes/kiosk";
 export default Kiosk;
 
 export const getServerSideProps = (context: NextPageContext) => {

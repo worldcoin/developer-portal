@@ -65,13 +65,15 @@ export const Layout = (props: {
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign in"
-                  href={urls.actions("")}
+                  // FIXME: Proper app id
+                  href={urls.appSignIn("app_123")}
                 />
 
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
-                  href={urls.actions("custom")}
+                  // FIXME: Proper app id
+                  href={urls.appActions("app_123")}
                 />
               </NavItemGroup>
 

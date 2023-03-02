@@ -1,9 +1,9 @@
-import { FieldGroup } from "src/components/FieldGroup";
-import { FieldInput } from "src/components/LegacyFieldInput";
-import { Button } from "src/components/LegacyButton";
-import { ModalWindowSection } from "src/components/MultiModal/ModalWindowSection";
+import { FieldGroup } from "@/components/FieldGroup";
+import { FieldInput } from "@/components/FieldInput";
+import { Button } from "@/components/Button";
+import { ModalWindowSection } from "@/components/MultiModal/ModalWindowSection";
 import { memo, useEffect } from "react";
-import { useToggle } from "src/hooks/useToggle";
+import { useToggle } from "@/hooks/useToggle";
 
 const EMAIL_PLACEHOLDER = "no@email";
 
@@ -29,19 +29,13 @@ export const ProfileModal = memo(function ProfileModal() {
             </div>
           }
         >
-          <FieldInput
-            variant="small"
-            readOnly
-            value={EMAIL_PLACEHOLDER}
-            className="mb-6"
-          />
+          <FieldInput readOnly value={EMAIL_PLACEHOLDER} className="mb-6" />
         </FieldGroup>
       </ModalWindowSection>
       <ModalWindowSection className="grid grid-flow-cols">
         <Button
           color="primary"
-          variant="contained"
-          fullWidth
+          block
           // onClick={submitProfileSettings}
           disabled={true}
         >
