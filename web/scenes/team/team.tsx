@@ -4,7 +4,7 @@ import { memo, useEffect } from "react";
 import { Details } from "./Details";
 import { Header } from "./Header";
 import { MemberList } from "./MemberList";
-import { getTeamStore, useTeamStore } from "./store";
+import { getTeamStore, useTeamStore } from "../../stores/team-store";
 
 export const Team = memo(function Team() {
   const { team, fetchTeam } = useTeamStore(getTeamStore);

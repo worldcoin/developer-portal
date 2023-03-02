@@ -1,6 +1,6 @@
 import { Dialog } from "common/Dialog";
 import { memo } from "react";
-import { getTeamStore, useTeamStore } from "scenes/team/store";
+import { getTeamStore, useTeamStore } from "stores/team-store";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
