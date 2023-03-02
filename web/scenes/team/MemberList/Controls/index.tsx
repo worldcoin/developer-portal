@@ -38,12 +38,12 @@ export const Controls = memo(function Controls(props: {
             Filter
           </Button>
 
-          <Button
+          {/* <Button
             className="py-3.5 px-8 uppercase"
             onClick={props.onInviteClick}
           >
             Invite new members
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>

@@ -39,10 +39,10 @@ type TeamStore = {
   setFilter: Dispatch<SetStateAction<Filter>>;
   applyFilter: () => void;
   filteredMembers: Array<TeamMember>;
-  membersForInvite: Array<string>;
-  setMembersForInvite: Dispatch<SetStateAction<Array<string>>>;
-  inviteMembersState: null | InviteMembersState;
-  inviteMembers: () => Promise<void>;
+  // membersForInvite: Array<string>;
+  // setMembersForInvite: Dispatch<SetStateAction<Array<string>>>;
+  // inviteMembersState: null | InviteMembersState;
+  // inviteMembers: () => Promise<void>;
   memberForRemove: null | TeamMember;
   setMemberForRemove: (member: TeamMember | null) => void;
   removeMemberState: null | RemoveMembersState;
@@ -92,42 +92,42 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   filteredMembers: tempTeam.members,
 
-  membersForInvite: [],
+  // membersForInvite: [],
 
-  setMembersForInvite: (members) => {
-    if (typeof members === "function") {
-      set(() => ({ membersForInvite: members(get().membersForInvite) }));
-    } else {
-      set(() => ({ membersForInvite: members }));
-    }
-  },
+  // setMembersForInvite: (members) => {
+  //   if (typeof members === "function") {
+  //     set(() => ({ membersForInvite: members(get().membersForInvite) }));
+  //   } else {
+  //     set(() => ({ membersForInvite: members }));
+  //   }
+  // },
 
-  inviteMembersState: null,
+  // inviteMembersState: null,
 
-  inviteMembers: async () => {
-    set(() => ({ inviteMembersState: InviteMembersState.LOADING }));
+  // inviteMembers: async () => {
+  //   set(() => ({ inviteMembersState: InviteMembersState.LOADING }));
 
-    const { team, setMembers, membersForInvite, setMembersForInvite } = get();
+  //   const { team, setMembers, membersForInvite, setMembersForInvite } = get();
 
-    //TODO: Replace with relevant logic
-    if (team) {
-      setTimeout(() => {
-        setMembers([
-          ...team.members,
-          ...membersForInvite.map((item, idx) => ({
-            image: "",
-            email: item,
-            name: `New Member ${team.members.length + idx + 1}`,
-            verified: false,
-          })),
-        ]);
+  //   //TODO: Replace with relevant logic
+  //   if (team) {
+  //     setTimeout(() => {
+  //       setMembers([
+  //         ...team.members,
+  //         ...membersForInvite.map((item, idx) => ({
+  //           image: "",
+  //           email: item,
+  //           name: `New Member ${team.members.length + idx + 1}`,
+  //           verified: false,
+  //         })),
+  //       ]);
 
-        set(() => ({ inviteMembersState: InviteMembersState.SUCCESS }));
-        setMembersForInvite([]);
-        setTimeout(() => set(() => ({ inviteMembersState: null })), 5000);
-      }, 1500);
-    }
-  },
+  //       set(() => ({ inviteMembersState: InviteMembersState.SUCCESS }));
+  //       setMembersForInvite([]);
+  //       setTimeout(() => set(() => ({ inviteMembersState: null })), 5000);
+  //     }, 1500);
+  //   }
+  // },
 
   memberForRemove: null,
 
