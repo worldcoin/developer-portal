@@ -11,7 +11,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   const metaSiteName = "Worldcoin Developer Portal";
 
   const metaDescription =
-    "Build apps using Worldcoin and World ID, the privacy-preserving proof-of-personhood protocol.";
+    "Build apps using Worldcoin and World ID, the privacy-preserving global identity protocol.";
 
   return (
     <Fragment>

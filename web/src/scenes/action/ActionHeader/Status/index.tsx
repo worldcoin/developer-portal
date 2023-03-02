@@ -12,7 +12,8 @@ interface StatusInterface {
 export const Status = memo(function Status(props: StatusInterface) {
   const router = useRouter();
 
-  const actionEditLink = useMemo(() => urls.actions("custom"), []);
+  // FIXME const actionEditLink = useMemo(() => urls.actions("custom"), []);
+  const actionEditLink = "FIXME";
 
   const handleClickAwaitingDeployment = useCallback<
     MouseEventHandler<HTMLSpanElement>

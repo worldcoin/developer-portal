@@ -179,10 +179,6 @@ export const actionsLogic = kea<actionsLogicType>([
             actions.updateActionList(
               values.actions.filter((action) => action.id !== action_id)
             );
-
-            if (Router.query.action_id) {
-              Router.push(urls.actions("custom"));
-            }
           }
 
           return null;
@@ -266,7 +262,7 @@ export const actionsLogic = kea<actionsLogicType>([
           actions.resetNewAction();
           toast.success(`${action.name} action created successfully!`);
           actions.updateActionList([action, ...values.actions]);
-          Router.push(urls.actions("custom"));
+          // Router.push(urls.actions("custom"));
         }
         return action;
       },
