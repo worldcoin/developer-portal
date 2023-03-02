@@ -1,36 +1,97 @@
-import { App, apps as tempApps } from "src/components/Layout/temp-data";
+import { gql } from "@apollo/client";
+import { graphQLRequest } from "src/lib/frontend-api";
+import { AppModel } from "src/lib/models";
 import { create } from "zustand";
 
-type States = {
-  apps: Array<App>;
-  currentApp: App | null;
+type AppStats = {
+  app_id: string;
+  date: string;
+  verifications: {
+    total: number;
+    total_cumulative: number;
+  };
+  unique_users: {
+    total: number;
+    total_cumulative: number;
+  };
 };
 
-type Actions = {
-  setCurrentApp: (app: App) => void;
-  setCurrentAppById: (id: string) => void;
-  fetchApps: () => Promise<void>;
-  toggleAppActivity: (status: boolean) => void;
+export type IAppStore = {
+  apps: Array<AppModel>;
+  currentApp: AppModel | null;
+  appStats: Array<AppStats>;
+  setApps: (apps: Array<AppModel>) => void;
+  setCurrentApp: (currentApp: AppModel) => void;
+  setAppStats: (appStats: Array<AppStats>) => void;
+  fetchApps: () => void;
+  retrieveApp: (app_id: string) => void;
+  fetchAppStats: () => void;
 };
 
-export const useAppStore = create<States & Actions>((set, get) => ({
-  apps: [],
+// ANCHOR: GraphQL queries
+
+const appAttributes = `
+id
+engine
+description_internal
+is_archived
+is_verified
+logo_url
+is_staging
+name
+status
+created_at
+`;
+
+const fetchAppsQuery = gql`
+  query FetchApps {
+    app {
+      ${appAttributes}
+    }
+  }
+`;
+
+const retrieveAppQuery = gql`
+  query RetrieveApp($app_id: String!) {
+    app(where: { id: { _eq: $app_id } }) {
+      ${appAttributes}
+    }
+  }
+`;
+
+// const selectAppStatsQuery = gql`
+// query SelectAppStats {
+//   // FIXME
+// }
+// `;
+
+// App store
+export const useAppStore = create<IAppStore>((set) => ({
+  apps: [] as AppModel[],
   currentApp: null,
-  setCurrentApp: (currentApp: App) => set(() => ({ currentApp })),
+  appStats: [] as AppStats[],
+  setApps: (apps: AppModel[]) => set({ apps }),
+  setCurrentApp: (currentApp: AppModel) => set({ currentApp }),
+  setAppStats: (appStats: AppStats[]) => set({ appStats }),
+  fetchApps: async () => {
+    const response = await graphQLRequest<{ app: Array<AppModel> }>({
+      query: fetchAppsQuery,
+    });
+    set({ apps: response.data?.app });
+  },
+  retrieveApp: async (app_id) => {
+    const response = await graphQLRequest<{ app: Array<AppModel> }>({
+      query: retrieveAppQuery,
+      variables: {
+        app_id: app_id,
+      },
+    });
 
-  setCurrentAppById: (id: string) => {
-    const app = get().apps.find((app) => app.id === id);
-    if (app) {
-      set(() => ({ currentApp: app }));
+    if (response?.data?.app?.length) {
+      set({ currentApp: response.data.app[0] });
     }
   },
-
-  fetchApps: async () => {
-    const apps = tempApps;
-    set(() => ({ apps }));
-  },
-
-  toggleAppActivity: (status: boolean) => {
-    //TODO toggle app activity logic
+  fetchAppStats: async () => {
+    console.log("fetchAppStats()");
   },
 }));

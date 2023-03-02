@@ -1,12 +1,11 @@
 import React, { memo } from "react";
 import cn from "classnames";
 import Image from "next/image";
-import { AppType } from "src/lib/types";
-import { Icon } from "src/components/Icon";
 import styles from "./styles.module.css";
+import { AppModel } from "src/lib/models";
 
 export const AppLogo = memo(function AppLogo(props: {
-  app: Pick<AppType, "name" | "verified_app_logo" | "is_verified">;
+  app: Pick<AppModel, "name" | "verified_app_logo" | "is_verified">;
   className?: string;
   textClassName?: string;
 }) {

@@ -1,16 +1,14 @@
-import { Icon } from "src/components/Icon";
-import { apps } from "src/components/Layout/temp-data";
-import { Switch } from "src/components/Switch";
-import Image from "next/image";
-import { memo, useEffect, useState } from "react";
 import cn from "classnames";
-import { useAppStore } from "src/stores/appStore";
+import { Icon } from "@/components/Icon";
+import { apps } from "@/components/Layout/temp-data";
+import { Switch } from "@/components/Switch";
+import Image from "next/image";
+import React, { memo, useEffect, useState } from "react";
+import { AppModel } from "src/lib/models";
 
-export const AppHeader = memo(function AppHeader(props: {
-  app: (typeof apps)[0];
-}) {
+export const AppHeader = memo(function AppHeader(props: { app: AppModel }) {
   const [copied, setCopied] = useState(false);
-  const toggleAppActivity = useAppStore((state) => state.toggleAppActivity);
+  // const toggleAppActivity = useAppsStore((state) => state.toggleAppActivity); // TODO: Add app activity toggle
 
   useEffect(() => {
     if (copied) {
@@ -109,8 +107,8 @@ export const AppHeader = memo(function AppHeader(props: {
               {props.app.status}
             </span>
           </div>
-
-          <Switch checked={props.app.is_verified} toggle={toggleAppActivity} />
+          {/* TODO: Add app activity toggle */}
+          <Switch checked={props.app.is_verified} toggle={() => true} />
         </div>
       </div>
     </section>

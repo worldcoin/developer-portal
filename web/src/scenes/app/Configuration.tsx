@@ -1,7 +1,7 @@
 import { FieldInput } from "src/components/FieldInput";
-import { apps } from "src/components/Layout/temp-data";
 import { ChangeEvent, memo, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { AppModel } from "@/lib/models";
 
 const Label = memo(function Label(props: {
   label: string;
@@ -21,7 +21,7 @@ const Label = memo(function Label(props: {
 });
 
 export const Configuration = memo(function Configuration(props: {
-  app: (typeof apps)[0];
+  app: AppModel;
 }) {
   const [appName, setAppName] = useState<string>("");
   const [debouncedAppInput] = useDebounce(appName, 1000);
@@ -39,8 +39,6 @@ export const Configuration = memo(function Configuration(props: {
     if (!debouncedAppInput) {
       return;
     }
-
-    console.log("debouncedAppInput: ", debouncedAppInput);
   }, [debouncedAppInput]);
 
   //ANCHOR: Action after user stop typing for app description
@@ -49,8 +47,6 @@ export const Configuration = memo(function Configuration(props: {
     if (!debouncedAppDescription) {
       return;
     }
-
-    console.log("debouncedAppDescription: ", debouncedAppDescription);
   }, [debouncedAppDescription]);
 
   return (

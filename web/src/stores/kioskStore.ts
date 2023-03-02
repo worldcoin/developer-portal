@@ -1,7 +1,9 @@
-import { ActionModel } from "src/lib/models";
+import { ISuccessResult } from "@worldcoin/idkit";
+import dayjs from "dayjs";
+import { ActionKioskType } from "src/lib/types";
 import { create } from "zustand";
 
-export enum Screen {
+export enum KioskScreen {
   Waiting,
   Connected,
   AlreadyVerified,
@@ -10,40 +12,54 @@ export enum Screen {
   Success,
   InvalidIdentity,
   VerificationError,
+  InvalidRequest,
 }
 
-type _Action = Pick<ActionModel, "id" | "name">;
+interface ISuccessParams {
+  timestamp: dayjs.Dayjs;
+  confirmationCode: string;
+}
 
-type KioskStore = {
-  screen: Screen;
-  selectedAction?: _Action;
-  actions: _Action[];
-  setScreen: (screen: Screen) => void;
-  setSelectedAction: (selectedAction: _Action) => void;
+export type IKioskStore = {
+  kioskAction: ActionKioskType | null;
+  screen: KioskScreen;
+  verificationState: string | null;
+  qrData: { mobile: string; default: string } | null;
+  resetWC: (() => void) | null; // Resets the WalletConnect session
+  successParams: ISuccessParams | null; // Success result from /verify endpoint
+  proofResult: ISuccessResult | null; // Proof result from IDKit
+
+  setScreen: (screen: KioskScreen) => void;
+  setQrData: (qrData: { mobile: string; default: string }) => void;
+  setKioskAction: (kioskAction: ActionKioskType) => void;
+  setVerificationState: (verificationState: string) => void; // TODO: Fix typing of verificationState, should be VerificationState from IDKit
+  setWCReset: (fn: () => void) => void;
+  setSuccessParams: (successParams: ISuccessParams) => void;
+  setProofResult: (proofResult: ISuccessResult) => void;
 };
 
-export const useKioskStore = create<KioskStore>((set, get) => ({
-  screen: Screen.Waiting,
-  setScreen: (screen: Screen) =>
-    set(() => ({
-      screen,
-    })),
-
-  actions: [
-    { id: "1", name: "Custom Action 01" },
-    { id: "2", name: "Custom Action 02" },
-    { id: "3", name: "Custom Action 03" },
-  ],
-
-  selectedAction: undefined,
-  setSelectedAction: (selectedAction: _Action) =>
-    set(() => ({ selectedAction })),
+export const useKioskStore = create<IKioskStore>((set, get) => ({
+  kioskAction: null,
+  screen: KioskScreen.Waiting,
+  verificationState: null,
+  qrData: null,
+  resetWC: null,
+  successParams: null,
+  proofResult: null,
+  setScreen: (screen: KioskScreen) => {
+    if (screen !== get().screen && screen === KioskScreen.Waiting) {
+      // Reset WC when going back to the initial screen (e.g. after an error or a success)
+      get().resetWC?.();
+      set({ successParams: null });
+      set({ proofResult: null });
+    }
+    set({ screen });
+  },
+  setQrData: (qrData: { mobile: string; default: string }) => set({ qrData }),
+  setKioskAction: (kioskAction: ActionKioskType) => set({ kioskAction }),
+  setVerificationState: (verificationState: string) =>
+    set({ verificationState }),
+  setWCReset: (fn: () => void) => set({ resetWC: fn }),
+  setSuccessParams: (successParams: ISuccessParams) => set({ successParams }),
+  setProofResult: (proofResult: ISuccessResult) => set({ proofResult }),
 }));
-
-export const getKioskStore = (store: KioskStore) => ({
-  screen: store.screen,
-  actions: store.actions,
-  selectedAction: store.selectedAction,
-  setScreen: store.setScreen,
-  setSelectedAction: store.setSelectedAction,
-});

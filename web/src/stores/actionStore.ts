@@ -1,21 +1,61 @@
-import { CustomAction, customActions } from "src/components/Layout/temp-data";
+import { gql } from "@apollo/client";
+import { graphQLRequest } from "src/lib/frontend-api";
+import { ActionModel, NullifierModel } from "src/lib/models";
 import { create } from "zustand";
 
-type States = {
-  actions: Array<CustomAction>;
+export interface ActionModelWithNullifiers extends ActionModel {
+  nullifiers: Array<
+    Pick<NullifierModel, "id" | "nullifier_hash" | "created_at">
+  >;
+}
+
+// GraphQL queries
+const selectAllActionsQuery = gql`
+  query SelectAllActions($app_id: String = "") {
+    action(where: { app_id: { _eq: $app_id } }) {
+      id
+      app_id
+      action
+      max_verifications
+      max_accounts_per_user
+      name
+      description
+      nullifiers {
+        id
+        nullifier_hash
+        created_at
+      }
+    }
+  }
+`;
+
+export type IActionStore = {
+  actions: Array<ActionModelWithNullifiers>;
+
+  currentAction: ActionModelWithNullifiers | null;
+  setCurrentAction: (currentAction: ActionModelWithNullifiers) => void;
+  fetchActions: (app_id: string) => void;
 };
 
-type Actions = {
-  setActions: (actions: Array<CustomAction>) => void;
-  fetchActions: (app_id: string) => Promise<void>;
-};
-
-export const useActionStore = create<States & Actions>((set) => ({
-  actions: [],
-  setActions: (actions: Array<CustomAction>) => set(() => ({ actions })),
-
-  fetchActions: async (app_id: string) => {
-    const actions = customActions[app_id];
-    set(() => ({ actions }));
+export const useActionStore = create<IActionStore>((set, get) => ({
+  actions: [] as ActionModelWithNullifiers[],
+  currentAction: null,
+  setCurrentAction: (currentAction: ActionModelWithNullifiers) =>
+    set({ currentAction }),
+  fetchActions: async (app_id) => {
+    const { data } = await graphQLRequest<{
+      action: Array<ActionModelWithNullifiers>;
+    }>({
+      query: selectAllActionsQuery,
+      variables: {
+        app_id: app_id,
+      },
+    });
+    if (data?.action) {
+      set({ actions: data.action });
+    } else {
+      console.error("Could not retrieve actions for app.");
+    }
   },
+  // TODO: Extend with immer (reducer equivalent) to extract sign in with world id action
 }));

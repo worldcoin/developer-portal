@@ -1,15 +1,13 @@
 import cn from "classnames";
-import { useToggle } from "src/hooks/useToggle";
-import { Icon } from "src/components/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";
-import { apps } from "../temp-data";
-import { useAppStore } from "src/stores/appStore";
-
-type App = (typeof apps)[number];
+import { Icon } from "@/components/Icon";
+import { useToggle } from "@/hooks/useToggle";
+import { AppModel } from "@/lib/models";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 
 export const ButtonContent = memo(function ButtonContent(props: {
-  app: App;
+  app: AppModel;
   selected?: boolean;
   className?: string;
 }) {
@@ -29,19 +27,24 @@ export const ButtonContent = memo(function ButtonContent(props: {
   );
 });
 
+const getStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+  apps: store.apps,
+  setCurrentApp: store.setCurrentApp,
+  fetchApps: store.fetchApps,
+});
+
 export const AppSelector = memo(function AppsSelector(props: {
   onNewAppClick: () => void;
 }) {
   const selector = useToggle();
-
-  const { apps, currentApp, fetchApps, setCurrentApp } = useAppStore(
-    (state) => ({
-      ...state,
-    })
-  );
+  const { apps, currentApp, setCurrentApp, fetchApps } =
+    useAppStore(getStoreParams);
 
   useEffect(() => {
-    fetchApps();
+    if (!apps.length) {
+      fetchApps();
+    }
 
     if (!currentApp) {
       setCurrentApp(apps[0]);
@@ -49,7 +52,7 @@ export const AppSelector = memo(function AppsSelector(props: {
   }, [apps, currentApp, fetchApps, setCurrentApp]);
 
   const selectApp = useCallback(
-    (app: App) => {
+    (app: AppModel) => {
       setCurrentApp(app);
       selector.toggleOff();
     },
@@ -62,7 +65,7 @@ export const AppSelector = memo(function AppsSelector(props: {
   }, [props, selector]);
 
   const isSelected = useCallback(
-    (app: App) => app?.id === currentApp?.id,
+    (app: AppModel) => app?.id === currentApp?.id,
     [currentApp]
   );
 
@@ -77,7 +80,7 @@ export const AppSelector = memo(function AppsSelector(props: {
         className={cn(
           "absolute inset-x-0 top-0 bg-fbfbfc border border-ebecef rounded-xl transition-[max-height] overflow-hidden min-h-[44px] z-10",
           { "max-h-11": !selector.isOn },
-          { "max-h-48": selector.isOn }
+          { "max-h-fit": selector.isOn } // TODO: Can we restore smoothing animation?
         )}
       >
         {apps && currentApp && (

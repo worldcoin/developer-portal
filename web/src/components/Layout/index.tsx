@@ -1,20 +1,19 @@
-import { Icon } from "src/components/Icon";
-import { LoggedUserDisplay } from "./LoggedUserDisplay";
-import Link from "next/link";
-import { Fragment, ReactNode } from "react";
-import { NavItem } from "./NavItem";
-import { ToastContainer } from "react-toastify";
-import { Slide } from "react-toastify";
-import { urls } from "src/lib/urls";
-import { useRouter } from "next/router";
-import { Meta } from "src/components/Meta";
 import cn from "classnames";
-import { CookieBanner } from "src/components/CookieBanner/CookieBanner";
-import { SystemStatus } from "./SystemStatus";
-import { NavItemGroup } from "./NavItemsGroup";
+import { CookieBanner } from "@/components/CookieBanner/CookieBanner";
+import { useToggle } from "@/hooks/useToggle";
+import { Icon } from "@/components/Icon";
+import { Meta } from "@/components/Meta";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { Fragment, ReactNode } from "react";
+import { Slide, ToastContainer } from "react-toastify";
 import { AppSelector } from "./AppSelector";
+import { LoggedUserDisplay } from "./LoggedUserDisplay";
+import { NavItem } from "./NavItem";
+import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
-import { useToggle } from "src/hooks/useToggle";
+import { SystemStatus } from "./SystemStatus";
+import { urls } from "@/lib/urls";
 
 export const Layout = (props: {
   title?: string;
