@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleContracts from "pages/api/v1/contracts";
+import handleContracts from "src/pages/api/v1/contracts";
 
 // FIXME
 describe("/api/v1/contracts", () => {

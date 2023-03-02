@@ -1,4 +1,4 @@
-import { validateUrl } from "utils";
+import { validateUrl } from "src/lib/utils";
 
 describe("validate url", () => {
   const invalid = "test.com";

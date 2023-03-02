@@ -1,7 +1,7 @@
 import { createMocks } from "node-mocks-http";
-import handleVerify from "pages/api/v1/verify/[app_id]";
+import handleVerify from "src/pages/api/v1/verify/[app_id]";
 import * as jose from "jose";
-import { generateJWK } from "api-helpers/jwts";
+import { generateJWK } from "src/backend/jwts";
 import fetchMock from "jest-fetch-mock";
 import { when } from "jest-when";
 
