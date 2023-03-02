@@ -53,7 +53,7 @@ export const CreateAppDialog = memo(function CreateAppDialog(
           {/* FIXME: use textarea instead of input */}
           <FieldInput
             className="w-full font-rubik"
-            placeholder="Add description"
+            placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
