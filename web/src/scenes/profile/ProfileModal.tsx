@@ -35,7 +35,7 @@ export const ProfileModal = memo(function ProfileModal() {
       <ModalWindowSection className="grid grid-flow-cols">
         <Button
           color="primary"
-          block
+          className="w-full py-4.5"
           // onClick={submitProfileSettings}
           disabled={true}
         >

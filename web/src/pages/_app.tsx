@@ -1,4 +1,4 @@
-import "../globals.css";
+import "@/globals.css";
 import type { AppContext, AppProps } from "next/app";
 import { Fragment } from "react";
 import { usePostHog } from "@/hooks/usePostHog";
