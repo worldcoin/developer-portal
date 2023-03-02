@@ -1,3 +1,3 @@
-import { Debugger } from "src/scenes/debugger/debugger";
+import { Debugger } from "src/scenes/debugger";
 
 export default Debugger;

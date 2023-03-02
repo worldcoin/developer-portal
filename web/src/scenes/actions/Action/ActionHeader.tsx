@@ -1,6 +1,6 @@
 import { useToggle } from "src/hooks/useToggle";
 import { memo, useCallback, useState } from "react";
-import { VerificationBadges } from "../VerificationBadges";
+import { VerificationBadges } from "./VerificationBadges";
 import cn from "classnames";
 import { Icon } from "src/components/Icon";
 import { CustomAction } from "src/components/Layout/temp-data";

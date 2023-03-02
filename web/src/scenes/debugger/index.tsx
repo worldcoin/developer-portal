@@ -10,7 +10,7 @@ import { App } from "src/components/Layout/temp-data";
 import { Selector } from "src/components/Selector";
 import { useCallback, useState } from "react";
 import { useAppStore } from "src/stores/appStore";
-import { Toggler } from "./Toggler";
+import { Toggler } from "../../components/Toggler";
 
 // FIXME: mocked
 

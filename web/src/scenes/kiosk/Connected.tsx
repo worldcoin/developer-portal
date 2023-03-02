@@ -3,11 +3,7 @@ import cn from "classnames";
 import { Icon } from "src/components/Icon";
 import { Modal } from "src/components/LegacyModal";
 import { Button } from "src/components/Button";
-import {
-  getKioskStore,
-  Screen,
-  useKioskStore,
-} from "../../../stores/kioskStore";
+import { getKioskStore, Screen, useKioskStore } from "../../stores/kioskStore";
 
 export const Connected = memo(function Connected() {
   const { setScreen } = useKioskStore(getKioskStore);
