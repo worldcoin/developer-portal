@@ -8,9 +8,9 @@ import { FieldLabel } from "common/FieldLabel";
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
-import React, { useEffect, useState } from "react";
-import { getActionStore, useActionStore } from "stores/action-store";
-import { AppType, getAppStore, useAppStore } from "stores/app-store";
+import { useEffect, useState } from "react";
+import { getActionStore, useActionStore } from "stores/actionStore";
+import { AppType, getAppStore, useAppStore } from "stores/appStore";
 import { Action } from "./Action";
 
 export function Actions(): JSX.Element | null {

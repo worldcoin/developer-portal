@@ -1,9 +1,9 @@
 import { Listbox } from "@headlessui/react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import React, { memo } from "react";
+import { memo } from "react";
 import { ActionModel } from "src/lib/models";
-import { ActionType } from "stores/action-store";
+import { ActionType } from "stores/actionStore";
 
 type _Action = Pick<ActionModel, "id" | "name">;
 interface ActionSelectProps {

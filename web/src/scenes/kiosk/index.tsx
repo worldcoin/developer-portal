@@ -1,15 +1,11 @@
 import { internal, ISuccessResult } from "@worldcoin/idkit";
 import { useRouter } from "next/router";
-import React, { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { ActionSelect } from "scenes/kiosk/common/ActionSelect";
 import { Icon } from "src/components/Icon";
 import { restAPIRequest } from "src/lib/frontend-api";
-import {
-  ActionType,
-  getActionStore,
-  useActionStore,
-} from "stores/action-store";
-import { getKioskStore, Screen, useKioskStore } from "../../stores/kiosk-store";
+import { ActionType, getActionStore, useActionStore } from "stores/actionStore";
+import { getKioskStore, Screen, useKioskStore } from "../../stores/kioskStore";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
 import { Success } from "./Success";

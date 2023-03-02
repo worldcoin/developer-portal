@@ -1,8 +1,8 @@
-import React, { memo, useEffect } from "react";
+import { memo, useEffect } from "react";
 import { AuthRequired } from "src/components/AuthRequired";
 import { Layout } from "src/components/Layout";
-import { getActionStore, useActionStore } from "stores/action-store";
-import { getAppStore, useAppStore } from "stores/app-store";
+import { getActionStore, useActionStore } from "stores/actionStore";
+import { getAppStore, useAppStore } from "stores/appStore";
 import { Credentials } from "./Credentials";
 import { DefaultAuthorizationLink } from "./DefaultAuthorizationLink";
 import { Header } from "./Header";

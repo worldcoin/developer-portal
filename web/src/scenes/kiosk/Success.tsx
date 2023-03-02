@@ -2,12 +2,12 @@ import cn from "classnames";
 import { Button } from "common/Button";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
-import React, { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import {
   getKioskStore,
   Screen,
   useKioskStore,
-} from "../../../stores/kiosk-store";
+} from "../../../stores/kioskStore";
 import { StatusIcon } from "../common/StatusIcon";
 dayjs.extend(dayjsRelative);
 

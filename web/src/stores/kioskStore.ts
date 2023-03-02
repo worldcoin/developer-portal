@@ -1,7 +1,7 @@
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { restAPIRequest } from "frontend-api";
 import { create } from "zustand";
-import { AppType } from "./app-store";
+import { AppType } from "./appStore";
 
 export enum Screen {
   Waiting,

@@ -1,7 +1,7 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Icon } from "src/components/Icon";
 import { Link } from "src/components/Link";
-import { getAppStore, useAppStore } from "stores/app-store";
+import { getAppStore, useAppStore } from "stores/appStore";
 
 export const Header = memo(function Header() {
   const { currentApp } = useAppStore(getAppStore);
