@@ -1,7 +1,7 @@
 import { useToggle } from "common/hooks";
 import { Icon } from "common/Icon";
 import { memo, useCallback, useState } from "react";
-import { TeamMember, useTeamStore } from "../store";
+import { TeamMember, useTeamStore } from "../../../stores/team-store";
 
 import { Controls } from "./Controls";
 import { InviteMembersDialog } from "./InviteMembersDialog";

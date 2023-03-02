@@ -2,7 +2,7 @@ import { Illustration } from "common/Auth/Illustration";
 import { Button } from "common/Button";
 import { Dialog } from "common/Dialog";
 import { memo } from "react";
-import { getTeamStore, useTeamStore } from "scenes/team/store";
+import { getTeamStore, useTeamStore } from "stores/team-store";
 
 export const RemoveMemberDialog = memo(function RemoveMemberDialog() {
   const { memberForRemove, setMemberForRemove, removeMember } =

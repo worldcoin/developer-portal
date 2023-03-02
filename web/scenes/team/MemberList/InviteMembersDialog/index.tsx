@@ -9,7 +9,7 @@ import {
   getTeamStore,
   InviteMembersState,
   useTeamStore,
-} from "scenes/team/store";
+} from "stores/team-store";
 
 const emailRegEx = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
