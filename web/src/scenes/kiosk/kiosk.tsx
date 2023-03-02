@@ -6,7 +6,7 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { ActionSelect } from "src/scenes/kiosk/common/ActionSelect";
 import { KioskError } from "./common/KioskError";
 import { Connected } from "./Connected";
-import { getKioskStore, Screen, useKioskStore } from "./store/kiosk-store";
+import { getKioskStore, Screen, useKioskStore } from "../../stores/kioskStore";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
 

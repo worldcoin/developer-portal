@@ -2,11 +2,7 @@ import { memo } from "react";
 import { StatusIcon } from "../StatusIcon";
 import { Button } from "src/components/Button";
 
-import {
-  getKioskStore,
-  Screen,
-  useKioskStore,
-} from "src/scenes/kiosk/store/kiosk-store";
+import { getKioskStore, Screen, useKioskStore } from "src/stores/kioskStore";
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;

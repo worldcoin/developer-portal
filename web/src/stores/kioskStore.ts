@@ -1,5 +1,5 @@
+import { ActionModel } from "src/lib/models";
 import { create } from "zustand";
-import { Action } from "../types";
 
 export enum Screen {
   Waiting,
@@ -12,12 +12,14 @@ export enum Screen {
   VerificationError,
 }
 
+type _Action = Pick<ActionModel, "id" | "name">;
+
 type KioskStore = {
   screen: Screen;
-  selectedAction?: Action;
-  actions: Action[];
+  selectedAction?: _Action;
+  actions: _Action[];
   setScreen: (screen: Screen) => void;
-  setSelectedAction: (selectedAction: Action) => void;
+  setSelectedAction: (selectedAction: _Action) => void;
 };
 
 export const useKioskStore = create<KioskStore>((set, get) => ({
@@ -34,7 +36,7 @@ export const useKioskStore = create<KioskStore>((set, get) => ({
   ],
 
   selectedAction: undefined,
-  setSelectedAction: (selectedAction: Action) =>
+  setSelectedAction: (selectedAction: _Action) =>
     set(() => ({ selectedAction })),
 }));
 

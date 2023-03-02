@@ -1,13 +1,14 @@
 import { memo } from "react";
 import cn from "classnames";
 import { Listbox } from "@headlessui/react";
-import { Action } from "src/scenes/kiosk/types";
 import { Icon } from "src/components/Icon";
+import { ActionModel } from "src/lib/models";
 
+type _Action = Pick<ActionModel, "id" | "name">;
 interface ActionSelectProps {
-  value?: Action;
-  onChange: (value: Action) => void;
-  options?: Action[];
+  value?: _Action;
+  onChange: (value: _Action) => void;
+  options?: _Action[];
 }
 
 export const ActionSelect = memo(function ActionSelect(

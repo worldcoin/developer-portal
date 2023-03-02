@@ -10,7 +10,7 @@ import { Icon } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
 import { CustomAction } from "src/components/Layout/temp-data";
 import { useEffect } from "react";
-import { useActionStore } from "./store";
+import { useActionStore } from "../../stores/actionStore";
 import { useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { Action } from "./Action";

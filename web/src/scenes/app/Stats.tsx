@@ -1,4 +1,4 @@
-import { Selector } from "./Selector";
+import { Selector } from "./StatsSelector";
 import { memo, useMemo, useState } from "react";
 import { Icon, IconType } from "src/components/Icon";
 import dayjs from "dayjs";

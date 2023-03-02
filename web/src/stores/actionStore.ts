@@ -1,9 +1,4 @@
-import {
-  CustomAction,
-  customActions,
-  SignInAction,
-  signInActions,
-} from "src/components/Layout/temp-data";
+import { CustomAction, customActions } from "src/components/Layout/temp-data";
 import { create } from "zustand";
 
 type States = {
