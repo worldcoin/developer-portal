@@ -494,7 +494,7 @@ export const actionLogic = kea<actionLogicType>([
         url.pathname = urls.kiosk(currentAction.id);
         const kiosk = `${url.toString()}`;
 
-        url.pathname = urls.hostedPage(currentAction.id);
+        //  url.pathname = urls.hostedPage(currentAction.id);
         return { kiosk, hostedPage: `${url.toString()}?signal={yourSignal}` };
       },
     ],
