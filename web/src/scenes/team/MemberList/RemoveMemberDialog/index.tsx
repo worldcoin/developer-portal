@@ -15,7 +15,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog() {
       panelClassName="flex flex-col space-y-8"
     >
       <div className="flex flex-col items-center space-y-6">
-        <Illustration icon="warning-triangle" color="warning" />
+        <Illustration icon="warning-triangle" color="danger" />
 
         <div className="flex flex-col space-y-2 text-center">
           <span className="text-24 font-sora font-semibold">
@@ -29,7 +29,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog() {
         </div>
       </div>
 
-      <Button variant="warning" className="py-4.5 px-9" onClick={removeMember}>
+      <Button variant="danger" className="py-4.5 px-9" onClick={removeMember}>
         Delete member
       </Button>
 

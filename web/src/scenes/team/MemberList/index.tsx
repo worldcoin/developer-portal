@@ -84,7 +84,7 @@ export const MemberList = memo(function MemberList() {
               </div>
 
               <button
-                className="text-warning hover:opacity-75 transition-opacity"
+                className="text-danger hover:opacity-75 transition-opacity"
                 onClick={() => handleDelete(member)}
               >
                 Remove

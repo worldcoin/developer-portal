@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, memo } from "react";
 import cn from "classnames";
 
 interface ButtonInterface extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "warning" | "plain";
+  variant?: "primary" | "secondary" | "danger" | "plain";
 }
 
 export const Button = memo(function Button(props: ButtonInterface) {
@@ -27,8 +27,8 @@ export const Button = memo(function Button(props: ButtonInterface) {
             variant === "secondary",
         },
         {
-          "font-sora bg-warning-light text-warning text-16 leading-5 rounded-xl":
-            variant === "warning",
+          "font-sora bg-danger-light text-danger text-16 leading-5 rounded-xl":
+            variant === "danger",
         },
         {
           "font-sora bg-transparent text-16 leading-5 text-neutral-secondary":

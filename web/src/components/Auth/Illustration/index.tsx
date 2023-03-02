@@ -4,7 +4,7 @@ import { Icon, IconType } from "src/components/Icon";
 
 interface IllustrationInterface {
   className?: string;
-  color?: "primary" | "success" | "warning";
+  color?: "primary" | "success" | "danger";
   icon: IconType;
 }
 
@@ -20,7 +20,7 @@ export const Illustration = memo(function Illustration(
         "grid items-center justify-center w-[88px] h-[88px] rounded-full",
         { "bg-primary-light": color === "primary" },
         { "bg-success-light": color === "success" },
-        { "bg-warning-light": color === "warning" }
+        { "bg-danger-light": color === "danger" }
       )}
     >
       <div className="relative flex">
@@ -29,7 +29,7 @@ export const Illustration = memo(function Illustration(
             "w-10 h-10",
             { "text-primary": color === "primary" },
             { "text-success": color === "success" },
-            { "text-warning": color === "warning" }
+            { "text-danger": color === "danger" }
           )}
           name={icon}
         />
@@ -40,7 +40,7 @@ export const Illustration = memo(function Illustration(
               "w-10 h-10",
               { "text-primary/50": color === "primary" },
               { "text-success/50": color === "success" },
-              { "text-warning/50": color === "warning" }
+              { "text-danger/50": color === "danger" }
             )}
             name={icon}
           />
