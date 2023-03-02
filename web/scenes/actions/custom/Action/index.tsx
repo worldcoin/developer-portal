@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Icon } from "common/Icon";
 import { Switch } from "common/Switch";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 
 dayjs.extend(relativeTime);
 

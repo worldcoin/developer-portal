@@ -8,7 +8,7 @@ import {
 } from "react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 
 interface InputInterface {
   className?: string;

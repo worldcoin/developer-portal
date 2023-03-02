@@ -3,7 +3,7 @@ import { FieldInput } from "common/LegacyFieldInput";
 import { Button } from "common/LegacyButton";
 import { ModalWindowSection } from "common/MultiModal/ModalWindowSection";
 import { memo, useEffect } from "react";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 
 const EMAIL_PLACEHOLDER = "no@email";
 

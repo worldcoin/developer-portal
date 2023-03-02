@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { Icon } from "common/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useEffect, useMemo } from "react";

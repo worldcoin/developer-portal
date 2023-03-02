@@ -3,7 +3,7 @@ import cn from "classnames";
 import Image from "next/image";
 import { Icon } from "common/Icon";
 import { ProfileSettingsModal } from "./ProfileSettingsModal";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import useAuth from "hooks/useAuth";
 
 export function LoggedUserDisplay(props: { className?: string }) {

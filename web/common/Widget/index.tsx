@@ -1,4 +1,4 @@
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { Icon } from "common/Icon";
 import { memo, ReactNode, useEffect } from "react";
 import cn from "classnames";

@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect } from "react";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { usePopperTooltip } from "react-popper-tooltip";
 import cn from "classnames";
 import { Icon, IconType } from "common/Icon";

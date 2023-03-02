@@ -3,7 +3,7 @@ import { Fragment, memo, ReactNode, useCallback, useEffect } from "react";
 import cn from "classnames";
 import { FieldControl } from "./FieldControl";
 import { usePopperTooltip } from "react-popper-tooltip";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 
 export const Field = memo(function Field(props: {
   className?: string;

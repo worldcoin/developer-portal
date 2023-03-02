@@ -1,4 +1,4 @@
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { memo, useCallback, useState } from "react";
 import { VerificationBadges } from "../VerificationBadges";
 import cn from "classnames";

@@ -1,7 +1,7 @@
 import { useValues } from "kea";
 import { actionLogic } from "logics/actionLogic";
 import { useCallback } from "react";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { UserInterfacesType } from "types";
 import { HostedPage } from "./HostedPage";
 import cn from "classnames";

@@ -7,7 +7,7 @@ import { FieldUpload } from "common/FieldUpload";
 import { Modal } from "common/LegacyModal";
 import { ModalHeader } from "common/LegacyModalHeader";
 import { ModalMain } from "common/LegacyModalMain";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { useValues } from "kea";
 import { teamLogic } from "logics/teamLogic";
 import { Field, Form } from "kea-forms";

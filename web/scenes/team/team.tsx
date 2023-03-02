@@ -9,7 +9,7 @@ import { useActions, useValues } from "kea";
 import { teamLogic } from "logics/teamLogic";
 import { Modal } from "common/LegacyModal";
 import { FieldInput } from "common/LegacyFieldInput";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { text } from "common/styles";
 import { Members } from "./Members";
 

@@ -1,8 +1,8 @@
 import { memo, ReactNode, useMemo, useRef } from "react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import { useToggle } from "common/hooks";
-import { useClickOutside } from "common/hooks/use-click-outside";
+import { useToggle } from "hooks/useToggle";
+import { useClickOutside } from "hooks/useClickOutside";
 import { useEffect } from "react";
 
 export const Dropdown = memo(function Dropdown(props: {

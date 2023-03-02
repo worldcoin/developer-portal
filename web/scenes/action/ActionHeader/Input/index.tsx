@@ -8,7 +8,7 @@ import {
   FormEvent,
   KeyboardEvent,
 } from "react";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import cn from "classnames";
 import { Icon } from "common/Icon";
 

@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 import type { AppContext, AppProps } from "next/app";
 import { Fragment } from "react";
-import { usePostHog } from "common/hooks/use-posthog";
+import { usePostHog } from "hooks/usePostHog";
 import Head from "next/head";
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {

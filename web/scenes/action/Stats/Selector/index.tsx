@@ -1,9 +1,9 @@
 import { memo, useRef } from "react";
 import cn from "classnames";
 import { Icon } from "common/Icon";
-import { useToggle } from "common/hooks";
-import { useClickOutside } from "common/hooks/use-click-outside";
+import { useClickOutside } from "hooks/useClickOutside";
 import { StatsArgs } from "logics/actionLogic";
+import { useToggle } from "hooks/useToggle";
 
 export const Selector = memo(function Selector(props: {
   className?: string;

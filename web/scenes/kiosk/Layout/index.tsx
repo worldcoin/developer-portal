@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { AppLogo } from "common/AppLogo";
-import { useColorScheme } from "common/hooks/use-color-scheme";
+import { useColorScheme } from "hooks/useColorScheme";
 import { Icon } from "common/Icon";
 import Head from "next/head";
 import { useRouter } from "next/router";

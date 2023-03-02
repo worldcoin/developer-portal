@@ -3,7 +3,7 @@ import { Input } from "scenes/action/ActionCard/Input";
 import { Button } from "common/LegacyButton";
 import { CardWithSideGradient } from "common/CardWithSideGradient";
 import { Dropdown } from "common/Dropdown";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { Modal } from "common/LegacyModal";
 import { Fragment, memo, useCallback } from "react";
 import { AppType } from "types";

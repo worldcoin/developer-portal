@@ -2,7 +2,7 @@ import cn from "classnames";
 import { Button } from "common/LegacyButton";
 import { Link } from "common/components/Link";
 import { Dropdown } from "common/Dropdown";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { Modal } from "common/LegacyModal";
 import { useActions, useValues } from "kea";
 import { actionsLogic } from "logics/actionsLogic";

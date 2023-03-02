@@ -14,7 +14,7 @@ import { SystemStatus } from "./SystemStatus";
 import { NavItemGroup } from "./NavItemsGroup";
 import { AppSelector } from "./AppSelector";
 import { NewAppDialog } from "./NewAppDialog";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 
 export const Layout = (props: {
   title?: string;

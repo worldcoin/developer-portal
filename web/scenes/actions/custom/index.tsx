@@ -5,7 +5,7 @@ import { Dialog } from "common/Dialog";
 import { DialogHeader } from "common/DialogHeader";
 import { FieldInput } from "common/FieldInput";
 import { FieldLabel } from "common/FieldLabel";
-import { useToggle } from "common/hooks";
+import { useToggle } from "hooks/useToggle";
 import { Icon } from "common/Icon";
 import { Layout } from "common/Layout";
 import { CustomAction } from "common/Layout/temp-data";
