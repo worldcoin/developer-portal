@@ -106,7 +106,7 @@ export const Layout = (props: {
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
-                  href={urls.debugger()}
+                  href={urls.debugger(router.query.app_id as string)}
                 />
 
                 <NavItem
