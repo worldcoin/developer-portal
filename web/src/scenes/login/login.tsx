@@ -14,13 +14,13 @@ import { IAuthStore, useAuthStore } from "src/stores/authStore";
 import { shallow } from "zustand/shallow";
 
 const getParams = (store: IAuthStore) => ({
-  setToken: store.setToken,
+  setAuthCookies: store.setAuthCookies,
   enterApp: store.enterApp,
 });
 
 export function Login({ loginUrl, devToken }: ILoginPageProps) {
   const router = useRouter();
-  const { setToken, enterApp } = useAuthStore(getParams, shallow);
+  const { setAuthCookies, enterApp } = useAuthStore(getParams, shallow);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -50,11 +50,11 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
       }
 
       if (!payload.new_user && payload.token) {
-        setToken(payload.token);
+        setAuthCookies(token);
         enterApp(router);
       }
     },
-    [router, setToken, enterApp, setLoading]
+    [router, setAuthCookies, enterApp]
   );
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
                 <span
                   className="cursor-pointer underline font-normal"
                   onClick={() => {
-                    setToken(devToken);
+                    setAuthCookies(devToken);
                     enterApp(router);
                   }}
                 >

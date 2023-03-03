@@ -23,7 +23,8 @@ const FetchMeQuery = gql`
 `;
 
 const fetchUser = async () => {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().getToken();
+
   if (!token) {
     throw new Error("No token");
   }

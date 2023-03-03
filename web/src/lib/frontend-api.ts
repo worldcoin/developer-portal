@@ -65,7 +65,7 @@ export const restAPIRequest = async <T>(
 export const graphQLRequest = async <T>(
   queryOptions: QueryOptions
 ): Promise<ApolloQueryResult<T | null>> => {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().getToken();
 
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",

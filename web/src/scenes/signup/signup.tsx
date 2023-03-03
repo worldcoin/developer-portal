@@ -18,7 +18,7 @@ import { IAuthStore, useAuthStore } from "src/stores/authStore";
 import { shallow } from "zustand/shallow";
 
 const getParams = (store: IAuthStore) => ({
-  setToken: store.setToken,
+  setAuthCookies: store.setAuthCookies,
 });
 
 export function Signup() {
@@ -26,7 +26,7 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setToken } = useAuthStore(getParams, shallow);
+  const { setAuthCookies } = useAuthStore(getParams, shallow);
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -51,14 +51,14 @@ export function Signup() {
       if (response.ok) {
         const { token } = await response.json();
         localStorage.removeItem("signup_token");
-        setToken(token);
+        setAuthCookies(token);
         router.push("/app"); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);
       }
       // FIXME: Handle errors
     },
-    [email, setToken, teamName, router]
+    [email, teamName, setAuthCookies, router]
   );
 
   useEffect(() => {

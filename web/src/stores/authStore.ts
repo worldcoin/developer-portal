@@ -8,6 +8,7 @@ export interface IAuthStore {
   logout: () => void;
   enterApp: (router: NextRouter) => void;
   isAuthCookiesValid: (ctx?: Parameters<GetServerSideProps>[0]) => boolean;
+  getToken: () => string | null;
   setAuthCookies: (
     token: string | null,
     returnTo?: string,
@@ -18,6 +19,16 @@ export interface IAuthStore {
 export const useAuthStore = create<IAuthStore>()((set, get) => ({
   logout: () => {
     deleteCookie("auth");
+  },
+
+  getToken: () => {
+    const auth = getCookie("auth") as string | undefined;
+
+    if (!auth || !JSON.parse(auth).token) {
+      return null;
+    }
+
+    return JSON.parse(auth).token;
   },
 
   isAuthCookiesValid: (ctx?: Parameters<GetServerSideProps>[0]) => {

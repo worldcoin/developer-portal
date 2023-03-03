@@ -84,10 +84,7 @@ module.exports = {
         "#fbfbfc",
         "#fcfbfe",
         "#ff6848",
-<<<<<<< HEAD
-=======
         "#ffb11b",
->>>>>>> bc1a88f8efdf18cacd861721d7a9b3d6b080fb43
         "#fff0ed",
         "#fff9e5",
         "#ffffff",

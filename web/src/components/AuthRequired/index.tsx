@@ -14,9 +14,11 @@ export const AuthRequired = memo(function AuthRequired(props: {
   const { isAuthCookiesValid, setAuthCookies } = useAuthStore(getState);
   const router = useRouter();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!isSSR() && !isAuthCookiesValid()) {
-      return setAuthCookies(null, router.asPath);
+      setAuthCookies(null, router.asPath);
+      router.push("/login");
+      return;
     }
   }, [isAuthCookiesValid, router, setAuthCookies]);
 
