@@ -1,27 +1,45 @@
 import cn from "classnames";
-import { CookieBanner } from "@/components/CookieBanner/CookieBanner";
-import { useToggle } from "@/hooks/useToggle";
-import { Icon } from "@/components/Icon";
-import { Meta } from "@/components/Meta";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, useEffect } from "react";
 import { Slide, ToastContainer } from "react-toastify";
+import useApps from "@/hooks/useApps";
+import { useToggle } from "@/hooks/useToggle";
+import { urls } from "@/lib/urls";
+import { IAppStore, useAppStore } from "@/stores/appStore";
+import { CookieBanner } from "../CookieBanner/CookieBanner";
+import { Icon } from "../Icon";
+import { Link } from "../Link";
+import { Meta } from "../Meta";
 import { AppSelector } from "./AppSelector";
 import { LoggedUserDisplay } from "./LoggedUserDisplay";
 import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
-import { urls } from "@/lib/urls";
+
+const getStore = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+  setCurrentAppById: store.setCurrentAppById,
+});
 
 export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
 }) => {
-  const router = useRouter();
   const newAppDialog = useToggle();
+  const router = useRouter();
+
+  const { setCurrentAppById } = useAppStore(getStore);
+  const { apps } = useApps();
+
+  useEffect(() => {
+    if (!router.query.app_id || !apps) {
+      return;
+    }
+
+    setCurrentAppById(router.query.app_id as string);
+  }, [apps, router.query.app_id, setCurrentAppById]);
 
   return (
     <Fragment>
@@ -59,20 +77,22 @@ export const Layout = (props: {
 
             <nav className="min-h-0 overflow-y-auto">
               <NavItemGroup heading="set up">
-                <NavItem icon="apps" name="App Profile" href={urls.app()} />
+                <NavItem
+                  icon="apps"
+                  name="App Profile"
+                  href={urls.app(router.query.app_id as string)}
+                />
 
                 <NavItem
                   icon="world-id-sign-in"
-                  name="Sign in"
-                  // FIXME: Proper app id
-                  href={urls.appSignIn("app_123")}
+                  name="Sign In"
+                  href={urls.appSignIn(router.query.app_id as string)}
                 />
 
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
-                  // FIXME: Proper app id
-                  href={urls.appActions("app_123")}
+                  href={urls.appActions(router.query.app_id as string)}
                 />
               </NavItemGroup>
 
@@ -80,7 +100,7 @@ export const Layout = (props: {
                 <NavItem
                   name="Docs"
                   icon="document"
-                  href="https://id.worldcoin.org/docs"
+                  href="https://docs.worldcoin.org"
                 />
 
                 <NavItem

@@ -31,8 +31,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const devToken =
     process.env.NODE_ENV !== "production" &&
     !ctx.req.url?.includes("https://developer.worldcoin.org")
-      ? await getDevToken()
-      : undefined;
+      ? (await getDevToken()) ?? null
+      : null;
 
   return {
     props: {

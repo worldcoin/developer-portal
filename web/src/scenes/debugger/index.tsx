@@ -27,17 +27,7 @@ export function Debugger(): JSX.Element {
   const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
   const [currentMode, setCurrentMode] = useState(modes[0]);
 
-  const handleFirstLoad = useCallback(
-    (state: IAppStore) => {
-      if (!currentApp) {
-        setCurrentApp(state.apps[0]);
-      }
-      return state;
-    },
-    [currentApp]
-  );
-
-  const { apps } = useAppStore(handleFirstLoad);
+  const apps = useAppStore((state) => state.apps);
 
   return (
     <Layout

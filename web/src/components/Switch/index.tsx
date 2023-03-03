@@ -5,7 +5,7 @@ import { Switch as BaseSwitch } from "@headlessui/react";
 interface SwitchInterface {
   className?: string;
   checked?: boolean;
-  toggle: (checked: boolean) => void;
+  toggle: () => void;
   customColors?: {
     checked?: string;
     unchecked?: string;
