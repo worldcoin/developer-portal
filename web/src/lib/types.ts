@@ -5,6 +5,7 @@
 
 import { IconType } from "src/components/Icon";
 import { NextApiRequest } from "next";
+import { ActionModel, AppModel } from "./models";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
@@ -38,64 +39,6 @@ export interface JwtConfig {
   type: "HS512" | "HS384" | "HS256";
 }
 
-// FIXME: Should be removed
-export interface UserType {
-  id: string;
-  name: string;
-  email: string;
-  is_subscribed?: boolean;
-}
-
-export const userInterfaces = ["widget", "kiosk"] as const;
-export type UserInterfacesType = (typeof userInterfaces)[number];
-export type ActionUserInterfaces = {
-  enabled_interfaces?: UserInterfacesType[];
-};
-
-// FIXME: Should be removed
-export interface ActionType {
-  id: string;
-  name: string;
-  action: string;
-  external_nullifier: string;
-  is_staging: boolean;
-  is_archived: boolean;
-  public_description: string;
-  description: string;
-  engine: "cloud" | "on-chain";
-  created_at: string; // timestamp
-  updated_at: string; // timestamp
-  status: "created" | "active" | "inactive";
-  return_url: string;
-  user_interfaces: ActionUserInterfaces;
-  app: AppType;
-  app_id: string;
-  nullifiers_aggregate?: {
-    aggregate: {
-      count: number;
-    };
-  };
-}
-
-// FIXME: Should be removed
-export interface TeamType {
-  id: string;
-  name: string;
-  apps: Array<AppType>;
-  users: Array<UserType>;
-}
-
-// FIXME: Should be removed
-export interface AppType {
-  id: string;
-  name: string;
-  logo_url: string;
-  verified_app_logo: string;
-  is_verified: boolean;
-  team_id: string;
-  actions: Array<ActionType>;
-}
-
 export type ActionStatsModel = Array<{
   action_id: string;
   date: string;
@@ -103,30 +46,18 @@ export type ActionStatsModel = Array<{
   total_cumulative: number;
 }>;
 
+// FIXME: Remove
 export interface PublicNullifier {
   nullifier_hash: string;
 }
 
-// FIXME: Should be removed
-export interface ModelPublicAction
-  extends Pick<
-    ActionType,
-    | "id"
-    | "name"
-    | "public_description"
-    | "is_staging"
-    | "engine"
-    | "return_url"
-  > {
-  app: Pick<AppType, "name" | "verified_app_logo" | "is_verified">;
-  nullifiers: PublicNullifier[];
-}
-
+// FIXME: Remove
 export interface ContractType {
   key: string;
   value: string;
 }
 
+// FIXME: Remove ?
 export type EnvironmentType = {
   name: string;
   value: "production" | "staging";
@@ -144,3 +75,13 @@ export interface IInternalError {
   statusCode?: number;
   attribute?: string | null;
 }
+
+export type ActionKioskType = Pick<
+  ActionModel,
+  "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
+> & {
+  app: Pick<
+    AppModel,
+    "id" | "name" | "logo_url" | "is_staging" | "is_verified" | "__typename"
+  >;
+};
