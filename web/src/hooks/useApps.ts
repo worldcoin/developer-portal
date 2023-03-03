@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
-import { useAuthStore } from "src/stores/authStore";
 import { AppModel } from "@/lib/models";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
@@ -11,8 +10,8 @@ import { AppStatusType } from "src/lib/types";
 import { toast } from "react-toastify";
 
 const FetchAppsQuery = gql`
-  query Apps($team_id: String!) {
-    app(where: { team_id: { _eq: $team_id } }, order_by: { created_at: asc }) {
+  query Apps {
+    app(order_by: { created_at: asc }) {
       id
       logo_url
       name
@@ -53,24 +52,16 @@ const UpdateAppQuery = gql`
 `;
 
 const fetchApps = async () => {
-  const token = useAuthStore.getState().token;
-
-  if (!token) {
-    throw new Error("No token");
-  }
-
   const response = await graphQLRequest<{
     app: Array<AppModel>;
   }>({
     query: FetchAppsQuery,
-    variables: { team_id: "team_d7cde14f17eda7e0ededba7ded6b4467" },
   });
 
   if (response.data?.app.length) {
     return response.data.app;
   }
-
-  throw new Error("No apps");
+  return [];
 };
 
 const updateAppFetcher = async (
