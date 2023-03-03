@@ -7,10 +7,9 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { Icon, IconType } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
 import { Selector } from "src/components/Selector";
-import { useCallback, useState } from "react";
-import { IAppStore, useAppStore } from "src/stores/appStore";
+import { useState } from "react";
+import { useAppStore } from "src/stores/appStore";
 import { Toggler } from "../../components/Toggler";
-import { AppModel } from "src/lib/models";
 
 // FIXME: mocked
 
@@ -23,11 +22,9 @@ const envs = [
 // end mocked
 
 export function Debugger(): JSX.Element {
-  const [currentApp, setCurrentApp] = useState<AppModel | null>(null);
   const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
   const [currentMode, setCurrentMode] = useState(modes[0]);
-
-  const apps = useAppStore((state) => state.apps);
+  const currentApp = useAppStore((state) => state.currentApp);
 
   return (
     <Layout
@@ -62,12 +59,7 @@ export function Debugger(): JSX.Element {
 
         <div className="space-y-8">
           <FieldGroup label="App" className="!text-14">
-            <Selector
-              values={apps}
-              value={currentApp}
-              setValue={setCurrentApp}
-              render={(item) => <>{item ? item.name : "Loading"}</>}
-            />
+            <FieldInput value={currentApp?.name ?? "Loading..."} disabled />
           </FieldGroup>
 
           <FieldGroup label="Mode" className="!text-14">
