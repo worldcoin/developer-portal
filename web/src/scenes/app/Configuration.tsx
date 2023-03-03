@@ -1,10 +1,7 @@
 import { FieldInput } from "src/components/FieldInput";
-import { apps } from "src/components/Layout/temp-data";
 import { ChangeEvent, memo, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { AppModel } from "src/lib/models";
-import { AppStore, useAppStore } from "src/stores/appStore";
-import { shallow } from "zustand/shallow";
+import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 
 const Label = memo(function Label(props: {

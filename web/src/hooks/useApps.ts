@@ -4,9 +4,9 @@ import { useAuthStore } from "src/stores/authStore";
 import { AppModel } from "@/lib/models";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
-import { AppStore, useAppStore } from "src/stores/appStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { AppStatusType } from "src/lib/types";
 import { toast } from "react-toastify";
 
@@ -112,7 +112,7 @@ const updateAppFetcher = async (
   throw new Error("Failed to update app status");
 };
 
-const getStore = (store: AppStore) => ({
+const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
   setApps: store.setApps,
   setCurrentApp: store.setCurrentApp,

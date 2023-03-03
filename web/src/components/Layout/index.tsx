@@ -1,32 +1,23 @@
-import { Icon } from "src/components/Icon";
-import { LoggedUserDisplay } from "./LoggedUserDisplay";
-import Link from "next/link";
-import { Fragment, ReactNode, useEffect } from "react";
-import { NavItem } from "./NavItem";
-import { ToastContainer } from "react-toastify";
-import { Slide } from "react-toastify";
-import { urls } from "src/lib/urls";
-import { useRouter } from "next/router";
-import { Meta } from "src/components/Meta";
 import cn from "classnames";
-import { CookieBanner } from "@/components/CookieBanner/CookieBanner";
-import { useToggle } from "@/hooks/useToggle";
-import { Icon } from "@/components/Icon";
-import { Meta } from "@/components/Meta";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, useEffect } from "react";
 import { Slide, ToastContainer } from "react-toastify";
+import useApps from "@/hooks/useApps";
+import { useToggle } from "@/hooks/useToggle";
+import { urls } from "@/lib/urls";
+import { IAppStore, useAppStore } from "@/stores/appStore";
+import { CookieBanner } from "../CookieBanner/CookieBanner";
+import { Icon } from "../Icon";
+import { Link } from "../Link";
+import { Meta } from "../Meta";
 import { AppSelector } from "./AppSelector";
 import { LoggedUserDisplay } from "./LoggedUserDisplay";
 import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
-import { useToggle } from "src/hooks/useToggle";
-import { AppStore, useAppStore } from "src/stores/appStore";
-import useApps from "src/hooks/useApps";
+import { SystemStatus } from "./SystemStatus";
 
-const getStore = (store: AppStore) => ({
+const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
   setCurrentAppById: store.setCurrentAppById,
 });

@@ -1,8 +1,7 @@
-import { App, apps as tempApps } from "src/components/Layout/temp-data";
 import { AppModel } from "src/lib/models";
 import { create } from "zustand";
 
-export type AppStore = {
+export type IAppStore = {
   apps: Array<AppModel>;
   currentApp: AppModel | null;
 
@@ -11,15 +10,15 @@ export type AppStore = {
   setApps: (apps: Array<AppModel>) => void;
 };
 
-export const useAppStore = create<AppStore>((set, get) => ({
+export const useAppStore = create<IAppStore>((set, get) => ({
   apps: [],
   currentApp: null,
   setCurrentApp: (currentApp) => set(() => ({ currentApp })),
-
-    if (response?.data?.app?.length) {
-      set({ currentApp: response.data.app[0] });
+  setCurrentAppById: (id: string) => {
+    const app = get().apps.find((app) => app.id === id);
+    if (app) {
+      set(() => ({ currentApp: app }));
     }
   },
-
   setApps: (apps) => set(() => ({ apps })),
 }));

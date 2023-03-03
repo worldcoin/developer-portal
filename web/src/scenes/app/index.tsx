@@ -1,16 +1,15 @@
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 import { AuthRequired } from "src/components/AuthRequired";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
-import { memo, useEffect, useState } from "react";
-import { AppStore, useAppStore } from "src/stores/appStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import { AppHeader } from "./AppHeader";
 import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
 import { shallow } from "zustand/shallow";
 import useApps from "src/hooks/useApps";
 
-const getStore = (store: AppStore) => ({
+const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 

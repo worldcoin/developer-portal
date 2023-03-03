@@ -1,12 +1,14 @@
 import cn from "classnames";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useMemo, useState } from "react";
-import { AppStore, useAppStore } from "src/stores/appStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { Link } from "src/components/Link";
 import { useRouter } from "next/router";
+import { useToggle } from "src/hooks/useToggle";
+import { Icon } from "src/components/Icon";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -47,7 +49,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
   );
 });
 
-const getStore = (store: AppStore) => ({
+const getStore = (store: IAppStore) => ({
   apps: store.apps,
   currentApp: store.currentApp,
   setApps: store.setApps,
