@@ -1,4 +1,4 @@
-import handleJWKs from "pages/api/v1/jwks";
+import handleJWKs from "src/pages/api/v1/jwks";
 
 // FIXME
 describe("/api/v1/jwks", () => {

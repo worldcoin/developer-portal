@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -34,6 +39,7 @@
     "partialize",
     "secp256k1",
     "signup",
+    "testid",
     "timestamptz",
     "toastify",
     "unarchived",

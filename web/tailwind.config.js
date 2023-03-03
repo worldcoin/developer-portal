@@ -55,6 +55,8 @@ module.exports = {
         DEFAULT: "#ffc700",
         light: "#FFF9E5",
       },
+      white: "#ffffff",
+      black: "#010101",
       ...mirrorHexColors([
         "#000000",
         "#191c20",
@@ -82,7 +84,12 @@ module.exports = {
         "#fbfbfc",
         "#fcfbfe",
         "#ff6848",
+<<<<<<< HEAD
+=======
+        "#ffb11b",
+>>>>>>> bc1a88f8efdf18cacd861721d7a9b3d6b080fb43
         "#fff0ed",
+        "#fff9e5",
         "#ffffff",
       ]),
       current: "currentColor",
