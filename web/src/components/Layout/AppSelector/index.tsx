@@ -1,6 +1,4 @@
 import cn from "classnames";
-import { useToggle } from "src/hooks/useToggle";
-import { Icon } from "src/components/Icon";
 import Image from "next/image";
 import { Fragment, memo, useCallback, useMemo, useState } from "react";
 import { AppStore, useAppStore } from "src/stores/appStore";
@@ -106,7 +104,7 @@ export const AppSelector = memo(function AppsSelector(props: {
         className={cn(
           "absolute inset-x-0 top-0 bg-fbfbfc border border-ebecef rounded-xl transition-[max-height] overflow-hidden min-h-[44px] z-10",
           { "max-h-11": !selector.isOn },
-          { "max-h-48": selector.isOn }
+          { "max-h-fit": selector.isOn } // TODO: Can we restore smoothing animation?
         )}
       >
         {apps && currentApp && (

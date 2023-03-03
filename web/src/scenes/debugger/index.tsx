@@ -6,10 +6,9 @@ import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
 import { Icon, IconType } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
-import { App } from "src/components/Layout/temp-data";
 import { Selector } from "src/components/Selector";
 import { useCallback, useState } from "react";
-import { useAppStore } from "src/stores/appStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import { Toggler } from "../../components/Toggler";
 import { AppModel } from "src/lib/models";
 

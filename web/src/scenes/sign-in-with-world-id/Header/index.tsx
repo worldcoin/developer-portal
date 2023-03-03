@@ -1,10 +1,14 @@
-import { Link } from "src/components/Link";
-import { Icon } from "src/components/Icon";
 import { memo } from "react";
-import { useAppStore } from "src/stores/appStore";
+import { Icon } from "src/components/Icon";
+import { Link } from "src/components/Link";
+import { IAppStore, useAppStore } from "src/stores/appStore";
+
+const getStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+});
 
 export const Header = memo(function Header() {
-  const currentApp = useAppStore((state) => state.currentApp);
+  const { currentApp } = useAppStore(getStoreParams);
 
   return (
     <section className="grid grid-flow-col justify-between">

@@ -1,12 +1,18 @@
-import { internal, ISuccessResult } from "@worldcoin/idkit";
-import { Icon } from "src/components/Icon";
-import { restAPIRequest } from "src/lib/frontend-api";
+import { ISuccessResult } from "@worldcoin/idkit";
+import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect, useState } from "react";
-import { ActionSelect } from "src/scenes/kiosk/common/ActionSelect";
-import { KioskError } from "./common/KioskError";
+import { Icon } from "src/components/Icon";
+import { restAPIRequest } from "src/lib/frontend-api";
+import { KioskProps } from "src/pages/kiosk/[action_id]";
+import {
+  IKioskStore,
+  KioskScreen,
+  useKioskStore,
+} from "../../stores/kioskStore";
 import { Connected } from "./Connected";
-import { getKioskStore, Screen, useKioskStore } from "../../stores/kioskStore";
+import { IDKitBridge } from "./IDKitBridge";
+import { KioskError } from "./KioskError";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
 
@@ -20,16 +26,36 @@ type ProofResponse = {
   attribute?: string;
 };
 
-export const Kiosk = memo(function Kiosk(props: { appId: string }) {
+const getKioskStoreParams = (store: IKioskStore) => ({
+  setScreen: store.setScreen,
+  screen: store.screen,
+  kioskAction: store.kioskAction,
+  setKioskAction: store.setKioskAction,
+  setSuccessParams: store.setSuccessParams,
+  proofResult: store.proofResult,
+  successParams: store.successParams,
+});
+
+export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
   const router = useRouter();
 
-  const { actions, selectedAction, setSelectedAction, screen, setScreen } =
-    useKioskStore(getKioskStore);
+  const {
+    kioskAction,
+    screen,
+    setScreen,
+    setKioskAction,
+    proofResult,
+    setSuccessParams,
+    successParams,
+  } = useKioskStore(getKioskStoreParams);
 
-  const { result, errorCode, verificationState, qrData } =
-    internal.useAppConnection(props.appId, "test");
-
-  const [currentState, setCurrentState] = useState<typeof verificationState>();
+  useEffect(() => {
+    if (action && !kioskAction) {
+      setKioskAction(action);
+    } else if (!kioskAction) {
+      setScreen(KioskScreen.InvalidRequest);
+    }
+  }, [action, setKioskAction, setScreen, kioskAction]);
 
   const handleClickBack = useCallback(() => {
     router.push("/"); // FIXME: define back url
@@ -37,96 +63,54 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
 
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
+      let response;
       try {
-        const response = await restAPIRequest<ProofResponse>(
-          `/verify/${props.appId}`,
+        response = await restAPIRequest<ProofResponse>(
+          `/verify/${kioskAction?.app.id}`,
           {
             method: "POST",
-            json: { action: "test", signal: "", ...result }, // TODO: Pull action and signal from store
+            json: { action: kioskAction?.action, signal: "", ...result },
           }
         );
-
-        return response;
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {
           if ((e as Record<string, any>).code) {
-            return {
+            response = {
               success: false,
               code: (e as Record<string, any>).code,
             };
           }
-        } catch {}
-        return { success: false, code: "unknown" };
+        } catch {
+          response = { success: false, code: "unknown" };
+        }
+      }
+
+      if (response?.success) {
+        setSuccessParams({
+          timestamp: dayjs(response.created_at),
+          confirmationCode:
+            response.nullifier_hash?.slice(-5).toLocaleUpperCase() ?? "",
+        });
+        setScreen(KioskScreen.Success);
+      } else {
+        if (response?.code === "already_verified") {
+          setScreen(KioskScreen.AlreadyVerified);
+        } else if (response?.code === "invalid_merkle_root") {
+          setScreen(KioskScreen.InvalidIdentity);
+        } else {
+          setScreen(KioskScreen.VerificationError);
+        }
       }
     },
-    [props.appId]
+    [kioskAction, setScreen, setSuccessParams]
   );
 
   useEffect(() => {
-    console.log("setSelectedAction()");
-    setSelectedAction(actions[0]);
-  }, [actions, setSelectedAction]);
-
-  // Change the shown screen based on /verify response
-  useEffect(() => {
-    if (!result) return;
-
-    console.log("verifyProof()");
-    verifyProof(result).then((response: ProofResponse) => {
-      if (response?.success) {
-        setScreen(Screen.Success);
-      } else if (response?.code === "already_verified") {
-        setScreen(Screen.AlreadyVerified);
-      } else if (response?.code === "invalid_merkle_root") {
-        setScreen(Screen.InvalidIdentity);
-      } else {
-        setScreen(Screen.VerificationError);
-      }
-    });
-  }, [result, verifyProof, setScreen]);
-
-  // Change the shown screen based on current verificationState and errorCode
-  useEffect(() => {
-    console.log(
-      "currentState:",
-      currentState,
-      " | ",
-      "verificationState:",
-      verificationState
-    ); // DEBUG
-    if (verificationState && currentState !== verificationState) {
-      switch (verificationState) {
-        case "loading_widget":
-        case "awaiting_connection":
-          setScreen(Screen.Waiting);
-          break;
-        case "awaiting_verification":
-          setScreen(Screen.Connected);
-          break;
-        case "confirmed":
-          setScreen(Screen.Success);
-          break;
-        case "failed":
-          console.log("errorCode:", errorCode); // DEBUG
-          switch (errorCode) {
-            case "connection_failed":
-              setScreen(Screen.ConnectionError);
-              break;
-            case "already_signed":
-              setScreen(Screen.AlreadyVerified);
-              break;
-            case "verification_rejected":
-              setScreen(Screen.VerificationRejected);
-              break;
-            case "unexpected_response":
-            case "generic_error":
-          }
-          setScreen(Screen.VerificationError);
-      }
-      setCurrentState(verificationState);
+    if (proofResult && !successParams) {
+      verifyProof(proofResult);
     }
-  }, [currentState, errorCode, setScreen, verificationState]);
+  }, [proofResult, verifyProof, successParams]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -136,6 +120,7 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
             className="flex items-center justify-center w-9 h-9 bg-ebecef rounded-full"
             onClick={handleClickBack}
           >
+            {/* FIXME: Add default logo */}
             <Icon name="arrow-left" className="w-6 h-6" />
           </button>
         </div>
@@ -145,85 +130,104 @@ export const Kiosk = memo(function Kiosk(props: { appId: string }) {
         </div>
 
         <div className="absolute top-0 bottom-0 right-0 flex items-center gap-x-4 pr-6">
-          <div className="font-rubik font-medium text-14">App Name</div>
-          <div className="w-11 h-11 rounded-full bg-edecfc" />
+          <div className="font-rubik font-medium text-14">
+            {kioskAction?.app.name}
+          </div>
+          <Icon
+            path={kioskAction?.app.logo_url}
+            className="w-11 h-11 rounded-full"
+          />
         </div>
       </header>
 
       <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center portrait:py-12 landscape:py-4">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mb-8">
           <h1 className="font-sora font-semibold text-32 leading-10">
             World ID Kiosk Verification
           </h1>
 
-          <div className="max-w-[400px] portrait:mt-12 landscape:mt-6 grid grid-cols-auto/1fr items-center gap-x-3 p-4 bg-primary rounded-2xl">
-            <div className="w-9 h-9 rounded-full bg-edecfc" />
-
-            <div className="font-rubik text-16 text-ffffff leading-5">
-              Attending the ETH NY conference as a participant on June 2022.
+          {kioskAction?.description && (
+            <div className="max-w-[400px] portrait:mt-12 landscape:mt-6 grid grid-cols-auto/1fr items-center p-4 bg-primary rounded-2xl">
+              <div className="font-rubik text-16 text-ffffff leading-5">
+                {kioskAction.description}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {screen === Screen.Waiting && (
-          <Waiting appId={props.appId} qrData={qrData} />
+        {(!kioskAction || error_code) && (
+          <KioskError
+            title="This request is invalid."
+            error_code={error_code}
+          />
         )}
-        {screen === Screen.Connected && <Connected />}
-        {screen === Screen.Success && <Success />}
 
-        {screen === Screen.ConnectionError && (
+        {kioskAction && (
+          <IDKitBridge
+            app_id={kioskAction.app.id}
+            action={kioskAction.action}
+            action_description={kioskAction.description}
+          />
+        )}
+
+        {screen === KioskScreen.Waiting && <Waiting />}
+        {screen === KioskScreen.Connected && <Connected />}
+        {screen === KioskScreen.Success && <Success />}
+
+        {screen === KioskScreen.ConnectionError && (
           <KioskError
             title="Connection Error"
-            description="We cannot establish a connection to the Worldcoin app. Please refresh and try again."
+            description="We cannot establish a connection to the person's World App. Please refresh and try again."
             buttonText="Retry"
           />
         )}
 
-        {screen === Screen.AlreadyVerified && (
+        {screen === KioskScreen.AlreadyVerified && (
           <KioskError
-            title="Already verified"
+            title="Already Verified"
             description="This person has already verified for this action."
-            buttonText="New verification for another user"
+            buttonText="New verification"
           />
         )}
 
-        {screen === Screen.VerificationRejected && (
+        {screen === KioskScreen.VerificationRejected && (
           <KioskError
-            title="Verification rejected"
-            description="Verification rejected in the Worldcoin app."
+            title="Verification Rejected"
+            description="Person rejected the verification in the World App."
             buttonText="Try again"
           />
         )}
 
-        {screen === Screen.InvalidIdentity && (
+        {screen === KioskScreen.InvalidIdentity && (
           <KioskError
-            title="User is not verified"
-            description="Looks like this user is not verified with World ID. They can visit an orb to verify."
-            buttonText="New verification for another user"
+            title="Not verified"
+            description="Person is not verified with World ID. They can visit an orb to verify."
+            buttonText="New verification"
           />
         )}
 
-        {screen === Screen.VerificationError && (
+        {screen === KioskScreen.VerificationError && (
           <KioskError
             title="Verification Error"
-            description="We couldn't verify this user. Please try again."
+            description="We couldn't verify this person. Please try again."
             buttonText="Retry"
           />
         )}
 
-        {actions.length > 0 && selectedAction && (
+        {/* TODO: Implement for authenticated users */}
+        {/* {actions.length > 0 && currentAction && (
           <div className="flex flex-col items-center gap-y-2">
             <div className="font-rubik font-medium text-16 leading-5">
               Choose Action
             </div>
 
             <ActionSelect
-              value={selectedAction}
-              onChange={setSelectedAction}
+              value={currentAction}
+              onChange={handleActionChange}
               options={actions}
             />
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

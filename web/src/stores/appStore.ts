@@ -16,10 +16,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   currentApp: null,
   setCurrentApp: (currentApp) => set(() => ({ currentApp })),
 
-  setCurrentAppById: (id: string) => {
-    const app = get().apps.find((app) => app.id === id);
-    if (app) {
-      set(() => ({ currentApp: app }));
+    if (response?.data?.app?.length) {
+      set({ currentApp: response.data.app[0] });
     }
   },
 

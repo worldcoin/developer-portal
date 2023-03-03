@@ -34,6 +34,7 @@
     "partialize",
     "secp256k1",
     "signup",
+    "testid",
     "timestamptz",
     "toastify",
     "unarchived",
