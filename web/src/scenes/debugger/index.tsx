@@ -6,11 +6,11 @@ import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
 import { Icon, IconType } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
-import { App } from "src/components/Layout/temp-data";
 import { Selector } from "src/components/Selector";
 import { useCallback, useState } from "react";
-import { useAppStore } from "src/stores/appStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import { Toggler } from "../../components/Toggler";
+import { AppModel } from "src/lib/models";
 
 // FIXME: mocked
 
@@ -23,21 +23,11 @@ const envs = [
 // end mocked
 
 export function Debugger(): JSX.Element {
-  const [currentApp, setCurrentApp] = useState<App | null>(null);
+  const [currentApp, setCurrentApp] = useState<AppModel | null>(null);
   const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
   const [currentMode, setCurrentMode] = useState(modes[0]);
 
-  const handleFirstLoad = useCallback(
-    (state: { apps: Array<App> }) => {
-      if (!currentApp) {
-        setCurrentApp(state.apps[0]);
-      }
-      return state;
-    },
-    [currentApp]
-  );
-
-  const { apps } = useAppStore(handleFirstLoad);
+  const apps = useAppStore((state) => state.apps);
 
   return (
     <Layout

@@ -3,8 +3,8 @@ import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { ActionType } from "src/lib/types";
 import { errorNotAllowed } from "../../backend/errors";
+import { ActionModel } from "src/lib/models";
 
 /**
  * Generates the external nullifier for actions created in the Developer Portal.
@@ -23,7 +23,7 @@ export default async function handler(
     return errorNotAllowed(req.method, res);
   }
 
-  const action = req.body.event.data.new as ActionType;
+  const action = req.body.event.data.new as ActionModel;
 
   if (action.external_nullifier) {
     return res.status(200).json({ success: true, already_generated: true });

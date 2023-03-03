@@ -1,5 +1,5 @@
-import { CSSProperties, memo } from "react";
 import cn from "classnames";
+import { CSSProperties, memo } from "react";
 import styles from "./icon.module.css";
 
 const iconNames = [
@@ -86,7 +86,7 @@ export const Icon = memo(function Icon(
       }
     | {
         name?: never;
-        path: string;
+        path?: string;
       }
   )
 ) {

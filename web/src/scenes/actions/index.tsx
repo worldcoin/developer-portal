@@ -1,35 +1,40 @@
-import { AuthRequired } from "src/components/AuthRequired";
-import { Button } from "src/components/Button";
-import { Link } from "src/components/Link";
-import { Dialog } from "src/components/Dialog";
-import { DialogHeader } from "src/components/DialogHeader";
-import { FieldInput } from "src/components/FieldInput";
-import { FieldLabel } from "src/components/FieldLabel";
-import { useToggle } from "src/hooks/useToggle";
-import { Icon } from "src/components/Icon";
-import { Layout } from "src/components/Layout";
-import { CustomAction } from "src/components/Layout/temp-data";
-import { useEffect } from "react";
-import { useActionStore } from "../../stores/actionStore";
-import { useAppStore } from "src/stores/appStore";
-import { shallow } from "zustand/shallow";
+import { Dialog } from "@headlessui/react";
+import { useEffect, useState } from "react";
+import { AuthRequired } from "@/components/AuthRequired";
+import { DialogHeader } from "@/components/DialogHeader";
+import { FieldInput } from "@/components/FieldInput";
+import { FieldLabel } from "@/components/FieldLabel";
+import { Layout } from "@/components/Layout";
+import { useToggle } from "@/hooks/useToggle";
+import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Action } from "./Action";
+import { IActionStore, useActionStore } from "@/stores/actionStore";
+import { AppModel } from "src/lib/models";
+import { Button } from "@/components/Button";
+import { Link } from "@/components/Link";
+import { Icon } from "@/components/Icon";
 
-export function Actions(props: {
-  actions: Array<CustomAction>;
-}): JSX.Element | null {
+const getAppStoreParams = (store: IAppStore) => ({
+  currentApp: store.currentApp,
+});
+
+const getStoreParams = (store: IActionStore) => ({
+  fetchActions: store.fetchActions,
+  actions: store.actions,
+});
+
+export function Actions(): JSX.Element | null {
   const dialog = useToggle();
-
-  const currentApp = useAppStore((store) => store.currentApp);
-
-  const { actions, setActions, fetchActions } = useActionStore(
-    (store) => ({ ...store }),
-    shallow
-  );
+  const { currentApp } = useAppStore(getAppStoreParams);
+  const { actions, fetchActions } = useActionStore(getStoreParams);
+  const [prevApp, setPrevApp] = useState<AppModel | null>(null);
 
   useEffect(() => {
-    fetchActions(currentApp?.id ?? "");
-  }, [actions, currentApp?.id, fetchActions, setActions]);
+    if (currentApp && (prevApp !== currentApp || !actions.length)) {
+      fetchActions(currentApp.id);
+      setPrevApp(currentApp);
+    }
+  }, [currentApp, fetchActions, prevApp, actions]);
 
   return (
     <AuthRequired>

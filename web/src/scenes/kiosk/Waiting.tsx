@@ -1,35 +1,34 @@
-import { internal } from "@worldcoin/idkit";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 import cn from "classnames";
-import { Icon } from "src/components/Icon";
 import { Spinner } from "src/components/Spinner";
-import { QRCodeSVG } from "qrcode.react";
 import { memo, useCallback, useState } from "react";
+import { IKioskStore, useKioskStore } from "src/stores/kioskStore";
+const getKioskStoreParams = (store: IKioskStore) => ({
+  qrData: store.qrData,
+});
 
-type QRData = ReturnType<typeof internal.useAppConnection>["qrData"];
-
-export const Waiting = memo(function Waiting(props: {
-  appId: string;
-  qrData: QRData;
-}) {
+export const Waiting = memo(function Waiting() {
   const [copied, setCopied] = useState(false);
-  console.log("qrData:", props.qrData);
+  const { qrData } = useKioskStore(getKioskStoreParams);
 
   const handleCopy = useCallback(() => {
-    if (!props.qrData) return;
+    if (!qrData) return;
 
     navigator.clipboard
-      .writeText(props.qrData.default)
+      .writeText(qrData.default)
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
-  }, [props.qrData]);
+  }, [qrData]);
 
   return (
     <div className="flex flex-col items-center portrait:py-12 landscape:py-6">
       <div className="flex items-center gap-x-6 mb-8 font-rubik font-medium text-16 leading-5">
         <Spinner />
-        Waiting for user to scan code with Worldcoin app
+        Waiting for person to scan code with World App
+        <div className="text-white dark:text-black">.</div>
       </div>
+
       <div
         className={cn(
           "flex items-center justify-center relative border border-primary/10 rounded-sm",
@@ -38,18 +37,8 @@ export const Waiting = memo(function Waiting(props: {
           "after:absolute after:top-[40px] after:-left-[1px] after:-right-[1px] after:bottom-[40px] after:bg-ffffff"
         )}
       >
-        <div className="z-50">
-          {props.qrData && (
-            // <internal.QRCode
-            //   data={props.qrData.default}
-            //   logoSize={0}
-            //   size={600}
-            // />
-            <QRCodeSVG
-              value={props.qrData.default}
-              className="portrait:w-[375px] landscape:w-[280px] portrait:h-[375px] landscape:h-[280px]"
-            />
-          )}
+        <div className="z-10">
+          {qrData && <IDKitInternal.QRCode data={qrData.default} size={280} />}
         </div>
       </div>
       <button

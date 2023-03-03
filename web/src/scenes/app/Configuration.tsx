@@ -1,7 +1,8 @@
 import { FieldInput } from "src/components/FieldInput";
-import { apps } from "src/components/Layout/temp-data";
-import { ChangeEvent, memo, useEffect, useState } from "react";
+import { ChangeEvent, memo, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { useAppStore } from "src/stores/appStore";
+import useApps from "src/hooks/useApps";
 
 const Label = memo(function Label(props: {
   label: string;
@@ -20,37 +21,51 @@ const Label = memo(function Label(props: {
   );
 });
 
-export const Configuration = memo(function Configuration(props: {
-  app: (typeof apps)[0];
-}) {
-  const [appName, setAppName] = useState<string>("");
-  const [debouncedAppInput] = useDebounce(appName, 1000);
-  const [appDescription, setAppDescription] = useState<string>("");
+export const Configuration = memo(function Configuration() {
+  const currentApp = useAppStore((store) => store.currentApp);
+
+  const initialValues = useMemo(
+    () => ({
+      name: currentApp?.name || "",
+      description: currentApp?.description_internal || "",
+    }),
+    [currentApp?.description_internal, currentApp?.name]
+  );
+
+  const { updateAppName, updateAppDescription } = useApps();
+  const [appName, setAppName] = useState<string>(initialValues.name);
+  const [debouncedAppName] = useDebounce(appName, 1000);
+
+  const [appDescription, setAppDescription] = useState<string>(
+    initialValues.description
+  );
+
   const [debouncedAppDescription] = useDebounce(appDescription, 1000);
 
   useEffect(() => {
-    setAppName(props.app.name);
-    setAppDescription(props.app.description_internal);
-  }, [props.app.name, props.app.description_internal]);
+    setAppName(initialValues.name);
+    setAppDescription(initialValues.description);
+  }, [initialValues]);
 
-  //ANCHOR: Action after user stop typing for app name
-  //TODO: Add app name updating
   useEffect(() => {
-    if (!debouncedAppInput) {
+    if (!debouncedAppName || debouncedAppName === initialValues.name) {
       return;
     }
 
-    console.log("debouncedAppInput: ", debouncedAppInput);
-  }, [debouncedAppInput]);
+    updateAppName(debouncedAppName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we only want to run this effect when debouncedAppName changes
+  }, [debouncedAppName]);
 
-  //ANCHOR: Action after user stop typing for app description
-  //TODO: Add app description updating
   useEffect(() => {
-    if (!debouncedAppDescription) {
+    if (
+      !debouncedAppDescription ||
+      debouncedAppDescription === initialValues.description
+    ) {
       return;
     }
 
-    console.log("debouncedAppDescription: ", debouncedAppDescription);
+    updateAppDescription(debouncedAppDescription);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we only want to run this effect when debouncedAppDescription changes
   }, [debouncedAppDescription]);
 
   return (

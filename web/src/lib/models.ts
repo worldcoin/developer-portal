@@ -21,15 +21,14 @@ export interface AppModel {
   description_internal: string;
   is_staging: boolean;
   logo_url: string;
-  verified_app_logo: string;
+  verified_app_logo?: string;
   is_verified: boolean;
   team_id: string;
   engine: EngineType;
   status: AppStatusType;
-  user_interfaces: Record<string, unknown>;
-  verified_at: DateTime | null;
+  is_archived: boolean;
   created_at: DateTime;
-  updated_at: DateTime;
+  updated_at?: DateTime;
   __typename: "app";
 }
 
