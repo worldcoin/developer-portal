@@ -86,15 +86,13 @@ export const Layout = (props: {
 
                 <NavItem
                   icon="world-id-sign-in"
-                  name="Sign in"
-                  // FIXME: Proper app id
+                  name="Sign In"
                   href={urls.appSignIn(router.query.app_id as string)}
                 />
 
                 <NavItem
                   icon="notepad"
                   name="Custom Actions"
-                  // FIXME: Proper app id
                   href={urls.appActions(router.query.app_id as string)}
                 />
               </NavItemGroup>
@@ -103,7 +101,7 @@ export const Layout = (props: {
                 <NavItem
                   name="Docs"
                   icon="document"
-                  href="https://id.worldcoin.org/docs"
+                  href="https://docs.worldcoin.org"
                 />
 
                 <NavItem
