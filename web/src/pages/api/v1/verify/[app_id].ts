@@ -139,6 +139,7 @@ export default async function handleVerify(
       }
     }
   `;
+
   const insertResponse = await client.query({
     query: insertNullifierQuery,
     variables: {
