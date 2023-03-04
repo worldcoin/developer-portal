@@ -150,7 +150,7 @@ export default async function handleVerify(
 
   res.status(200).json({
     success: true,
-    action_id: action.id ?? null,
+    action: action.action ?? null,
     nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
     created_at: insertResponse.data.insert_nullifier_one.created_at,
   });
