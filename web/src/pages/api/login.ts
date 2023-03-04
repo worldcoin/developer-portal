@@ -44,7 +44,7 @@ const query = gql`
   }
 `;
 
-export default async function login(
+export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
   res: NextApiResponse<LoginResponse>
 ) {

@@ -12,6 +12,7 @@
     "yaml",
     "json"
   ],
+  "ignorePaths": ["web/tests/api/__mocks__/jwk.ts", "node_modules/**"],
   "words": [
     "arrayify",
     "chartjs",
