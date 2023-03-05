@@ -36,7 +36,7 @@ const verifyAuthCodeQuery = gql`
   }
 `;
 
-export default async function handler(
+export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
