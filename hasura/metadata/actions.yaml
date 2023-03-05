@@ -1,6 +1,18 @@
-actions: []
+actions:
+  - name: reset_client_secret
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/_reset-client-secret'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: api_key
+      - role: user
+    comment: Reset the client secret for a Sign in with World ID application
 custom_types:
   enums: []
   input_objects: []
-  objects: []
+  objects:
+    - name: ResetClientOutput
   scalars: []

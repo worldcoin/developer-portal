@@ -30,7 +30,7 @@ module.exports = {
 
     colors: {
       neutral: {
-        DEFAULT: "#858494",
+        DEFAULT: "#858494", // FIXME: This color may be #191c20
         primary: "#191c20",
         secondary: "#9ba3ae",
 
@@ -47,15 +47,24 @@ module.exports = {
         DEFAULT: "#00c313",
         light: "#e5f9e7",
       },
-      warning: {
-        DEFAULT: "#ff5a76", // FIXME: This color is actually danger
+      danger: {
+        DEFAULT: "#ff5a76",
+        light: "#fff0ed",
       },
+      warning: {
+        DEFAULT: "#ffc700",
+        light: "#FFF9E5",
+      },
+      white: "#ffffff",
+      black: "#010101",
       ...mirrorHexColors([
         "#000000",
         "#191c20",
+        "#28303f",
         "#3c4040",
         "#487b8f",
         "#626467",
+        "#657080",
         "#777e90",
         "#a39dff",
         "#d1d3d4",
@@ -63,18 +72,21 @@ module.exports = {
         "#dbe3e8",
         "#ebecef",
         "#edbd14",
-        "#edecfc",
+        "#edecfc", //FIXME: duplicate for primary-light
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
         "#f3f4f5",
         "#f9f9f9",
+        "#f9fafb",
         "#fafafa",
         "#fbfbfb",
+        "#fbfbfc",
         "#fcfbfe",
         "#ff6848",
-        "#ffc700", // FIXME: this color is actually warning
+        "#ffb11b",
         "#fff0ed",
+        "#fff9e5",
         "#ffffff",
       ]),
       current: "currentColor",
@@ -102,7 +114,9 @@ module.exports = {
         13: "calc(13 * 1rem / 16)",
         14: "calc(14 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
+        18: "calc(16 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
+        24: "calc(24 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",
         30: "calc(30 * 1rem / 16)",
         32: "calc(32 * 1rem / 16)",
