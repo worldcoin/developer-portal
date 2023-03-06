@@ -1,11 +1,9 @@
-import { Button } from "@/components/Button";
 import { FieldInput } from "@/components/FieldInput";
 import { Icon } from "@/components/Icon";
 import { memo } from "react";
 
 export const Controls = memo(function Controls(props: {
   onInviteClick: () => void;
-  onFilterClick: () => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
 }) {
@@ -28,23 +26,9 @@ export const Controls = memo(function Controls(props: {
           />
         </div>
 
-        <div className="flex gap-4">
-          <Button
-            className="py-3 px-8 uppercase flex gap-2.5"
-            disabled={props.searchValue.length <= 0}
-            onClick={props.onFilterClick}
-          >
-            <Icon name="filter" className="w-6 h-6 bg-191c20" />
-            Filter
-          </Button>
-
-          {/* <Button
-            className="py-3.5 px-8 uppercase"
-            onClick={props.onInviteClick}
-          >
-            Invite new members
-          </Button> */}
-        </div>
+        {/* <Button className="py-3.5 px-8 uppercase" onClick={props.onInviteClick}>
+          Invite new members
+        </Button> */}
       </div>
     </div>
   );

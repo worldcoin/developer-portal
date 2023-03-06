@@ -1,11 +1,12 @@
 import { useToggle } from "@/hooks/useToggle";
 import { Icon } from "@/components/Icon";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { TeamMember, useTeamStore } from "../../../stores/teamStore";
 
 import { Controls } from "./Controls";
 import { InviteMembersDialog } from "./InviteMembersDialog";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
+import { useDebounce } from "use-debounce";
 
 export const MemberList = memo(function MemberList() {
   const inviteDialog = useToggle();
@@ -17,6 +18,12 @@ export const MemberList = memo(function MemberList() {
     setMemberForRemove,
     applyFilter,
   } = useTeamStore();
+
+  const [debouncedFilter] = useDebounce(filter, 500);
+
+  useEffect(() => {
+    applyFilter();
+  }, [debouncedFilter, applyFilter]);
 
   const handleDelete = useCallback(
     (member: TeamMember) => {
@@ -47,7 +54,6 @@ export const MemberList = memo(function MemberList() {
       <div className="grid gap-y-4">
         <Controls
           onInviteClick={inviteDialog.toggleOn}
-          onFilterClick={applyFilter}
           searchValue={filter.query}
           onSearchChange={handleChangeSearch}
         />
