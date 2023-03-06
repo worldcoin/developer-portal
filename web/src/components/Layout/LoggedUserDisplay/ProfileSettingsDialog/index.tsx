@@ -1,10 +1,18 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
 import { ImageInput } from "src/components/Layout/common/ImageInput";
+import { useForm, Controller } from "react-hook-form";
+import { FieldError } from "@/components/FieldError";
+
+type FormData = {
+  name: string;
+  email: string;
+  imageUrl?: string;
+};
 
 export interface ProfileSettingsDialogProps {
   open: boolean;
@@ -14,75 +22,101 @@ export interface ProfileSettingsDialogProps {
 export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
   props: ProfileSettingsDialogProps
 ) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [image, setImage] = useState("");
+  const { control, register, reset, handleSubmit, formState } =
+    useForm<FormData>({
+      // FIXME: this values must be fetched from the server and passed as props
+      // values: {
+      //   name: "John Doe",
+      //   email: "example@example",
+      //   imageUrl: "https://fastly.picsum.photos/id/40/88/88.jpg?hmac=XQ7fH1YgKvAv7BEJcBsiF7qmuOaVhlbYHHeT-8nTnuM",
+      // }
+    });
 
-  const updateImage = useCallback((props: { dataURI?: string }) => {
-    if (!props.dataURI) {
-      return;
-    }
-
-    setImage(props.dataURI);
-  }, []);
-
-  const submit = useCallback(() => {
+  const onSubmit = handleSubmit(async (data) => {
     //TODO: add saving profile logic
-    console.log({ name, email, image });
-  }, [email, image, name]);
-
-  const isFormValid = useMemo(() => {
-    const emailRegexp = /^\S+@\S+\.\S+$/;
-
-    const isValid =
-      name.length > 0 && email.length > 0 && emailRegexp.test(email);
-
-    return isValid;
-  }, [email, name.length]);
+    console.log(data);
+    try {
+      await new Promise((res, rej) =>
+        setTimeout(() => {
+          Math.random() > 0.5 ? res({}) : rej(Error("saving error"));
+        }, 3000)
+      );
+      console.log("saved");
+      reset();
+    } catch (error) {
+      console.error(error);
+      reset(data);
+    }
+  });
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
-      <DialogHeader
-        title="Profile Settings"
-        icon={<ImageInput icon="user" setImage={updateImage} />}
-      />
+      <form onSubmit={onSubmit}>
+        <DialogHeader
+          title="Profile Settings"
+          icon={
+            <Controller
+              name="imageUrl"
+              control={control}
+              render={({ field }) => (
+                <ImageInput
+                  icon="user"
+                  imageUrl={field.value}
+                  onImageUrlChange={field.onChange}
+                  disabled={formState.isSubmitting}
+                />
+              )}
+            />
+          }
+        />
 
-      <div>
-        <div className="flex flex-col gap-y-2">
-          <FieldLabel className="font-rubik" required>
-            Your Name
-          </FieldLabel>
+        <div>
+          <div className="flex flex-col gap-y-2">
+            <FieldLabel className="font-rubik" required>
+              Your Name
+            </FieldLabel>
 
-          <FieldInput
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full font-rubik"
-            required
-          />
+            <FieldInput
+              className="w-full font-rubik"
+              type="text"
+              {...register("name", { required: true })}
+              readOnly={formState.isSubmitting}
+              invalid={!!formState.errors.name}
+            />
+
+            {/* TODO: display possible errors here */}
+            {!!formState.errors.name && <FieldError message="Error!" />}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-y-2">
+            <FieldLabel className="font-rubik" required>
+              Email
+            </FieldLabel>
+
+            <FieldInput
+              className="w-full font-rubik"
+              type="email"
+              {...register("email", {
+                required: true,
+                pattern: /^\S+@\S+\.\S+$/,
+              })}
+              readOnly={formState.isSubmitting}
+              invalid={!!formState.errors.email}
+            />
+
+            {/* TODO: display possible errors here */}
+            {!!formState.errors.email && <FieldError message="Error!" />}
+          </div>
+
+          <Button
+            className="w-full h-[56px] mt-12 font-medium"
+            type="submit"
+            disabled={formState.isSubmitting}
+          >
+            Save Changes
+          </Button>
         </div>
-
-        <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel className="font-rubik" required>
-            Email
-          </FieldLabel>
-
-          <FieldInput
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full font-rubik"
-            type="email"
-            required
-          />
-        </div>
-
-        <Button
-          disabled={!isFormValid}
-          onClick={submit}
-          className="w-full h-[56px] mt-12 font-medium"
-        >
-          Save Changes
-        </Button>
-      </div>
+      </form>
     </Dialog>
   );
 });
