@@ -24,14 +24,21 @@ DECLARE
 BEGIN
   url := NEW.redirect_uri;
   IF url IS NOT NULL AND url != '' THEN
-    IF strpos(url, 'http://localhost') = -1 THEN
+    
+    IF strpos(url, 'http://localhost') = 1 THEN
+      IF NOT (url ~* '^https?://localhost(:[0-9]+)?(/[^\s?]*)(\\?[^\s]*)?$') THEN
+        RAISE EXCEPTION 'Invalid localhost URL format.';
+      END IF;
+    ELSE
+      -- if url is not localhost, it must use https protocol
       IF strpos(url, 'https://') = 0 THEN
         RAISE EXCEPTION 'URL must use HTTPS protocol unless it is localhost.';
       END IF;
+      IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$') THEN
+        RAISE EXCEPTION 'Invalid URL format.';
+      END IF;
     END IF;
-    IF NOT (url ~* '^https?://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$') THEN
-      RAISE EXCEPTION 'Invalid URL format.';
-    END IF;
+   
   END IF;
   RETURN NEW;
 END;
