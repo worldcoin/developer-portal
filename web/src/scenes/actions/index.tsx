@@ -96,7 +96,7 @@ export function Actions(): JSX.Element | null {
 
               <div className="grid grid-flow-col gap-x-8">
                 <Link
-                  className="grid gap-x-1 grid-flow-col justify-start items-center px-3 py-2 border border-f3f4f5 rounded-lg"
+                  className="grid gap-x-1 grid-flow-col justify-start items-center px-3 py-2 border border-f3f4f5 rounded-lg hover:opacity-70 transition-opacity"
                   href="https://docs.worldcoin.org/"
                 >
                   <span>Docs</span>

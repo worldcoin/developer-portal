@@ -48,8 +48,7 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
           className={cn(
             "h-5 w-5 transition-colors",
             {
-              "group-hover:text-neutral-secondary":
-                !props.customColor && !props.selected,
+              "group-hover:text-657080": !props.customColor && !props.selected,
               "text-d6d9dd": !props.selected && !props.customColor,
               "text-ffffff": props.selected && !props.customColor,
             },
