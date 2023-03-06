@@ -11,3 +11,94 @@ object_relationships:
         remote_table:
           name: action
           schema: public
+insert_permissions:
+  - role: api_key
+    permission:
+      check:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      columns:
+        - redirect_uri
+        - action_id
+  - role: user
+    permission:
+      check:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      columns:
+        - redirect_uri
+        - action_id
+select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - id
+        - action_id
+        - redirect_uri
+        - created_at
+        - updated_at
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+  - role: service
+    permission:
+      columns:
+        - action_id
+        - id
+        - redirect_uri
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - id
+        - action_id
+        - redirect_uri
+        - created_at
+        - updated_at
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+update_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - redirect_uri
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      check: null
+  - role: user
+    permission:
+      columns:
+        - redirect_uri
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+      check: null
+delete_permissions:
+  - role: api_key
+    permission:
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id
+  - role: user
+    permission:
+      filter:
+        action:
+          app:
+            team_id:
+              _eq: X-Hasura-Team-Id

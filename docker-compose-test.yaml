@@ -29,6 +29,7 @@ services:
       HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
       HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
       HASURA_GRAPHQL_CLI_ENVIRONMENT: "default"
+      NEXT_API_URL: "http://host.docker.internal:3000/api"
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
     volumes:
       - ./hasura/migrations:/hasura-migrations
