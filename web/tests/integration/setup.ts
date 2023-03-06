@@ -1,7 +1,6 @@
 import { Pool } from "pg";
-
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
 let pool: Pool | null = null;
 
@@ -9,11 +8,11 @@ export const integrationDBSetup = async () => {
   pool = new Pool();
 
   // Reset database
-  const resetdb = fs.readFileSync(
+  const resetDB = fs.readFileSync(
     path.resolve(__dirname, "./db/resetdb.sql"),
     "utf8"
   );
-  await pool.query(resetdb);
+  await pool.query(resetDB);
 
   // Seed database
   const seedFiles: string[] = fs.readdirSync(
@@ -30,4 +29,14 @@ export const integrationDBSetup = async () => {
 
 export const integrationDBTearDown = async () => {
   pool?.end();
+};
+
+export const integrationDBExecuteQuery = async (
+  query: string,
+  values?: any[]
+) => {
+  pool = new Pool();
+  const response = await pool.query(query, values);
+  await pool.end();
+  return response;
 };

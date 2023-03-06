@@ -1,38 +1,33 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
-import { EngineSwitch } from "./EngineSwitch";
-import { ImageInput } from "../common/ImageInput";
+import { ImageInput } from "src/components/Layout/common/ImageInput";
 import { useForm, Controller } from "react-hook-form";
+import { FieldError } from "@/components/FieldError";
 
 type FormData = {
   name: string;
-  description: string;
-  engine: "cloud" | "on-chain";
+  email: string;
   imageUrl?: string;
 };
 
-export interface NewAppDialogProps {
+export interface ProfileSettingsDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-export const NewAppDialog = memo(function NewAppDialog(
-  props: NewAppDialogProps
+export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
+  props: ProfileSettingsDialogProps
 ) {
   const { control, register, reset, handleSubmit, formState } =
     useForm<FormData>({
-      defaultValues: {
-        engine: "cloud",
-      },
       // FIXME: this values must be fetched from the server and passed as props
       // values: {
-      //   name: "App!",
-      //   description: "Awesome app",
-      //   engine: "on-chain",
+      //   name: "John Doe",
+      //   email: "example@example",
       //   imageUrl: "https://fastly.picsum.photos/id/40/88/88.jpg?hmac=XQ7fH1YgKvAv7BEJcBsiF7qmuOaVhlbYHHeT-8nTnuM",
       // }
     });
@@ -58,14 +53,14 @@ export const NewAppDialog = memo(function NewAppDialog(
     <Dialog open={props.open} onClose={props.onClose}>
       <form onSubmit={onSubmit}>
         <DialogHeader
-          title="Create New App"
+          title="Profile Settings"
           icon={
             <Controller
               name="imageUrl"
               control={control}
               render={({ field }) => (
                 <ImageInput
-                  icon="apps"
+                  icon="user"
                   imageUrl={field.value}
                   onImageUrlChange={field.onChange}
                   disabled={formState.isSubmitting}
@@ -78,50 +73,47 @@ export const NewAppDialog = memo(function NewAppDialog(
         <div>
           <div className="flex flex-col gap-y-2">
             <FieldLabel className="font-rubik" required>
-              Name
+              Your Name
             </FieldLabel>
 
             <FieldInput
               className="w-full font-rubik"
-              placeholder="Add your app name (visible to users)"
               type="text"
               {...register("name", { required: true })}
               readOnly={formState.isSubmitting}
               invalid={!!formState.errors.name}
             />
+
+            {/* TODO: display possible errors here */}
+            {!!formState.errors.name && <FieldError message="Error!" />}
           </div>
 
           <div className="mt-6 flex flex-col gap-y-2">
-            <FieldLabel className="font-rubik">Description</FieldLabel>
-            {/* FIXME: use textarea instead of input */}
+            <FieldLabel className="font-rubik" required>
+              Email
+            </FieldLabel>
+
             <FieldInput
               className="w-full font-rubik"
-              placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
-              type="text"
-              {...register("description", { required: true })}
+              type="email"
+              {...register("email", {
+                required: true,
+                pattern: /^\S+@\S+\.\S+$/,
+              })}
               readOnly={formState.isSubmitting}
-              invalid={!!formState.errors.description}
+              invalid={!!formState.errors.email}
             />
-          </div>
 
-          <Controller
-            name="engine"
-            control={control}
-            render={({ field }) => (
-              <EngineSwitch
-                value={field.value}
-                onChange={field.onChange}
-                disabled={formState.isSubmitting}
-              />
-            )}
-          />
+            {/* TODO: display possible errors here */}
+            {!!formState.errors.email && <FieldError message="Error!" />}
+          </div>
 
           <Button
             className="w-full h-[56px] mt-12 font-medium"
             type="submit"
             disabled={formState.isSubmitting}
           >
-            Create New App
+            Save Changes
           </Button>
         </div>
       </form>
