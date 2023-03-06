@@ -9,10 +9,19 @@ export interface OptionProps {
   easiest?: boolean;
   checked: boolean;
   onCheckedChange: () => void;
+  disabled?: boolean;
 }
 
 export const Option = memo(function Option(props: OptionProps) {
-  const { icon, title, description, easiest, checked, onCheckedChange } = props;
+  const {
+    icon,
+    title,
+    description,
+    easiest,
+    checked,
+    onCheckedChange,
+    disabled,
+  } = props;
 
   const handleClick = useCallback(() => {
     onCheckedChange();
@@ -20,6 +29,7 @@ export const Option = memo(function Option(props: OptionProps) {
 
   return (
     <button
+      type="button"
       className={cn(
         "relative flex items-center gap-x-4 w-full p-4 pr-5 text-left border rounded-2xl transition-colors",
         {
@@ -28,6 +38,7 @@ export const Option = memo(function Option(props: OptionProps) {
         }
       )}
       onClick={handleClick}
+      disabled={disabled}
     >
       <div
         className={cn(

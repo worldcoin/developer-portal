@@ -38,6 +38,7 @@ export const Button = memo(function Button(props: ButtonInterface) {
         ),
         className)
       }
+      disabled={disabled}
       {...otherProps}
     />
   );

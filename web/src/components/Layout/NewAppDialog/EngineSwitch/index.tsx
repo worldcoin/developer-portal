@@ -4,12 +4,13 @@ import { Option } from "./Option";
 export interface EngineSwitchProps {
   value: "cloud" | "on-chain";
   onChange: (value: "cloud" | "on-chain") => void;
+  disabled?: boolean;
 }
 
 export const EngineSwitch = memo(function EngineSwitch(
   props: EngineSwitchProps
 ) {
-  const { value, onChange } = props;
+  const { value, onChange, disabled } = props;
 
   return (
     <div className="grid gap-y-3 mt-6">
@@ -20,6 +21,7 @@ export const EngineSwitch = memo(function EngineSwitch(
         easiest
         checked={value === "cloud"}
         onCheckedChange={() => onChange("cloud")}
+        disabled={disabled}
       />
 
       <Option
@@ -28,6 +30,7 @@ export const EngineSwitch = memo(function EngineSwitch(
         description="For actions that are validated and executed on the blockchain."
         checked={value === "on-chain"}
         onCheckedChange={() => onChange("on-chain")}
+        disabled={disabled}
       />
     </div>
   );
