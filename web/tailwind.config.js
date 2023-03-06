@@ -39,7 +39,7 @@ module.exports = {
 
         muted: "#f0edf9",
       },
-      //ANCHOR: accent colors are used for displaying different statuses 
+      //ANCHOR: accent colors are used for displaying different statuses
       //TODO: cleanup unused colors
       accents: {
         success: {
