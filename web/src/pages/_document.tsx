@@ -5,8 +5,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          {/* REVIEW: We may be able to fully remove remote Google Fonts */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          {/* REVIEW: Move to local font files? */}
 
           <link
             rel="preconnect"
