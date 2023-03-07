@@ -12,7 +12,7 @@ export interface ActionModelWithNullifiers extends ActionModel {
 // GraphQL queries
 const selectAllActionsQuery = gql`
   query SelectAllActions($app_id: String = "") {
-    action(where: { app_id: { _eq: $app_id } }) {
+    action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }) {
       id
       app_id
       action
