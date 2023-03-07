@@ -20,9 +20,17 @@ export const App = memo(function App(props: { appId: string }) {
   return (
     <AuthRequired>
       <Layout>
-        {(isLoading || !currentApp) && (
+        {isLoading && (
           <div className="w-full h-full flex justify-center items-center">
             <Preloader className="w-20 h-20" />
+          </div>
+        )}
+
+        {!isLoading && !currentApp && (
+          <div className="grid">
+            <h1 className="text-20 font-sora font-semibold self-end">
+              App not found
+            </h1>
           </div>
         )}
 
