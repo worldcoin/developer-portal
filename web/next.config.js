@@ -1,3 +1,7 @@
+// @ts-check
+
+/** @type {import('next-safe').nextSafe} */
+// @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -10,9 +14,21 @@ const nextConfig = {
         headers: nextSafe({
           isDev,
           contentSecurityPolicy: {
-            "font-src": "'self' 'https://fonts.googleapis.com'",
+            mergeDefaultDirectives: true,
+            "img-src": "world-id-public.s3.amazonaws.com",
+            "font-src": [
+              "https://fonts.googleapis.com",
+              "https://fonts.gstatic.com",
+            ],
+            "style-src": [
+              "https://fonts.googleapis.com",
+              "https://fonts.gstatic.com",
+            ],
+            "prefetch-src": [
+              "https://fonts.googleapis.com",
+              "https://fonts.googleapis.com",
+            ],
           },
-          frameOptions: "SAMESITE",
         }),
       },
     ];
