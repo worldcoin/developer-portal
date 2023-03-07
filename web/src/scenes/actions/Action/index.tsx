@@ -1,19 +1,12 @@
-import {
-  Fragment,
-  memo,
-  MouseEvent as ReactMouseEvent,
-  useCallback,
-  useMemo,
-} from "react";
-
-import { CustomAction } from "src/components/Layout/temp-data";
+import { Fragment, memo, MouseEvent as ReactMouseEvent, useMemo } from "react";
 import { Disclosure, Transition } from "@headlessui/react";
 import { ActionHeader } from "./ActionHeader";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Icon } from "src/components/Icon";
 import { Switch } from "src/components/Switch";
-import { useToggle } from "src/hooks/useToggle";
+import { ActionModelWithNullifiers } from "src/stores/actionStore";
+import useActions from "src/hooks/useActions";
 
 dayjs.extend(relativeTime);
 
@@ -36,9 +29,10 @@ const COLORS = [
   },
 ];
 
-export const Action = memo(function Action(props: { action: CustomAction }) {
-  const kiosk = useToggle(false);
-
+export const Action = memo(function Action(props: {
+  action: ActionModelWithNullifiers;
+}) {
+  const { toggleKiosk, updateName, updateDescription } = useActions();
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
     const value = result[0] === "a" ? "1" : result[0];
@@ -54,21 +48,19 @@ export const Action = memo(function Action(props: { action: CustomAction }) {
     [props.action.nullifiers.length]
   );
 
-  //TODO: Add enabling kiosk logic
-  const toggleKiosk = useCallback(() => {
-    if (kiosk.isOn) {
-      return kiosk.toggleOff();
-    }
-
-    kiosk.toggleOn();
-  }, [kiosk]);
-
   return (
     <Disclosure>
       {({ open }) => (
         <Fragment>
           <Disclosure.Button className="shadow-[0px_10px_30px_rgba(25,28,32,0.1)] rounded-xl overflow-y-clip outline-none">
-            <ActionHeader action={props.action} open={open} />
+            <ActionHeader
+              action={props.action}
+              open={open}
+              onChangeName={(value) => updateName(props.action.id, value)}
+              onChangeDescription={(value) =>
+                updateDescription(props.action.id, value)
+              }
+            />
 
             <Transition
               enter="transition-[max-height] duration-300 ease-in"
@@ -148,7 +140,10 @@ export const Action = memo(function Action(props: { action: CustomAction }) {
                   <div className="-mx-6 border-t border-f3f4f5 pt-6">
                     <div className="grid gap-x-2 grid-flow-col items-center justify-end px-6">
                       <span className="text-14">Enable Kiosk</span>
-                      <Switch checked={kiosk.isOn} toggle={toggleKiosk} />
+                      <Switch
+                        checked={props.action.kiosk_enabled}
+                        toggle={() => toggleKiosk(props.action.id)}
+                      />
                     </div>
                   </div>
                 </div>

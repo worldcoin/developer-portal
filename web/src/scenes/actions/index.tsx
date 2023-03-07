@@ -1,40 +1,19 @@
 import { Dialog } from "@headlessui/react";
-import { useEffect, useState } from "react";
 import { AuthRequired } from "@/components/AuthRequired";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldInput } from "@/components/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
 import { Layout } from "@/components/Layout";
 import { useToggle } from "@/hooks/useToggle";
-import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Action } from "./Action";
-import { IActionStore, useActionStore } from "@/stores/actionStore";
-import { AppModel } from "src/lib/models";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { Icon } from "@/components/Icon";
-
-const getAppStoreParams = (store: IAppStore) => ({
-  currentApp: store.currentApp,
-});
-
-const getStoreParams = (store: IActionStore) => ({
-  fetchActions: store.fetchActions,
-  actions: store.actions,
-});
+import useActions from "src/hooks/useActions";
 
 export function Actions(): JSX.Element | null {
   const dialog = useToggle();
-  const { currentApp } = useAppStore(getAppStoreParams);
-  const { actions, fetchActions } = useActionStore(getStoreParams);
-  const [prevApp, setPrevApp] = useState<AppModel | null>(null);
-
-  useEffect(() => {
-    if (currentApp && (prevApp !== currentApp || !actions.length)) {
-      fetchActions(currentApp.id);
-      setPrevApp(currentApp);
-    }
-  }, [currentApp, fetchActions, prevApp, actions]);
+  const { actions } = useActions();
 
   return (
     <AuthRequired>

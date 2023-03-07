@@ -44,6 +44,7 @@ export interface ActionModel {
   client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
+  kiosk_enabled: boolean;
   __typename: "action";
 }
 
