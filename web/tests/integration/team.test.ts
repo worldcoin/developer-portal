@@ -2,23 +2,13 @@ import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { integrationDBSetup, integrationDBTearDown } from "./setup";
 
-// FIXME: Consider moving this to a generalized jest environment
+// TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 
-describe("service role", () => {
+describe("team model", () => {
   test("verified logo is properly sent when team is verified", async () => {
-    // FIXME
-    const client = await getAPIServiceClient();
-  });
-
-  test("logo is ignored if team is not verified", async () => {
-    // FIXME
-    const client = await getAPIServiceClient();
-  });
-
-  test("role cannot read private description", async () => {
-    // FIXME
+    // TODO
     const client = await getAPIServiceClient();
   });
 });
