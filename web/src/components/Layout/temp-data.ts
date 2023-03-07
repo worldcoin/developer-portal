@@ -6,7 +6,7 @@ export type App = (typeof apps)[0];
 
 export const apps = [
   {
-    id: "app_staging_58fcda7a3ec5dc181f91b46e1954a8fc",
+    id: "app_staging_dc6cfce2825c9227e754a85f9da95925",
     engine: "cloud",
     description_internal: "App Description",
     is_archived: false,
@@ -43,7 +43,7 @@ export type AppStats = {
 };
 
 export const stats: Record<string, Array<AppStats>> = {
-  app_staging_58fcda7a3ec5dc181f91b46e1954a8fc: [
+  app_staging_dc6cfce2825c9227e754a85f9da95925: [
     {
       app_id: "",
       date: "2021-09-01",
