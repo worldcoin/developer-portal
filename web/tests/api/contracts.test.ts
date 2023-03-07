@@ -1,7 +1,7 @@
 import { createMocks } from "node-mocks-http";
-import handleContracts from "pages/api/v1/contracts";
+import handleContracts from "src/pages/api/v1/contracts";
 
-// FIXME
+// TODO
 describe("/api/v1/contracts", () => {
   test("can obtain semaphore contracts", async () => {
     const { req, res } = createMocks({

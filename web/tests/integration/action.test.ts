@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "api-helpers/graphql";
+import { getAPIServiceClient } from "src/backend/graphql";
 import { integrationDBSetup, integrationDBTearDown } from "./setup";
 
-// FIXME: Consider moving this to a generalized jest environment
+// TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 
@@ -13,7 +13,7 @@ describe("service role", () => {
       action {
         id
         name
-        public_description
+        description
       }
     }    
     `);
@@ -24,8 +24,8 @@ describe("service role", () => {
     expect(response.data.action.length).toEqual(1);
     expect(response.data.action[0]).toEqual(
       expect.objectContaining({
-        name: "My cool airdrop",
-        id: expect.stringContaining("wid_staging_"),
+        name: "Sign in with World ID", // NOTE: also indirectly tests the default action Sign in with World ID is created
+        id: expect.stringContaining("action_"),
       })
     );
   });
@@ -44,7 +44,7 @@ describe("service role", () => {
       expect(true).toBe(false); // Fail test if above expression doesn't throw
     } catch (e) {
       expect((e as Error).toString()).toEqual(
-        "Error: field \"delete_action\" not found in type: 'mutation_root'"
+        "ApolloError: field 'delete_action' not found in type: 'mutation_root'"
       );
     }
   });

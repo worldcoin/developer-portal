@@ -1,4 +1,5 @@
-const nextJest = require("next/jest");
+import nextJest from "next/jest";
+import type { Config } from "jest";
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
@@ -6,16 +7,19 @@ const createJestConfig = nextJest({
 });
 
 // Add any custom config to be passed to Jest
-const customJestConfig = {
+const customJestConfig: Config = {
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   // if using TypeScript with a baseUrl set to the root directory then you need the below for alias' to work
-  moduleDirectories: ["node_modules", "<rootDir>/"],
+  moduleDirectories: ["node_modules", "<rootDir>"],
   testEnvironment: "node",
   setupFiles: ["./jest.setup.ts"],
   globalSetup: "./tests/setupEnv.js",
   automock: false,
   resetMocks: false,
+  moduleNameMapper: {
+    "^@worldcoin/idkit$": "<rootDir>/idkit.jest.ts", // NOTE: For apps not using the `internal` namespace, mapping to /build/idkit-js.js works
+  },
 };
 
 const config = createJestConfig(customJestConfig);

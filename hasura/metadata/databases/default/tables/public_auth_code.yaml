@@ -8,17 +8,21 @@ insert_permissions:
       columns:
         - app_id
         - auth_code
+        - credential_type
         - expires_at
         - nullifier_hash
+        - scope
 select_permissions:
   - role: service
     permission:
       columns:
         - app_id
         - auth_code
+        - credential_type
         - expires_at
         - id
         - nullifier_hash
+        - scope
       filter: {}
 delete_permissions:
   - role: service

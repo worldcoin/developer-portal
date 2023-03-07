@@ -12,11 +12,13 @@
     "yaml",
     "json"
   ],
+  "ignorePaths": ["web/tests/api/__mocks__/jwk.ts", "node_modules/**"],
   "words": [
-    "arbitrum",
     "arrayify",
     "chartjs",
     "consts",
+    "ebecef",
+    "fbfbfc",
     "fren",
     "Hasura",
     "healthz",
@@ -30,11 +32,14 @@
     "merkle",
     "nullifer",
     "OIDC",
+    "partialize",
     "secp256k1",
     "signup",
+    "testid",
     "timestamptz",
     "toastify",
     "unarchived",
-    "Worldcoin"
+    "Worldcoin",
+    "zustand"
   ]
 }

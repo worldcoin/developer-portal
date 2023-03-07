@@ -5,6 +5,15 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
+  - name: redirect
+    using:
+      manual_configuration:
+        column_mapping:
+          id: action_id
+        insertion_order: null
+        remote_table:
+          name: redirect
+          schema: public
 array_relationships:
   - name: nullifiers
     using:
@@ -21,13 +30,14 @@ insert_permissions:
           team_id:
             _eq: X-Hasura-Team-Id
       columns:
+        - action
         - app_id
         - description
         - external_nullifier
+        - kiosk_enabled
         - max_accounts_per_user
         - max_verifications
         - name
-        - action
   - role: service
     permission:
       check: {}
@@ -40,19 +50,37 @@ insert_permissions:
         - name
         - action
         - creation_mode
+  - role: user
+    permission:
+      check:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+      columns:
+        - action
+        - app_id
+        - description
+        - external_nullifier
+        - kiosk_enabled
+        - max_accounts_per_user
+        - max_verifications
+        - name
 select_permissions:
   - role: api_key
     permission:
       columns:
+        - action
         - app_id
+        - created_at
+        - creation_mode
         - description
         - external_nullifier
         - id
+        - kiosk_enabled
         - max_accounts_per_user
         - max_verifications
         - name
-        - action
-        - creation_mode
+        - updated_at
       filter:
         app:
           team_id:
@@ -67,9 +95,11 @@ select_permissions:
         - description
         - external_nullifier
         - id
+        - kiosk_enabled
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
       filter:
         _and:
           - app:
@@ -81,13 +111,18 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - action
         - app_id
+        - created_at
+        - creation_mode
         - description
+        - external_nullifier
         - id
+        - kiosk_enabled
         - max_accounts_per_user
         - max_verifications
         - name
-        - creation_mode
+        - updated_at
       filter:
         app:
           team_id:
@@ -97,6 +132,9 @@ update_permissions:
     permission:
       columns:
         - description
+        - kiosk_enabled
+        - max_accounts_per_user
+        - max_verifications
         - name
       filter:
         app:
@@ -108,12 +146,29 @@ update_permissions:
       columns:
         - client_secret
         - external_nullifier
+      filter: {}
+      check: null
+  - role: user
+    permission:
+      columns:
+        - description
+        - kiosk_enabled
+        - max_accounts_per_user
+        - max_verifications
+        - name
       filter:
-        external_nullifier:
-          _eq: ""
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key
+    permission:
+      filter:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+  - role: user
     permission:
       filter:
         app:
