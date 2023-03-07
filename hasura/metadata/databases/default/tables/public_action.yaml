@@ -5,6 +5,15 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
+  - name: redirect
+    using:
+      manual_configuration:
+        column_mapping:
+          id: action_id
+        insertion_order: null
+        remote_table:
+          name: redirect
+          schema: public
 array_relationships:
   - name: nullifiers
     using:
