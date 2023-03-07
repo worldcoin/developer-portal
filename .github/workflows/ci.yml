@@ -58,7 +58,29 @@ jobs:
           JWT_ISSUER: invalid.localhost
         run: yarn build
 
-  apiTests:
+  docker-build:
+    name: Test Docker build
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/docker
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
+
+      - name: Build Docker image
+        run: docker build --cache-from developer-portal-test:latest -t developer-portal-test:latest .
+
+      # - name: Run API tests
+      #   run: docker run developer-portal-test yarn test:api
+
+  api-tests:
     name: API Tests
     runs-on: ubuntu-20.04
     defaults:
@@ -81,7 +103,7 @@ jobs:
         run: |
           yarn test:api
 
-  integrationTests:
+  integration-tests:
     name: Integration Tests
     runs-on: ubuntu-20.04
     defaults:

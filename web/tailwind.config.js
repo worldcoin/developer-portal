@@ -39,6 +39,15 @@ module.exports = {
 
         muted: "#f0edf9",
       },
+      //ANCHOR: accent colors are used for displaying different statuses
+      //TODO: cleanup unused colors
+      accents: {
+        success: {
+          DEFAULT: "#00c313",
+          700: "#00c313",
+          300: "#d6f6d9",
+        },
+      },
       primary: {
         DEFAULT: "#4940e0",
         light: "#edecfc",

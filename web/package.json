@@ -44,6 +44,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
+    "react-hook-form": "^7.43.5",
     "react-popper-tooltip": "^4.4.1",
     "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^9.1.1",

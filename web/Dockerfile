@@ -13,6 +13,12 @@ RUN yarn install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS runner
+
+# Temporary env vars required for building
+ENV GENERAL_SECRET_KEY unsafe_test_key
+ENV HASURA_GRAPHQL_JWT_SECRET '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
+ENV JWT_ISSUER invalid.localhost
+
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 WORKDIR /app
 RUN chown -R nextjs:nodejs /app
