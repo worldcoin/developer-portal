@@ -109,7 +109,7 @@ export const AppSelector = memo(function AppsSelector(props: {
           { "max-h-fit": selector.isOn } // TODO: Can we restore smoothing animation?
         )}
       >
-        {apps && currentApp && (
+        {apps && (
           <Fragment>
             <button
               className="grid grid-cols-1fr/auto items-center w-full px-4 py-3 outline-none"
@@ -117,10 +117,14 @@ export const AppSelector = memo(function AppsSelector(props: {
               aria-expanded="true"
               onClick={selector.toggle}
             >
-              <ButtonContent
-                app={currentApp}
-                selected={isSelected(currentApp)}
-              />
+              {currentApp ? (
+                <ButtonContent
+                  app={currentApp}
+                  selected={isSelected(currentApp)}
+                />
+              ) : (
+                <div />
+              )}
               <Icon
                 name="angle-down"
                 className={cn("w-5 h-5 transition-transform", {

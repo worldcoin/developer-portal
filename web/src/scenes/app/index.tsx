@@ -27,10 +27,8 @@ export const App = memo(function App(props: { appId: string }) {
         )}
 
         {!isLoading && !currentApp && (
-          <div className="grid">
-            <h1 className="text-20 font-sora font-semibold self-end">
-              App not found
-            </h1>
+          <div className="w-full h-full flex justify-center items-center">
+            <h1 className="text-20 font-sora font-semibold">App not found</h1>
           </div>
         )}
 
