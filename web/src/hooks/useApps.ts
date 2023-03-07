@@ -149,7 +149,7 @@ const useApps = () => {
         return;
       }
 
-      updateApp({
+      return updateApp({
         id: currentApp.id,
         name,
       });
@@ -163,7 +163,7 @@ const useApps = () => {
         return;
       }
 
-      updateApp({
+      return updateApp({
         id: currentApp.id,
         description_internal: description,
       });
