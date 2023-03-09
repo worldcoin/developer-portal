@@ -99,8 +99,8 @@ export default async function handleInclusionProof(
   headers.append(
     "Authorization",
     req.body.env === "production"
-      ? `Bearer ${process.env.PHONE_SEQUENCER_KEY}`
-      : `Bearer ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+      ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
+      : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
   );
   headers.append("Content-Type", "application/json");
   const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
@@ -127,13 +127,13 @@ export default async function handleInclusionProof(
         "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
     });
   } else if (response.status === 400) {
-    const error = await response.text();
-    if (Object.keys(EXPECTED_ERRORS).includes(error)) {
-      return res.status(400).json(EXPECTED_ERRORS[error]);
+    const errorBody = await response.text();
+    if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
+      return res.status(400).json(EXPECTED_ERRORS[errorBody]);
     } else {
       console.error(
         "Unexpected error (400) fetching proof from phone sequencer",
-        await response.text()
+        errorBody
       );
       res.status(400).json({
         code: "server_error",
