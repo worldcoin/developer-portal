@@ -10,23 +10,23 @@ import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 
 const actionFields = `
-id
-app_id
-action
-created_at
-creation_mode
-description
-external_nullifier
-kiosk_enabled
-name
-max_accounts_per_user
-max_verifications
-updated_at
-nullifiers {
-    id
-    created_at
-    nullifier_hash
-}
+  id
+  app_id
+  action
+  created_at
+  creation_mode
+  description
+  external_nullifier
+  kiosk_enabled
+  name
+  max_accounts_per_user
+  max_verifications
+  updated_at
+  nullifiers {
+      id
+      created_at
+      nullifier_hash
+  }
 `;
 
 const FetchActionsQuery = gql`
