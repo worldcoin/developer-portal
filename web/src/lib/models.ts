@@ -48,6 +48,12 @@ export interface ActionModel {
   __typename: "action";
 }
 
+export interface ActionModelWithNullifiers extends ActionModel {
+  nullifiers: Array<
+    Pick<NullifierModel, "id" | "nullifier_hash" | "created_at">
+  >;
+}
+
 export interface NullifierModel {
   id: string;
   action_id: string;

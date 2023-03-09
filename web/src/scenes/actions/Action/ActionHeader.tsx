@@ -3,7 +3,7 @@ import { memo, MouseEvent, useCallback, useState } from "react";
 import { VerificationBadges } from "./VerificationBadges";
 import cn from "classnames";
 import { Icon } from "src/components/Icon";
-import { ActionModelWithNullifiers } from "src/stores/actionStore";
+import { ActionModelWithNullifiers } from "src/lib/models";
 
 const Input = memo(function Input(props: {
   value: string;

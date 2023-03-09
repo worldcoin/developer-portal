@@ -1,16 +1,12 @@
 import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
-import { ActionModel } from "@/lib/models";
+import { ActionModelWithNullifiers } from "@/lib/models";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import {
-  ActionModelWithNullifiers,
-  IActionStore,
-  useActionStore,
-} from "src/stores/actionStore";
+import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 
 const actionFields = `
@@ -108,10 +104,10 @@ const updateActionFetcher = async (
   _key: [string, string | undefined],
   args: {
     arg: {
-      id: ActionModel["id"];
-      name?: ActionModel["name"];
-      description?: ActionModel["description"];
-      kiosk_enabled?: ActionModel["kiosk_enabled"];
+      id: ActionModelWithNullifiers["id"];
+      name?: ActionModelWithNullifiers["name"];
+      description?: ActionModelWithNullifiers["description"];
+      kiosk_enabled?: ActionModelWithNullifiers["kiosk_enabled"];
     };
   }
 ) => {
@@ -148,10 +144,10 @@ const insertActionFetcher = async (
   _key: [string, string | undefined],
   args: {
     arg: {
-      name: ActionModel["name"];
-      description?: ActionModel["description"];
-      action?: ActionModel["action"];
-      app_id?: ActionModel["app_id"];
+      name: ActionModelWithNullifiers["name"];
+      description?: ActionModelWithNullifiers["description"];
+      action?: ActionModelWithNullifiers["action"];
+      app_id?: ActionModelWithNullifiers["app_id"];
     };
   }
 ) => {

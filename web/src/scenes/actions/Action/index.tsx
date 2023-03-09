@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Icon } from "src/components/Icon";
 import { Switch } from "src/components/Switch";
-import { ActionModelWithNullifiers } from "src/stores/actionStore";
+import { ActionModelWithNullifiers } from "src/lib/models";
 import useActions from "src/hooks/useActions";
 
 dayjs.extend(relativeTime);
