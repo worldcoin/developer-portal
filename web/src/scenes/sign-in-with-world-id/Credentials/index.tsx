@@ -3,15 +3,22 @@ import { IAppStore, useAppStore } from "@/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { useSignInActionStore } from "../store";
 import { Credential } from "./Credential";
+import { useRouter } from "next/router";
 
 const getStoreParams = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
 export const Credentials = memo(function Credentials() {
+  const router = useRouter();
   const { currentApp } = useAppStore(getStoreParams);
-  const { signInAction, clientSecretSeenOnce, setClientSecretSeenOnce } =
-    useSignInActionStore((state) => ({ ...state }), shallow);
+
+  const {
+    signInAction,
+    clientSecretSeenOnce,
+    setClientSecretSeenOnce,
+    generateNewClientSecret,
+  } = useSignInActionStore((state) => ({ ...state }), shallow);
 
   const generateCopyButton = useCallback(
     (values: { text: string; copyValue: string }) => ({
@@ -22,11 +29,9 @@ export const Credentials = memo(function Credentials() {
   );
 
   useEffect(() => {
-    return () => {
-      setClientSecretSeenOnce(true);
-    };
+    router.events.on("routeChangeStart", () => setClientSecretSeenOnce(true));
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we need to this runs only on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we need to this runs only on navigate to another page
   }, []);
 
   const clientSecretButtons = useMemo(() => {
@@ -34,7 +39,7 @@ export const Credentials = memo(function Credentials() {
       text: "Reset Secret",
       action: () => {
         //TODO: Reset secret logic here
-        setClientSecretSeenOnce(false);
+        generateNewClientSecret();
       },
     };
 
@@ -51,7 +56,7 @@ export const Credentials = memo(function Credentials() {
   }, [
     clientSecretSeenOnce,
     generateCopyButton,
-    setClientSecretSeenOnce,
+    generateNewClientSecret,
     signInAction?.client_secret,
   ]);
 

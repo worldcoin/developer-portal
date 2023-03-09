@@ -20,9 +20,21 @@ const existsQuery = gql`
   }
 `;
 
+interface ISimplifiedError {
+  code: string;
+  detail: string;
+}
+
+const EXPECTED_ERRORS: Record<string, ISimplifiedError> = {
+  "provided identity commitment is invalid": {
+    code: "invalid_identity",
+    detail: "This identity is not verified for the relevant credential.",
+  },
+};
+
 /**
  * Checks if the given identity commitment is in the revocation table, and if false,
- * queries an inclusion proof from the phone signup sequencer
+ * queries an inclusion proof from the relevant signup sequencer
  * @param req
  * @param res
  */
@@ -115,15 +127,24 @@ export default async function handleInclusionProof(
         "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
     });
   } else if (response.status === 400) {
-    res.status(400).json({
-      code: "inclusion_pending",
-      detail:
-        "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-    });
+    const error = await response.text();
+    if (Object.keys(EXPECTED_ERRORS).includes(error)) {
+      return res.status(400).json(EXPECTED_ERRORS[error]);
+    } else {
+      console.error(
+        "Unexpected error (400) fetching proof from phone sequencer",
+        await response.text()
+      );
+      res.status(400).json({
+        code: "server_error",
+        detail:
+          "Unable to get proof for this identity. Please try again later.",
+      });
+    }
   } else {
     console.error(
-      "Unexpected error fetching proof from phone sequencer",
-      response.text()
+      `Unexpected error (${response.status}) fetching proof from phone sequencer`,
+      await response.text()
     );
     res.status(503).json({
       code: "server_error",

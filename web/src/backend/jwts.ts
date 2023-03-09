@@ -165,24 +165,6 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
   return await _generateJWT(payload);
 };
 
-/**
- * Generates an asymmetric key pair in JWK format
- * @returns
- */
-export const generateJWK = async (
-  alg: string
-): Promise<{
-  privateJwk: jose.JWK;
-  publicJwk: jose.JWK;
-}> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(alg);
-
-  const privateJwk = await jose.exportJWK(privateKey);
-  const publicJwk = await jose.exportJWK(publicKey);
-
-  return { privateJwk, publicJwk };
-};
-
 interface IVerificationJWT {
   private_jwk: jose.JWK;
   kid: string;

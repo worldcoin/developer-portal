@@ -42,7 +42,7 @@ const mutation = gql`
   }
 `;
 
-export default async function login(
+export default async function handleSignUp(
   req: NextApiRequest,
   res: NextApiResponse<SignupResponse>
 ) {
@@ -64,7 +64,7 @@ export default async function login(
   } catch {}
 
   if (!nullifier_hash) {
-    return errorResponse(res, 401, "Invalid signup token.");
+    return errorResponse(res, 400, "Invalid signup token.");
   }
 
   const client = await getAPIServiceClient();

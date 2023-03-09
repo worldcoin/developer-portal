@@ -21,10 +21,7 @@ export const Link = memo(function Link(props: LinkInterface) {
   const { external, href, ...restProps } = props;
   let parsedUrl;
 
-  const className = cn(
-    "cursor-pointer text-primary hover:opacity-70 transition-opacity",
-    props.className
-  );
+  const className = cn("cursor-pointer text-primary", props.className);
 
   try {
     parsedUrl = props.external ? new URL(props.href as string) : undefined;

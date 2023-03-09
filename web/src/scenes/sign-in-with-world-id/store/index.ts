@@ -13,6 +13,7 @@ type Actions = {
   fetchSignInAction: (app_id: string) => Promise<void>;
   toggleSignInAction: () => void;
   setClientSecretSeenOnce: (clientSecretSeenOnce: boolean) => void;
+  generateNewClientSecret: () => void;
   updateRedirectInputs: (index: number, value: string) => void;
   saveRedirects: () => Promise<void>;
   removeRedirect: (index: number) => void;
@@ -54,6 +55,25 @@ export const useSignInActionStore = create<States & Actions>((set, get) => ({
 
   setClientSecretSeenOnce: (clientSecretSeenOnce: boolean) =>
     set(() => ({ clientSecretSeenOnce })),
+
+  generateNewClientSecret: () => {
+    const signInAction = get().signInAction;
+    const newClientSecret = new Array(33)
+      .fill(null)
+      .map((i) => `${Math.random()}`.slice(-1))
+      .join("");
+
+    if (signInAction) {
+      set(() => ({
+        signInAction: {
+          ...signInAction,
+          client_secret: newClientSecret,
+          client_secret_seen_once: false,
+        },
+        clientSecretSeenOnce: false,
+      }));
+    }
+  },
 
   fetchSignInAction: async (app_id: string) => {
     const signInAction = signInActions[app_id];

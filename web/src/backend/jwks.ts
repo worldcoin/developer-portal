@@ -70,11 +70,13 @@ export const fetchActiveJWK = async (alg: string) => {
  * Generates an asymmetric key pair in JWK format
  * @returns
  */
-export const generateJWK = async (): Promise<{
+export const generateJWK = async (
+  alg: string
+): Promise<{
   privateJwk: jose.JWK;
   publicJwk: jose.JWK;
 }> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(JWK_ALG);
+  const { publicKey, privateKey } = await jose.generateKeyPair(alg);
 
   const privateJwk = await jose.exportJWK(privateKey);
   const publicJwk = await jose.exportJWK(publicKey);

@@ -68,6 +68,7 @@ const appPrecheckQuery = gql`
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
+        action
         description
         max_verifications
         max_accounts_per_user
@@ -114,7 +115,7 @@ const createActionQuery = gql`
  * @param req
  * @param res
  */
-export default async function handleVerifyPrecheck(
+export default async function handlePrecheck(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
