@@ -110,9 +110,9 @@ module.exports = {
       },
 
       fontFamily: {
-        sora: ["Sora", "sans-serif"],
-        rubik: ["Rubik", "sans-serif"],
-        ibm: ["IBM Plex Mono", "monospace"],
+        sora: ["var(--font-sora)", "sans-serif"],
+        rubik: ["var(--font-rubik)", "sans-serif"],
+        ibm: ["var(--font-mono)", "monospace"],
       },
 
       fontSize: {

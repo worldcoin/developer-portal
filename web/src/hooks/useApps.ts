@@ -129,32 +129,57 @@ const useApps = () => {
     },
   });
 
+  const toggleAppActivityMutation = useSWRMutation("app", updateAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(data);
+        toast.success("App name updated");
+      }
+    },
+  });
+
+  const updateAppNameMutation = useSWRMutation("app", updateAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(data);
+        toast.success("App name updated");
+      }
+    },
+  });
+
+  const updateAppDescriptionMutation = useSWRMutation("app", updateAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(data);
+        toast.success("App description updated");
+      }
+    },
+  });
+
   const toggleAppActivity = useCallback(() => {
     if (!currentApp) {
       return;
     }
-
-    updateApp({
+    return updateApp({
       id: currentApp.id,
       status:
         currentApp.status === AppStatusType.Active
           ? AppStatusType.Inactive
           : AppStatusType.Active,
     });
-  }, [currentApp, updateApp]);
+  }, [currentApp, toggleAppActivityMutation]);
 
   const updateAppName = useCallback(
     (name: string) => {
       if (!currentApp) {
         return;
       }
-
-      updateApp({
+      return updateAppNameMutation.trigger({
         id: currentApp.id,
         name,
       });
     },
-    [currentApp, updateApp]
+    [currentApp, updateAppNameMutation]
   );
 
   const updateAppDescription = useCallback(
@@ -162,13 +187,12 @@ const useApps = () => {
       if (!currentApp) {
         return;
       }
-
-      updateApp({
+      return updateAppDescriptionMutation.trigger({
         id: currentApp.id,
         description_internal: description,
       });
     },
-    [currentApp, updateApp]
+    [currentApp, updateAppDescriptionMutation]
   );
 
   return {
@@ -176,8 +200,11 @@ const useApps = () => {
     error,
     isLoading,
     toggleAppActivity,
+    isToggleAppActivityMutating: toggleAppActivityMutation.isMutating,
     updateAppName,
+    isUpdateAppNameMutating: updateAppNameMutation.isMutating,
     updateAppDescription,
+    isUpdateAppDescriptionMutating: updateAppDescriptionMutation.isMutating,
   };
 };
 
