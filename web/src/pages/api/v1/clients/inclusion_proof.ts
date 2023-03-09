@@ -5,9 +5,12 @@ import {
   errorValidation,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
+import {
+  PHONE_SEQUENCER,
+  PHONE_SEQUENCER_STAGING,
+  SEMAPHORE_GROUP_MAP,
+} from "src/lib/constants";
 import { NextApiRequest, NextApiResponse } from "next";
-import { SEMAPHORE_GROUP_MAP } from "src/backend/verify";
 import { CredentialType } from "src/lib/types";
 
 const existsQuery = gql`
@@ -25,7 +28,11 @@ interface ISimplifiedError {
 
 const EXPECTED_ERRORS: Record<string, ISimplifiedError> = {
   "provided identity commitment is invalid": {
-    code: "invalid_identity",
+    code: "unverified_identity",
+    detail: "This identity is not verified for the relevant credential.",
+  },
+  "provided identity commitment not found": {
+    code: "unverified_identity",
     detail: "This identity is not verified for the relevant credential.",
   },
 };

@@ -45,6 +45,8 @@ export default async function handleENS(
       mutation upsert_cache(
         $productionAddress: String!
         $stagingAddress: String!
+        $phoneAddress: String!
+        $phoneStagingAddress: String!
       ) {
         insert_cache(
           objects: [

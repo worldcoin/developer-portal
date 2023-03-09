@@ -2,9 +2,12 @@ import { gql } from "@apollo/client";
 import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
-import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
+import {
+  PHONE_SEQUENCER,
+  PHONE_SEQUENCER_STAGING,
+  SEMAPHORE_GROUP_MAP,
+} from "src/lib/constants";
 import { NextApiRequest, NextApiResponse } from "next";
-import { SEMAPHORE_GROUP_MAP } from "src/backend/verify";
 import { CredentialType } from "src/lib/types";
 
 const existsQuery = gql`

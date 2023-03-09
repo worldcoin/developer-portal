@@ -2,6 +2,7 @@ import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
+import { SEMAPHORE_GROUP_MAP } from "src/lib/constants";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { getSmartContractENSName } from "./utils";
 
@@ -26,11 +27,6 @@ export const KNOWN_ERROR_CODES = [
       "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
   },
 ];
-
-export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {
-  [CredentialType.Orb]: 1,
-  [CredentialType.Phone]: 10,
-};
 
 const queryFetchAppActionWithContractAddress = gql`
   query FetchAppActionWithContractAddress(
