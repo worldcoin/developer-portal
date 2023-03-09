@@ -1,14 +1,11 @@
 import { GetServerSideProps } from "next";
+import { isAuthCookieValid } from "src/backend/cookies";
 import { App } from "src/scenes/app";
-import { useAuthStore } from "src/stores/authStore";
 export default App;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const isValid = useAuthStore.getState().isAuthCookiesValid(ctx);
-
-  if (!isValid) {
-    useAuthStore.getState().setAuthCookies(null, ctx.resolvedUrl, ctx);
-
+  const isAuthenticated = await isAuthCookieValid(ctx);
+  if (!isAuthenticated) {
     return {
       redirect: {
         destination: "/login",

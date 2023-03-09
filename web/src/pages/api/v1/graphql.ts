@@ -4,6 +4,7 @@ import { generateAnalyticsJWT, generateAPIKeyJWT } from "src/backend/jwts";
 import { errorUnauthenticated } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
+import { getTokenFromCookie } from "src/backend/cookies";
 const { publicRuntimeConfig } = getConfig();
 
 export default async function handleGraphQL(
@@ -24,10 +25,6 @@ export default async function handleGraphQL(
     "Content-Type",
     req.headers["content-type"] || "application/json"
   );
-
-  if (req.headers["authorization"]) {
-    headers.append("Authorization", req.headers["authorization"]);
-  }
 
   // Check if request is authenticated with API key
   if (authorization?.startsWith("key_")) {
@@ -76,6 +73,15 @@ export default async function handleGraphQL(
       detail: "The body request does not look like a valid JSON payload.",
       attr: null,
     });
+  }
+
+  if (!headers.get("authorization")) {
+    // Check if request is authenticated with user token (cookie)
+    const token = getTokenFromCookie(req, res);
+    console.log(token);
+    if (token) {
+      headers.append("Authorization", `Bearer ${token}`);
+    }
   }
 
   const response = await fetch(

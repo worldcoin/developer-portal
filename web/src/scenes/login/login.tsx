@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
 import { useRouter } from "next/router";
-import { LoginRequestBody } from "src/pages/api/login";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
 import { Button } from "src/components/Auth/Button";
@@ -18,7 +18,7 @@ const getParams = (store: IAuthStore) => ({
   enterApp: store.enterApp,
 });
 
-export function Login({ loginUrl, devToken }: ILoginPageProps) {
+export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
   const router = useRouter();
   const { setAuthCookies, enterApp } = useAuthStore(getParams, shallow);
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
   const { isAuthenticated } = useAuth();
 
   const doLogin = useCallback(
-    async (token: string) => {
+    async (body: LoginRequestBody) => {
       setLoading(true);
       // NOTE: After this fetch user will be redirected to /register or to dashboard.
       const response = await fetch("/api/login", {
@@ -34,11 +34,10 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          sign_in_with_world_id_token: token,
-        } as LoginRequestBody),
+        body: JSON.stringify(body),
       });
-      const payload = await response.json();
+      const payload = (await response.json()) as LoginRequestResponse;
+
       if (!Object.hasOwn(payload, "new_user")) {
         router.push(`${urls.login()}?error=invalid_login`);
         return;
@@ -49,19 +48,20 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
         router.push(urls.signup());
       }
 
-      if (!payload.new_user && payload.token) {
-        setAuthCookies(token);
+      if (!payload.new_user) {
         enterApp(router);
       }
     },
-    [router, setAuthCookies, enterApp]
+    [router, enterApp]
   );
 
   useEffect(() => {
     if (router.isReady) {
       setLoading(false);
       if (router.query.id_token) {
-        doLogin(router.query.id_token as string);
+        doLogin({
+          sign_in_with_world_id_token: router.query.id_token as string,
+        });
       }
 
       if (router.query.error) {
@@ -115,13 +115,13 @@ export function Login({ loginUrl, devToken }: ILoginPageProps) {
               </a>
             </div>
 
-            {devToken && (
+            {canDevLogin && (
               <div className="bg-warning-light px-6 py-4 rounded-md text-warning font-medium mt-10 max-w-[327px] w-full text-center">
                 Dev mode!{" "}
                 <span
                   className="cursor-pointer underline font-normal"
                   onClick={() => {
-                    setAuthCookies(devToken);
+                    doLogin({ dev_login: "1" });
                     enterApp(router);
                   }}
                 >

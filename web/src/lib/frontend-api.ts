@@ -65,25 +65,12 @@ export const restAPIRequest = async <T>(
 export const graphQLRequest = async <T>(
   queryOptions: QueryOptions
 ): Promise<ApolloQueryResult<T | null>> => {
-  const token = useAuthStore.getState().getToken();
-
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
   });
 
-  if (!token) {
-    // Token not yet set, skip requests to avoid showing random errors to users
-    return Promise.resolve({
-      data: null,
-      error: { message: "unauthenticated" },
-    } as ApolloQueryResult<T | null>);
-  }
-
   const authLink = setContext(async (_, { headers }) => ({
-    headers: {
-      ...headers,
-      authorization: `Bearer ${token}`,
-    },
+    headers,
   }));
 
   const client = new ApolloClient({

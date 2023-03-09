@@ -1,7 +1,7 @@
-import { GetServerSideProps, GetServerSidePropsContext } from "next";
+import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
+import { isAuthCookieValid } from "src/backend/cookies";
 import useApps from "src/hooks/useApps";
-import { useAuthStore } from "src/stores/authStore";
 
 export default function App() {
   //FIXME: temporary client redirect to default app page
@@ -16,11 +16,8 @@ export default function App() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const isValid = useAuthStore.getState().isAuthCookiesValid(ctx);
-
-  if (!isValid) {
-    useAuthStore.getState().setAuthCookies(null, ctx.resolvedUrl, ctx);
-
+  const isAuthenticated = await isAuthCookieValid(ctx);
+  if (!isAuthenticated) {
     return {
       redirect: {
         destination: "/login",
