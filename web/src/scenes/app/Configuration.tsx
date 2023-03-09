@@ -1,14 +1,5 @@
 import { FieldInput } from "src/components/FieldInput";
-import {
-  ChangeEvent,
-  KeyboardEvent,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { useDebounce } from "use-debounce";
+import { KeyboardEvent, memo, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { Icon } from "@/components/Icon";
@@ -16,33 +7,48 @@ import { Icon } from "@/components/Icon";
 const Label = memo(function Label(props: {
   label: string;
   value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   saving?: boolean;
-  onSave: () => void;
+  onSave: (value: string) => void;
 }) {
-  const { onSave } = props;
+  const { value, onSave } = props;
+
+  const ref = useRef<HTMLInputElement | null>(null);
+
+  const handleSave = useCallback(() => {
+    const newValue = ref.current?.value;
+    if (newValue && newValue !== value) {
+      onSave(newValue);
+    }
+  }, [value, onSave]);
 
   const handleBlur = useCallback(() => {
-    onSave();
-  }, [onSave]);
+    handleSave();
+  }, [handleSave]);
 
   const handleKeyPress = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        onSave();
+        handleSave();
       }
     },
-    [onSave]
+    [handleSave]
   );
+
+  // Update the input value when the value prop changes
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.value = value;
+    }
+  }, [value]);
 
   return (
     <label>
       <span className="text-14 font-medium">{props.label}</span>
       <div className="relative">
         <FieldInput
+          ref={ref}
           className="text-14 w-full"
-          value={props.value}
-          onChange={props.onChange}
+          defaultValue={value}
           onBlur={handleBlur}
           onKeyPress={handleKeyPress}
         />
@@ -60,63 +66,12 @@ const Label = memo(function Label(props: {
 
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
-
-  const initialValues = useMemo(
-    () => ({
-      name: currentApp?.name || "",
-      description: currentApp?.description_internal || "",
-    }),
-    [currentApp?.description_internal, currentApp?.name]
-  );
-
-  const { updateAppName, updateAppDescription } = useApps();
-  const [appName, setAppName] = useState<string>(initialValues.name);
-  const [debouncedAppName] = useDebounce(appName, 1000);
-  const [appNameSaving, setAppNameSaving] = useState<boolean>(false);
-  const handleSaveAppName = useCallback(async () => {
-    setAppNameSaving(true);
-    await updateAppName(appName);
-    setAppNameSaving(false);
-  }, [appName, updateAppName]);
-
-  const [appDescription, setAppDescription] = useState<string>(
-    initialValues.description
-  );
-  const [appDescriptionSaving, setAppDescriptionSaving] =
-    useState<boolean>(false);
-  const handleSavDescriptionName = useCallback(async () => {
-    setAppDescriptionSaving(true);
-    await updateAppDescription(appDescription);
-    setAppDescriptionSaving(false);
-  }, [appDescription, updateAppDescription]);
-
-  const [debouncedAppDescription] = useDebounce(appDescription, 1000);
-
-  useEffect(() => {
-    setAppName(initialValues.name);
-    setAppDescription(initialValues.description);
-  }, [initialValues]);
-
-  useEffect(() => {
-    if (!debouncedAppName || debouncedAppName === initialValues.name) {
-      return;
-    }
-
-    updateAppName(debouncedAppName);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we only want to run this effect when debouncedAppName changes
-  }, [debouncedAppName]);
-
-  useEffect(() => {
-    if (
-      !debouncedAppDescription ||
-      debouncedAppDescription === initialValues.description
-    ) {
-      return;
-    }
-
-    updateAppDescription(debouncedAppDescription);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we only want to run this effect when debouncedAppDescription changes
-  }, [debouncedAppDescription]);
+  const {
+    updateAppName,
+    isUpdateAppNameMutating,
+    updateAppDescription,
+    isUpdateAppDescriptionMutating,
+  } = useApps();
 
   return (
     <section className="grid gap-y-8">
@@ -124,18 +79,16 @@ export const Configuration = memo(function Configuration() {
 
       <Label
         label="App Name"
-        value={appName}
-        onChange={(e) => setAppName(e.target.value)}
-        saving={appNameSaving}
-        onSave={handleSaveAppName}
+        value={currentApp?.name || ""}
+        saving={isUpdateAppNameMutating}
+        onSave={updateAppName}
       />
 
       <Label
         label="App Description"
-        value={appDescription}
-        onChange={(e) => setAppDescription(e.target.value)}
-        saving={appDescriptionSaving}
-        onSave={handleSavDescriptionName}
+        value={currentApp?.description_internal || ""}
+        saving={isUpdateAppDescriptionMutating}
+        onSave={updateAppDescription}
       />
     </section>
   );
