@@ -18,14 +18,7 @@ export default async function handleContracts(
 
   const query = gql`
     query ENS {
-      cache(
-        where: {
-          _or: [
-            { key: { _eq: "semaphore.wld.eth" } }
-            { key: { _eq: "staging.semaphore.wld.eth" } }
-          ]
-        }
-      ) {
+      cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
         key
         value
       }
