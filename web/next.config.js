@@ -16,9 +16,6 @@ const nextConfig = {
           contentSecurityPolicy: {
             mergeDefaultDirectives: true,
             "img-src": "world-id-public.s3.amazonaws.com",
-            "font-src": ["https://fonts.gstatic.com"],
-            "style-src": ["https://fonts.googleapis.com", "'unsafe-inline'"],
-            "prefetch-src": ["https://fonts.googleapis.com"],
           },
         }),
       },
