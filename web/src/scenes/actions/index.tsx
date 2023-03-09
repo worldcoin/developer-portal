@@ -1,34 +1,25 @@
 import { AuthRequired } from "@/components/AuthRequired";
 import { Layout } from "@/components/Layout";
-import { useToggle } from "@/hooks/useToggle";
 import { Action } from "./Action";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { Icon } from "@/components/Icon";
 import useActions from "src/hooks/useActions";
-import { NewAction, NewActionFormData } from "./NewAction";
-import { useCallback } from "react";
+import { NewAction } from "./NewAction";
+import { IActionStore, useActionStore } from "src/stores/actionStore";
+
+const getActionsStore = (store: IActionStore) => ({
+  setNewActionOpened: store.setNewIsOpened,
+});
 
 export function Actions(): JSX.Element | null {
-  const dialog = useToggle();
-  const { actions, newAction } = useActions();
-
-  const handleSubmitNewAction = useCallback(
-    (data: NewActionFormData) => {
-      newAction(data);
-      dialog.toggleOff();
-    },
-    [dialog, newAction]
-  );
+  const { actions } = useActions();
+  const { setNewActionOpened } = useActionStore(getActionsStore);
 
   return (
     <AuthRequired>
       <Layout title="Actions">
-        <NewAction
-          open={dialog.isOn}
-          onClose={dialog.toggleOff}
-          onSubmit={handleSubmitNewAction}
-        />
+        <NewAction />
 
         <div className="grid gap-y-12">
           <section className="grid gap-y-3">
@@ -58,7 +49,10 @@ export function Actions(): JSX.Element | null {
                   <span>Docs</span>
                   <Icon name="arrow-right" className="w-4 h-4" />
                 </Link>
-                <Button className="px-11 py-4" onClick={dialog.toggleOn}>
+                <Button
+                  className="px-11 py-4"
+                  onClick={() => setNewActionOpened(true)}
+                >
                   Create new
                 </Button>
               </div>
