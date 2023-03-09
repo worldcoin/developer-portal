@@ -17,6 +17,9 @@ const nextConfig = {
             mergeDefaultDirectives: true,
             "img-src": "world-id-public.s3.amazonaws.com",
           },
+          permissionsPolicy: {
+            "clipboard-write": `self ${process.env.NEXT_PUBLIC_APP_URL}`,
+          },
         }),
       },
     ];
