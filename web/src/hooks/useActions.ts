@@ -58,7 +58,7 @@ const UpdateActionMutation = gql`
 `;
 
 const InsertActionMutation = gql`
-  mutation MyMutation(
+  mutation InsertAction(
     $name: String!
     $description: String = ""
     $action: String = ""
