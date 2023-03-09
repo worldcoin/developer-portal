@@ -1,27 +1,31 @@
 import { useToggle } from "src/hooks/useToggle";
-import { memo, useCallback, useState } from "react";
+import { memo, MouseEvent, useCallback, useState } from "react";
 import { VerificationBadges } from "./VerificationBadges";
 import cn from "classnames";
 import { Icon } from "src/components/Icon";
-import { CustomAction } from "src/components/Layout/temp-data";
+import { ActionModelWithNullifiers } from "src/lib/models";
 
 const Input = memo(function Input(props: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
-  save?: () => void;
   lengthAdjust?: number;
 }) {
+  const [value, setValue] = useState(props.value);
   const inputButton = useToggle();
 
-  const handleButtonClick = useCallback(() => {
-    if (!inputButton.isOn) {
-      return inputButton.toggleOn();
-    }
+  const handleButtonClick = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      if (!inputButton.isOn) {
+        return inputButton.toggleOn();
+      }
 
-    props.save?.();
-    inputButton.toggleOff();
-  }, [inputButton, props]);
+      props.onChange(value);
+      inputButton.toggleOff();
+    },
+    [inputButton, props, value]
+  );
 
   return (
     <div className="grid grid-flow-col gap-x-1 justify-start items-center">
@@ -34,10 +38,11 @@ const Input = memo(function Input(props: {
           { "bg-transparent": !inputButton.isOn },
           props.className
         )}
-        value={props.value ?? ""}
-        onChange={(e) => props.onChange(e.target.value)}
+        value={value ?? ""}
+        onChange={(e) => setValue(e.target.value)}
+        onClick={(e) => e.preventDefault()}
         disabled={!inputButton.isOn}
-        size={props.value.length + (props.lengthAdjust ?? 0)}
+        size={value.length + (props.lengthAdjust ?? 0)}
       />
 
       {/* FIXME: For some reason button element causes the hydration error */}
@@ -59,15 +64,11 @@ const Input = memo(function Input(props: {
 });
 
 export const ActionHeader = memo(function ActionHeader(props: {
-  action: CustomAction;
+  action: ActionModelWithNullifiers;
+  onChangeName: (value: string) => void;
+  onChangeDescription: (value: string) => void;
   open?: boolean;
 }) {
-  const [nameInput, setNameInput] = useState(props.action.name);
-
-  const [descriptionInput, setDescriptionInput] = useState(
-    props.action.description
-  );
-
   return (
     <div className={cn("p-4 flex justify-between items-center")}>
       <div className="grid grid-rows-2 gap-y-1 gap-x-3 grid-flow-col justify-start content-center">
@@ -77,14 +78,14 @@ export const ActionHeader = memo(function ActionHeader(props: {
 
         <Input
           className="font-sora font-semibold self-end leading-none pl-1"
-          value={nameInput}
-          onChange={setNameInput}
+          value={props.action.name}
+          onChange={props.onChangeName}
         />
 
         <Input
           className="text-12 text-neutral-secondary leading-none pl-0.5"
-          value={descriptionInput}
-          onChange={setDescriptionInput}
+          value={props.action.description}
+          onChange={props.onChangeDescription}
           lengthAdjust={-2}
         />
       </div>
