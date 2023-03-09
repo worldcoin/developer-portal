@@ -1,18 +1,12 @@
 import { Menu } from "@headlessui/react";
-import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Fragment, memo } from "react";
-import { shallow } from "zustand/shallow";
-import { useSignInActionStore } from "../store";
 
 export const DefaultAuthorizationLink = memo(
   function DefaultAuthorizationLink() {
-    const { redirectInputs, defaultRedirect, setDefaultRedirect } =
-      useSignInActionStore((state) => ({ ...state }), shallow);
-
     return (
       <Fragment>
-        {redirectInputs.length > 0 && (
+        {/* {redirectInputs.length > 0 && (
           <section className="grid gap-y-4">
             <div className="grid gap-y-2">
               <h4 className="font-medium">Default Authorization Link</h4>
@@ -58,7 +52,7 @@ export const DefaultAuthorizationLink = memo(
               </span>
             </div>
           </section>
-        )}
+        )} */}
       </Fragment>
     );
   }
