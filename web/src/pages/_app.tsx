@@ -3,6 +3,28 @@ import type { AppContext, AppProps } from "next/app";
 import { Fragment } from "react";
 import { usePostHog } from "@/hooks/usePostHog";
 import Head from "next/head";
+import { Sora, Rubik, IBM_Plex_Mono } from "next/font/google";
+
+const sora = Sora({
+  subsets: ["latin"],
+  style: ["normal"],
+  weight: ["400", "600", "700"],
+  variable: "--font-sora",
+});
+
+const rubik = Rubik({
+  subsets: ["latin"],
+  style: ["normal"],
+  weight: ["400", "500", "600"],
+  variable: "--font-rubik",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  style: ["normal"],
+  weight: ["400", "600"],
+  variable: "--font-mono",
+});
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   usePostHog();
@@ -78,7 +100,11 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         <meta name="twitter:description" content={metaDescription} />
       </Head>
 
-      <Component {...pageProps} />
+      <div
+        className={`${sora.variable} ${rubik.variable} ${ibmPlexMono.variable} contents`}
+      >
+        <Component {...pageProps} />
+      </div>
     </Fragment>
   );
 };
