@@ -152,7 +152,7 @@ const fetchRedirects = async () => {
     return response.data.redirect;
   }
 
-  throw new Error("Failed fetch redirects");
+  throw new Error("Error fetching redirects");
 };
 
 const addRedirectFetcher = async (_key: [string, string | undefined]) => {
