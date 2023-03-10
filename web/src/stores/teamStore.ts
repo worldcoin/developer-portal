@@ -1,3 +1,4 @@
+// FIXME: we don't need this store anymore, we can use useSWR directly
 import { tempTeam } from "@/components/Layout/temp-data";
 import { Dispatch, SetStateAction } from "react";
 import { create } from "zustand";

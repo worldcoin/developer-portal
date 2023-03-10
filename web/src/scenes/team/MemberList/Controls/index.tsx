@@ -4,8 +4,8 @@ import { memo } from "react";
 
 export const Controls = memo(function Controls(props: {
   onInviteClick: () => void;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
+  keyword: string;
+  onKeywordChange: (value: string) => void;
 }) {
   return (
     <div className="grid gap-y-8">
@@ -16,8 +16,8 @@ export const Controls = memo(function Controls(props: {
           <FieldInput
             className="w-full pl-12"
             placeholder="Search for a team member..."
-            value={props.searchValue}
-            onChange={(e) => props.onSearchChange(e.target.value)}
+            defaultValue={props.keyword}
+            onChange={(e) => props.onKeywordChange(e.target.value)}
           />
 
           <Icon

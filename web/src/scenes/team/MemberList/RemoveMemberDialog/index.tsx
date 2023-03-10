@@ -1,17 +1,31 @@
 import { Illustration } from "@/components/Auth/Illustration";
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
-import { memo } from "react";
-import { getTeamStore, useTeamStore } from "src/stores/teamStore";
+import { memo, useCallback } from "react";
+import { useRemoveTeamMemberMutation } from "@/hooks/useTeam";
+import { TeamMemberModel } from "@/lib/models";
 
-export const RemoveMemberDialog = memo(function RemoveMemberDialog() {
-  const { memberForRemove, setMemberForRemove, removeMember } =
-    useTeamStore(getTeamStore);
+export interface RemoveMemberDialogProps {
+  memberForRemove?: TeamMemberModel;
+  onClose: () => void;
+}
+
+export const RemoveMemberDialog = memo(function RemoveMemberDialog(
+  props: RemoveMemberDialogProps
+) {
+  const { memberForRemove, onClose } = props;
+  const { removeTeamMember, isLoading } = useRemoveTeamMemberMutation();
+
+  const handleConfirm = useCallback(async () => {
+    if (!memberForRemove) return;
+    await removeTeamMember(memberForRemove.id);
+    onClose();
+  }, [removeTeamMember, memberForRemove, onClose]);
 
   return (
     <Dialog
-      open={memberForRemove !== null}
-      onClose={() => setMemberForRemove(null)}
+      open={!!memberForRemove}
+      onClose={onClose}
       panelClassName="flex flex-col space-y-8"
     >
       <div className="flex flex-col items-center space-y-6">
@@ -29,11 +43,16 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog() {
         </div>
       </div>
 
-      <Button variant="danger" className="py-4.5 px-9" onClick={removeMember}>
+      <Button
+        variant="danger"
+        className="py-4.5 px-9"
+        onClick={handleConfirm}
+        disabled={isLoading}
+      >
         Delete member
       </Button>
 
-      <Button variant="plain" onClick={() => setMemberForRemove(null)}>
+      <Button variant="plain" onClick={onClose}>
         Cancel
       </Button>
     </Dialog>

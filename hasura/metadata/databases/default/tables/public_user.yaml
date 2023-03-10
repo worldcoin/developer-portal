@@ -34,7 +34,9 @@ select_permissions:
         - email
         - id
         - is_subscribed
+        - name
         - team_id
+        - world_id_nullifier
       filter:
         team:
           users:
