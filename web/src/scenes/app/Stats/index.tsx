@@ -1,9 +1,12 @@
 import { Selector } from "./StatsSelector";
-import { memo, useMemo, useState } from "react";
-import { Icon, IconType } from "src/components/Icon";
+import { memo, useMemo } from "react";
 import dayjs from "dayjs";
 import cn from "classnames";
-import { stats as tempStats } from "src/components/Layout/temp-data";
+import utc from "dayjs/plugin/utc";
+import tz from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(tz);
 
 import {
   Chart as ChartJS,
@@ -18,6 +21,9 @@ import {
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
+import useAppStats from "src/hooks/useAppStats";
+import { IAppStatsStore, useAppStatsStore } from "src/stores/appStatsStore";
+import { StatCard } from "./StatCard";
 
 ChartJS.register(
   CategoryScale,
@@ -29,24 +35,6 @@ ChartJS.register(
   Legend,
   Filler
 );
-
-const StatCard = memo(function StatCard(props: {
-  title: string;
-  value: string;
-  icon: IconType;
-  className?: string;
-}) {
-  return (
-    <div className="bg-f3f4f5 rounded-2xl grid grid-cols-auto/1fr justify-items-start items-center gap-x-8 p-8 min-w-[240px]">
-      <Icon name={props.icon} className="w-6 h-6 text-primary" />
-
-      <div className="grid gap-y-0.5">
-        <span className="text-14 font-medium">{props.value}</span>
-        <span>{props.title}</span>
-      </div>
-    </div>
-  );
-});
 
 const LegendElement = memo(function LegendElement(props: {
   name: string;
@@ -78,26 +66,37 @@ const LegendElement = memo(function LegendElement(props: {
   );
 });
 
-const timespans = [
-  { label: "This week", value: "week" },
-  { label: "This month", value: "month" },
-];
+const getAppStatsStore = (store: IAppStatsStore) => ({
+  timeSpans: store.timeSpans,
+  currentTimeSpan: store.currentTimeSpan,
+  setCurrentTimeSpan: store.setCurrentTimeSpan,
+});
 
 export const Stats = memo(function Stats() {
-  const stats = tempStats["app_staging_58fcda7a3ec5dc181f91b46e1954a8fc"];
-  const [timespan, setTimespan] = useState(timespans[0]);
-  const cumulative = true;
+  const { timeSpans, currentTimeSpan, setCurrentTimeSpan } =
+    useAppStatsStore(getAppStatsStore);
+
+  const { stats, error, isLoading } = useAppStats();
+
+  const totalVerifications = useMemo(
+    () =>
+      stats ? stats.reduce((res, item) => res + item.verifications, 0) : 0,
+    [stats]
+  );
+
+  const totalUnique = useMemo(
+    () => (stats ? stats.reduce((res, item) => res + item.unique_users, 0) : 0),
+    [stats]
+  );
 
   const labelDateFormat = useMemo(() => {
-    switch (timespan.value) {
+    switch (currentTimeSpan.value) {
       case "month":
         return "MMM";
       case "week":
         return "D MMM";
-      case "day":
-        return "D MMM";
     }
-  }, [timespan]);
+  }, [currentTimeSpan.value]);
 
   const data = useMemo(() => {
     if (!stats) {
@@ -122,16 +121,8 @@ export const Stats = memo(function Stats() {
         accumulator.labels.push(
           dayjs(currentValue.date).format(labelDateFormat).toString()
         );
-        accumulator.datasets[0].data.push(
-          !cumulative
-            ? currentValue.verifications.total
-            : currentValue.verifications.total_cumulative
-        );
-        accumulator.datasets[1]?.data.push(
-          !cumulative
-            ? currentValue.unique_users.total
-            : currentValue.unique_users.total_cumulative
-        );
+        accumulator.datasets[0].data.push(currentValue.verifications);
+        accumulator.datasets[1]?.data.push(currentValue.unique_users);
 
         if (index === 0 || index === stats.length - 1) {
           accumulator.datasets[0].pointRadius.push(3);
@@ -161,7 +152,7 @@ export const Stats = memo(function Stats() {
         ],
       }
     );
-  }, [stats, labelDateFormat, cumulative]);
+  }, [stats, labelDateFormat]);
 
   return (
     <section className="grid gap-y-8">
@@ -169,9 +160,9 @@ export const Stats = memo(function Stats() {
 
       <div>
         <Selector
-          selected={timespan}
-          options={timespans}
-          setOption={setTimespan}
+          selected={currentTimeSpan}
+          options={timeSpans}
+          setOption={setCurrentTimeSpan}
         />
 
         <div className="grid grid-cols-1fr/auto gap-x-16 mt-4">
@@ -214,6 +205,12 @@ export const Stats = memo(function Stats() {
                       display: false,
                     },
                   },
+
+                  layout: {
+                    padding: {
+                      top: 56,
+                    },
+                  },
                 }}
                 data={{
                   labels: data.labels,
@@ -222,19 +219,21 @@ export const Stats = memo(function Stats() {
               />
             </div>
             <div className="flex justify-between text-12 text-657080 mt-3">
-              <span>
-                {dayjs(stats?.[0].date).format("MMM. DD, YYYY").toString()}
-              </span>
+              <span>{dayjs(stats?.[0]?.date).format("MMM. DD, YYYY")}</span>
               <span>Now</span>
             </div>
           </div>
 
           <div className="grid gap-y-2 content-center">
-            <StatCard title="Verifications" value="1,234" icon="chart" />
+            <StatCard
+              title="Verifications"
+              value={totalVerifications}
+              icon="chart"
+            />
 
             <StatCard
               title="Unique users"
-              value="1,234"
+              value={totalUnique}
               icon="world-id-sign-in"
             />
           </div>

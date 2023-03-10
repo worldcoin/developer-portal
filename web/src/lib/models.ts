@@ -118,3 +118,10 @@ export interface RedirectModel {
   updated_at: DateTime;
   redirect_uri: string;
 }
+
+export interface AppStatsModel {
+  app_id: string;
+  date: DateTime;
+  verifications: number;
+  unique_users: number;
+}
