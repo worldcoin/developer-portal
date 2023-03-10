@@ -10,8 +10,8 @@ import useActions from "src/hooks/useActions";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 
 const getActionsStore = (store: IActionStore) => ({
-  isOpened: store.newIsOpened,
-  setIsOpened: store.setNewIsOpened,
+  isOpened: store.isNewActionModalOpened,
+  setIsOpened: store.setIsNewActionModalOpened,
   newAction: store.newAction,
   setNewAction: store.setNewAction,
 });

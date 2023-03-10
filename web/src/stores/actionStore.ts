@@ -11,8 +11,8 @@ type NewAction = {
 export type IActionStore = {
   actions: Array<ActionModelWithNullifiers>;
   setActions: (actions: Array<ActionModelWithNullifiers>) => void;
-  newIsOpened: boolean;
-  setNewIsOpened: (value: boolean) => void;
+  isNewActionModalOpened: boolean;
+  setIsNewActionModalOpened: (value: boolean) => void;
   newAction: NewAction;
   setNewAction: (value: Partial<NewAction>) => void;
 };
@@ -22,8 +22,8 @@ export const useActionStore = create<IActionStore>((set, get) => ({
   setActions: (actions) => set(() => ({ actions })),
   // TODO: Extend with immer (reducer equivalent) to extract sign in with world id action
 
-  newIsOpened: false,
-  setNewIsOpened: (value) => set({ newIsOpened: value }),
+  isNewActionModalOpened: false,
+  setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
 
   newAction: { name: "", description: "", action: "", app_id: "" },
   setNewAction: (value) => set({ newAction: { ...get().newAction, ...value } }),

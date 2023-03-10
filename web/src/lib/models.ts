@@ -45,7 +45,7 @@ export interface ActionModel {
   created_at: DateTime;
   updated_at: DateTime;
   kiosk_enabled: boolean;
-  // FIXME: need add constaint for status field in hasura (or use boolean)
+  // FIXME: need add constraint for status field in hasura (or use boolean)
   status: "active" | "inactive";
   __typename: "action";
 }

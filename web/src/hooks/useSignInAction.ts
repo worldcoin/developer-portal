@@ -28,8 +28,7 @@ const FetchActionQuery = gql`
 `;
 
 const UpdateActionMutation = gql`
-  mutation MyMutation($id: String!, $status: String!) {
-    update_action_by_pk(pk_columns: { id: $id }, _set: { status: $status }) {
+  mutation UpdateAction($id: String!, $status: String!) {    update_action_by_pk(pk_columns: { id: $id }, _set: { status: $status }) {
       ${actionFields}
     }
   }

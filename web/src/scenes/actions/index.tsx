@@ -9,7 +9,7 @@ import { NewAction } from "./NewAction";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 
 const getActionsStore = (store: IActionStore) => ({
-  setNewActionOpened: store.setNewIsOpened,
+  setNewActionOpened: store.setIsNewActionModalOpened,
 });
 
 export function Actions(): JSX.Element | null {

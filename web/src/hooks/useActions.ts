@@ -180,7 +180,7 @@ const getActionsStore = (store: IActionStore) => ({
   actions: store.actions,
   setActions: store.setActions,
   setNewAction: store.setNewAction,
-  setNewIsOpened: store.setNewIsOpened,
+  setNewIsOpened: store.setIsNewActionModalOpened,
 });
 
 const useActions = () => {
@@ -233,7 +233,7 @@ const useActions = () => {
           err.graphQLErrors[0].extensions["code"] === "constraint-violation"
         ) {
           toast.error(
-            'Action with same "action" field already exists, please use another action'
+            'An action with this identifier already exists for this app. Please change the "action" identifier.'
           );
         }
       },
