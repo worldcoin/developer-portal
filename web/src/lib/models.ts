@@ -10,7 +10,7 @@ type DateTime = string;
 export interface TeamModel {
   id: string;
   name: string;
-  members: Array<TeamMemberModel>;
+  members?: Array<TeamMemberModel>;
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "team";
@@ -20,7 +20,6 @@ export interface TeamMemberModel {
   id: string;
   name: string;
   email: string;
-  world_id_nullifier: string;
   __typename: "user";
 }
 

@@ -37,8 +37,9 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
           </span>
 
           <span className="text-14">
-            Remove team member Are you sure you want to remove your team member
-            <b>&nbsp;{memberForRemove?.name}</b>?
+            Are you sure you want to remove your team member
+            <b>&nbsp;{memberForRemove?.name}</b>? This will delete their
+            Developer Portal account.
           </span>
         </div>
       </div>

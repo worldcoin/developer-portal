@@ -22,7 +22,7 @@ export const Team = memo(function Team() {
           <>
             <Header />
             <Details team={team} />
-            <MemberList members={team.members} />
+            {team.members && <MemberList members={team.members} />}
           </>
         )}
       </Layout>

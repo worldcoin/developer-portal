@@ -1,5 +1,4 @@
 import { memo, useCallback, useState } from "react";
-import { getTeamStore, useTeamStore } from "src/stores/teamStore";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldLabel } from "@/components/FieldLabel";
@@ -12,8 +11,6 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
   onClose: () => void;
 }) {
-  const { inviteMembers } = useTeamStore(getTeamStore);
-
   const [emails, setEmails] = useState<string[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -28,6 +28,7 @@ const UpdateTeamMutation = gql`
   }
 `;
 
+// TODO: In practice we currently only support 1 user = 1 team, when we change this we need to update this query to just remove the user from the team
 const DeleteTeamMemberMutation = gql`
   mutation DeleteTeamMember($id: String!) {
     member: delete_user_by_pk(id: $id) {

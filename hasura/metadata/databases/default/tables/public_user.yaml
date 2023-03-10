@@ -36,7 +36,6 @@ select_permissions:
         - is_subscribed
         - name
         - team_id
-        - world_id_nullifier
       filter:
         team:
           users:
@@ -47,7 +46,7 @@ update_permissions:
     permission:
       columns:
         - email
-        - world_id_nullifier
+        - name
       filter:
         id:
           _eq: X-Hasura-User-Id
