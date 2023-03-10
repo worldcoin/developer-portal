@@ -76,7 +76,7 @@ export const Stats = memo(function Stats() {
   const { timeSpans, currentTimeSpan, setCurrentTimeSpan } =
     useAppStatsStore(getAppStatsStore);
 
-  const { stats, error, isLoading } = useAppStats();
+  const { stats } = useAppStats();
 
   const totalVerifications = useMemo(
     () =>

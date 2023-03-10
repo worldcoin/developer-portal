@@ -32,8 +32,6 @@ const fetchAppStats = async (_key: [string, string | undefined]) => {
     throw new Error("No current app");
   }
 
-  console.log(dayjs().startOf(currentTimeSpan.value).tz().toISOString());
-
   const response = await graphQLRequest<{
     app_stats: Array<AppStatsModel>;
   }>({

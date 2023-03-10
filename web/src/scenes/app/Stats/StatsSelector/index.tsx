@@ -38,7 +38,7 @@ export const Selector = memo(function Selector(props: {
                     {({ active }) => (
                       <button
                         onClick={() => props.setOption(option)}
-                        className="bg-ffffff py-3 px-4 w-full text-start min-w-[140px]"
+                        className="bg-ffffff py-3 px-4 w-full text-start min-w-[140px] rounded-md hover:bg-f9fafb"
                       >
                         {option.label}
                       </button>
