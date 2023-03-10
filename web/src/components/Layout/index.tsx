@@ -16,6 +16,7 @@ import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
+import useAuth from "src/hooks/useAuth";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -26,6 +27,7 @@ export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
+  userId?: string;
 }) => {
   const newAppDialog = useToggle();
   const router = useRouter();
@@ -132,7 +134,7 @@ export const Layout = (props: {
           </div>
 
           <footer className="grid items-center justify-between gap-y-4">
-            <LoggedUserDisplay />
+            <LoggedUserDisplay userId={props.userId} />
             <SystemStatus />
           </footer>
         </aside>

@@ -22,14 +22,16 @@ const FetchMeQuery = gql`
   }
 `;
 
-const fetchUser = async () => {
-  throw new Error("No user");
+const fetchUser = (userId?: string) => async () => {
+  if (!userId) {
+    throw new Error("Missing user id");
+  }
 
   const response = await graphQLRequest<{
     user: Array<UserWithTeam>;
   }>({
     query: FetchMeQuery,
-    variables: { id: decodedToken.sub },
+    variables: { id: userId },
   });
 
   if (response.data?.user?.length) {
@@ -39,9 +41,11 @@ const fetchUser = async () => {
   throw new Error("No user");
 };
 
-const useAuth = () => {
-  const { data, error, isLoading } = useSWR<UserWithTeam>("user", fetchUser);
-
+const useAuth = (userId?: string) => {
+  const { data, error, isLoading } = useSWR<UserWithTeam>(
+    "user",
+    fetchUser(userId)
+  );
   return { user: data, isLoading, isAuthenticated: !error && !isLoading };
 };
 

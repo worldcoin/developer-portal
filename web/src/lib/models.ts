@@ -89,6 +89,7 @@ export interface JWKModel {
 export interface UserModel {
   id: string;
   email: string;
+  name: string;
   team_id: string;
   world_id_nullifier: string;
   is_subscribed: boolean;

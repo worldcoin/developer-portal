@@ -17,7 +17,7 @@ import { NextApiResponse } from "next";
 import { UserModel } from "src/lib/models";
 import { JWTPayload } from "jose";
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
-import { setCookie } from "src/backend/cookies";
+import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -31,6 +31,7 @@ export type LoginRequestResponse =
     }
   | {
       new_user: false;
+      returnTo?: string;
     };
 
 const query = gql`
@@ -59,6 +60,10 @@ export default async function handleLogin(
     !req.url?.includes("https://developer.worldcoin.org")
   ) {
     const devToken = (await getDevToken()) ?? null;
+
+    const returnTo = getReturnToFromCookie(req, res);
+    console.log({ returnTo });
+
     if (devToken?.token) {
       setCookie(
         "auth",
@@ -67,7 +72,7 @@ export default async function handleLogin(
         res,
         devToken.expiration
       );
-      return res.status(200).json({ new_user: false });
+      return res.status(200).json({ new_user: false, returnTo });
     }
   }
 
@@ -119,8 +124,11 @@ export default async function handleLogin(
     return res.status(200).json({ new_user: true, signup_token });
   }
 
+  const returnTo = getReturnToFromCookie(req, res);
+  console.log({ returnTo });
+
   // NOTE: User has an account, generate a login token and authenticate
   const { token, expiration } = await generateUserJWT(user.id, user.team_id);
   setCookie("auth", { token }, req, res, expiration);
-  res.status(200).json({ new_user: false });
+  res.status(200).json({ new_user: false, returnTo });
 }

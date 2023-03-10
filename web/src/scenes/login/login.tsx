@@ -9,21 +9,11 @@ import { Icon } from "src/components/Icon";
 import { urls } from "src/lib/urls";
 import { ILoginPageProps } from "src/pages/login";
 import { Spinner } from "src/components/Spinner";
-import useAuth from "src/hooks/useAuth";
-import { IAuthStore, useAuthStore } from "src/stores/authStore";
-import { shallow } from "zustand/shallow";
-
-const getParams = (store: IAuthStore) => ({
-  setAuthCookies: store.setAuthCookies,
-  enterApp: store.enterApp,
-});
 
 export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
   const router = useRouter();
-  const { setAuthCookies, enterApp } = useAuthStore(getParams, shallow);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const { isAuthenticated } = useAuth();
 
   const doLogin = useCallback(
     async (body: LoginRequestBody) => {
@@ -37,6 +27,7 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
         body: JSON.stringify(body),
       });
       const payload = (await response.json()) as LoginRequestResponse;
+      console.log(payload);
 
       if (!Object.hasOwn(payload, "new_user")) {
         router.push(`${urls.login()}?error=invalid_login`);
@@ -45,14 +36,16 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
 
       if (payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        router.push(urls.signup());
+        return router.push(urls.signup());
       }
 
-      if (!payload.new_user) {
-        enterApp(router);
+      if (!payload.new_user && payload.returnTo) {
+        return router.push(payload.returnTo);
       }
+
+      router.push(urls.app());
     },
-    [router, enterApp]
+    [router]
   );
 
   useEffect(() => {
@@ -69,12 +62,6 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
       }
     }
   }, [router, doLogin]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      enterApp(router);
-    }
-  }, [isAuthenticated, enterApp, router]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
@@ -122,7 +109,6 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
                   className="cursor-pointer underline font-normal"
                   onClick={() => {
                     doLogin({ dev_login: "1" });
-                    enterApp(router);
                   }}
                 >
                   Log in with test user

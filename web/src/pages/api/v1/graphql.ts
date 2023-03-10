@@ -78,7 +78,7 @@ export default async function handleGraphQL(
   if (!headers.get("authorization")) {
     // Check if request is authenticated with user token (cookie)
     const token = getTokenFromCookie(req, res);
-    console.log(token);
+
     if (token) {
       headers.append("Authorization", `Bearer ${token}`);
     }

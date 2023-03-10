@@ -6,11 +6,14 @@ import {
 import { GetServerSideProps, NextApiRequest, NextApiResponse } from "next";
 import { verifyUserJWT } from "./jwts";
 
+type GSSRRequest = Parameters<GetServerSideProps>[0]["req"];
+type GSSRResponse = Parameters<GetServerSideProps>[0]["res"];
+
 export const setCookie = (
   name: string,
   value: Record<string, unknown>,
-  req: NextApiRequest,
-  res: NextApiResponse,
+  req: NextApiRequest | GSSRRequest,
+  res: NextApiResponse | GSSRResponse,
   expires_at?: number
 ) => {
   nextSetCookie(name, JSON.stringify(value), {
@@ -54,9 +57,17 @@ export const isAuthCookieValid = async (
 };
 
 export const getTokenFromCookie = (
+  req: NextApiRequest | GSSRRequest,
+  res: NextApiResponse | GSSRResponse
+) => {
+  const authCookie = getCookie("auth", { req, res })?.toString();
+  return authCookie ? (JSON.parse(authCookie).token as string) : undefined;
+};
+
+export const getReturnToFromCookie = (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
   const authCookie = getCookie("auth", { req, res })?.toString();
-  return authCookie ? JSON.parse(authCookie).token : undefined;
+  return authCookie ? (JSON.parse(authCookie).returnTo as string) : undefined;
 };

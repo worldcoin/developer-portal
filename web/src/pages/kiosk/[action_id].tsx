@@ -3,7 +3,6 @@ import { GetServerSideProps, NextPageContext } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
 import { ActionKioskType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
-import { useAuthStore } from "src/stores/authStore";
 
 export interface KioskProps {
   action: ActionKioskType | null;
@@ -45,21 +44,7 @@ const actionKioskQuery = gql`
 `;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const isValid = useAuthStore.getState().isAuthCookiesValid(context);
-
-  if (!isValid) {
-    useAuthStore.getState().setAuthCookies(null, context.resolvedUrl, context);
-
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
-  }
-
   const action_id = context.query.action_id;
-
   const client = await getAPIServiceClient();
 
   const { data } = await client.query<{ action: ActionKioskType[] }>({
@@ -68,8 +53,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       action_id,
     },
   });
-
-  console.log(data);
 
   if (data?.action.length === 0) {
     return { props: { error_code: "action_not_found" } };

@@ -7,6 +7,7 @@ import { Dialog } from "src/components/Dialog";
 import { ImageInput } from "src/components/Layout/common/ImageInput";
 import { useForm, Controller } from "react-hook-form";
 import { FieldError } from "@/components/FieldError";
+import { UserWithTeam } from "src/hooks/useAuth";
 
 type FormData = {
   name: string;
@@ -17,6 +18,7 @@ type FormData = {
 export interface ProfileSettingsDialogProps {
   open: boolean;
   onClose: () => void;
+  user?: UserWithTeam;
 }
 
 export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(

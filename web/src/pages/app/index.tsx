@@ -1,7 +1,9 @@
+import { getCookie } from "cookies-next";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { isAuthCookieValid } from "src/backend/cookies";
+import { getTokenFromCookie } from "src/backend/cookies";
 import useApps from "src/hooks/useApps";
+import { requireAuthentication } from "src/lib/require-authentication";
 
 export default function App() {
   //FIXME: temporary client redirect to default app page
@@ -15,20 +17,10 @@ export default function App() {
   return null;
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const isAuthenticated = await isAuthCookieValid(ctx);
-  if (!isAuthenticated) {
+export const getServerSideProps: GetServerSideProps = requireAuthentication(
+  async (context) => {
     return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
+      props: {},
     };
   }
-
-  //TODO: Fetch default app with token & redirect to app/[app_id] page
-
-  return {
-    props: {},
-  };
-};
+);
