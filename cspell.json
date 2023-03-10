@@ -29,6 +29,7 @@
     "healthz",
     "hexlify",
     "IDKit",
+    "iregex",
     "JWK",
     "jwks",
     "JWT",

@@ -3,11 +3,12 @@ import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
 import {
-  PHONE_GROUP_ID,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
+  SEMAPHORE_GROUP_MAP,
 } from "src/lib/constants";
 import { NextApiRequest, NextApiResponse } from "next";
+import { CredentialType } from "src/lib/types";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -70,7 +71,10 @@ export default async function handleInsert(
         : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
     );
     headers.append("Content-Type", "application/json");
-    const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
+    const body = JSON.stringify([
+      SEMAPHORE_GROUP_MAP[CredentialType.Phone],
+      req.body.identity_commitment,
+    ]);
 
     const response = await fetch(
       req.body.env === "production"

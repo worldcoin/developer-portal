@@ -2,7 +2,9 @@ import { ApolloClient, gql, NormalizedCacheObject } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
+import { SEMAPHORE_GROUP_MAP } from "src/lib/constants";
 import { CredentialType, IInternalError } from "src/lib/types";
+import { getSmartContractENSName } from "./utils";
 
 const CONTRACT_ABI = [
   "function verifyProof (uint256 root, uint256 groupId, uint256 signalHash, uint256 nullifierHash, uint256 externalNullifierHash, uint256[8] calldata proof)",
@@ -26,25 +28,13 @@ export const KNOWN_ERROR_CODES = [
   },
 ];
 
-export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {
-  [CredentialType.Orb]: 1,
-  [CredentialType.Phone]: 10,
-};
-
 const queryFetchAppActionWithContractAddress = gql`
   query FetchAppActionWithContractAddress(
     $app_id: String!
     $action: String!
     $nullifier_hash: String!
   ) {
-    cache(
-      where: {
-        _or: [
-          { key: { _eq: "semaphore.wld.eth" } }
-          { key: { _eq: "staging.semaphore.wld.eth" } }
-        ]
-      }
-    ) {
+    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
       key
       value
     }
@@ -111,7 +101,8 @@ export const fetchActionForProof = async (
   graphQLClient: ApolloClient<NormalizedCacheObject>,
   app_id: string,
   nullifier_hash: string,
-  action: string
+  action: string,
+  credential_type: CredentialType
 ) => {
   const result = await graphQLClient.query<IAppActionWithContractAddress>({
     query: queryFetchAppActionWithContractAddress,
@@ -158,9 +149,7 @@ export const fetchActionForProof = async (
   }
 
   // Obtain appropriate Semaphore contract address
-  const ensName = app.is_staging
-    ? "staging.semaphore.wld.eth"
-    : "semaphore.wld.eth";
+  const ensName = getSmartContractENSName(app.is_staging, credential_type);
   const contractRecord = result.data.cache.find(({ key }) => key === ensName);
   if (!contractRecord) {
     return {

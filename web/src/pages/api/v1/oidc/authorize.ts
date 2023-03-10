@@ -97,7 +97,10 @@ export default async function handler(
     : [OIDCScopes.OpenID];
 
   // ANCHOR: Check the app is valid and fetch information
-  const { app, error: fetchAppError } = await fetchOIDCApp(app_id);
+  const { app, error: fetchAppError } = await fetchOIDCApp(
+    app_id,
+    credential_type
+  );
   if (!app || fetchAppError) {
     return errorResponse(
       res,
