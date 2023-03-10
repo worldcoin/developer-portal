@@ -6,9 +6,12 @@ import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import useAuth from "src/hooks/useAuth";
 
-export function LoggedUserDisplay(props: { className?: string }) {
+export function LoggedUserDisplay(props: {
+  className?: string;
+  userId?: string;
+}) {
   const modal = useToggle(false);
-  const { user } = useAuth();
+  const { user } = useAuth(props.userId);
 
   // FIXME: remove when real user image is available
   const image = "";
@@ -18,6 +21,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
       <ProfileSettingsDialog
         open={Boolean(user?.id) && modal.isOn}
         onClose={modal.toggleOff}
+        user={user}
       />
 
       <div

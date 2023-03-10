@@ -6,7 +6,7 @@ export default Login;
 
 export interface ILoginPageProps {
   loginUrl?: string;
-  devToken?: string;
+  canDevLogin?: boolean;
 }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
@@ -28,16 +28,12 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     process.env.SIGN_IN_WITH_WORLD_ID_APP_ID ?? "app_developer_portal"
   );
 
-  const devToken =
-    process.env.NODE_ENV !== "production" &&
-    !ctx.req.url?.includes("https://developer.worldcoin.org")
-      ? (await getDevToken()) ?? null
-      : null;
-
   return {
     props: {
       loginUrl: loginUrl.toString(),
-      devToken,
+      canDevLogin:
+        process.env.NODE_ENV !== "production" &&
+        !ctx.req.url?.includes("https://developer.worldcoin.org"),
     } as ILoginPageProps,
   };
 }

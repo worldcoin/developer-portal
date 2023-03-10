@@ -1,0 +1,3 @@
+function:
+  name: app_stats
+  schema: public

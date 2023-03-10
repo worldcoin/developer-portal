@@ -16,6 +16,7 @@ const nextConfig = {
           contentSecurityPolicy: {
             mergeDefaultDirectives: true,
             "img-src": "world-id-public.s3.amazonaws.com",
+            "style-src": "'unsafe-inline'",
           },
           permissionsPolicy: {
             "clipboard-write": `self`,

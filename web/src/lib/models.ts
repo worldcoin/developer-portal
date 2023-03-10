@@ -97,6 +97,7 @@ export interface JWKModel {
 export interface UserModel {
   id: string;
   email: string;
+  name: string;
   team_id: string;
   world_id_nullifier: string;
   is_subscribed: boolean;
@@ -125,4 +126,11 @@ export interface RedirectModel {
   created_at: DateTime;
   updated_at: DateTime;
   redirect_uri: string;
+}
+
+export interface AppStatsModel {
+  app_id: string;
+  date: DateTime;
+  verifications: number;
+  unique_users: number;
 }

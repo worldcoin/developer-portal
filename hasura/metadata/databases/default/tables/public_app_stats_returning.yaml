@@ -1,0 +1,20 @@
+table:
+  name: app_stats_returning
+  schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - app_id
+        - date
+        - unique_users
+        - verifications
+      filter:
+        app:
+          team_id:
+            _eq: X-Hasura-Team-Id
+      allow_aggregations: true

@@ -8,8 +8,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
+import { setCookie } from "src/backend/cookies";
 
-export type SignupResponse = { redirectTo: string; token: string };
+export type SignupResponse = { returnTo: string };
 
 const mutation = gql`
   mutation Signup(
@@ -86,10 +87,10 @@ export default async function handleSignUp(
     return errorResponse(res, 500, "Failed to signup");
   }
 
-  const token = await generateUserJWT(user.id, team.id);
+  const { token, expiration } = await generateUserJWT(user.id, team.id);
+  setCookie("auth", { token }, req, res, expiration);
 
-  res.status(200).json({
-    redirectTo: "/dashboard",
-    token,
+  res.status(204).json({
+    returnTo: "/app",
   });
 }
