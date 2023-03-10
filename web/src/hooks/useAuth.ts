@@ -5,7 +5,7 @@ import { TeamModel, UserModel } from "src/lib/models";
 import { useAuthStore } from "src/stores/authStore";
 import useSWR from "swr";
 
-export type UserWithTeam = Pick<UserModel, "id" | "email" | "id"> & {
+export type UserWithTeam = Pick<UserModel, "id" | "email" | "id" | "name"> & {
   team: Pick<TeamModel, "id" | "name">;
 };
 
@@ -14,6 +14,7 @@ const FetchMeQuery = gql`
     user(where: { id: { _eq: $id } }) {
       id
       email
+      name
       team {
         id
         name

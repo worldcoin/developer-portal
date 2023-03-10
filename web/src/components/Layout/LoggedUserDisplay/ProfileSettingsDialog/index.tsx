@@ -26,12 +26,12 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
 ) {
   const { control, register, reset, handleSubmit, formState } =
     useForm<FormData>({
-      // FIXME: this values must be fetched from the server and passed as props
-      // values: {
-      //   name: "John Doe",
-      //   email: "example@example",
-      //   imageUrl: "https://fastly.picsum.photos/id/40/88/88.jpg?hmac=XQ7fH1YgKvAv7BEJcBsiF7qmuOaVhlbYHHeT-8nTnuM",
-      // }
+      values: {
+        name: props.user?.name ?? "",
+        email: props.user?.email ?? "",
+        //FIXME: add user image field to hasura
+        imageUrl: "",
+      },
     });
 
   const onSubmit = handleSubmit(async (data) => {
