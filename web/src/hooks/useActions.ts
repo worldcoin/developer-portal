@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
 import { ActionModelWithNullifiers } from "@/lib/models";
 import useSWR from "swr";
@@ -140,18 +140,9 @@ const updateActionFetcher = async (
   throw new Error("Failed to update app status");
 };
 
-const insertActionFetcher = async (
-  _key: [string, string | undefined],
-  args: {
-    arg: {
-      name: ActionModelWithNullifiers["name"];
-      description?: ActionModelWithNullifiers["description"];
-      action?: ActionModelWithNullifiers["action"];
-      app_id?: ActionModelWithNullifiers["app_id"];
-    };
-  }
-) => {
-  const { name, description, action, app_id } = args.arg;
+const insertActionFetcher = async (_key: [string, string | undefined]) => {
+  const { name, description, action, app_id } =
+    useActionStore.getState().newAction;
 
   const currentApp = !app_id
     ? useAppStore.getState().currentApp
@@ -163,21 +154,22 @@ const insertActionFetcher = async (
 
   const response = await graphQLRequest<{
     insert_action_one: ActionModelWithNullifiers;
-  }>({
-    query: InsertActionMutation,
-    variables: {
-      name,
-      description,
-      action,
-      app_id: currentApp.id,
+  }>(
+    {
+      query: InsertActionMutation,
+      variables: {
+        name,
+        description,
+        action,
+        app_id: currentApp.id,
+      },
     },
-  });
+    true
+  );
 
   if (response.data?.insert_action_one) {
     return response.data.insert_action_one;
   }
-
-  throw new Error("Failed to update app status");
 };
 
 const getAppStore = (store: IAppStore) => ({
@@ -187,12 +179,17 @@ const getAppStore = (store: IAppStore) => ({
 const getActionsStore = (store: IActionStore) => ({
   actions: store.actions,
   setActions: store.setActions,
+  setNewAction: store.setNewAction,
+  setNewIsOpened: store.setIsNewActionModalOpened,
 });
 
 const useActions = () => {
   const { currentApp } = useAppStore(getAppStore, shallow);
 
-  const { actions, setActions } = useActionStore(getActionsStore, shallow);
+  const { actions, setActions, setNewIsOpened, setNewAction } = useActionStore(
+    getActionsStore,
+    shallow
+  );
 
   const { data, error, isLoading } = useSWR<Array<ActionModelWithNullifiers>>(
     ["actions", currentApp?.id],
@@ -226,7 +223,18 @@ const useActions = () => {
       onSuccess: (data) => {
         if (data) {
           setActions([...actions, data]);
+          setNewAction({ name: "", description: "", action: "", app_id: "" });
+          setNewIsOpened(false);
           toast.success("Action created");
+        }
+      },
+      onError: (err) => {
+        if (
+          err.graphQLErrors[0].extensions["code"] === "constraint-violation"
+        ) {
+          toast.error(
+            'An action with this identifier already exists for this app. Please change the "action" identifier.'
+          );
         }
       },
     }
@@ -280,17 +288,9 @@ const useActions = () => {
     [actions, updateAction]
   );
 
-  const newAction = useCallback(
-    (
-      data: Pick<ActionModelWithNullifiers, "name"> &
-        Partial<
-          Pick<ActionModelWithNullifiers, "description" | "action" | "app_id">
-        >
-    ) => {
-      insertAction(data);
-    },
-    [insertAction]
-  );
+  const createNewAction = useCallback(() => {
+    insertAction();
+  }, [insertAction]);
 
   return {
     actions: data,
@@ -300,7 +300,7 @@ const useActions = () => {
     updateName,
     updateDescription,
     toggleKiosk,
-    newAction,
+    createNewAction,
   };
 };
 

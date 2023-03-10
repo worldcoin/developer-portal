@@ -1,64 +1,36 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
 import { IAppStore, useAppStore } from "@/stores/appStore";
-import { shallow } from "zustand/shallow";
-import { useSignInActionStore } from "../store";
 import { Credential } from "./Credential";
-import { useRouter } from "next/router";
+import useSignInAction from "src/hooks/useSignInAction";
 
 const getStoreParams = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
-export const Credentials = memo(function Credentials() {
-  const router = useRouter();
-  const { currentApp } = useAppStore(getStoreParams);
+const copy = async (value: string) =>
+  await navigator.clipboard.writeText(value);
 
-  const {
-    signInAction,
-    clientSecretSeenOnce,
-    setClientSecretSeenOnce,
-    generateNewClientSecret,
-  } = useSignInActionStore((state) => ({ ...state }), shallow);
+export const Credentials = memo(function Credentials() {
+  const { currentApp } = useAppStore(getStoreParams);
+  const { clientSecret, resetClientSecret } = useSignInAction();
 
   const generateCopyButton = useCallback(
     (values: { text: string; copyValue: string }) => ({
       text: values.text,
-      action: () => navigator.clipboard.writeText(values.copyValue),
+      action: () => copy(values.copyValue),
     }),
     []
   );
 
-  useEffect(() => {
-    router.events.on("routeChangeStart", () => setClientSecretSeenOnce(true));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE: we need to this runs only on navigate to another page
-  }, []);
-
-  const clientSecretButtons = useMemo(() => {
-    const resetButton = {
-      text: "Reset Secret",
-      action: () => {
-        //TODO: Reset secret logic here
-        generateNewClientSecret();
-      },
-    };
-
-    const copyButton = generateCopyButton({
-      text: "Copy",
-      copyValue: signInAction?.client_secret ?? "",
-    });
-
-    if (!clientSecretSeenOnce) {
-      return [resetButton, copyButton];
-    }
-
-    return [resetButton];
-  }, [
-    clientSecretSeenOnce,
-    generateCopyButton,
-    generateNewClientSecret,
-    signInAction?.client_secret,
-  ]);
+  const clientSecretButtons = useMemo(
+    () => [
+      { text: "Reset", action: () => resetClientSecret() },
+      ...(clientSecret
+        ? [{ text: "Copy", action: () => copy(clientSecret) }]
+        : []),
+    ],
+    [clientSecret, resetClientSecret]
+  );
 
   return (
     <section className="grid gap-y-4">
@@ -78,8 +50,7 @@ export const Credentials = memo(function Credentials() {
 
         <Credential
           name="CLIENT SECRET"
-          value={signInAction?.client_secret ?? ""}
-          valueHidden={clientSecretSeenOnce}
+          value={clientSecret ?? ""}
           buttons={clientSecretButtons}
         />
       </div>

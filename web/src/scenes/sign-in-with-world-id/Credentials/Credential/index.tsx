@@ -1,6 +1,5 @@
 import { Icon } from "src/components/Icon";
 import { memo } from "react";
-import cn from "classnames";
 import { Button } from "src/components/Button";
 
 export const Credential = memo(function Credential(props: {

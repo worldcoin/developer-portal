@@ -63,7 +63,8 @@ export const restAPIRequest = async <T>(
  * @returns
  */
 export const graphQLRequest = async <T>(
-  queryOptions: QueryOptions
+  queryOptions: QueryOptions,
+  customErrorHandling?: boolean
 ): Promise<ApolloQueryResult<T | null>> => {
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
@@ -89,10 +90,13 @@ export const graphQLRequest = async <T>(
     if ((e as Error).toString().includes("JWTExpired")) {
       window.location.href = "/logout";
       throw "JWT is expired. Please log in again.";
-    } else {
-      handleError(e);
-      console.error(e);
-      throw e;
     }
+
+    if (!customErrorHandling) {
+      handleError(e);
+    }
+
+    console.error(e);
+    throw e;
   }
 };
