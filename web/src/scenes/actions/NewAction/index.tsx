@@ -4,50 +4,41 @@ import { DialogHeader } from "@/components/DialogHeader";
 import { FieldInput } from "@/components/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
 import { Illustration } from "src/components/Auth/Illustration";
-import { FormEvent, useCallback, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { FieldTextArea } from "src/components/FieldTextArea";
+import useActions from "src/hooks/useActions";
+import { IActionStore, useActionStore } from "src/stores/actionStore";
 
-export type NewActionFormData = {
-  name: string;
-  description?: string;
-  action?: string;
-  app_id?: string;
-};
+const getActionsStore = (store: IActionStore) => ({
+  isOpened: store.isNewActionModalOpened,
+  setIsOpened: store.setIsNewActionModalOpened,
+  newAction: store.newAction,
+  setNewAction: store.setNewAction,
+});
 
-interface NewActionProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: NewActionFormData) => void;
-}
-
-export function NewAction(props: NewActionProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState<string | undefined>();
-  const [action, setAction] = useState<string | undefined>();
-  const [appId, setAppId] = useState<string | undefined>();
+export function NewAction() {
+  const formRef = useRef<HTMLFormElement>(null);
+  const { createNewAction } = useActions();
+  const { newAction, setNewAction, isOpened, setIsOpened } =
+    useActionStore(getActionsStore);
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (e.currentTarget.checkValidity()) {
-        props.onSubmit({
-          name,
-          description,
-          action,
-          app_id: appId,
-        });
+        createNewAction();
       }
     },
-    [action, appId, description, name, props]
+    [createNewAction]
   );
 
   return (
-    <Dialog open={props.open} onClose={props.onClose}>
+    <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
       <DialogHeader
         icon={<Illustration icon="notepad" />}
         title="Create New Action"
       />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} ref={formRef}>
         <div className="flex flex-col gap-y-2">
           <FieldLabel required>Name</FieldLabel>
 
@@ -55,8 +46,8 @@ export function NewAction(props: NewActionProps) {
             className="w-full"
             placeholder="Add name"
             required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={newAction.name}
+            onChange={(e) => setNewAction({ name: e.target.value })}
           />
         </div>
 
@@ -66,19 +57,20 @@ export function NewAction(props: NewActionProps) {
           <FieldTextArea
             className="w-full"
             placeholder="Add description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={newAction.description}
+            onChange={(e) => setNewAction({ description: e.target.value })}
           />
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>Action</FieldLabel>
+          <FieldLabel required>Action</FieldLabel>
 
           <FieldInput
             className="w-full"
             placeholder="Add action"
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
+            required
+            value={newAction.action}
+            onChange={(e) => setNewAction({ action: e.target.value })}
           />
         </div>
 
@@ -88,8 +80,8 @@ export function NewAction(props: NewActionProps) {
           <FieldInput
             className="w-full"
             placeholder="Add App ID"
-            value={appId}
-            onChange={(e) => setAppId(e.target.value)}
+            value={newAction.app_id}
+            onChange={(e) => setNewAction({ app_id: e.target.value })}
           />
         </div>
 

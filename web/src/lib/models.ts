@@ -45,6 +45,8 @@ export interface ActionModel {
   created_at: DateTime;
   updated_at: DateTime;
   kiosk_enabled: boolean;
+  // FIXME: need add constraint for status field in hasura (or use boolean)
+  status: "active" | "inactive";
   __typename: "action";
 }
 
@@ -107,4 +109,12 @@ export interface AuthCodeModel {
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "auth_code";
+}
+
+export interface RedirectModel {
+  id: string;
+  action_id: string;
+  created_at: DateTime;
+  updated_at: DateTime;
+  redirect_uri: string;
 }

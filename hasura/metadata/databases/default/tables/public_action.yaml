@@ -5,15 +5,6 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
-  - name: redirect
-    using:
-      manual_configuration:
-        column_mapping:
-          id: action_id
-        insertion_order: null
-        remote_table:
-          name: redirect
-          schema: public
 array_relationships:
   - name: nullifiers
     using:
@@ -21,6 +12,13 @@ array_relationships:
         column: action_id
         table:
           name: nullifier
+          schema: public
+  - name: redirects
+    using:
+      foreign_key_constraint_on:
+        column: action_id
+        table:
+          name: redirect
           schema: public
 insert_permissions:
   - role: api_key
@@ -65,6 +63,7 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
 select_permissions:
   - role: api_key
     permission:
@@ -122,6 +121,7 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
         - updated_at
       filter:
         app:
@@ -156,6 +156,7 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
       filter:
         app:
           team_id:

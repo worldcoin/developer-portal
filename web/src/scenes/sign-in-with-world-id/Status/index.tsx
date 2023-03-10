@@ -1,14 +1,17 @@
 import { Switch } from "src/components/Switch";
-import { memo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import cn from "classnames";
-import { shallow } from "zustand/shallow";
-import { useSignInActionStore } from "../store";
 import { Icon } from "src/components/Icon";
+import useSignInAction from "src/hooks/useSignInAction";
 
 export const Status = memo(function Status() {
-  const { enabled, toggleSignInAction } = useSignInActionStore(
-    (state) => ({ ...state }),
-    shallow
+  const { action, updateAction } = useSignInAction();
+
+  const enabled = useMemo(() => action?.status === "active", [action?.status]);
+
+  const toggleStatus = useCallback(
+    () => updateAction({ status: enabled ? "inactive" : "active" }),
+    [enabled, updateAction]
   );
 
   return (
@@ -60,7 +63,7 @@ export const Status = memo(function Status() {
 
       <Switch
         checked={enabled}
-        toggle={toggleSignInAction}
+        toggle={toggleStatus}
         customColors={{ checked: "bg-[#182D96]" }}
       />
     </section>
