@@ -86,7 +86,7 @@ export default async function handleSignUp(
     return errorResponse(res, 500, "Failed to signup");
   }
 
-  const token = await generateUserJWT(user.id, team.id);
+  const { token } = await generateUserJWT(user.id, team.id);
 
   res.status(200).json({
     redirectTo: "/dashboard",
