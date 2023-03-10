@@ -46,7 +46,7 @@ update_permissions:
     permission:
       columns:
         - email
-        - world_id_nullifier
+        - name
       filter:
         id:
           _eq: X-Hasura-User-Id
