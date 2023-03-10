@@ -26,5 +26,5 @@ export const useActionStore = create<IActionStore>((set, get) => ({
   setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
 
   newAction: { name: "", description: "", action: "", app_id: "" },
-  setNewAction: (value) => set({ newAction: { ...get().newAction, ...value } }),
+  setNewAction: (value) => set({ newAction: value as NewAction }),
 }));
