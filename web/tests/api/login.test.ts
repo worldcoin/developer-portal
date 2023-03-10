@@ -8,6 +8,7 @@ import { OIDCScopes } from "src/backend/oidc";
 import { privateJwk, publicJwk } from "./__mocks__/jwk";
 import { when } from "jest-when";
 import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
+import { getTokenFromCookie } from "src/backend/cookies";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
@@ -88,11 +89,12 @@ describe("/api/v1/login", () => {
 
     expect(res._getStatusCode()).toBe(200);
     expect(res._getJSONData().new_user).toEqual(false);
-    const token = res._getJSONData().token;
+
+    const token = getTokenFromCookie(req, res);
     expect(token).toBeTruthy();
 
     const { payload } = await jose.jwtVerify(
-      token,
+      token as string,
       Buffer.from(JSON.parse(process.env.HASURA_GRAPHQL_JWT_SECRET || "").key),
       {
         issuer: "https://id.worldcoin.org",
