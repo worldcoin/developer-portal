@@ -10,7 +10,9 @@ import { urls } from "src/lib/urls";
 import { ILoginPageProps } from "src/pages/login";
 import { Spinner } from "src/components/Spinner";
 
-export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
+const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
+
+export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -27,7 +29,6 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
         body: JSON.stringify(body),
       });
       const payload = (await response.json()) as LoginRequestResponse;
-      console.log(payload);
 
       if (!Object.hasOwn(payload, "new_user")) {
         router.push(`${urls.login()}?error=invalid_login`);
@@ -108,7 +109,9 @@ export function Login({ loginUrl, canDevLogin }: ILoginPageProps) {
                 <span
                   className="cursor-pointer underline font-normal"
                   onClick={() => {
-                    doLogin({ dev_login: "1" });
+                    doLogin({
+                      dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
+                    });
                   }}
                 >
                   Log in with test user

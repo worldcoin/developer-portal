@@ -1,4 +1,4 @@
-import { generateLoginNonce, getDevToken } from "src/backend/login-internal";
+import { generateLoginNonce } from "src/backend/login-internal";
 import { OIDC_BASE_URL } from "src/lib/constants";
 import { GetServerSidePropsContext } from "next";
 import { Login } from "src/scenes/login/login";
@@ -6,7 +6,6 @@ export default Login;
 
 export interface ILoginPageProps {
   loginUrl?: string;
-  canDevLogin?: boolean;
 }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
@@ -31,9 +30,6 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return {
     props: {
       loginUrl: loginUrl.toString(),
-      canDevLogin:
-        process.env.NODE_ENV !== "production" &&
-        !ctx.req.url?.includes("https://developer.worldcoin.org"),
     } as ILoginPageProps,
   };
 }
