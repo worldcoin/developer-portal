@@ -7,7 +7,6 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { toast } from "react-toastify";
-import { useAuthStore } from "src/stores/authStore";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
@@ -66,25 +65,12 @@ export const graphQLRequest = async <T>(
   queryOptions: QueryOptions,
   customErrorHandling?: boolean
 ): Promise<ApolloQueryResult<T | null>> => {
-  const token = useAuthStore.getState().token;
-
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
   });
 
-  if (!token) {
-    // Token not yet set, skip requests to avoid showing random errors to users
-    return Promise.resolve({
-      data: null,
-      error: { message: "unauthenticated" },
-    } as ApolloQueryResult<T | null>);
-  }
-
   const authLink = setContext(async (_, { headers }) => ({
-    headers: {
-      ...headers,
-      authorization: `Bearer ${token}`,
-    },
+    headers,
   }));
 
   const client = new ApolloClient({

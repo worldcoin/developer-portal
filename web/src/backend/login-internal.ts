@@ -62,7 +62,7 @@ export const verifyLoginNonce = async (nonce: string): Promise<boolean> => {
   return data?.delete_cache?.affected_rows === 1;
 };
 
-export const getDevToken = async (): Promise<string | undefined> => {
+export const getDevToken = async () => {
   const client = await getAPIServiceClient();
   const { data } = await client.query({
     query: GetFirstUserQuery,
@@ -74,7 +74,5 @@ export const getDevToken = async (): Promise<string | undefined> => {
     return undefined;
   }
 
-  const token = await generateUserJWT(user.id, user.team_id);
-
-  return token;
+  return await generateUserJWT(user.id, user.team_id);
 };

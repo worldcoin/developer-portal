@@ -1,4 +1,3 @@
-import { AuthRequired } from "@/components/AuthRequired";
 import { Layout } from "@/components/Layout";
 import { memo, useEffect } from "react";
 import { Details } from "./Details";
@@ -6,7 +5,7 @@ import { Header } from "./Header";
 import { MemberList } from "./MemberList";
 import { getTeamStore, useTeamStore } from "@/stores/teamStore";
 
-export const Team = memo(function Team() {
+export const Team = memo(function Team(props: { user_id?: string }) {
   const { team, fetchTeam } = useTeamStore(getTeamStore);
 
   useEffect(() => {
@@ -14,12 +13,10 @@ export const Team = memo(function Team() {
   }, []);
 
   return (
-    <AuthRequired>
-      <Layout mainClassName="grid gap-y-8">
-        <Header />
-        <Details />
-        <MemberList />
-      </Layout>
-    </AuthRequired>
+    <Layout userId={props.user_id} mainClassName="grid gap-y-8">
+      <Header />
+      <Details />
+      <MemberList />
+    </Layout>
   );
 });

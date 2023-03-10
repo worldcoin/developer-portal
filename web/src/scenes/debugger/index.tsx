@@ -22,7 +22,7 @@ const envs = [
 
 // end mocked
 
-export function Debugger(): JSX.Element {
+export function Debugger(props: { user_id?: string }): JSX.Element {
   const [currentApp, setCurrentApp] = useState<AppModel | null>(null);
   const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
   const [currentMode, setCurrentMode] = useState(modes[0]);
@@ -31,6 +31,7 @@ export function Debugger(): JSX.Element {
 
   return (
     <Layout
+      userId={props.user_id}
       title="Debugger"
       mainClassName={classNames(
         "grid gap-16",

@@ -1,11 +1,9 @@
 import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
-import { decodeJwt } from "jose";
 import { TeamModel, UserModel } from "src/lib/models";
-import { useAuthStore } from "src/stores/authStore";
 import useSWR from "swr";
 
-export type UserWithTeam = Pick<UserModel, "id" | "email" | "id"> & {
+export type UserWithTeam = Pick<UserModel, "id" | "email" | "id" | "name"> & {
   team: Pick<TeamModel, "id" | "name">;
 };
 
@@ -14,6 +12,7 @@ const FetchMeQuery = gql`
     user(where: { id: { _eq: $id } }) {
       id
       email
+      name
       team {
         id
         name
@@ -22,19 +21,16 @@ const FetchMeQuery = gql`
   }
 `;
 
-const fetchUser = async () => {
-  const token = useAuthStore.getState().token;
-  if (!token) {
-    throw new Error("No token");
+const fetchUser = (userId?: string) => async () => {
+  if (!userId) {
+    throw new Error("Missing user id");
   }
-
-  const decodedToken = decodeJwt(token);
 
   const response = await graphQLRequest<{
     user: Array<UserWithTeam>;
   }>({
     query: FetchMeQuery,
-    variables: { id: decodedToken.sub },
+    variables: { id: userId },
   });
 
   if (response.data?.user?.length) {
@@ -44,9 +40,11 @@ const fetchUser = async () => {
   throw new Error("No user");
 };
 
-const useAuth = () => {
-  const { data, error, isLoading } = useSWR<UserWithTeam>("user", fetchUser);
-
+const useAuth = (userId?: string) => {
+  const { data, error, isLoading } = useSWR<UserWithTeam>(
+    "user",
+    fetchUser(userId)
+  );
   return { user: data, isLoading, isAuthenticated: !error && !isLoading };
 };
 
