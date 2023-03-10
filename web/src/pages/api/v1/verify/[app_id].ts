@@ -58,7 +58,8 @@ export default async function handleVerify(
     client,
     req.query.app_id?.toString(),
     req.body.nullifier_hash,
-    req.body.action
+    req.body.action,
+    req.body.credential_type
   );
 
   if (data.error || !data.app) {

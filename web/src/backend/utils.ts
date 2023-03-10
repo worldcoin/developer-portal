@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import { CacheModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "./graphql";
+import { CredentialType } from "src/lib/types";
 
 /**
  * Ensures endpoint is properly authenticated using internal token. For interactions between Hasura -> Next.js API
@@ -110,40 +111,22 @@ export const reportAPIEventToPostHog = async (
   }
 };
 
-export const fetchSmartContractAddress = async (
-  is_staging: boolean
-): Promise<string> => {
-  const fetchContractsQuery = gql`
-    query FetchContracts {
-      cache(
-        where: {
-          _or: [
-            { key: { _eq: "semaphore.wld.eth" } }
-            { key: { _eq: "staging.semaphore.wld.eth" } }
-          ]
-        }
-      ) {
-        key
-        value
-      }
-    }
-  `;
-
-  const client = await getAPIServiceClient();
-  const { data } = await client.query<{
-    cache: Array<Pick<CacheModel, "key" | "value">>;
-  }>({ query: fetchContractsQuery });
-
-  const contractKey = is_staging
-    ? "staging.semaphore.wld.eth"
-    : "semaphore.wld.eth";
-  const contract = data.cache.find((c) => c.key === contractKey);
-
-  if (!contract) {
-    throw new Error(
-      `Improperly configured. Could not find smart contract address for ${contractKey}.`
-    );
+/**
+ * Returns the ENS name for the relevant Semaphore smart contract
+ * @param is_staging
+ * @param credential_type
+ */
+export const getSmartContractENSName = (
+  is_staging: boolean,
+  credential_type: CredentialType
+): string => {
+  if (credential_type === CredentialType.Orb) {
+    return is_staging ? "staging.semaphore.wld.eth" : "semaphore.wld.eth";
   }
-
-  return contract.value;
+  if (credential_type === CredentialType.Phone) {
+    return is_staging ? "staging.phone.wld.eth" : "phone.wld.eth";
+  }
+  throw new Error(
+    `Invalid credential type for getSmartContractENSName: ${credential_type}`
+  );
 };

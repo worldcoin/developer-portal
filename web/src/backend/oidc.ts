@@ -7,6 +7,7 @@ import {
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
+import { getSmartContractENSName } from "./utils";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -44,14 +45,7 @@ const fetchAppQuery = gql`
       }
     }
 
-    cache(
-      where: {
-        _or: [
-          { key: { _eq: "semaphore.wld.eth" } }
-          { key: { _eq: "staging.semaphore.wld.eth" } }
-        ]
-      }
-    ) {
+    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
       key
       value
     }
@@ -99,7 +93,8 @@ type FetchOIDCAppResult = {
 };
 
 export const fetchOIDCApp = async (
-  app_id: string
+  app_id: string,
+  credential_type: CredentialType
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchOIDCAppResult>({
@@ -133,9 +128,8 @@ export const fetchOIDCApp = async (
   const external_nullifier = app.actions[0].external_nullifier;
   delete app.actions;
 
-  const ensName = app.is_staging
-    ? "staging.semaphore.wld.eth"
-    : "semaphore.wld.eth";
+  const ensName = getSmartContractENSName(app.is_staging, credential_type);
+
   const contractRecord = data.cache.find(({ key }) => key === ensName);
   if (!contractRecord) {
     return {
