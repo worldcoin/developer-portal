@@ -1,14 +1,12 @@
-import { Dispatch, Fragment, memo, SetStateAction, useState } from "react";
+import { Fragment, memo } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { Icon } from "src/components/Icon";
-import cn from "classnames";
-
-export type Option = { label: string; value: string };
+import { TimeSpan } from "src/stores/appStatsStore";
 
 export const Selector = memo(function Selector(props: {
-  options: Array<Option>;
-  selected: Option;
-  setOption: Dispatch<SetStateAction<Option>>;
+  options: Readonly<Array<TimeSpan>>;
+  selected: TimeSpan;
+  setOption: (value: TimeSpan) => void;
 }) {
   return (
     <div className="flex">
@@ -40,7 +38,7 @@ export const Selector = memo(function Selector(props: {
                     {({ active }) => (
                       <button
                         onClick={() => props.setOption(option)}
-                        className="bg-ffffff py-3 px-4 w-full text-start min-w-[140px]"
+                        className="bg-ffffff py-3 px-4 w-full text-start min-w-[140px] rounded-md hover:bg-f9fafb"
                       >
                         {option.label}
                       </button>
