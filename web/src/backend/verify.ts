@@ -330,6 +330,7 @@ export const verifyProof = async (
       `Unexpected response from Alchemy: ${await ethCallRequest.text()}`
     );
   }
+
   const ethCallResponse = await ethCallRequest.json();
 
   if (ethCallResponse.error || ethCallResponse.result !== "0x") {
