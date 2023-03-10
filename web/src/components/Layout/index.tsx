@@ -16,7 +16,6 @@ import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
-import useAuth from "src/hooks/useAuth";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,

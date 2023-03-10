@@ -3,12 +3,7 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": [
-    "typescript",
-    "node",
-    "npm",
-    "html"
-  ],
+  "dictionaries": ["typescript", "node", "npm", "html"],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -25,6 +20,7 @@
     "ebecef",
     "fbfbfc",
     "fren",
+    "GSSR",
     "Hasura",
     "healthz",
     "hexlify",

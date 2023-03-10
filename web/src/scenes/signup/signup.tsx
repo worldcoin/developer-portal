@@ -14,19 +14,12 @@ import { Checkbox } from "src/components/Auth/Checkbox";
 import { Button } from "src/components/Auth/Button";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
-import { IAuthStore, useAuthStore } from "src/stores/authStore";
-import { shallow } from "zustand/shallow";
-
-const getParams = (store: IAuthStore) => ({
-  setAuthCookies: store.setAuthCookies,
-});
 
 export function Signup() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setAuthCookies } = useAuthStore(getParams, shallow);
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -49,16 +42,15 @@ export function Signup() {
       });
 
       if (response.ok) {
-        const { token } = await response.json();
+        const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
-        setAuthCookies(token);
-        router.push("/app"); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
+        router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);
       }
       // FIXME: Handle errors
     },
-    [email, teamName, setAuthCookies, router]
+    [email, teamName, router]
   );
 
   useEffect(() => {

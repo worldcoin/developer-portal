@@ -19,7 +19,7 @@ export const setCookie = (
   nextSetCookie(name, JSON.stringify(value), {
     sameSite: true,
     secure: process.env.NODE_ENV === "production", // this is already ignored for `localhost` (according to spec)
-    httpOnly: true,
+    httpOnly: true, // NOTE: Auth cookie is only used in SSR for security reasons
     res,
     req,
     maxAge: expires_at ? (expires_at * 1000 - Date.now()) / 1000 : undefined,

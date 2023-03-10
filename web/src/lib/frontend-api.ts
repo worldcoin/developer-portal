@@ -7,7 +7,6 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { toast } from "react-toastify";
-import { useAuthStore } from "src/stores/authStore";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
