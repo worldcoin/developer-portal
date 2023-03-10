@@ -62,7 +62,6 @@ export default async function handleLogin(
     const devToken = (await getDevToken()) ?? null;
 
     const returnTo = getReturnToFromCookie(req, res);
-    console.log({ returnTo });
 
     if (devToken?.token) {
       setCookie(
@@ -125,7 +124,6 @@ export default async function handleLogin(
   }
 
   const returnTo = getReturnToFromCookie(req, res);
-  console.log({ returnTo });
 
   // NOTE: User has an account, generate a login token and authenticate
   const { token, expiration } = await generateUserJWT(user.id, user.team_id);
