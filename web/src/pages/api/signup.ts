@@ -60,12 +60,23 @@ export default async function handleSignUp(
   const { signup_token, email, team_name } = req.body;
 
   let nullifier_hash: string | undefined;
+  let waitListCleared = false;
   try {
-    nullifier_hash = await verifySignUpJWT(signup_token);
+    const tokenPayload = await verifySignUpJWT(signup_token);
+    nullifier_hash = tokenPayload.sub;
+    waitListCleared = Boolean(tokenPayload.waitlist_invite);
   } catch {}
 
   if (!nullifier_hash) {
     return errorResponse(res, 400, "Invalid signup token.");
+  }
+
+  if (!waitListCleared) {
+    return errorResponse(
+      res,
+      400,
+      "Developer Portal is currently invite-only. Add yourself to the waitlist in worldcoin.org/world-id"
+    );
   }
 
   const client = await getAPIServiceClient();
