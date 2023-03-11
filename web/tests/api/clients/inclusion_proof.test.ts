@@ -1,7 +1,7 @@
 import { createMocks } from "node-mocks-http";
 import fetchMock from "jest-fetch-mock";
 import handleInclusionProof from "src/pages/api/v1/clients/inclusion_proof";
-import { validSequencerInclusionProof } from "./__mocks__/sequencer.mock";
+import { validSequencerInclusionProof } from "../__mocks__/sequencer.mock";
 
 const requestReturnFn = jest.fn();
 

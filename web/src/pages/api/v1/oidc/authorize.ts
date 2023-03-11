@@ -24,13 +24,13 @@ import { JWK_ALG_OIDC } from "src/lib/constants";
  * @param req
  * @param res
  */
-export default async function handler(
+export default async function handleOIDCAuthorize(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (
     req.method === "OPTIONS" ||
-    req.body.response_type === OIDCResponseType.Code
+    req.body.response_type === OIDCResponseType.JWT
   ) {
     // NOTE: Authorization code flow only should be called backend-side, no CORS (security reasons)
     // OPTIONS always returns CORS because browsers send an OPTIONS request first with no payload
@@ -62,6 +62,7 @@ export default async function handler(
     response_type,
     app_id,
     scope,
+    redirect_uri,
   } = req.body;
 
   if (!Object.values(CredentialType).includes(credential_type)) {
@@ -88,18 +89,22 @@ export default async function handler(
     }
   }
 
-  // TODO: Validate scopes (min openid, not unsupported scopes, remove duplicates, sort?)
   const scopes = decodeURIComponent(
     (scope as string | string[])?.toString()
   ).split(" ") as OIDCScopes[];
   const sanitizedScopes: OIDCScopes[] = scopes.length
-    ? scopes
+    ? [
+        ...new Set(
+          scopes.filter((scope) => Object.values(OIDCScopes).includes(scope))
+        ),
+      ]
     : [OIDCScopes.OpenID];
 
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    credential_type
+    credential_type,
+    redirect_uri ?? ""
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -111,7 +116,28 @@ export default async function handler(
     );
   }
 
-  // TODO: For authorization code, we need to check the redirect URI is valid
+  // ANCHOR: Verify redirect URI is valid
+  if (
+    response_types.length === 1 &&
+    response_types.includes(OIDCResponseType.Code) &&
+    !redirect_uri
+  ) {
+    return errorValidation(
+      "required",
+      "This attribute is required for the authorization code flow.",
+      "redirect_uri",
+      res
+    );
+  }
+
+  if (redirect_uri && app.registered_redirect_uri !== redirect_uri) {
+    return errorValidation(
+      "invalid",
+      "Invalid redirect URI. Redirect URIs should be preregistered.",
+      "redirect_uri",
+      res
+    );
+  }
 
   // ANCHOR: Verify the zero-knowledge proof
   const { error: verifyError } = await verifyProof(
