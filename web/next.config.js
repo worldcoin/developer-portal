@@ -1,5 +1,31 @@
+// @ts-check
+
+/** @type {import('next-safe').nextSafe} */
+// @ts-ignore
+const nextSafe = require("next-safe");
+const isDev = process.env.NODE_ENV !== "production";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: nextSafe({
+          isDev,
+          contentSecurityPolicy: {
+            mergeDefaultDirectives: true,
+            "img-src": "world-id-public.s3.amazonaws.com",
+            "style-src": "'unsafe-inline'",
+          },
+          permissionsPolicy: {
+            "clipboard-write": `self`,
+          },
+        }),
+      },
+    ];
+  },
+
   reactStrictMode: true,
   images: {
     domains: ["world-id-public.s3.amazonaws.com"],

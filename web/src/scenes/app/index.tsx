@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { AuthRequired } from "src/components/AuthRequired";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
 import { IAppStore, useAppStore } from "src/stores/appStore";
@@ -13,27 +12,34 @@ const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
-export const App = memo(function App(props: { appId: string }) {
+export const App = memo(function App(props: {
+  appId: string;
+  user_id?: string;
+}) {
   const { isLoading } = useApps();
   const { currentApp } = useAppStore(getStore, shallow);
 
   return (
-    <AuthRequired>
-      <Layout>
-        {(isLoading || !currentApp) && (
-          <div className="w-full h-full flex justify-center items-center">
-            <Preloader className="w-20 h-20" />
-          </div>
-        )}
+    <Layout userId={props.user_id}>
+      {isLoading && (
+        <div className="w-full h-full flex justify-center items-center">
+          <Preloader className="w-20 h-20" />
+        </div>
+      )}
 
-        {!isLoading && currentApp && (
-          <div className="grid gap-y-12">
-            <AppHeader />
-            <Configuration />
-            <Stats />
-          </div>
-        )}
-      </Layout>
-    </AuthRequired>
+      {!isLoading && !currentApp && (
+        <div className="w-full h-full flex justify-center items-center">
+          <h1 className="text-20 font-sora font-semibold">App not found</h1>
+        </div>
+      )}
+
+      {!isLoading && currentApp && (
+        <div className="grid gap-y-12">
+          <AppHeader />
+          <Configuration />
+          <Stats />
+        </div>
+      )}
+    </Layout>
   );
 });

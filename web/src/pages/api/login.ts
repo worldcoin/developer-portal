@@ -16,22 +16,22 @@ import {
 import { NextApiResponse } from "next";
 import { UserModel } from "src/lib/models";
 import { JWTPayload } from "jose";
-import { verifyLoginNonce } from "src/backend/login-internal";
+import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
+import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
 
 export type LoginRequestBody = {
+  dev_login?: string;
   sign_in_with_world_id_token?: string;
 };
 
-export type LoginResponse =
+export type LoginRequestResponse =
   | {
       new_user: true;
       signup_token: string;
-      token?: never;
     }
   | {
       new_user: false;
-      signup_token?: never;
-      token: string;
+      returnTo?: string;
     };
 
 const query = gql`
@@ -44,15 +44,36 @@ const query = gql`
   }
 `;
 
-export default async function login(
+export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
-  res: NextApiResponse<LoginResponse>
+  res: NextApiResponse<LoginRequestResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res);
   }
 
-  const { sign_in_with_world_id_token } = req.body;
+  const { sign_in_with_world_id_token, dev_login } = req.body;
+
+  if (
+    dev_login &&
+    process.env.NODE_ENV !== "production" &&
+    !req.url?.includes("https://developer.worldcoin.org")
+  ) {
+    const devToken = (await getDevToken()) ?? null;
+
+    const returnTo = getReturnToFromCookie(req, res);
+
+    if (devToken?.token) {
+      setCookie(
+        "auth",
+        { token: devToken.token },
+        req,
+        res,
+        devToken.expiration
+      );
+      return res.status(200).json({ new_user: false, returnTo });
+    }
+  }
 
   if (!sign_in_with_world_id_token) {
     return errorRequiredAttribute("sign_in_with_world_id_token", res);
@@ -102,7 +123,10 @@ export default async function login(
     return res.status(200).json({ new_user: true, signup_token });
   }
 
-  // NOTE: User has an account, generate a login token
-  const token = await generateUserJWT(user.id, user.team_id);
-  res.status(200).json({ new_user: false, token });
+  const returnTo = getReturnToFromCookie(req, res);
+
+  // NOTE: User has an account, generate a login token and authenticate
+  const { token, expiration } = await generateUserJWT(user.id, user.team_id);
+  setCookie("auth", { token }, req, res, expiration);
+  res.status(200).json({ new_user: false, returnTo });
 }

@@ -15,26 +15,28 @@ import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const verifyAuthCodeQuery = gql`
-  query VerifyAuthCode(
+  mutation VerifyAuthCode(
     $auth_code: String!
     $app_id: String!
     $now: timestamptz!
   ) {
-    auth_code(
+    delete_auth_code(
       where: {
         auth_code: { _eq: $auth_code }
         app_id: { _eq: $app_id }
         expires_at: { _gt: $now }
       }
     ) {
-      nullifier_hash
-      credential_type
-      scope
+      returning {
+        nullifier_hash
+        credential_type
+        scope
+      }
     }
   }
 `;
 
-export default async function handler(
+export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -98,12 +100,14 @@ export default async function handler(
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
-  const { data } = await client.query<{
-    auth_code: Array<
-      Pick<AuthCodeModel, "nullifier_hash" | "credential_type" | "scope">
-    >;
+  const { data } = await client.mutate<{
+    delete_auth_code: {
+      returning: Array<
+        Pick<AuthCodeModel, "nullifier_hash" | "credential_type" | "scope">
+      >;
+    };
   }>({
-    query: verifyAuthCodeQuery,
+    mutation: verifyAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
@@ -111,7 +115,9 @@ export default async function handler(
     },
   });
 
-  if (data.auth_code.length === 0) {
+  const code = data?.delete_auth_code?.returning[0];
+
+  if (!code) {
     return errorOIDCResponse(
       res,
       400,
@@ -120,7 +126,6 @@ export default async function handler(
     );
   }
 
-  const code = data.auth_code[0];
   const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
   const token = await generateOIDCJWT({
     app_id,

@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { generateJWK } from "src/backend/jwts";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorValidation } from "../../backend/errors";
+import { generateJWK } from "src/backend/jwks";
 
 /**
  * Generates JWKs to verify proofs offline
