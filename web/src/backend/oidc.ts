@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { ActionModel, AppModel } from "src/lib/models";
+import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
 import {
   CredentialType,
   IInternalError,
@@ -29,7 +29,7 @@ export enum OIDCScopes {
 }
 
 const fetchAppQuery = gql`
-  query FetchAppQuery($app_id: String!) {
+  query FetchAppQuery($app_id: String!, $redirect_uri: String!) {
     app(
       where: {
         id: { _eq: $app_id }
@@ -42,6 +42,9 @@ const fetchAppQuery = gql`
       is_staging
       actions(where: { action: { _eq: "" } }) {
         external_nullifier
+        redirects(where: { redirect_uri: { _eq: $redirect_uri } }) {
+          redirect_uri
+        }
       }
     }
 
@@ -81,12 +84,17 @@ interface OIDCApp {
   is_staging: AppModel["is_staging"];
   external_nullifier: ActionModel["external_nullifier"];
   contract_address: string;
+  registered_redirect_uri?: string;
 }
 
 type FetchOIDCAppResult = {
   app: Array<
     Pick<AppModel, "id" | "is_staging"> & {
-      actions?: Array<Pick<ActionModel, "external_nullifier">>;
+      actions?: Array<
+        Pick<ActionModel, "external_nullifier"> & {
+          redirects: Array<Pick<RedirectModel, "redirect_uri">>;
+        }
+      >;
     }
   >;
   cache: Array<{ key: string; value: string }>;
@@ -94,12 +102,13 @@ type FetchOIDCAppResult = {
 
 export const fetchOIDCApp = async (
   app_id: string,
-  credential_type: CredentialType
+  credential_type: CredentialType,
+  redirect_uri: string
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchOIDCAppResult>({
     query: fetchAppQuery,
-    variables: { app_id },
+    variables: { app_id, redirect_uri },
   });
 
   if (data.app.length === 0) {
@@ -126,6 +135,7 @@ export const fetchOIDCApp = async (
   }
 
   const external_nullifier = app.actions[0].external_nullifier;
+  const registered_redirect_uri = app.actions[0].redirects[0]?.redirect_uri;
   delete app.actions;
 
   const ensName = getSmartContractENSName(app.is_staging, credential_type);
@@ -146,6 +156,7 @@ export const fetchOIDCApp = async (
     app: {
       ...app,
       external_nullifier,
+      registered_redirect_uri,
       contract_address: contractRecord.value,
     },
   };

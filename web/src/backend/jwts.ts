@@ -135,7 +135,7 @@ export const generateSignUpJWT = async (nullifier_hash: string) => {
  * Verifies a sign up token. Returns the nullifier hash. If the token is invalid, throws an error.
  * @param token
  */
-export const verifySignUpJWT = async (token: string): Promise<string> => {
+export const verifySignUpJWT = async (token: string) => {
   const { payload } = await jose.jwtVerify(
     token,
     Buffer.from(GENERAL_SECRET_KEY),
@@ -143,11 +143,11 @@ export const verifySignUpJWT = async (token: string): Promise<string> => {
       issuer: JWT_ISSUER,
     }
   );
-  const { sub } = payload;
+  const { sub, waitlist_invite } = payload;
   if (!sub) {
     throw new Error("JWT does not contain valid `sub` claim.");
   }
-  return sub;
+  return { sub, waitlist_invite };
 };
 
 /**
