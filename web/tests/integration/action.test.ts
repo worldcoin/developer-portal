@@ -28,7 +28,6 @@ describe("service role", () => {
 
     const response = await client.query({ query });
 
-    // First app is the automatically created sign in with World ID
     expect(response.data.action[0]).toEqual(
       expect.objectContaining({
         id: expect.stringContaining("action_"),
