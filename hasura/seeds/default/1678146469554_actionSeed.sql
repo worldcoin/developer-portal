@@ -1,7 +1,12 @@
 SET check_function_bodies = false;
+
+WITH multi_claim_app AS (
+  SELECT id FROM "public"."app" WHERE name = 'Multi-claim App' LIMIT 1
+), custom_action_app AS (
+  SELECT id FROM "public"."app" WHERE name = 'Custom Action App' LIMIT 1
+)
 INSERT INTO "public"."action" (id,created_at,updated_at,name,description,action,external_nullifier,app_id,max_accounts_per_user,max_verifications,creation_mode,client_secret,kiosk_enabled,status)
 VALUES
-('action_86e839ee931232e27c7866adf4ce67ba','2023-02-28T20:44:01.1748+00:00','2023-03-06T23:24:31.438404+00:00','Multi-claim action','This action can be claimed twice','test','0x00e57a1e126e6a4dd2066053678a560ffc4e0a30679c678b19810c0fd02bca53','app_staging_db2d27a24855dc01c49358e771070410',1,2,'developer_portal','','true','active'),
-('action_b799ea110537a268cbeb20b9422fc0d5','2023-02-28T22:47:28.86605+00:00','2023-03-06T23:24:42.755009+00:00','Custom Action 1','This is a custom, one-time action','one','0x00d4a2b7a811e911e380c1db56cb6c168e9638e0d5f81950a013a9e86b75be1b','app_staging_70e1d8985198fb4f752680aa0563c3d1',1,1,'developer_portal','','true','active'),
-('action_810128f36ae7da142be1f6825f5f067f','2023-02-28T22:48:26.819152+00:00','2023-03-06T23:24:50.624226+00:00','Custom Action 2','This is a custom, multi-claim action','multi','0x002dff037d63b95eb49c8c46e8451cffa3111fe11c98e3fab28f3bdb110005ec','app_staging_70e1d8985198fb4f752680aa0563c3d1',1,2,'developer_portal','','true','active'),
-('action_f879e452807138fd38e661867658b267','2023-02-28T20:44:01.173079+00:00','2023-03-06T23:40:30.49867+00:00','One-time Action','This action can be claimed once','test','0x00cc4a7ea396b32fda8f6b1a37654190c11d3c73615ad35c8e236e1b8dad3832','app_staging_23ba86acf1d516342118fc5a1ccc80a6',1,1,'developer_portal','','true','active');
+('action_86e839ee931232e27c7866adf4ce67ba','2023-02-28T20:44:01.1748+00:00','2023-03-06T23:24:31.438404+00:00','Multi-claim action','This action can be claimed twice','test','0x00e57a1e126e6a4dd2066053678a560ffc4e0a30679c678b19810c0fd02bca53',(select "id" from "multi_claim_app"),1,2,'developer_portal','','true','active'),
+('action_b799ea110537a268cbeb20b9422fc0d5','2023-02-28T22:47:28.86605+00:00','2023-03-06T23:24:42.755009+00:00','Custom Action 1','This is a custom, one-time action','one','0x00d4a2b7a811e911e380c1db56cb6c168e9638e0d5f81950a013a9e86b75be1b',(select "id" from "custom_action_app"),1,1,'developer_portal','','true','active'),
+('action_810128f36ae7da142be1f6825f5f067f','2023-02-28T22:48:26.819152+00:00','2023-03-06T23:24:50.624226+00:00','Custom Action 2','This is a custom, multi-claim action','multi','0x002dff037d63b95eb49c8c46e8451cffa3111fe11c98e3fab28f3bdb110005ec',(select "id" from "custom_action_app"),1,0,'developer_portal','','true','active');
