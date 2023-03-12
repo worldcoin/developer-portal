@@ -18,7 +18,7 @@ describe("service role", () => {
 
     const client = await getAPIServiceClient();
     const query = gql(`query ListActions {
-      action {
+      action(order_by: {created_at: asc}) {
         id
         name
         description
@@ -31,15 +31,21 @@ describe("service role", () => {
     // First app is the automatically created sign in with World ID
     expect(response.data.action[0]).toEqual(
       expect.objectContaining({
-        name: "Sign in with World ID", // NOTE: also indirectly tests the default action Sign in with World ID is created
         id: expect.stringContaining("action_"),
       })
     );
 
-    for (const row of rows) {
+    let signInWithWorldIDCount = 0;
+
+    for (const row of response.data.action) {
       // Service role should not see archived actions
       expect(row.app_id).not.toEqual(rows[0].id);
+      if (row.name === "Sign in with World ID") {
+        signInWithWorldIDCount++;
+      }
     }
+
+    expect(signInWithWorldIDCount).toEqual(4); // 4 apps are created (non-archived)
   });
 
   test("cannot delete actions", async () => {
