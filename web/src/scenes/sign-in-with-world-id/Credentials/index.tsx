@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo } from "react";
+import { Dispatch, memo, SetStateAction, useCallback, useState } from "react";
 import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Credential } from "./Credential";
 import useSignInAction from "src/hooks/useSignInAction";
@@ -7,29 +7,26 @@ const getStoreParams = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
-const copy = async (value: string) =>
-  await navigator.clipboard.writeText(value);
-
 export const Credentials = memo(function Credentials() {
   const { currentApp } = useAppStore(getStoreParams);
   const { clientSecret, resetClientSecret } = useSignInAction();
+  const [appIdCopied, setAppIdCopied] = useState(false);
+  const [clientSecretCopied, setClientSecretCopied] = useState(false);
 
   const generateCopyButton = useCallback(
-    (values: { text: string; copyValue: string }) => ({
-      text: values.text,
-      action: () => copy(values.copyValue),
+    (values: {
+      copyValue: string;
+      isCopied: boolean;
+      setIsCopied: Dispatch<SetStateAction<boolean>>;
+    }) => ({
+      text: values.isCopied ? "Copied" : "Copy",
+      action: async () => {
+        values.setIsCopied(true);
+        await navigator.clipboard.writeText(values.copyValue);
+        setTimeout(() => values.setIsCopied(false), 2000);
+      },
     }),
     []
-  );
-
-  const clientSecretButtons = useMemo(
-    () => [
-      { text: "Reset", action: () => resetClientSecret() },
-      ...(clientSecret
-        ? [{ text: "Copy", action: () => copy(clientSecret) }]
-        : []),
-    ],
-    [clientSecret, resetClientSecret]
   );
 
   return (
@@ -42,8 +39,9 @@ export const Credentials = memo(function Credentials() {
           value={currentApp?.id ?? ""}
           buttons={[
             generateCopyButton({
-              text: "Copy",
               copyValue: currentApp?.id ?? "",
+              isCopied: appIdCopied,
+              setIsCopied: setAppIdCopied,
             }),
           ]}
         />
@@ -51,7 +49,18 @@ export const Credentials = memo(function Credentials() {
         <Credential
           name="CLIENT SECRET"
           value={clientSecret ?? ""}
-          buttons={clientSecretButtons}
+          buttons={[
+            { text: "Reset", action: () => resetClientSecret() },
+            ...(clientSecret
+              ? [
+                  generateCopyButton({
+                    copyValue: clientSecret,
+                    isCopied: clientSecretCopied,
+                    setIsCopied: setClientSecretCopied,
+                  }),
+                ]
+              : []),
+          ]}
         />
       </div>
     </section>
