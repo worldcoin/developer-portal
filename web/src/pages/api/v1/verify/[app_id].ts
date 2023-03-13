@@ -75,6 +75,16 @@ export default async function handleVerify(
   const { app } = data;
   const { action } = app;
 
+  if (action.status === "inactive") {
+    return errorResponse(
+      res,
+      400,
+      "action_inactive",
+      "This action is inactive.",
+      "status"
+    );
+  }
+
   // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
   if (action.action !== "") {
     // NOTE: If `action != ""`, action is NOT for Sign in with World ID
