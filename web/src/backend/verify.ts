@@ -53,6 +53,7 @@ const queryFetchAppActionWithContractAddress = gql`
         action
         max_verifications
         external_nullifier
+        status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
           nullifier_hash
         }
@@ -74,6 +75,7 @@ interface IAppActionWithContractAddress {
     actions: {
       id: string;
       action: string;
+      status: string;
       external_nullifier: string;
       nullifiers: {
         nullifier_hash: string;
