@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
+import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
-import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed } from "../../backend/errors";
 import { ActionModel } from "src/lib/models";
+import { errorNotAllowed } from "../../backend/errors";
 
 /**
  * Generates the external nullifier for actions created in the Developer Portal.
