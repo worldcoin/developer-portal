@@ -1,19 +1,21 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
 import { EngineSwitch } from "./EngineSwitch";
-import { ImageInput } from "../common/ImageInput";
 import { useForm, Controller } from "react-hook-form";
+import { EngineType } from "src/lib/types";
+import { Illustration } from "src/components/Auth/Illustration";
+import { AppModel } from "src/lib/models";
+import useApps from "src/hooks/useApps";
+import { FieldTextArea } from "src/components/FieldTextArea";
 
-type FormData = {
-  name: string;
-  description: string;
-  engine: "cloud" | "on-chain";
-  imageUrl?: string;
-};
+type FormData = Pick<
+  AppModel,
+  "name" | "description_internal" | "engine" // | "logo_url"
+>;
 
 export interface NewAppDialogProps {
   open: boolean;
@@ -23,35 +25,18 @@ export interface NewAppDialogProps {
 export const NewAppDialog = memo(function NewAppDialog(
   props: NewAppDialogProps
 ) {
+  const { createNewApp } = useApps();
   const { control, register, reset, handleSubmit, formState } =
     useForm<FormData>({
       defaultValues: {
-        engine: "cloud",
+        engine: EngineType.Cloud,
       },
-      // FIXME: this values must be fetched from the server and passed as props
-      // values: {
-      //   name: "App!",
-      //   description: "Awesome app",
-      //   engine: "on-chain",
-      //   imageUrl: "https://fastly.picsum.photos/id/40/88/88.jpg?hmac=XQ7fH1YgKvAv7BEJcBsiF7qmuOaVhlbYHHeT-8nTnuM",
-      // }
     });
 
   const onSubmit = handleSubmit(async (data) => {
-    //TODO: add saving profile logic
-    console.log(data);
-    try {
-      await new Promise((res, rej) =>
-        setTimeout(() => {
-          Math.random() > 0.5 ? res({}) : rej(Error("saving error"));
-        }, 3000)
-      );
-      console.log("saved");
-      reset();
-    } catch (error) {
-      console.error(error);
-      reset(data);
-    }
+    await createNewApp(data);
+    props.onClose();
+    reset();
   });
 
   return (
@@ -60,18 +45,20 @@ export const NewAppDialog = memo(function NewAppDialog(
         <DialogHeader
           title="Create New App"
           icon={
-            <Controller
-              name="imageUrl"
-              control={control}
-              render={({ field }) => (
-                <ImageInput
-                  icon="apps"
-                  imageUrl={field.value}
-                  onImageUrlChange={field.onChange}
-                  disabled={formState.isSubmitting}
-                />
-              )}
-            />
+            <Illustration icon="apps" />
+            // TODO: implement upload @see https://ottofeller.slack.com/archives/C03MN2BP61J/p1678706912991919?thread_ts=1678692982.933069&cid=C03MN2BP61J
+            // <Controller
+            //   name="imageUrl"
+            //   control={control}
+            //   render={({ field }) => (
+            //     <ImageInput
+            //       icon="apps"
+            //       imageUrl={field.value}
+            //       onImageUrlChange={field.onChange}
+            //       disabled={formState.isSubmitting}
+            //     />
+            //   )}
+            // />
           }
         />
 
@@ -93,14 +80,12 @@ export const NewAppDialog = memo(function NewAppDialog(
 
           <div className="mt-6 flex flex-col gap-y-2">
             <FieldLabel className="font-rubik">Description</FieldLabel>
-            {/* FIXME: use textarea instead of input */}
-            <FieldInput
+            <FieldTextArea
               className="w-full font-rubik"
               placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
               type="text"
-              {...register("description", { required: true })}
+              {...register("description_internal")}
               readOnly={formState.isSubmitting}
-              invalid={!!formState.errors.description}
             />
           </div>
 

@@ -1,9 +1,10 @@
 import { memo } from "react";
+import { EngineType } from "src/lib/types";
 import { Option } from "./Option";
 
 export interface EngineSwitchProps {
-  value: "cloud" | "on-chain";
-  onChange: (value: "cloud" | "on-chain") => void;
+  value: EngineType;
+  onChange: (value: EngineType) => void;
   disabled?: boolean;
 }
 
@@ -19,8 +20,8 @@ export const EngineSwitch = memo(function EngineSwitch(
         title="Cloud"
         description="For actions that are triggered with the API or Sign in with World ID."
         easiest
-        checked={value === "cloud"}
-        onCheckedChange={() => onChange("cloud")}
+        checked={value === EngineType.Cloud}
+        onCheckedChange={() => onChange(EngineType.Cloud)}
         disabled={disabled}
       />
 
@@ -28,8 +29,8 @@ export const EngineSwitch = memo(function EngineSwitch(
         icon="on-chain"
         title="On-chain"
         description="For actions that are validated and executed on the blockchain."
-        checked={value === "on-chain"}
-        onCheckedChange={() => onChange("on-chain")}
+        checked={value === EngineType.OnChain}
+        onCheckedChange={() => onChange(EngineType.OnChain)}
         disabled={disabled}
       />
     </div>
