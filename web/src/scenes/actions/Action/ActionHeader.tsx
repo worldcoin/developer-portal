@@ -6,6 +6,7 @@ import { Icon } from "src/components/Icon";
 import { ActionModelWithNullifiers } from "src/lib/models";
 
 const Input = memo(function Input(props: {
+  placeholder?: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
@@ -31,13 +32,14 @@ const Input = memo(function Input(props: {
     <div className="grid grid-flow-col gap-x-1 justify-start items-center">
       <input
         className={cn(
-          "min-w-[80px] outline-none",
+          "min-w-[80px] outline-none font-rubik placeholder:italic",
           {
             "border rounded-lg bg-f3f4f5 border-ebecef": inputButton.isOn,
           },
           { "bg-transparent": !inputButton.isOn },
           props.className
         )}
+        placeholder={props.placeholder}
         value={value ?? ""}
         onChange={(e) => setValue(e.target.value)}
         onClick={(e) => e.preventDefault()}
@@ -77,13 +79,15 @@ export const ActionHeader = memo(function ActionHeader(props: {
         </div>
 
         <Input
-          className="font-sora font-semibold self-end leading-none pl-1"
+          className="font-semibold self-end leading-none pl-1"
+          placeholder="Click to set action name"
           value={props.action.name}
           onChange={props.onChangeName}
         />
 
         <Input
           className="text-12 text-neutral-secondary leading-none pl-0.5"
+          placeholder="Click to set description"
           value={props.action.description}
           onChange={props.onChangeDescription}
           lengthAdjust={-2}
