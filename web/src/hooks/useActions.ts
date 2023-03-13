@@ -27,6 +27,7 @@ const actionFields = `
       id
       created_at
       nullifier_hash
+      credential_type
   }
 `;
 

@@ -137,16 +137,19 @@ export default async function handleVerify(
       $nullifier_hash: String!
       $action_id: String!
       $merkle_root: String
+      $credential_type: String!
     ) {
       insert_nullifier_one(
         object: {
           nullifier_hash: $nullifier_hash
           merkle_root: $merkle_root
           action_id: $action_id
+          credential_type: $credential_type
         }
       ) {
         nullifier_hash
         created_at
+        credential_type
       }
     }
   `;
@@ -157,6 +160,7 @@ export default async function handleVerify(
       nullifier_hash: req.body.nullifier_hash,
       action_id: action.id,
       merkle_root: req.body.merkle_root,
+      credential_type: req.body.credential_type,
     },
   });
 

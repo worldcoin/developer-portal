@@ -71,7 +71,7 @@ export interface NullifierModel {
   merkle_root: string;
   created_at: DateTime;
   updated_at: DateTime;
-  verification_level: CredentialType;
+  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
