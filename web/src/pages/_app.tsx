@@ -97,11 +97,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         <meta name="twitter:description" content={metaDescription} />
       </Head>
 
-      <div
-        className={`${sora.variable} ${rubik.variable} ${ibmPlexMono.variable} contents`}
-      >
-        <Component {...pageProps} />
-      </div>
+      <Component {...pageProps} />
 
       <style>{`
         :root {
