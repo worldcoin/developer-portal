@@ -1,13 +1,6 @@
 table:
   name: nullifier
   schema: public
-configuration:
-  column_config:
-    credential_type:
-      custom_name: credential_type
-  custom_column_names:
-    credential_type: credential_type
-  custom_root_fields: {}
 object_relationships:
   - name: action
     using:
