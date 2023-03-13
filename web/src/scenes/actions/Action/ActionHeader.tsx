@@ -17,7 +17,6 @@ const Input = memo(function Input(props: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
-  lengthAdjust?: number;
 }) {
   const [value, setValue] = useState(props.value);
   const inputButton = useToggle();
@@ -104,7 +103,6 @@ export const ActionHeader = memo(function ActionHeader(props: {
           placeholder="Click to set action name"
           value={props.action.name}
           onChange={props.onChangeName}
-          lengthAdjust={-1}
         />
 
         <Input
@@ -112,7 +110,6 @@ export const ActionHeader = memo(function ActionHeader(props: {
           placeholder="Click to set description"
           value={props.action.description}
           onChange={props.onChangeDescription}
-          lengthAdjust={-2}
         />
       </div>
 
