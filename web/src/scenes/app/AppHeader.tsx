@@ -17,13 +17,14 @@ export const AppHeader = memo(function AppHeader() {
 
   useEffect(() => {
     if (copied) {
+      navigator.clipboard.writeText(currentApp?.id ?? "");
       const timeout = setTimeout(() => {
         setCopied(false);
       }, 2000);
 
       return () => clearTimeout(timeout);
     }
-  }, [copied]);
+  }, [copied, currentApp?.id]);
 
   return (
     <section className="grid gap-y-8">
