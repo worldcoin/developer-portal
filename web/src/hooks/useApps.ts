@@ -9,17 +9,21 @@ import { useCallback } from "react";
 import { AppStatusType } from "src/lib/types";
 import { toast } from "react-toastify";
 
+const appFields = `
+id
+logo_url
+name
+is_verified
+engine
+is_staging
+status
+description_internal
+`;
+
 const FetchAppsQuery = gql`
   query Apps {
     app(order_by: { created_at: asc }) {
-      id
-      logo_url
-      name
-      is_verified
-      engine
-      is_staging
-      status
-      description_internal
+      ${appFields}
     }
   }
 `;
@@ -39,14 +43,15 @@ const UpdateAppQuery = gql`
         description_internal: $description_internal
       }
     ) {
-      id
-      logo_url
-      name
-      is_verified
-      engine
-      is_staging
-      status
-      description_internal
+      ${appFields}
+    }
+  }
+`;
+
+const InsertAppQuery = gql`
+  mutation InsertApp($object: app_insert_input!) {
+    insert_app_one(object: $object) {
+      ${appFields}
     }
   }
 `;
@@ -98,6 +103,31 @@ const updateAppFetcher = async (
 
   if (response.data?.update_app_by_pk) {
     return response.data.update_app_by_pk;
+  }
+
+  throw new Error("Failed to update app status");
+};
+
+type NewAppPayload = Pick<AppModel, "name" | "description_internal" | "engine">;
+
+const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
+  const { name, description_internal, engine } = args.arg;
+
+  const response = await graphQLRequest<{
+    insert_app_one: AppModel;
+  }>({
+    query: InsertAppQuery,
+    variables: {
+      object: {
+        name,
+        description_internal,
+        engine,
+      },
+    },
+  });
+
+  if (response.data?.insert_app_one) {
+    return response.data.insert_app_one;
   }
 
   throw new Error("Failed to update app status");
@@ -195,6 +225,26 @@ const useApps = () => {
     [currentApp, updateAppDescriptionMutation]
   );
 
+  const insertNewAppMutation = useSWRMutation("app", insertAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setApps([data]);
+        setCurrentApp(data);
+        toast.success("App created");
+      }
+    },
+    onError: () => {
+      toast.error("Failed to create new app");
+    },
+  });
+
+  const createNewApp = useCallback(
+    async (data: NewAppPayload) => {
+      return await insertNewAppMutation.trigger(data);
+    },
+    [insertNewAppMutation]
+  );
+
   return {
     apps: data,
     error,
@@ -205,6 +255,7 @@ const useApps = () => {
     isUpdateAppNameMutating: updateAppNameMutation.isMutating,
     updateAppDescription,
     isUpdateAppDescriptionMutating: updateAppDescriptionMutation.isMutating,
+    createNewApp,
   };
 };
 
