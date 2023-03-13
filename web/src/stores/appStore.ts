@@ -5,7 +5,7 @@ export type IAppStore = {
   apps: Array<AppModel>;
   currentApp: AppModel | null;
 
-  setCurrentApp: (app: AppModel) => void;
+  setCurrentApp: (app: AppModel | null) => void;
   setCurrentAppById: (id: string) => void;
   setApps: (apps: Array<AppModel>) => void;
 };
