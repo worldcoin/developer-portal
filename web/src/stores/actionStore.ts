@@ -1,11 +1,11 @@
 import { ActionModelWithNullifiers } from "src/lib/models";
+import { NewAction } from "src/scenes/actions/NewAction";
 import { create } from "zustand";
 
 type NewAction = {
   name: string;
   description: string;
   action: string;
-  app_id: string;
 };
 
 export type IActionStore = {
@@ -26,5 +26,12 @@ export const useActionStore = create<IActionStore>((set, get) => ({
   setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
 
   newAction: { name: "", description: "", action: "", app_id: "" },
-  setNewAction: (value) => set({ newAction: value as NewAction }),
+  setNewAction: (value) =>
+    set({
+      newAction: {
+        name: value.name ?? get().newAction.name,
+        description: value.description ?? get().newAction.description,
+        action: (value.action ?? get().newAction.action).replace(/[^\w-]/g, ""),
+      },
+    }),
 }));

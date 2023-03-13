@@ -1,13 +1,14 @@
-import { ApolloError, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
 import { ActionModelWithNullifiers } from "@/lib/models";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { IAppStore, useAppStore } from "src/stores/appStore";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 
 const actionFields = `
   id
@@ -62,7 +63,8 @@ const InsertActionMutation = gql`
     $name: String!
     $description: String = ""
     $action: String = ""
-    $app_id: String!
+    $app_id: String!,
+    $external_nullifier: String!
   ) {
     insert_action_one(
       object: {
@@ -70,6 +72,7 @@ const InsertActionMutation = gql`
         app_id: $app_id
         name: $name
         description: $description
+        external_nullifier: $external_nullifier
       }
     ) {
         ${actionFields}
@@ -141,16 +144,18 @@ const updateActionFetcher = async (
 };
 
 const insertActionFetcher = async (_key: [string, string | undefined]) => {
-  const { name, description, action, app_id } =
-    useActionStore.getState().newAction;
-
-  const currentApp = !app_id
-    ? useAppStore.getState().currentApp
-    : useAppStore.getState().apps.find((app) => app.id === app_id);
+  const currentApp = useAppStore.getState().currentApp;
 
   if (!currentApp) {
     throw new Error("App not found in state");
   }
+
+  const { name, description, action } = useActionStore.getState().newAction;
+
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
+    currentApp.id,
+    action
+  ).digest;
 
   const response = await graphQLRequest<{
     insert_action_one: ActionModelWithNullifiers;
@@ -162,6 +167,7 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
         description,
         action,
         app_id: currentApp.id,
+        external_nullifier,
       },
     },
     true
@@ -216,30 +222,6 @@ const useActions = () => {
     }
   );
 
-  const { trigger: insertAction } = useSWRMutation(
-    ["actions", currentApp?.id],
-    insertActionFetcher,
-    {
-      onSuccess: (data) => {
-        if (data) {
-          setActions([...actions, data]);
-          setNewAction({ name: "", description: "", action: "", app_id: "" });
-          setNewIsOpened(false);
-          toast.success("Action created");
-        }
-      },
-      onError: (err) => {
-        if (
-          err.graphQLErrors[0].extensions["code"] === "constraint-violation"
-        ) {
-          toast.error(
-            'An action with this identifier already exists for this app. Please change the "action" identifier.'
-          );
-        }
-      },
-    }
-  );
-
   const updateName = useCallback(
     (id: string, name: string) => {
       const currentAction = actions.find((action) => action.id === id);
@@ -288,7 +270,34 @@ const useActions = () => {
     [actions, updateAction]
   );
 
+  const [isNewActionDuplicateAction, setIsNewActionDuplicateAction] =
+    useState(false);
+
+  const { trigger: insertAction, isMutating: isNewActionMutating } =
+    useSWRMutation(["actions", currentApp?.id], insertActionFetcher, {
+      onSuccess: (data) => {
+        if (data) {
+          setActions([...actions, data]);
+          setNewAction({ name: "", description: "", action: "" });
+          setNewIsOpened(false);
+          toast.success("Action created");
+        }
+      },
+      onError: (err) => {
+        if (
+          err.graphQLErrors[0].extensions["code"] === "constraint-violation"
+        ) {
+          setIsNewActionDuplicateAction(true);
+          toast.error(
+            'An action with this identifier already exists for this app. Please change the "action" identifier.'
+          );
+        }
+      },
+      throwOnError: false,
+    });
+
   const createNewAction = useCallback(() => {
+    setIsNewActionDuplicateAction(false);
     insertAction();
   }, [insertAction]);
 
@@ -301,6 +310,8 @@ const useActions = () => {
     updateDescription,
     toggleKiosk,
     createNewAction,
+    isNewActionMutating,
+    isNewActionDuplicateAction,
   };
 };
 

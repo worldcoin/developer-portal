@@ -18,7 +18,9 @@ const getActionsStore = (store: IActionStore) => ({
 
 export function NewAction() {
   const formRef = useRef<HTMLFormElement>(null);
-  const { createNewAction } = useActions();
+  const { createNewAction, isNewActionMutating, isNewActionDuplicateAction } =
+    useActions();
+
   const { newAction, setNewAction, isOpened, setIsOpened } =
     useActionStore(getActionsStore);
 
@@ -40,52 +42,52 @@ export function NewAction() {
       />
       <form onSubmit={handleSubmit} ref={formRef}>
         <div className="flex flex-col gap-y-2">
-          <FieldLabel required>Name</FieldLabel>
+          <FieldLabel className="font-rubik" required>
+            Name
+          </FieldLabel>
 
           <FieldInput
-            className="w-full"
+            className="w-full font-rubik"
             placeholder="Add name"
             required
             value={newAction.name}
             onChange={(e) => setNewAction({ name: e.target.value })}
+            disabled={isNewActionMutating}
           />
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel className="font-rubik">Description</FieldLabel>
 
           <FieldTextArea
-            className="w-full"
+            className="w-full font-rubik"
             placeholder="Add description"
             value={newAction.description}
             onChange={(e) => setNewAction({ description: e.target.value })}
+            disabled={isNewActionMutating}
           />
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required>Action</FieldLabel>
+          <FieldLabel required className="font-rubik">
+            Action identifier
+          </FieldLabel>
 
           <FieldInput
-            className="w-full"
-            placeholder="Add action"
+            className="w-full font-rubik"
+            placeholder="This is the value you need to pass to IDKit"
             required
             value={newAction.action}
             onChange={(e) => setNewAction({ action: e.target.value })}
+            invalid={isNewActionDuplicateAction}
+            disabled={isNewActionMutating}
           />
         </div>
 
-        <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>App ID</FieldLabel>
-
-          <FieldInput
-            className="w-full"
-            placeholder="Add App ID"
-            value={newAction.app_id}
-            onChange={(e) => setNewAction({ app_id: e.target.value })}
-          />
-        </div>
-
-        <Button className="w-full h-[56px] mt-12 font-medium">
+        <Button
+          className="w-full h-[56px] mt-12 font-medium"
+          disabled={isNewActionMutating}
+        >
           Create New Action
         </Button>
       </form>
