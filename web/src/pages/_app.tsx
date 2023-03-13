@@ -99,7 +99,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
 
       <Component {...pageProps} />
 
-      <style>{`
+      <style jsx global>{`
         :root {
           --font-sora: ${sora.style.fontFamily};
           --font-rubik: ${rubik.style.fontFamily};
