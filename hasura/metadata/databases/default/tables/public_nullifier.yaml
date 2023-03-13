@@ -1,6 +1,13 @@
 table:
   name: nullifier
   schema: public
+configuration:
+  column_config:
+    credential_type:
+      custom_name: credential_type
+  custom_column_names:
+    credential_type: credential_type
+  custom_root_fields: {}
 object_relationships:
   - name: action
     using:
@@ -14,16 +21,8 @@ insert_permissions:
         - id
         - merkle_root
         - nullifier_hash
-        - verification_level
+        - credential_type
 select_permissions:
-  - role: analytics
-    permission:
-      columns:
-        - created_at
-        - id
-        - nullifier_hash
-      filter: {}
-      allow_aggregations: true
   - role: api_key
     permission:
       columns:
@@ -32,7 +31,7 @@ select_permissions:
         - id
         - merkle_root
         - nullifier_hash
-        - verification_level
+        - credential_type
       filter:
         action:
           app:
@@ -46,7 +45,7 @@ select_permissions:
         - id
         - merkle_root
         - nullifier_hash
-        - verification_level
+        - credential_type
       filter: {}
   - role: user
     permission:
@@ -56,7 +55,7 @@ select_permissions:
         - id
         - merkle_root
         - nullifier_hash
-        - verification_level
+        - credential_type
       filter:
         action:
           app:
