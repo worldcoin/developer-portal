@@ -82,12 +82,14 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
                 <p className="text-12">{member.email}</p>
               </div>
 
-              <button
-                className="text-danger hover:opacity-75 transition-opacity"
-                onClick={() => setMemberForRemove(member)}
-              >
-                Remove
-              </button>
+              {members.length > 1 && (
+                <button
+                  className="text-danger hover:opacity-75 transition-opacity"
+                  onClick={() => setMemberForRemove(member)}
+                >
+                  Remove
+                </button>
+              )}
             </div>
           ))}
         </div>

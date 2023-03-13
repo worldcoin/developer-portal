@@ -36,17 +36,13 @@ export const Details = memo(function Details(props: DetailsProps) {
   );
 
   return (
-    <div className="grid gap-y-12">
-      <h2 className="font-semibold font-sora">My Team Details</h2>
-
-      <FieldGroup label="Team name">
-        <FieldInput
-          ref={ref}
-          defaultValue={team.name}
-          onBlur={handleBlur}
-          onKeyPress={handleKeyPress}
-        />
-      </FieldGroup>
-    </div>
+    <FieldGroup label="Team name">
+      <FieldInput
+        ref={ref}
+        defaultValue={team.name}
+        onBlur={handleBlur}
+        onKeyPress={handleKeyPress}
+      />
+    </FieldGroup>
   );
 });
