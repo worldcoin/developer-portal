@@ -83,6 +83,7 @@ export const ActionHeader = memo(function ActionHeader(props: {
           placeholder="Click to set action name"
           value={props.action.name}
           onChange={props.onChangeName}
+          lengthAdjust={-1}
         />
 
         <Input
@@ -90,7 +91,7 @@ export const ActionHeader = memo(function ActionHeader(props: {
           placeholder="Click to set description"
           value={props.action.description}
           onChange={props.onChangeDescription}
-          lengthAdjust={-2}
+          lengthAdjust={-6}
         />
       </div>
 
