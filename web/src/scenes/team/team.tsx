@@ -17,11 +17,11 @@ export const Team = memo(function Team() {
         </div>
       )}
       {!isLoading && team && (
-        <>
+        <div className="space-y-8">
           <Header />
           <Details team={team} />
           {team.members && <MemberList members={team.members} />}
-        </>
+        </div>
       )}
     </Layout>
   );
