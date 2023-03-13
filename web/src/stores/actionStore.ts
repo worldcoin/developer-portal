@@ -5,7 +5,6 @@ type NewAction = {
   name: string;
   description: string;
   action: string;
-  app_id: string;
 };
 
 export type IActionStore = {
@@ -32,7 +31,6 @@ export const useActionStore = create<IActionStore>((set, get) => ({
         name: value.name ?? get().newAction.name,
         description: value.description ?? get().newAction.description,
         action: (value.action ?? get().newAction.action).replace(/[^\w-]/g, ""),
-        app_id: value.app_id ?? get().newAction.app_id,
       },
     }),
 }));

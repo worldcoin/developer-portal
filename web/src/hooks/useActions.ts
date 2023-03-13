@@ -141,16 +141,13 @@ const updateActionFetcher = async (
 };
 
 const insertActionFetcher = async (_key: [string, string | undefined]) => {
-  const { name, description, action, app_id } =
-    useActionStore.getState().newAction;
-
-  const currentApp = !app_id
-    ? useAppStore.getState().currentApp
-    : useAppStore.getState().apps.find((app) => app.id === app_id);
+  const currentApp = useAppStore.getState().currentApp;
 
   if (!currentApp) {
     throw new Error("App not found in state");
   }
+
+  const { name, description, action } = useActionStore.getState().newAction;
 
   const response = await graphQLRequest<{
     insert_action_one: ActionModelWithNullifiers;
@@ -223,7 +220,7 @@ const useActions = () => {
       onSuccess: (data) => {
         if (data) {
           setActions([...actions, data]);
-          setNewAction({ name: "", description: "", action: "", app_id: "" });
+          setNewAction({ name: "", description: "", action: "" });
           setNewIsOpened(false);
           toast.success("Action created");
         }

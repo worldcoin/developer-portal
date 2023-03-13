@@ -74,17 +74,6 @@ export function NewAction() {
           />
         </div>
 
-        <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>App ID</FieldLabel>
-
-          <FieldInput
-            className="w-full"
-            placeholder="Add App ID"
-            value={newAction.app_id}
-            onChange={(e) => setNewAction({ app_id: e.target.value })}
-          />
-        </div>
-
         <Button className="w-full h-[56px] mt-12 font-medium">
           Create New Action
         </Button>
