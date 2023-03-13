@@ -63,11 +63,13 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required>Action</FieldLabel>
+          <FieldLabel required className="font-mono">
+            Action identifier
+          </FieldLabel>
 
           <FieldInput
             className="w-full"
-            placeholder="Add action"
+            placeholder="This is the value you need to pass to IDKit"
             required
             value={newAction.action}
             onChange={(e) => setNewAction({ action: e.target.value })}
