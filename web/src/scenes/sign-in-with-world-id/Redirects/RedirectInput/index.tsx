@@ -22,7 +22,7 @@ export function RedirectInput(props: RedirectInputProps) {
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
-    setValid(validateUrl(e.target.value, true));
+    setValid(validateUrl(e.target.value));
   }, []);
 
   const handleKeyboard = useCallback(
