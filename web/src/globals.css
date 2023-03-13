@@ -1,7 +1,7 @@
+@import "react-toastify/dist/ReactToastify.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "react-toastify/dist/ReactToastify.css";
 
 /* Begin Toastify overrides */
 

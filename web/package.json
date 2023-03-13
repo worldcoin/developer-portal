@@ -40,6 +40,8 @@
     "next-logger": "3.0.1",
     "next-redux-wrapper": "^7.0.5",
     "next-safe": "^3.4.1",
+    "postcss-import": "^15.1.0",
+    "postcss-selector-matches": "^4.0.0",
     "posthog-js": "^1.45.1",
     "qr-code-styling": "^1.6.0-rc.1",
     "react": "^18.2.0",
