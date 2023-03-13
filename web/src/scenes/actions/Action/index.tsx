@@ -7,6 +7,7 @@ import { Icon } from "src/components/Icon";
 import { Switch } from "src/components/Switch";
 import { ActionModelWithNullifiers } from "src/lib/models";
 import useActions from "src/hooks/useActions";
+import cn from "classnames";
 
 dayjs.extend(relativeTime);
 
@@ -52,7 +53,15 @@ export const Action = memo(function Action(props: {
     <Disclosure>
       {({ open }) => (
         <Fragment>
-          <Disclosure.Button className="shadow-[0px_10px_30px_rgba(25,28,32,0.1)] rounded-xl overflow-y-clip outline-none">
+          <Disclosure.Button
+            className={cn(
+              "rounded-xl overflow-y-clip outline-none transition-shadow transition-300 hover:shadow-[0px_10px_30px_rgba(25,28,32,0.1)]",
+              {
+                "shadow-[0px_10px_30px_rgba(25,28,32,0.02)]": !open,
+                "shadow-[0px_10px_30px_rgba(25,28,32,0.1)]": open,
+              }
+            )}
+          >
             <ActionHeader
               action={props.action}
               open={open}
