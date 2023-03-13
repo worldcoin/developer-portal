@@ -26,5 +26,13 @@ export const useActionStore = create<IActionStore>((set, get) => ({
   setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
 
   newAction: { name: "", description: "", action: "", app_id: "" },
-  setNewAction: (value) => set({ newAction: value as NewAction }),
+  setNewAction: (value) =>
+    set({
+      newAction: {
+        name: value.name ?? get().newAction.name,
+        description: value.description ?? get().newAction.description,
+        action: (value.action ?? get().newAction.action).replace(/[^\w-]/g, ""),
+        app_id: value.app_id ?? get().newAction.app_id,
+      },
+    }),
 }));
