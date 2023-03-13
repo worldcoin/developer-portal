@@ -7,6 +7,9 @@ import { Configuration } from "./Configuration";
 import { Stats } from "./Stats";
 import { shallow } from "zustand/shallow";
 import useApps from "src/hooks/useApps";
+import { useToggle } from "@/hooks/useToggle";
+import { RemoveAppDialog } from "@/scenes/app/RemoveAppDialog";
+import { Button } from "@/components/Button";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -18,6 +21,8 @@ export const App = memo(function App(props: {
 }) {
   const { isLoading } = useApps();
   const { currentApp } = useAppStore(getStore, shallow);
+
+  const removeAppDialog = useToggle();
 
   return (
     <Layout userId={props.user_id}>
@@ -38,6 +43,17 @@ export const App = memo(function App(props: {
           <AppHeader />
           <Configuration />
           <Stats />
+          <Button
+            variant="danger"
+            className="justify-self-end px-4 py-2"
+            onClick={removeAppDialog.toggleOn}
+          >
+            Remove app
+          </Button>
+          <RemoveAppDialog
+            open={removeAppDialog.isOn}
+            onClose={removeAppDialog.toggleOff}
+          />
         </div>
       )}
     </Layout>
