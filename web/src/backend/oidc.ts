@@ -140,7 +140,7 @@ export const fetchOIDCApp = async (
     return {
       error: {
         code: "sign_in_not_enabled",
-        message: "App does not have Sign in with World ID enabled.",
+        message: "App has Sign in with Worldcoin disabled.",
         statusCode: 400,
         attribute: "status",
       },
