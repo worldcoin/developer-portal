@@ -42,7 +42,8 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
             <div className="grid grid-flow-col gap-x-8">
               <Link
                 className="grid gap-x-1 grid-flow-col justify-start items-center px-3 py-2 border border-f3f4f5 rounded-lg hover:opacity-70 transition-opacity"
-                href="https://docs.worldcoin.org/"
+                href="https://docs.worldcoin.org/id/actions"
+                target="_blank"
               >
                 <span>Docs</span>
                 <Icon name="arrow-right" className="w-4 h-4" />
