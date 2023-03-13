@@ -48,7 +48,7 @@ export const App = memo(function App(props: {
             className="justify-self-end px-4 py-2"
             onClick={removeAppDialog.toggleOn}
           >
-            Remove app
+            Delete app
           </Button>
           <RemoveAppDialog
             open={removeAppDialog.isOn}

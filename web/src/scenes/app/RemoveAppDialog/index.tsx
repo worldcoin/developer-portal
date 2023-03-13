@@ -30,10 +30,10 @@ export const RemoveAppDialog = memo(function RemoveAppDialog(
         <Illustration icon="warning-triangle" color="danger" />
 
         <div className="flex flex-col space-y-2 text-center">
-          <span className="text-24 font-sora font-semibold">Remove app</span>
+          <span className="text-24 font-sora font-semibold">Delete app</span>
 
           <span className="text-14">
-            Are you sure you want to remove your app
+            Are you sure you want to delete your app
             <b>&nbsp;{currentApp?.name}</b>?
           </span>
         </div>
