@@ -226,8 +226,6 @@ describe("/api/verify [error cases]", () => {
 
     await handleVerify(req, res);
 
-    console.log(res._getJSONData());
-
     expect(res._getStatusCode()).toBe(400);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
@@ -251,8 +249,6 @@ describe("/api/verify [error cases]", () => {
     );
 
     await handleVerify(req, res);
-
-    console.log(res._getJSONData());
 
     expect(res._getStatusCode()).toBe(400);
     expect(res._getJSONData()).toEqual(
