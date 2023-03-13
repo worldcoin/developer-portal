@@ -1,4 +1,5 @@
 import { ActionModelWithNullifiers } from "src/lib/models";
+import { NewAction } from "src/scenes/actions/NewAction";
 import { create } from "zustand";
 
 type NewAction = {

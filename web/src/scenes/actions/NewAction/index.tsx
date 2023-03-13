@@ -18,7 +18,9 @@ const getActionsStore = (store: IActionStore) => ({
 
 export function NewAction() {
   const formRef = useRef<HTMLFormElement>(null);
-  const { createNewAction } = useActions();
+  const { createNewAction, isNewActionMutating, isNewActionDuplicateAction } =
+    useActions();
+
   const { newAction, setNewAction, isOpened, setIsOpened } =
     useActionStore(getActionsStore);
 
@@ -50,6 +52,7 @@ export function NewAction() {
             required
             value={newAction.name}
             onChange={(e) => setNewAction({ name: e.target.value })}
+            disabled={isNewActionMutating}
           />
         </div>
 
@@ -61,6 +64,7 @@ export function NewAction() {
             placeholder="Add description"
             value={newAction.description}
             onChange={(e) => setNewAction({ description: e.target.value })}
+            disabled={isNewActionMutating}
           />
         </div>
 
@@ -75,10 +79,15 @@ export function NewAction() {
             required
             value={newAction.action}
             onChange={(e) => setNewAction({ action: e.target.value })}
+            invalid={isNewActionDuplicateAction}
+            disabled={isNewActionMutating}
           />
         </div>
 
-        <Button className="w-full h-[56px] mt-12 font-medium">
+        <Button
+          className="w-full h-[56px] mt-12 font-medium"
+          disabled={isNewActionMutating}
+        >
           Create New Action
         </Button>
       </form>

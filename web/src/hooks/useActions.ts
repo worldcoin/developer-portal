@@ -4,7 +4,7 @@ import { ActionModelWithNullifiers } from "@/lib/models";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { IAppStore, useAppStore } from "src/stores/appStore";
@@ -222,30 +222,6 @@ const useActions = () => {
     }
   );
 
-  const { trigger: insertAction } = useSWRMutation(
-    ["actions", currentApp?.id],
-    insertActionFetcher,
-    {
-      onSuccess: (data) => {
-        if (data) {
-          setActions([...actions, data]);
-          setNewAction({ name: "", description: "", action: "" });
-          setNewIsOpened(false);
-          toast.success("Action created");
-        }
-      },
-      onError: (err) => {
-        if (
-          err.graphQLErrors[0].extensions["code"] === "constraint-violation"
-        ) {
-          toast.error(
-            'An action with this identifier already exists for this app. Please change the "action" identifier.'
-          );
-        }
-      },
-    }
-  );
-
   const updateName = useCallback(
     (id: string, name: string) => {
       const currentAction = actions.find((action) => action.id === id);
@@ -294,7 +270,34 @@ const useActions = () => {
     [actions, updateAction]
   );
 
+  const [isNewActionDuplicateAction, setIsNewActionDuplicateAction] =
+    useState(false);
+
+  const { trigger: insertAction, isMutating: isNewActionMutating } =
+    useSWRMutation(["actions", currentApp?.id], insertActionFetcher, {
+      onSuccess: (data) => {
+        if (data) {
+          setActions([...actions, data]);
+          setNewAction({ name: "", description: "", action: "" });
+          setNewIsOpened(false);
+          toast.success("Action created");
+        }
+      },
+      onError: (err) => {
+        if (
+          err.graphQLErrors[0].extensions["code"] === "constraint-violation"
+        ) {
+          setIsNewActionDuplicateAction(true);
+          toast.error(
+            'An action with this identifier already exists for this app. Please change the "action" identifier.'
+          );
+        }
+      },
+      throwOnError: false,
+    });
+
   const createNewAction = useCallback(() => {
+    setIsNewActionDuplicateAction(false);
     insertAction();
   }, [insertAction]);
 
@@ -307,6 +310,8 @@ const useActions = () => {
     updateDescription,
     toggleKiosk,
     createNewAction,
+    isNewActionMutating,
+    isNewActionDuplicateAction,
   };
 };
 
