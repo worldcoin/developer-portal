@@ -36,9 +36,9 @@ const Input = memo(function Input(props: {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      e.stopPropagation()
+      e.stopPropagation();
       if (e.key === "Enter") {
-        handleButtonClick(e)
+        handleButtonClick(e);
       }
     },
     [handleButtonClick]
