@@ -32,7 +32,7 @@ export const Redirects = memo(function Redirects() {
             value={redirect.redirect_uri}
             onChange={(value) => {
               if (value !== redirect.redirect_uri) {
-                updateRedirect({ id: redirect.id, uri: value })
+                updateRedirect({ id: redirect.id, uri: value });
               }
             }}
             onDelete={() => deleteRedirect({ id: redirect.id })}
