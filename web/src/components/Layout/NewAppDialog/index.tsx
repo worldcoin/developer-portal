@@ -84,9 +84,8 @@ export const NewAppDialog = memo(function NewAppDialog(
               className="w-full font-rubik"
               placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
               type="text"
-              {...register("description_internal", { required: true })}
+              {...register("description_internal")}
               readOnly={formState.isSubmitting}
-              invalid={!!formState.errors.description_internal}
             />
           </div>
 
