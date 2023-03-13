@@ -55,20 +55,31 @@ export const generateServiceJWT = async (): Promise<string> => {
 };
 
 /**
- * Generates a JWT for a specific user.
+ * Generates a Hasura-valid JWT for a specific user.
  */
-const _generateJWT = async (
+export const _generateJWT = async (
   payload: Record<string, any>,
-  expiration: string | number = "1h"
+  expiration: string | number = "1h",
+  key: string = HASURA_GRAPHQL_JWT_SECRET.key
 ): Promise<string> => {
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime(expiration)
-    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
+    .sign(Buffer.from(key));
 
   return token;
 };
+
+export const getUserJWTPayload = (user_id: string, team_id: string) => ({
+  sub: user_id,
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-allowed-roles": ["user"],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": user_id,
+    "x-hasura-team-id": team_id,
+  },
+});
 
 /**
  * Generates a JWT for a specific user.
@@ -77,15 +88,7 @@ const _generateJWT = async (
  * @returns
  */
 export const generateUserJWT = async (user_id: string, team_id: string) => {
-  const payload = {
-    sub: user_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user"],
-      "x-hasura-default-role": "user",
-      "x-hasura-user-id": user_id,
-      "x-hasura-team-id": team_id,
-    },
-  };
+  const payload = getUserJWTPayload(user_id, team_id);
 
   const expiration = dayjs().add(7, "day").unix();
   const token = await _generateJWT(payload, expiration);

@@ -59,7 +59,7 @@ export default async function handleLogin(
     process.env.NODE_ENV !== "production" &&
     !req.url?.includes("https://developer.worldcoin.org")
   ) {
-    const devToken = (await getDevToken()) ?? null;
+    const devToken = (await getDevToken(dev_login)) ?? null;
 
     const returnTo = getReturnToFromCookie(req, res);
 
@@ -73,6 +73,7 @@ export default async function handleLogin(
       );
       return res.status(200).json({ new_user: false, returnTo });
     }
+    throw new Error("Error getting dev token. Do you have a user in your DB?");
   }
 
   if (!sign_in_with_world_id_token) {
