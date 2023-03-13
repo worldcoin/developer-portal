@@ -1,11 +1,14 @@
 import { memo } from "react";
 import { Layout } from "src/components/Layout";
+import useRedirectOnAppNotFound from "src/hooks/useRedirectOnAppNotFound";
 import { Credentials } from "./Credentials";
 import { Header } from "./Header";
 import { Redirects } from "./Redirects";
 import { Status } from "./Status";
 
 export const SignIn = memo(function SignIn(props: { user_id?: string }) {
+  useRedirectOnAppNotFound();
+
   return (
     <Layout
       userId={props.user_id}

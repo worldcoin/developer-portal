@@ -6,6 +6,10 @@ import { Icon } from "@/components/Icon";
 import useActions from "src/hooks/useActions";
 import { NewAction } from "./NewAction";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
+import useApps from "src/hooks/useApps";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import useRedirectOnAppNotFound from "src/hooks/useRedirectOnAppNotFound";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -14,6 +18,7 @@ const getActionsStore = (store: IActionStore) => ({
 export function Actions(props: { user_id?: string }): JSX.Element | null {
   const { actions } = useActions();
   const { setNewActionOpened } = useActionStore(getActionsStore);
+  useRedirectOnAppNotFound();
 
   return (
     <Layout title="Actions" userId={props.user_id}>
