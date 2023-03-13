@@ -9,8 +9,9 @@ const Label = memo(function Label(props: {
   value: string;
   saving?: boolean;
   onSave: (value: string) => void;
+  disabled?: boolean;
 }) {
-  const { value, onSave } = props;
+  const { value, onSave, disabled } = props;
 
   const ref = useRef<HTMLInputElement | null>(null);
 
@@ -51,6 +52,7 @@ const Label = memo(function Label(props: {
           defaultValue={value}
           onBlur={handleBlur}
           onKeyPress={handleKeyPress}
+          disabled={disabled}
         />
         {props.saving && (
           <Icon
@@ -82,6 +84,7 @@ export const Configuration = memo(function Configuration() {
         value={currentApp?.name || ""}
         saving={isUpdateAppNameMutating}
         onSave={updateAppName}
+        disabled={currentApp?.is_verified}
       />
 
       <Label
