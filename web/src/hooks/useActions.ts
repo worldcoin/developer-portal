@@ -1,4 +1,4 @@
-import { ApolloError, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { graphQLRequest } from "src/lib/frontend-api";
 import { ActionModelWithNullifiers } from "@/lib/models";
 import useSWR from "swr";
@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { IAppStore, useAppStore } from "src/stores/appStore";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
 
 const actionFields = `
   id
@@ -62,7 +63,8 @@ const InsertActionMutation = gql`
     $name: String!
     $description: String = ""
     $action: String = ""
-    $app_id: String!
+    $app_id: String!,
+    $external_nullifier: String!
   ) {
     insert_action_one(
       object: {
@@ -70,6 +72,7 @@ const InsertActionMutation = gql`
         app_id: $app_id
         name: $name
         description: $description
+        external_nullifier: $external_nullifier
       }
     ) {
         ${actionFields}
@@ -149,6 +152,11 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
 
   const { name, description, action } = useActionStore.getState().newAction;
 
+  const external_nullifier = IDKitInternal.generateExternalNullifier(
+    currentApp.id,
+    action
+  ).digest;
+
   const response = await graphQLRequest<{
     insert_action_one: ActionModelWithNullifiers;
   }>(
@@ -159,6 +167,7 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
         description,
         action,
         app_id: currentApp.id,
+        external_nullifier,
       },
     },
     true
