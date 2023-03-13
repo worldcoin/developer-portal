@@ -40,10 +40,12 @@ export function NewAction() {
       />
       <form onSubmit={handleSubmit} ref={formRef}>
         <div className="flex flex-col gap-y-2">
-          <FieldLabel required>Name</FieldLabel>
+          <FieldLabel className="font-rubik" required>
+            Name
+          </FieldLabel>
 
           <FieldInput
-            className="w-full"
+            className="w-full font-rubik"
             placeholder="Add name"
             required
             value={newAction.name}
@@ -52,10 +54,10 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel className="font-rubik">Description</FieldLabel>
 
           <FieldTextArea
-            className="w-full"
+            className="w-full font-rubik"
             placeholder="Add description"
             value={newAction.description}
             onChange={(e) => setNewAction({ description: e.target.value })}
@@ -63,12 +65,12 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required className="font-mono">
+          <FieldLabel required className="font-rubik">
             Action identifier
           </FieldLabel>
 
           <FieldInput
-            className="w-full"
+            className="w-full font-rubik"
             placeholder="This is the value you need to pass to IDKit"
             required
             value={newAction.action}
