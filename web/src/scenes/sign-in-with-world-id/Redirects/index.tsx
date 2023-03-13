@@ -30,9 +30,11 @@ export const Redirects = memo(function Redirects() {
           <RedirectInput
             key={`signin-redirect-input-${redirect.id}`}
             value={redirect.redirect_uri}
-            onChange={(value) =>
-              updateRedirect({ id: redirect.id, uri: value })
-            }
+            onChange={(value) => {
+              if (value !== redirect.redirect_uri) {
+                updateRedirect({ id: redirect.id, uri: value })
+              }
+            }}
             onDelete={() => deleteRedirect({ id: redirect.id })}
           />
         ))}

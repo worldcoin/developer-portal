@@ -311,7 +311,8 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          toast.success("Redirect added");
+          // TODO: do not save the redirect before the user populates the uri
+          //toast.success("Redirect added");
         }
       },
     }
