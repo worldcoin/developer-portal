@@ -10,6 +10,7 @@ import { EngineType } from "src/lib/types";
 import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
+import { FieldTextArea } from "src/components/FieldTextArea";
 
 type FormData = Pick<
   AppModel,
@@ -79,8 +80,7 @@ export const NewAppDialog = memo(function NewAppDialog(
 
           <div className="mt-6 flex flex-col gap-y-2">
             <FieldLabel className="font-rubik">Description</FieldLabel>
-            {/* FIXME: use textarea instead of input */}
-            <FieldInput
+            <FieldTextArea
               className="w-full font-rubik"
               placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
               type="text"
