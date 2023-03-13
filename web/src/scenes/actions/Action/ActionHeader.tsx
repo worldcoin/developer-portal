@@ -34,8 +34,18 @@ const Input = memo(function Input(props: {
     [inputButton, props, value]
   );
 
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      e.stopPropagation();
+      if (e.key === "Enter") {
+        handleButtonClick(e);
+      }
+    },
+    [handleButtonClick]
+  );
+
   return (
-    <div className="grid grid-flow-col gap-x-1 justify-start items-center">
+    <div className="grid grid-flow-col gap-x-1 justify-start items-center group">
       <input
         className={cn(
           "min-w-[80px] outline-none font-rubik placeholder:italic",
@@ -48,14 +58,14 @@ const Input = memo(function Input(props: {
         placeholder={props.placeholder}
         value={value ?? ""}
         onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleButtonClick(e)}
+        onKeyDown={handleKeyDown}
         onClick={(e) => e.preventDefault()}
         disabled={!inputButton.isOn}
         size={value.length * 0.9}
       />
 
       {/* FIXME: For some reason button element causes the hydration error */}
-      <div onClick={handleButtonClick} className="flex items-center group">
+      <div onClick={handleButtonClick} className="flex items-center">
         <Icon
           name={inputButton.isOn ? "check" : "edit"}
           className={cn(
