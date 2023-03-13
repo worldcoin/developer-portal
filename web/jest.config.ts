@@ -17,9 +17,6 @@ const customJestConfig: Config = {
   globalSetup: "./tests/setupEnv.js",
   automock: false,
   resetMocks: false,
-  moduleNameMapper: {
-    "^@worldcoin/idkit$": "<rootDir>/idkit.jest.ts", // NOTE: For apps not using the `internal` namespace, mapping to /build/idkit-js.js works
-  },
 };
 
 const config = createJestConfig(customJestConfig);
