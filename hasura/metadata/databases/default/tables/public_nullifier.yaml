@@ -23,6 +23,14 @@ insert_permissions:
         - nullifier_hash
         - credential_type
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - created_at
+        - id
+        - nullifier_hash
+      filter: {}
+      allow_aggregations: true
   - role: api_key
     permission:
       columns:
