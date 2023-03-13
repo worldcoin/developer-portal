@@ -9,6 +9,7 @@ import { useCallback } from "react";
 import { AppStatusType } from "src/lib/types";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import { urls } from "src/lib/urls";
 
 const appFields = `
 id
@@ -275,14 +276,19 @@ const useApps = () => {
     });
   }, [currentApp, removeAppMutation]);
 
-  const insertNewAppMutation = useSWRMutation("app", insertAppFetcher, {
-    onSuccess: (data) => {
+  const onInsertSuccess = useCallback(
+    (data: AppModel) => {
       if (data) {
         setApps([data]);
-        setCurrentApp(data);
+        router.push(urls.app(data.id));
         toast.success("App created");
       }
     },
+    [router, setApps]
+  );
+
+  const insertNewAppMutation = useSWRMutation("app", insertAppFetcher, {
+    onSuccess: onInsertSuccess,
     onError: () => {
       toast.error("Failed to create new app");
     },
