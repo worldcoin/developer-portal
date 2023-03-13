@@ -21,6 +21,7 @@ interface _Action
     | "max_accounts_per_user"
     | "action"
     | "external_nullifier"
+    | "status"
     | "__typename"
   > {
   nullifiers: _Nullifier[];
@@ -72,6 +73,7 @@ const appPrecheckQuery = gql`
         description
         max_verifications
         max_accounts_per_user
+        status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
           nullifier_hash
         }
@@ -195,13 +197,25 @@ export default async function handlePrecheck(
     }
   }
 
-  const nullifiers = app.actions[0].nullifiers;
+  const actionItem = app.actions[0];
+
+  if (actionItem.status === "inactive") {
+    return errorResponse(
+      res,
+      400,
+      "action_inactive",
+      "This action is inactive.",
+      "status"
+    );
+  }
+
+  const nullifiers = actionItem.nullifiers;
 
   const response = {
     ...app,
     sign_in_with_world_id: action === "",
     can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
-    action: { ...app.actions[0], nullifiers: undefined },
+    action: { ...actionItem, nullifiers: undefined },
     actions: undefined,
   };
 

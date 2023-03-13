@@ -8,18 +8,24 @@ import { shallow } from "zustand/shallow";
 import { useCallback } from "react";
 import { AppStatusType } from "src/lib/types";
 import { toast } from "react-toastify";
+import { useRouter } from "next/router";
+import { urls } from "src/lib/urls";
+
+const appFields = `
+id
+logo_url
+name
+is_verified
+engine
+is_staging
+status
+description_internal
+`;
 
 const FetchAppsQuery = gql`
   query Apps {
     app(order_by: { created_at: asc }) {
-      id
-      logo_url
-      name
-      is_verified
-      engine
-      is_staging
-      status
-      description_internal
+      ${appFields}
     }
   }
 `;
@@ -39,14 +45,23 @@ const UpdateAppQuery = gql`
         description_internal: $description_internal
       }
     ) {
+      ${appFields}
+    }
+  }
+`;
+
+const InsertAppQuery = gql`
+  mutation InsertApp($object: app_insert_input!) {
+    insert_app_one(object: $object) {
+      ${appFields}
+    }
+  }
+`;
+
+const DeleteAppQuery = gql`
+  mutation DeleteApp($id: String!) {
+    app: delete_app_by_pk(id: $id) {
       id
-      logo_url
-      name
-      is_verified
-      engine
-      is_staging
-      status
-      description_internal
     }
   }
 `;
@@ -103,6 +118,52 @@ const updateAppFetcher = async (
   throw new Error("Failed to update app status");
 };
 
+const deleteAppFetcher = async (
+  _key: string,
+  args: {
+    arg: {
+      id: AppModel["id"];
+    };
+  }
+) => {
+  const { id } = args.arg;
+  const response = await graphQLRequest<{
+    app: Pick<AppModel, "id">;
+  }>({
+    query: DeleteAppQuery,
+    variables: { id },
+  });
+  if (response.data?.app) {
+    return response.data?.app;
+  }
+  throw Error("Could not delete app");
+};
+
+type NewAppPayload = Pick<AppModel, "name" | "description_internal" | "engine">;
+
+const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
+  const { name, description_internal, engine } = args.arg;
+
+  const response = await graphQLRequest<{
+    insert_app_one: AppModel;
+  }>({
+    query: InsertAppQuery,
+    variables: {
+      object: {
+        name,
+        description_internal,
+        engine,
+      },
+    },
+  });
+
+  if (response.data?.insert_app_one) {
+    return response.data.insert_app_one;
+  }
+
+  throw new Error("Failed to update app status");
+};
+
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
   setApps: store.setApps,
@@ -111,6 +172,7 @@ const getStore = (store: IAppStore) => ({
 
 const useApps = () => {
   const { currentApp, setApps, setCurrentApp } = useAppStore(getStore, shallow);
+  const router = useRouter();
 
   const { data, error, isLoading } = useSWR<Array<AppModel>>("app", fetchApps, {
     onSuccess: (data) => {
@@ -156,6 +218,16 @@ const useApps = () => {
     },
   });
 
+  const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(null);
+        toast.success("App deleted");
+        router.replace("/app");
+      }
+    },
+  });
+
   const toggleAppActivity = useCallback(() => {
     if (!currentApp) {
       return;
@@ -195,16 +267,54 @@ const useApps = () => {
     [currentApp, updateAppDescriptionMutation]
   );
 
+  const removeApp = useCallback(() => {
+    if (!currentApp) {
+      return;
+    }
+    return removeAppMutation.trigger({
+      id: currentApp.id,
+    });
+  }, [currentApp, removeAppMutation]);
+
+  const onInsertSuccess = useCallback(
+    (data: AppModel) => {
+      if (data) {
+        setApps([data]);
+        router.push(urls.app(data.id));
+        toast.success("App created");
+      }
+    },
+    [router, setApps]
+  );
+
+  const insertNewAppMutation = useSWRMutation("app", insertAppFetcher, {
+    onSuccess: onInsertSuccess,
+    onError: () => {
+      toast.error("Failed to create new app");
+    },
+  });
+
+  const createNewApp = useCallback(
+    async (data: NewAppPayload) => {
+      return await insertNewAppMutation.trigger(data);
+    },
+    [insertNewAppMutation]
+  );
+
   return {
     apps: data,
     error,
     isLoading,
+    currentApp,
     toggleAppActivity,
     isToggleAppActivityMutating: toggleAppActivityMutation.isMutating,
     updateAppName,
     isUpdateAppNameMutating: updateAppNameMutation.isMutating,
     updateAppDescription,
     isUpdateAppDescriptionMutating: updateAppDescriptionMutation.isMutating,
+    createNewApp,
+    removeApp,
+    isRemoveAppMutating: removeAppMutation.isMutating,
   };
 };
 

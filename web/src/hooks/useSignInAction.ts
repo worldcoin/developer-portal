@@ -44,7 +44,7 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: { action_id: {_eq: $action_id} }) {
+    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
@@ -311,7 +311,8 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          toast.success("Redirect added");
+          // TODO: do not save the redirect before the user populates the uri
+          //toast.success("Redirect added");
         }
       },
     }

@@ -29,13 +29,17 @@ describe("validateUrl()", () => {
   const invalid = "test.com";
   const https = "https://test.com/";
   const http = "http://test.com/";
+  const httpLocalhost = "http://localhost:8000/";
+
   test("https", () => {
     expect(validateUrl(https)).toBeTruthy();
   });
+
   test("http", () => {
-    expect(validateUrl(http, false)).toBeTruthy();
-    expect(validateUrl(http, true)).toBeFalsy();
+    expect(validateUrl(httpLocalhost)).toBeTruthy();
+    expect(validateUrl(http)).toBeFalsy();
   });
+
   test("invalid", () => {
     expect(validateUrl(invalid)).toBeFalsy();
   });

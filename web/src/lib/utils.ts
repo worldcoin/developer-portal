@@ -10,10 +10,7 @@ export const ENVIRONMENTS: EnvironmentType[] = [
  * @param candidate
  * @returns
  */
-export const validateUrl = (
-  candidate: string,
-  onlyHttps?: boolean
-): boolean => {
+export const validateUrl = (candidate: string): boolean => {
   let parsedUrl;
   try {
     parsedUrl = new URL(candidate);
@@ -21,10 +18,17 @@ export const validateUrl = (
     return false;
   }
 
-  return (
-    parsedUrl.protocol === "https:" ||
-    (!onlyHttps && parsedUrl.protocol === "http:")
-  );
+  const isLocalhost = parsedUrl.hostname === "localhost";
+  const isHttps = parsedUrl.protocol === "https:";
+
+  if (!isLocalhost) {
+    return isHttps;
+  }
+
+  const localhostRegex =
+    /^https?:\/\/localhost(:[0-9]+)?(\/[^\s?]*)(\\?[^\s]*)?$/;
+
+  return localhostRegex.test(candidate);
 };
 
 /**

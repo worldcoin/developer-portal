@@ -9,21 +9,18 @@ const sora = Sora({
   subsets: ["latin"],
   style: ["normal"],
   weight: ["400", "600", "700"],
-  variable: "--font-sora",
 });
 
 const rubik = Rubik({
   subsets: ["latin"],
   style: ["normal", "italic"],
   weight: ["400", "500", "600"],
-  variable: "--font-rubik",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   style: ["normal"],
   weight: ["400", "600"],
-  variable: "--font-mono",
 });
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
@@ -100,11 +97,15 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         <meta name="twitter:description" content={metaDescription} />
       </Head>
 
-      <div
-        className={`${sora.variable} ${rubik.variable} ${ibmPlexMono.variable} contents`}
-      >
-        <Component {...pageProps} />
-      </div>
+      <Component {...pageProps} />
+
+      <style jsx global>{`
+        :root {
+          --font-sora: ${sora.style.fontFamily};
+          --font-rubik: ${rubik.style.fontFamily};
+          --font-mono: ${ibmPlexMono.style.fontFamily};
+        }
+      `}</style>
     </Fragment>
   );
 };

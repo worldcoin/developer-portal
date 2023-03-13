@@ -42,6 +42,7 @@ const fetchAppQuery = gql`
       is_staging
       actions(where: { action: { _eq: "" } }) {
         external_nullifier
+        status
         redirects(where: { redirect_uri: { _eq: $redirect_uri } }) {
           redirect_uri
         }
@@ -91,7 +92,7 @@ type FetchOIDCAppResult = {
   app: Array<
     Pick<AppModel, "id" | "is_staging"> & {
       actions?: Array<
-        Pick<ActionModel, "external_nullifier"> & {
+        Pick<ActionModel, "external_nullifier" | "status"> & {
           redirects: Array<Pick<RedirectModel, "redirect_uri">>;
         }
       >;
@@ -130,6 +131,18 @@ export const fetchOIDCApp = async (
         message: "App does not have Sign in with World ID enabled.",
         statusCode: 400,
         attribute: "app_id",
+      },
+    };
+  }
+
+  // REVIEW
+  if (app.actions[0].status === "inactive") {
+    return {
+      error: {
+        code: "sign_in_not_enabled",
+        message: "App has Sign in with Worldcoin disabled.",
+        statusCode: 400,
+        attribute: "status",
       },
     };
   }
