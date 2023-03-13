@@ -6,9 +6,6 @@ import { Icon } from "@/components/Icon";
 import useActions from "src/hooks/useActions";
 import { NewAction } from "./NewAction";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
-import useApps from "src/hooks/useApps";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
 import useRedirectOnAppNotFound from "src/hooks/useRedirectOnAppNotFound";
 
 const getActionsStore = (store: IActionStore) => ({
