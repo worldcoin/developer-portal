@@ -14,7 +14,7 @@ const sora = Sora({
 
 const rubik = Rubik({
   subsets: ["latin"],
-  style: ["normal"],
+  style: ["normal", "italic"],
   weight: ["400", "500", "600"],
   variable: "--font-rubik",
 });
