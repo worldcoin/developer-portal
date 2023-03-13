@@ -44,7 +44,7 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: { action_id: {_eq: $action_id} }) {
+    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
