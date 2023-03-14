@@ -15,6 +15,7 @@ const iconNames = [
   "badge-check",
   "badge-nullifier",
   "badge-verification",
+  "book",
   "camera",
   "chart",
   "check",
