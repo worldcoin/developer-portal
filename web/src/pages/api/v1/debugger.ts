@@ -8,7 +8,18 @@ import {
 import { runCors } from "../../../backend/cors";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { verifyProof } from "src/backend/verify";
-import { fetchSmartContractAddress } from "src/backend/utils";
+import { getSmartContractENSName } from "src/backend/utils";
+import { gql } from "@apollo/client";
+import { getAPIServiceClient } from "src/backend/graphql";
+
+const cacheQuery = gql`
+  query FetchCache($ensName: String!) {
+    cache(where: { key: { _eq: $ensName } }) {
+      key
+      value
+    }
+  }
+`;
 
 export default async function handler(
   req: NextApiRequest,
@@ -48,7 +59,20 @@ export default async function handler(
     req.body.action
   ).digest;
 
-  const contract_address = await fetchSmartContractAddress(req.body.is_staging);
+  const ensName = getSmartContractENSName(
+    req.body.is_staging,
+    req.body.credential_type
+  );
+
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<{
+    cache: [{ key: string; value: string }];
+  }>({
+    query: cacheQuery,
+    variables: { ensName },
+  });
+
+  const contract_address = data.cache[0].value;
 
   const result = await verifyProof(
     {
