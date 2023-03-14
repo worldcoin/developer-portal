@@ -2390,10 +2390,10 @@
     "@walletconnect/window-getters" "^1.0.1"
     tslib "1.14.1"
 
-"@worldcoin/idkit@^0.4.5":
-  version "0.4.5"
-  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.4.5.tgz#851b27fc1d6ef98f9b8da2d49d4db596b09a42e7"
-  integrity sha512-a+xvUsYhA9ry3KwaZ0ORHyw5AsZcL4ZuNzSLJVeiuBgY+v/CIG8EMKfbw2UXGkvK0EUAFvbHyR2of62jaZz5iQ==
+"@worldcoin/idkit@0.4.6":
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/@worldcoin/idkit/-/idkit-0.4.6.tgz#3c752bf7c5896c50186338623870bd118550a779"
+  integrity sha512-EhMebKWEZsh6r7W/secdfRb9j7+Kb3Ma3PusqmVWosjdYCcz8N1+N1RG7ihBPYnGFjr4TochHRIjntXqHmESWA==
   dependencies:
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/solidity" "^5.7.0"
