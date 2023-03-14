@@ -86,8 +86,6 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
         }
       }
 
-      console.log("response:", response); // DEBUG
-
       if (response?.success) {
         setSuccessParams({
           timestamp: dayjs(response.created_at),
