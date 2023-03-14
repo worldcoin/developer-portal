@@ -29,14 +29,6 @@ const InsertNullifier = gql`
   }
 `;
 
-const FetchAction = gql`
-  query FetchAction($app_id: String) {
-    action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
-      id
-    }
-  }
-`;
-
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
  * This endpoint is called by the Sign in with World ID page (or the app's own page if using IDKit [advanced])
@@ -220,17 +212,6 @@ export default async function handleOIDCAuthorize(
   const client = await getAPIServiceClient();
 
   try {
-    const { data: actionFetchResult } = await client.query<{
-      action: Array<{ id: string }>;
-    }>({
-      query: FetchAction,
-      variables: {
-        app_id,
-      },
-    });
-
-    const action = actionFetchResult.action[0];
-
     const { data: insertNullifierResult } = await client.mutate<{
       insert_nullifier_one: {
         id: "nil_c2c76cf4e599e6d1072662a52ae0abf0";
@@ -243,13 +224,13 @@ export default async function handleOIDCAuthorize(
           nullifier_hash,
           merkle_root,
           credential_type,
-          action_id: action.id,
+          action_id: app.action_id,
         },
       },
     });
 
     if (!insertNullifierResult?.insert_nullifier_one) {
-      throw new Error("Error inserting nullifier");
+      throw new Error("Error inserting nullifier.");
     }
   } catch (error) {
     console.log(error);
