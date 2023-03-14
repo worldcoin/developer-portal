@@ -9,7 +9,7 @@ export function Waitlist() {
       <div className="flex flex-col justify-center items-center max-w-[544px] p-12">
         <Illustration icon="user-add" color="warning" />
         <Typography className="max-w-[480px] mt-8" variant="title">
-          It appears you don't have access yet
+          It appears you don&apos;t have access yet
         </Typography>
         <Typography className="mt-2" variant="subtitle">
           You can join our waitlist below to get an invite code.
