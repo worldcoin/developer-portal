@@ -82,9 +82,11 @@ export function Login({ loginUrl }: ILoginPageProps) {
         {loading && <Spinner className="mt-4" />}
         {!loading && (
           <>
-            <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-              Join the Waitlist
-            </Button>
+            <a className="w-full" href="https://docs.worldcoin.org/waitlist">
+              <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
+                Join the Waitlist
+              </Button>
+            </a>
             <a className="w-full" href={loginUrl}>
               <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
                 <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
