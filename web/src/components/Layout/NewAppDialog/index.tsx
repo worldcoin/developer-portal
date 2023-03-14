@@ -36,7 +36,6 @@ export const NewAppDialog = memo(function NewAppDialog(
     });
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log("data", data);
     await createNewApp(data);
     props.onClose();
     reset();
