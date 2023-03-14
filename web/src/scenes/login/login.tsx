@@ -1,14 +1,12 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { Button } from "src/components/Auth/Button";
-import { Illustration } from "src/components/Auth/Illustration";
-import { Typography } from "src/components/Auth/Typography";
+import { useRouter } from "next/router";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Spinner } from "src/components/Spinner";
-import { urls } from "src/lib/urls";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
-import { ILoginPageProps } from "src/pages/login";
+import { Link } from "src/components/Link";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -67,62 +65,90 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
-      {error && (
-        <div className="bg-danger-light px-6 py-4 rounded-md text-danger font-medium">
-          There was a problem with your login. Please try again.
-        </div>
-      )}
-      <div className="flex flex-col items-center max-w-[544px] p-12">
-        <Illustration icon="user-solid" />
-        <Typography className="max-w-[320px] mt-8" variant="title">
-          World ID is&nbsp;currently in&nbsp;beta
-        </Typography>
-        <Typography className="mt-2" variant="subtitle">
-          Sign in with World ID or join our waitlist
-        </Typography>
-        {loading && <Spinner className="mt-4" />}
-        {!loading && (
-          <>
-            <a className="w-full" href="https://docs.worldcoin.org/waitlist">
-              <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-                Join the Waitlist
-              </Button>
-            </a>
-            <a className="w-full" href={loginUrl}>
-              <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-                <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
-                Sign in with Worldcoin
-              </Button>
-            </a>
-            <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
-              Don&apos;t have World ID?
-              <a
-                className="text-primary hover:text-primary/80"
-                href="https://worldcoin.org/download"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download the World App
-              </a>
-            </div>
+      <div className="grid min-h-screen grid-rows-[auto_1fr] p-8">
+        <div className="flex justify-between items-center w-screen px-24">
+          <Icon name="logo" className="w-48 h-8" />
 
+          <div className="grid grid-flow-col items-center gap-6">
             {canDevLogin && (
-              <div className="bg-warning-light px-6 py-4 rounded-md text-warning font-medium mt-10 max-w-[327px] w-full text-center">
-                Dev mode!{" "}
-                <span
-                  className="cursor-pointer underline font-normal"
-                  onClick={() => {
-                    doLogin({
-                      dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
-                    });
-                  }}
-                >
-                  Log in with test user
-                </span>
-              </div>
+              <Button
+                variant="danger"
+                className="py-3 px-8"
+                onClick={() => {
+                  doLogin({
+                    dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
+                  });
+                }}
+              >
+                Dev Login
+              </Button>
             )}
-          </>
-        )}
+            <Link href={urls.login()}>
+              <Button variant="secondary" className="py-3 px-8">
+                Log in
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid place-content-center justify-items-center justify-self-center max-w-[532px] text-center">
+          {error && (
+            <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
+              There was a problem with your login. Please try again.
+            </div>
+          )}
+
+          {loading && <Spinner className="mt-4" />}
+          {!loading && (
+            <>
+              <div className="relative">
+                <Icon name="wld-logo" className="w-16 h-16" />
+                {/* span[className="absolute rounded-full"]/*3 */}
+                <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
+                <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
+                <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
+              </div>
+              <h1 className="mt-9 text-32 font-semibold font-sora">
+                Build for the People of the World
+              </h1>
+
+              <p className="mt-4 font-rubik text-20 text-657080">
+                The Worldcoin Protocol will enable a new class of applications
+                built on top of proof of personhood.
+              </p>
+              <p className="mt-6 font-sora">
+                Join the waitlist for early access to the SDK.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
+                <a
+                  href="https://docs.worldcoin.org"
+                  className="contents"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    className="flex flex-1 justify-between py-5 px-6 text-657080 text-16 font-semibold"
+                    variant="secondary"
+                  >
+                    Explore Docs <Icon name="book" className="w-6 h-6" />
+                  </Button>
+                </a>
+
+                <a
+                  href="https://docs.worldcoin.org/waitlist"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contents"
+                >
+                  <Button className="flex flex-1 justify-between px-6 py-5 text-16 font-semibold">
+                    Join Waitlist
+                    <Icon name="arrow-right" className="w-6 h-6" />
+                  </Button>
+                </a>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </Auth>
   );

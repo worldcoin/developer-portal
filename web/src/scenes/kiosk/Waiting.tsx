@@ -1,7 +1,7 @@
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import cn from "classnames";
-import { Spinner } from "src/components/Spinner";
 import { memo, useCallback, useState } from "react";
+import { Spinner } from "src/components/Spinner";
 import { IKioskStore, useKioskStore } from "src/stores/kioskStore";
 const getKioskStoreParams = (store: IKioskStore) => ({
   qrData: store.qrData,
