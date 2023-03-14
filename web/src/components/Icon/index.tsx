@@ -66,6 +66,7 @@ const iconNames = [
   "user-solid",
   "warning",
   "warning-error",
+  "warning-illustration",
   "warning-triangle",
   "window",
   "wld-logo",

@@ -1,14 +1,14 @@
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { useRouter } from "next/router";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { Button } from "src/components/Auth/Button";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
-import { Button } from "src/components/Auth/Button";
 import { Icon } from "src/components/Icon";
-import { urls } from "src/lib/urls";
-import { ILoginPageProps } from "src/pages/login";
 import { Spinner } from "src/components/Spinner";
+import { urls } from "src/lib/urls";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { ILoginPageProps } from "src/pages/login";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -37,7 +37,8 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
       if (payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(urls.signup());
+        return router.push(`${urls.waitlist()}`);
+        // return router.push(urls.signup());
       }
 
       if (!payload.new_user && payload.returnTo) {
@@ -90,7 +91,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
             <a className="w-full" href={loginUrl}>
               <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
                 <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
-                Sign in with World ID
+                Sign in with Worldcoin
               </Button>
             </a>
             <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
