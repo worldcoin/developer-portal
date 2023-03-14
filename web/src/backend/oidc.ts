@@ -41,6 +41,7 @@ const fetchAppQuery = gql`
       id
       is_staging
       actions(where: { action: { _eq: "" } }) {
+        id
         external_nullifier
         status
         redirects(where: { redirect_uri: { _eq: $redirect_uri } }) {
@@ -84,6 +85,7 @@ interface OIDCApp {
   id: AppModel["id"];
   is_staging: AppModel["is_staging"];
   external_nullifier: ActionModel["external_nullifier"];
+  action_id: ActionModel["id"];
   contract_address: string;
   registered_redirect_uri?: string;
 }
@@ -92,7 +94,7 @@ type FetchOIDCAppResult = {
   app: Array<
     Pick<AppModel, "id" | "is_staging"> & {
       actions?: Array<
-        Pick<ActionModel, "external_nullifier" | "status"> & {
+        Pick<ActionModel, "external_nullifier" | "status" | "id"> & {
           redirects: Array<Pick<RedirectModel, "redirect_uri">>;
         }
       >;
@@ -148,6 +150,7 @@ export const fetchOIDCApp = async (
   }
 
   const external_nullifier = app.actions[0].external_nullifier;
+  const action_id = app.actions[0].id;
   const registered_redirect_uri = app.actions[0].redirects[0]?.redirect_uri;
   delete app.actions;
 
@@ -168,6 +171,7 @@ export const fetchOIDCApp = async (
   return {
     app: {
       ...app,
+      action_id,
       external_nullifier,
       registered_redirect_uri,
       contract_address: contractRecord.value,
