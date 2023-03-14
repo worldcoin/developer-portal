@@ -1,15 +1,15 @@
-import { gql } from "@apollo/client";
-import { graphQLRequest } from "src/lib/frontend-api";
 import { AppModel } from "@/lib/models";
+import { gql } from "@apollo/client";
+import { useRouter } from "next/router";
+import { useCallback } from "react";
+import { toast } from "react-toastify";
+import { graphQLRequest } from "src/lib/frontend-api";
+import { AppStatusType } from "src/lib/types";
+import { urls } from "src/lib/urls";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
-import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
-import { useCallback } from "react";
-import { AppStatusType } from "src/lib/types";
-import { toast } from "react-toastify";
-import { useRouter } from "next/router";
-import { urls } from "src/lib/urls";
 
 const appFields = `
 id
@@ -243,7 +243,7 @@ const useApps = () => {
           ? AppStatusType.Inactive
           : AppStatusType.Active,
     });
-  }, [currentApp, toggleAppActivityMutation]);
+  }, [currentApp, updateApp]);
 
   const updateAppName = useCallback(
     (name: string) => {

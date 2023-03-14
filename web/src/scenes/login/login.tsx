@@ -1,13 +1,13 @@
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { useRouter } from "next/router";
 import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
-import { urls } from "src/lib/urls";
-import { ILoginPageProps } from "src/pages/login";
 import { Spinner } from "src/components/Spinner";
 import { Link } from "src/components/Link";
+import { ILoginPageProps } from "src/pages/login";
+import { urls } from "src/lib/urls";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -36,7 +36,8 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
       if (payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(urls.signup());
+        return router.push(`${urls.waitlist()}`);
+        // return router.push(urls.signup());
       }
 
       if (!payload.new_user && payload.returnTo) {
@@ -83,7 +84,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
                 Dev Login
               </Button>
             )}
-            <Link href={urls.login()}>
+            <Link href={loginUrl ?? ""}>
               <Button variant="secondary" className="py-3 px-8">
                 Log in
               </Button>
