@@ -11,10 +11,11 @@ import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
+import { Switch } from "src/components/Switch";
 
 type FormData = Pick<
   AppModel,
-  "name" | "description_internal" | "engine" // | "logo_url"
+  "name" | "description_internal" | "engine" | "is_staging" // | "logo_url"
 >;
 
 export interface NewAppDialogProps {
@@ -30,6 +31,7 @@ export const NewAppDialog = memo(function NewAppDialog(
     useForm<FormData>({
       defaultValues: {
         engine: EngineType.Cloud,
+        is_staging: false,
       },
     });
 
@@ -40,7 +42,11 @@ export const NewAppDialog = memo(function NewAppDialog(
   });
 
   return (
-    <Dialog open={props.open} onClose={props.onClose}>
+    <Dialog
+      panelClassName="max-h-full overflow-y-auto"
+      open={props.open}
+      onClose={props.onClose}
+    >
       <form onSubmit={onSubmit}>
         <DialogHeader
           title="Create New App"
@@ -88,6 +94,34 @@ export const NewAppDialog = memo(function NewAppDialog(
               readOnly={formState.isSubmitting}
             />
           </div>
+
+          <Controller
+            name="is_staging"
+            control={control}
+            render={({ field }) => (
+              <div className="grid grid-cols-3 justify-items-center items-center w-full py-3 px-4 bg-f3f4f5 rounded-xl mt-6">
+                <button
+                  type="button"
+                  onClick={() => field.onChange(false)}
+                  className="font-rubik"
+                >
+                  Production
+                </button>
+                <Switch
+                  className="bg-neutral-dark"
+                  checked={field.value}
+                  toggle={field.onChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => field.onChange(true)}
+                  className="font-rubik"
+                >
+                  Staging
+                </button>
+              </div>
+            )}
+          />
 
           <Controller
             name="engine"
