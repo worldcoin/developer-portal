@@ -139,10 +139,13 @@ const deleteAppFetcher = async (
   throw Error("Could not delete app");
 };
 
-type NewAppPayload = Pick<AppModel, "name" | "description_internal" | "engine">;
+type NewAppPayload = Pick<
+  AppModel,
+  "name" | "description_internal" | "engine" | "is_staging"
+>;
 
 const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
-  const { name, description_internal, engine } = args.arg;
+  const { name, description_internal, engine, is_staging } = args.arg;
 
   const response = await graphQLRequest<{
     insert_app_one: AppModel;
@@ -153,6 +156,7 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
         name,
         description_internal,
         engine,
+        is_staging,
       },
     },
   });
