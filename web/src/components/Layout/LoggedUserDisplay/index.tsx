@@ -2,22 +2,26 @@ import { Fragment } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import { Icon } from "src/components/Icon";
-import { ProfileSettingsModal } from "./ProfileSettingsModal";
+import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import useAuth from "src/hooks/useAuth";
 
-export function LoggedUserDisplay(props: { className?: string }) {
+export function LoggedUserDisplay(props: {
+  className?: string;
+  userId?: string;
+}) {
   const modal = useToggle(false);
-  const { user } = useAuth();
+  const { user } = useAuth(props.userId);
 
-  // FIXME remove when real user image is available
+  // FIXME: remove when real user image is available
   const image = "";
 
   return (
     <Fragment>
-      <ProfileSettingsModal
-        isOpen={Boolean(user?.id) && modal.isOn}
-        close={modal.toggleOff}
+      <ProfileSettingsDialog
+        open={Boolean(user?.id) && modal.isOn}
+        onClose={modal.toggleOff}
+        user={user}
       />
 
       <div

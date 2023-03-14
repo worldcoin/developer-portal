@@ -9,6 +9,8 @@ import { Link } from "src/components/Link";
 import { useRouter } from "next/router";
 import { useToggle } from "src/hooks/useToggle";
 import { Icon } from "src/components/Icon";
+import { Menu } from "@headlessui/react";
+import AnimateHeight from "react-animate-height";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -101,60 +103,60 @@ export const AppSelector = memo(function AppsSelector(props: {
   );
 
   return (
-    <div className="relative h-12">
-      <div
-        className={cn(
-          "absolute inset-x-0 top-0 bg-fbfbfc border border-ebecef rounded-xl transition-[max-height] overflow-hidden min-h-[44px] z-10",
-          { "max-h-11": !selector.isOn },
-          { "max-h-fit": selector.isOn } // TODO: Can we restore smoothing animation?
-        )}
-      >
-        {apps && currentApp && (
-          <Fragment>
-            <button
-              className="grid grid-cols-1fr/auto items-center w-full px-4 py-3 outline-none"
-              aria-haspopup="true"
-              aria-expanded="true"
-              onClick={selector.toggle}
-            >
+    <Menu as="div" className="relative h-[44px]">
+      {({ open }) => (
+        <div
+          className={cn(
+            "absolute top-0 left-0 right-0 min-h-[44px] bg-fbfbfc border border-ebecef rounded-xl z-10 transition-shadow duration-300",
+            {
+              "shadow-input": open,
+            }
+          )}
+        >
+          <Menu.Button className="flex items-center justify-between w-full h-11 px-4 py-3 outline-none">
+            {currentApp ? (
               <ButtonContent
                 app={currentApp}
                 selected={isSelected(currentApp)}
               />
-              <Icon
-                name="angle-down"
-                className={cn("w-5 h-5 transition-transform", {
-                  "rotate-180": selector.isOn,
-                })}
-              />
-            </button>
-
-            <div className="grid">
+            ) : (
+              <div />
+            )}
+            <Icon
+              name="angle-down"
+              className={cn("w-5 h-5 transition-transform", {
+                "rotate-180": open,
+              })}
+            />
+          </Menu.Button>
+          <AnimateHeight
+            id="example-panel"
+            duration={300}
+            height={open ? "auto" : 0}
+          >
+            <Menu.Items className="relative" static>
               {appsToRender?.map((app) => (
-                <Link
-                  href={getHref(app.id)}
-                  onClick={() => selectApp(app)}
-                  key={app.id}
-                >
+                <Menu.Item key={app.id} as={Link} href={getHref(app.id)}>
                   <ButtonContent
                     app={app}
-                    className={cn("px-4 py-3")}
+                    className="px-4 py-3"
                     selected={isSelected(app)}
                   />
-                </Link>
+                </Menu.Item>
               ))}
-
-              <button
-                onClick={handleNewAppClick}
-                className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4"
-              >
-                <Icon name="plus" className="w-5 h-5" />
-                <span className="text-start leading-none">Add new app</span>
-              </button>
-            </div>
-          </Fragment>
-        )}
-      </div>
-    </div>
+              <Menu.Item>
+                <button
+                  onClick={handleNewAppClick}
+                  className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4"
+                >
+                  <Icon name="plus" className="w-5 h-5" />
+                  <span className="text-start leading-none">Add new app</span>
+                </button>
+              </Menu.Item>
+            </Menu.Items>
+          </AnimateHeight>
+        </div>
+      )}
+    </Menu>
   );
 });

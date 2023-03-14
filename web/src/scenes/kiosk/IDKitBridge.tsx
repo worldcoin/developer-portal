@@ -1,7 +1,6 @@
-import { memo, useCallback, useEffect } from "react";
-import { internal as IDKitInternal, ISuccessResult } from "@worldcoin/idkit";
+import { CredentialType, internal as IDKitInternal } from "@worldcoin/idkit";
+import { memo, useEffect } from "react";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
-import dayjs from "dayjs";
 
 interface IIDKitBridgeProps {
   app_id: string;
@@ -38,12 +37,12 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
     props.app_id,
     props.action,
     undefined,
+    [CredentialType.Orb, CredentialType.Phone],
     props.action_description
   );
 
-  // // Change the shown screen based on current verificationState and errorCode
+  // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    console.log("idKitVerificationState", idKitVerificationState);
     if (idKitVerificationState === verificationState) return;
 
     switch (idKitVerificationState) {

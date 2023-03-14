@@ -6,11 +6,12 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import {
-  PHONE_GROUP_ID,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
+  SEMAPHORE_GROUP_MAP,
 } from "src/lib/constants";
 import { NextApiRequest, NextApiResponse } from "next";
+import { CredentialType } from "src/lib/types";
 
 const existsQuery = gql`
   query IdentityCommitmentExists($identity_commitment: String!) {
@@ -20,9 +21,25 @@ const existsQuery = gql`
   }
 `;
 
+interface ISimplifiedError {
+  code: string;
+  detail: string;
+}
+
+const EXPECTED_ERRORS: Record<string, ISimplifiedError> = {
+  "provided identity commitment is invalid": {
+    code: "unverified_identity",
+    detail: "This identity is not verified for the relevant credential.",
+  },
+  "provided identity commitment not found": {
+    code: "unverified_identity",
+    detail: "This identity is not verified for the relevant credential.",
+  },
+};
+
 /**
  * Checks if the given identity commitment is in the revocation table, and if false,
- * queries an inclusion proof from the phone signup sequencer
+ * queries an inclusion proof from the relevant signup sequencer
  * @param req
  * @param res
  */
@@ -87,11 +104,14 @@ export default async function handleInclusionProof(
   headers.append(
     "Authorization",
     req.body.env === "production"
-      ? `Bearer ${process.env.PHONE_SEQUENCER_KEY}`
-      : `Bearer ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+      ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
+      : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
   );
   headers.append("Content-Type", "application/json");
-  const body = JSON.stringify([PHONE_GROUP_ID, req.body.identity_commitment]);
+  const body = JSON.stringify([
+    SEMAPHORE_GROUP_MAP[CredentialType.Phone],
+    req.body.identity_commitment,
+  ]);
 
   const response = await fetch(
     req.body.env === "production"
@@ -115,15 +135,24 @@ export default async function handleInclusionProof(
         "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
     });
   } else if (response.status === 400) {
-    res.status(400).json({
-      code: "inclusion_pending",
-      detail:
-        "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-    });
+    const errorBody = await response.text();
+    if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
+      return res.status(400).json(EXPECTED_ERRORS[errorBody]);
+    } else {
+      console.error(
+        "Unexpected error (400) fetching proof from phone sequencer",
+        errorBody
+      );
+      res.status(400).json({
+        code: "server_error",
+        detail:
+          "Unable to get proof for this identity. Please try again later.",
+      });
+    }
   } else {
     console.error(
-      "Unexpected error fetching proof from phone sequencer",
-      response.text()
+      `Unexpected error (${response.status}) fetching proof from phone sequencer`,
+      await response.text()
     );
     res.status(503).json({
       code: "server_error",

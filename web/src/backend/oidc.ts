@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { ActionModel, AppModel } from "src/lib/models";
+import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
 import {
   CredentialType,
   IInternalError,
@@ -7,6 +7,7 @@ import {
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import crypto from "crypto";
+import { getSmartContractENSName } from "./utils";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -28,7 +29,7 @@ export enum OIDCScopes {
 }
 
 const fetchAppQuery = gql`
-  query FetchAppQuery($app_id: String!) {
+  query FetchAppQuery($app_id: String!, $redirect_uri: String!) {
     app(
       where: {
         id: { _eq: $app_id }
@@ -41,17 +42,14 @@ const fetchAppQuery = gql`
       is_staging
       actions(where: { action: { _eq: "" } }) {
         external_nullifier
+        status
+        redirects(where: { redirect_uri: { _eq: $redirect_uri } }) {
+          redirect_uri
+        }
       }
     }
 
-    cache(
-      where: {
-        _or: [
-          { key: { _eq: "semaphore.wld.eth" } }
-          { key: { _eq: "staging.semaphore.wld.eth" } }
-        ]
-      }
-    ) {
+    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
       key
       value
     }
@@ -87,24 +85,31 @@ interface OIDCApp {
   is_staging: AppModel["is_staging"];
   external_nullifier: ActionModel["external_nullifier"];
   contract_address: string;
+  registered_redirect_uri?: string;
 }
 
 type FetchOIDCAppResult = {
   app: Array<
     Pick<AppModel, "id" | "is_staging"> & {
-      actions?: Array<Pick<ActionModel, "external_nullifier">>;
+      actions?: Array<
+        Pick<ActionModel, "external_nullifier" | "status"> & {
+          redirects: Array<Pick<RedirectModel, "redirect_uri">>;
+        }
+      >;
     }
   >;
   cache: Array<{ key: string; value: string }>;
 };
 
 export const fetchOIDCApp = async (
-  app_id: string
+  app_id: string,
+  credential_type: CredentialType,
+  redirect_uri: string
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchOIDCAppResult>({
     query: fetchAppQuery,
-    variables: { app_id },
+    variables: { app_id, redirect_uri },
   });
 
   if (data.app.length === 0) {
@@ -130,12 +135,24 @@ export const fetchOIDCApp = async (
     };
   }
 
+  // REVIEW
+  if (app.actions[0].status === "inactive") {
+    return {
+      error: {
+        code: "sign_in_not_enabled",
+        message: "App has Sign in with Worldcoin disabled.",
+        statusCode: 400,
+        attribute: "status",
+      },
+    };
+  }
+
   const external_nullifier = app.actions[0].external_nullifier;
+  const registered_redirect_uri = app.actions[0].redirects[0]?.redirect_uri;
   delete app.actions;
 
-  const ensName = app.is_staging
-    ? "staging.semaphore.wld.eth"
-    : "semaphore.wld.eth";
+  const ensName = getSmartContractENSName(app.is_staging, credential_type);
+
   const contractRecord = data.cache.find(({ key }) => key === ensName);
   if (!contractRecord) {
     return {
@@ -152,6 +169,7 @@ export const fetchOIDCApp = async (
     app: {
       ...app,
       external_nullifier,
+      registered_redirect_uri,
       contract_address: contractRecord.value,
     },
   };

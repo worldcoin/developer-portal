@@ -7,7 +7,6 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { toast } from "react-toastify";
-import { useAuthStore } from "src/stores/authStore";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
@@ -63,27 +62,15 @@ export const restAPIRequest = async <T>(
  * @returns
  */
 export const graphQLRequest = async <T>(
-  queryOptions: QueryOptions
+  queryOptions: QueryOptions,
+  customErrorHandling?: boolean
 ): Promise<ApolloQueryResult<T | null>> => {
-  const token = useAuthStore.getState().token;
-
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
   });
 
-  if (!token) {
-    // Token not yet set, skip requests to avoid showing random errors to users
-    return Promise.resolve({
-      data: null,
-      error: { message: "unauthenticated" },
-    } as ApolloQueryResult<T | null>);
-  }
-
   const authLink = setContext(async (_, { headers }) => ({
-    headers: {
-      ...headers,
-      authorization: `Bearer ${token}`,
-    },
+    headers,
   }));
 
   const client = new ApolloClient({
@@ -102,10 +89,13 @@ export const graphQLRequest = async <T>(
     if ((e as Error).toString().includes("JWTExpired")) {
       window.location.href = "/logout";
       throw "JWT is expired. Please log in again.";
-    } else {
-      handleError(e);
-      console.error(e);
-      throw e;
     }
+
+    if (!customErrorHandling) {
+      handleError(e);
+    }
+
+    console.error(e);
+    throw e;
   }
 };

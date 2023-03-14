@@ -13,6 +13,13 @@ array_relationships:
         table:
           name: nullifier
           schema: public
+  - name: redirects
+    using:
+      foreign_key_constraint_on:
+        column: action_id
+        table:
+          name: redirect
+          schema: public
 insert_permissions:
   - role: api_key
     permission:
@@ -56,7 +63,13 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - app_id
+      filter: {}
   - role: api_key
     permission:
       columns:
@@ -91,6 +104,7 @@ select_permissions:
         - max_verifications
         - name
         - status
+        - created_at
       filter:
         _and:
           - app:
@@ -113,6 +127,7 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
         - updated_at
       filter:
         app:
@@ -147,6 +162,7 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
       filter:
         app:
           team_id:
@@ -170,12 +186,12 @@ event_triggers:
     definition:
       enable_manual: false
       insert:
-        columns: '*'
+        columns: "*"
     retry_conf:
       interval_sec: 10
       num_retries: 5
       timeout_sec: 20
-    webhook: '{{NEXT_API_URL}}/_gen-external-nullifier'
+    webhook: "{{NEXT_API_URL}}/_gen-external-nullifier"
     headers:
       - name: Authorization
         value_from_env: INTERNAL_ENDPOINTS_SECRET

@@ -39,6 +39,15 @@ module.exports = {
 
         muted: "#f0edf9",
       },
+      //ANCHOR: accent colors are used for displaying different statuses
+      //TODO: cleanup unused colors
+      accents: {
+        success: {
+          DEFAULT: "#00c313",
+          700: "#00c313",
+          300: "#d6f6d9",
+        },
+      },
       primary: {
         DEFAULT: "#4940e0",
         light: "#edecfc",
@@ -101,9 +110,9 @@ module.exports = {
       },
 
       fontFamily: {
-        sora: ["Sora", "sans-serif"],
-        rubik: ["Rubik", "sans-serif"],
-        ibm: ["IBM Plex Mono", "monospace"],
+        sora: ["var(--font-sora)", "sans-serif"],
+        rubik: ["var(--font-rubik)", "sans-serif"],
+        ibm: ["var(--font-mono)", "monospace"],
       },
 
       fontSize: {

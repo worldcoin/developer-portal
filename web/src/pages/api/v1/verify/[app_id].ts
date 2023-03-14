@@ -58,7 +58,8 @@ export default async function handleVerify(
     client,
     req.query.app_id?.toString(),
     req.body.nullifier_hash,
-    req.body.action
+    req.body.action,
+    req.body.credential_type
   );
 
   if (data.error || !data.app) {
@@ -73,6 +74,16 @@ export default async function handleVerify(
 
   const { app } = data;
   const { action } = app;
+
+  if (action.status === "inactive") {
+    return errorResponse(
+      res,
+      400,
+      "action_inactive",
+      "This action is inactive.",
+      "status"
+    );
+  }
 
   // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
   if (action.action !== "") {
@@ -126,31 +137,36 @@ export default async function handleVerify(
       $nullifier_hash: String!
       $action_id: String!
       $merkle_root: String
+      $credential_type: String!
     ) {
       insert_nullifier_one(
         object: {
           nullifier_hash: $nullifier_hash
           merkle_root: $merkle_root
           action_id: $action_id
+          credential_type: $credential_type
         }
       ) {
         nullifier_hash
         created_at
+        credential_type
       }
     }
   `;
+
   const insertResponse = await client.query({
     query: insertNullifierQuery,
     variables: {
       nullifier_hash: req.body.nullifier_hash,
       action_id: action.id,
       merkle_root: req.body.merkle_root,
+      credential_type: req.body.credential_type,
     },
   });
 
   res.status(200).json({
     success: true,
-    action_id: action.id ?? null,
+    action: action.action ?? null,
     nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
     created_at: insertResponse.data.insert_nullifier_one.created_at,
   });

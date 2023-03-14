@@ -10,9 +10,17 @@ type DateTime = string;
 export interface TeamModel {
   id: string;
   name: string;
+  members?: Array<TeamMemberModel>;
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "team";
+}
+
+export interface TeamMemberModel {
+  id: string;
+  name: string;
+  email: string;
+  __typename: "user";
 }
 
 export interface AppModel {
@@ -44,7 +52,16 @@ export interface ActionModel {
   client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
+  kiosk_enabled: boolean;
+  // FIXME: need add constraint for status field in hasura (or use boolean)
+  status: "active" | "inactive";
   __typename: "action";
+}
+
+export interface ActionModelWithNullifiers extends ActionModel {
+  nullifiers: Array<
+    Pick<NullifierModel, "id" | "nullifier_hash" | "created_at">
+  >;
 }
 
 export interface NullifierModel {
@@ -54,7 +71,7 @@ export interface NullifierModel {
   merkle_root: string;
   created_at: DateTime;
   updated_at: DateTime;
-  verification_level: CredentialType;
+  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
@@ -80,6 +97,7 @@ export interface JWKModel {
 export interface UserModel {
   id: string;
   email: string;
+  name: string;
   team_id: string;
   world_id_nullifier: string;
   is_subscribed: boolean;
@@ -100,4 +118,19 @@ export interface AuthCodeModel {
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "auth_code";
+}
+
+export interface RedirectModel {
+  id: string;
+  action_id: string;
+  created_at: DateTime;
+  updated_at: DateTime;
+  redirect_uri: string;
+}
+
+export interface AppStatsModel {
+  app_id: string;
+  date: DateTime;
+  verifications: number;
+  unique_users: number;
 }

@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { NextPageContext } from "next";
+import { GetServerSideProps, NextPageContext } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
 import { ActionKioskType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
@@ -43,9 +43,8 @@ const actionKioskQuery = gql`
   }
 `;
 
-export const getServerSideProps = async (context: NextPageContext) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const action_id = context.query.action_id;
-
   const client = await getAPIServiceClient();
 
   const { data } = await client.query<{ action: ActionKioskType[] }>({
@@ -54,8 +53,6 @@ export const getServerSideProps = async (context: NextPageContext) => {
       action_id,
     },
   });
-
-  console.log(data);
 
   if (data?.action.length === 0) {
     return { props: { error_code: "action_not_found" } };

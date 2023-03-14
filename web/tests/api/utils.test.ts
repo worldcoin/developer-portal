@@ -1,4 +1,5 @@
 import { canVerifyForAction } from "src/backend/utils";
+import { validateUrl } from "src/lib/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
@@ -21,5 +22,25 @@ describe("canVerifyForAction()", () => {
     expect(
       canVerifyForAction([{ nullifier_hash: "1" }, { nullifier_hash: "2" }], 2)
     ).toBe(false);
+  });
+});
+
+describe("validateUrl()", () => {
+  const invalid = "test.com";
+  const https = "https://test.com/";
+  const http = "http://test.com/";
+  const httpLocalhost = "http://localhost:8000/";
+
+  test("https", () => {
+    expect(validateUrl(https)).toBeTruthy();
+  });
+
+  test("http", () => {
+    expect(validateUrl(httpLocalhost)).toBeTruthy();
+    expect(validateUrl(http)).toBeFalsy();
+  });
+
+  test("invalid", () => {
+    expect(validateUrl(invalid)).toBeFalsy();
   });
 });

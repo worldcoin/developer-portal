@@ -28,7 +28,7 @@ const vr = `{
   "credential_type": "phone"
 }`;
 
-export function Debugger(): JSX.Element {
+export function Debugger(props: { user_id?: string }): JSX.Element {
   const [action, setAction] = useState("my_action");
   const [response, setResponse] = useState(vr);
   const [env, setEnv] = useState<(typeof envs)[0]>(envs[0]);
@@ -37,6 +37,7 @@ export function Debugger(): JSX.Element {
 
   return (
     <Layout
+      userId={props.user_id}
       title="Debugger"
       mainClassName={cn(
         "grid gap-16",

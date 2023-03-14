@@ -32,16 +32,28 @@ export default async function handleENS(
     "staging.semaphore.wld.eth"
   );
 
+  // Phone credential
+  const phoneStagingAddress = await provider.resolveName(
+    "staging.phone.wld.eth"
+  );
+  // FIXME: Temporary while we have a production smart contract
+  // const phoneAddress = await provider.resolveName("staging.phone.wld.eth");
+  const phoneAddress = "";
+
   if (productionAddress && stagingAddress) {
     const mutation = gql`
       mutation upsert_cache(
         $productionAddress: String!
         $stagingAddress: String!
+        $phoneAddress: String!
+        $phoneStagingAddress: String!
       ) {
         insert_cache(
           objects: [
             { key: "semaphore.wld.eth", value: $productionAddress }
             { key: "staging.semaphore.wld.eth", value: $stagingAddress }
+            { key: "phone.wld.eth", value: $phoneAddress }
+            { key: "staging.phone.wld.eth", value: $phoneStagingAddress }
           ]
           on_conflict: { constraint: cache_key_key, update_columns: [value] }
         ) {
@@ -57,6 +69,8 @@ export default async function handleENS(
       variables: {
         productionAddress,
         stagingAddress,
+        phoneStagingAddress,
+        phoneAddress,
       },
     });
   } else {

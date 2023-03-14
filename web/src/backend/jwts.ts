@@ -10,6 +10,7 @@ import { CredentialType, JwtConfig } from "../lib/types";
 import { JWK_ALG_OIDC } from "src/lib/constants";
 import { retrieveJWK } from "./jwks";
 import { OIDCScopes } from "./oidc";
+import dayjs from "dayjs";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -54,20 +55,31 @@ export const generateServiceJWT = async (): Promise<string> => {
 };
 
 /**
- * Generates a JWT for a specific user.
+ * Generates a Hasura-valid JWT for a specific user.
  */
-const _generateJWT = async (
+export const _generateJWT = async (
   payload: Record<string, any>,
-  expiration: string = "24h"
+  expiration: string | number = "1h",
+  key: string = HASURA_GRAPHQL_JWT_SECRET.key
 ): Promise<string> => {
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime(expiration)
-    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
+    .sign(Buffer.from(key));
 
   return token;
 };
+
+export const getUserJWTPayload = (user_id: string, team_id: string) => ({
+  sub: user_id,
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-allowed-roles": ["user"],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": user_id,
+    "x-hasura-team-id": team_id,
+  },
+});
 
 /**
  * Generates a JWT for a specific user.
@@ -75,21 +87,31 @@ const _generateJWT = async (
  * @param team_id
  * @returns
  */
-export const generateUserJWT = async (
-  user_id: string,
-  team_id: string
-): Promise<string> => {
-  const payload = {
-    sub: user_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user"],
-      "x-hasura-default-role": "user",
-      "x-hasura-user-id": user_id,
-      "x-hasura-team-id": team_id,
-    },
-  };
+export const generateUserJWT = async (user_id: string, team_id: string) => {
+  const payload = getUserJWTPayload(user_id, team_id);
 
-  return await _generateJWT(payload);
+  const expiration = dayjs().add(7, "day").unix();
+  const token = await _generateJWT(payload, expiration);
+
+  return { token, expiration };
+};
+
+/**
+ * Verifies a user JWT.
+ * @param user_id
+ * @param team_id
+ * @returns
+ */
+export const verifyUserJWT = async (token: string) => {
+  try {
+    await jose.jwtVerify(token, Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key), {
+      issuer: JWT_ISSUER,
+    });
+  } catch {
+    return false;
+  }
+
+  return true;
 };
 
 /**
@@ -116,7 +138,7 @@ export const generateSignUpJWT = async (nullifier_hash: string) => {
  * Verifies a sign up token. Returns the nullifier hash. If the token is invalid, throws an error.
  * @param token
  */
-export const verifySignUpJWT = async (token: string): Promise<string> => {
+export const verifySignUpJWT = async (token: string) => {
   const { payload } = await jose.jwtVerify(
     token,
     Buffer.from(GENERAL_SECRET_KEY),
@@ -124,11 +146,11 @@ export const verifySignUpJWT = async (token: string): Promise<string> => {
       issuer: JWT_ISSUER,
     }
   );
-  const { sub } = payload;
+  const { sub, waitlist_invite } = payload;
   if (!sub) {
     throw new Error("JWT does not contain valid `sub` claim.");
   }
-  return sub;
+  return { sub, waitlist_invite };
 };
 
 /**
@@ -163,24 +185,6 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
   };
 
   return await _generateJWT(payload);
-};
-
-/**
- * Generates an asymmetric key pair in JWK format
- * @returns
- */
-export const generateJWK = async (
-  alg: string
-): Promise<{
-  privateJwk: jose.JWK;
-  publicJwk: jose.JWK;
-}> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(alg);
-
-  const privateJwk = await jose.exportJWK(privateKey);
-  const publicJwk = await jose.exportJWK(publicKey);
-
-  return { privateJwk, publicJwk };
 };
 
 interface IVerificationJWT {
