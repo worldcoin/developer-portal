@@ -43,6 +43,7 @@ const iconNames = [
   "kiosk",
   "lock",
   "logo",
+  "logo-dev",
   "logout",
   "magnifier",
   "meter",
