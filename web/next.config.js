@@ -15,8 +15,17 @@ const nextConfig = {
           isDev,
           contentSecurityPolicy: {
             mergeDefaultDirectives: true,
-            "img-src": "world-id-public.s3.amazonaws.com",
+            "img-src": [
+              "'self'",
+              "https://world-id-public.s3.amazonaws.com",
+              "https://worldcoin.org",
+            ],
             "style-src": "'unsafe-inline'",
+            "connect-src": [
+              "'self'",
+              "wss://relay.walletconnect.com",
+              "https://app.posthog.com",
+            ],
           },
           permissionsPolicy: {
             "clipboard-write": `self`,

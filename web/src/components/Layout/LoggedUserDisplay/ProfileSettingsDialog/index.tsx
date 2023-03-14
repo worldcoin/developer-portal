@@ -1,12 +1,12 @@
+import { FieldError } from "@/components/FieldError";
 import { memo } from "react";
-import { DialogHeader } from "src/components/DialogHeader";
-import { FieldLabel } from "src/components/FieldLabel";
-import { FieldInput } from "src/components/FieldInput";
+import { Controller, useForm } from "react-hook-form";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
+import { DialogHeader } from "src/components/DialogHeader";
+import { FieldInput } from "src/components/FieldInput";
+import { FieldLabel } from "src/components/FieldLabel";
 import { ImageInput } from "src/components/Layout/common/ImageInput";
-import { useForm, Controller } from "react-hook-form";
-import { FieldError } from "@/components/FieldError";
 import { UserWithTeam } from "src/hooks/useAuth";
 
 type FormData = {
@@ -36,14 +36,12 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
 
   const onSubmit = handleSubmit(async (data) => {
     //TODO: add saving profile logic
-    console.log(data);
     try {
       await new Promise((res, rej) =>
         setTimeout(() => {
           Math.random() > 0.5 ? res({}) : rej(Error("saving error"));
         }, 3000)
       );
-      console.log("saved");
       reset();
     } catch (error) {
       console.error(error);

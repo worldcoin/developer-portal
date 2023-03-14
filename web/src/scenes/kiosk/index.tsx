@@ -1,7 +1,7 @@
 import { ISuccessResult } from "@worldcoin/idkit";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { Icon } from "src/components/Icon";
 import { restAPIRequest } from "src/lib/frontend-api";
 import { KioskProps } from "src/pages/kiosk/[action_id]";
@@ -85,6 +85,8 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
           response = { success: false, code: "unknown" };
         }
       }
+
+      console.log("response:", response); // DEBUG
 
       if (response?.success) {
         setSuccessParams({
