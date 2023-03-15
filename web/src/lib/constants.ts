@@ -9,7 +9,7 @@ export const ORB_SEQUENCER_STAGING =
   "https://signup.stage-crypto.worldcoin.dev/inclusionProof";
 
 // ANCHOR: Phone credential
-export const PHONE_SEQUENCER = "https://signup.stage-crypto.worldcoin.dev"; // FIXME
+export const PHONE_SEQUENCER = "https://phone-signup.crypto.worldcoin.dev";
 export const PHONE_SEQUENCER_STAGING =
   "https://phone-signup.stage-crypto.worldcoin.dev";
 
