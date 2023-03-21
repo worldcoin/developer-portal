@@ -2,11 +2,10 @@ import { Illustration } from "@/components/Auth/Illustration";
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { memo, useCallback } from "react";
-import { useRemoveTeamMemberMutation } from "@/hooks/useTeam";
-import { TeamMemberModel } from "@/lib/models";
+import { TeamMember, useDeleteTeamMember } from "@/scenes/team/hooks/useTeam";
 
 export interface RemoveMemberDialogProps {
-  memberForRemove?: TeamMemberModel;
+  memberForRemove?: TeamMember;
   onClose: () => void;
 }
 
@@ -14,13 +13,13 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
   props: RemoveMemberDialogProps
 ) {
   const { memberForRemove, onClose } = props;
-  const { removeTeamMember, isLoading } = useRemoveTeamMemberMutation();
+  const { deleteTeamMember, loading } = useDeleteTeamMember();
 
   const handleConfirm = useCallback(async () => {
     if (!memberForRemove) return;
-    await removeTeamMember(memberForRemove.id);
+    await deleteTeamMember(memberForRemove.id);
     onClose();
-  }, [removeTeamMember, memberForRemove, onClose]);
+  }, [deleteTeamMember, memberForRemove, onClose]);
 
   return (
     <Dialog
@@ -48,7 +47,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
         variant="danger"
         className="py-4.5 px-9"
         onClick={handleConfirm}
-        disabled={isLoading}
+        disabled={loading}
       >
         Delete member
       </Button>
