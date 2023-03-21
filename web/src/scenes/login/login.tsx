@@ -1,13 +1,13 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
-import { Spinner } from "src/components/Spinner";
 import { Link } from "src/components/Link";
-import { ILoginPageProps } from "src/pages/login";
+import { Spinner } from "src/components/Spinner";
 import { urls } from "src/lib/urls";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { ILoginPageProps } from "src/pages/login";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -36,8 +36,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
       if (payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(`${urls.waitlist()}`);
-        // return router.push(urls.signup());
+        return router.push(urls.signup());
       }
 
       if (!payload.new_user && payload.returnTo) {
@@ -50,11 +49,14 @@ export function Login({ loginUrl }: ILoginPageProps) {
   );
 
   useEffect(() => {
+    const invite_token = localStorage.getItem("invite_token");
+
     if (router.isReady) {
       setLoading(false);
       if (router.query.id_token) {
         doLogin({
           sign_in_with_world_id_token: router.query.id_token as string,
+          invite_token: invite_token as string,
         });
       }
 
@@ -62,7 +64,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
         setError(true);
       }
     }
-  }, [router, doLogin]);
+  }, [router, doLogin, loginUrl]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">

@@ -6,22 +6,25 @@ import {
 } from "src/backend/errors";
 
 import { gql } from "@apollo/client";
-import { NextApiRequestWithBody } from "src/lib/types";
+import { JWTPayload } from "jose";
+import { NextApiResponse } from "next";
+import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import {
-  generateUserJWT,
   generateSignUpJWT,
+  generateUserJWT,
+  verifyInviteJWT,
   verifyOIDCJWT,
 } from "src/backend/jwts";
-import { NextApiResponse } from "next";
-import { UserModel } from "src/lib/models";
-import { JWTPayload } from "jose";
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
-import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
+import { UserModel } from "src/lib/models";
+import { NextApiRequestWithBody } from "src/lib/types";
+import { urls } from "src/lib/urls";
 
 export type LoginRequestBody = {
   dev_login?: string;
   sign_in_with_world_id_token?: string;
+  invite_token?: string;
 };
 
 export type LoginRequestResponse =
@@ -118,10 +121,18 @@ export default async function handleLogin(
 
   const user = userQueryResult.data.user[0];
 
-  if (!user) {
-    // NOTE: User does not have an account, generate a sign up token
-    const signup_token = await generateSignUpJWT(payload.sub);
-    return res.status(200).json({ new_user: true, signup_token });
+  // NOTE: User does not have an account, check the invite token
+  const { invite_token } = req.body;
+  if (!user && invite_token) {
+    const email = await verifyInviteJWT(invite_token);
+    if (email) {
+      const signup_token = await generateSignUpJWT(payload.sub);
+      return res.status(200).json({ new_user: true, signup_token });
+    } else {
+      return res
+        .status(200)
+        .json({ new_user: false, returnTo: urls.waitlist() });
+    }
   }
 
   const returnTo = getReturnToFromCookie(req, res);
