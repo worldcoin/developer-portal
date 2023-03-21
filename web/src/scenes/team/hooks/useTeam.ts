@@ -1,11 +1,11 @@
 import {
   useTeamsQuery,
   TeamsDocument,
-} from "@/scenes/team/operations/teams.generated";
-import { useUpdateTeamNameMutation } from "@/scenes/team/operations/updateTeamName.generated";
+} from "@/scenes/team/graphql/teams.generated";
+import { useUpdateTeamNameMutation } from "@/scenes/team/graphql/updateTeamName.generated";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { useDeleteTeamMemberMutation } from "@/scenes/team/operations/deleteTeam.generated";
+import { useDeleteTeamMemberMutation } from "@/scenes/team/graphql/deleteTeam.generated";
 
 export type Team = NonNullable<
   NonNullable<ReturnType<typeof useTeamsQuery>["data"]>["teams"]
