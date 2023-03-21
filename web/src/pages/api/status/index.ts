@@ -7,30 +7,30 @@ export type GetMonitorsResponse = {
     limit: number;
     total: number;
   };
-  monitors: [
-    {
-      id: number;
-      friendly_name: string;
-      url: string;
-      type: number;
-      sub_type: string;
-      keyword_type: 1 | 2 | null;
-      keyword_case_type: 0 | 1 | null;
-      keyword_value: string;
-      http_username: string;
-      http_password: string;
-      port: string;
-      interval: number;
-      timeout: unknown | null;
-      status: number;
-      create_datetime: number;
-    }
-  ];
+  monitors: Array<{
+    id: number;
+    friendly_name: string;
+    url: string;
+    type: number;
+    sub_type: string;
+    keyword_type: 1 | 2 | null;
+    keyword_case_type: 0 | 1 | null;
+    keyword_value: string;
+    http_username: string;
+    http_password: string;
+    port: string;
+    interval: number;
+    timeout: unknown | null;
+    status: number;
+    create_datetime: number;
+  }>;
 };
+
+type StatusResponse = Pick<GetMonitorsResponse, "stat"> | Error;
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<StatusResponse>
 ) {
   const API_KEY = process.env.UPTIME_ROBOT_API_KEY;
   const _BASE_URL = "https://api.uptimerobot.com/v2/";
@@ -56,7 +56,7 @@ export default async function handler(
       result = await response.json();
     } catch (error) {
       console.log(error);
-      return Error("Error fetching data", { cause: error });
+      return Error("Error fetching data", { cause: error as Error });
     }
 
     return result;
@@ -65,8 +65,12 @@ export default async function handler(
   const result = await fetcher<GetMonitorsResponse>(_getUrl("getMonitors"));
 
   if (result instanceof Error) {
-    return res.status(500).json({ error: result.message, cause: result.cause });
+    return res.status(500).json({
+      message: result.message,
+      name: result.name,
+      cause: result.cause,
+    });
   }
 
-  return res.status(200).json(result);
+  return res.status(200).json({ stat: result.stat });
 }
