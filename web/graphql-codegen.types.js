@@ -1,3 +1,6 @@
+const fs = require("fs");
+const prettier = require("prettier");
+
 /** @type {import('@graphql-codegen/cli').CodegenConfig} */
 module.exports = {
   schema: "src/graphql/graphql.schema.json",
@@ -19,7 +22,7 @@ module.exports = {
       documents: "src/api/**/*.graphql",
       preset: "near-operation-file",
       presetConfig: {
-        baseTypesPath: "graphql/graphql.ts",
+        baseTypesPath: "~@/graphql/graphql",
         extension: ".generated.ts",
       },
       plugins: [
@@ -38,7 +41,7 @@ module.exports = {
       documents: "src/scenes/**/*.graphql",
       preset: "near-operation-file",
       presetConfig: {
-        baseTypesPath: "graphql/graphql.ts",
+        baseTypesPath: "~@/graphql/graphql",
         extension: ".generated.ts",
       },
       plugins: [
@@ -55,5 +58,18 @@ module.exports = {
         withMutationFn: true,
       },
     },
+  },
+  hooks: {
+    afterAllFileWrite: [
+      (...filePaths) => {
+        for (const path of filePaths) {
+          const rawText = fs.readFileSync(path, "utf8");
+          const formattedText = prettier.format(rawText, {
+            parser: "typescript",
+          });
+          fs.writeFileSync(path, formattedText);
+        }
+      },
+    ],
   },
 };
