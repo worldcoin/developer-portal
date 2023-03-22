@@ -127,22 +127,33 @@ export default async function handleLogin(
 
   // NOTE: User does not have an account, check for an invite token
   const { invite_token } = req.body;
-  if (!user && invite_token) {
-    const email = await verifyInviteJWT(invite_token);
+  if (!user) {
+    if (invite_token) {
+      let email: string | undefined;
+      try {
+        email = await verifyInviteJWT(invite_token);
+      } catch {}
 
-    // Invite token is valid, generate a signup token
-    if (email) {
+      if (!email) {
+        // Invite token is invalid, return an error
+        return errorValidation(
+          "invalid_invite_token",
+          "Invite token was invalid, and may be expired.",
+          "invite",
+          res
+        );
+      }
+
       const signup_token = await generateSignUpJWT(payload.sub);
       return res.status(200).json({ new_user: true, email, signup_token });
+    } else {
+      return errorValidation(
+        "invite_token_required",
+        "You need to provide a waitlist invite token to sign up. Visit https://docs.worldcoin.org/waitlist to get yours.",
+        "invite_token",
+        res
+      );
     }
-
-    // Invite token is invalid, return an error
-    return errorValidation(
-      "invalid_invite_token",
-      "Invite token was invalid, and may be expired.",
-      "invite",
-      res
-    );
   }
 
   const returnTo = getReturnToFromCookie(req, res);
