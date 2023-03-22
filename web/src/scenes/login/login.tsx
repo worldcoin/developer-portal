@@ -1,20 +1,21 @@
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
-import { Spinner } from "src/components/Spinner";
 import { Link } from "src/components/Link";
-import { ILoginPageProps } from "src/pages/login";
+import { Spinner } from "src/components/Spinner";
 import { urls } from "src/lib/urls";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { ILoginPageProps } from "src/pages/login";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
 export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+  const [inviteError, setInviteError] = useState(false);
 
   const doLogin = useCallback(
     async (body: LoginRequestBody) => {
@@ -29,18 +30,21 @@ export function Login({ loginUrl }: ILoginPageProps) {
       });
       const payload = (await response.json()) as LoginRequestResponse;
 
-      if (!Object.hasOwn(payload, "new_user")) {
-        router.push(`${urls.login()}?error=invalid_login`);
-        return;
+      // Invalid login response, show an error page
+      if (!response.ok && "code" in payload) {
+        router.push(`${urls.login()}?error=${payload.code ?? "login"}`);
       }
 
-      if (payload.new_user && payload.signup_token) {
+      // User has a signup token, redirect to signup page
+      if ("new_user" in payload && payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(`${urls.waitlist()}`);
-        // return router.push(urls.signup());
+        return router.push(
+          `${urls.signup()}?email=${encodeURIComponent(payload.email)}`
+        );
       }
 
-      if (!payload.new_user && payload.returnTo) {
+      // All other cases, redirect to the returnTo url
+      if ("new_user" in payload && !payload.new_user && payload.returnTo) {
         return router.push(payload.returnTo);
       }
 
@@ -50,19 +54,26 @@ export function Login({ loginUrl }: ILoginPageProps) {
   );
 
   useEffect(() => {
+    const invite_token = localStorage.getItem("invite_token");
+
     if (router.isReady) {
       setLoading(false);
       if (router.query.id_token) {
         doLogin({
           sign_in_with_world_id_token: router.query.id_token as string,
+          invite_token: invite_token as string,
         });
+      } else if (invite_token) {
+        router.push(loginUrl ?? "");
       }
 
-      if (router.query.error) {
-        setError(true);
+      if (router.query.error === "login") {
+        setLoginError(true);
+      } else if (router.query.error === "invite") {
+        setInviteError(true);
       }
     }
-  }, [router, doLogin]);
+  }, [router, doLogin, loginUrl]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
@@ -93,9 +104,15 @@ export function Login({ loginUrl }: ILoginPageProps) {
         </div>
 
         <div className="grid place-content-center justify-items-center justify-self-center max-w-[532px] text-center">
-          {error && (
+          {loginError && (
             <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
               There was a problem with your login. Please try again.
+            </div>
+          )}
+          {inviteError && (
+            <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
+              Your invite code was invalid, please reach out to a Worldcoin
+              contributor.
             </div>
           )}
 
