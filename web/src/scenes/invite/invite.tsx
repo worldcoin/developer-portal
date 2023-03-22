@@ -1,31 +1,13 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { Auth } from "src/components/Auth";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
 import { urls } from "src/lib/urls";
+import { IInvitePageProps } from "src/pages/invite";
 
-export function Invite() {
+export function Invite({ loginUrl }: IInvitePageProps) {
   const router = useRouter();
-
-  const validateInviteToken = useCallback(
-    async (invite_token: string) => {
-      const response = await fetch("/api/invite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          invite_token,
-        }),
-      });
-
-      if (response.ok) {
-        router.push(urls.login());
-      }
-    },
-    [router]
-  );
 
   useEffect(() => {
     if (router.isReady && router.query.token) {
@@ -36,11 +18,11 @@ export function Invite() {
   useEffect(() => {
     const invite_token = localStorage.getItem("invite_token");
     if (invite_token) {
-      validateInviteToken(invite_token);
+      router.push(loginUrl ?? "");
     } else {
       router.push(urls.waitlist());
     }
-  }, [router, validateInviteToken]);
+  }, [loginUrl, router]);
 
   return (
     <Auth pageTitle="Invite" pageUrl="invite">

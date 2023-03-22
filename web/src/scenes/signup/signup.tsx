@@ -1,25 +1,32 @@
+import { useRouter } from "next/router";
 import {
+  MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useState,
-  MouseEvent as ReactMouseEvent,
 } from "react";
 import { Auth } from "src/components/Auth";
-import { useRouter } from "next/router";
-import { urls } from "src/lib/urls";
-import { FieldLabel } from "src/components/Auth/FieldLabel";
-import { FieldInput } from "src/components/Auth/FieldInput";
-import { FieldText } from "src/components/Auth/FieldText";
-import { Checkbox } from "src/components/Auth/Checkbox";
 import { Button } from "src/components/Auth/Button";
+import { Checkbox } from "src/components/Auth/Checkbox";
+import { FieldInput } from "src/components/Auth/FieldInput";
+import { FieldLabel } from "src/components/Auth/FieldLabel";
+import { FieldText } from "src/components/Auth/FieldText";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
+import { urls } from "src/lib/urls";
 
 export function Signup() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (router.isReady) {
+      const email = router.query.email;
+      setEmail(email as string);
+    }
+  }, [router.isReady, router.query.email]);
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -44,6 +51,7 @@ export function Signup() {
       if (response.ok) {
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
+        localStorage.removeItem("invite_token");
         router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);
@@ -86,6 +94,7 @@ export function Signup() {
                 setEmail(e.target.value);
               }}
               disabled={loading}
+              value={email}
             />
           </div>
 

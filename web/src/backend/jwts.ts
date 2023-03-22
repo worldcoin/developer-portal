@@ -301,5 +301,5 @@ export const verifyInviteJWT = async (token: string) => {
   if (!email) {
     throw new Error("JWT does not contain email claim.");
   }
-  return email;
+  return email as string;
 };

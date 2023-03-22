@@ -1,14 +1,14 @@
 import {
-  errorResponse,
   errorNotAllowed,
   errorRequiredAttribute,
+  errorResponse,
 } from "src/backend/errors";
 
-import { NextApiRequest, NextApiResponse } from "next";
 import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
+import { setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
-import { setCookie } from "src/backend/cookies";
 
 export type SignupResponse = { returnTo: string };
 
@@ -59,28 +59,14 @@ export default async function handleSignUp(
 
   const { signup_token, email, team_name } = req.body;
 
-  let nullifier_hash: string | undefined;
-  let waitListCleared = false;
-  try {
-    const tokenPayload = await verifySignUpJWT(signup_token);
-    nullifier_hash = tokenPayload.sub;
-    waitListCleared = Boolean(tokenPayload.waitlist_invite);
-  } catch {}
+  const tokenPayload = await verifySignUpJWT(signup_token);
+  let nullifier_hash: string | undefined = tokenPayload.sub;
 
   if (!nullifier_hash) {
     return errorResponse(res, 400, "Invalid signup token.");
   }
 
-  if (!waitListCleared) {
-    return errorResponse(
-      res,
-      400,
-      "Developer Portal is currently invite-only. Add yourself to the waitlist in worldcoin.org/world-id"
-    );
-  }
-
   const client = await getAPIServiceClient();
-
   const { data } = await client.mutate({
     mutation,
     variables: {
@@ -101,7 +87,7 @@ export default async function handleSignUp(
   const { token, expiration } = await generateUserJWT(user.id, team.id);
   setCookie("auth", { token }, req, res, expiration);
 
-  res.status(204).json({
+  res.status(200).json({
     returnTo: "/app",
   });
 }

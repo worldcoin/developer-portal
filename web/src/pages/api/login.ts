@@ -1,4 +1,5 @@
 import {
+  errorLogin,
   errorNotAllowed,
   errorRequiredAttribute,
   errorUnauthenticated,
@@ -19,7 +20,6 @@ import {
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
 import { UserModel } from "src/lib/models";
 import { NextApiRequestWithBody } from "src/lib/types";
-import { urls } from "src/lib/urls";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -30,11 +30,16 @@ export type LoginRequestBody = {
 export type LoginRequestResponse =
   | {
       new_user: true;
+      email: string;
       signup_token: string;
     }
   | {
       new_user: false;
       returnTo?: string;
+    }
+  | {
+      code: string;
+      detail: string;
     };
 
 const query = gql`
@@ -121,18 +126,23 @@ export default async function handleLogin(
 
   const user = userQueryResult.data.user[0];
 
-  // NOTE: User does not have an account, check the invite token
+  // NOTE: User does not have an account, check for an invite token
   const { invite_token } = req.body;
   if (!user && invite_token) {
     const email = await verifyInviteJWT(invite_token);
+
+    // Invite token is valid, generate a signup token
     if (email) {
       const signup_token = await generateSignUpJWT(payload.sub);
-      return res.status(200).json({ new_user: true, signup_token });
-    } else {
-      return res
-        .status(200)
-        .json({ new_user: false, returnTo: urls.waitlist() });
+      return res.status(200).json({ new_user: true, email, signup_token });
     }
+
+    // Invite token is invalid, return an error
+    return errorLogin(
+      res,
+      "invite",
+      "Invite token was invalid, and may be expired."
+    );
   }
 
   const returnTo = getReturnToFromCookie(req, res);

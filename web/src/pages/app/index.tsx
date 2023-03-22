@@ -1,7 +1,5 @@
-import { getCookie } from "cookies-next";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { getTokenFromCookie } from "src/backend/cookies";
 import useApps from "src/hooks/useApps";
 import { requireAuthentication } from "src/lib/require-authentication";
 
@@ -10,8 +8,10 @@ export default function App() {
   const { apps } = useApps();
   const router = useRouter();
 
-  if (apps) {
+  if (apps && apps.length) {
     router.push(`/app/${apps[0].id}`);
+  } else {
+    router.push("/app/default"); // TODO: Default app page?
   }
 
   return null;
