@@ -8,6 +8,7 @@ export default Invite;
 
 export interface IInvitePageProps {
   loginUrl?: string;
+  nonce?: string;
 }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
@@ -16,7 +17,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   return {
     props: {
-      loginUrl: loginUrl,
+      loginUrl,
+      nonce,
     } as IInvitePageProps,
   };
 }
