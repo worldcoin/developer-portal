@@ -83,10 +83,3 @@ export function errorHasuraQuery({
     },
   });
 }
-
-export function errorLogin(res: NextApiResponse, code: string, detail: string) {
-  return res.status(400).json({
-    code,
-    detail,
-  });
-}

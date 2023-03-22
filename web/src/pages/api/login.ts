@@ -1,5 +1,4 @@
 import {
-  errorLogin,
   errorNotAllowed,
   errorRequiredAttribute,
   errorUnauthenticated,
@@ -138,10 +137,11 @@ export default async function handleLogin(
     }
 
     // Invite token is invalid, return an error
-    return errorLogin(
-      res,
+    return errorValidation(
+      "invalid_invite_token",
+      "Invite token was invalid, and may be expired.",
       "invite",
-      "Invite token was invalid, and may be expired."
+      res
     );
   }
 

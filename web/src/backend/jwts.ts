@@ -279,7 +279,7 @@ export const generateInviteJWT = async (email: string) => {
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: "HS512" })
     .setIssuer(JWT_ISSUER)
-    .setExpirationTime("7d") // TODO: How long should invites be valid?
+    .setExpirationTime("7d")
     .sign(Buffer.from(GENERAL_SECRET_KEY));
 
   return token;

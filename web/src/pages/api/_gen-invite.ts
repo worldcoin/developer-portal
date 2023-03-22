@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateInviteJWT } from "src/backend/jwts";
-import { protectInternalEndpoint } from "src/backend/utils";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -8,7 +7,7 @@ import {
 } from "../../backend/errors";
 
 /**
- * Generates an new invite token to the developer portal
+ * Generates an new invite token to the Developer Portal
  * @param req
  * @param res
  */
@@ -16,8 +15,16 @@ export default async function handleInvite(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (!protectInternalEndpoint(req, res)) {
-    return;
+  if (
+    !process.env.INVITE_CODES_TOKEN ||
+    req.headers.authorization?.replace("Bearer ", "") !==
+      process.env.INVITE_CODES_TOKEN
+  ) {
+    return res.status(403).json({
+      code: "permission_denied",
+      detail: "You do not have permission to perform this action.",
+      attr: null,
+    });
   }
 
   if (req.method !== "POST") {

@@ -4,14 +4,13 @@ import useApps from "src/hooks/useApps";
 import { requireAuthentication } from "src/lib/require-authentication";
 
 export default function App() {
-  //FIXME: temporary client redirect to default app page
   const { apps } = useApps();
   const router = useRouter();
 
   if (apps && apps.length) {
     router.push(`/app/${apps[0].id}`);
   } else {
-    router.push("/app/default"); // TODO: Default app page?
+    router.push("/team"); // TODO: home page
   }
 
   return null;
