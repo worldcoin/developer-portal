@@ -31,12 +31,12 @@ export function Login({ loginUrl }: ILoginPageProps) {
       const payload = (await response.json()) as LoginRequestResponse;
 
       // Invalid login response, show an error page
-      if (!response.ok) {
+      if (!response.ok && "code" in payload) {
         router.push(`${urls.login()}?error=${payload.code ?? "login"}`);
       }
 
       // User has a signup token, redirect to signup page
-      if (payload.new_user && payload.signup_token) {
+      if ("new_user" in payload && payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
         return router.push(
           `${urls.signup()}?email=${encodeURIComponent(payload.email)}`
@@ -44,7 +44,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
       }
 
       // All other cases, redirect to the returnTo url
-      if (!payload.new_user && payload.returnTo) {
+      if ("new_user" in payload && !payload.new_user && payload.returnTo) {
         return router.push(payload.returnTo);
       }
 

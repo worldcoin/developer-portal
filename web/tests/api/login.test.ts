@@ -1,14 +1,14 @@
-import { createMocks } from "node-mocks-http";
-import * as jose from "jose";
-import handleLogin from "src/pages/api/login";
-import { generateJWK } from "src/backend/jwks";
-import { generateOIDCJWT } from "src/backend/jwts";
-import { CredentialType } from "src/lib/types";
-import { OIDCScopes } from "src/backend/oidc";
-import { privateJwk, publicJwk } from "./__mocks__/jwk";
 import { when } from "jest-when";
 import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
+import * as jose from "jose";
+import { createMocks } from "node-mocks-http";
 import { getTokenFromCookie } from "src/backend/cookies";
+import { generateJWK } from "src/backend/jwks";
+import { generateInviteJWT, generateOIDCJWT } from "src/backend/jwts";
+import { OIDCScopes } from "src/backend/oidc";
+import { CredentialType } from "src/lib/types";
+import handleLogin from "src/pages/api/login";
+import { privateJwk, publicJwk } from "./__mocks__/jwk";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
@@ -34,6 +34,7 @@ const validPayload = async () => ({
     credential_type: CredentialType.Orb,
     scope: [OIDCScopes.OpenID],
   }),
+  invite_token: await generateInviteJWT("name@example.com"),
 });
 
 const sampleExistingUserResponse = () => ({
