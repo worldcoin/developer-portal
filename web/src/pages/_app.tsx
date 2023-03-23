@@ -4,6 +4,8 @@ import { Fragment } from "react";
 import { usePostHog } from "@/hooks/usePostHog";
 import Head from "next/head";
 import { Sora, Rubik, IBM_Plex_Mono } from "next/font/google";
+import { ApolloProvider } from "@apollo/client";
+import { client } from "@/services/apollo";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -33,7 +35,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
     "Build apps using Worldcoin and World ID, the privacy-preserving global identity protocol.";
 
   return (
-    <Fragment>
+    <ApolloProvider client={client}>
       <Head>
         {/* ANCHOR favicon */}
         <link
@@ -106,7 +108,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
           --font-mono: ${ibmPlexMono.style.fontFamily};
         }
       `}</style>
-    </Fragment>
+    </ApolloProvider>
   );
 };
 

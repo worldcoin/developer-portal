@@ -1,0 +1,17 @@
+/** @type {import('@graphql-codegen/cli').CodegenConfig} */
+module.exports = {
+  schema: [
+    {
+      [process.env.NEXT_PUBLIC_GRAPHQL_API_URL]: {
+        headers: {
+          "x-hasura-admin-secret": process.env.HASURA_GRAPHQL_ADMIN_SECRET,
+        },
+      },
+    },
+  ],
+  generates: {
+    "src/graphql/graphql.schema.json": {
+      plugins: ["introspection"],
+    },
+  },
+};
