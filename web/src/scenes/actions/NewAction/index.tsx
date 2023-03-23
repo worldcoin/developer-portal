@@ -61,7 +61,7 @@ export function NewAction() {
 
           <FieldTextArea
             className="w-full font-rubik"
-            placeholder="Add description"
+            placeholder="This is what users will see in the World App."
             value={newAction.description}
             onChange={(e) => setNewAction({ description: e.target.value })}
             disabled={isNewActionMutating}

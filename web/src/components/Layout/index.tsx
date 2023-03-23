@@ -85,7 +85,7 @@ export const Layout = (props: {
 
                 <NavItem
                   icon="notepad"
-                  name="Custom Actions"
+                  name="Anonymous Actions"
                   href={urls.appActions(router.query.app_id as string)}
                 />
               </NavItemGroup>
