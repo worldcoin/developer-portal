@@ -32,7 +32,9 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
       // Invalid login response, show an error page
       if (!response.ok && "code" in payload) {
-        router.push(`${urls.login()}?error=${payload.code ?? "login"}`);
+        return router.push(
+          `${urls.login()}?error=${payload.code ?? "login_failed"}`
+        );
       }
 
       // User has a signup token, redirect to signup page
@@ -53,24 +55,30 @@ export function Login({ loginUrl }: ILoginPageProps) {
     [router]
   );
 
+  // Route user to the correct destination based on the query params
   useEffect(() => {
     const invite_token = localStorage.getItem("invite_token");
 
     if (router.isReady) {
       setLoading(false);
-      if (router.query.id_token) {
+
+      // Handle login error cases
+      if (router.query.error === "login_failed") {
+        setLoginError(true);
+      } else if (router.query.error === "invalid_invite_token") {
+        setInviteError(true);
+      } else if (router.query.error === "invite_token_required") {
+        router.push(urls.waitlist());
+      }
+
+      // Handle login and signup cases
+      if (!router.query.error && router.query.id_token) {
         doLogin({
           sign_in_with_world_id_token: router.query.id_token as string,
           invite_token: invite_token as string,
         });
-      } else if (invite_token) {
+      } else if (!router.query.error && invite_token) {
         router.push(loginUrl ?? "");
-      }
-
-      if (router.query.error === "login") {
-        setLoginError(true);
-      } else if (router.query.error === "invite") {
-        setInviteError(true);
       }
     }
   }, [router, doLogin, loginUrl]);
