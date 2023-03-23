@@ -80,12 +80,12 @@ export const Stats = memo(function Stats() {
   const { stats } = useAppStats();
 
   const totalVerifications = useMemo(
-    () => (stats ? stats[stats.length - 1].verifications : 0),
+    () => (stats ? stats[stats.length - 1]?.verifications : 0),
     [stats]
   );
 
   const totalUnique = useMemo(
-    () => (stats ? stats[stats.length - 1].unique_users : 0),
+    () => (stats ? stats[stats.length - 1]?.unique_users : 0),
     [stats]
   );
 
