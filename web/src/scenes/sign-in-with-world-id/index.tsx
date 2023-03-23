@@ -6,7 +6,6 @@ import useSignInAction from "src/hooks/useSignInAction";
 import { Credentials } from "./Credentials";
 import { Header } from "./Header";
 import { Redirects } from "./Redirects";
-import { Status } from "./Status";
 
 export const SignIn = memo(function SignIn(props: { user_id?: string }) {
   const { currentApp, isLoading: appIsLoading } = useApps();
