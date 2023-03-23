@@ -69,3 +69,14 @@ delete_permissions:
         users:
           id:
             _eq: X-Hasura-User-Id
+event_triggers:
+  - name: create_initial_app
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 5
+      timeout_sec: 20
+    webhook: '{{NEXT_API_URL}}/_create-initial-app'
