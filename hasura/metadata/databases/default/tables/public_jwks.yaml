@@ -8,7 +8,6 @@ insert_permissions:
       columns:
         - alg
         - expires_at
-        - private_jwk
         - public_jwk
 select_permissions:
   - role: service
@@ -18,6 +17,5 @@ select_permissions:
         - created_at
         - expires_at
         - id
-        - private_jwk
         - public_jwk
       filter: {}

@@ -1,7 +1,8 @@
 import { gql } from "@apollo/client";
-import * as jose from "jose";
+import { createPublicKey } from "crypto";
 import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
+import { createKMSKey, getKMSClient } from "./kms";
 
 const fetchJWKQuery = gql`
   query FetchJWKQuery($now: timestamptz!, $alg: String!) {
@@ -69,16 +70,11 @@ export const fetchActiveJWK = async (alg: string) => {
  * Generates an asymmetric key pair in JWK format
  * @returns
  */
-export const generateJWK = async (
-  alg: string
-): Promise<{
-  privateJwk: jose.JWK;
-  publicJwk: jose.JWK;
-}> => {
-  const { publicKey, privateKey } = await jose.generateKeyPair(alg);
+export const generateJWK = async (alg: string) => {
+  const kmsClient = await getKMSClient();
+  const publicKey = await createKMSKey(kmsClient, alg);
+  const publicJwk = createPublicKey(publicKey);
 
-  const privateJwk = await jose.exportJWK(privateKey);
-  const publicJwk = await jose.exportJWK(publicKey);
-
-  return { privateJwk, publicJwk };
+  console.log(publicJwk.export({ format: "jwk" })); // DEBUG
+  return publicJwk.export({ format: "jwk" });
 };

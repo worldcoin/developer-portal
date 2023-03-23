@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "src/backend/graphql";
-import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed, errorValidation } from "../../backend/errors";
+import { getAPIServiceClient } from "src/backend/graphql";
 import { generateJWK } from "src/backend/jwks";
+import { protectInternalEndpoint } from "src/backend/utils";
+import { errorNotAllowed, errorValidation } from "../../backend/errors";
 
 /**
  * Generates JWKs to verify proofs offline
@@ -22,9 +22,9 @@ export default async function handleJWKGen(
     return errorNotAllowed(req.method, res);
   }
 
-  const alg = req.body.alg || "PS256";
+  const alg = req.body.alg || "RS256";
 
-  if (!["PS256", "RS256"].includes(alg)) {
+  if (!["RS256"].includes(alg)) {
     return errorValidation(
       "invalid_algorithm",
       "Invalid algorithm.",
@@ -33,13 +33,12 @@ export default async function handleJWKGen(
     );
   }
 
-  const { publicJwk, privateJwk } = await generateJWK(alg);
+  const publicJwk = await generateJWK(alg);
 
   const insertQuery = gql(`
-  mutation InsertJWK($expires_at: timestamptz!, $private_jwk: jsonb!, $public_jwk: jsonb!, $alg: String!) {
+  mutation InsertJWK($expires_at: timestamptz!, $public_jwk: jsonb!, $alg: String!) {
     insert_jwks_one(object: {
         expires_at: $expires_at
-        private_jwk: $private_jwk
         public_jwk: $public_jwk
         alg: $alg
     })
@@ -56,7 +55,6 @@ export default async function handleJWKGen(
     query: insertQuery,
     variables: {
       expires_at: expiresAt.toISOString(),
-      private_jwk: privateJwk,
       public_jwk: publicJwk,
       alg,
     },
