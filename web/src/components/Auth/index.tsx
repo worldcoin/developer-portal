@@ -20,7 +20,7 @@ export const Auth = memo(function Auth(props: {
       <CookieBanner />
       <div
         className={cn(
-          "grid justify-center justify-items-center content-center min-h-screen text-neutral-primary",
+          "grid justify-items-center content-center min-h-screen text-neutral-primary",
           props.className
         )}
       >
