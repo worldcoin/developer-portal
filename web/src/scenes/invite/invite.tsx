@@ -26,15 +26,26 @@ export function Invite({ loginUrl, nonce }: IInvitePageProps) {
           <>
             <Icon name="spinner" className="h-8 w-8 animate-spin" noMask />
             <Typography className="mt-8" variant="title">
-              Please wait while we process your invite.
+              Hold on, validating your invite....
             </Typography>
           </>
         )}
         {!loading && (
           <>
             <Typography className="mt-8" variant="title">
-              Welcome, please sign in to create your account.
+              Welcome, please continue with Worldcoin to create your account.
             </Typography>
+            <div className="mt-4 text-neutral-secondary">
+              If you don&apos;t have a World ID yet, download the{" "}
+              <a
+                href="https://worldcoin.org/download"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                World App
+              </a>{" "}
+              first.
+            </div>
             <Link href={loginUrl ?? ""}>
               <Button variant="primary" className="py-3 px-8 mt-8">
                 <Icon name="wld-logo" className="h-6 w-6 mr-2" />
