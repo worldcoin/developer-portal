@@ -24,6 +24,7 @@ import { Line } from "react-chartjs-2";
 import useAppStats from "src/hooks/useAppStats";
 import { IAppStatsStore, useAppStatsStore } from "src/stores/appStatsStore";
 import { StatCard } from "./StatCard";
+import { stat } from "fs";
 
 ChartJS.register(
   CategoryScale,
@@ -79,13 +80,12 @@ export const Stats = memo(function Stats() {
   const { stats } = useAppStats();
 
   const totalVerifications = useMemo(
-    () =>
-      stats ? stats.reduce((res, item) => res + item.verifications, 0) : 0,
+    () => (stats ? stats[stats.length - 1].verifications : 0),
     [stats]
   );
 
   const totalUnique = useMemo(
-    () => (stats ? stats.reduce((res, item) => res + item.unique_users, 0) : 0),
+    () => (stats ? stats[stats.length - 1].unique_users : 0),
     [stats]
   );
 
