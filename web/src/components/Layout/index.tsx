@@ -104,11 +104,11 @@ export const Layout = (props: {
                   href={urls.debugger()}
                 /> */}
 
-                <NavItem
+                {/* <NavItem
                   name="Support"
                   icon="help"
                   href="https://discord.gg/worldcoin"
-                />
+                /> */}
               </NavItemGroup>
 
               <hr className="text-f3f4f5 my-4 mr-10" />
