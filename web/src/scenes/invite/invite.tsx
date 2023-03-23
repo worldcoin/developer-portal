@@ -33,18 +33,15 @@ export function Invite({ loginUrl, nonce }: IInvitePageProps) {
         {!loading && (
           <>
             <Typography className="mt-8" variant="title">
-              Welcome, please continue with Worldcoin to create your account.
+              Welcome, please sign in to continue
             </Typography>
-            <div className="mt-4 text-neutral-secondary">
-              If you don&apos;t have a World ID yet, download the{" "}
-              <a
-                href="https://worldcoin.org/download"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+            <div className="mt-4 text-neutral-secondary text-center">
+              Thank you for joining the World ID beta. If you don&apos;t have a
+              World ID yet, download the{" "}
+              <a className="text-primary" href="https://worldcoin.org/download">
                 World App
               </a>{" "}
-              first.
+              to proceed.
             </div>
             <Link href={loginUrl ?? ""}>
               <Button variant="primary" className="py-3 px-8 mt-8">

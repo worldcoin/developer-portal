@@ -139,7 +139,7 @@ export default async function handleLogin(
         return errorValidation(
           "invalid_invite_token",
           "Invite token was invalid, and may be expired.",
-          "invite",
+          "invite_token",
           res
         );
       }
