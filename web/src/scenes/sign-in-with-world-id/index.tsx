@@ -6,7 +6,6 @@ import useSignInAction from "src/hooks/useSignInAction";
 import { Credentials } from "./Credentials";
 import { Header } from "./Header";
 import { Redirects } from "./Redirects";
-import { Status } from "./Status";
 
 export const SignIn = memo(function SignIn(props: { user_id?: string }) {
   const { currentApp, isLoading: appIsLoading } = useApps();
@@ -29,7 +28,6 @@ export const SignIn = memo(function SignIn(props: { user_id?: string }) {
       {!appIsLoading && !actionIsLoading && currentApp && (
         <div className="grid gap-y-12 content-start">
           <Header />
-          <Status />
           <Credentials />
           <Redirects />
           {/* NOTE: https://linear.app/worldcoin/issue/WID-370#comment-d47da43e  */}

@@ -76,7 +76,7 @@ export const NewAppDialog = memo(function NewAppDialog(
 
             <FieldInput
               className="w-full font-rubik"
-              placeholder="Add your app name (visible to users)"
+              placeholder="Visible to users"
               type="text"
               {...register("name", { required: true })}
               readOnly={formState.isSubmitting}
@@ -88,7 +88,7 @@ export const NewAppDialog = memo(function NewAppDialog(
             <FieldLabel className="font-rubik">Description</FieldLabel>
             <FieldTextArea
               className="w-full font-rubik"
-              placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
+              placeholder="For internal reference. Visible only to you and your team."
               type="text"
               {...register("description_internal")}
               readOnly={formState.isSubmitting}

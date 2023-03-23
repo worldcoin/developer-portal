@@ -146,7 +146,8 @@ export const Action = memo(function Action(props: {
                     </div>
                   )}
 
-                  <div className="-mx-6 border-t border-f3f4f5 pt-6">
+                  {/* FIXME: There's no way to access the kiosk today */}
+                  {/* <div className="-mx-6 border-t border-f3f4f5 pt-6">
                     <div className="grid gap-x-2 grid-flow-col items-center justify-end px-6">
                       <span className="text-14">Enable Kiosk</span>
                       <Switch
@@ -154,7 +155,7 @@ export const Action = memo(function Action(props: {
                         toggle={() => toggleKiosk(props.action.id)}
                       />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </Disclosure.Panel>
             </Transition>
