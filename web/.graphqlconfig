@@ -1,0 +1,15 @@
+{
+  "name": "hasura",
+  "schemaPath": "src/graphql/graphql.schema.json",
+  "extensions": {
+    "endpoints": {
+      "hasura": {
+        "url": "${env:NEXT_PUBLIC_GRAPHQL_API_URL}",
+        "headers": {
+          "x-hasura-admin-secret": "${env:HASURA_GRAPHQL_ADMIN_SECRET}"
+        },
+        "introspect": false
+      }
+    }
+  }
+}

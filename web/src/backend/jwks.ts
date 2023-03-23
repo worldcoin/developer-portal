@@ -1,8 +1,7 @@
 import { gql } from "@apollo/client";
+import * as jose from "jose";
 import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
-import * as jose from "jose";
-import { JWK_ALG } from "src/lib/constants";
 
 const fetchJWKQuery = gql`
   query FetchJWKQuery($now: timestamptz!, $alg: String!) {

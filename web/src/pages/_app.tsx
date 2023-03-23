@@ -1,10 +1,11 @@
 import "@/globals.css";
 import type { AppContext, AppProps } from "next/app";
-import { Fragment } from "react";
 import { usePostHog } from "@/hooks/usePostHog";
 import Head from "next/head";
 import { Sora, Rubik, IBM_Plex_Mono } from "next/font/google";
 import { NextSeo } from "next-seo";
+import { ApolloProvider } from "@apollo/client";
+import { client } from "@/services/apollo";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -55,7 +56,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   }));
 
   return (
-    <Fragment>
+    <ApolloProvider client={client}>
       <Head>
         {/* ANCHOR favicon */}
         <link
@@ -114,7 +115,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
           --font-mono: ${ibmPlexMono.style.fontFamily};
         }
       `}</style>
-    </Fragment>
+    </ApolloProvider>
   );
 };
 

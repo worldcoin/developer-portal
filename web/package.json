@@ -14,7 +14,9 @@
     "test:api": "jest tests/api",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
-    "format:check": "prettier --check ./"
+    "format:check": "prettier --check ./",
+    "generate:graphql-schema": "graphql-codegen --require dotenv/config --config graphql-codegen.schema.js",
+    "generate:graphql-types": "graphql-codegen --require dotenv/config --config graphql-codegen.types.js"
   },
   "dependencies": {
     "@apollo/client": "^3.7.9",
@@ -59,6 +61,13 @@
     "zustand": "^4.3.4"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^3.2.2",
+    "@graphql-codegen/introspection": "^3.0.1",
+    "@graphql-codegen/near-operation-file-preset": "^2.5.0",
+    "@graphql-codegen/typescript": "^3.0.2",
+    "@graphql-codegen/typescript-graphql-request": "^4.5.8",
+    "@graphql-codegen/typescript-operations": "^3.0.2",
+    "@graphql-codegen/typescript-react-apollo": "^3.3.7",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.3.0",
     "@types/cors": "^2.8.12",
@@ -71,6 +80,7 @@
     "@types/react-syntax-highlighter": "^15.5.2",
     "@types/request-ip": "^0.0.37",
     "autoprefixer": "^10.4.7",
+    "dotenv": "^16.0.3",
     "eslint": "8.16.0",
     "eslint-config-next": "12.1.6",
     "jest": "^29.4.3",
