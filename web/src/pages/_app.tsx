@@ -52,7 +52,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
     url: `${process.env.NEXT_PUBLIC_APP_URL}/images/meta/${width}x${height}.png`,
     width,
     height,
-    alt: `OG Image ${index}`,
+    alt: `Worldcoin Developer Portal`,
   }));
 
   return (
