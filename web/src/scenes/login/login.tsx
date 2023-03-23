@@ -85,8 +85,8 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
-      <div className="grid min-h-screen grid-rows-[auto_1fr] p-8">
-        <div className="flex justify-between items-center w-screen px-24">
+      <div className="grid w-full min-h-screen grid-rows-[auto_1fr] py-8">
+        <div className="flex justify-between items-center px-24">
           <Icon name="logo" className="w-48 h-8" />
 
           <div className="grid grid-flow-col items-center gap-6">
