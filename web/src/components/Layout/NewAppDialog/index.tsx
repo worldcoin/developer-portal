@@ -12,6 +12,7 @@ import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
 import { Switch } from "src/components/Switch";
+import cn from "classnames";
 
 type FormData = Pick<
   AppModel,
@@ -31,7 +32,7 @@ export const NewAppDialog = memo(function NewAppDialog(
     useForm<FormData>({
       defaultValues: {
         engine: EngineType.Cloud,
-        is_staging: false,
+        is_staging: true,
       },
     });
 
@@ -43,7 +44,7 @@ export const NewAppDialog = memo(function NewAppDialog(
 
   return (
     <Dialog
-      panelClassName="max-h-full overflow-y-auto"
+      panelClassName="max-h-full overflow-y-auto lg:min-w-[712px]"
       open={props.open}
       onClose={props.onClose}
     >
@@ -99,25 +100,36 @@ export const NewAppDialog = memo(function NewAppDialog(
             name="is_staging"
             control={control}
             render={({ field }) => (
-              <div className="grid grid-cols-3 justify-items-center items-center w-full py-3 px-4 bg-f3f4f5 rounded-xl mt-6">
-                <button
-                  type="button"
-                  onClick={() => field.onChange(false)}
-                  className="font-rubik"
-                >
-                  Production
-                </button>
-                <Switch
-                  className="bg-neutral-dark"
-                  checked={field.value}
-                  toggle={field.onChange}
+              <div className="grid grid-cols-2 relative bg-f3f4f5 border border-f1f5f8 rounded-xl h-12 mt-6">
+                <div
+                  className={cn(
+                    "absolute inset-y-0.5 w-1/2 bg-neutral-dark border-f1f5f8 rounded-[10px] transition-[left]",
+                    { "left-0.5": field.value === true },
+                    { "left-[calc(50%_-_2px)]": field.value === false }
+                  )}
                 />
+
                 <button
                   type="button"
                   onClick={() => field.onChange(true)}
-                  className="font-rubik"
+                  className={cn(
+                    "z-10 transition-colors text-14 font-rubik outline-none",
+                    { "text-ffffff": field.value === true },
+                    { "text-neutral-dark": field.value === false }
+                  )}
                 >
                   Staging
+                </button>
+                <button
+                  type="button"
+                  onClick={() => field.onChange(false)}
+                  className={cn(
+                    "z-10 transition-colors text-14 font-rubik outline-none",
+                    { "text-neutral-dark": field.value === true },
+                    { "text-ffffff": field.value === false }
+                  )}
+                >
+                  Production
                 </button>
               </div>
             )}

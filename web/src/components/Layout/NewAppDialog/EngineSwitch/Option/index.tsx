@@ -33,7 +33,7 @@ export const Option = memo(function Option(props: OptionProps) {
       className={cn(
         "relative flex items-center gap-x-4 w-full p-4 pr-5 text-left border rounded-2xl transition-colors",
         {
-          "bg-191c20 border-transparent": props.checked,
+          "bg-neutral-dark border-transparent": props.checked,
           "border-f0edf9": !props.checked,
         }
       )}
@@ -44,12 +44,18 @@ export const Option = memo(function Option(props: OptionProps) {
         className={cn(
           "shrink-0 flex items-center justify-center w-12 h-12 rounded-full transition-colors",
           {
-            "bg-ffffff/10 text-ffffff": checked,
+            "bg-ffffff/10": checked,
             "bg-f3f4f5": !checked,
           }
         )}
       >
-        <Icon name={icon} className="w-6 h-6" />
+        <Icon
+          name={icon}
+          className={cn("w-6 h-6 transition-colors", {
+            "text-ffffff": checked,
+            "text-neutral-dark": !checked,
+          })}
+        />
       </div>
 
       <div>
@@ -58,7 +64,7 @@ export const Option = memo(function Option(props: OptionProps) {
             "font-sora font-semibold text-16 leading-4 transition-colors",
             {
               "text-ffffff": checked,
-              "text-191c20": !checked,
+              "text-neutral-dark": !checked,
             }
           )}
         >
@@ -84,7 +90,7 @@ export const Option = memo(function Option(props: OptionProps) {
             "absolute top-[8px] right-[8px] flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg transition-colors",
             {
               "bg-ffffff/10 text-ffffff": checked,
-              "bg-f3f4f5": !checked,
+              "bg-neutral-dark/10 text-neutral-dark": !checked,
             }
           )}
         >
