@@ -31,7 +31,7 @@ export const Option = memo(function Option(props: OptionProps) {
     <button
       type="button"
       className={cn(
-        "relative flex items-center gap-x-4 w-full p-4 pr-5 text-left border rounded-2xl transition-colors",
+        "relative flex items-center gap-x-4 w-full py-4 pl-4 pr-3.5 text-left border rounded-2xl transition-colors",
         {
           "bg-neutral-dark border-transparent": props.checked,
           "border-f0edf9": !props.checked,
@@ -87,7 +87,7 @@ export const Option = memo(function Option(props: OptionProps) {
       {easiest && (
         <div
           className={cn(
-            "absolute top-[8px] right-[8px] flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg transition-colors",
+            "absolute top-2 right-4 flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg transition-colors",
             {
               "bg-ffffff/10 text-ffffff": checked,
               "bg-neutral-dark/10 text-neutral-dark": !checked,
