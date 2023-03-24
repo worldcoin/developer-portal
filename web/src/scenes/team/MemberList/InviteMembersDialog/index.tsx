@@ -36,7 +36,7 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
         title="Invite New Members"
       />
 
-      <div className="text-center">
+      <div className="text-center font-rubik text-neutral-secondary">
         You’ll be able to invite your team very soon
       </div>
 
