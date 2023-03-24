@@ -3,6 +3,7 @@ import {
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Auth } from "src/components/Auth";
@@ -20,6 +21,9 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [terms, setTerms] = useState(false);
+
+  const isReady = useMemo(() => teamName && terms, [teamName, terms]);
 
   useEffect(() => {
     if (router.isReady) {
@@ -127,6 +131,9 @@ export function Signup() {
             className="font-rubik"
             label="I agree with the Developer Portal Terms, which incorporates by reference the Worldcoin User Terms and Conditions and the Worldcoin Privacy Statement."
             disabled={loading}
+            onChange={(e) => {
+              e.target.checked ? setTerms(true) : setTerms(false);
+            }}
           />
 
           <Checkbox
@@ -140,7 +147,7 @@ export function Signup() {
           className="max-w-[327px] w-full h-[64px] mt-8"
           onClick={submit}
           type="button"
-          disabled={loading}
+          disabled={loading || !isReady}
         >
           Create my account
         </Button>
