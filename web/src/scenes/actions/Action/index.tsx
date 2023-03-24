@@ -77,9 +77,9 @@ export const Action = memo(function Action(props: {
             <Transition
               enter="transition-[max-height] duration-300 ease-in"
               enterFrom="max-h-0"
-              enterTo="max-h-[1000px]"
+              enterTo="max-h-auto"
               leave="transition-[max-height] duration-300 ease-out"
-              leaveFrom="max-h-[1000px]"
+              leaveFrom="max-h-auto"
               leaveTo="max-h-0"
             >
               <Disclosure.Panel
