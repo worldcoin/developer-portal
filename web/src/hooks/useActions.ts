@@ -1,14 +1,14 @@
-import { gql } from "@apollo/client";
-import { graphQLRequest } from "src/lib/frontend-api";
 import { ActionModelWithNullifiers } from "@/lib/models";
+import { gql } from "@apollo/client";
+import { internal as IDKitInternal } from "@worldcoin/idkit";
+import { useCallback, useState } from "react";
+import { toast } from "react-toastify";
+import { graphQLRequest } from "src/lib/frontend-api";
+import { IActionStore, useActionStore } from "src/stores/actionStore";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
-import { useCallback, useState } from "react";
-import { toast } from "react-toastify";
-import { IActionStore, useActionStore } from "src/stores/actionStore";
-import { IAppStore, useAppStore } from "src/stores/appStore";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 
 const actionFields = `
   id
@@ -44,6 +44,7 @@ const UpdateActionMutation = gql`
     $id: String!
     $name: String!
     $description: String!
+    $max_verifications: Int!
     $kiosk_enabled: Boolean!
   ) {
     update_action_by_pk(
@@ -51,6 +52,7 @@ const UpdateActionMutation = gql`
       _set: {
         name: $name
         description: $description
+        max_verifications: $max_verifications
         kiosk_enabled: $kiosk_enabled
       }
     ) {
@@ -66,6 +68,7 @@ const InsertActionMutation = gql`
     $action: String = ""
     $app_id: String!,
     $external_nullifier: String!
+    $max_verifications: Int = 1
   ) {
     insert_action_one(
       object: {
@@ -74,6 +77,7 @@ const InsertActionMutation = gql`
         name: $name
         description: $description
         external_nullifier: $external_nullifier
+        max_verifications: $max_verifications
       }
     ) {
         ${actionFields}
@@ -111,11 +115,12 @@ const updateActionFetcher = async (
       id: ActionModelWithNullifiers["id"];
       name?: ActionModelWithNullifiers["name"];
       description?: ActionModelWithNullifiers["description"];
+      max_verifications?: ActionModelWithNullifiers["max_verifications"];
       kiosk_enabled?: ActionModelWithNullifiers["kiosk_enabled"];
     };
   }
 ) => {
-  const { id, name, description, kiosk_enabled } = args.arg;
+  const { id, name, description, max_verifications, kiosk_enabled } = args.arg;
 
   const currentAction = useActionStore
     .getState()
@@ -133,6 +138,7 @@ const updateActionFetcher = async (
       id: id,
       name: name ?? currentAction.name,
       description: description ?? currentAction.description,
+      max_verifications: max_verifications ?? currentAction.max_verifications,
       kiosk_enabled: kiosk_enabled ?? currentAction.kiosk_enabled,
     },
   });
@@ -151,7 +157,8 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
     throw new Error("App not found in state");
   }
 
-  const { name, description, action } = useActionStore.getState().newAction;
+  const { name, description, action, maxVerifications } =
+    useActionStore.getState().newAction;
 
   const external_nullifier = IDKitInternal.generateExternalNullifier(
     currentApp.id,
@@ -167,6 +174,7 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
         name,
         description,
         action,
+        max_verifications: maxVerifications,
         app_id: currentApp.id,
         external_nullifier,
       },
@@ -255,6 +263,22 @@ const useActions = () => {
     [actions, updateAction]
   );
 
+  const updateMaxVerifications = useCallback(
+    (id: string, max_verifications: number) => {
+      const currentAction = actions.find((action) => action.id === id);
+
+      if (!currentAction) {
+        return;
+      }
+
+      updateAction({
+        id,
+        max_verifications,
+      });
+    },
+    [actions, updateAction]
+  );
+
   const toggleKiosk = useCallback(
     (id: string) => {
       const currentAction = actions.find((action) => action.id === id);
@@ -309,6 +333,7 @@ const useActions = () => {
     updateAction,
     updateName,
     updateDescription,
+    updateMaxVerifications,
     toggleKiosk,
     createNewAction,
     isNewActionMutating,
