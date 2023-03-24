@@ -21,7 +21,7 @@ export function Invite({ loginUrl, nonce }: IInvitePageProps) {
 
   return (
     <Auth pageTitle="Invite" pageUrl="invite">
-      <div className="flex flex-col items-center max-w-[544px] p-12">
+      <div className="flex flex-col items-center max-w-[640px] p-12">
         {loading && (
           <>
             <Icon name="spinner" className="h-8 w-8 animate-spin" noMask />
@@ -32,23 +32,33 @@ export function Invite({ loginUrl, nonce }: IInvitePageProps) {
         )}
         {!loading && (
           <>
-            <Typography className="mt-8" variant="title">
-              Welcome, please sign in to continue
+            <div className="relative">
+              <Icon name="wld-logo" className="w-16 h-16" />
+              <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
+              <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
+              <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
+            </div>
+            <Typography className="mt-8 tracking-widest text-sm">
+              WELCOME
+            </Typography>
+            <Typography className="mt-4" variant="title">
+              Please continue with Worldcoin to create your account
             </Typography>
             <div className="mt-4 text-neutral-secondary text-center">
-              Thank you for joining the World ID beta. If you don&apos;t have a
-              World ID yet, download the{" "}
-              <a className="text-primary" href="https://worldcoin.org/download">
-                World App
-              </a>{" "}
-              to proceed.
+              If you don&apos;t have a World ID yet, download the app first.
             </div>
             <Link href={loginUrl ?? ""}>
-              <Button variant="primary" className="py-3 px-8 mt-8">
+              <Button variant="primary" className="py-5 px-14 mt-10">
                 <Icon name="wld-logo" className="h-6 w-6 mr-2" />
                 Sign In with Worldcoin
               </Button>
             </Link>
+            <p className="mt-6 text-sm">
+              Don&apos;t have the World App?{" "}
+              <a className="text-primary" href="https://worldcoin.org/download">
+                Download it here.
+              </a>
+            </p>
           </>
         )}
       </div>
