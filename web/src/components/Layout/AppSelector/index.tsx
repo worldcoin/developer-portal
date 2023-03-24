@@ -94,13 +94,11 @@ export const AppSelector = memo(function AppsSelector(props: {
 
   const getHref = useCallback(
     (id: string) => {
-      const route = router.pathname.replace("/app/[app_id]", "");
-
-      if (!route) {
-        return `/app/${id}`;
+      const pathname = router.pathname;
+      if (pathname.startsWith("/app/[app_id]")) {
+        return `/app/${id}${pathname.replace("/app/[app_id]", "")}`;
       }
-
-      return `/app/${id}${route}`;
+      return `/app/${id}`;
     },
     [router.pathname]
   );
