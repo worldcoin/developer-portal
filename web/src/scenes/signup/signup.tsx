@@ -3,6 +3,7 @@ import {
   MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Auth } from "src/components/Auth";
@@ -21,7 +22,8 @@ export function Signup() {
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
   const [terms, setTerms] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+
+  const isReady = useMemo(() => teamName && terms, [teamName, terms]);
 
   useEffect(() => {
     if (router.isReady) {
@@ -70,14 +72,6 @@ export function Signup() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
   }, []);
-
-  useEffect(() => {
-    if (teamName && terms) {
-      setIsReady(true);
-    } else {
-      setIsReady(false);
-    }
-  }, [teamName, terms]);
 
   return (
     <Auth pageTitle="Sign Up" pageUrl="signup">
