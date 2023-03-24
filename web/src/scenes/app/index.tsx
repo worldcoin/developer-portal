@@ -10,6 +10,7 @@ import useApps from "src/hooks/useApps";
 import { useToggle } from "@/hooks/useToggle";
 import { RemoveAppDialog } from "@/scenes/app/RemoveAppDialog";
 import { Button } from "@/components/Button";
+import { NotFound } from "src/components/NotFound";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -25,18 +26,14 @@ export const App = memo(function App(props: {
   const removeAppDialog = useToggle();
 
   return (
-    <Layout userId={props.user_id}>
+    <Layout userId={props.user_id} mainClassName="grid">
       {isLoading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
         </div>
       )}
 
-      {!isLoading && !currentApp && (
-        <div className="w-full h-full flex justify-center items-center">
-          <h1 className="text-20 font-sora font-semibold">App not found</h1>
-        </div>
-      )}
+      {!isLoading && !currentApp && <NotFound className="self-center" />}
 
       {!isLoading && currentApp && (
         <div className="grid gap-y-12">
