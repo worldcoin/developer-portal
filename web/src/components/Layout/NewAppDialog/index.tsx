@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
@@ -11,7 +11,6 @@ import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
-import { Switch } from "src/components/Switch";
 import cn from "classnames";
 
 type FormData = Pick<
@@ -34,6 +33,7 @@ export const NewAppDialog = memo(function NewAppDialog(
         engine: EngineType.Cloud,
         is_staging: true,
       },
+      mode: "onChange",
     });
 
   const onSubmit = handleSubmit(async (data) => {
@@ -41,6 +41,14 @@ export const NewAppDialog = memo(function NewAppDialog(
     props.onClose();
     reset();
   });
+
+  const isValid = useMemo(
+    () =>
+      !formState.isSubmitting &&
+      !Boolean(formState.errors.name) &&
+      formState.dirtyFields.name,
+    [formState.dirtyFields.name, formState.errors.name, formState.isSubmitting]
+  );
 
   return (
     <Dialog
@@ -150,7 +158,7 @@ export const NewAppDialog = memo(function NewAppDialog(
           <Button
             className="w-full h-[56px] mt-12 font-medium"
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={!isValid}
           >
             Create New App
           </Button>
