@@ -1,0 +1,11 @@
+query FetchUser($id: String!) {
+  user(where: { id: { _eq: $id } }) {
+    id
+    email
+    name
+    team {
+      id
+      name
+    }
+  }
+}
