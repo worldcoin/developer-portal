@@ -20,6 +20,8 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [terms, setTerms] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (router.isReady) {
@@ -68,6 +70,14 @@ export function Signup() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
   }, []);
+
+  useEffect(() => {
+    if (teamName && terms) {
+      setIsReady(true);
+    } else {
+      setIsReady(false);
+    }
+  }, [teamName, terms]);
 
   return (
     <Auth pageTitle="Sign Up" pageUrl="signup">
@@ -127,6 +137,9 @@ export function Signup() {
             className="font-rubik"
             label="I agree with the Developer Portal Terms, which incorporates by reference the Worldcoin User Terms and Conditions and the Worldcoin Privacy Statement."
             disabled={loading}
+            onChange={(e) => {
+              e.target.checked ? setTerms(true) : setTerms(false);
+            }}
           />
 
           <Checkbox
@@ -140,7 +153,7 @@ export function Signup() {
           className="max-w-[327px] w-full h-[64px] mt-8"
           onClick={submit}
           type="button"
-          disabled={loading}
+          disabled={loading || !isReady}
         >
           Create my account
         </Button>
