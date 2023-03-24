@@ -58,7 +58,8 @@ export function NewAction() {
     if (
       newAction.name &&
       newAction.action &&
-      newAction.maxVerifications! >= 0
+      newAction.maxVerifications !== null &&
+      newAction.maxVerifications >= 0
     ) {
       setIsReady(true);
     } else {
