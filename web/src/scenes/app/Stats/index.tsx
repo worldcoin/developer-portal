@@ -24,7 +24,7 @@ import { Line } from "react-chartjs-2";
 import useAppStats from "src/hooks/useAppStats";
 import { IAppStatsStore, useAppStatsStore } from "src/stores/appStatsStore";
 import { StatCard } from "./StatCard";
-import { stat } from "fs";
+import { Icon } from "src/components/Icon";
 
 ChartJS.register(
   CategoryScale,
@@ -165,84 +165,106 @@ export const Stats = memo(function Stats() {
           setOption={setCurrentTimeSpan}
         />
 
-        <div className="grid grid-cols-1fr/auto gap-x-16 mt-4">
+        {stats?.length === 0 && (
+          <div className="grid content-center justify-center justify-items-center gap-y-4 border border-ebecef bg-f9fafb py-20 w-full rounded-[10px] mt-4">
+            <div className="p-5 rounded-full text-0 bg-f3f4f5 flex items-center justify-center">
+              <Icon name="stats" className="h-6 w-6 text-neutral-secondary" />
+            </div>
+
+            <div className="grid gap-y-1 justify-items-center">
+              <h4 className="text-neutral-dark font-sora font-semibold">
+                No data available yet
+              </h4>
+
+              <span className="text-14 text-657080">
+                Your verification numbers will show up here.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {stats?.length > 0 && (
           <div>
-            <div className="border-y border-f3f4f5">
-              <Line
-                className="w-full"
-                options={{
-                  responsive: true,
+            <div className="grid grid-cols-1fr/auto gap-x-16 mt-4">
+              <div>
+                <div className="border-y border-f3f4f5">
+                  <Line
+                    className="w-full"
+                    options={{
+                      responsive: true,
 
-                  interaction: {
-                    intersect: false,
-                    mode: "index",
-                  },
+                      interaction: {
+                        intersect: false,
+                        mode: "index",
+                      },
 
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                      backgroundColor: "#ffffff",
-                      bodyColor: "#858494",
-                      callbacks: { title: () => "" },
-                      displayColors: false,
-                    },
-                  },
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: "#ffffff",
+                          bodyColor: "#858494",
+                          callbacks: { title: () => "" },
+                          displayColors: false,
+                        },
+                      },
 
-                  aspectRatio: 772 / 205,
+                      aspectRatio: 772 / 205,
 
-                  datasets: {
-                    line: {
-                      borderColor: "#4940e0",
-                    },
-                  },
+                      datasets: {
+                        line: {
+                          borderColor: "#4940e0",
+                        },
+                      },
 
-                  scales: {
-                    x: {
-                      display: false,
-                    },
+                      scales: {
+                        x: {
+                          display: false,
+                        },
 
-                    y: {
-                      display: false,
-                    },
-                  },
+                        y: {
+                          display: false,
+                        },
+                      },
 
-                  layout: {
-                    padding: {
-                      top: 56,
-                    },
-                  },
-                }}
-                data={{
-                  labels: data.labels,
-                  datasets: data.datasets,
-                }}
-              />
+                      layout: {
+                        padding: {
+                          top: 56,
+                        },
+                      },
+                    }}
+                    data={{
+                      labels: data.labels,
+                      datasets: data.datasets,
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-12 text-657080 mt-3">
+                  <span>{dayjs(stats?.[0]?.date).format("MMM. DD, YYYY")}</span>
+                  <span>Now</span>
+                </div>
+              </div>
+
+              <div className="grid gap-y-2 content-center">
+                <StatCard
+                  title="Verifications"
+                  value={totalVerifications}
+                  icon="chart"
+                />
+
+                <StatCard
+                  title="Unique users"
+                  value={totalUnique}
+                  icon="world-id-sign-in"
+                />
+              </div>
             </div>
-            <div className="flex justify-between text-12 text-657080 mt-3">
-              <span>{dayjs(stats?.[0]?.date).format("MMM. DD, YYYY")}</span>
-              <span>Now</span>
+
+            <div className="grid grid-flow-col gap-x-6 justify-start mt-[14px] items-center">
+              <LegendElement name="Unique users" variant="primary" />
+              <LegendElement name="Verifications" variant="secondary" />
             </div>
           </div>
-
-          <div className="grid gap-y-2 content-center">
-            <StatCard
-              title="Verifications"
-              value={totalVerifications}
-              icon="chart"
-            />
-
-            <StatCard
-              title="Unique users"
-              value={totalUnique}
-              icon="world-id-sign-in"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-flow-col gap-x-6 justify-start mt-[14px] items-center">
-          <LegendElement name="Unique users" variant="primary" />
-          <LegendElement name="Verifications" variant="secondary" />
-        </div>
+        )}
       </div>
     </section>
   );
