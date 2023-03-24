@@ -25,6 +25,15 @@ export function NewAction() {
   const { newAction, setNewAction, isOpened, setIsOpened } =
     useActionStore(getActionsStore);
 
+  const handleActionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewAction({ name: e.target.value });
+
+    const action = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    if (!newAction.action || newAction.action !== action) {
+      setNewAction({ action });
+    }
+  };
+
   const handleMaxVerificationsChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -74,7 +83,7 @@ export function NewAction() {
             placeholder="Add name"
             required
             value={newAction.name}
-            onChange={(e) => setNewAction({ name: e.target.value })}
+            onChange={handleActionNameChange}
             disabled={isNewActionMutating}
           />
         </div>
