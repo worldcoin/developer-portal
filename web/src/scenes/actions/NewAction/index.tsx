@@ -1,10 +1,10 @@
-import { Dialog } from "@/components/Dialog";
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldInput } from "@/components/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
+import { FormEvent, useCallback, useRef } from "react";
 import { Illustration } from "src/components/Auth/Illustration";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { FieldTextArea } from "src/components/FieldTextArea";
 import useActions from "src/hooks/useActions";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
@@ -80,6 +80,23 @@ export function NewAction() {
             value={newAction.action}
             onChange={(e) => setNewAction({ action: e.target.value })}
             invalid={isNewActionDuplicateAction}
+            disabled={isNewActionMutating}
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-y-2">
+          <FieldLabel required className="font-rubik">
+            Maximum verifications
+          </FieldLabel>
+
+          <FieldInput
+            className="w-full font-rubik"
+            placeholder="Use '0' for unlimited verifications"
+            required
+            value={newAction.maxVerifications?.toString()}
+            onChange={(e) =>
+              setNewAction({ maxVerifications: Number(e.target.value) })
+            }
             disabled={isNewActionMutating}
           />
         </div>

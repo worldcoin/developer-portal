@@ -1,13 +1,12 @@
-import { Fragment, memo, MouseEvent as ReactMouseEvent, useMemo } from "react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { ActionHeader } from "./ActionHeader";
+import cn from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Fragment, memo, MouseEvent as ReactMouseEvent, useMemo } from "react";
 import { Icon } from "src/components/Icon";
-import { Switch } from "src/components/Switch";
-import { ActionModelWithNullifiers } from "src/lib/models";
 import useActions from "src/hooks/useActions";
-import cn from "classnames";
+import { ActionModelWithNullifiers } from "src/lib/models";
+import { ActionHeader } from "./ActionHeader";
 
 dayjs.extend(relativeTime);
 
@@ -33,7 +32,8 @@ const COLORS = [
 export const Action = memo(function Action(props: {
   action: ActionModelWithNullifiers;
 }) {
-  const { toggleKiosk, updateName, updateDescription } = useActions();
+  const { toggleKiosk, updateName, updateDescription, updateMaxVerifications } =
+    useActions();
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
     const value = result[0] === "a" ? "1" : result[0];
@@ -68,6 +68,9 @@ export const Action = memo(function Action(props: {
               onChangeName={(value) => updateName(props.action.id, value)}
               onChangeDescription={(value) =>
                 updateDescription(props.action.id, value)
+              }
+              onChangeMaxVerifications={(value) =>
+                updateMaxVerifications(props.action.id, parseInt(value))
               }
             />
 
