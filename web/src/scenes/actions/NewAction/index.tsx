@@ -3,7 +3,7 @@ import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldInput } from "@/components/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
-import { FormEvent, useCallback, useRef } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Illustration } from "src/components/Auth/Illustration";
 import { FieldTextArea } from "src/components/FieldTextArea";
 import useActions from "src/hooks/useActions";
@@ -17,12 +17,23 @@ const getActionsStore = (store: IActionStore) => ({
 });
 
 export function NewAction() {
+  const [isReady, setIsReady] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { createNewAction, isNewActionMutating, isNewActionDuplicateAction } =
     useActions();
 
   const { newAction, setNewAction, isOpened, setIsOpened } =
     useActionStore(getActionsStore);
+
+  const handleMaxVerificationsChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (parseInt(e.target.value) >= 0) {
+      setNewAction({ maxVerifications: parseInt(e.target.value) });
+    } else {
+      setNewAction({ maxVerifications: 0 });
+    }
+  };
 
   const handleSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -33,6 +44,18 @@ export function NewAction() {
     },
     [createNewAction]
   );
+
+  useEffect(() => {
+    if (
+      newAction.name &&
+      newAction.action &&
+      newAction.maxVerifications! >= 0
+    ) {
+      setIsReady(true);
+    } else {
+      setIsReady(false);
+    }
+  }, [newAction.action, newAction.maxVerifications, newAction.name]);
 
   return (
     <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
@@ -94,16 +117,14 @@ export function NewAction() {
             placeholder="Use '0' for unlimited verifications"
             required
             value={newAction.maxVerifications?.toString()}
-            onChange={(e) =>
-              setNewAction({ maxVerifications: Number(e.target.value) })
-            }
+            onChange={handleMaxVerificationsChange}
             disabled={isNewActionMutating}
           />
         </div>
 
         <Button
           className="w-full h-[56px] mt-12 font-medium"
-          disabled={isNewActionMutating}
+          disabled={isNewActionMutating || !isReady}
         >
           Create New Action
         </Button>
