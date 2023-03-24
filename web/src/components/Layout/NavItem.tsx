@@ -1,8 +1,8 @@
-import { Icon, IconType } from "src/components/Icon";
-import { Link } from "src/components/Link";
+import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, memo, useMemo } from "react";
-import cn from "classnames";
+import { Icon, IconType } from "src/components/Icon";
+import { Link } from "src/components/Link";
 
 // NOTE: Pass "href" prop if you want link item.
 //  Pass "onClick" prop if you want button item.
@@ -33,24 +33,17 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
   return (
     <div
       className={cn(
-        "grid items-center grid-cols-auto/1fr gap-x-4 group",
+        "grid items-center grid-cols-auto/1fr gap-x-4 text-neutral-secondary hover:bg-f3f4f5 hover:text-neutral-primary rounded-xl transition-colors",
         props.className
       )}
     >
-      <div
-        className={cn("p-2.5 text-0 transition-colors rounded-xl", {
-          "group-hover:bg-f3f4f5": !props.selected,
-          "bg-neutral-primary": props.selected,
-        })}
-      >
+      <div className={cn("p-2.5 text-0")}>
         <Icon
           name={props.icon}
           className={cn(
-            "h-5 w-5 transition-colors",
+            "h-5 w-5",
             {
-              "group-hover:text-657080": !props.customColor && !props.selected,
-              "text-d6d9dd": !props.selected && !props.customColor,
-              "text-ffffff": props.selected && !props.customColor,
+              "text-neutral-primary": props.selected && !props.customColor,
             },
             props.customColor
           )}
@@ -59,10 +52,8 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
 
       <div
         className={cn(
-          "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center transition-colors",
+          "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center",
           {
-            "group-hover:text-657080": !props.customColor && !props.selected,
-            "text-d6d9dd": !props.selected && !props.customColor,
             "text-neutral-primary": props.selected && !props.customColor,
           },
           props.customColor
