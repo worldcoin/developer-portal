@@ -45,10 +45,10 @@ const Input = memo(function Input(props: {
   );
 
   return (
-    <div className="grid grid-flow-col gap-x-1 justify-start items-center group">
+    <div className="flex items-center">
       <input
         className={cn(
-          "min-w-[80px] outline-none font-rubik placeholder:italic",
+          "min-w-[40px] outline-none font-rubik placeholder:italic",
           {
             "border rounded-lg bg-f3f4f5 border-ebecef": inputButton.isOn,
           },
@@ -61,7 +61,7 @@ const Input = memo(function Input(props: {
         onKeyDown={handleKeyDown}
         onClick={(e) => e.preventDefault()}
         disabled={!inputButton.isOn}
-        size={value.length * 0.9}
+        size={value.length}
       />
 
       {/* FIXME: For some reason button element causes the hydration error */}
@@ -147,8 +147,8 @@ export const ActionHeader = memo(function ActionHeader(props: {
         </div>
       </div>
 
-      <div className="grid grid-flow-col items-center justify-end gap-x-16">
-        <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
+      <div className="grid grid-flow-col items-center justify-end gap-x-2">
+        <div className="flex items-center gap-x-2">
           <VerificationBadges
             verifications={props.action.max_accounts_per_user}
           />
