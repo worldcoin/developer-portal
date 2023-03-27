@@ -315,6 +315,7 @@ export const verifyProof = async (
       },
     ],
   };
+
   const ethCallRequest = await fetch(
     `${verifyParams.is_staging ? STAGING_RPC : PRODUCTION_RPC}/v2/${
       process.env.ALCHEMY_API_KEY

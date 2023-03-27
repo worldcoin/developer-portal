@@ -1,7 +1,7 @@
 import { ISuccessResult } from "@worldcoin/idkit";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { Icon } from "src/components/Icon";
 import { restAPIRequest } from "src/lib/frontend-api";
 import { KioskProps } from "src/pages/kiosk/[action_id]";

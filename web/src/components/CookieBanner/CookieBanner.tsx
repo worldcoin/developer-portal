@@ -113,10 +113,18 @@ export function CookieBanner(): JSX.Element | null {
           </span>
         </div>
         <div className="grid pr-6 grid-cols-2 gap-4 pt-2">
-          <Button color="danger" onClick={() => handleClick(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => handleClick(false)}
+            className="px-4"
+          >
             Reject all
           </Button>
-          <Button color="primary" onClick={() => handleClick(true)}>
+          <Button
+            variant="secondary"
+            onClick={() => handleClick(true)}
+            className="px-4"
+          >
             Yeah, okay
           </Button>
         </div>

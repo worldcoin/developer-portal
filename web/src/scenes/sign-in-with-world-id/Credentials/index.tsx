@@ -30,8 +30,13 @@ export const Credentials = memo(function Credentials() {
   );
 
   return (
-    <section className="grid gap-y-4">
-      <h3 className="font-medium">Client information</h3>
+    <section className="grid gap-y-12">
+      <div className="grid gap-y-2">
+        <h3 className="font-medium">Client information</h3>
+        <p className="text-neutral-secondary text-14 leading-none">
+          Use these attributes to configure Sign in with Worldcoin in your app.
+        </p>
+      </div>
 
       <div className="grid grid-flow-col justify-start gap-x-36">
         <Credential

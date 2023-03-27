@@ -6,32 +6,39 @@ import {
 } from "src/backend/errors";
 
 import { gql } from "@apollo/client";
-import { NextApiRequestWithBody } from "src/lib/types";
+import { JWTPayload } from "jose";
+import { NextApiResponse } from "next";
+import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import {
-  generateUserJWT,
   generateSignUpJWT,
+  generateUserJWT,
+  verifyInviteJWT,
   verifyOIDCJWT,
 } from "src/backend/jwts";
-import { NextApiResponse } from "next";
-import { UserModel } from "src/lib/models";
-import { JWTPayload } from "jose";
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
-import { getReturnToFromCookie, setCookie } from "src/backend/cookies";
+import { UserModel } from "src/lib/models";
+import { NextApiRequestWithBody } from "src/lib/types";
 
 export type LoginRequestBody = {
   dev_login?: string;
   sign_in_with_world_id_token?: string;
+  invite_token?: string;
 };
 
 export type LoginRequestResponse =
   | {
       new_user: true;
+      email: string;
       signup_token: string;
     }
   | {
       new_user: false;
       returnTo?: string;
+    }
+  | {
+      code: string;
+      detail: string;
     };
 
 const query = gql`
@@ -118,10 +125,35 @@ export default async function handleLogin(
 
   const user = userQueryResult.data.user[0];
 
+  // NOTE: User does not have an account, check for an invite token
+  const { invite_token } = req.body;
   if (!user) {
-    // NOTE: User does not have an account, generate a sign up token
-    const signup_token = await generateSignUpJWT(payload.sub);
-    return res.status(200).json({ new_user: true, signup_token });
+    if (invite_token) {
+      let email: string | undefined;
+      try {
+        email = await verifyInviteJWT(invite_token);
+      } catch {}
+
+      if (!email) {
+        // Invite token is invalid, return an error
+        return errorValidation(
+          "invalid_invite_token",
+          "Invite token was invalid, and may be expired.",
+          "invite_token",
+          res
+        );
+      }
+
+      const signup_token = await generateSignUpJWT(payload.sub);
+      return res.status(200).json({ new_user: true, email, signup_token });
+    } else {
+      return errorValidation(
+        "invite_token_required",
+        "You need to provide a waitlist invite token to sign up. Visit https://docs.worldcoin.org/waitlist to get yours.",
+        "invite_token",
+        res
+      );
+    }
   }
 
   const returnTo = getReturnToFromCookie(req, res);

@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "src/backend/graphql";
-import { protectInternalEndpoint } from "src/backend/utils";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getAPIServiceClient } from "src/backend/graphql";
+import { protectInternalEndpoint } from "src/backend/utils";
 import { errorNotAllowed } from "../../backend/errors";
 
 /**
@@ -27,6 +27,7 @@ export default async function handleENS(
     process.env.ALCHEMY_API_KEY
   );
 
+  // Orb credential
   const productionAddress = await provider.resolveName("semaphore.wld.eth");
   const stagingAddress = await provider.resolveName(
     "staging.semaphore.wld.eth"
@@ -36,9 +37,7 @@ export default async function handleENS(
   const phoneStagingAddress = await provider.resolveName(
     "staging.phone.wld.eth"
   );
-  // FIXME: Temporary while we have a production smart contract
-  // const phoneAddress = await provider.resolveName("staging.phone.wld.eth");
-  const phoneAddress = "";
+  const phoneAddress = await provider.resolveName("phone.wld.eth");
 
   if (productionAddress && stagingAddress) {
     const mutation = gql`
@@ -63,6 +62,7 @@ export default async function handleENS(
         }
       }
     `;
+
     const client = await getAPIServiceClient();
     await client.query({
       query: mutation,

@@ -37,13 +37,12 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
     props.app_id,
     props.action,
     undefined,
-    [CredentialType.Orb],
+    [CredentialType.Orb, CredentialType.Phone],
     props.action_description
   );
 
-  // // Change the shown screen based on current verificationState and errorCode
+  // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    console.log("idKitVerificationState", idKitVerificationState);
     if (idKitVerificationState === verificationState) return;
 
     switch (idKitVerificationState) {

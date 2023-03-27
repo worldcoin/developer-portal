@@ -9,8 +9,10 @@ const Label = memo(function Label(props: {
   value: string;
   saving?: boolean;
   onSave: (value: string) => void;
+  disabled?: boolean;
+  disabledMessage?: string;
 }) {
-  const { value, onSave } = props;
+  const { value, onSave, disabled } = props;
 
   const ref = useRef<HTMLInputElement | null>(null);
 
@@ -44,13 +46,14 @@ const Label = memo(function Label(props: {
   return (
     <label>
       <span className="text-14 font-medium">{props.label}</span>
-      <div className="relative">
+      <div className="relative group">
         <FieldInput
           ref={ref}
-          className="text-14 w-full"
+          className="text-14 w-full disabled:cursor-not-allowed"
           defaultValue={value}
           onBlur={handleBlur}
           onKeyPress={handleKeyPress}
+          disabled={disabled}
         />
         {props.saving && (
           <Icon
@@ -58,6 +61,11 @@ const Label = memo(function Label(props: {
             name="spinner"
             noMask
           />
+        )}
+        {disabled && props.disabledMessage && (
+          <div className="absolute invisible group-hover:visible top-[100%] mt-1 text-14 text-neutral-secondary">
+            {props.disabledMessage}
+          </div>
         )}
       </div>
     </label>
@@ -82,6 +90,12 @@ export const Configuration = memo(function Configuration() {
         value={currentApp?.name || ""}
         saving={isUpdateAppNameMutating}
         onSave={updateAppName}
+        disabled={currentApp?.is_verified}
+        disabledMessage={
+          currentApp?.is_verified
+            ? "Verified app name can't be changed."
+            : undefined
+        }
       />
 
       <Label

@@ -14,7 +14,7 @@ export const Credential = memo(function Credential(props: {
   return (
     <div className="grid gap-y-2 justify-start">
       <span className="text-12 font-semibold uppercase">{props.name}</span>
-      <div className="text-neutral-secondary">
+      <div className="">
         {!props.valueHidden && props.value && <span>{props.value}</span>}
 
         {(props.valueHidden || !props.value) && (

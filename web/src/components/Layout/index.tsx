@@ -1,11 +1,11 @@
-import cn from "classnames";
-import { useRouter } from "next/router";
-import { Fragment, ReactNode, useEffect } from "react";
-import { Slide, ToastContainer } from "react-toastify";
 import useApps from "@/hooks/useApps";
 import { useToggle } from "@/hooks/useToggle";
 import { urls } from "@/lib/urls";
 import { IAppStore, useAppStore } from "@/stores/appStore";
+import cn from "classnames";
+import { useRouter } from "next/router";
+import { Fragment, ReactNode, useEffect } from "react";
+import { Slide, ToastContainer } from "react-toastify";
 import { CookieBanner } from "../CookieBanner/CookieBanner";
 import { Icon } from "../Icon";
 import { Link } from "../Link";
@@ -59,16 +59,9 @@ export const Layout = (props: {
             <Link href="/">
               <div className="grid justify-start gap-y-0.5">
                 <Icon
-                  name="logo"
-                  className="w-32 h-6 text-neutral-dark ml-4.5"
+                  name="logo-dev"
+                  className="w-40 h-12 text-neutral-dark ml-4.5"
                 />
-                <div className="px-1 rounded-md bg-primary/20 justify-self-end">
-                  <p className="font-sora text-[12px] text-primary">
-                    {"<"}
-                    <span className="font-bold">Dev</span>
-                    {"/Portal>"}
-                  </p>
-                </div>
               </div>
             </Link>
           </header>
@@ -92,7 +85,7 @@ export const Layout = (props: {
 
                 <NavItem
                   icon="notepad"
-                  name="Custom Actions"
+                  name="Anonymous Actions"
                   href={urls.appActions(router.query.app_id as string)}
                 />
               </NavItemGroup>
@@ -103,18 +96,19 @@ export const Layout = (props: {
                   icon="document"
                   href="https://docs.worldcoin.org"
                 />
-
+                {/* FIXME: Coming soon! */}
+                {/* 
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
                   href={urls.debugger()}
-                />
+                /> */}
 
-                <NavItem
+                {/* <NavItem
                   name="Support"
                   icon="help"
                   href="https://discord.gg/worldcoin"
-                />
+                /> */}
               </NavItemGroup>
 
               <hr className="text-f3f4f5 my-4 mr-10" />

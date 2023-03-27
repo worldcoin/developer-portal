@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -10,7 +11,6 @@ import {
   PHONE_SEQUENCER_STAGING,
   SEMAPHORE_GROUP_MAP,
 } from "src/lib/constants";
-import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType } from "src/lib/types";
 
 const existsQuery = gql`
@@ -85,12 +85,12 @@ export default async function handleInclusionProof(
     variables: { identity_commitment: req.body.identity_commitment },
   });
 
-  // Commitment is in the revocation table, deny the proof request
-  console.info(
-    `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`
-  );
-
   if (identityCommitmentExistsResponse.data.revocation.length) {
+    // Commitment is in the revocation table, deny the proof request
+    console.info(
+      `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`
+    );
+
     return errorValidation(
       "unverified_identity",
       "This identity is not verified for the phone credential.",

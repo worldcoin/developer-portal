@@ -5,12 +5,12 @@
  * * Developer Portal authentication
  */
 import { randomUUID } from "crypto";
+import dayjs from "dayjs";
 import * as jose from "jose";
-import { CredentialType, JwtConfig } from "../lib/types";
 import { JWK_ALG_OIDC } from "src/lib/constants";
+import { CredentialType, JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { OIDCScopes } from "./oidc";
-import dayjs from "dayjs";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -267,4 +267,39 @@ export const verifyOIDCJWT = async (
   );
 
   return payload;
+};
+
+/**
+ * Generates a JWT that can be used to sign up for a developer portal account
+ * @returns
+ */
+export const generateInviteJWT = async (email: string) => {
+  const payload = { email };
+
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("7d")
+    .sign(Buffer.from(GENERAL_SECRET_KEY));
+
+  return token;
+};
+
+/**
+ * Verifies an invite token. Returns the invited email address. If the token is invalid, throws an error.
+ * @param token
+ */
+export const verifyInviteJWT = async (token: string) => {
+  const { payload } = await jose.jwtVerify(
+    token,
+    Buffer.from(GENERAL_SECRET_KEY),
+    {
+      issuer: JWT_ISSUER,
+    }
+  );
+  const { email } = payload;
+  if (!email) {
+    throw new Error("JWT does not contain email claim.");
+  }
+  return email as string;
 };

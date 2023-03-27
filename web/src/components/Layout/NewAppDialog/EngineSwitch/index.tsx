@@ -14,7 +14,7 @@ export const EngineSwitch = memo(function EngineSwitch(
   const { value, onChange, disabled } = props;
 
   return (
-    <div className="grid gap-y-3 mt-6">
+    <div className="grid lg:gap-x-3 lg:grid-cols-2 gap-y-3 mt-6">
       <Option
         icon="cloud"
         title="Cloud"

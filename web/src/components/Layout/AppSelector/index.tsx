@@ -1,6 +1,6 @@
 import cn from "classnames";
 import Image from "next/image";
-import { Fragment, memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { AppModel } from "src/lib/models";
@@ -18,6 +18,14 @@ export const ButtonContent = memo(function ButtonContent(props: {
   className?: string;
 }) {
   const [image, setImage] = useState<string | null>(props.app.logo_url);
+
+  useEffect(() => {
+    if (!props.app.logo_url) {
+      return;
+    }
+
+    setImage(props.app.logo_url);
+  }, [props.app.logo_url]);
 
   return (
     <div
@@ -63,16 +71,8 @@ export const AppSelector = memo(function AppsSelector(props: {
 }) {
   const selector = useToggle();
   const { apps } = useApps();
-  const { currentApp, setCurrentApp } = useAppStore(getStore, shallow);
+  const { currentApp } = useAppStore(getStore, shallow);
   const router = useRouter();
-
-  const selectApp = useCallback(
-    (app: AppModel) => {
-      setCurrentApp(app);
-      selector.toggleOff();
-    },
-    [setCurrentApp, selector]
-  );
 
   const handleNewAppClick = useCallback(() => {
     selector.toggleOff();
@@ -85,19 +85,20 @@ export const AppSelector = memo(function AppsSelector(props: {
   );
 
   const appsToRender = useMemo(
-    () => apps?.filter((app) => !isSelected(app)),
+    () =>
+      apps
+        ?.filter((app) => !isSelected(app))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     [apps, isSelected]
   );
 
   const getHref = useCallback(
     (id: string) => {
-      const route = router.pathname.replace("/app/[app_id]", "");
-
-      if (!route) {
-        return `/app/${id}`;
+      const pathname = router.pathname;
+      if (pathname.startsWith("/app/[app_id]")) {
+        return `/app/${id}${pathname.replace("/app/[app_id]", "")}`;
       }
-
-      return `/app/${id}${route}`;
+      return `/app/${id}`;
     },
     [router.pathname]
   );

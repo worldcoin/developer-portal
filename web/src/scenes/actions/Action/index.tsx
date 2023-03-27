@@ -1,12 +1,12 @@
-import { Fragment, memo, MouseEvent as ReactMouseEvent, useMemo } from "react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { ActionHeader } from "./ActionHeader";
+import cn from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Fragment, memo, MouseEvent as ReactMouseEvent, useMemo } from "react";
 import { Icon } from "src/components/Icon";
-import { Switch } from "src/components/Switch";
-import { ActionModelWithNullifiers } from "src/lib/models";
 import useActions from "src/hooks/useActions";
+import { ActionModelWithNullifiers } from "src/lib/models";
+import { ActionHeader } from "./ActionHeader";
 
 dayjs.extend(relativeTime);
 
@@ -32,7 +32,8 @@ const COLORS = [
 export const Action = memo(function Action(props: {
   action: ActionModelWithNullifiers;
 }) {
-  const { toggleKiosk, updateName, updateDescription } = useActions();
+  const { toggleKiosk, updateName, updateDescription, updateMaxVerifications } =
+    useActions();
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
     const value = result[0] === "a" ? "1" : result[0];
@@ -52,7 +53,15 @@ export const Action = memo(function Action(props: {
     <Disclosure>
       {({ open }) => (
         <Fragment>
-          <Disclosure.Button className="shadow-[0px_10px_30px_rgba(25,28,32,0.1)] rounded-xl overflow-y-clip outline-none">
+          <Disclosure.Button
+            className={cn(
+              "rounded-xl overflow-y-clip outline-none transition-shadow transition-300 hover:shadow-[0px_10px_30px_rgba(25,28,32,0.1)]",
+              {
+                "shadow-[0px_10px_30px_rgba(25,28,32,0.02)]": !open,
+                "shadow-[0px_10px_30px_rgba(25,28,32,0.1)]": open,
+              }
+            )}
+          >
             <ActionHeader
               action={props.action}
               open={open}
@@ -60,14 +69,17 @@ export const Action = memo(function Action(props: {
               onChangeDescription={(value) =>
                 updateDescription(props.action.id, value)
               }
+              onChangeMaxVerifications={(value) =>
+                updateMaxVerifications(props.action.id, parseInt(value))
+              }
             />
 
             <Transition
               enter="transition-[max-height] duration-300 ease-in"
               enterFrom="max-h-0"
-              enterTo="max-h-[1000px]"
+              enterTo="max-h-auto"
               leave="transition-[max-height] duration-300 ease-out"
-              leaveFrom="max-h-[1000px]"
+              leaveFrom="max-h-auto"
               leaveTo="max-h-0"
             >
               <Disclosure.Panel
@@ -137,7 +149,8 @@ export const Action = memo(function Action(props: {
                     </div>
                   )}
 
-                  <div className="-mx-6 border-t border-f3f4f5 pt-6">
+                  {/* FIXME: There's no way to access the kiosk today */}
+                  {/* <div className="-mx-6 border-t border-f3f4f5 pt-6">
                     <div className="grid gap-x-2 grid-flow-col items-center justify-end px-6">
                       <span className="text-14">Enable Kiosk</span>
                       <Switch
@@ -145,7 +158,7 @@ export const Action = memo(function Action(props: {
                         toggle={() => toggleKiosk(props.action.id)}
                       />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </Disclosure.Panel>
             </Transition>
