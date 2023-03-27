@@ -6,11 +6,11 @@ import { MemberList } from "./MemberList";
 import { useTeam } from "@/hooks/useTeam";
 import { Preloader } from "@/components/Preloader";
 
-export const Team = memo(function Team() {
+export const Team = memo(function Team(props: { user_id?: string }) {
   const { data: team, isLoading } = useTeam();
 
   return (
-    <Layout mainClassName="grid gap-y-8">
+    <Layout userId={props.user_id} mainClassName="grid gap-y-8">
       {isLoading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
