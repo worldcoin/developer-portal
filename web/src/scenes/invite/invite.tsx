@@ -37,13 +37,16 @@ export function Invite({ loginUrl }: IInvitePageProps) {
         {!loading && (
           <>
             <div className="relative">
-              <Icon name="wld-logo" className="w-16 h-16" />
+              <Icon name="wld-logo" className="w-16 h-16 relative z-10" />
               <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
               <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
               <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
             </div>
             <Typography className="mt-8 tracking-widest text-sm text-primary uppercase">
-              Introducing the Worldcoin SDK
+              Introducing the Worldcoin SDK{" "}
+              <span className="bg-primary text-white rounded-xl px-2 py-1.5 uppercase tracking-widest">
+                Beta
+              </span>
             </Typography>
             <Typography className="mt-4" variant="title">
               We are delighted you are here!
@@ -52,8 +55,8 @@ export function Invite({ loginUrl }: IInvitePageProps) {
               You are amongst the first to build with the Worldcoin SDK. Use
               your World ID to create your account below.
             </div>
-            <Link href={loginUrl ?? ""}>
-              <Button variant="primary" className="py-5 px-14 mt-4">
+            <Link href={loginUrl ?? ""} className="mt-8">
+              <Button variant="primary" className="py-5 px-14 cursor-pointer">
                 <Icon name="wld-logo" className="h-6 w-6 mr-2" />
                 Sign Up with Worldcoin
               </Button>
@@ -61,7 +64,7 @@ export function Invite({ loginUrl }: IInvitePageProps) {
             <p className="mt-6 text-sm text-neutral-secondary ">
               Don&apos;t have your World ID yet?{" "}
               <a
-                className="text-primary"
+                className="text-primary cursor-pointer"
                 href="https://worldcoin.org/download"
                 target="_blank"
                 rel="noopener noreferrer"
