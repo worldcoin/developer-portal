@@ -6,9 +6,9 @@ export const urls = {
   // ANCHOR: Apps
   app: (app_id?: string): `/app/${string}` | "/app" =>
     app_id ? `/app/${app_id}` : "/app",
-  appSignIn: (app_id: string): `/app/${string}/sign-in` =>
+  appSignIn: (app_id?: string): `/app/${string}/sign-in` =>
     `/app/${app_id}/sign-in`,
-  appActions: (app_id: string): `/app/${string}/actions` =>
+  appActions: (app_id?: string): `/app/${string}/actions` =>
     `/app/${app_id}/actions`,
 
   // ANCHOR: Others
