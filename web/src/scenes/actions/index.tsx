@@ -9,6 +9,7 @@ import { IActionStore, useActionStore } from "src/stores/actionStore";
 import useApps from "src/hooks/useApps";
 import { Preloader } from "src/components/Preloader";
 import { Fragment } from "react";
+import { NotFound } from "@/components/NotFound";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -20,18 +21,18 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
   const { setNewActionOpened } = useActionStore(getActionsStore);
 
   return (
-    <Layout title="Actions" userId={props.user_id}>
+    <Layout
+      title="Actions"
+      userId={props.user_id}
+      mainClassName="grid items-start"
+    >
       {(appIsLoading || actionIsLoading) && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
         </div>
       )}
 
-      {!appIsLoading && !currentApp && (
-        <div className="w-full h-full flex justify-center items-center">
-          <h1 className="text-20 font-sora font-semibold">App not found</h1>
-        </div>
-      )}
+      {!appIsLoading && !currentApp && <NotFound className="self-center" />}
 
       {!appIsLoading && !actionIsLoading && currentApp && (
         <Fragment>
