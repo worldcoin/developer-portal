@@ -1,4 +1,5 @@
 @import "react-toastify/dist/ReactToastify.css";
+@import "./cookiepro.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -1,5 +1,4 @@
 import "@/globals.css";
-import "@/cookiepro.css";
 import type { AppContext, AppProps } from "next/app";
 import { usePostHog } from "@/hooks/usePostHog";
 import Head from "next/head";
