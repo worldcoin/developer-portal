@@ -190,7 +190,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App updated");
       }
     },
   });
@@ -199,7 +198,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App name updated");
       }
     },
   });
@@ -208,7 +206,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App name updated");
       }
     },
   });
@@ -217,7 +214,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App description updated");
       }
     },
   });

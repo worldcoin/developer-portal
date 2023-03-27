@@ -225,7 +225,6 @@ const useActions = () => {
           );
 
           setActions(newActions);
-          toast.success("Action updated");
         }
       },
     }
