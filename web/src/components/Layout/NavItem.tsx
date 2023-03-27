@@ -34,6 +34,10 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
     <div
       className={cn(
         "grid items-center grid-cols-auto/1fr gap-x-4 text-neutral-secondary hover:bg-f3f4f5 hover:text-neutral-primary rounded-xl transition-colors",
+        {
+          "bg-neutral-primary hover:bg-neutral-primary":
+            props.selected && !props.customColor,
+        },
         props.className
       )}
     >
@@ -43,7 +47,7 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
           className={cn(
             "h-5 w-5",
             {
-              "text-neutral-primary": props.selected && !props.customColor,
+              "text-white": props.selected && !props.customColor,
             },
             props.customColor
           )}
@@ -54,7 +58,7 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
         className={cn(
           "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center",
           {
-            "text-neutral-primary": props.selected && !props.customColor,
+            "text-white": props.selected && !props.customColor,
           },
           props.customColor
         )}
