@@ -6,7 +6,6 @@ import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode, useEffect, useMemo } from "react";
 import { Slide, ToastContainer } from "react-toastify";
-import { CookieBanner } from "../CookieBanner/CookieBanner";
 import { Icon } from "../Icon";
 import { Link } from "../Link";
 import { Meta } from "../Meta";
@@ -54,7 +53,6 @@ export const Layout = (props: {
   return (
     <Fragment>
       <ToastContainer autoClose={5000} transition={Slide} />
-      <CookieBanner />
       <Meta title={props.title} url={router.asPath} />
 
       <div className="grid h-screen grid-cols-auto/1fr font-rubik">

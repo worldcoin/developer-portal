@@ -25,7 +25,9 @@ const nextConfig = {
               "'self'",
               "wss://relay.walletconnect.com",
               "https://app.posthog.com",
+              "https://cookie-cdn.cookiepro.com",
             ],
+            "script-src": ["'self'", "https://cookie-cdn.cookiepro.com"],
           },
           permissionsPolicy: {
             "clipboard-write": `self`,
