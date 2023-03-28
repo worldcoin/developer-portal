@@ -12,6 +12,7 @@ import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
 import cn from "classnames";
+import { Icon } from "@/components/Icon";
 
 type FormData = Pick<
   AppModel,
@@ -121,22 +122,24 @@ export const NewAppDialog = memo(function NewAppDialog(
                   type="button"
                   onClick={() => field.onChange(true)}
                   className={cn(
-                    "z-10 transition-colors text-14 font-rubik outline-none",
+                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
                     { "text-ffffff": field.value === true },
                     { "text-neutral-dark": field.value === false }
                   )}
                 >
+                  <Icon name="api" className="w-4 h-4" />
                   Staging
                 </button>
                 <button
                   type="button"
                   onClick={() => field.onChange(false)}
                   className={cn(
-                    "z-10 transition-colors text-14 font-rubik outline-none",
+                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
                     { "text-neutral-dark": field.value === true },
                     { "text-ffffff": field.value === false }
                   )}
                 >
+                  <Icon name="rocket" className="w-4 h-4" />
                   Production
                 </button>
               </div>
