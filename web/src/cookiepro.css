@@ -10,23 +10,19 @@ html {
       @apply !normal-case focus:!outline-none;
     }
 
-    & .onetrust-pc-dark-filter {
-      @apply !hidden;
-    }
-
     & #onetrust-banner-sdk.otFlat {
-      @apply top-0 !max-h-full;
+      @apply !max-h-full top-0;
     }
 
     /* Dialog modal styles */
     & #onetrust-banner-sdk {
-      @apply bg-010101/50 focus:!outline-none;
+      @apply focus:!outline-none bg-transparent pointer-events-none;
 
       & > div {
-        @apply fixed left-[unset] right-0 bottom-0 rounded-md bg-ffffff sm:mx-6 sm:mb-6 lg:!max-w-xl;
+        @apply left-0 bg-black fixed right-0 bottom-0 pointer-events-auto;
 
         & #onetrust-close-btn-container {
-          @apply !right-0 !top-0 h-11 w-11 !transform-none;
+          @apply !transform-none w-11 h-11 !-right-2 !-top-2;
 
           & .onetrust-close-btn-handler {
             @apply !right-0 !top-0;
@@ -34,11 +30,11 @@ html {
         }
 
         & .ot-sdk-container {
-          @apply !px-0 after:!content-none;
+          @apply after:!content-none !px-0 !w-full;
         }
 
         & .ot-sdk-row {
-          @apply py-4.5 !grid justify-items-center gap-y-6 !p-4 px-4 after:!content-none sm:gap-y-8;
+          @apply !p-5 !grid lg:grid-cols-1fr/auto justify-items-center gap-y-6 sm:gap-y-8 px-4 py-4.5 after:!content-none;
 
           & #onetrust-group-container {
             @apply !m-0 !w-full;
@@ -47,24 +43,24 @@ html {
               @apply m-0;
 
               & #onetrust-policy-text {
-                @apply !text-010101 !my-0 !ml-0 !mr-7 !text-14 !leading-normal lg:!mr-16 !font-rubik;
+                @apply !font-rubik text-white !text-16 !my-0 !ml-0 !mr-7 lg:!mr-16 !leading-normal;
               }
             }
           }
 
           & #onetrust-button-group-parent {
-            @apply !static !m-0 !w-full !transform-none !px-0;
+            @apply !w-full !px-0 !static !transform-none !m-0 !flex !items-center;
 
             & #onetrust-button-group {
-              @apply !mt-0 !flex !w-full !flex-col sm:!flex-row sm:justify-between;
+              @apply !flex !flex-col !w-full sm:!w-auto gap-2 sm:!flex-row lg:justify-between !m-0;
 
               & #onetrust-pc-btn-handler.cookie-setting-link {
-                @apply text-010101 !text-12 !mx-0 !mb-0 !mt-6 !min-w-0 bg-transparent !p-0 !text-center font-normal !leading-normal !outline-none transition-colors duration-200 hover:text-opacity-80 sm:!mt-0 sm:!text-left !font-rubik;
+                @apply hover:text-opacity-80 transition-colors duration-200 text-white font-normal !mx-0 !mb-0 !mt-0 !py-3 !px-4 bg-transparent !outline-none !text-center sm:!text-left !text-14 !leading-normal !min-w-0;
               }
 
               & #onetrust-accept-btn-handler,
               & #onetrust-reject-all-handler {
-                @apply !bg-010101 !text-12 -order-1 !m-0 !h-auto !rounded-full !border-none !py-3 !px-4 !font-normal !leading-3 !tracking-normal text-ffffff !transition-colors !duration-200 hover:!bg-opacity-80 hover:!opacity-100 sm:order-none;
+                @apply !bg-white text-black !border-none hover:!bg-opacity-80 !rounded-lg !transition-colors !duration-200 hover:!opacity-100 !font-normal !py-3 !px-4 !m-0 -order-1 sm:order-none !h-auto !text-14 !leading-3 !tracking-normal;
               }
             }
           }
@@ -74,7 +70,7 @@ html {
 
     /* Main modal styles */
     & #onetrust-pc-sdk {
-      @apply top-[unset] bottom-0 m-0 h-[590px] max-h-[95%] !w-full !min-w-0 max-w-full !rounded-lg sm:bottom-6 sm:right-6 sm:left-6 sm:max-w-[calc(100%_-_24px_*_2)] lg:left-[unset] lg:!max-w-xl;
+      @apply h-[590px] max-w-[590px] m-auto !w-full !rounded-lg !min-w-0 top-1/2 -translate-y-1/2;
 
       & .ot-plus-minus {
         & span {
@@ -88,7 +84,7 @@ html {
       }
 
       & .ot-pc-header {
-        @apply h-4 !border-none !py-0;
+        @apply !py-0 !border-none h-4;
 
         & .ot-pc-logo {
           @apply hidden;
@@ -102,18 +98,18 @@ html {
 
       & #ot-category-title,
       #ot-pc-title {
-        @apply !text-010101 !m-0 !p-0 !font-rubik !text-16 !font-medium !leading-normal;
+        @apply !font-rubik !font-medium !text-16 !leading-normal !text-black !m-0 !p-0;
       }
 
       & #ot-pc-content {
-        @apply !top-4 !bottom-[70px] !m-0 !w-auto pt-0 !pl-4 pr-[6px];
+        @apply pt-0 !top-4 !bottom-[70px] !pl-4 pr-[6px] !m-0 !w-auto;
 
         & #ot-pc-desc {
-          @apply !text-010101 !mb-0 pt-4 !font-rubik !text-14 !leading-normal;
+          @apply !font-rubik !text-black !text-14 !leading-normal pt-4 !mb-0;
         }
 
         & #accept-recommended-btn-handler {
-          @apply !text-12 !mt-6 !mb-8 !mr-0 !h-auto max-w-none !rounded-full !border-none !bg-000000 !py-3 !px-4 !font-normal !leading-3 !tracking-normal !text-ffffff !transition-all hover:!opacity-80;
+          @apply !bg-black !mt-6 !mb-8 !rounded-lg !text-white hover:!opacity-80 !transition-all !mr-0 max-w-none !py-3 !px-4 !text-12 !leading-3 !h-auto !border-none !font-normal !tracking-normal;
         }
 
         & .ot-sdk-row {
@@ -128,17 +124,17 @@ html {
           }
 
           & .ot-accordion-layout {
-            @apply border-f2f4f7 !rounded-none !border-[0.5px];
+            @apply !rounded-none !border-[0.5px] border-f2f4f7;
 
             & .ot-acc-hdr {
-              @apply grid-cols-auto/1fr/auto !grid;
+              @apply !grid grid-cols-auto/1fr/auto;
 
               & .ot-cat-header {
-                @apply !text-010101 !text-12 !min-h-0 w-full !font-rubik !font-medium;
+                @apply !font-rubik !font-medium !text-black !text-12 !min-h-0 w-full;
               }
 
               & .ot-always-active {
-                @apply !text-12 !font-rubik !font-medium !text-primary;
+                @apply !font-rubik !font-medium !text-primary !text-12;
               }
 
               & .ot-tgl {
@@ -151,17 +147,17 @@ html {
                 }
 
                 & input:checked + .ot-switch .ot-switch-nob:before {
-                  @apply bg-ffffff;
+                  @apply bg-white;
                 }
 
                 & input:checked + .ot-switch .ot-switch-nob {
-                  @apply bg-010101 !rounded-full border-transparent !p-0;
+                  @apply bg-black border-transparent !p-0 !rounded-full;
                 }
               }
             }
 
             & .ot-acc-txt p {
-              @apply !text-010101 !text-12 !font-rubik !leading-normal;
+              @apply !font-rubik !text-black !text-12 !leading-normal;
             }
           }
         }
@@ -169,10 +165,10 @@ html {
 
       & .ot-pc-footer {
         & .ot-btn-container {
-          @apply py-4.5 !px-4;
+          @apply !px-4 py-4.5;
 
           & .save-preference-btn-handler {
-            @apply !text-12 !m-0 !h-auto !rounded-full !border-none !bg-000000 !py-3 !px-4 !font-normal !leading-3 !tracking-normal !text-ffffff !transition-colors !duration-200 hover:!bg-opacity-80 hover:!opacity-100;
+            @apply !bg-black !text-white !border-none hover:!bg-opacity-80 !transition-colors !duration-200 hover:!opacity-100 !font-normal !py-3 !px-4 !m-0 !rounded-lg !h-auto !text-12 !leading-3 !tracking-normal;
           }
         }
 
