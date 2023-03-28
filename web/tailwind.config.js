@@ -1,3 +1,5 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 const mirrorHexColors = (colors) =>
   Object.fromEntries(
     colors.map((color, index) => {
@@ -115,8 +117,9 @@ module.exports = {
       },
 
       fontFamily: {
-        sora: ["var(--font-sora)", "sans-serif"],
-        rubik: ["var(--font-rubik)", "sans-serif"],
+        sans: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        sora: ["var(--font-sora)", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
       },
 
