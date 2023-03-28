@@ -144,7 +144,7 @@ export function Signup() {
         </div>
 
         <Button
-          className="max-w-[327px] w-full h-[64px] mt-8"
+          className="w-full h-[64px] mt-8"
           onClick={submit}
           type="button"
           disabled={loading || !isReady}

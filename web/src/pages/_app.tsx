@@ -1,11 +1,11 @@
 import "@/globals.css";
-import type { AppContext, AppProps } from "next/app";
 import { usePostHog } from "@/hooks/usePostHog";
-import Head from "next/head";
-import { Sora, Rubik, IBM_Plex_Mono } from "next/font/google";
-import { NextSeo } from "next-seo";
-import { ApolloProvider } from "@apollo/client";
 import { client } from "@/services/apollo";
+import { ApolloProvider } from "@apollo/client";
+import { NextSeo } from "next-seo";
+import type { AppContext, AppProps } from "next/app";
+import { IBM_Plex_Mono, Rubik, Sora } from "next/font/google";
+import Head from "next/head";
 
 const sora = Sora({
   subsets: ["latin"],
