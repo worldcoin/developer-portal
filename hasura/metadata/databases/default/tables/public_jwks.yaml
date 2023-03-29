@@ -8,6 +8,7 @@ insert_permissions:
       columns:
         - alg
         - expires_at
+        - kms_id
         - public_jwk
 select_permissions:
   - role: service

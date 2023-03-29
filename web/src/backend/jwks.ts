@@ -4,6 +4,11 @@ import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient } from "./kms";
 
+export type CreateJWKResult = {
+  keyId: string;
+  publicJwk: JsonWebKey;
+};
+
 const fetchJWKQuery = gql`
   query FetchJWKQuery($now: timestamptz!, $alg: String!) {
     jwks(limit: 1, where: { expires_at: { _gt: $now }, alg: { _eq: $alg } }) {
@@ -70,11 +75,21 @@ export const fetchActiveJWK = async (alg: string) => {
  * Generates an asymmetric key pair in JWK format
  * @returns
  */
-export const generateJWK = async (alg: string) => {
+export const generateJWK = async (alg: string): Promise<CreateJWKResult> => {
   const kmsClient = await getKMSClient();
-  const publicKey = await createKMSKey(kmsClient, alg);
-  const publicJwk = createPublicKey(publicKey);
 
-  console.log(publicJwk.export({ format: "jwk" })); // DEBUG
-  return publicJwk.export({ format: "jwk" });
+  if (kmsClient) {
+    const result = await createKMSKey(kmsClient, "RSA_2048"); // TODO: transform alg parameter?
+    if (result?.keyId && result?.publicKey) {
+      const publicJwk = createPublicKey(result.publicKey).export({
+        format: "jwk",
+      });
+
+      return { keyId: result.keyId, publicJwk };
+    } else {
+      throw new Error("Unable to create KMS key.");
+    }
+  } else {
+    throw new Error("KMS client not found.");
+  }
 };

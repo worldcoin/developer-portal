@@ -5,6 +5,27 @@ import { generateJWK } from "src/backend/jwks";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { errorNotAllowed, errorValidation } from "../../backend/errors";
 
+const insertQuery = gql`
+  mutation InsertJWK(
+    $expires_at: timestamptz!
+    $public_jwk: jsonb!
+    $alg: String!
+    $kms_id: String!
+  ) {
+    insert_jwks_one(
+      object: {
+        alg: $alg
+        expires_at: $expires_at
+        kms_id: $kms_id
+        public_jwk: $public_jwk
+      }
+    ) {
+      id
+      expires_at
+    }
+  }
+`;
+
 /**
  * Generates JWKs to verify proofs offline
  * @param req
@@ -33,30 +54,18 @@ export default async function handleJWKGen(
     );
   }
 
-  const publicJwk = await generateJWK(alg);
-
-  const insertQuery = gql(`
-  mutation InsertJWK($expires_at: timestamptz!, $public_jwk: jsonb!, $alg: String!) {
-    insert_jwks_one(object: {
-        expires_at: $expires_at
-        public_jwk: $public_jwk
-        alg: $alg
-    })
-    {
-        id
-        expires_at
-    }
-  }`);
-
+  const result = await generateJWK(alg);
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + 12);
+
   const client = await getAPIServiceClient();
   const response = await client.query({
     query: insertQuery,
     variables: {
-      expires_at: expiresAt.toISOString(),
-      public_jwk: publicJwk,
       alg,
+      expires_at: expiresAt.toISOString(),
+      kms_id: result.keyId,
+      public_jwk: result.publicJwk,
     },
   });
 
