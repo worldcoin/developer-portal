@@ -1,4 +1,4 @@
-import { useToggle } from "src/hooks/useToggle";
+import cn from "classnames";
 import {
   KeyboardEvent,
   memo,
@@ -7,10 +7,10 @@ import {
   useEffect,
   useState,
 } from "react";
-import { VerificationBadges } from "./VerificationBadges";
-import cn from "classnames";
 import { Icon } from "src/components/Icon";
+import { useToggle } from "src/hooks/useToggle";
 import { ActionModelWithNullifiers } from "src/lib/models";
+import { VerificationBadges } from "./VerificationBadges";
 
 const Input = memo(function Input(props: {
   placeholder?: string;
@@ -45,10 +45,10 @@ const Input = memo(function Input(props: {
   );
 
   return (
-    <div className="grid grid-flow-col gap-x-1 justify-start items-center group">
+    <div className="flex items-center">
       <input
         className={cn(
-          "min-w-[80px] outline-none font-rubik placeholder:italic",
+          "min-w-[40px] outline-none font-rubik placeholder:italic",
           {
             "border rounded-lg bg-f3f4f5 border-ebecef": inputButton.isOn,
           },
@@ -61,7 +61,7 @@ const Input = memo(function Input(props: {
         onKeyDown={handleKeyDown}
         onClick={(e) => e.preventDefault()}
         disabled={!inputButton.isOn}
-        size={value.length * 0.9}
+        size={value.length}
       />
 
       {/* FIXME: For some reason button element causes the hydration error */}
@@ -86,6 +86,7 @@ export const ActionHeader = memo(function ActionHeader(props: {
   action: ActionModelWithNullifiers;
   onChangeName: (value: string) => void;
   onChangeDescription: (value: string) => void;
+  onChangeMaxVerifications: (value: string) => void;
   open?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
@@ -146,8 +147,8 @@ export const ActionHeader = memo(function ActionHeader(props: {
         </div>
       </div>
 
-      <div className="grid grid-flow-col items-center justify-end gap-x-16">
-        <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
+      <div className="grid grid-flow-col items-center justify-end gap-x-2">
+        <div className="flex items-center gap-x-2">
           <VerificationBadges
             verifications={props.action.max_accounts_per_user}
           />
@@ -156,9 +157,12 @@ export const ActionHeader = memo(function ActionHeader(props: {
             Verifications per person
           </span>
 
-          <span className="font-sora font-semibold text-14">
-            {props.action.max_accounts_per_user}
-          </span>
+          <Input
+            className="text-12 text-neutral-secondary leading-none pl-0.5"
+            placeholder="Click to set max verifications"
+            value={props.action.max_verifications.toString()}
+            onChange={props.onChangeMaxVerifications}
+          />
         </div>
 
         <div className="grid grid-cols-1fr/auto items-center gap-x-2">

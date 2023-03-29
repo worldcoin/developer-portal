@@ -27,7 +27,7 @@ export const Illustration = memo(function Illustration(
       <div className="relative flex">
         <Icon
           className={cn(
-            "w-10 h-10",
+            "w-10 h-10 shadow-icon",
             { "text-primary": color === "primary" },
             { "text-success": color === "success" },
             { "text-danger": color === "danger" },
@@ -39,7 +39,7 @@ export const Illustration = memo(function Illustration(
         <div className="absolute top-[10px] left-0 blur-xl">
           <Icon
             className={cn(
-              "w-10 h-10",
+              "w-10 h-10 shadow-icon",
               { "text-primary/50": color === "primary" },
               { "text-success/50": color === "success" },
               { "text-danger/50": color === "danger" },

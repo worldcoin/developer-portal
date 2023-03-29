@@ -1,3 +1,5 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 const mirrorHexColors = (colors) =>
   Object.fromEntries(
     colors.map((color, index) => {
@@ -68,6 +70,7 @@ module.exports = {
       black: "#010101",
       ...mirrorHexColors([
         "#000000",
+        "#010101",
         "#191c20",
         "#28303f",
         "#3c4040",
@@ -76,6 +79,7 @@ module.exports = {
         "#657080",
         "#777e90",
         "#a39dff",
+        "#afafaf",
         "#d1d3d4",
         "#d6d9dd",
         "#dbe3e8",
@@ -85,7 +89,9 @@ module.exports = {
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
+        "#f2f4f7",
         "#f3f4f5",
+        "#f4f4f4",
         "#f9f9f9",
         "#f9fafb",
         "#fafafa",
@@ -107,11 +113,13 @@ module.exports = {
         box: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04)",
         input: "0px 10px 30px rgba(25, 28, 32, 0.1)",
         button: "0px 10px 20px rgba(25, 28, 32, 0.2)",
+        icon: "0px 10px 30px rgba(73, 64, 224, 0.5)",
       },
 
       fontFamily: {
-        sora: ["var(--font-sora)", "sans-serif"],
-        rubik: ["var(--font-rubik)", "sans-serif"],
+        sans: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        sora: ["var(--font-sora)", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
       },
 

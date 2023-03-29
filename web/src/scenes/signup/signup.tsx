@@ -1,25 +1,36 @@
+import { useRouter } from "next/router";
 import {
+  MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
-  MouseEvent as ReactMouseEvent,
 } from "react";
 import { Auth } from "src/components/Auth";
-import { useRouter } from "next/router";
-import { urls } from "src/lib/urls";
-import { FieldLabel } from "src/components/Auth/FieldLabel";
-import { FieldInput } from "src/components/Auth/FieldInput";
-import { FieldText } from "src/components/Auth/FieldText";
-import { Checkbox } from "src/components/Auth/Checkbox";
 import { Button } from "src/components/Auth/Button";
+import { Checkbox } from "src/components/Auth/Checkbox";
+import { FieldInput } from "src/components/Auth/FieldInput";
+import { FieldLabel } from "src/components/Auth/FieldLabel";
+import { FieldText } from "src/components/Auth/FieldText";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
+import { urls } from "src/lib/urls";
 
 export function Signup() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [terms, setTerms] = useState(false);
+
+  const isReady = useMemo(() => teamName && terms, [teamName, terms]);
+
+  useEffect(() => {
+    if (router.isReady) {
+      const email = router.query.email;
+      setEmail(email as string);
+    }
+  }, [router.isReady, router.query.email]);
 
   const submit = useCallback(
     async (e: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -44,6 +55,7 @@ export function Signup() {
       if (response.ok) {
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
+        localStorage.removeItem("invite_token");
         router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);
@@ -86,6 +98,7 @@ export function Signup() {
                 setEmail(e.target.value);
               }}
               disabled={loading}
+              value={email}
             />
           </div>
 
@@ -118,6 +131,9 @@ export function Signup() {
             className="font-rubik"
             label="I agree with the Developer Portal Terms, which incorporates by reference the Worldcoin User Terms and Conditions and the Worldcoin Privacy Statement."
             disabled={loading}
+            onChange={(e) => {
+              e.target.checked ? setTerms(true) : setTerms(false);
+            }}
           />
 
           <Checkbox
@@ -128,10 +144,10 @@ export function Signup() {
         </div>
 
         <Button
-          className="max-w-[327px] w-full h-[64px] mt-8"
+          className="w-full h-[64px] mt-8"
           onClick={submit}
           type="button"
-          disabled={loading}
+          disabled={loading || !isReady}
         >
           Create my account
         </Button>

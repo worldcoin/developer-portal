@@ -1,18 +1,18 @@
-import { getCookie } from "cookies-next";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { getTokenFromCookie } from "src/backend/cookies";
+import { useEffect } from "react";
 import useApps from "src/hooks/useApps";
 import { requireAuthentication } from "src/lib/require-authentication";
 
 export default function App() {
-  //FIXME: temporary client redirect to default app page
-  const { apps } = useApps();
+  const { apps, isLoading } = useApps();
   const router = useRouter();
 
-  if (apps) {
-    router.push(`/app/${apps[0].id}`);
-  }
+  useEffect(() => {
+    if (router.isReady && !isLoading) {
+      router.push(apps?.length ? `/app/${apps[0].id}` : "/team");
+    }
+  }, [apps, isLoading, router]);
 
   return null;
 }

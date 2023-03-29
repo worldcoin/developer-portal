@@ -59,6 +59,7 @@ const iconNames = [
   "speed-test",
   "spinner-gradient",
   "spinner",
+  "stats",
   "success",
   "success-illustration",
   "target",

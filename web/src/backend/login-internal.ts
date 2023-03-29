@@ -5,10 +5,10 @@
 
 import { gql } from "@apollo/client";
 import crypto from "crypto";
-import { getAPIServiceClient } from "./graphql";
-import { generateUserJWT, getUserJWTPayload, _generateJWT } from "./jwts";
-import * as jose from "jose";
 import dayjs from "dayjs";
+import { OIDC_BASE_URL } from "src/lib/constants";
+import { getAPIServiceClient } from "./graphql";
+import { getUserJWTPayload, _generateJWT } from "./jwts";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 
@@ -87,4 +87,20 @@ export const getDevToken = async (signing_key: string) => {
   const expiration = dayjs().add(1, "day").unix();
   const token = await _generateJWT(payload, expiration, signing_key);
   return { token, expiration };
+};
+
+export const generateLoginUrl = (nonce: string) => {
+  const loginUrl = new URL(`${OIDC_BASE_URL}/authorize`);
+  loginUrl.searchParams.append("nonce", nonce);
+  loginUrl.searchParams.append("response_type", "id_token");
+  loginUrl.searchParams.append(
+    "redirect_uri",
+    `${process.env.NEXT_PUBLIC_APP_URL}/login`
+  );
+  loginUrl.searchParams.append(
+    "client_id",
+    process.env.SIGN_IN_WITH_WORLD_ID_APP_ID ?? "app_developer_portal"
+  );
+
+  return loginUrl.toString();
 };

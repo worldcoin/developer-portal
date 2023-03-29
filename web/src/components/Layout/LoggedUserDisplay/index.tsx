@@ -1,17 +1,17 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import { Icon } from "src/components/Icon";
 import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
-import useAuth from "src/hooks/useAuth";
+import { useFetchUser } from "./hooks/user-hooks";
 
 export function LoggedUserDisplay(props: {
   className?: string;
   userId?: string;
 }) {
   const modal = useToggle(false);
-  const { user } = useAuth(props.userId);
+  const { user } = useFetchUser(props.userId ?? "");
 
   // FIXME: remove when real user image is available
   const image = "";
