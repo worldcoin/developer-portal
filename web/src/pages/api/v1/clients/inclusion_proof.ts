@@ -12,6 +12,7 @@ import {
   SEMAPHORE_GROUP_MAP,
 } from "src/lib/constants";
 import { CredentialType } from "src/lib/types";
+import { checkConsumerBackend } from "src/lib/utils";
 
 const existsQuery = gql`
   query IdentityCommitmentExists($identity_commitment: String!) {
@@ -77,10 +78,11 @@ export default async function handleInclusionProof(
     );
   }
 
-  const client = await getAPIServiceClient();
+  const apiClient = await getAPIServiceClient();
+  const isStaging = req.body.env === "production" ? false : true;
 
   // ANCHOR: Check if the identity commitment has been revoked
-  const identityCommitmentExistsResponse = await client.query({
+  const identityCommitmentExistsResponse = await apiClient.query({
     query: existsQuery,
     variables: { identity_commitment: req.body.identity_commitment },
   });
@@ -103,9 +105,9 @@ export default async function handleInclusionProof(
   const headers = new Headers();
   headers.append(
     "Authorization",
-    req.body.env === "production"
-      ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
-      : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+    isStaging
+      ? `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+      : `Basic ${process.env.PHONE_SEQUENCER_KEY}`
   );
   headers.append("Content-Type", "application/json");
   const body = JSON.stringify([
@@ -124,18 +126,32 @@ export default async function handleInclusionProof(
     }
   );
 
+  // Commitment found, return the proof
   if (response.status === 200) {
     res.status(200).json({
       inclusion_proof: await response.json(),
     });
-  } else if (response.status === 202) {
+  }
+
+  // Commitment is still pending inclusion, return an error
+  else if (response.status === 202) {
     res.status(400).json({
       code: "inclusion_pending",
       detail:
         "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
     });
-  } else if (response.status === 400) {
+  }
+
+  // Commitment not found by the sequencer
+  else if (response.status === 400) {
     const errorBody = await response.text();
+
+    // User may have previously verified their phone number, before the phone sequencer contract was deployed
+    // Check with the consumer backend if this is the case, and if so insert the identity commitment on-the-fly
+    const handled = await checkConsumerBackend(req, res, isStaging);
+    if (handled) return;
+
+    // Phone was not verified, proceed as normal
     if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
       return res.status(400).json(EXPECTED_ERRORS[errorBody]);
     } else {

@@ -1,10 +1,10 @@
-import useSWR from "swr";
-import { gql } from "@apollo/client";
-import { TeamModel, TeamMemberModel } from "@/lib/models";
 import { graphQLRequest } from "@/lib/frontend-api";
+import { TeamMemberModel, TeamModel } from "@/lib/models";
+import { gql } from "@apollo/client";
 import { useCallback } from "react";
-import useSWRMutation from "swr/mutation";
 import { toast } from "react-toastify";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 
 const FetchTeamQuery = gql`
   query Teams {
@@ -98,11 +98,7 @@ export const useTeam = () => {
 };
 
 export const useUpdateTeamNameMutation = () => {
-  const updateTeamMutation = useSWRMutation("team", updateTeamFetcher, {
-    onSuccess: () => {
-      toast.success("Team updated");
-    },
-  });
+  const updateTeamMutation = useSWRMutation("team", updateTeamFetcher);
 
   const updateTeamName = useCallback(
     async (id: string, name: string) => {

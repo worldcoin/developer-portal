@@ -6,6 +6,7 @@ type NewAction = {
   name: string;
   description: string;
   action: string;
+  maxVerifications: number | null;
 };
 
 export type IActionStore = {
@@ -25,13 +26,15 @@ export const useActionStore = create<IActionStore>((set, get) => ({
   isNewActionModalOpened: false,
   setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
 
-  newAction: { name: "", description: "", action: "", app_id: "" },
+  newAction: { name: "", description: "", action: "", maxVerifications: null },
   setNewAction: (value) =>
     set({
       newAction: {
         name: value.name ?? get().newAction.name,
         description: value.description ?? get().newAction.description,
         action: (value.action ?? get().newAction.action).replace(/[^\w-]/g, ""),
+        maxVerifications:
+          value.maxVerifications ?? get().newAction.maxVerifications,
       },
     }),
 }));

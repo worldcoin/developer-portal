@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
@@ -11,7 +11,8 @@ import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
-import { Switch } from "src/components/Switch";
+import cn from "classnames";
+import { Icon } from "@/components/Icon";
 
 type FormData = Pick<
   AppModel,
@@ -31,8 +32,9 @@ export const NewAppDialog = memo(function NewAppDialog(
     useForm<FormData>({
       defaultValues: {
         engine: EngineType.Cloud,
-        is_staging: false,
+        is_staging: true,
       },
+      mode: "onChange",
     });
 
   const onSubmit = handleSubmit(async (data) => {
@@ -41,9 +43,17 @@ export const NewAppDialog = memo(function NewAppDialog(
     reset();
   });
 
+  const isValid = useMemo(
+    () =>
+      !formState.isSubmitting &&
+      !Boolean(formState.errors.name) &&
+      formState.dirtyFields.name,
+    [formState.dirtyFields.name, formState.errors.name, formState.isSubmitting]
+  );
+
   return (
     <Dialog
-      panelClassName="max-h-full overflow-y-auto"
+      panelClassName="max-h-full overflow-y-auto lg:min-w-[712px]"
       open={props.open}
       onClose={props.onClose}
     >
@@ -76,7 +86,7 @@ export const NewAppDialog = memo(function NewAppDialog(
 
             <FieldInput
               className="w-full font-rubik"
-              placeholder="Add your app name (visible to users)"
+              placeholder="Visible to users"
               type="text"
               {...register("name", { required: true })}
               readOnly={formState.isSubmitting}
@@ -88,7 +98,7 @@ export const NewAppDialog = memo(function NewAppDialog(
             <FieldLabel className="font-rubik">Description</FieldLabel>
             <FieldTextArea
               className="w-full font-rubik"
-              placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
+              placeholder="For internal reference. Visible only to you and your team."
               type="text"
               {...register("description_internal")}
               readOnly={formState.isSubmitting}
@@ -99,25 +109,38 @@ export const NewAppDialog = memo(function NewAppDialog(
             name="is_staging"
             control={control}
             render={({ field }) => (
-              <div className="grid grid-cols-3 justify-items-center items-center w-full py-3 px-4 bg-f3f4f5 rounded-xl mt-6">
-                <button
-                  type="button"
-                  onClick={() => field.onChange(false)}
-                  className="font-rubik"
-                >
-                  Production
-                </button>
-                <Switch
-                  className="bg-neutral-dark"
-                  checked={field.value}
-                  toggle={field.onChange}
+              <div className="grid grid-cols-2 relative bg-f3f4f5 border border-f1f5f8 rounded-xl h-12 mt-6">
+                <div
+                  className={cn(
+                    "absolute inset-y-0.5 w-1/2 bg-neutral-dark border-f1f5f8 rounded-[10px] transition-[left]",
+                    { "left-0.5": field.value === true },
+                    { "left-[calc(50%_-_2px)]": field.value === false }
+                  )}
                 />
+
                 <button
                   type="button"
                   onClick={() => field.onChange(true)}
-                  className="font-rubik"
+                  className={cn(
+                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
+                    { "text-ffffff": field.value === true },
+                    { "text-neutral-dark": field.value === false }
+                  )}
                 >
+                  <Icon name="api" className="w-4 h-4" />
                   Staging
+                </button>
+                <button
+                  type="button"
+                  onClick={() => field.onChange(false)}
+                  className={cn(
+                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
+                    { "text-neutral-dark": field.value === true },
+                    { "text-ffffff": field.value === false }
+                  )}
+                >
+                  <Icon name="rocket" className="w-4 h-4" />
+                  Production
                 </button>
               </div>
             )}
@@ -138,7 +161,7 @@ export const NewAppDialog = memo(function NewAppDialog(
           <Button
             className="w-full h-[56px] mt-12 font-medium"
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={!isValid}
           >
             Create New App
           </Button>

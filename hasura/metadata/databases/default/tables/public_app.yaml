@@ -42,9 +42,12 @@ insert_permissions:
     permission:
       check: {}
       columns:
+        - engine
         - id
+        - is_staging
         - logo_url
         - name
+        - team_id
   - role: user
     permission:
       check: {}

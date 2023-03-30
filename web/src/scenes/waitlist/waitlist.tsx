@@ -15,10 +15,10 @@ export function Waitlist() {
           You can join our waitlist below to get an invite code.
         </Typography>
         <a
-          className="w-full flex justify-center"
+          className="w-full flex justify-center mt-8"
           href="https://docs.worldcoin.org/waitlist"
         >
-          <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
+          <Button className="max-w-[327px] w-full h-[64px] font-medium">
             Join the Waitlist
           </Button>
         </a>

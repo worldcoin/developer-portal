@@ -4,9 +4,8 @@ import { urls } from "@/lib/urls";
 import { IAppStore, useAppStore } from "@/stores/appStore";
 import cn from "classnames";
 import { useRouter } from "next/router";
-import { Fragment, ReactNode, useEffect } from "react";
+import { Fragment, ReactNode, useEffect, useMemo } from "react";
 import { Slide, ToastContainer } from "react-toastify";
-import { CookieBanner } from "../CookieBanner/CookieBanner";
 import { Icon } from "../Icon";
 import { Link } from "../Link";
 import { Meta } from "../Meta";
@@ -42,10 +41,18 @@ export const Layout = (props: {
     setCurrentAppById(router.query.app_id as string);
   }, [apps, router.query.app_id, setCurrentAppById]);
 
+  const appId = useMemo(() => {
+    if (router.query.app_id) {
+      return router.query.app_id as string;
+    }
+    if (apps?.length) {
+      return apps[0].id;
+    }
+  }, [apps, router.query.app_id]);
+
   return (
     <Fragment>
       <ToastContainer autoClose={5000} transition={Slide} />
-      <CookieBanner />
       <Meta title={props.title} url={router.asPath} />
 
       <div className="grid h-screen grid-cols-auto/1fr font-rubik">
@@ -74,19 +81,19 @@ export const Layout = (props: {
                 <NavItem
                   icon="apps"
                   name="App Profile"
-                  href={urls.app(router.query.app_id as string)}
+                  href={urls.app(appId)}
                 />
 
                 <NavItem
                   icon="world-id-sign-in"
                   name="Sign In"
-                  href={urls.appSignIn(router.query.app_id as string)}
+                  href={urls.appSignIn(appId)}
                 />
 
                 <NavItem
                   icon="notepad"
-                  name="Custom Actions"
-                  href={urls.appActions(router.query.app_id as string)}
+                  name="Anonymous Actions"
+                  href={urls.appActions(appId)}
                 />
               </NavItemGroup>
 
@@ -96,18 +103,19 @@ export const Layout = (props: {
                   icon="document"
                   href="https://docs.worldcoin.org"
                 />
-
+                {/* FIXME: Coming soon! */}
+                {/*
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
                   href={urls.debugger()}
-                />
+                /> */}
 
-                <NavItem
+                {/* <NavItem
                   name="Support"
                   icon="help"
                   href="https://discord.gg/worldcoin"
-                />
+                /> */}
               </NavItemGroup>
 
               <hr className="text-f3f4f5 my-4 mr-10" />

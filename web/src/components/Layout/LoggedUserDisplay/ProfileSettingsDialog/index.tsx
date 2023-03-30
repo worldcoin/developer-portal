@@ -1,13 +1,16 @@
 import { FieldError } from "@/components/FieldError";
 import { memo } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { Illustration } from "src/components/Auth/Illustration";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
-import { ImageInput } from "src/components/Layout/common/ImageInput";
-import { UserWithTeam } from "src/hooks/useAuth";
+// import { ImageInput } from "src/components/Layout/common/ImageInput";
+import { FetchUserQuery } from "../graphql/fetch-user.generated";
+import { useUpdateUser } from "../hooks/user-hooks";
 
 type FormData = {
   name: string;
@@ -18,12 +21,14 @@ type FormData = {
 export interface ProfileSettingsDialogProps {
   open: boolean;
   onClose: () => void;
-  user?: UserWithTeam;
+  user?: FetchUserQuery["user"][number];
 }
 
 export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
   props: ProfileSettingsDialogProps
 ) {
+  const { updateUser } = useUpdateUser(props.user?.id ?? "");
+
   const { control, register, reset, handleSubmit, formState } =
     useForm<FormData>({
       values: {
@@ -35,16 +40,21 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     });
 
   const onSubmit = handleSubmit(async (data) => {
-    //TODO: add saving profile logic
+    if (!props.user) {
+      return toast.error("Error occurred while saving profile.");
+    }
+
     try {
-      await new Promise((res, rej) =>
-        setTimeout(() => {
-          Math.random() > 0.5 ? res({}) : rej(Error("saving error"));
-        }, 3000)
-      );
-      reset();
+      await updateUser({
+        variables: {
+          id: props.user?.id,
+          userData: { email: data.email, name: data.name },
+        },
+      });
+
+      props.onClose();
     } catch (error) {
-      console.error(error);
+      toast.error("Error occurred while saving profile.");
       reset(data);
     }
   });
@@ -58,13 +68,16 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
             <Controller
               name="imageUrl"
               control={control}
-              render={({ field }) => (
-                <ImageInput
-                  icon="user"
-                  imageUrl={field.value}
-                  onImageUrlChange={field.onChange}
-                  disabled={formState.isSubmitting}
-                />
+              render={() => (
+                <Illustration icon="user" />
+
+                // FIXME implement image upload
+                // <ImageInput
+                //   icon="user"
+                //   imageUrl={field.value}
+                //   onImageUrlChange={field.onChange}
+                //   disabled={formState.isSubmitting}
+                // />
               )}
             />
           }
