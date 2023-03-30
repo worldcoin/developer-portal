@@ -1,15 +1,13 @@
 import { memo, ReactNode } from "react";
-import { Option } from './Option'
+import { Option } from "./Option";
 
-export { Option as SwitchOption }
+export { Option as SwitchOption };
 
 export interface SwitchProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export const Switch = memo(function Switch(
-  props: SwitchProps
-) {
+export const Switch = memo(function Switch(props: SwitchProps) {
   const { children } = props;
 
   return (

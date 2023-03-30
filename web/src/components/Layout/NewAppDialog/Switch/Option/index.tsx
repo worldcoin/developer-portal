@@ -59,17 +59,23 @@ export const Option = memo(function Option(props: OptionProps) {
 
       <div>
         <div
-          className={cn("font-sora font-semibold text-16 leading-4 transition-colors text-neutral-dark", {
-            "opacity-50": !checked,
-          })}
+          className={cn(
+            "font-sora font-semibold text-16 leading-4 transition-colors text-neutral-dark",
+            {
+              "opacity-50": !checked,
+            }
+          )}
         >
           {title}
         </div>
 
         <div
-          className={cn("mt-1.5 font-rubik text-14 leading-4 transition-colors text-neutral", {
-            "opacity-50": !checked,
-          })}
+          className={cn(
+            "mt-1.5 font-rubik text-14 leading-4 transition-colors text-neutral",
+            {
+              "opacity-50": !checked,
+            }
+          )}
         >
           {description}
         </div>
@@ -77,10 +83,13 @@ export const Option = memo(function Option(props: OptionProps) {
 
       {easiest && (
         <div
-          className={cn("absolute top-1 right-1 flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-[6px] transition-colors text-neutral-dark", {
-            "bg-ebecef": checked,
-            "bg-ffffff opacity-50": !checked,
-          })}
+          className={cn(
+            "absolute top-1 right-1 flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-[6px] transition-colors text-neutral-dark",
+            {
+              "bg-ebecef": checked,
+              "bg-ffffff opacity-50": !checked,
+            }
+          )}
         >
           Easiest
         </div>
