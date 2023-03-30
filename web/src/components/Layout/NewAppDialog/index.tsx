@@ -4,15 +4,13 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
-import { EngineSwitch } from "./EngineSwitch";
 import { useForm, Controller } from "react-hook-form";
 import { EngineType } from "src/lib/types";
 import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
-import cn from "classnames";
-import { Icon } from "@/components/Icon";
+import { Switch, SwitchOption } from "./Switch";
 
 type FormData = Pick<
   AppModel,
@@ -109,40 +107,25 @@ export const NewAppDialog = memo(function NewAppDialog(
             name="is_staging"
             control={control}
             render={({ field }) => (
-              <div className="grid grid-cols-2 relative bg-f3f4f5 border border-f1f5f8 rounded-xl h-12 mt-6">
-                <div
-                  className={cn(
-                    "absolute inset-y-0.5 w-1/2 bg-neutral-dark border-f1f5f8 rounded-[10px] transition-[left]",
-                    { "left-0.5": field.value === true },
-                    { "left-[calc(50%_-_2px)]": field.value === false }
-                  )}
+              <Switch>
+                <SwitchOption
+                  icon="api"
+                  title="Staging"
+                  description="Testing environment for code changes before public release"
+                  checked={field.value === true}
+                  onCheckedChange={() => field.onChange(true)}
+                  disabled={formState.isSubmitting}
                 />
 
-                <button
-                  type="button"
-                  onClick={() => field.onChange(true)}
-                  className={cn(
-                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
-                    { "text-ffffff": field.value === true },
-                    { "text-neutral-dark": field.value === false }
-                  )}
-                >
-                  <Icon name="api" className="w-4 h-4" />
-                  Staging
-                </button>
-                <button
-                  type="button"
-                  onClick={() => field.onChange(false)}
-                  className={cn(
-                    "flex items-center justify-center gap-x-2 z-10 transition-colors text-14 font-rubik outline-none",
-                    { "text-neutral-dark": field.value === true },
-                    { "text-ffffff": field.value === false }
-                  )}
-                >
-                  <Icon name="rocket" className="w-4 h-4" />
-                  Production
-                </button>
-              </div>
+                <SwitchOption
+                  icon="rocket"
+                  title="Production"
+                  description="Live environment accessible to end-users"
+                  checked={field.value === false}
+                  onCheckedChange={() => field.onChange(false)}
+                  disabled={formState.isSubmitting}
+                />
+              </Switch>
             )}
           />
 
@@ -150,11 +133,26 @@ export const NewAppDialog = memo(function NewAppDialog(
             name="engine"
             control={control}
             render={({ field }) => (
-              <EngineSwitch
-                value={field.value}
-                onChange={field.onChange}
-                disabled={formState.isSubmitting}
-              />
+              <Switch>
+                <SwitchOption
+                  icon="cloud"
+                  title="Cloud"
+                  description="For actions that are triggered with the API or Sign in with World ID."
+                  easiest
+                  checked={field.value === EngineType.Cloud}
+                  onCheckedChange={() => field.onChange(EngineType.Cloud)}
+                  disabled={formState.isSubmitting}
+                />
+
+                <SwitchOption
+                  icon="on-chain"
+                  title="On-chain"
+                  description="For actions that are validated and executed on the blockchain."
+                  checked={field.value === EngineType.OnChain}
+                  onCheckedChange={() => field.onChange(EngineType.OnChain)}
+                  disabled={formState.isSubmitting}
+                />
+              </Switch>
             )}
           />
 
