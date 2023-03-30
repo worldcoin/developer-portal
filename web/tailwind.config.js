@@ -31,6 +31,14 @@ module.exports = {
     },
 
     colors: {
+      gray: {
+        50: "#F9FAFB",
+        100: "#F3F4F5",
+        200: "#EBECEF",
+        400: "#9BA3AE",
+        500: "#657080",
+        900: "#191C20",
+      },
       neutral: {
         DEFAULT: "#858494", // FIXME: This color may be #191c20
         primary: "#191c20",
@@ -76,24 +84,24 @@ module.exports = {
         "#3c4040",
         "#487b8f",
         "#626467",
-        "#657080",
+        "#657080", // gray-500
         "#777e90",
         "#a39dff",
         "#afafaf",
         "#d1d3d4",
         "#d6d9dd",
         "#dbe3e8",
-        "#ebecef",
+        "#ebecef", // gray-200
         "#edbd14",
         "#edecfc", //FIXME: duplicate for primary-light
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
         "#f2f4f7",
-        "#f3f4f5",
+        "#f3f4f5", // gray-100
         "#f4f4f4",
         "#f9f9f9",
-        "#f9fafb",
+        "#f9fafb", // gray-50
         "#fafafa",
         "#fbfbfb",
         "#fbfbfc",
