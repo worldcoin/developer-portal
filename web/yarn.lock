@@ -7899,10 +7899,10 @@ posthog-js-lite@2.0.0:
   resolved "https://registry.yarnpkg.com/posthog-js-lite/-/posthog-js-lite-2.0.0.tgz#27e3ffa291f67f0ca68a24eb8ee8776f6a82421a"
   integrity sha512-q6y0LWF7/faYtsMpX8tLoYDBsvhinMIVoVuubaK4K/md4VYYrfWgiOuhmqj48L2fWkkU2Qjv1gSuA9lsqrcVNw==
 
-posthog-js@^1.45.1:
-  version "1.50.4"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.50.4.tgz#af4db2628ed314e075f985c9fba2af0648b35413"
-  integrity sha512-9OaixWLw6BFJ2sCgR+iKI5qSxCqA5OSdxMvAYeIJnPjbzfjtupPmOad9g/BM9TXp8U56f/rrdKbPEO518/d3qQ==
+posthog-js@^1.50.7:
+  version "1.51.5"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.51.5.tgz#23f11f5e75690312301d596b6f1f795e5b423eb9"
+  integrity sha512-hhOreF51vvg97iKFZ4GFF4lwQVq1WWJXOJ59NbQVsXj+bVxDcX4vog0Yx40rfp4uWNnE/xRWQQEOwlKM2WkcjQ==
   dependencies:
     fflate "^0.4.1"
     rrweb-snapshot "^1.1.14"
