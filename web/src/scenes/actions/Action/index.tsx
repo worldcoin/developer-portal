@@ -55,7 +55,7 @@ export const Action = memo(function Action(props: {
         <Fragment>
           <Disclosure.Button
             className={cn(
-              "rounded-xl overflow-y-clip outline-none transition-shadow transition-300 hover:shadow-[0px_10px_30px_rgba(25,28,32,0.1)]",
+              "rounded-xl outline-none transition-shadow transition-300 hover:shadow-[0px_10px_30px_rgba(25,28,32,0.1)]",
               {
                 "shadow-[0px_10px_30px_rgba(25,28,32,0.02)]": !open,
                 "shadow-[0px_10px_30px_rgba(25,28,32,0.1)]": open,

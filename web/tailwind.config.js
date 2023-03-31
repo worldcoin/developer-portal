@@ -114,6 +114,7 @@ module.exports = {
         input: "0px 10px 30px rgba(25, 28, 32, 0.1)",
         button: "0px 10px 20px rgba(25, 28, 32, 0.2)",
         icon: "0px 10px 30px rgba(73, 64, 224, 0.5)",
+        lg: "0px 12px 16px -4px rgba(25, 28, 32, 0.08), 0px 4px 6px -2px rgba(25, 28, 32, 0.03)",
       },
 
       fontFamily: {

@@ -67,6 +67,7 @@ const iconNames = [
   "user",
   "user-add",
   "user-solid",
+  "verified",
   "warning",
   "warning-error",
   "warning-illustration",

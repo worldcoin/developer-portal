@@ -11,6 +11,7 @@ import { Icon } from "src/components/Icon";
 import { useToggle } from "src/hooks/useToggle";
 import { ActionModelWithNullifiers } from "src/lib/models";
 import { VerificationBadges } from "./VerificationBadges";
+import { VerificationSelect } from "@/scenes/actions/Action/VerificationSelect";
 
 const Input = memo(function Input(props: {
   placeholder?: string;
@@ -148,6 +149,10 @@ export const ActionHeader = memo(function ActionHeader(props: {
       </div>
 
       <div className="grid grid-flow-col items-center justify-end gap-x-2">
+        <VerificationSelect
+          verifications={props.action.max_accounts_per_user}
+        />
+
         <div className="flex items-center gap-x-2">
           <VerificationBadges
             verifications={props.action.max_accounts_per_user}

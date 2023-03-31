@@ -48,6 +48,29 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                 performed an action before. Highest privacy level.
               </p>
             </section>
+            <section className="relative flex gap-x-8 p-8 bg-f9fafb border border-ebecef rounded-xl">
+              <div className="flex items-center justify-center w-16 h-16 bg-ffffff border border-f3f4f5 rounded-full">
+                <Icon name="notepad" className="h-6 w-6 text-primary" />
+              </div>
+              <div className="grid gap-y-1">
+                <h2 className="font-sora text-16 font-semibold leading-5">
+                  Private and one-time actions
+                </h2>
+                <p className="max-w-[543px] text-14 text-657080 leading-4">
+                  "Anonymous Actions" generates zero-knowledge proof for each
+                  action.
+                </p>
+                <p className="max-w-[543px] text-14 text-657080 leading-4">
+                  It verifies that a person is doing an action only once and
+                  ensures unlinkable actions for enhanced privacy, as in voting
+                  applications.
+                </p>
+              </div>
+              <button className="absolute top-4 right-4 flex items-center gap-x-1 h-9 px-4 text-14 bg-ffffff border border-ebecef rounded-lg">
+                Learn more
+                <Icon name="arrow-right" className="w-4 h-4" />
+              </button>
+            </section>
             <section className="grid gap-y-6">
               <div className="flex justify-between items-center">
                 <div></div>

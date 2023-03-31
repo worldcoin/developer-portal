@@ -130,11 +130,7 @@ export const AppSelector = memo(function AppsSelector(props: {
               })}
             />
           </Menu.Button>
-          <AnimateHeight
-            id="example-panel"
-            duration={300}
-            height={open ? "auto" : 0}
-          >
+          <AnimateHeight duration={300} height={open ? "auto" : 0}>
             <Menu.Items className="relative" static>
               {appsToRender?.map((app) => (
                 <Menu.Item key={app.id} as={Link} href={getHref(app.id)}>
