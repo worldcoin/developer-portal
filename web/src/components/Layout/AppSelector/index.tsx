@@ -117,7 +117,7 @@ export const AppSelector = memo(function AppsSelector(props: {
       {apps?.length === 0 && (
         <Button onClick={handleNewAppClick} className="px-4 py-3 text-white">
           <span className="text-start font-sora text-14 mr-auto transition-colors">
-            Create new app
+            Create New App
           </span>
 
           <Icon name="plus" className="w-5 h-5" />

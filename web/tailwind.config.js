@@ -39,12 +39,18 @@ module.exports = {
         500: "#657080",
         900: "#191C20",
       },
+
+      blue: {
+        primary: "#4940E0",
+        secondary: "#EDECFC",
+      },
+
       neutral: {
         DEFAULT: "#858494", // FIXME: This color may be #191c20
-        primary: "#191c20",
-        secondary: "#9ba3ae",
+        primary: "#191c20", // gray-900
+        secondary: "#9ba3ae", // gray-400
 
-        dark: "#191c20",
+        dark: "#191c20", // gray-900
         medium: "#626467",
 
         muted: "#f0edf9",
@@ -59,8 +65,8 @@ module.exports = {
         },
       },
       primary: {
-        DEFAULT: "#4940e0",
-        light: "#edecfc",
+        DEFAULT: "#4940e0", // blue-primary
+        light: "#edecfc", // blue-secondary
       },
       success: {
         DEFAULT: "#00c313",
@@ -79,7 +85,7 @@ module.exports = {
       ...mirrorHexColors([
         "#000000",
         "#010101",
-        "#191c20",
+        "#191c20", //gray-900
         "#28303f",
         "#3c4040",
         "#487b8f",
