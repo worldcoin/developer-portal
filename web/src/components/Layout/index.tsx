@@ -55,20 +55,17 @@ export const Layout = (props: {
       <ToastContainer autoClose={5000} transition={Slide} />
       <Meta title={props.title} url={router.asPath} />
 
-      <div className="grid h-screen grid-cols-auto/1fr font-rubik">
+      <div className="grid h-screen grid-cols-auto/1fr font-rubik bg-gray-50">
         <NewAppDialog
           open={newAppDialog.isOn}
           onClose={newAppDialog.toggleOff}
         />
 
-        <aside className="min-w-[304px] overflow-y-auto px-6 gap-y-4 pt-8 pb-6 grid grid-rows-auto/1fr/auto">
+        <aside className="min-w-[268px] overflow-y-auto p-4 gap-y-4 grid grid-rows-auto/1fr/auto">
           <header className="cursor-pointer">
             <Link href="/">
               <div className="grid justify-start gap-y-0.5">
-                <Icon
-                  name="logo-dev"
-                  className="w-40 h-12 text-neutral-dark ml-4.5"
-                />
+                <Icon name="logo-dev" className="w-40 h-12 text-black" />
               </div>
             </Link>
           </header>
@@ -118,7 +115,7 @@ export const Layout = (props: {
                 /> */}
               </NavItemGroup>
 
-              <hr className="text-f3f4f5 my-4 mr-10" />
+              <hr className="text-f3f4f5 my-4" />
 
               <NavItemGroup withoutHeading>
                 <NavItem name="My Team" icon="team" href={urls.team()} />
@@ -141,7 +138,7 @@ export const Layout = (props: {
 
         <main
           className={cn(
-            "max-h-screen p-4 overflow-y-scroll py-8 px-6",
+            "max-h-screen p-4 overflow-y-scroll py-8 px-6 bg-white rounded-l-[10px]",
             props.mainClassName
           )}
         >
