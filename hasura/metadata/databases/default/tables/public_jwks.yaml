@@ -18,5 +18,10 @@ select_permissions:
         - created_at
         - expires_at
         - id
+        - kms_id
         - public_jwk
+      filter: {}
+delete_permissions:
+  - role: service
+    permission:
       filter: {}

@@ -21,6 +21,7 @@ const insertQuery = gql`
       }
     ) {
       id
+      kms_id
       expires_at
     }
   }
@@ -56,7 +57,7 @@ export default async function handleJWKGen(
 
   const result = await generateJWK(alg);
   const expiresAt = new Date();
-  expiresAt.setMonth(expiresAt.getMonth() + 12);
+  expiresAt.setDate(expiresAt.getDate() + 14); // 2 weeks
 
   const client = await getAPIServiceClient();
   const response = await client.query({

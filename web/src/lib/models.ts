@@ -2,8 +2,8 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
-import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
 import * as jose from "jose";
+import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
 
 type DateTime = string;
 
@@ -86,7 +86,7 @@ export interface CacheModel {
 
 export interface JWKModel {
   id: string;
-  private_jwk: jose.JWK;
+  kms_id: string;
   public_jwk: jose.JWK;
   expires_at: DateTime;
   created_at: DateTime;

@@ -11,6 +11,7 @@ import {
 } from "@aws-sdk/client-kms";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { base64url } from "jose";
+import { retrieveJWK } from "./jwks";
 
 const kmsKeyPolicy = `{
   "Version": "2012-10-17",
@@ -20,7 +21,7 @@ const kmsKeyPolicy = `{
       "Sid": "AllowAccessUntilExpirationDate",
       "Effect": "Allow",
       "Principal": {
-        "AWS": ${process.env.AWS_KMS_ROLE_ARN}
+        "AWS": "${process.env.AWS_KMS_ROLE_ARN}"
       },
       "Action": [
         "kms:CreateKey",
@@ -81,11 +82,11 @@ export const getKMSClient = async () => {
 };
 
 export const createKMSKey = async (
-  kmsClient: KMSClient,
+  client: KMSClient,
   alg: string
 ): Promise<CreateKeyResult> => {
   try {
-    const createKeyResponse = await kmsClient.send(
+    const { KeyMetadata } = await client.send(
       new CreateKeyCommand({
         KeySpec: alg,
         KeyUsage: "SIGN_VERIFY",
@@ -94,15 +95,16 @@ export const createKMSKey = async (
       })
     );
 
-    if (createKeyResponse.KeyMetadata) {
-      const keyId = createKeyResponse.KeyMetadata.KeyId;
-      const publicKeyResponse = await kmsClient.send(
+    const keyId = KeyMetadata?.KeyId;
+
+    if (keyId) {
+      const { PublicKey } = await client.send(
         new GetPublicKeyCommand({ KeyId: keyId })
       );
 
-      if (keyId && publicKeyResponse.PublicKey) {
+      if (PublicKey) {
         const publicKey = `-----BEGIN PUBLIC KEY-----
-${Buffer.from(publicKeyResponse.PublicKey).toString("base64")}
+${Buffer.from(PublicKey).toString("base64")}
 -----END PUBLIC KEY-----`;
 
         return { keyId, publicKey };
@@ -113,51 +115,47 @@ ${Buffer.from(publicKeyResponse.PublicKey).toString("base64")}
   }
 };
 
-export const getKMSKeyStatus = async (kmsClient: KMSClient, keyId: string) => {
+export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
   try {
-    const response = await kmsClient.send(
+    const { KeyMetadata } = await client.send(
       new DescribeKeyCommand({
         KeyId: keyId,
       })
     );
-
-    if (response.KeyMetadata) {
-      return response.KeyMetadata.Enabled;
-    }
+    return KeyMetadata?.Enabled;
   } catch (error) {
     console.error("Error describing key:", error);
   }
 };
 
 export const signJWTWithKMSKey = async (
-  kmsClient: KMSClient,
-  keyId: string,
+  client: KMSClient,
+  header: Record<string, any>,
   payload: Record<string, any>
 ) => {
-  const header = {
-    alg: "RS256",
-    typ: "JWT",
-  };
   const encodedHeader = base64url.encode(JSON.stringify(header));
   const encodedPayload = base64url.encode(JSON.stringify(payload));
   const encodedHeaderPayload = `${encodedHeader}.${encodedPayload}`;
 
   try {
-    const response = await kmsClient.send(
+    const { kms_id } = await retrieveJWK(header.kid);
+    const response = await client.send(
       new SignCommand({
-        KeyId: keyId,
-        Message: Buffer.from(encodedHeaderPayload, "utf8"),
+        KeyId: kms_id,
+        Message: Buffer.from(encodedHeaderPayload),
         MessageType: "RAW",
         SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
       })
     );
 
     if (response?.Signature) {
-      const encodedSignature = base64url.encode(
-        Buffer.from(response.Signature.buffer as ArrayBuffer)
-      );
-      const jwt = `${encodedHeaderPayload}.${encodedSignature}`;
-      return jwt;
+      // See: https://www.rfc-editor.org/rfc/rfc7515#appendix-C
+      const encodedSignature = base64url
+        .encode(response.Signature)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
+      return `${encodedHeaderPayload}.${encodedSignature}`;
     }
   } catch (error) {
     console.error("Error signing JWT:", error);

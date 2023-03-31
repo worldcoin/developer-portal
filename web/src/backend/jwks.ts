@@ -14,7 +14,7 @@ const fetchJWKQuery = gql`
     jwks(limit: 1, where: { expires_at: { _gt: $now }, alg: { _eq: $alg } }) {
       id
       alg
-      private_jwk
+      kms_id
     }
   }
 `;
@@ -23,7 +23,16 @@ const retrieveJWKQuery = gql`
   query RetrieveJWKQuery($kid: String!) {
     jwks(limit: 1, where: { id: { _eq: $kid } }) {
       id
+      kms_id
       public_jwk
+    }
+  }
+`;
+
+const deleteJWKQuery = gql`
+  mutation MyMutation($alg: String!) {
+    delete_jwks(where: { alg: { _eq: $alg } }) {
+      affected_rows
     }
   }
 `;
@@ -31,7 +40,7 @@ const retrieveJWKQuery = gql`
 export const retrieveJWK = async (kid: string) => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<{
-    jwks: Array<Pick<JWKModel, "id" | "public_jwk">>;
+    jwks: Array<Pick<JWKModel, "id" | "kms_id" | "public_jwk">>;
   }>({
     query: retrieveJWKQuery,
     variables: {
@@ -43,8 +52,8 @@ export const retrieveJWK = async (kid: string) => {
     throw new Error("JWK not found.");
   }
 
-  const { id, public_jwk } = data.jwks[0];
-  return { kid: id, public_jwk };
+  const { id, kms_id, public_jwk } = data.jwks[0];
+  return { kid: id, kms_id, public_jwk };
 };
 
 /**
@@ -52,9 +61,9 @@ export const retrieveJWK = async (kid: string) => {
  * @returns
  */
 export const fetchActiveJWK = async (alg: string) => {
-  const client = await getAPIServiceClient();
-  const { data } = await client.query<{
-    jwks: Array<Pick<JWKModel, "id" | "private_jwk">>;
+  const apiClient = await getAPIServiceClient();
+  const { data } = await apiClient.query<{
+    jwks: Array<Pick<JWKModel, "id" | "kms_id">>;
   }>({
     query: fetchJWKQuery,
     variables: {
@@ -63,12 +72,15 @@ export const fetchActiveJWK = async (alg: string) => {
     },
   });
 
-  if (!data.jwks?.length) {
-    throw new Error("No valid JWKs were found.");
+  // JWK is still active, so return
+  if (data.jwks?.length) {
+    const { id, kms_id } = data.jwks[0];
+    return { kid: id, kms_id };
   }
 
-  const { id, private_jwk } = data.jwks[0];
-  return { kid: id, private_jwk };
+  // No active JWK found, rotate the existing keys
+  const jwk = await _rotateJWK(alg);
+  return { kid: jwk.id, kms_id: jwk.kms_id };
 };
 
 /**
@@ -76,10 +88,10 @@ export const fetchActiveJWK = async (alg: string) => {
  * @returns
  */
 export const generateJWK = async (alg: string): Promise<CreateJWKResult> => {
-  const kmsClient = await getKMSClient();
+  const client = await getKMSClient();
 
-  if (kmsClient) {
-    const result = await createKMSKey(kmsClient, "RSA_2048"); // TODO: transform alg parameter?
+  if (client) {
+    const result = await createKMSKey(client, "RSA_2048"); // TODO: transform alg parameter?
     if (result?.keyId && result?.publicKey) {
       const publicJwk = createPublicKey(result.publicKey).export({
         format: "jwk",
@@ -92,4 +104,39 @@ export const generateJWK = async (alg: string): Promise<CreateJWKResult> => {
   } else {
     throw new Error("KMS client not found.");
   }
+};
+
+/**
+ * Rotates the given JWK key by generating a new KMS key, and dropping the old value
+ */
+const _rotateJWK = async (alg: string) => {
+  // Delete the old JWK before generating a new one
+  const client = await getAPIServiceClient();
+  const deleteResponse = await client.mutate({
+    mutation: deleteJWKQuery,
+    variables: {
+      alg,
+    },
+  });
+
+  // Generate a new JWK for the given algorithm
+  if (deleteResponse.data) {
+    const rotateResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/_jwk-gen`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`,
+        },
+        body: JSON.stringify({ alg }),
+      }
+    );
+
+    if (rotateResponse.ok) {
+      const { jwk } = await rotateResponse.json();
+      return jwk;
+    }
+  }
+  throw new Error("Unable to rotate JWK.");
 };

@@ -10,6 +10,7 @@ import * as jose from "jose";
 import { JWK_ALG_OIDC } from "src/lib/constants";
 import { CredentialType, JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
+import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
@@ -188,8 +189,8 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
 };
 
 interface IVerificationJWT {
-  private_jwk: jose.JWK;
   kid: string;
+  kms_id: string;
   nonce?: string;
   nullifier_hash: string;
   app_id: string;
@@ -205,15 +206,16 @@ export const generateOIDCJWT = async ({
   app_id,
   nonce,
   nullifier_hash,
-  private_jwk,
   kid,
   credential_type,
   scope,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
+    iss: JWT_ISSUER,
     sub: nullifier_hash,
     jti: randomUUID(),
     iat: new Date().getTime(),
+    exp: Date.now() + 1000 * 60 * 60, // 1 hour
     aud: app_id,
     scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {
@@ -236,11 +238,19 @@ export const generateOIDCJWT = async ({
     payload.family_name = "User";
   }
 
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWK_ALG_OIDC, kid })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("1h")
-    .sign(await jose.importJWK(private_jwk, JWK_ALG_OIDC));
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+  const header = {
+    alg: JWK_ALG_OIDC,
+    typ: "JWT",
+    kid,
+  };
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+  throw new Error("Failed to sign JWT from KMS.");
 };
 
 export const verifyOIDCJWT = async (
