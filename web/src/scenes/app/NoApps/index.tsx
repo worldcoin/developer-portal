@@ -26,8 +26,7 @@ export const NoApps = memo(function NoApps() {
         </h1>
 
         <p className="text-gray-500 text-14 self-start">
-          Everything related to your specific app will be here once you create
-          your first app.
+          You can find all your app details here once you create your first app.
         </p>
       </div>
 
@@ -42,8 +41,8 @@ export const NoApps = memo(function NoApps() {
           </h2>
 
           <p className="text-14 text-gray-500 text-center">
-            If you&apos;re looking for something and can&apos;t find it, feel
-            free to contact us and we will help you out.
+            Each app supports Sign in with Worldcoin as well as Anonymous
+            Actions for the ultimate privacy.
           </p>
         </div>
 
@@ -54,29 +53,29 @@ export const NoApps = memo(function NoApps() {
 
       <div className="grid gap-y-2">
         <h3 className="uppercase text-12 font-medium text-gray-500">
-          learn how to use developers portal
+          Learn how to use the Developer Portal
         </h3>
 
         <div className="grid grid-cols-3 gap-x-2">
           <LinkCard
             href="https://docs.worldcoin.org/"
             external
-            heading="Read the documentation"
-            description="Explore our guides, API reference, app examples and all that’s in our documentation."
+            heading="Read the docs"
+            description="Explore guides, API & library reference, as well as details on the protocol."
           />
 
           <LinkCard
-            href="#" // FIXME: add link
+            href="https://discord.gg/worldcoin"
             external
-            heading="Get a live demo appointment"
-            description="Reach out to our team and talk about all the possibilities with Worldcoin developers portal."
+            heading="Join our Discord community"
+            description="Jam on ideas, see what others are building, ask questions. Look for the #developers channel."
           />
 
           <LinkCard
-            href="#" // FIXME: add link
+            href="https://github.com/worldcoin/developer-portal"
             external
-            heading="Watch a guide video"
-            description="Reach out to our team and talk about all the possibilities with Worldcoin developers portal."
+            heading="Contribute to the Worldcoin ecosystem"
+            description="World ID is open source and always looking for contributions."
           />
         </div>
       </div>
