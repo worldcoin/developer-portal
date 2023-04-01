@@ -152,10 +152,7 @@ export default async function handleInclusionProof(
       await checkConsumerBackendForPhoneVerification(req, res, isStaging);
       return;
     } catch (error) {
-      console.error(
-        "Error checking phone verification on consumer backend:",
-        error
-      );
+      console.error(error);
     }
 
     // Phone was not verified, proceed as normal
