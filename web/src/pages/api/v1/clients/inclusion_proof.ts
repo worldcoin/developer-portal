@@ -6,13 +6,13 @@ import {
   errorValidation,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
+import { checkConsumerBackendForPhoneVerification } from "src/backend/utils";
 import {
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
   SEMAPHORE_GROUP_MAP,
 } from "src/lib/constants";
 import { CredentialType } from "src/lib/types";
-import { checkConsumerBackend } from "src/lib/utils";
 
 const existsQuery = gql`
   query IdentityCommitmentExists($identity_commitment: String!) {
@@ -148,8 +148,15 @@ export default async function handleInclusionProof(
 
     // User may have previously verified their phone number, before the phone sequencer contract was deployed
     // Check with the consumer backend if this is the case, and if so insert the identity commitment on-the-fly
-    const handled = await checkConsumerBackend(req, res, isStaging);
-    if (handled) return;
+    try {
+      await checkConsumerBackendForPhoneVerification(req, res, isStaging);
+      return;
+    } catch (error) {
+      console.error(
+        "Error checking phone verification on consumer backend:",
+        error
+      );
+    }
 
     // Phone was not verified, proceed as normal
     if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
