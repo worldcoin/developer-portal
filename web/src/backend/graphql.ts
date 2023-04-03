@@ -7,6 +7,7 @@ import {
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
 import { generateServiceJWT } from "src/backend/jwts";
+
 const { publicRuntimeConfig } = getConfig();
 
 const httpLink = createHttpLink({

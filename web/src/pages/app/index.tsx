@@ -1,24 +1,42 @@
+import { gql } from "@apollo/client";
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
-import useApps from "src/hooks/useApps";
+import { getAPIServiceClient } from "src/backend/graphql";
 import { requireAuthentication } from "src/lib/require-authentication";
+import { urls } from "src/lib/urls";
+import { NoApps } from "src/scenes/app/NoApps";
 
 export default function App() {
-  const { apps, isLoading } = useApps();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (router.isReady && !isLoading) {
-      router.push(apps?.length ? `/app/${apps[0].id}` : "/team");
-    }
-  }, [apps, isLoading, router]);
-
-  return null;
+  return <NoApps />;
 }
 
+const query = gql`
+  query Apps($id: String!) {
+    app(where: { team: { users: { id: { _eq: $id } } } }) {
+      id
+    }
+  }
+`;
+
 export const getServerSideProps: GetServerSideProps = requireAuthentication(
-  async (context) => {
+  async (_context, user_id) => {
+    const client = await getAPIServiceClient();
+
+    const apps = await client.query<{ app: Array<{ id: string }> }>({
+      query,
+      variables: {
+        id: user_id,
+      },
+    });
+
+    if (apps.data.app.length > 0) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: urls.app(apps.data.app[0].id),
+        },
+      };
+    }
+
     return {
       props: {},
     };

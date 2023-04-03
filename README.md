@@ -7,54 +7,26 @@ The Worldcoin Developer Portal provides tools to interact with the Worldcoin SDK
 <!-- WORLD-ID-SHARED-README-TAG:START - Do not remove or modify this section directly -->
 <!-- The contents of this file are inserted to all World ID repositories to provide general context on World ID. -->
 
-## <img align="left" width="28" height="28" src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-orb.png" alt="" style="margin-right: 0;" /> About World ID
+## <img align="left" width="28" height="28" src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-world-id.png" alt="" style="margin-right: 0; padding-right: 4px;" /> About World ID
 
-World ID is a protocol that lets you **prove a human is doing an action only once without revealing any personal data**. Stop bots, stop abuse.
+World ID is the privacy-first identity protocol that brings global proof of personhood to the internet. More on World ID in the [announcement blog post](https://worldcoin.org/blog/announcements/introducing-world-id-and-sdk).
 
-World ID uses a device called the [Orb](https://worldcoin.org/how-the-launch-works) which takes a picture of a person's iris to verify they are a unique and alive human. The protocol uses [Zero-knowledge proofs](https://id.worldcoin.org/zkp) so no traceable information is ever public.
+World ID lets you seamlessly integrate authentication into your app that verifies accounts belong to real persons through [Sign in with Worldcoin](https://docs.worldcoin.org/id/sign-in). For additional flexibility and cases where you need extreme privacy, [Anonymous Actions](https://docs.worldcoin.org/id/anonymous-actions) lets you verify users in a way that cannot be tracked across verifications.
 
-World ID is meant for on-chain web3 apps, traditional cloud applications, and even IRL verifications.
-
-<img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-diagram.png" alt="Diagram of how World ID works."  />
-
-### Getting started with World ID
-
-Regardless of how you landed here, the easiest way to get started with World ID is through the the [Dev Portal](https://developer.worldcoin.org).
-
-<a href="https://developer.worldcoin.org">
-<p align="center">
-  <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-get-started.png" alt="Get started" height="50" />
-</p>
-</a>
-
-### World ID Demos
-
-Want to see World ID in action? We have a bunch of [Examples](https://id.worldcoin.org/examples).
-
-<a href="https://id.worldcoin.org/examples">
-<p align="center">
-  <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-examples.png" alt="Click here to see examples" height="150" />
-</p>
-</a>
+Follow the [Quick Start](https://docs.worldcoin.org/quick-start) guide for the easiest way to get started.
 
 ## 📄 Documentation
 
-We have comprehensive docs for World ID at https://id.worldcoin.org/docs.
+All the technical docs for the Wordcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
 
-<a href="https://id.worldcoin.org/docs">
-<p align="center">
-  <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-docs.png" alt="Visit documentation" height="50" />
-</p>
-</a>
-
-## 🗣 Feedback
-
-**World ID is in Beta, help us improve!** Please share feedback on your experience. You can find us on [Discord](https://discord.gg/worldcoin), look for the [#world-id](https://discord.com/channels/956750052771127337/968523914638688306) channel. You can also open an issue or a PR directly on this repo.
-
-<a href="https://discord.gg/worldcoin">
-<p align="center">
-  <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-discord.png" alt="Join Discord" height="50" />
-</p>
+<a href="https://docs.worldcoin.org">
+  <p align="center">
+    <picture align="center">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/visit-documentation-dark.png" height="50px" />
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/visit-documentation-light.png" height="50px" />
+      <img />
+    </picture>
+  </p>
 </a>
 
 <!-- WORLD-ID-SHARED-README-TAG:END -->

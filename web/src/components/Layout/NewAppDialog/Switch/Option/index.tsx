@@ -31,10 +31,10 @@ export const Option = memo(function Option(props: OptionProps) {
     <button
       type="button"
       className={cn(
-        "relative flex items-center gap-x-4 w-full py-4 pl-4 pr-3.5 text-left border rounded-2xl transition-colors",
+        "relative flex items-center gap-x-4 w-full py-4 pl-4 pr-3.5 text-left rounded-[10px] transition-colors",
         {
-          "bg-neutral-dark border-transparent": props.checked,
-          "border-f0edf9": !props.checked,
+          "bg-ffffff": props.checked,
+          "bg-transparent": !props.checked,
         }
       )}
       onClick={handleClick}
@@ -44,16 +44,15 @@ export const Option = memo(function Option(props: OptionProps) {
         className={cn(
           "shrink-0 flex items-center justify-center w-12 h-12 rounded-full transition-colors",
           {
-            "bg-ffffff/10": checked,
-            "bg-f3f4f5": !checked,
+            "bg-f3f4f5": checked,
+            "bg-ffffff opacity-50": !checked,
           }
         )}
       >
         <Icon
           name={icon}
-          className={cn("w-6 h-6 transition-colors", {
-            "text-ffffff": checked,
-            "text-neutral-dark": !checked,
+          className={cn("w-6 h-6 transition-colors text-neutral-dark", {
+            "opacity-50": !checked,
           })}
         />
       </div>
@@ -61,10 +60,9 @@ export const Option = memo(function Option(props: OptionProps) {
       <div>
         <div
           className={cn(
-            "font-sora font-semibold text-16 leading-4 transition-colors",
+            "font-sora font-semibold text-16 leading-4 transition-colors text-neutral-dark",
             {
-              "text-ffffff": checked,
-              "text-neutral-dark": !checked,
+              "opacity-50": !checked,
             }
           )}
         >
@@ -73,10 +71,9 @@ export const Option = memo(function Option(props: OptionProps) {
 
         <div
           className={cn(
-            "mt-1.5 font-rubik text-14 leading-4 transition-colors",
+            "mt-1.5 font-rubik text-14 leading-4 transition-colors text-neutral",
             {
-              "text-ffffff/60": checked,
-              "text-neutral": !checked,
+              "opacity-50": !checked,
             }
           )}
         >
@@ -87,10 +84,10 @@ export const Option = memo(function Option(props: OptionProps) {
       {easiest && (
         <div
           className={cn(
-            "absolute top-2 right-4 flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-lg transition-colors",
+            "absolute top-1 right-1 flex items-center h-6 px-3 font-rubik text-14 leading-[1px] rounded-[6px] transition-colors text-neutral-dark",
             {
-              "bg-ffffff/10 text-ffffff": checked,
-              "bg-neutral-dark/10 text-neutral-dark": !checked,
+              "bg-ebecef": checked,
+              "bg-ffffff opacity-50": !checked,
             }
           )}
         >
