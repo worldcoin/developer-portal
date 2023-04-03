@@ -55,7 +55,7 @@ export default async function handleJWKGen(
     );
   }
 
-  const result = await generateJWK(alg);
+  const result = await generateJWK();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14); // 2 weeks
 

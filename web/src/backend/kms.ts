@@ -138,7 +138,7 @@ export const signJWTWithKMSKey = async (
   const encodedHeaderPayload = `${encodedHeader}.${encodedPayload}`;
 
   try {
-    const { kms_id } = await retrieveJWK(header.kid);
+    const { kms_id } = await retrieveJWK(header.kid); // NOTE: JWK is already verified to be active at this point
     const response = await client.send(
       new SignCommand({
         KeyId: kms_id,
