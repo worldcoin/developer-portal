@@ -57,7 +57,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                   Private and one-time actions
                 </h2>
                 <p className="max-w-[543px] text-14 text-657080 leading-4">
-                  "Anonymous Actions" generates zero-knowledge proof for each
+                  &quot;Anonymous Actions&quot; generates zero-knowledge proof for each
                   action.
                 </p>
                 <p className="max-w-[543px] text-14 text-657080 leading-4">
