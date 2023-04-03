@@ -3,13 +3,14 @@ import { Action } from "./Action";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { Icon } from "@/components/Icon";
-import useActions from "src/hooks/useActions";
 import { NewAction } from "./NewAction";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import useApps from "src/hooks/useApps";
 import { Preloader } from "src/components/Preloader";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { NotFound } from "@/components/NotFound";
+import { useFetchActions } from "./hooks";
+import { useForm, useWatch } from "react-hook-form";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -17,8 +18,37 @@ const getActionsStore = (store: IActionStore) => ({
 
 export function Actions(props: { user_id?: string }): JSX.Element | null {
   const { currentApp, isLoading: appIsLoading } = useApps();
-  const { actions, isLoading: actionIsLoading } = useActions();
+  const { actions, isActionsLoading } = useFetchActions();
   const { setNewActionOpened } = useActionStore(getActionsStore);
+
+  const { register, control } = useForm<{ actionSearch: string }>({
+    mode: "onChange",
+  });
+
+  const actionsSearch = useWatch({
+    control,
+    name: "actionSearch",
+  });
+
+  const actionsToRender = useMemo(() => {
+    if (!actions) {
+      return [];
+    }
+
+    if (!actionsSearch) {
+      return actions;
+    }
+
+    const fieldsToSearch = ["name", "description", "action"] as const;
+
+    return actions.filter((action) => {
+      return fieldsToSearch.some((field) => {
+        return action[field]
+          ?.toLowerCase()
+          .includes(actionsSearch.toLowerCase());
+      });
+    });
+  }, [actions, actionsSearch]);
 
   return (
     <Layout
@@ -26,7 +56,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
       userId={props.user_id}
       mainClassName="grid items-start"
     >
-      {(appIsLoading || actionIsLoading) && (
+      {(appIsLoading || isActionsLoading) && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
         </div>
@@ -34,7 +64,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
 
       {!appIsLoading && !currentApp && <NotFound className="self-center" />}
 
-      {!appIsLoading && !actionIsLoading && currentApp && (
+      {!appIsLoading && !isActionsLoading && currentApp && (
         <Fragment>
           <NewAction />
 
@@ -91,6 +121,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                   <label className="grow flex items-center gap-x-4 h-12 px-4 border border-ebecef rounded-lg">
                     <Icon name="search" className="w-6 h-6 text-d6d9dd" />
                     <input
+                      {...register("actionSearch")}
                       className="grow font-rubik text-14 outline-none placeholder:text-d6d9dd"
                       placeholder="Search for an action..."
                     />
@@ -121,7 +152,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                         <th className="pt-8 pb-4 whitespace-nowrap border-b border-f3f4f5" />
                       </tr>
                     </thead>
-                    {actions?.length === 0 && (
+                    {actions && actions?.length === 0 && (
                       <tbody>
                         <tr>
                           <td className="pt-8 pb-4 text-center" colSpan={5}>
@@ -135,8 +166,9 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                         </tr>
                       </tbody>
                     )}
-                    {actions?.length > 0 &&
-                      actions.map((action) => (
+                    {actionsToRender &&
+                      actionsToRender?.length > 0 &&
+                      actionsToRender.map((action) => (
                         <Fragment key={action.id}>
                           <tbody>
                             <tr>

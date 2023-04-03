@@ -1,4 +1,4 @@
-import { Disclosure, Transition } from "@headlessui/react";
+import { Disclosure } from "@headlessui/react";
 import cn from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -12,13 +12,13 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/components/Icon";
-import useActions from "@/hooks/useActions";
-import { ActionModelWithNullifiers } from "@/lib/models";
-
 import { VerificationSelect } from "@/scenes/actions/Action/VerificationSelect";
 import { Input } from "@/scenes/actions/Action/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
+import { urls } from "src/lib/urls";
+import { ActionsQuery } from "../graphql/actions.generated";
+import { useUpdateAction } from "../hooks";
 
 dayjs.extend(relativeTime);
 
@@ -42,11 +42,9 @@ const COLORS = [
 ];
 
 export const Action = memo(function Action(props: {
-  action: ActionModelWithNullifiers;
+  action: ActionsQuery["action"][number];
 }) {
-  const { action } = props;
-  const { toggleKiosk, updateName, updateDescription, updateMaxVerifications } =
-    useActions();
+  const { updateAction } = useUpdateAction();
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
     const value = result[0] === "a" ? "1" : result[0];
@@ -75,12 +73,20 @@ export const Action = memo(function Action(props: {
     }
   }, [copied, props.action.action]);
 
-  const handleToggleKiosk = useCallback(
-    (event: ReactMouseEvent<HTMLButtonElement>) => {
+  const enableKiosk = useCallback(
+    (id: string) => (event: ReactMouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      toggleKiosk(action.id);
+      updateAction(id, { kiosk_enabled: true });
     },
-    [toggleKiosk, action]
+    [updateAction]
+  );
+
+  const disableKiosk = useCallback(
+    (id: string) => (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      updateAction(id, { kiosk_enabled: false });
+    },
+    [updateAction]
   );
 
   return (
@@ -103,7 +109,9 @@ export const Action = memo(function Action(props: {
                     <Input
                       placeholder="Click to set action name"
                       value={props.action.name}
-                      onChange={(value) => updateName(props.action.id, value)}
+                      onChange={(value) =>
+                        updateAction(props.action.id, { name: value })
+                      }
                     />
                     <div className="group flex gap-x-1">
                       <div className="inline-flex px-1.5 py-1 font-ibm text-12 text-danger leading-[10px] bg-f9fafb border border-ebecef rounded">
@@ -135,7 +143,7 @@ export const Action = memo(function Action(props: {
                   placeholder="Click to set description"
                   value={props.action.description}
                   onChange={(value) =>
-                    updateDescription(props.action.id, value)
+                    updateAction(props.action.id, { description: value })
                   }
                 />
               </td>
@@ -143,7 +151,9 @@ export const Action = memo(function Action(props: {
                 <VerificationSelect
                   value={props.action.max_accounts_per_user}
                   onChange={(value) =>
-                    updateMaxVerifications(props.action.id, value)
+                    updateAction(props.action.id, {
+                      max_accounts_per_user: value,
+                    })
                   }
                 />
               </td>
@@ -157,7 +167,7 @@ export const Action = memo(function Action(props: {
                       <Button
                         variant="plain"
                         className="!font-semibold !text-14 !text-primary hover:opacity-70"
-                        onClick={handleToggleKiosk}
+                        onClick={enableKiosk(props.action.id)}
                       >
                         Enable Kiosk
                       </Button>
@@ -165,7 +175,7 @@ export const Action = memo(function Action(props: {
                     {props.action.kiosk_enabled && (
                       <Link
                         className="flex items-center gap-x-1 h-8 px-2 font-sora font-semibold text-14 bg-ffffff border border-ebecef rounded-lg hover:opacity-70 transition-opacity"
-                        href="" // FIXME: add kiosk url
+                        href={urls.kiosk(props.action.id)}
                         target="_blank"
                       >
                         Open Kiosk
@@ -263,7 +273,7 @@ export const Action = memo(function Action(props: {
                     <Button
                       variant="plain"
                       className="!font-semibold !text-14 !text-primary hover:opacity-70"
-                      onClick={handleToggleKiosk}
+                      onClick={enableKiosk(props.action.id)}
                     >
                       Enable Kiosk
                     </Button>
@@ -272,7 +282,7 @@ export const Action = memo(function Action(props: {
                     <Button
                       variant="plain"
                       className="!font-semibold !text-14 !text-ff6848 hover:opacity-70"
-                      onClick={handleToggleKiosk}
+                      onClick={disableKiosk(props.action.id)}
                     >
                       Disable Kiosk
                     </Button>
