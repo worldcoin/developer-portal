@@ -66,36 +66,88 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                   applications.
                 </p>
               </div>
-              <button className="absolute top-4 right-4 flex items-center gap-x-1 h-9 px-4 text-14 bg-ffffff border border-ebecef rounded-lg">
+              <Link
+                className="absolute top-4 right-4 flex items-center gap-x-1 h-9 px-4 text-14 bg-ffffff border border-ebecef rounded-lg hover:opacity-70 transition-opacity"
+                href="https://docs.worldcoin.org/id/anonymous-actions"
+                target="_blank"
+              >
                 Learn more
                 <Icon name="arrow-right" className="w-4 h-4" />
-              </button>
+              </Link>
             </section>
-            <section className="grid gap-y-6">
-              <div className="flex justify-between items-center">
-                <div></div>
-                <div className="grid grid-flow-col gap-x-8">
-                  <Link
-                    className="grid gap-x-1 grid-flow-col justify-start items-center px-3 py-2 border border-f3f4f5 rounded-lg hover:opacity-70 transition-opacity"
-                    href="https://docs.worldcoin.org/id/anonymous-actions"
-                    target="_blank"
-                  >
-                    <span>Docs</span>
-                    <Icon name="arrow-right" className="w-4 h-4" />
-                  </Link>
-                  <Button
-                    className="px-11 py-4"
-                    onClick={() => setNewActionOpened(true)}
-                  >
-                    Create new
-                  </Button>
+
+            <section className="grid gap-y-2">
+              <div className="flex items-center gap-x-2">
+                <div className="font-medium text-14 leading-4">
+                  Anonymous Actions
+                </div>
+                <div className="flex items-center h-5 px-1.5 font-sora text-12 text-657080 leading-4 bg-ebecef rounded">
+                  {actions?.length ?? 0}
                 </div>
               </div>
 
-              <div className="grid gap-y-4">
-                {actions?.map((action) => (
-                  <Action key={action.id} action={action} />
-                ))}
+              <div className="p-4 rounded-xl shadow-card">
+                <div className="flex items-center gap-x-8">
+                  <label className="grow flex items-center gap-x-4 h-12 px-4 border border-ebecef rounded-lg">
+                    <Icon name="search" className="w-6 h-6 text-d6d9dd" />
+                    <input
+                      className="grow font-rubik text-14 outline-none placeholder:text-d6d9dd"
+                      placeholder="Search for an action..."
+                    />
+                  </label>
+                  <Button
+                    className="h-12 px-11"
+                    onClick={() => setNewActionOpened(true)}
+                  >
+                    Create New Action
+                  </Button>
+                </div>
+                <div>
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="w-1/4 pt-8 pb-4 pr-6 whitespace-nowrap text-12 text-left border-b border-f3f4f5">
+                          Action Name
+                        </th>
+                        <th className="w-full pt-8 pb-4 pr-6 whitespace-nowrap text-12 text-left border-b border-f3f4f5">
+                          Description
+                        </th>
+                        <th className="pt-8 pb-4 pr-4 whitespace-nowrap text-12 text-left border-b border-f3f4f5">
+                          Verifications per person
+                        </th>
+                        <th className="pt-8 pb-4 whitespace-nowrap text-12 text-center border-b border-f3f4f5">
+                          Unique persons
+                        </th>
+                        <th className="pt-8 pb-4 whitespace-nowrap border-b border-f3f4f5" />
+                      </tr>
+                    </thead>
+                    {actions?.length === 0 && (
+                      <tbody>
+                        <tr>
+                          <td className="pt-8 pb-4 text-center" colSpan={5}>
+                            <div className="font-medium text-12 leading-3">
+                              List of Anonymous Actions
+                            </div>
+                            <div className="mt-2 text-12 text-657080 leading-3">
+                              No active actions yet.
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    )}
+                    {actions?.length > 0 &&
+                      actions.map((action) => (
+                        <Fragment key={action.id}>
+                          <tbody>
+                            <tr>
+                              <td className="h-4" />
+                            </tr>
+                          </tbody>
+                          <Action action={action} />
+                        </Fragment>
+                      ))}
+                  </table>
+                </div>
               </div>
             </section>
           </div>

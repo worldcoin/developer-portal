@@ -47,6 +47,7 @@ const iconNames = [
   "logo-dev",
   "logout",
   "magnifier",
+  "maximize",
   "meter",
   "notepad",
   "octagon",

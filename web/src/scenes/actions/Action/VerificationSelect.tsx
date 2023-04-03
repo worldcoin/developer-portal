@@ -1,4 +1,4 @@
-import { Fragment, memo } from "react";
+import { memo, useCallback } from "react";
 import { Menu } from "@headlessui/react";
 import cn from "classnames";
 import { Icon } from "@/components/Icon";
@@ -6,38 +6,59 @@ import AnimateHeight from "react-animate-height";
 
 const Item = memo(function Item(props: {
   className?: string;
+  selected?: boolean;
   value: number | null;
+  onClick?: () => void;
 }) {
   return (
     <Menu.Item>
-      {({ active }) => (
-        <div
-          className={cn(
-            props.className,
-            "grow flex items-center gap-2 leading-4"
-          )}
-        >
-          <Icon name="verified" className="h-4 w-4" />
-          {props.value === 1
-            ? "Unique"
-            : props.value === 2
-            ? "2 verifications"
-            : props.value === 3
-            ? "3 verifications"
-            : props.value == null
-            ? "Unlimited"
-            : "Custom"}
-        </div>
-      )}
+      <div
+        className={cn(
+          props.className,
+          "grow flex items-center h-7 px-2 gap-2 leading-4 cursor-pointer rounded-md",
+          {
+            "hover:bg-f3f4f5": !props.selected,
+          }
+        )}
+        onClick={props.onClick}
+      >
+        <Icon
+          name="verified"
+          className={cn("h-4 w-4", { "text-primary": props.selected })}
+        />
+        {props.value === 1
+          ? "Unique"
+          : props.value === 2
+          ? "2 verifications"
+          : props.value === 3
+          ? "3 verifications"
+          : props.value == null
+          ? "Unlimited"
+          : "Custom"}
+      </div>
     </Menu.Item>
   );
 });
 
 export const VerificationSelect = memo(function VerificationSelect(props: {
-  verifications: number;
+  value: number;
+  onChange: (value: number) => void;
 }) {
+  const { onChange } = props;
+
+  const handleSelect = useCallback(
+    (value: number) => () => {
+      onChange(value);
+    },
+    [onChange]
+  );
+
   return (
-    <Menu as="div" className="relative w-[166px] h-8">
+    <Menu
+      as="div"
+      className="relative w-[166px] h-8"
+      onClick={(event) => event.stopPropagation()}
+    >
       {({ open }) => (
         <div
           className={cn(
@@ -49,9 +70,9 @@ export const VerificationSelect = memo(function VerificationSelect(props: {
           )}
         >
           <Menu.Button
-            className={cn("flex w-full h-8 items-center px-3 gap-2 text-left")}
+            className={cn("flex w-full h-8 items-center px-1 gap-2 text-left")}
           >
-            <Item value={props.verifications} className="text-primary" />
+            <Item value={props.value} selected />
             <Icon
               name="angle-down"
               className={cn("h-4 w-4 transition-transform", {
@@ -62,15 +83,27 @@ export const VerificationSelect = memo(function VerificationSelect(props: {
 
           <AnimateHeight duration={300} height={open ? "auto" : 0}>
             <Menu.Items className="relative" static>
-              <div className="grid gap-y-5 px-3 py-3">
-                {props.verifications !== 2 && (
-                  <Item value={2} className="text-neutral-secondary" />
+              <div className="grid gap-y-1 px-1 py-1">
+                {props.value !== 2 && (
+                  <Item
+                    value={2}
+                    className="text-neutral-secondary"
+                    onClick={handleSelect(2)}
+                  />
                 )}
-                {props.verifications !== 3 && (
-                  <Item value={3} className="text-neutral-secondary" />
+                {props.value !== 3 && (
+                  <Item
+                    value={3}
+                    className="text-neutral-secondary"
+                    onClick={handleSelect(2)}
+                  />
                 )}
-                {props.verifications != null && (
-                  <Item value={null} className="text-neutral-secondary" />
+                {props.value !== 0 && (
+                  <Item
+                    value={0}
+                    className="text-neutral-secondary"
+                    onClick={handleSelect(2)}
+                  />
                 )}
               </div>
               <div className="px-[5px]">
