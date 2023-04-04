@@ -132,7 +132,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
  * @param alg
  * @returns
  */
-const _rotateJWK = async (alg: string) => {
+export const _rotateJWK = async (alg: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/_jwk-gen`,
     {
@@ -157,12 +157,12 @@ const _rotateJWK = async (alg: string) => {
  * Delete all expired JWKs from the database
  * @returns
  */
-const _deleteExpiredJWKs = async () => {
+export const _deleteExpiredJWKs = async () => {
   const client = await getAPIServiceClient();
   const response = await client.mutate({
     mutation: deleteExpiredJWKsQuery,
     variables: {
-      expired_by: Date.now() - 20 * 60 * 1000, // 20 minutes ago
+      expired_by: new Date(Date.now() - 20 * 60 * 1000).toISOString(), // 20 minutes ago
     },
   });
 

@@ -3,7 +3,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateJWK } from "src/backend/jwks";
 import { protectInternalEndpoint } from "src/backend/utils";
-import { errorNotAllowed, errorValidation } from "../../backend/errors";
+import {
+  errorNotAllowed,
+  errorResponse,
+  errorValidation,
+} from "../../backend/errors";
 
 const insertQuery = gql`
   mutation InsertJWK(
@@ -70,5 +74,15 @@ export default async function handleJWKGen(
     },
   });
 
-  res.status(201).json({ success: true, jwk: response.data.insert_jwks_one });
+  if (response.data.insert_jwks_one) {
+    return res
+      .status(201)
+      .json({ success: true, jwk: response.data.insert_jwks_one });
+  }
+  return errorResponse(
+    res,
+    500,
+    "jwk_generation_failed",
+    "Failed to generate JWK."
+  );
 }

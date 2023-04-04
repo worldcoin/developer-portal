@@ -1,17 +1,18 @@
 import { when } from "jest-when";
-import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
 import * as jose from "jose";
 import { createMocks } from "node-mocks-http";
 import { getTokenFromCookie } from "src/backend/cookies";
-import { generateJWK } from "src/backend/jwks";
 import { generateInviteJWT, generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
 import handleLogin from "src/pages/api/login";
-import { privateJwk, publicJwk } from "./__mocks__/jwk";
+import { publicJwk } from "./__mocks__/jwk";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
+const clientReturnFn = jest.fn();
+const keyReturnFn = jest.fn();
+const signReturnFn = jest.fn();
 
 jest.mock(
   "src/backend/graphql",
@@ -23,14 +24,23 @@ jest.mock(
   }))
 );
 
+jest.mock(
+  "src/backend/kms",
+  jest.fn(() => ({
+    getKMSClient: () => clientReturnFn,
+    createKMSKey: () => keyReturnFn,
+    signJWTWithKMSKey: () => signReturnFn,
+  }))
+);
+
 const validPayload = async () => ({
   sign_in_with_world_id_token: await generateOIDCJWT({
-    app_id: "app_developer_portal",
+    kid: "kid_my_test_key",
+    kms_id: "kms_my_test_id",
     nonce: "superRandomString",
     nullifier_hash:
       "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
-    private_jwk: privateJwk,
-    kid: "kid_my_test_key",
+    app_id: "app_developer_portal",
     credential_type: CredentialType.Orb,
     scope: [OIDCScopes.OpenID],
   }),
@@ -77,6 +87,23 @@ beforeEach(() => {
       })
     )
     .mockResolvedValue({ data: { delete_cache: { affected_rows: 1 } } });
+
+  when(clientReturnFn).calledWith(expect.anything()).mockResolvedValue(true);
+
+  when(keyReturnFn)
+    .calledWith(expect.anything())
+    .mockResolvedValue({
+      keyId: "da112a8b-023d-4eda-ae7d-33fde0a721b4",
+      publicKey: `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvzV3R48ve50etEd4BtryHzo1x1h1tC1poHkSXGzjXPIXmYvuLyZPCWfNzuH9YpXfuZRch1p3YrFRavSoQClb/kfAOou/nZXPyFdVlhzQzLp0EGB+/WEjA5Zj4J39EDdyToXmxsVNezzZJG66kfhz1VmBd18WGGAPDvw9PAdR2LpybKXl9VvwY5CFHazkadFy8Any+nKHpn3R3MxRHaeJV3EZDJfC+C46BCULkAS8EnZAtfdTJubIE71cNoOu/WmQupYsotk1XT3aN07ctvYuhyejiE+6bU3awre/kOumyjzb/7UWeIMvwxbFor3fEUPJa70xFfqPJUpFyj8NXlPE5wIDAQAB
+-----END PUBLIC KEY-----`,
+    });
+
+  when(signReturnFn)
+    .calledWith(expect.anything())
+    .mockResolvedValue(
+      "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imp3a182Y2VjMzQyNzVhMjI0Y2EwM2MxZjVmNjAwYzM1YmQyZiJ9.eyJpc3MiOiJodHRwczovL2lkLndvcmxkY29pbi5vcmciLCJzdWIiOiIweDE2N2JkMTZlMDg1YjA3OGZiMTk2ZWUxNTZhMTFiYjc1ZWRhYTI4N2JiY2M3OTkzMDIwZjdmNTZiNTA2NWViMjkiLCJqdGkiOiJmNzM2MTBiMC00NjM1LTRhYTUtOTZhNS05OTE0NDE2ZjQ1YWEiLCJpYXQiOjE2ODA2MzI4MDAzNzksImV4cCI6MTY4MDYzNjQwMDM3OSwiYXVkIjoiYXBwXzUxMmEwZGY4Njg4Mzg3NmExOTBkOGIxYWE3OWU2YTI2Iiwic2NvcGUiOiIiLCJodHRwczovL2lkLndvcmxkY29pbi5vcmcvYmV0YSI6eyJsaWtlbHlfaHVtYW4iOiJzdHJvbmciLCJjcmVkZW50aWFsX3R5cGUiOiJvcmIifSwibm9uY2UiOiJlY2VjYTFlNzgyODA1ODcwMzU5ODYwODMyYzNjODUzZCJ9.EUgyWIn18feIGwZr45R_K7TTv2bmdf6sFec7WB44D0-a7Lczd_srdcARz3c3fBOsDDVPX-KLpjvSqr2pWDKn_Qquxnzf38c4id2wsauE6Lw5K-1roxTVSr6u5NReVP446dz0VZ5pOO_4rbN1h3pEpKuV79bo4L1MeQooh6S1WQT8_rl-elIu_O84X90AhDiyNGlH6Z0ri_rgsnps82yuOYIG1na_qO5WA1XX8wVP7SaGh_Ln8MbNRKDT19Jz2gsDlkNJVI2mU20O4vzHRwHkOap19bZEfB-nydyqRnj6d6Zi8aYM1-G_DTDG8X5sGNswHg4iQvAPLT3u3PBNEUE9TweyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imp3a182Y2VjMzQyNzVhMjI0Y2EwM2MxZjVmNjAwYzM1YmQyZiJ9.eyJpc3MiOiJodHRwczovL2lkLndvcmxkY29pbi5vcmciLCJzdWIiOiIweDE2N2JkMTZlMDg1YjA3OGZiMTk2ZWUxNTZhMTFiYjc1ZWRhYTI4N2JiY2M3OTkzMDIwZjdmNTZiNTA2NWViMjkiLCJqdGkiOiJmNzM2MTBiMC00NjM1LTRhYTUtOTZhNS05OTE0NDE2ZjQ1YWEiLCJpYXQiOjE2ODA2MzI4MDAzNzksImV4cCI6MTY4MDYzNjQwMDM3OSwiYXVkIjoiYXBwXzUxMmEwZGY4Njg4Mzg3NmExOTBkOGIxYWE3OWU2YTI2Iiwic2NvcGUiOiIiLCJodHRwczovL2lkLndvcmxkY29pbi5vcmcvYmV0YSI6eyJsaWtlbHlfaHVtYW4iOiJzdHJvbmciLCJjcmVkZW50aWFsX3R5cGUiOiJvcmIifSwibm9uY2UiOiJlY2VjYTFlNzgyODA1ODcwMzU5ODYwODMyYzNjODUzZCJ9.EUgyWIn18feIGwZr45R_K7TTv2bmdf6sFec7WB44D0-a7Lczd_srdcARz3c3fBOsDDVPX-KLpjvSqr2pWDKn_Qquxnzf38c4id2wsauE6Lw5K-1roxTVSr6u5NReVP446dz0VZ5pOO_4rbN1h3pEpKuV79bo4L1MeQooh6S1WQT8_rl-elIu_O84X90AhDiyNGlH6Z0ri_rgsnps82yuOYIG1na_qO5WA1XX8wVP7SaGh_Ln8MbNRKDT19Jz2gsDlkNJVI2mU20O4vzHRwHkOap19bZEfB-nydyqRnj6d6Zi8aYM1-G_DTDG8X5sGNswHg4iQvAPLT3u3PBNEUE9Tw"
+    );
 });
 
 describe("/api/v1/login", () => {

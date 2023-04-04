@@ -71,6 +71,7 @@ export const getKMSClient = async () => {
 
       const kmsClient = new KMSClient({
         region: process.env.AWS_REGION_NAME,
+        // @ts-ignore
         credentials: roleCredentials,
       });
 
