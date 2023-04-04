@@ -149,10 +149,10 @@ export const Action = memo(function Action(props: {
               </td>
               <td className="pr-4">
                 <VerificationSelect
-                  value={props.action.max_accounts_per_user}
+                  value={props.action.max_verifications}
                   onChange={(value) =>
                     updateAction(props.action.id, {
-                      max_accounts_per_user: value,
+                      max_verifications: value,
                     })
                   }
                 />
