@@ -49,6 +49,9 @@ export function NewAction() {
   } = useForm<NewActionFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
+    defaultValues: {
+      maxVerifications: 1,
+    },
   });
 
   useEffect(() => {
