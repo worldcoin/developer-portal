@@ -69,26 +69,22 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
           <NewAction />
 
           <div className="grid gap-y-12">
-            <section className="grid gap-y-3">
+            <div className="grid gap-y-6">
               <h1 className="font-sora text-24 font-semibold leading-tight">
                 Anonymous Actions
               </h1>
-              <p className="text-18 text-neutral-secondary leading-none">
-                Lets you verify someone is a real person that has never
-                performed an action before. Highest privacy level.
-              </p>
-            </section>
-            <PageInfo
-              icon="notepad"
-              iconClassName="text-primary"
-              title="Private and one-time actions"
-              text={[
-                '"Anonymous Actions" generates zero-knowledge proof for each action.',
-                "It verifies that a person is doing an action only once and ensures unlinkable actions for enhanced privacy, as in voting applications.",
-              ]}
-              linkText="Learn more"
-              linkHref="https://docs.worldcoin.org/id/anonymous-actions"
-            />
+              <PageInfo
+                icon="notepad"
+                iconClassName="text-primary"
+                title="Private and one-time actions"
+                text={[
+                  '"Anonymous Actions" generates zero-knowledge proof for each action.',
+                  "It verifies that a person is doing an action only once and ensures unlinkable actions for enhanced privacy, as in voting applications.",
+                ]}
+                linkText="Learn more"
+                linkHref="https://docs.worldcoin.org/id/anonymous-actions"
+              />
+            </div>
 
             <section className="grid gap-y-2">
               <div className="flex items-center gap-x-2">

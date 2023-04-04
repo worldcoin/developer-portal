@@ -21,7 +21,7 @@ export const PageInfo = memo(function PageInfo(props: PageInfoProps) {
           className={cn(props.iconClassName, "h-6 w-6")}
         />
       </div>
-      <div className="grid gap-y-1">
+      <div className="flex flex-col gap-y-1 self-center">
         <h2 className="font-sora text-16 font-semibold leading-5">
           {props.title}
         </h2>
@@ -38,6 +38,7 @@ export const PageInfo = memo(function PageInfo(props: PageInfoProps) {
           className="absolute top-4 right-4 flex items-center gap-x-1 h-9 px-4 text-14 bg-ffffff border border-ebecef rounded-lg hover:opacity-70 transition-opacity"
           href={props.linkHref}
           target="_blank"
+          rel="noopener noreferrer"
         >
           {props.linkText}
           <Icon name="arrow-right" className="w-4 h-4" />
