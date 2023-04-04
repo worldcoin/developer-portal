@@ -13,7 +13,7 @@ export const NoApps = memo(function NoApps() {
   return (
     <Layout
       title="Apps"
-      mainClassName="grid grid-rows-auto/1fr/auto px-12 py-8"
+      mainClassName="grid grid-rows-auto/1fr/auto px-12 py-8 gap-y-12"
     >
       <NewAppDialog open={newAppDialog.isOn} onClose={newAppDialog.toggleOff} />
 
@@ -23,7 +23,7 @@ export const NoApps = memo(function NoApps() {
         text="You can find all your app details here once you create your first app."
       />
 
-      <div className="mt-6 grid gap-y-8 justify-center justify-items-center content-center">
+      <div className="grid gap-y-8 justify-center justify-items-center content-center">
         <div className="bg-blue-secondary rounded-full p-5 row-span-2 self-center flex">
           <Icon name="apps" className="h-6 w-6 text-blue-primary" />
         </div>
