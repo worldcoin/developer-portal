@@ -1,7 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { Action } from "./Action";
 import { Button } from "@/components/Button";
-import { Link } from "@/components/Link";
 import { Icon } from "@/components/Icon";
 import { NewAction } from "./NewAction";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
@@ -90,6 +89,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
               linkText="Learn more"
               linkHref="https://docs.worldcoin.org/id/anonymous-actions"
             />
+
             <section className="grid gap-y-2">
               <div className="flex items-center gap-x-2">
                 <div className="font-medium text-14 leading-4">
