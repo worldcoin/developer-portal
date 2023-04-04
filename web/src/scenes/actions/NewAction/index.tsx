@@ -81,8 +81,6 @@ export function NewAction() {
             currentApp.id,
             values.action
           ).digest,
-
-          max_verifications: values.maxVerifications,
         });
 
         if (result instanceof Error) {
@@ -115,20 +113,8 @@ export function NewAction() {
 
   const isFormValid = useMemo(
     () =>
-      !errors.name &&
-      !errors.action &&
-      !errors.maxVerifications &&
-      dirtyFields.name &&
-      dirtyFields.action &&
-      dirtyFields.maxVerifications,
-    [
-      dirtyFields.action,
-      dirtyFields.maxVerifications,
-      dirtyFields.name,
-      errors.action,
-      errors.maxVerifications,
-      errors.name,
-    ]
+      !errors.name && !errors.action && dirtyFields.name && dirtyFields.action,
+    [dirtyFields.action, dirtyFields.name, errors.action, errors.name]
   );
 
   return (
@@ -152,20 +138,22 @@ export function NewAction() {
             errors={errors.name}
             isDirty={dirtyFields.name}
             className="w-full font-rubik"
-            placeholder="Add your action name"
+            placeholder="Proposal #102"
             disabled={loading}
           />
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
           <FieldLabel className="font-rubik">Description</FieldLabel>
-
+          {/* helper: "Tell your users what the action is about. Shown in the World App." */}
+          {/* FIXME: Max length 80 chars (API enforced) */}
+          {/* FIXME: Let's actually make this required and change the "(optional) for (public)" */}
           <FieldTextArea
             register={register("description")}
             errors={errors.description}
             isDirty={dirtyFields.description}
             className="w-full font-rubik"
-            placeholder="Make your action description cool and helpful for the users since it will be visible in the World App"
+            placeholder="Cast your vote on proposal #102"
             disabled={loading}
           />
         </div>
@@ -174,28 +162,14 @@ export function NewAction() {
           <FieldLabel required className="font-rubik">
             Action identifier
           </FieldLabel>
-
+          {/* helper: "This is the identifier you will use in IDKit and any API calls." */}
+          {/* FIXME: should only allow letters, numbers, underscore (_) & hyphen (-) */}
           <FieldInput
             register={register("action")}
             errors={errors.action}
             isDirty={dirtyFields.action}
             className="w-full font-rubik"
-            placeholder="IDKit requires this value to be passed"
-            disabled={loading}
-          />
-        </div>
-
-        <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required className="font-rubik">
-            Maximum verifications
-          </FieldLabel>
-
-          <FieldInput
-            register={register("maxVerifications")}
-            errors={errors.maxVerifications}
-            isDirty={dirtyFields.maxVerifications}
-            className="w-full font-rubik"
-            placeholder="Use '0' for unlimited verifications"
+            placeholder="proposal-102"
             disabled={loading}
           />
         </div>
