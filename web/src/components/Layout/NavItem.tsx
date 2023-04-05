@@ -33,32 +33,30 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
   return (
     <div
       className={cn(
-        "grid items-center grid-cols-auto/1fr gap-x-4 text-neutral-secondary hover:bg-f3f4f5 hover:text-neutral-primary rounded-xl transition-colors",
+        "grid items-center grid-cols-auto/1fr gap-x-3 border text-gray-400 hover:bg-gray-100 hover:text-gray-500 rounded-xl transition-colors p-3",
         {
-          "bg-neutral-primary hover:bg-neutral-primary":
+          "text-gray-900 bg-white  border-gray-200 hover:bg-white/70":
             props.selected && !props.customColor,
         },
+
+        { "border-transparent": !props.selected },
         props.className
       )}
     >
-      <div className={cn("p-2.5 text-0")}>
-        <Icon
-          name={props.icon}
-          className={cn(
-            "h-5 w-5",
-            {
-              "text-white": props.selected && !props.customColor,
-            },
-            props.customColor
-          )}
-        />
-      </div>
+      <Icon
+        name={props.icon}
+        className={cn(
+          "h-5 w-5",
+          { "text-gray-900": props.selected && !props.customColor },
+          props.customColor
+        )}
+      />
 
       <div
         className={cn(
           "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center",
           {
-            "text-white": props.selected && !props.customColor,
+            "text-gray-900": props.selected && !props.customColor,
           },
           props.customColor
         )}

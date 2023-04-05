@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import crypto from "crypto";
 import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
 import {
   CredentialType,
@@ -6,7 +7,6 @@ import {
   OIDCResponseType,
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
-import crypto from "crypto";
 import { getSmartContractENSName } from "./utils";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
