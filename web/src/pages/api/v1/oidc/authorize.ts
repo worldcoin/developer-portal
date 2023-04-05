@@ -1,24 +1,23 @@
+import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
-  errorValidation,
   errorResponse,
+  errorValidation,
 } from "src/backend/errors";
+import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
+import { generateOIDCJWT } from "src/backend/jwts";
 import {
-  fetchOIDCApp,
-  generateOIDCCode,
   OIDCResponseTypeMapping,
   OIDCScopes,
+  fetchOIDCApp,
+  generateOIDCCode,
 } from "src/backend/oidc";
-import { generateOIDCJWT } from "src/backend/jwts";
 import { verifyProof } from "src/backend/verify";
-import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "src/lib/types";
-import { JWK_ALG_OIDC } from "src/lib/constants";
-import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "src/backend/graphql";
 
 const InsertNullifier = gql`
   mutation SaveNullifier($object: nullifier_insert_input!) {
@@ -195,7 +194,7 @@ export default async function handleOIDCAuthorize(
       ] === OIDCResponseType.JWT
     ) {
       if (!jwt) {
-        const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
+        const jwk = await fetchActiveJWK();
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
