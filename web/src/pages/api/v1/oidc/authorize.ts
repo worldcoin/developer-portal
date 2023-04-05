@@ -17,7 +17,6 @@ import {
   generateOIDCCode,
 } from "src/backend/oidc";
 import { verifyProof } from "src/backend/verify";
-import { JWK_ALG_OIDC } from "src/lib/constants";
 import { CredentialType, OIDCResponseType } from "src/lib/types";
 
 const InsertNullifier = gql`
@@ -195,7 +194,7 @@ export default async function handleOIDCAuthorize(
       ] === OIDCResponseType.JWT
     ) {
       if (!jwt) {
-        const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
+        const jwk = await fetchActiveJWK();
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,

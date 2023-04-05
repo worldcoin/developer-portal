@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
+import { JWK_TIME_TO_LIVE } from "src/lib/constants";
 
 export type CreateJWKResult = {
   keyId: string;
@@ -23,11 +24,30 @@ const retrieveJWKQuery = gql`
 const fetchActiveJWKsByExpirationQuery = gql`
   query FetchActiveJWKsByExpiration($alg: String!, $expires_at: timestamptz!) {
     jwks(
-      where: { alg: { _eq: $alg }, expires_at: { _gt: $expires_at } }
+      where: { expires_at: { _gt: $expires_at } }
       order_by: { expires_at: desc }
     ) {
       id
-      alg
+      kms_id
+      expires_at
+    }
+  }
+`;
+
+const insertJWKQuery = gql`
+  mutation InsertJWK(
+    $expires_at: timestamptz!
+    $public_jwk: jsonb!
+    $kms_id: String!
+  ) {
+    insert_jwks_one(
+      object: {
+        expires_at: $expires_at
+        kms_id: $kms_id
+        public_jwk: $public_jwk
+      }
+    ) {
+      id
       kms_id
       expires_at
     }
@@ -74,14 +94,13 @@ export const retrieveJWK = async (kid: string) => {
  * @param alg
  * @returns
  */
-export const fetchActiveJWK = async (alg: string) => {
+export const fetchActiveJWK = async () => {
   const apiClient = await getAPIServiceClient();
   const { data } = await apiClient.query<{
     jwks: Array<Pick<JWKModel, "id" | "kms_id" | "expires_at">>;
   }>({
     query: fetchActiveJWKsByExpirationQuery,
     variables: {
-      alg,
       expires_at: new Date().toISOString(),
     },
   });
@@ -99,10 +118,7 @@ export const fetchActiveJWK = async (alg: string) => {
   }
 
   // JWK is expired or expiring soon, rotate the key
-  const jwk = await _rotateJWK(alg);
-
-  // Delete all expired JWKs
-  await _deleteExpiredJWKs();
+  const jwk = await createAndStoreJWK();
 
   return { kid: jwk.id, kms_id: jwk.kms_id };
 };
@@ -131,35 +147,40 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
 };
 
 /**
- * Rotates the given JWK key by generating a new KMS key, and dropping the old value
+ * Generate new JWK. Generates a new KMS key and stores the public key in the database.
  * @param alg
  * @returns
  */
-const _rotateJWK = async (alg: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/_jwk-gen`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`,
-      },
-      body: JSON.stringify({ alg }),
-    }
-  );
+export const createAndStoreJWK = async () => {
+  const key = await generateJWK();
 
-  if (response.ok) {
-    const { jwk } = await response.json();
-    return jwk;
+  const expiresAt = dayjs().add(JWK_TIME_TO_LIVE, "day"); // TODO: expiration should come from the KMS key
+
+  const client = await getAPIServiceClient();
+  const response = await client.mutate<{
+    insert_jwks_one: Pick<JWKModel, "id" | "kms_id" | "expires_at">;
+  }>({
+    mutation: insertJWKQuery,
+    variables: {
+      expires_at: expiresAt.toISOString(),
+      kms_id: key.keyId,
+      public_jwk: key.publicJwk,
+    },
+  });
+
+  if (response.data?.insert_jwks_one) {
+    return response.data.insert_jwks_one;
   }
 
-  throw new Error("Unable to rotate JWK.");
+  console.error(response);
+  throw new Error("Unable to create new JWK.");
 };
 
 /**
  * Delete all expired JWKs from the database
  * @returns
  */
+// FIXME: Call this function from a cron job
 const _deleteExpiredJWKs = async () => {
   const apiClient = await getAPIServiceClient();
   const response = await apiClient.mutate({

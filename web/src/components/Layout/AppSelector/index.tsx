@@ -124,7 +124,7 @@ export const AppSelector = memo(function AppsSelector(props: {
         </Button>
       )}
 
-      {apps?.length > 0 && (
+      {(apps?.length ?? 0) > 0 && (
         <Menu as="div" className="relative h-[44px] peer">
           {({ open }) => (
             <div

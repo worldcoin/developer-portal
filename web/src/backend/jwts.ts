@@ -7,7 +7,6 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { JWK_ALG_OIDC } from "src/lib/constants";
 import { CredentialType, JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
@@ -32,6 +31,8 @@ if (!GENERAL_SECRET_KEY) {
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
 }
+
+// ANCHOR: -----------------HASURA JWTs--------------------------
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
@@ -116,6 +117,42 @@ export const verifyUserJWT = async (token: string) => {
 };
 
 /**
+ * Generates a JWT for a specific API key.
+ * @param team_id
+ * @returns
+ */
+export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
+  const payload = {
+    sub: team_id,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["api_key"],
+      "x-hasura-default-role": "api_key",
+      "x-hasura-team-id": team_id,
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+/**
+ * Generates a JWT for the analytics service.
+ * @returns
+ */
+export const generateAnalyticsJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "analytics_service",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["analytics"],
+      "x-hasura-default-role": "analytics",
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+// ANCHOR: -----------------Sign up JWTs--------------------------
+
+/**
  * Generates a temporary JWT used to sign up a user.
  * After a user logs in with World ID if they don't have an account, we generate this temporary token. If they complete account creation, we exchange this token.
  * @param nullifier_hash
@@ -155,38 +192,41 @@ export const verifySignUpJWT = async (token: string) => {
 };
 
 /**
- * Generates a JWT for a specific API key.
- * @param team_id
+ * Generates a JWT that can be used to sign up for a developer portal account
  * @returns
  */
-export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
-  const payload = {
-    sub: team_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["api_key"],
-      "x-hasura-default-role": "api_key",
-      "x-hasura-team-id": team_id,
-    },
-  };
+export const generateInviteJWT = async (email: string) => {
+  const payload = { email };
 
-  return await _generateJWT(payload);
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("7d")
+    .sign(Buffer.from(GENERAL_SECRET_KEY));
+
+  return token;
 };
 
 /**
- * Generates a JWT for the analytics service.
- * @returns
+ * Verifies an invite token. Returns the invited email address. If the token is invalid, throws an error.
+ * @param token
  */
-export const generateAnalyticsJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "analytics_service",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["analytics"],
-      "x-hasura-default-role": "analytics",
-    },
-  };
-
-  return await _generateJWT(payload);
+export const verifyInviteJWT = async (token: string) => {
+  const { payload } = await jose.jwtVerify(
+    token,
+    Buffer.from(GENERAL_SECRET_KEY),
+    {
+      issuer: JWT_ISSUER,
+    }
+  );
+  const { email } = payload;
+  if (!email) {
+    throw new Error("JWT does not contain email claim.");
+  }
+  return email as string;
 };
+
+// ANCHOR: -----------------OIDC JWTs--------------------------
 
 interface IVerificationJWT {
   kid: string;
@@ -241,7 +281,7 @@ export const generateOIDCJWT = async ({
   // Sign the JWT with a KMS managed key
   const client = await getKMSClient();
   const header = {
-    alg: JWK_ALG_OIDC,
+    alg: "RS256",
     typ: "JWT",
     kid,
   };
@@ -270,46 +310,11 @@ export const verifyOIDCJWT = async (
 
   const { payload } = await jose.jwtVerify(
     token,
-    await jose.importJWK(public_jwk, JWK_ALG_OIDC),
+    await jose.importJWK(public_jwk, "RS256"),
     {
       issuer: JWT_ISSUER,
     }
   );
 
   return payload;
-};
-
-/**
- * Generates a JWT that can be used to sign up for a developer portal account
- * @returns
- */
-export const generateInviteJWT = async (email: string) => {
-  const payload = { email };
-
-  const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: "HS512" })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("7d")
-    .sign(Buffer.from(GENERAL_SECRET_KEY));
-
-  return token;
-};
-
-/**
- * Verifies an invite token. Returns the invited email address. If the token is invalid, throws an error.
- * @param token
- */
-export const verifyInviteJWT = async (token: string) => {
-  const { payload } = await jose.jwtVerify(
-    token,
-    Buffer.from(GENERAL_SECRET_KEY),
-    {
-      issuer: JWT_ISSUER,
-    }
-  );
-  const { email } = payload;
-  if (!email) {
-    throw new Error("JWT does not contain email claim.");
-  }
-  return email as string;
 };

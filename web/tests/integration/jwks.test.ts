@@ -49,7 +49,7 @@ describe("jwks management", () => {
       'SELECT * FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1;'
     );
 
-    const jwk = await fetchActiveJWK("RS256");
+    const jwk = await fetchActiveJWK();
     expect(jwk.kid).toEqual(rows[0].id);
   });
 
@@ -58,7 +58,7 @@ describe("jwks management", () => {
       'SELECT * FROM "public"."jwks" WHERE "expires_at" > NOW() + INTERVAL \'7 days\' LIMIT 1;'
     );
 
-    const jwk = await fetchActiveJWK("RS256");
+    const jwk = await fetchActiveJWK();
     expect(jwk.kid).toEqual(rows[0].id);
   });
 
@@ -80,7 +80,7 @@ describe("jwks management", () => {
       })
     );
 
-    const jwk = await fetchActiveJWK("RS256");
+    const jwk = await fetchActiveJWK();
     expect(jwk.kid).not.toEqual(rows[0].id);
   });
 
@@ -98,7 +98,7 @@ describe("jwks management", () => {
       { status: 500 }
     );
 
-    await expect(fetchActiveJWK("RS256")).rejects.toThrowError(
+    await expect(fetchActiveJWK()).rejects.toThrowError(
       "Unable to rotate JWK."
     );
   });
@@ -121,7 +121,7 @@ describe("jwks management", () => {
       })
     );
 
-    await fetchActiveJWK("RS256");
+    await fetchActiveJWK();
 
     const { rows: rowsAfter } = await integrationDBExecuteQuery(
       'SELECT "id" FROM "public"."jwks" WHERE "alg" = \'RS256\''
@@ -151,7 +151,7 @@ describe("jwks management", () => {
     (getKMSClient as jest.Mock).mockReturnValue(true);
     (scheduleKeyDeletion as jest.Mock).mockReturnValue(true);
 
-    await fetchActiveJWK("RS256");
+    await fetchActiveJWK();
 
     const { rows: rowsAfter } = await integrationDBExecuteQuery(
       'SELECT "id" FROM "public"."jwks" WHERE "alg" = \'RS256\''

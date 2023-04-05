@@ -13,8 +13,10 @@ import {
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { base64url } from "jose";
 import { retrieveJWK } from "./jwks";
+import dayjs from "dayjs";
+import { JWK_TIME_TO_LIVE } from "src/lib/constants";
 
-const kmsKeyPolicy = `{
+const kmsKeyPolicy = (expire_at: dayjs.Dayjs) => `{
   "Version": "2012-10-17",
   "Id": "key-default-1",
   "Statement": [
@@ -37,9 +39,7 @@ const kmsKeyPolicy = `{
       "Resource": "*",
       "Condition": {
         "DateLessThan": {
-          "aws:CurrentTime": "${new Date(
-            Date.now() + 14 * 24 * 60 * 60 * 1000
-          ).toISOString()}"
+          "aws:CurrentTime": "${expire_at.toISOString()}"
         }
       }
     }
@@ -95,11 +95,8 @@ export const createKMSKey = async (
         KeySpec: alg,
         KeyUsage: "SIGN_VERIFY",
         Description: `Developer Portal JWK for Sign in with Worldcoin. Created: ${new Date().toISOString()}`,
-        Policy: kmsKeyPolicy,
-        Tags: [
-          { TagKey: "app", TagValue: "developer-portal" },
-          { TagKey: "service", TagValue: "oidc-jwks" }, // TODO: Confirm tagging strategy
-        ],
+        Policy: kmsKeyPolicy(dayjs().add(JWK_TIME_TO_LIVE, "day")),
+        Tags: [{ TagKey: "app", TagValue: "developer-portal" }],
       })
     );
 

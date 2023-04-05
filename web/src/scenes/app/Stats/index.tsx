@@ -183,7 +183,7 @@ export const Stats = memo(function Stats() {
           </div>
         )}
 
-        {stats?.length > 0 && (
+        {(stats?.length ?? 0) > 0 && (
           <div>
             <div className="grid grid-cols-1fr/auto gap-x-16 mt-4">
               <div>
