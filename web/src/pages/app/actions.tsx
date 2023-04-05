@@ -6,14 +6,14 @@ import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
 
-export default function App() {
+export default function Actions() {
   return (
     <NoApps
       pageInfo={
         <PageInfo
-          icon="apps"
-          title="Home for your app overview"
-          text="You can find all your app details here once you create your first app."
+          icon="notepad"
+          title="Anonymous actions for you apps"
+          text="Lets you verify someone is a real person that has never performed an action before."
         />
       }
     />
@@ -43,7 +43,7 @@ export const getServerSideProps: GetServerSideProps = requireAuthentication(
       return {
         redirect: {
           permanent: false,
-          destination: urls.app(apps.data.app[0].id),
+          destination: urls.appActions(apps.data.app[0].id),
         },
       };
     }

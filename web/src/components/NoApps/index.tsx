@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, ReactNode } from "react";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
@@ -7,7 +7,7 @@ import { useToggle } from "src/hooks/useToggle";
 import { LinkCard } from "./LinkCard";
 import { PageInfo } from "@/components/PageInfo";
 
-export const NoApps = memo(function NoApps() {
+export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
   const newAppDialog = useToggle();
 
   return (
@@ -17,11 +17,7 @@ export const NoApps = memo(function NoApps() {
     >
       <NewAppDialog open={newAppDialog.isOn} onClose={newAppDialog.toggleOff} />
 
-      <PageInfo
-        icon="apps"
-        title="Home for your app overview"
-        text="You can find all your app details here once you create your first app."
-      />
+      {props.pageInfo}
 
       <div className="grid gap-y-8 justify-center justify-items-center content-center">
         <div className="bg-blue-secondary rounded-full p-5 row-span-2 self-center flex">
