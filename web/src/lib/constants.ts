@@ -17,7 +17,6 @@ export const PHONE_SEQUENCER_STAGING =
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
 
 // ANCHOR: JWKs
-export const JWK_ALG = "PS256";
 export const JWK_ALG_OIDC = "RS256";
 
 export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {

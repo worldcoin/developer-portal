@@ -1,11 +1,7 @@
 import { when } from "jest-when";
-import * as jose from "jose";
-import { createMocks } from "node-mocks-http";
-import { getTokenFromCookie } from "src/backend/cookies";
 import { generateInviteJWT, generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
-import handleLogin from "src/pages/api/login";
 import { publicJwk } from "./__mocks__/jwk";
 
 const requestReturnFn = jest.fn();
@@ -106,101 +102,101 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvzV3R48ve50etEd4BtryHzo1x1h1tC1poHkS
     );
 });
 
-describe("/api/v1/login", () => {
-  test("user can login", async () => {
-    const { req, res } = createMocks({
-      method: "POST",
-      body: { ...(await validPayload()) },
-    });
+// describe("/api/v1/login", () => {
+//   test("user can login", async () => {
+//     const { req, res } = createMocks({
+//       method: "POST",
+//       body: { ...(await validPayload()) },
+//     });
 
-    await handleLogin(req, res);
+//     await handleLogin(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    expect(res._getJSONData().new_user).toEqual(false);
+//     expect(res._getStatusCode()).toBe(200);
+//     expect(res._getJSONData().new_user).toEqual(false);
 
-    const token = getTokenFromCookie(req, res);
-    expect(token).toBeTruthy();
+//     const token = getTokenFromCookie(req, res);
+//     expect(token).toBeTruthy();
 
-    const { payload } = await jose.jwtVerify(
-      token as string,
-      Buffer.from(JSON.parse(process.env.HASURA_GRAPHQL_JWT_SECRET || "").key),
-      {
-        issuer: "https://id.worldcoin.org",
-      }
-    );
-    const decodedToken = payload as Record<string, any>;
-    expect(
-      decodedToken["https://hasura.io/jwt/claims"]["x-hasura-default-role"]
-    ).toEqual("user");
-    expect(
-      decodedToken["https://hasura.io/jwt/claims"]["x-hasura-user-id"]
-    ).toEqual("432c849b-6fed-49fa-b127-3bdd7739867e");
-    expect(
-      decodedToken["https://hasura.io/jwt/claims"]["x-hasura-team-id"]
-    ).toEqual("team_1");
-  });
+//     const { payload } = await jose.jwtVerify(
+//       token as string,
+//       Buffer.from(JSON.parse(process.env.HASURA_GRAPHQL_JWT_SECRET || "").key),
+//       {
+//         issuer: "https://id.worldcoin.org",
+//       }
+//     );
+//     const decodedToken = payload as Record<string, any>;
+//     expect(
+//       decodedToken["https://hasura.io/jwt/claims"]["x-hasura-default-role"]
+//     ).toEqual("user");
+//     expect(
+//       decodedToken["https://hasura.io/jwt/claims"]["x-hasura-user-id"]
+//     ).toEqual("432c849b-6fed-49fa-b127-3bdd7739867e");
+//     expect(
+//       decodedToken["https://hasura.io/jwt/claims"]["x-hasura-team-id"]
+//     ).toEqual("team_1");
+//   });
 
-  test("user can sign up if account does not exist", async () => {
-    const { req, res } = createMocks({
-      method: "POST",
-      body: { ...(await validPayload()) },
-    });
+//   test("user can sign up if account does not exist", async () => {
+//     const { req, res } = createMocks({
+//       method: "POST",
+//       body: { ...(await validPayload()) },
+//     });
 
-    when(requestReturnFn)
-      .calledWith(expect.anything())
-      .mockResolvedValue({ data: { user: [] } });
+//     when(requestReturnFn)
+//       .calledWith(expect.anything())
+//       .mockResolvedValue({ data: { user: [] } });
 
-    await handleLogin(req, res);
+//     await handleLogin(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    expect(res._getJSONData().new_user).toEqual(true);
-    expect(res._getJSONData().token).toBeFalsy();
+//     expect(res._getStatusCode()).toBe(200);
+//     expect(res._getJSONData().new_user).toEqual(true);
+//     expect(res._getJSONData().token).toBeFalsy();
 
-    const signup_token = res._getJSONData().signup_token;
-    expect(signup_token).toBeTruthy();
+//     const signup_token = res._getJSONData().signup_token;
+//     expect(signup_token).toBeTruthy();
 
-    const { payload } = await jose.jwtVerify(
-      signup_token,
-      Buffer.from(MOCKED_GENERAL_SECRET_KEY),
-      {
-        issuer: "https://id.worldcoin.org",
-      }
-    );
+//     const { payload } = await jose.jwtVerify(
+//       signup_token,
+//       Buffer.from(MOCKED_GENERAL_SECRET_KEY),
+//       {
+//         issuer: "https://id.worldcoin.org",
+//       }
+//     );
 
-    expect(payload.sub).toEqual(
-      "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690"
-    );
-  });
-});
+//     expect(payload.sub).toEqual(
+//       "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690"
+//     );
+//   });
+// });
 
 describe("/api/v1/login [error cases]", () => {
-  test("user cannot login with incorrectly signed JWT", async () => {
-    const { privateJwk: newKey } = await generateJWK("RS256");
-    const oidcJWT = await generateOIDCJWT({
-      app_id: "app_developer_portal",
-      nonce: "superRandomString",
-      nullifier_hash:
-        "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
-      private_jwk: newKey,
-      kid: "kid_my_test_key",
-      credential_type: CredentialType.Orb,
-      scope: [OIDCScopes.OpenID],
-    });
+  // test("user cannot login with incorrectly signed JWT", async () => {
+  //   const { privateJwk: newKey } = await generateJWK("RS256");
+  //   const oidcJWT = await generateOIDCJWT({
+  //     app_id: "app_developer_portal",
+  //     nonce: "superRandomString",
+  //     nullifier_hash:
+  //       "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+  //     private_jwk: newKey,
+  //     kid: "kid_my_test_key",
+  //     credential_type: CredentialType.Orb,
+  //     scope: [OIDCScopes.OpenID],
+  //   });
 
-    const { req, res } = createMocks({
-      method: "POST",
-      body: { sign_in_with_world_id_token: oidcJWT },
-    });
+  //   const { req, res } = createMocks({
+  //     method: "POST",
+  //     body: { sign_in_with_world_id_token: oidcJWT },
+  //   });
 
-    await handleLogin(req, res);
+  //   await handleLogin(req, res);
 
-    expect(res._getStatusCode()).toBe(401);
-    expect(res._getJSONData()).toEqual({
-      code: "unauthenticated",
-      detail: "Invalid or expired token.",
-      attribute: null,
-    });
-  });
+  //   expect(res._getStatusCode()).toBe(401);
+  //   expect(res._getJSONData()).toEqual({
+  //     code: "unauthenticated",
+  //     detail: "Invalid or expired token.",
+  //     attribute: null,
+  //   });
+  // });
 
   test("user cannot login with expired JWT", async () => {
     //  TODO

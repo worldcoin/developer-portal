@@ -7,6 +7,7 @@ import {
   DescribeKeyCommand,
   GetPublicKeyCommand,
   KMSClient,
+  ScheduleKeyDeletionCommand,
   SignCommand,
 } from "@aws-sdk/client-kms";
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
@@ -25,11 +26,13 @@ const kmsKeyPolicy = `{
       },
       "Action": [
         "kms:CreateKey",
+        "kms:TagResource",
         "kms:DescribeKey",
         "kms:PutKeyPolicy",
         "kms:GetPublicKey",
         "kms:Sign",
-        "kms:Verify"
+        "kms:Verify",
+        "kms:ScheduleKeyDeletion"
       ],
       "Resource": "*",
       "Condition": {
@@ -93,6 +96,10 @@ export const createKMSKey = async (
         KeyUsage: "SIGN_VERIFY",
         Description: `Developer Portal JWK for Sign in with Worldcoin. Created: ${new Date().toISOString()}`,
         Policy: kmsKeyPolicy,
+        Tags: [
+          { TagKey: "app", TagValue: "developer-portal" },
+          { TagKey: "service", TagValue: "oidc-jwks" }, // TODO: Confirm tagging strategy
+        ],
       })
     );
 
@@ -160,5 +167,18 @@ export const signJWTWithKMSKey = async (
     }
   } catch (error) {
     console.error("Error signing JWT:", error);
+  }
+};
+
+export const scheduleKeyDeletion = async (client: KMSClient, keyId: string) => {
+  try {
+    await client.send(
+      new ScheduleKeyDeletionCommand({
+        KeyId: keyId,
+        PendingWindowInDays: 7, // Note: 7 is the minimum allowed value
+      })
+    );
+  } catch (error) {
+    console.error("Error scheduling key deletion:", error);
   }
 };

@@ -1,6 +1,10 @@
 import fetchMock from "jest-fetch-mock";
 import { fetchActiveJWK, generateJWK, retrieveJWK } from "src/backend/jwks";
-import { createKMSKey, getKMSClient } from "src/backend/kms";
+import {
+  createKMSKey,
+  getKMSClient,
+  scheduleKeyDeletion,
+} from "src/backend/kms";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
@@ -11,6 +15,7 @@ jest.mock("src/backend/kms", () => {
   return {
     getKMSClient: jest.fn(),
     createKMSKey: jest.fn(),
+    scheduleKeyDeletion: jest.fn(),
   };
 });
 
@@ -141,6 +146,10 @@ describe("jwks management", () => {
         },
       })
     );
+
+    // Mock the responses for KMS functions
+    (getKMSClient as jest.Mock).mockReturnValue(true);
+    (scheduleKeyDeletion as jest.Mock).mockReturnValue(true);
 
     await fetchActiveJWK("RS256");
 

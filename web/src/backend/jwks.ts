@@ -3,7 +3,7 @@ import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
 import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
-import { createKMSKey, getKMSClient } from "./kms";
+import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
 
 export type CreateJWKResult = {
   keyId: string;
@@ -37,7 +37,10 @@ const fetchActiveJWKsByExpirationQuery = gql`
 const deleteExpiredJWKsQuery = gql`
   mutation DeleteExpiredJWKs($expired_by: timestamptz = "") {
     delete_jwks(where: { expires_at: { _lte: $expired_by } }) {
-      affected_rows
+      returning {
+        id
+        kms_id
+      }
     }
   }
 `;
@@ -132,7 +135,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
  * @param alg
  * @returns
  */
-export const _rotateJWK = async (alg: string) => {
+const _rotateJWK = async (alg: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/_jwk-gen`,
     {
@@ -157,17 +160,23 @@ export const _rotateJWK = async (alg: string) => {
  * Delete all expired JWKs from the database
  * @returns
  */
-export const _deleteExpiredJWKs = async () => {
-  const client = await getAPIServiceClient();
-  const response = await client.mutate({
+const _deleteExpiredJWKs = async () => {
+  const apiClient = await getAPIServiceClient();
+  const response = await apiClient.mutate({
     mutation: deleteExpiredJWKsQuery,
     variables: {
       expired_by: new Date(Date.now() - 20 * 60 * 1000).toISOString(), // 20 minutes ago
     },
   });
 
-  if (response.data) {
-    return response.data.delete_jwks.id;
+  if (response.data.delete_jwks.returning) {
+    // Schedule each KMS key for deletion
+    const kmsClient = await getKMSClient();
+    if (kmsClient) {
+      for (const key of response.data.delete_jwks.returning) {
+        await scheduleKeyDeletion(kmsClient, key.kms_id);
+      }
+    }
   }
 
   throw new Error("Unable to delete expired JWKs.");
