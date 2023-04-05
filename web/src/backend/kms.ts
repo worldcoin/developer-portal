@@ -10,7 +10,6 @@ import {
   ScheduleKeyDeletionCommand,
   SignCommand,
 } from "@aws-sdk/client-kms";
-import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { base64url } from "jose";
 import { retrieveJWK } from "./jwks";
 
@@ -22,35 +21,9 @@ export type CreateKeyResult =
   | undefined;
 
 export const getKMSClient = async () => {
-  const stsClient = new STSClient({ region: process.env.AWS_REGION_NAME });
-
-  try {
-    const response = await stsClient.send(
-      new AssumeRoleCommand({
-        RoleArn: process.env.TASK_ROLE_ARN,
-        RoleSessionName: "DevPortalKmsSession",
-        DurationSeconds: 600, // 10 minutes
-      })
-    );
-
-    if (response.Credentials) {
-      const roleCredentials = {
-        accessKeyId: response.Credentials.AccessKeyId,
-        secretAccessKey: response.Credentials.SecretAccessKey,
-        sessionToken: response.Credentials.SessionToken,
-      };
-
-      const kmsClient = new KMSClient({
-        region: process.env.AWS_REGION_NAME,
-        // @ts-ignore
-        credentials: roleCredentials,
-      });
-
-      return kmsClient;
-    }
-  } catch (error) {
-    console.error("Error assuming role:", error);
-  }
+  return new KMSClient({
+    region: process.env.AWS_REGION_NAME,
+  });
 };
 
 export const createKMSKey = async (
