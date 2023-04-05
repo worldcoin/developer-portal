@@ -11,6 +11,7 @@ import { Fragment, useMemo } from "react";
 import { NotFound } from "@/components/NotFound";
 import { useFetchActions } from "./hooks";
 import { useForm, useWatch } from "react-hook-form";
+import Image from "next/image";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -156,11 +157,18 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                       <tbody>
                         <tr>
                           <td className="pt-8 pb-4 text-center" colSpan={5}>
-                            <div className="font-medium text-12 leading-3">
-                              List of Anonymous Actions
-                            </div>
-                            <div className="mt-2 text-12 text-657080 leading-3">
-                              No active actions yet.
+                            <div className="relative h-[182px] flex flex-col items-center justify-center bg-center bg-[url('/images/empty-actions.svg')]">
+                              <Icon name="notepad" className="w-6 h-6" />
+                              <div className="mt-4 font-sora font-semibold text-14 leading-4">
+                                No active actions yet.
+                              </div>
+                              <div className="mt-1.5 text-12 text-657080 leading-4">
+                                Sorry, there&apos;s no data to show in the table
+                                yet.
+                                <br />
+                                We&apos;ll update it once users start adding
+                                anonymous actions
+                              </div>
                             </div>
                           </td>
                         </tr>
