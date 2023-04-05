@@ -13,38 +13,6 @@ import {
 import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { base64url } from "jose";
 import { retrieveJWK } from "./jwks";
-import dayjs from "dayjs";
-import { JWK_TIME_TO_LIVE } from "src/lib/constants";
-
-const kmsKeyPolicy = (expire_at: dayjs.Dayjs) => `{
-  "Version": "2012-10-17",
-  "Id": "key-default-1",
-  "Statement": [
-    {
-      "Sid": "AllowAccessUntilExpirationDate",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${process.env.AWS_KMS_ROLE_ARN}"
-      },
-      "Action": [
-        "kms:CreateKey",
-        "kms:TagResource",
-        "kms:DescribeKey",
-        "kms:PutKeyPolicy",
-        "kms:GetPublicKey",
-        "kms:Sign",
-        "kms:Verify",
-        "kms:ScheduleKeyDeletion"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "DateLessThan": {
-          "aws:CurrentTime": "${expire_at.toISOString()}"
-        }
-      }
-    }
-  ]
-}`;
 
 export type CreateKeyResult =
   | {
@@ -59,9 +27,9 @@ export const getKMSClient = async () => {
   try {
     const response = await stsClient.send(
       new AssumeRoleCommand({
-        RoleArn: process.env.AWS_KMS_ROLE_ARN,
+        RoleArn: process.env.TASK_ROLE_ARN,
         RoleSessionName: "DevPortalKmsSession",
-        DurationSeconds: 3600, // 1 hour
+        DurationSeconds: 600, // 10 minutes
       })
     );
 
@@ -95,7 +63,6 @@ export const createKMSKey = async (
         KeySpec: alg,
         KeyUsage: "SIGN_VERIFY",
         Description: `Developer Portal JWK for Sign in with Worldcoin. Created: ${new Date().toISOString()}`,
-        Policy: kmsKeyPolicy(dayjs().add(JWK_TIME_TO_LIVE, "day")),
         Tags: [{ TagKey: "app", TagValue: "developer-portal" }],
       })
     );
