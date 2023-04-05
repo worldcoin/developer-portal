@@ -190,16 +190,6 @@ export const AppSelector = memo(function AppsSelector(props: {
           )}
         </Menu>
       )}
-
-      {apps?.length > 0 && (
-        <div
-          className={cn(
-            "fixed inset-0 p-30 z-[1] pointer-events-none transition-opacity duration-300 backdrop-blur overflow-hidden",
-            'peer-data-[headlessui-state="open"]:opacity-100 peer-data-[headlessui-state="open"]:pointer-events-auto',
-            'peer-data-[headlessui-state=""]:opacity-0'
-          )}
-        />
-      )}
     </Fragment>
   );
 });
