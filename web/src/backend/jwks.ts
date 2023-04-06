@@ -109,10 +109,11 @@ export const fetchActiveJWK = async () => {
   if (data.jwks?.length) {
     const { id, kms_id, expires_at } = data.jwks[0];
 
-    // Only return JWK if it's not expiring in the next n / 2 days
+    // Only return JWK if it's not expiring in the next 7 days
+    // FIXME: Use JWK_TIME_TO_LIVE
     const now = dayjs();
     const expires = dayjs(expires_at);
-    if (expires.diff(now, "day") > JWK_TIME_TO_LIVE / 2) {
+    if (expires.diff(now, "day") > 7) {
       return { kid: id, kms_id };
     }
   }
