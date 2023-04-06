@@ -7,13 +7,26 @@ import {
 } from "../setup";
 import { setClientSecret, testGetDefaultApp } from "../test-utils";
 import * as jose from "jose";
+import { privateJwk, publicJwk } from "tests/api/__mocks__/jwk";
+import { SignCommand } from "@aws-sdk/client-kms";
+import { createPrivateKey, createSign } from "crypto";
 
-// FIXME: Pull from test mocks once #157 is merged
-const public_jwk = {
-  kty: "RSA",
-  n: "w5yjqASrPE84Fzx5K8UXTnU8yRgF2pNlArCjVe1NSne1PzPRu5q6CrrsUYr8Sq-aLKKtDWfLd77rwF5xcTcBwFa_5AKqU7Ls7ydZxXLTYt1PlqUYTaJQNeDxkTrhnmyBzeYubPlP5b3Ef5Y4I11CcnCOJ6snrDlif_Mel8dR6CHRlBQ3pbC98f_vBlT8AyJ5AZK2HcH_tO_STSA6MqNovftcPIOFiz7TLOL0AyjPeszGojFuPhBtRGKVE5BLrZqN_oAFpZtUCG_VIbb2XokpFlrG4wwqdQKvLvi8fguyeW_x9P7YcbO5TM3OG5mwAYkRnNupZkgUPUC7Iq6bZVoMWw",
-  e: "AQAB",
-};
+jest.mock("src/backend/kms", () => ({
+  getKMSClient: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockImplementation(async (signCommand: SignCommand) => {
+      if (!signCommand.input.Message) {
+        throw new Error("Improper call, no message to sign.");
+      }
+      const key = createPrivateKey({ format: "jwk", key: privateJwk });
+      const sign = createSign("RSA-SHA256");
+      sign.update(Buffer.from(signCommand.input.Message));
+      return {
+        Signature: new Uint8Array(sign.sign(key).buffer),
+      };
+    }),
+  })),
+  signJWTWithKMSKey: jest.requireActual("src/backend/kms").signJWTWithKMSKey,
+}));
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -129,7 +142,7 @@ describe("/api/v1/oidc/token", () => {
 
     const { payload } = await jose.jwtVerify(
       access_token,
-      await jose.importJWK(public_jwk, "RS256"),
+      await jose.importJWK(publicJwk, "RS256"),
       {
         issuer: process.env.JWT_ISSUER,
       }
