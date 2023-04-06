@@ -160,14 +160,11 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                             <div className="relative h-[182px] flex flex-col items-center justify-center bg-center bg-[url('/images/empty-actions.svg')]">
                               <Icon name="notepad" className="w-6 h-6" />
                               <div className="mt-4 font-sora font-semibold text-14 leading-4">
-                                No active actions yet.
+                                This app has no anonymous actions yet
                               </div>
                               <div className="mt-1.5 text-12 text-657080 leading-4">
-                                Sorry, there&apos;s no data to show in the table
-                                yet.
-                                <br />
-                                We&apos;ll update it once users start adding
-                                anonymous actions
+                                You can create your anonymous actions here or
+                                with IDKit.
                               </div>
                             </div>
                           </td>
