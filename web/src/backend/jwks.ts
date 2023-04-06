@@ -22,7 +22,7 @@ const retrieveJWKQuery = gql`
 `;
 
 const fetchActiveJWKsByExpirationQuery = gql`
-  query FetchActiveJWKsByExpiration($alg: String!, $expires_at: timestamptz!) {
+  query FetchActiveJWKsByExpiration($expires_at: timestamptz!) {
     jwks(
       where: { expires_at: { _gt: $expires_at } }
       order_by: { expires_at: desc }
