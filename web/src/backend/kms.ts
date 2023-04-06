@@ -36,10 +36,7 @@ export const createKMSKey = async (
         KeySpec: alg,
         KeyUsage: "SIGN_VERIFY",
         Description: `Developer Portal JWK for Sign in with Worldcoin. Created: ${new Date().toISOString()}`,
-        Tags: [
-          { TagKey: "app", TagValue: "developer-portal" },
-          { TagKey: "usage", TagValue: "sign-in-with-worldcoin" },
-        ],
+        Tags: [{ TagKey: "app", TagValue: "developer-portal" }],
       })
     );
 
