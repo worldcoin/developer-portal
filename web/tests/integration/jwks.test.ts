@@ -19,11 +19,6 @@ jest.mock("src/backend/kms", () => {
   };
 });
 
-beforeAll(() => {
-  fetchMock.enableMocks();
-  fetchMock.dontMock(); // Don't override graphql calls, just fetch
-});
-
 jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
 beforeEach(integrationDBSetup);
