@@ -148,12 +148,13 @@ export default async function handleInclusionProof(
 
     // User may have previously verified their phone number, before the phone sequencer contract was deployed
     // Check with the consumer backend if this is the case, and if so insert the identity commitment on-the-fly
-    try {
-      await checkConsumerBackendForPhoneVerification(req, res, isStaging);
-      return;
-    } catch (error) {
-      console.error(error);
-    }
+    // FIXME: Disabled for now, as the phone sequencer is not yet ready
+    // try {
+    //   await checkConsumerBackendForPhoneVerification(req, res, isStaging);
+    //   return;
+    // } catch (error) {
+    //   console.error(error);
+    // }
 
     // Phone was not verified, proceed as normal
     if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
