@@ -7,26 +7,9 @@ import {
 } from "../setup";
 import { setClientSecret, testGetDefaultApp } from "../test-utils";
 import * as jose from "jose";
-import { privateJwk, publicJwk } from "tests/api/__mocks__/jwk";
-import { SignCommand } from "@aws-sdk/client-kms";
-import { createPrivateKey, createSign } from "crypto";
+import { publicJwk } from "tests/api/__mocks__/jwk";
 
-jest.mock("src/backend/kms", () => ({
-  getKMSClient: jest.fn().mockImplementation(() => ({
-    send: jest.fn().mockImplementation(async (signCommand: SignCommand) => {
-      if (!signCommand.input.Message) {
-        throw new Error("Improper call, no message to sign.");
-      }
-      const key = createPrivateKey({ format: "jwk", key: privateJwk });
-      const sign = createSign("RSA-SHA256");
-      sign.update(Buffer.from(signCommand.input.Message));
-      return {
-        Signature: new Uint8Array(sign.sign(key).buffer),
-      };
-    }),
-  })),
-  signJWTWithKMSKey: jest.requireActual("src/backend/kms").signJWTWithKMSKey,
-}));
+jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);

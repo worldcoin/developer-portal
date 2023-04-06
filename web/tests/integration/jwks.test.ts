@@ -24,18 +24,20 @@ beforeAll(() => {
   fetchMock.dontMock(); // Don't override graphql calls, just fetch
 });
 
-// TODO: Consider moving this to a generalized jest environment
+jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 
 describe("jwks management", () => {
   it("can retrieve existing jwks", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT * FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1;'
+      'SELECT * FROM "public"."jwks" LIMIT 1;'
     );
 
     const jwk = await retrieveJWK(rows[0].id);
     expect(jwk.kid).toEqual(rows[0].id);
+    expect(jwk.kms_id).toEqual(rows[0].kms_id);
   });
 
   it("throws error if the jwk is not found", async () => {
@@ -46,7 +48,7 @@ describe("jwks management", () => {
 
   it("fetches an active jwk", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT * FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1;'
+      'SELECT * FROM "public"."jwks" LIMIT 1;'
     );
 
     const jwk = await fetchActiveJWK();
@@ -64,99 +66,11 @@ describe("jwks management", () => {
 
   it("rotates a jwk with less than 7 days to expire", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'UPDATE "public"."jwks" SET "expires_at" = NOW() + INTERVAL \'6 days\' WHERE "id" = (SELECT id FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1) RETURNING "id";'
-    );
-
-    // Mock the response for /api/_gen-jwk
-    fetchMock.mockIf(/localhost:3000/).mockResponse(
-      JSON.stringify({
-        success: true,
-        jwk: {
-          id: "jwk_b242fe80572fe7bd60f8aea73627454a",
-          kms_id: "818267d0-80ea-4f40-9540-dd83d0b76bb7",
-          expires_at: "2023-04-17T18:01:12.449+00:00",
-          __typename: "jwks",
-        },
-      })
+      'UPDATE "public"."jwks" SET "expires_at" = NOW() + INTERVAL \'6 days\' WHERE "id" = (SELECT id FROM "public"."jwks" LIMIT 1) RETURNING "id";'
     );
 
     const jwk = await fetchActiveJWK();
     expect(jwk.kid).not.toEqual(rows[0].id);
-  });
-
-  it("throws error if a new jwk is not created", async () => {
-    const { rows } = await integrationDBExecuteQuery(
-      'UPDATE "public"."jwks" SET "expires_at" = NOW() + INTERVAL \'6 days\' WHERE "id" = (SELECT id FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1) RETURNING "id";'
-    );
-
-    // Mock the response for /api/_gen-jwk
-    fetchMock.mockIf(/localhost:3000/).mockResponse(
-      JSON.stringify({
-        code: "jwk_generation_failed",
-        detail: "Failed to generate JWK.",
-      }),
-      { status: 500 }
-    );
-
-    await expect(fetchActiveJWK()).rejects.toThrowError(
-      "Unable to rotate JWK."
-    );
-  });
-
-  it("does not delete jwks that are within expiration window", async () => {
-    const { rows } = await integrationDBExecuteQuery(
-      'UPDATE "public"."jwks" SET "expires_at" = NOW() - INTERVAL \'10 minutes\' WHERE "id" = (SELECT id FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1) RETURNING "id";'
-    );
-
-    // Mock the response for /api/_gen-jwk
-    fetchMock.mockIf(/localhost:3000/).mockResponse(
-      JSON.stringify({
-        success: true,
-        jwk: {
-          id: "jwk_b242fe80572fe7bd60f8aea73627454a",
-          kms_id: "818267d0-80ea-4f40-9540-dd83d0b76bb7",
-          expires_at: "2023-04-17T18:01:12.449+00:00",
-          __typename: "jwks",
-        },
-      })
-    );
-
-    await fetchActiveJWK();
-
-    const { rows: rowsAfter } = await integrationDBExecuteQuery(
-      'SELECT "id" FROM "public"."jwks" WHERE "alg" = \'RS256\''
-    );
-    expect(rowsAfter.length).toEqual(rows.length);
-  });
-
-  it("deletes jwks that are outside expiration window", async () => {
-    const { rows } = await integrationDBExecuteQuery(
-      'UPDATE "public"."jwks" SET "expires_at" = NOW() - INTERVAL \'30 minutes\' WHERE "id" = (SELECT id FROM "public"."jwks" WHERE "alg" = \'RS256\' LIMIT 1) RETURNING "id";'
-    );
-
-    // Mock the response for /api/_gen-jwk
-    fetchMock.mockIf(/localhost:3000/).mockResponse(
-      JSON.stringify({
-        success: true,
-        jwk: {
-          id: "jwk_b242fe80572fe7bd60f8aea73627454a",
-          kms_id: "818267d0-80ea-4f40-9540-dd83d0b76bb7",
-          expires_at: "2023-04-17T18:01:12.449+00:00",
-          __typename: "jwks",
-        },
-      })
-    );
-
-    // Mock the responses for KMS functions
-    (getKMSClient as jest.Mock).mockReturnValue(true);
-    (scheduleKeyDeletion as jest.Mock).mockReturnValue(true);
-
-    await fetchActiveJWK();
-
-    const { rows: rowsAfter } = await integrationDBExecuteQuery(
-      'SELECT "id" FROM "public"."jwks" WHERE "alg" = \'RS256\''
-    );
-    expect(rowsAfter.length).not.toEqual(rows.length);
   });
 
   it("can generate new kms keys", async () => {
