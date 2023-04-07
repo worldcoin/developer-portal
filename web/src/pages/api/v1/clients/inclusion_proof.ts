@@ -11,6 +11,6 @@ export default async function handleInclusionProof(
   res: NextApiResponse
 ) {
   return res
-    .status(400)
+    .status(500)
     .json({ message: "This endpoint is currently unavailable." });
 }
