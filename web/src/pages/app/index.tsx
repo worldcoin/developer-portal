@@ -13,7 +13,7 @@ export default function App() {
         <PageInfo
           icon="apps"
           title="Home for your app overview"
-          text="You can find all your app details here once you create your first app."
+          text="Create your first app to get started!"
         />
       }
     />
