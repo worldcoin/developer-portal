@@ -2,7 +2,7 @@ import "@/globals.css";
 import { usePostHog } from "@/hooks/usePostHog";
 import { client } from "@/services/apollo";
 import { ApolloProvider } from "@apollo/client";
-import { IBM_Plex_Mono, Rubik, Sora } from "@next/font/google";
+import { IBM_Plex_Mono, Rubik, Sora } from "next/font/google";
 import { NextSeo } from "next-seo";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
