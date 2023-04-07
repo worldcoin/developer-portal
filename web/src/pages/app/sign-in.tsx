@@ -13,7 +13,7 @@ export default function SignIn() {
         <PageInfo
           icon="world-id-sign-in"
           title="Sing in with Worldcoin"
-          text="You will be able to add Worldcoin sign in option to your app."
+          text="Create your first app to use Sign in with Worldcoin."
         />
       }
     />
