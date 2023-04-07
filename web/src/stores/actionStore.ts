@@ -1,5 +1,6 @@
 import { ActionModelWithNullifiers } from "src/lib/models";
 import { NewAction } from "src/scenes/actions/NewAction";
+import { ActionsQuery } from "src/scenes/actions/graphql/actions.generated";
 import { create } from "zustand";
 
 type NewAction = {
@@ -14,6 +15,10 @@ export type IActionStore = {
   setActions: (actions: Array<ActionModelWithNullifiers>) => void;
   isNewActionModalOpened: boolean;
   setIsNewActionModalOpened: (value: boolean) => void;
+  isUpdateActionModalOpened: boolean;
+  setIsUpdateActionModalOpened: (value: boolean) => void;
+  actionToUpdate: ActionsQuery["action"][number] | null;
+  setActionToUpdate: (value: ActionsQuery["action"][number]) => void;
   newAction: NewAction;
   setNewAction: (value: Partial<NewAction>) => void;
 };
@@ -25,6 +30,13 @@ export const useActionStore = create<IActionStore>((set, get) => ({
 
   isNewActionModalOpened: false,
   setIsNewActionModalOpened: (value) => set({ isNewActionModalOpened: value }),
+
+  isUpdateActionModalOpened: false,
+  setIsUpdateActionModalOpened: (value) =>
+    set({ isUpdateActionModalOpened: value }),
+
+  actionToUpdate: null,
+  setActionToUpdate: (value) => set({ actionToUpdate: value }),
 
   newAction: { name: "", description: "", action: "", maxVerifications: null },
   setNewAction: (value) =>

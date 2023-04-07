@@ -11,6 +11,8 @@ import { NotFound } from "@/components/NotFound";
 import { useFetchActions } from "./hooks";
 import { useForm, useWatch } from "react-hook-form";
 import { PageInfo } from "@/components/PageInfo";
+import { UpdateAction } from "./UpdateAction";
+import { useToggle } from "src/hooks/useToggle";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -24,6 +26,8 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
   const { register, control } = useForm<{ actionSearch: string }>({
     mode: "onChange",
   });
+
+  const updateActionModal = useToggle();
 
   const actionsSearch = useWatch({
     control,
@@ -67,6 +71,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
       {!appIsLoading && !isActionsLoading && currentApp && (
         <Fragment>
           <NewAction />
+          <UpdateAction />
 
           <div className="grid gap-y-12">
             <div className="grid gap-y-6">
@@ -115,7 +120,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                   </Button>
                 </div>
                 <div>
-                  <table className="w-full">
+                  <table className="w-full max-w-full">
                     <thead>
                       <tr>
                         <th className="w-1/4 pt-8 pb-4 pr-6 whitespace-nowrap text-12 text-left border-b border-f3f4f5">
