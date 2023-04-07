@@ -25,7 +25,7 @@ const validParams = (app_id: string) =>
     nonce: "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7", // because IDKit is currently mocked, we need to pass an already encoded value
     scope: "openid email",
     response_type: "code",
-    redirect_uri: "https://example.com",
+    redirect_uri: "http://localhost:3000/login",
     state: "my_state",
   } as Record<string, string>);
 
