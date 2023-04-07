@@ -10,7 +10,7 @@ export const Header = memo(function Header() {
         iconClassName="text-primary"
         title="Sign in with Worldcoin"
         text="Simplest authentication for your app. Proof of personhood included."
-        linkText="Learn more about Worldcoin sign-in"
+        linkText="Tech Docs"
         linkHref="https://docs.worldcoin.org/id/sign-in"
       />
     </div>
