@@ -1,17 +1,15 @@
 import { FieldGroup } from "@/components/FieldGroup";
 import { FieldInput } from "@/components/FieldInput";
 import { KeyboardEvent, memo, useCallback, useRef } from "react";
-import { TeamModel } from "@/lib/models";
-import { useUpdateTeamNameMutation } from "@/hooks/useTeam";
+import { Team, useUpdateTeamName } from "@/scenes/team/hooks/useTeam";
 
 export interface DetailsProps {
-  team: TeamModel;
+  team: Team;
 }
 
 export const Details = memo(function Details(props: DetailsProps) {
   const { team } = props;
-
-  const { updateTeamName } = useUpdateTeamNameMutation();
+  const { updateTeamName } = useUpdateTeamName();
 
   const ref = useRef<HTMLInputElement | null>(null);
 
@@ -39,7 +37,7 @@ export const Details = memo(function Details(props: DetailsProps) {
     <FieldGroup label="Team name">
       <FieldInput
         ref={ref}
-        defaultValue={team.name}
+        defaultValue={team.name ?? ""}
         onBlur={handleBlur}
         onKeyPress={handleKeyPress}
       />

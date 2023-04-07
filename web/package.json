@@ -15,8 +15,8 @@
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "format:check": "prettier --check ./",
-    "generate:graphql-schema": "graphql-codegen --require dotenv/config --config graphql-codegen.schema.js",
-    "generate:graphql-types": "graphql-codegen --require dotenv/config --config graphql-codegen.types.js"
+    "generate:graphql-schema": "graphql-codegen --config graphql-codegen.schema.js",
+    "generate:graphql-types": "graphql-codegen --config graphql-codegen.types.js"
   },
   "dependencies": {
     "@apollo/client": "^3.7.9",

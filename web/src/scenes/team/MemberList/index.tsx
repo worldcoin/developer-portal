@@ -5,17 +5,17 @@ import { Controls } from "./Controls";
 import { InviteMembersDialog } from "./InviteMembersDialog";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
 import { useDebouncedCallback } from "use-debounce";
-import { TeamMemberModel } from "@/lib/models";
+import { TeamMember } from "@/scenes/team/hooks/useTeam";
 
 export interface MemberListProps {
-  members: TeamMemberModel[];
+  members: TeamMember[];
 }
 
 export const MemberList = memo(function MemberList(props: MemberListProps) {
   const { members } = props;
   const inviteDialog = useToggle();
 
-  const [memberForRemove, setMemberForRemove] = useState<TeamMemberModel>();
+  const [memberForRemove, setMemberForRemove] = useState<TeamMember>();
 
   const [keyword, setKeyword] = useState("");
 

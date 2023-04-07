@@ -1,0 +1,11 @@
+query Teams {
+  teams: team(limit: 1) {
+    id
+    name
+    members: users {
+      id
+      name
+      email
+    }
+  }
+}
