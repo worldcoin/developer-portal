@@ -9,7 +9,7 @@ export const Header = memo(function Header() {
         icon="world-id-sign-in"
         iconClassName="text-primary"
         title="Sign in with Worldcoin"
-        text="It verifies that a person is doing an action only once and ensures unlinkable actions for enhanced privacy, as in voting applications."
+        text="Simplest authentication for your app. Proof of personhood included."
         linkText="Learn more about Worldcoin sign-in"
         linkHref="https://docs.worldcoin.org/id/sign-in"
       />
