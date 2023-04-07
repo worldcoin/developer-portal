@@ -6,14 +6,14 @@ import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
 
-export default function App() {
+export default function SignIn() {
   return (
     <NoApps
       pageInfo={
         <PageInfo
-          icon="apps"
-          title="Home for your app overview"
-          text="Create your first app to get started!"
+          icon="world-id-sign-in"
+          title="Sing in with Worldcoin"
+          text="Create your first app to use Sign in with Worldcoin."
         />
       }
     />
@@ -43,7 +43,7 @@ export const getServerSideProps: GetServerSideProps = requireAuthentication(
       return {
         redirect: {
           permanent: false,
-          destination: urls.app(apps.data.app[0].id),
+          destination: urls.appSignIn(apps.data.app[0].id),
         },
       };
     }

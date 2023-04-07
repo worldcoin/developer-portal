@@ -1,34 +1,23 @@
-import { memo } from "react";
+import { memo, ReactNode } from "react";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
 import { NewAppDialog } from "src/components/Layout/NewAppDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { LinkCard } from "./LinkCard";
+import { PageInfo } from "@/components/PageInfo";
 
-export const NoApps = memo(function NoApps() {
+export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
   const newAppDialog = useToggle();
 
   return (
     <Layout
       title="Apps"
-      mainClassName="grid grid-rows-auto/1fr/auto px-12 py-8"
+      mainClassName="grid grid-rows-auto/1fr/auto px-12 py-8 gap-y-12"
     >
       <NewAppDialog open={newAppDialog.isOn} onClose={newAppDialog.toggleOff} />
 
-      <div className="grid grid-rows-2 grid-cols-auto/1fr bg-gray-50 border border-gray-200 rounded-xl p-8 gap-x-8 gap-y-1">
-        <div className="bg-white rounded-full p-5 row-span-2 self-center flex">
-          <Icon name="apps" className="h-6 w-6" />
-        </div>
-
-        <h1 className="font-sora font-semibold self-end text-gray-900">
-          Home for your app overview
-        </h1>
-
-        <p className="text-gray-500 text-14 self-start">
-          You can find all your app details here once you create your first app.
-        </p>
-      </div>
+      {props.pageInfo}
 
       <div className="grid gap-y-8 justify-center justify-items-center content-center">
         <div className="bg-blue-secondary rounded-full p-5 row-span-2 self-center flex">
