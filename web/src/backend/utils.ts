@@ -160,6 +160,7 @@ export async function checkConsumerBackendForPhoneVerification(
     console.info(
       `User's phone number is verified, but not on-chain. Inserting identity: ${req.body.identity_commitment}`
     );
+    // FIXME: This is dirty, we should operate this internally
     const insertResponse = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
       {
@@ -167,6 +168,7 @@ export async function checkConsumerBackendForPhoneVerification(
         headers: {
           Authorization: `Bearer ${process.env.CONSUMER_BACKEND_SECRET}`,
           "Content-Type": "application/json",
+          "User-Agent": "WorldcoinDeveloperPortal/v-alpha",
         },
         body: JSON.stringify(req.body),
       }
