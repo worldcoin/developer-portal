@@ -1,3 +1,8 @@
+const dotenv = require("dotenv");
+
+dotenv.config();
+dotenv.config({ path: `.env.local`, override: true });
+
 /** @type {import('@graphql-codegen/cli').CodegenConfig} */
 module.exports = {
   schema: [

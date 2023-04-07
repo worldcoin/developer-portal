@@ -6,18 +6,20 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - alg
         - expires_at
-        - private_jwk
+        - kms_id
         - public_jwk
 select_permissions:
   - role: service
     permission:
       columns:
-        - alg
         - created_at
         - expires_at
         - id
-        - private_jwk
+        - kms_id
         - public_jwk
+      filter: {}
+delete_permissions:
+  - role: service
+    permission:
       filter: {}

@@ -1,8 +1,8 @@
-import { createMocks } from "node-mocks-http";
-import handleVerify from "src/pages/api/v1/verify/[app_id]";
 import fetchMock from "jest-fetch-mock";
 import { when } from "jest-when";
+import { createMocks } from "node-mocks-http";
 import { NullifierModel } from "src/lib/models";
+import handleVerify from "src/pages/api/v1/verify/[app_id]";
 
 const validPayload = {
   merkle_root:

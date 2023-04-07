@@ -124,7 +124,7 @@ export const AppSelector = memo(function AppsSelector(props: {
         </Button>
       )}
 
-      {apps?.length > 0 && (
+      {(apps?.length ?? 0) > 0 && (
         <Menu as="div" className="relative h-[44px] peer">
           {({ open }) => (
             <div
@@ -189,16 +189,6 @@ export const AppSelector = memo(function AppsSelector(props: {
             </div>
           )}
         </Menu>
-      )}
-
-      {apps?.length > 0 && (
-        <div
-          className={cn(
-            "fixed inset-0 p-30 z-[1] pointer-events-none transition-opacity duration-300 backdrop-blur overflow-hidden",
-            'peer-data-[headlessui-state="open"]:opacity-100 peer-data-[headlessui-state="open"]:pointer-events-auto',
-            'peer-data-[headlessui-state=""]:opacity-0'
-          )}
-        />
       )}
     </Fragment>
   );

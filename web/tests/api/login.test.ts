@@ -1,14 +1,14 @@
 import { when } from "jest-when";
-import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
-import * as jose from "jose";
-import { createMocks } from "node-mocks-http";
-import { getTokenFromCookie } from "src/backend/cookies";
-import { generateJWK } from "src/backend/jwks";
 import { generateInviteJWT, generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
+import { publicJwk } from "./__mocks__/jwk";
+import { createMocks } from "node-mocks-http";
 import handleLogin from "src/pages/api/login";
-import { privateJwk, publicJwk } from "./__mocks__/jwk";
+import { getTokenFromCookie } from "src/backend/cookies";
+import * as jose from "jose";
+import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
+import { integrationDBExecuteQuery } from "tests/integration/setup";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
@@ -23,14 +23,16 @@ jest.mock(
   }))
 );
 
+jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+
 const validPayload = async () => ({
   sign_in_with_world_id_token: await generateOIDCJWT({
-    app_id: "app_developer_portal",
+    kid: "kid_my_test_key",
+    kms_id: "kms_my_test_id",
     nonce: "superRandomString",
     nullifier_hash:
       "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
-    private_jwk: privateJwk,
-    kid: "kid_my_test_key",
+    app_id: "app_developer_portal",
     credential_type: CredentialType.Orb,
     scope: [OIDCScopes.OpenID],
   }),
@@ -148,17 +150,33 @@ describe("/api/v1/login", () => {
 
 describe("/api/v1/login [error cases]", () => {
   test("user cannot login with incorrectly signed JWT", async () => {
-    const { privateJwk: newKey } = await generateJWK("RS256");
     const oidcJWT = await generateOIDCJWT({
       app_id: "app_developer_portal",
       nonce: "superRandomString",
       nullifier_hash:
         "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
-      private_jwk: newKey,
       kid: "kid_my_test_key",
       credential_type: CredentialType.Orb,
       scope: [OIDCScopes.OpenID],
+      kms_id: "kms_id",
     });
+
+    const { publicKey } = await jose.generateKeyPair("RS256");
+    const newPublicKey = await jose.exportJWK(publicKey);
+
+    when(requestReturnFn)
+      .calledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            kid: "kid_my_test_key",
+          }),
+        })
+      )
+      .mockResolvedValueOnce({
+        data: {
+          jwks: [{ id: "kid_my_test_key", public_jwk: newPublicKey }],
+        },
+      });
 
     const { req, res } = createMocks({
       method: "POST",

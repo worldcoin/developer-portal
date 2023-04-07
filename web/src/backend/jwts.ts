@@ -7,9 +7,9 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { JWK_ALG_OIDC } from "src/lib/constants";
 import { CredentialType, JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
+import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
@@ -31,6 +31,8 @@ if (!GENERAL_SECRET_KEY) {
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
 }
+
+// ANCHOR: -----------------HASURA JWTs--------------------------
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
@@ -115,6 +117,42 @@ export const verifyUserJWT = async (token: string) => {
 };
 
 /**
+ * Generates a JWT for a specific API key.
+ * @param team_id
+ * @returns
+ */
+export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
+  const payload = {
+    sub: team_id,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["api_key"],
+      "x-hasura-default-role": "api_key",
+      "x-hasura-team-id": team_id,
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+/**
+ * Generates a JWT for the analytics service.
+ * @returns
+ */
+export const generateAnalyticsJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "analytics_service",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["analytics"],
+      "x-hasura-default-role": "analytics",
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+// ANCHOR: -----------------Sign up JWTs--------------------------
+
+/**
  * Generates a temporary JWT used to sign up a user.
  * After a user logs in with World ID if they don't have an account, we generate this temporary token. If they complete account creation, we exchange this token.
  * @param nullifier_hash
@@ -154,122 +192,6 @@ export const verifySignUpJWT = async (token: string) => {
 };
 
 /**
- * Generates a JWT for a specific API key.
- * @param team_id
- * @returns
- */
-export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
-  const payload = {
-    sub: team_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["api_key"],
-      "x-hasura-default-role": "api_key",
-      "x-hasura-team-id": team_id,
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
-/**
- * Generates a JWT for the analytics service.
- * @returns
- */
-export const generateAnalyticsJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "analytics_service",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["analytics"],
-      "x-hasura-default-role": "analytics",
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
-interface IVerificationJWT {
-  private_jwk: jose.JWK;
-  kid: string;
-  nonce?: string;
-  nullifier_hash: string;
-  app_id: string;
-  credential_type: CredentialType;
-  scope: OIDCScopes[];
-}
-
-/**
- * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
- * @returns
- */
-export const generateOIDCJWT = async ({
-  app_id,
-  nonce,
-  nullifier_hash,
-  private_jwk,
-  kid,
-  credential_type,
-  scope,
-}: IVerificationJWT): Promise<string> => {
-  const payload = {
-    sub: nullifier_hash,
-    jti: randomUUID(),
-    iat: new Date().getTime(),
-    aud: app_id,
-    scope: scope.join(" "),
-    "https://id.worldcoin.org/beta": {
-      likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
-      credential_type,
-    },
-  } as Record<string, any>;
-
-  if (nonce) {
-    payload.nonce = nonce;
-  }
-
-  if (scope.includes(OIDCScopes.Email)) {
-    payload.email = `${nullifier_hash}@id.worldcoin.org`;
-  }
-
-  if (scope.includes(OIDCScopes.Profile)) {
-    payload.name = "World ID User";
-    payload.given_name = "World ID";
-    payload.family_name = "User";
-  }
-
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWK_ALG_OIDC, kid })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("1h")
-    .sign(await jose.importJWK(private_jwk, JWK_ALG_OIDC));
-};
-
-export const verifyOIDCJWT = async (
-  token: string
-): Promise<jose.JWTPayload> => {
-  const { kid } = jose.decodeProtectedHeader(token);
-
-  if (!kid) {
-    throw new Error("JWT is invalid. Does not contain a `kid` claim.");
-  }
-
-  const { public_jwk } = await retrieveJWK(kid);
-
-  if (!public_jwk) {
-    throw new Error("Key for this JWT is invalid.");
-  }
-
-  const { payload } = await jose.jwtVerify(
-    token,
-    await jose.importJWK(public_jwk, JWK_ALG_OIDC),
-    {
-      issuer: JWT_ISSUER,
-    }
-  );
-
-  return payload;
-};
-
-/**
  * Generates a JWT that can be used to sign up for a developer portal account
  * @returns
  */
@@ -302,4 +224,97 @@ export const verifyInviteJWT = async (token: string) => {
     throw new Error("JWT does not contain email claim.");
   }
   return email as string;
+};
+
+// ANCHOR: -----------------OIDC JWTs--------------------------
+
+interface IVerificationJWT {
+  kid: string;
+  kms_id: string;
+  nonce?: string;
+  nullifier_hash: string;
+  app_id: string;
+  credential_type: CredentialType;
+  scope: OIDCScopes[];
+}
+
+/**
+ * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
+ * @returns
+ */
+export const generateOIDCJWT = async ({
+  app_id,
+  nonce,
+  nullifier_hash,
+  kid,
+  credential_type,
+  scope,
+}: IVerificationJWT): Promise<string> => {
+  const payload = {
+    iss: JWT_ISSUER,
+    sub: nullifier_hash,
+    jti: randomUUID(),
+    iat: new Date().getTime(),
+    exp: Date.now() + 1000 * 60 * 60, // 1 hour
+    aud: app_id,
+    scope: scope.join(" "),
+    "https://id.worldcoin.org/beta": {
+      likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
+      credential_type,
+    },
+  } as Record<string, any>;
+
+  if (nonce) {
+    payload.nonce = nonce;
+  }
+
+  if (scope.includes(OIDCScopes.Email)) {
+    payload.email = `${nullifier_hash}@id.worldcoin.org`;
+  }
+
+  if (scope.includes(OIDCScopes.Profile)) {
+    payload.name = "World ID User";
+    payload.given_name = "World ID";
+    payload.family_name = "User";
+  }
+
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+    kid,
+  };
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+  throw new Error("Failed to sign JWT from KMS.");
+};
+
+export const verifyOIDCJWT = async (
+  token: string
+): Promise<jose.JWTPayload> => {
+  const { kid } = jose.decodeProtectedHeader(token);
+
+  if (!kid) {
+    throw new Error("JWT is invalid. Does not contain a `kid` claim.");
+  }
+
+  const { public_jwk } = await retrieveJWK(kid);
+
+  if (!public_jwk) {
+    throw new Error("Key for this JWT is invalid.");
+  }
+
+  const { payload } = await jose.jwtVerify(
+    token,
+    await jose.importJWK(public_jwk, "RS256"),
+    {
+      issuer: JWT_ISSUER,
+    }
+  );
+
+  return payload;
 };

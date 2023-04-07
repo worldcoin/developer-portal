@@ -130,8 +130,15 @@ export const Layout = (props: {
             </nav>
           </div>
 
-          <footer className="grid items-center justify-between gap-y-4">
+          <footer className="grid items-center justify-between gap-y-2">
             <LoggedUserDisplay userId={props.userId} />
+            <Link
+              className="text-11 leading-4 text-neutral-secondary"
+              href="https://worldcoin.org/privacy-statement"
+              target="_blank"
+            >
+              Privacy Policy
+            </Link>
             <SystemStatus />
           </footer>
         </aside>

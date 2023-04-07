@@ -35,6 +35,7 @@
     "nullifer",
     "OIDC",
     "partialize",
+    "RSASSA",
     "secp256k1",
     "signup",
     "testid",
