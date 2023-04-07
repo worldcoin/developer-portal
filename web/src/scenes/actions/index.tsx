@@ -76,7 +76,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
               <PageInfo
                 icon="notepad"
                 iconClassName="text-primary"
-                title="Private and one-time actions"
+                title="Anonymous Actions"
                 text={[
                   '"Anonymous Actions" generates zero-knowledge proof for each action.',
                   "It verifies that a person is doing an action only once and ensures unlinkable actions for enhanced privacy, as in voting applications.",
