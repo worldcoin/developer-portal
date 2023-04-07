@@ -11,7 +11,6 @@ import { Fragment, useMemo } from "react";
 import { NotFound } from "@/components/NotFound";
 import { useFetchActions } from "./hooks";
 import { useForm, useWatch } from "react-hook-form";
-import Image from "next/image";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
