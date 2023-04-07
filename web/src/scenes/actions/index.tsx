@@ -81,7 +81,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
                   '"Anonymous Actions" generates zero-knowledge proof for each action.',
                   "It verifies that a person is doing an action only once and ensures unlinkable actions for enhanced privacy, as in voting applications.",
                 ]}
-                linkText="Learn more"
+                linkText="Tech Docs"
                 linkHref="https://docs.worldcoin.org/id/anonymous-actions"
               />
             </div>
