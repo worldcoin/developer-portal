@@ -1,12 +1,12 @@
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
-import { FieldInput } from "./Form/FieldInput";
+import { FieldInput } from "../common/Form/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Illustration } from "src/components/Auth/Illustration";
-import { FieldTextArea } from "./Form/FieldTextArea";
+import { FieldTextArea } from "../common/Form/FieldTextArea";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -145,6 +145,7 @@ export function NewAction() {
             className="w-full font-rubik"
             placeholder="Proposal #102"
             disabled={loading}
+            autoComplete="off"
           />
         </div>
 
@@ -176,6 +177,9 @@ export function NewAction() {
             className="w-full font-rubik"
             placeholder="proposal-102"
             disabled={loading}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
           />
         </div>
 
