@@ -145,6 +145,7 @@ export function NewAction() {
             className="w-full font-rubik"
             placeholder="Proposal #102"
             disabled={loading}
+            autoComplete="off"
           />
         </div>
 
@@ -176,6 +177,9 @@ export function NewAction() {
             className="w-full font-rubik"
             placeholder="proposal-102"
             disabled={loading}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
           />
         </div>
 
