@@ -4,7 +4,7 @@ import { DialogHeader } from "@/components/DialogHeader";
 import { FieldInput } from "./Form/FieldInput";
 import { FieldLabel } from "@/components/FieldLabel";
 import { useCallback, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Illustration } from "src/components/Auth/Illustration";
 import { FieldTextArea } from "./Form/FieldTextArea";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
@@ -16,6 +16,7 @@ import { useAppStore } from "src/stores/appStore";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { toast } from "react-toastify";
 import { ApolloError } from "@apollo/client";
+import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
 
 const schema = yup.object({
   name: yup.string().required("This field is required"),
@@ -39,6 +40,7 @@ export function NewAction() {
   const { insertAction, loading, error: insertError } = useInsertAction();
 
   const {
+    control,
     register,
     formState: { errors, dirtyFields },
     handleSubmit,
@@ -174,6 +176,27 @@ export function NewAction() {
             className="w-full font-rubik"
             placeholder="proposal-102"
             disabled={loading}
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-y-2">
+          <FieldLabel required className="font-rubik">
+            Choose a maximum number of verifications
+          </FieldLabel>
+          <Controller
+            name="maxVerifications"
+            control={control}
+            render={({ field }) => {
+              return (
+                <VerificationSelect
+                  size="lg"
+                  fullWidth
+                  dropUp
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              );
+            }}
           />
         </div>
 

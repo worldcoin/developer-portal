@@ -12,7 +12,7 @@ import {
   useState,
 } from "react";
 import { Icon } from "@/components/Icon";
-import { VerificationSelect } from "@/scenes/actions/Action/VerificationSelect";
+import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
 import { Input } from "@/scenes/actions/Action/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
@@ -149,6 +149,7 @@ export const Action = memo(function Action(props: {
               </td>
               <td className="pr-4">
                 <VerificationSelect
+                  hint="Changing this will not retroactively affect already verified users!"
                   value={props.action.max_verifications}
                   onChange={(value) =>
                     updateAction(props.action.id, {
