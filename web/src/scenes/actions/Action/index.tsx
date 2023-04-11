@@ -288,20 +288,10 @@ export const Action = memo(function Action(props: {
                 ))}
               </Fragment>
             )}
-            <tr>
-              <td colSpan={5} className="px-6">
-                <div className="flex justify-end pt-4 pb-6 border-t border-f3f4f5">
-                  {!props.action.kiosk_enabled && (
-                    <Button
-                      variant="plain"
-                      className="!font-semibold !text-14 !text-primary hover:opacity-70"
-                      onClick={enableKiosk(props.action.id)}
-                    >
-                      Enable Kiosk
-                    </Button>
-                  )}
-
-                  {props.action.kiosk_enabled && (
+            {props.action.kiosk_enabled && (
+              <tr>
+                <td colSpan={5} className="px-6">
+                  <div className="flex justify-end pt-4 pb-6 border-t border-f3f4f5">
                     <Button
                       variant="plain"
                       className="!font-semibold !text-14 !text-ff6848 hover:opacity-70"
@@ -309,10 +299,10 @@ export const Action = memo(function Action(props: {
                     >
                       Disable Kiosk
                     </Button>
-                  )}
-                </div>
-              </td>
-            </tr>
+                  </div>
+                </td>
+              </tr>
+            )}
           </Disclosure.Panel>
         </Fragment>
       )}
