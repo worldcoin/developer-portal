@@ -36,7 +36,7 @@ const insertAPIKeyQuery = gql`
 `;
 
 /**
- * Resets the client secret for an app (OIDC)
+ * Generates a new API key, and disables all other active keys for the given team.
  * @param req
  * @param res
  */
