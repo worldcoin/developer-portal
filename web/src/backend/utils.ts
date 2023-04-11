@@ -6,6 +6,14 @@ import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
+import crypto from "crypto";
+
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+if (!GENERAL_SECRET_KEY) {
+  throw new Error(
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+  );
+}
 
 const phoneVerifiedQuery = gql`
   query PhoneNumberVerified($identity_commitment: String!) {
@@ -198,3 +206,11 @@ export async function checkConsumerBackendForPhoneVerification(
   // Request not handled, continue the normal flow
   throw new Error("Could not insert identity on-the-fly");
 }
+
+export const generateHashedSecret = (identifier: string) => {
+  const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${identifier}.${secret}`);
+  const hashed_secret = hmac.digest("hex");
+  return { secret, hashed_secret };
+};

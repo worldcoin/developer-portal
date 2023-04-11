@@ -1,4 +1,10 @@
 type Mutation {
+  reset_api_key(
+    team_id: String!
+  ): ResetAPIOutput
+}
+
+type Mutation {
   reset_client_secret(
     app_id: String!
   ): ResetClientOutput
@@ -6,5 +12,9 @@ type Mutation {
 
 type ResetClientOutput {
   client_secret: String!
+}
+
+type ResetAPIOutput {
+  api_key: String!
 }
 

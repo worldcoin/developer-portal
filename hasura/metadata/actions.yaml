@@ -1,4 +1,14 @@
 actions:
+  - name: reset_api_key
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/_reset-api-key'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Reset the team's API key for the developer portal
   - name: reset_client_secret
     definition:
       kind: synchronous
@@ -15,4 +25,5 @@ custom_types:
   input_objects: []
   objects:
     - name: ResetClientOutput
+    - name: ResetAPIOutput
   scalars: []
