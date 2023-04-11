@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { generateOIDCSecret } from "src/backend/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
+import { generateHashedSecret } from "src/backend/utils";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -106,7 +106,7 @@ export default async function handleRegister(
 
   // Generate client_secret
   const app_id = insertClientResponse.data.insert_team_one.apps[0].id;
-  const { client_secret, hashed_secret } = generateOIDCSecret(app_id);
+  const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
   const updateSecretResponse = await client.mutate({
     mutation: updateSecretQuery,

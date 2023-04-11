@@ -1,7 +1,6 @@
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { generateOIDCSecret } from "src/backend/oidc";
 import {
   generateHashedSecret,
   protectInternalEndpoint,
