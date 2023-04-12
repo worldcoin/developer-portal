@@ -278,11 +278,3 @@ export const authenticateOIDCEndpoint = async (
 
   return app_id;
 };
-
-export const generateOIDCSecret = (app_id: string) => {
-  const client_secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
-  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
-  hmac.update(`${app_id}.${client_secret}`);
-  const hashed_secret = hmac.digest("hex");
-  return { client_secret, hashed_secret };
-};
