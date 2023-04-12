@@ -23,6 +23,7 @@ const mirrorHexColors = (colors) =>
 
 module.exports = {
   content: ["./**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     borderWidth: {
       DEFAULT: "1px",
