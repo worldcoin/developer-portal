@@ -86,6 +86,7 @@ export function NewAction() {
             currentApp.id,
             values.action
           ).digest,
+          max_verifications: values.maxVerifications,
         });
 
         if (result instanceof Error) {
