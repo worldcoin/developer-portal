@@ -28,8 +28,11 @@ export default async function handleGraphQL(
   );
 
   // Check if request is authenticated with API key
-  if (authorization?.startsWith("key_")) {
-    const [key_id, secret] = Buffer.from(authorization, "base64")
+  if (authorization?.startsWith("api_")) {
+    const [key_id, secret] = Buffer.from(
+      authorization.replace("api_", ""),
+      "base64"
+    )
       .toString()
       .split(":");
 

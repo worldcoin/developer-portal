@@ -8,9 +8,9 @@ object_relationships:
 insert_permissions:
   - role: user
     permission:
-      check:
-        team_id:
-          _eq: X-Hasura-Team-Id
+      set:
+        team_id: x-hasura-Team-Id
+      check: {}
       columns:
         - is_active
         - name
@@ -22,6 +22,7 @@ select_permissions:
         - created_at
         - id
         - is_active
+        - api_key
         - team_id
       filter:
         is_active:
@@ -48,7 +49,6 @@ update_permissions:
       columns:
         - is_active
         - name
-        - updated_at
       filter:
         team_id:
           _eq: X-Hasura-Team-Id

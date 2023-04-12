@@ -19,7 +19,7 @@ const updateAPIKeyQuery = gql`
 `;
 
 /**
- * Generates a new API key, and disables all other active keys for the given team.
+ * Rotates a specific API key.
  * @param req
  * @param res
  */
@@ -64,9 +64,9 @@ export default async function handleAPIKeyReset(
 
   // Generate a new API key for the given key id
   const { secret, hashed_secret } = generateHashedSecret(key_id);
-  const api_key = `key_${Buffer.from(`${key_id}:${secret}`).toString(
-    "base64"
-  )}`;
+  const api_key = `api_${Buffer.from(`${key_id}:${secret}`)
+    .toString("base64")
+    .replace(/=/g, "")}`;
 
   const response = await client.mutate({
     mutation: updateAPIKeyQuery,
@@ -79,8 +79,8 @@ export default async function handleAPIKeyReset(
   if (!response.data.update_api_key.affected_rows) {
     return errorHasuraQuery({
       res,
-      detail: "Failed to insert the API key.",
-      code: "insert_failed",
+      detail: "Failed to rotate the API key.",
+      code: "rotate_failed",
     });
   }
 
