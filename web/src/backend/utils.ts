@@ -214,3 +214,15 @@ export const generateHashedSecret = (identifier: string) => {
   const hashed_secret = hmac.digest("hex");
   return { secret, hashed_secret };
 };
+
+export const verifyHashedSecret = (
+  identifier: string,
+  secret: string,
+  hashed_secret: string
+) => {
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${identifier}.${secret}`);
+  const generated_secret = hmac.digest("hex");
+
+  return generated_secret === hashed_secret;
+};

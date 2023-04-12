@@ -1,6 +1,6 @@
 type Mutation {
   reset_api_key(
-    team_id: String!
+    key_id: String!
   ): ResetAPIOutput
 }
 

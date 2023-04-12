@@ -7,29 +7,13 @@ import {
 } from "src/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
 
-const updateAPIKeysQuery = gql`
-  mutation UpdateAPIKeys($team_id: String = "", $api_key: String = "") {
+const updateAPIKeyQuery = gql`
+  mutation UpdateAPIKey($key_id: String = "", $hashed_secret: String = "") {
     update_api_key(
-      where: { team_id: { _eq: $team_id } }
-      _set: { is_active: false }
+      where: { id: { _eq: $key_id } }
+      _set: { api_key: $hashed_secret }
     ) {
-      returning {
-        id
-        team_id
-        is_active
-      }
-    }
-  }
-`;
-
-const insertAPIKeyQuery = gql`
-  mutation InsertAPIKey($team_id: String = "", $hashed_secret: String = "") {
-    insert_api_key_one(
-      object: { team_id: $team_id, api_key: $hashed_secret, is_active: true }
-    ) {
-      id
-      team_id
-      created_at
+      affected_rows
     }
   }
 `;
@@ -59,11 +43,11 @@ export default async function handleAPIKeyReset(
     });
   }
 
-  const team_id = req.body.session_variables["x-hasura-team-id"];
-  if (!team_id) {
+  const key_id = req.body.input.key_id;
+  if (!key_id) {
     return errorHasuraQuery({
       res,
-      detail: "x-hasura-team-id must be set.",
+      detail: "key_id must be set.",
       code: "required",
     });
   }
@@ -78,26 +62,21 @@ export default async function handleAPIKeyReset(
     });
   }
 
-  // Disable all other active team API keys
-  await client.mutate({
-    mutation: updateAPIKeysQuery,
-    variables: {
-      team_id,
-    },
-  });
-
-  // Generate a new API key for the given team
-  const { secret: api_key, hashed_secret } = generateHashedSecret(team_id);
+  // Generate a new API key for the given key id
+  const { secret, hashed_secret } = generateHashedSecret(key_id);
+  const api_key = `key_${Buffer.from(`${key_id}:${secret}`).toString(
+    "base64"
+  )}`;
 
   const response = await client.mutate({
-    mutation: insertAPIKeyQuery,
+    mutation: updateAPIKeyQuery,
     variables: {
-      team_id,
+      key_id,
       hashed_secret,
     },
   });
 
-  if (!response.data.insert_api_key_one) {
+  if (!response.data.update_api_key.affected_rows) {
     return errorHasuraQuery({
       res,
       detail: "Failed to insert the API key.",

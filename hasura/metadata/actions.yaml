@@ -8,7 +8,7 @@ actions:
           value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
       - role: user
-    comment: Reset the team's API key for the developer portal
+    comment: Reset the given API key for the developer portal
   - name: reset_client_secret
     definition:
       kind: synchronous

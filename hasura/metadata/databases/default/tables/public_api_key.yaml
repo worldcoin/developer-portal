@@ -6,12 +6,14 @@ object_relationships:
     using:
       foreign_key_constraint_on: team_id
 insert_permissions:
-  - role: service
+  - role: user
     permission:
-      check: {}
+      check:
+        team_id:
+          _eq: X-Hasura-Team-Id
       columns:
-        - api_key
         - is_active
+        - name
         - team_id
 select_permissions:
   - role: service
@@ -24,10 +26,36 @@ select_permissions:
       filter:
         is_active:
           _eq: true
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - is_active
+        - name
+      filter:
+        team_id:
+          _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:
       columns:
-        - is_active
+        - api_key
       filter: {}
       check: null
+  - role: user
+    permission:
+      columns:
+        - is_active
+        - name
+        - updated_at
+      filter:
+        team_id:
+          _eq: X-Hasura-Team-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        team_id:
+          _eq: X-Hasura-Team-Id

@@ -5,6 +5,7 @@ import { errorUnauthenticated } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
 import { getTokenFromCookie } from "src/backend/cookies";
+import { verifyHashedSecret } from "src/backend/utils";
 const { publicRuntimeConfig } = getConfig();
 
 export default async function handleGraphQL(
@@ -28,21 +29,32 @@ export default async function handleGraphQL(
 
   // Check if request is authenticated with API key
   if (authorization?.startsWith("key_")) {
+    const [key_id, secret] = Buffer.from(authorization, "base64")
+      .toString()
+      .split(":");
+
+    // Get the hashed secret from the database
     const client = await getAPIServiceClient();
     const apiKeyQuery = gql`
-      query ApiKeyQuery($apiKey: String!) {
-        api_key(where: { is_active: { _eq: true }, id: { _eq: $apiKey } }) {
+      query ApiKeyQuery($key_id: String!) {
+        api_key(where: { id: { _eq: $key_id }, is_active: { _eq: true } }) {
           id
           team_id
+          api_key
         }
       }
     `;
     const response = await client.query({
       query: apiKeyQuery,
-      variables: { apiKey: authorization },
+      variables: { key_id: key_id },
     });
     if (!response.data.api_key.length) {
       return errorUnauthenticated("Invalid or inactive API key.", res);
+    }
+
+    // Verify the secret against the given API key
+    if (!verifyHashedSecret(key_id, secret, response.data.api_key[0].api_key)) {
+      return errorUnauthenticated("Invalid API key secret.", res);
     }
 
     headers.delete("Authorization");
