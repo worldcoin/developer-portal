@@ -17,7 +17,7 @@ export const Illustration = memo(function Illustration(
     <div
       className={cn(
         className,
-        "grid items-center justify-center w-[88px] h-[88px] rounded-full",
+        "grid items-center justify-center w-full h-full rounded-full",
         { "bg-primary-light": color === "primary" },
         { "bg-success-light": color === "success" },
         { "bg-danger-light": color === "danger" },

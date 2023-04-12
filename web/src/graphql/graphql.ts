@@ -1969,18 +1969,12 @@ export type Jsonb_Comparison_Exp = {
 /** Stores valid JWKs used for offline signature verification */
 export type Jwks = {
   __typename?: "jwks";
-  alg: Scalars["String"];
   created_at: Scalars["timestamptz"];
   expires_at: Scalars["timestamptz"];
   id: Scalars["String"];
-  private_jwk: Scalars["jsonb"];
+  kms_id?: Maybe<Scalars["String"]>;
   public_jwk: Scalars["jsonb"];
   updated_at: Scalars["timestamptz"];
-};
-
-/** Stores valid JWKs used for offline signature verification */
-export type JwksPrivate_JwkArgs = {
-  path?: InputMaybe<Scalars["String"]>;
 };
 
 /** Stores valid JWKs used for offline signature verification */
@@ -2011,7 +2005,6 @@ export type Jwks_Aggregate_FieldsCountArgs = {
 
 /** append existing jsonb value of filtered columns with new jsonb value */
 export type Jwks_Append_Input = {
-  private_jwk?: InputMaybe<Scalars["jsonb"]>;
   public_jwk?: InputMaybe<Scalars["jsonb"]>;
 };
 
@@ -2020,46 +2013,43 @@ export type Jwks_Bool_Exp = {
   _and?: InputMaybe<Array<Jwks_Bool_Exp>>;
   _not?: InputMaybe<Jwks_Bool_Exp>;
   _or?: InputMaybe<Array<Jwks_Bool_Exp>>;
-  alg?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  private_jwk?: InputMaybe<Jsonb_Comparison_Exp>;
+  kms_id?: InputMaybe<String_Comparison_Exp>;
   public_jwk?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "jwks" */
 export enum Jwks_Constraint {
+  /** unique or primary key constraint on columns "kms_id" */
+  JwksKmsIdKey = "jwks_kms_id_key",
   /** unique or primary key constraint on columns "id" */
   JwksPkey = "jwks_pkey",
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 export type Jwks_Delete_At_Path_Input = {
-  private_jwk?: InputMaybe<Array<Scalars["String"]>>;
   public_jwk?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
 export type Jwks_Delete_Elem_Input = {
-  private_jwk?: InputMaybe<Scalars["Int"]>;
   public_jwk?: InputMaybe<Scalars["Int"]>;
 };
 
 /** delete key/value pair or string element. key/value pairs are matched based on their key value */
 export type Jwks_Delete_Key_Input = {
-  private_jwk?: InputMaybe<Scalars["String"]>;
   public_jwk?: InputMaybe<Scalars["String"]>;
 };
 
 /** input type for inserting data into table "jwks" */
 export type Jwks_Insert_Input = {
-  alg?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
-  private_jwk?: InputMaybe<Scalars["jsonb"]>;
+  kms_id?: InputMaybe<Scalars["String"]>;
   public_jwk?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -2067,20 +2057,20 @@ export type Jwks_Insert_Input = {
 /** aggregate max on columns */
 export type Jwks_Max_Fields = {
   __typename?: "jwks_max_fields";
-  alg?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  kms_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** aggregate min on columns */
 export type Jwks_Min_Fields = {
   __typename?: "jwks_min_fields";
-  alg?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  kms_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -2102,11 +2092,10 @@ export type Jwks_On_Conflict = {
 
 /** Ordering options when selecting data from "jwks". */
 export type Jwks_Order_By = {
-  alg?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  private_jwk?: InputMaybe<Order_By>;
+  kms_id?: InputMaybe<Order_By>;
   public_jwk?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -2118,14 +2107,11 @@ export type Jwks_Pk_Columns_Input = {
 
 /** prepend existing jsonb value of filtered columns with new jsonb value */
 export type Jwks_Prepend_Input = {
-  private_jwk?: InputMaybe<Scalars["jsonb"]>;
   public_jwk?: InputMaybe<Scalars["jsonb"]>;
 };
 
 /** select columns of table "jwks" */
 export enum Jwks_Select_Column {
-  /** column name */
-  Alg = "alg",
   /** column name */
   CreatedAt = "created_at",
   /** column name */
@@ -2133,7 +2119,7 @@ export enum Jwks_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  PrivateJwk = "private_jwk",
+  KmsId = "kms_id",
   /** column name */
   PublicJwk = "public_jwk",
   /** column name */
@@ -2142,11 +2128,10 @@ export enum Jwks_Select_Column {
 
 /** input type for updating data in table "jwks" */
 export type Jwks_Set_Input = {
-  alg?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
-  private_jwk?: InputMaybe<Scalars["jsonb"]>;
+  kms_id?: InputMaybe<Scalars["String"]>;
   public_jwk?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -2161,11 +2146,10 @@ export type Jwks_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Jwks_Stream_Cursor_Value_Input = {
-  alg?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
-  private_jwk?: InputMaybe<Scalars["jsonb"]>;
+  kms_id?: InputMaybe<Scalars["String"]>;
   public_jwk?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -2173,15 +2157,13 @@ export type Jwks_Stream_Cursor_Value_Input = {
 /** update columns of table "jwks" */
 export enum Jwks_Update_Column {
   /** column name */
-  Alg = "alg",
-  /** column name */
   CreatedAt = "created_at",
   /** column name */
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
   /** column name */
-  PrivateJwk = "private_jwk",
+  KmsId = "kms_id",
   /** column name */
   PublicJwk = "public_jwk",
   /** column name */

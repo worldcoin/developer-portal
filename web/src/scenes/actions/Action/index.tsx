@@ -47,13 +47,16 @@ const COLORS = [
 
 const getActionsStore = (store: IActionStore) => ({
   setActionToUpdate: store.setActionToUpdate,
+  setActionToDelete: store.setActionToDelete,
+  setIsDeleteActionModalOpened: store.setIsDeleteActionModalOpened,
 });
 
 export const Action = memo(function Action(props: {
   action: ActionsQuery["action"][number];
 }) {
   const { updateAction } = useUpdateAction();
-  const { setActionToUpdate } = useActionStore(getActionsStore);
+  const { setActionToUpdate, setActionToDelete, setIsDeleteActionModalOpened } =
+    useActionStore(getActionsStore);
 
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
@@ -219,7 +222,7 @@ export const Action = memo(function Action(props: {
             {props.action.nullifiers.length === 0 && (
               <Fragment>
                 <tr>
-                  <td className="rounded-b-lg" colSpan={5}>
+                  <td colSpan={5}>
                     <div className="mt-10 ml-6 font-medium text-12 text-center leading-3">
                       List of verified unique humans
                     </div>
@@ -288,21 +291,32 @@ export const Action = memo(function Action(props: {
                 ))}
               </Fragment>
             )}
-            {props.action.kiosk_enabled && (
-              <tr>
-                <td colSpan={5} className="px-6">
-                  <div className="flex justify-end pt-4 pb-6 border-t border-f3f4f5">
+            <tr className="rounded-b-lg">
+              <td colSpan={5} className="px-6">
+                <div className="flex justify-between pt-4 pb-6 border-t border-f3f4f5">
+                  <Button
+                    variant="plain"
+                    className="!text-14 hover:opacity-70 transition-opacity"
+                    onClick={() => {
+                      setActionToDelete(props.action);
+                      setIsDeleteActionModalOpened(true);
+                    }}
+                  >
+                    Delete action
+                  </Button>
+
+                  {props.action.kiosk_enabled && (
                     <Button
                       variant="plain"
-                      className="!font-semibold !text-14 !text-ff6848 hover:opacity-70"
+                      className="!font-semibold !text-14 !text-ff6848 hover:opacity-70 transition-opacity"
                       onClick={disableKiosk(props.action.id)}
                     >
                       Disable Kiosk
                     </Button>
-                  </div>
-                </td>
-              </tr>
-            )}
+                  )}
+                </div>
+              </td>
+            </tr>
           </Disclosure.Panel>
         </Fragment>
       )}

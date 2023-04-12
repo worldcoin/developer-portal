@@ -19,6 +19,10 @@ export type IActionStore = {
   setIsUpdateActionModalOpened: (value: boolean) => void;
   actionToUpdate: ActionsQuery["action"][number] | null;
   setActionToUpdate: (value: ActionsQuery["action"][number]) => void;
+  actionToDelete: ActionsQuery["action"][number] | null;
+  setActionToDelete: (value: ActionsQuery["action"][number]) => void;
+  isDeleteActionModalOpened: boolean;
+  setIsDeleteActionModalOpened: (value: boolean) => void;
   newAction: NewAction;
   setNewAction: (value: Partial<NewAction>) => void;
 };
@@ -37,6 +41,13 @@ export const useActionStore = create<IActionStore>((set, get) => ({
 
   actionToUpdate: null,
   setActionToUpdate: (value) => set({ actionToUpdate: value }),
+
+  actionToDelete: null,
+  setActionToDelete: (value) => set({ actionToDelete: value }),
+
+  isDeleteActionModalOpened: false,
+  setIsDeleteActionModalOpened: (value) =>
+    set({ isDeleteActionModalOpened: value }),
 
   newAction: { name: "", description: "", action: "", maxVerifications: null },
   setNewAction: (value) =>
