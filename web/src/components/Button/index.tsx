@@ -27,7 +27,7 @@ export const Button = memo(function Button(props: ButtonInterface) {
             variant === "secondary",
         },
         {
-          "font-sora bg-danger-light text-danger text-16 leading-5 rounded-xl":
+          "font-sora bg-danger-light hover:bg-danger/20 transition-colors text-danger text-16 leading-5 rounded-xl":
             variant === "danger",
         },
         {

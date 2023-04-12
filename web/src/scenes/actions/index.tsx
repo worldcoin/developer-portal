@@ -13,6 +13,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { PageInfo } from "@/components/PageInfo";
 import { UpdateAction } from "./UpdateAction";
 import { useToggle } from "src/hooks/useToggle";
+import { DeleteAction } from "./DeleteAction";
 
 const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
@@ -72,6 +73,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
         <Fragment>
           <NewAction />
           <UpdateAction />
+          <DeleteAction />
 
           <div className="grid gap-y-12">
             <div className="grid gap-y-6">
