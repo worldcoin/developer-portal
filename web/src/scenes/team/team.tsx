@@ -5,6 +5,7 @@ import { Header } from "./Header";
 import { MemberList } from "./MemberList";
 import { Preloader } from "@/components/Preloader";
 import { useTeam } from "@/scenes/team/hooks/useTeam";
+import { Credentials } from "./Credentials";
 
 export const Team = memo(function Team(props: { user_id?: string }) {
   const { data: team, loading } = useTeam();
@@ -21,6 +22,7 @@ export const Team = memo(function Team(props: { user_id?: string }) {
           <Header />
           <Details team={team} />
           {team.members && <MemberList members={team.members} />}
+          <Credentials />
         </div>
       )}
     </Layout>
