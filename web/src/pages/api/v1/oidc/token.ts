@@ -10,7 +10,6 @@ import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
 import { generateOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
-import { JWK_ALG_OIDC } from "src/lib/constants";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -126,7 +125,7 @@ export default async function handleOIDCToken(
     );
   }
 
-  const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
+  const jwk = await fetchActiveJWK();
   const token = await generateOIDCJWT({
     app_id,
     nullifier_hash: code.nullifier_hash,

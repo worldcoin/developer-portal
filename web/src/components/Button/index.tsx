@@ -12,9 +12,9 @@ export const Button = memo(function Button(props: ButtonInterface) {
     <button
       className={cn(
         className,
-        "flex items-center justify-center text-center",
+        "flex items-center font-semibold justify-center text-center",
         {
-          "font-sora font-semibold text-16 text-ffffff leading-5 rounded-xl":
+          "font-sora text-16 text-ffffff leading-5 rounded-xl":
             variant === "primary",
 
           "bg-neutral-primary hover:bg-neutral-primary/95 hover:active:bg-neutral-primary/90 shadow-button":
@@ -27,7 +27,7 @@ export const Button = memo(function Button(props: ButtonInterface) {
             variant === "secondary",
         },
         {
-          "font-sora bg-danger-light text-danger text-16 leading-5 rounded-xl":
+          "font-sora bg-danger-light hover:bg-danger/20 transition-colors text-danger text-16 leading-5 rounded-xl":
             variant === "danger",
         },
         {

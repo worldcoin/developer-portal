@@ -1,15 +1,15 @@
-import { gql } from "@apollo/client";
-import { graphQLRequest } from "src/lib/frontend-api";
 import { AppModel } from "@/lib/models";
+import { gql } from "@apollo/client";
+import { useRouter } from "next/router";
+import { useCallback } from "react";
+import { toast } from "react-toastify";
+import { graphQLRequest } from "src/lib/frontend-api";
+import { AppStatusType } from "src/lib/types";
+import { urls } from "src/lib/urls";
+import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
-import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
-import { useCallback } from "react";
-import { AppStatusType } from "src/lib/types";
-import { toast } from "react-toastify";
-import { useRouter } from "next/router";
-import { urls } from "src/lib/urls";
 
 const appFields = `
 id
@@ -139,10 +139,13 @@ const deleteAppFetcher = async (
   throw Error("Could not delete app");
 };
 
-type NewAppPayload = Pick<AppModel, "name" | "description_internal" | "engine">;
+type NewAppPayload = Pick<
+  AppModel,
+  "name" | "description_internal" | "engine" | "is_staging"
+>;
 
 const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
-  const { name, description_internal, engine } = args.arg;
+  const { name, description_internal, engine, is_staging } = args.arg;
 
   const response = await graphQLRequest<{
     insert_app_one: AppModel;
@@ -153,6 +156,7 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
         name,
         description_internal,
         engine,
+        is_staging,
       },
     },
   });
@@ -186,7 +190,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App updated");
       }
     },
   });
@@ -195,7 +198,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App name updated");
       }
     },
   });
@@ -204,7 +206,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App name updated");
       }
     },
   });
@@ -213,7 +214,6 @@ const useApps = () => {
     onSuccess: (data) => {
       if (data) {
         setCurrentApp(data);
-        toast.success("App description updated");
       }
     },
   });
@@ -239,7 +239,7 @@ const useApps = () => {
           ? AppStatusType.Inactive
           : AppStatusType.Active,
     });
-  }, [currentApp, toggleAppActivityMutation]);
+  }, [currentApp, updateApp]);
 
   const updateAppName = useCallback(
     (name: string) => {

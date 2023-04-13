@@ -1,20 +1,20 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { DialogHeader } from "src/components/DialogHeader";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "src/components/FieldInput";
 import { Button } from "src/components/Button";
 import { Dialog } from "src/components/Dialog";
-import { EngineSwitch } from "./EngineSwitch";
 import { useForm, Controller } from "react-hook-form";
 import { EngineType } from "src/lib/types";
 import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { FieldTextArea } from "src/components/FieldTextArea";
+import { Switch, SwitchOption } from "./Switch";
 
 type FormData = Pick<
   AppModel,
-  "name" | "description_internal" | "engine" // | "logo_url"
+  "name" | "description_internal" | "engine" | "is_staging" // | "logo_url"
 >;
 
 export interface NewAppDialogProps {
@@ -30,7 +30,9 @@ export const NewAppDialog = memo(function NewAppDialog(
     useForm<FormData>({
       defaultValues: {
         engine: EngineType.Cloud,
+        is_staging: true,
       },
+      mode: "onChange",
     });
 
   const onSubmit = handleSubmit(async (data) => {
@@ -39,8 +41,20 @@ export const NewAppDialog = memo(function NewAppDialog(
     reset();
   });
 
+  const isValid = useMemo(
+    () =>
+      !formState.isSubmitting &&
+      !Boolean(formState.errors.name) &&
+      formState.dirtyFields.name,
+    [formState.dirtyFields.name, formState.errors.name, formState.isSubmitting]
+  );
+
   return (
-    <Dialog open={props.open} onClose={props.onClose}>
+    <Dialog
+      panelClassName="max-h-full overflow-y-auto lg:min-w-[712px]"
+      open={props.open}
+      onClose={props.onClose}
+    >
       <form onSubmit={onSubmit}>
         <DialogHeader
           title="Create New App"
@@ -70,7 +84,7 @@ export const NewAppDialog = memo(function NewAppDialog(
 
             <FieldInput
               className="w-full font-rubik"
-              placeholder="Add your app name (visible to users)"
+              placeholder="Visible to users"
               type="text"
               {...register("name", { required: true })}
               readOnly={formState.isSubmitting}
@@ -82,7 +96,7 @@ export const NewAppDialog = memo(function NewAppDialog(
             <FieldLabel className="font-rubik">Description</FieldLabel>
             <FieldTextArea
               className="w-full font-rubik"
-              placeholder="Add something helpful that will help you and your teammates identify your app. This is only visible to your team."
+              placeholder="For internal reference. Visible only to you and your team."
               type="text"
               {...register("description_internal")}
               readOnly={formState.isSubmitting}
@@ -90,21 +104,62 @@ export const NewAppDialog = memo(function NewAppDialog(
           </div>
 
           <Controller
+            name="is_staging"
+            control={control}
+            render={({ field }) => (
+              <Switch>
+                <SwitchOption
+                  icon="api"
+                  title="Staging"
+                  description="Testing environment for code changes before public release"
+                  checked={field.value === true}
+                  onCheckedChange={() => field.onChange(true)}
+                  disabled={formState.isSubmitting}
+                />
+
+                <SwitchOption
+                  icon="rocket"
+                  title="Production"
+                  description="Live environment accessible to end-users"
+                  checked={field.value === false}
+                  onCheckedChange={() => field.onChange(false)}
+                  disabled={formState.isSubmitting}
+                />
+              </Switch>
+            )}
+          />
+
+          <Controller
             name="engine"
             control={control}
             render={({ field }) => (
-              <EngineSwitch
-                value={field.value}
-                onChange={field.onChange}
-                disabled={formState.isSubmitting}
-              />
+              <Switch>
+                <SwitchOption
+                  icon="cloud"
+                  title="Cloud"
+                  description="For actions that are triggered with the API or Sign in with World ID."
+                  easiest
+                  checked={field.value === EngineType.Cloud}
+                  onCheckedChange={() => field.onChange(EngineType.Cloud)}
+                  disabled={formState.isSubmitting}
+                />
+
+                <SwitchOption
+                  icon="on-chain"
+                  title="On-chain"
+                  description="For actions that are validated and executed on the blockchain."
+                  checked={field.value === EngineType.OnChain}
+                  onCheckedChange={() => field.onChange(EngineType.OnChain)}
+                  disabled={formState.isSubmitting}
+                />
+              </Switch>
             )}
           />
 
           <Button
             className="w-full h-[56px] mt-12 font-medium"
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={!isValid}
           >
             Create New App
           </Button>

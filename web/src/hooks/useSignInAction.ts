@@ -244,7 +244,7 @@ const resetClientSecretFetcher = async (_key: [string, string | undefined]) => {
     return response.data.reset_client_secret.client_secret;
   }
 
-  throw new Error("Fieled to reset client secret");
+  throw new Error("Failed to reset client secret");
 };
 
 const getAppStore = (store: IAppStore) => ({

@@ -1,21 +1,21 @@
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
-import { useRouter } from "next/router";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
-import { Illustration } from "src/components/Auth/Illustration";
-import { Typography } from "src/components/Auth/Typography";
-import { Button } from "src/components/Auth/Button";
+import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
-import { urls } from "src/lib/urls";
-import { ILoginPageProps } from "src/pages/login";
+import { Link } from "src/components/Link";
 import { Spinner } from "src/components/Spinner";
+import { urls } from "src/lib/urls";
+import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
+import { ILoginPageProps } from "src/pages/login";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
 export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+  const [inviteError, setInviteError] = useState(false);
 
   const doLogin = useCallback(
     async (body: LoginRequestBody) => {
@@ -30,17 +30,23 @@ export function Login({ loginUrl }: ILoginPageProps) {
       });
       const payload = (await response.json()) as LoginRequestResponse;
 
-      if (!Object.hasOwn(payload, "new_user")) {
-        router.push(`${urls.login()}?error=invalid_login`);
-        return;
+      // Invalid login response, show an error page
+      if (!response.ok && "code" in payload) {
+        return router.push(
+          `${urls.login()}?error=${payload.code ?? "login_failed"}`
+        );
       }
 
-      if (payload.new_user && payload.signup_token) {
+      // User has a signup token, redirect to signup page
+      if ("new_user" in payload && payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(urls.signup());
+        return router.push(
+          `${urls.signup()}?email=${encodeURIComponent(payload.email)}`
+        );
       }
 
-      if (!payload.new_user && payload.returnTo) {
+      // All other cases, redirect to the returnTo url
+      if ("new_user" in payload && !payload.new_user && payload.returnTo) {
         return router.push(payload.returnTo);
       }
 
@@ -49,79 +55,126 @@ export function Login({ loginUrl }: ILoginPageProps) {
     [router]
   );
 
+  // Route user to the correct destination based on the query params
   useEffect(() => {
+    const invite_token = localStorage.getItem("invite_token");
+
     if (router.isReady) {
       setLoading(false);
-      if (router.query.id_token) {
-        doLogin({
-          sign_in_with_world_id_token: router.query.id_token as string,
-        });
+
+      // Handle login error cases
+      if (router.query.error === "login_failed") {
+        setLoginError(true);
+      } else if (router.query.error === "invalid_invite_token") {
+        setInviteError(true);
+      } else if (router.query.error === "invite_token_required") {
+        router.push(urls.waitlist());
       }
 
-      if (router.query.error) {
-        setError(true);
+      // Handle login and signup cases
+      if (!router.query.error && router.query.id_token) {
+        doLogin({
+          sign_in_with_world_id_token: router.query.id_token as string,
+          invite_token: invite_token as string,
+        });
+      } else if (!router.query.error && invite_token) {
+        router.push(loginUrl ?? "");
       }
     }
-  }, [router, doLogin]);
+  }, [router, doLogin, loginUrl]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
-      {error && (
-        <div className="bg-danger-light px-6 py-4 rounded-md text-danger font-medium">
-          There was a problem with your login. Please try again.
-        </div>
-      )}
-      <div className="flex flex-col items-center max-w-[544px] p-12">
-        <Illustration icon="user-solid" />
-        <Typography className="max-w-[320px] mt-8" variant="title">
-          World ID is&nbsp;currently in&nbsp;beta
-        </Typography>
-        <Typography className="mt-2" variant="subtitle">
-          Sign in with World ID or join our waitlist
-        </Typography>
-        {loading && <Spinner className="mt-4" />}
-        {!loading && (
-          <>
-            <a className="w-full" href="https://docs.worldcoin.org/waitlist">
-              <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-                Join the Waitlist
-              </Button>
-            </a>
-            <a className="w-full" href={loginUrl}>
-              <Button className="max-w-[327px] w-full h-[64px] mt-8 font-medium">
-                <Icon name="wld-sign-in" className="w-[30px] h-[30px] mr-3" />
-                Sign in with World ID
-              </Button>
-            </a>
-            <div className="flex gap-x-2 mt-6 font-rubik text-14 text-neutral-secondary">
-              Don&apos;t have World ID?
-              <a
-                className="text-primary hover:text-primary/80"
-                href="https://worldcoin.org/download"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download the World App
-              </a>
-            </div>
+      <div className="grid w-full min-h-screen grid-rows-[auto_1fr] py-8">
+        <div className="flex justify-between items-center px-24">
+          <Icon name="logo" className="w-48 h-8" />
 
+          <div className="grid grid-flow-col items-center gap-6">
             {canDevLogin && (
-              <div className="bg-warning-light px-6 py-4 rounded-md text-warning font-medium mt-10 max-w-[327px] w-full text-center">
-                Dev mode!{" "}
-                <span
-                  className="cursor-pointer underline font-normal"
-                  onClick={() => {
-                    doLogin({
-                      dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
-                    });
-                  }}
-                >
-                  Log in with test user
-                </span>
-              </div>
+              <Button
+                variant="danger"
+                className="py-3 px-8"
+                onClick={() => {
+                  doLogin({
+                    dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
+                  });
+                }}
+              >
+                Dev Login
+              </Button>
             )}
-          </>
-        )}
+            <Link href={loginUrl ?? ""}>
+              <Button variant="secondary" className="py-3 px-8">
+                Log in
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid place-content-center justify-items-center justify-self-center max-w-[532px] text-center">
+          {loginError && (
+            <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
+              There was a problem with your login. Please try again.
+            </div>
+          )}
+          {inviteError && (
+            <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
+              Your invite code was invalid, please reach out to a Worldcoin
+              contributor.
+            </div>
+          )}
+
+          {loading && <Spinner className="mt-4" />}
+          {!loading && (
+            <>
+              <div className="relative">
+                <Icon name="wld-logo" className="w-16 h-16" />
+                {/* span[className="absolute rounded-full"]/*3 */}
+                <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
+                <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
+                <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
+              </div>
+              <h1 className="mt-9 text-32 font-semibold font-sora">
+                Build for the People of the World
+              </h1>
+
+              <p className="mt-4 font-rubik text-20 text-657080">
+                The Worldcoin Protocol will enable a new class of applications
+                built on top of proof of personhood.
+              </p>
+              <p className="mt-6 font-sora">
+                Join the waitlist for early access to the SDK.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
+                <a
+                  href="https://docs.worldcoin.org"
+                  className="contents"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    className="flex flex-1 justify-between py-5 px-6 text-657080 text-16 font-semibold"
+                    variant="secondary"
+                  >
+                    Explore Docs <Icon name="book" className="w-6 h-6" />
+                  </Button>
+                </a>
+
+                <a
+                  href="https://docs.worldcoin.org/waitlist"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contents"
+                >
+                  <Button className="flex flex-1 justify-between px-6 py-5 text-16 font-semibold">
+                    Join Waitlist
+                    <Icon name="arrow-right" className="w-6 h-6" />
+                  </Button>
+                </a>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </Auth>
   );

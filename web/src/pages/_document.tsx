@@ -4,7 +4,14 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <Head />
+        <Head>
+          <script
+            src="https://cookie-cdn.cookiepro.com/scripttemplates/otSDKStub.js"
+            type="text/javascript"
+            data-domain-script={process.env.NEXT_PUBLIC_COOKIEPRO_DOMAIN_SCRIPT}
+            async
+          />
+        </Head>
         <body>
           <Main />
           <NextScript />

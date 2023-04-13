@@ -1,3 +1,5 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 const mirrorHexColors = (colors) =>
   Object.fromEntries(
     colors.map((color, index) => {
@@ -21,6 +23,7 @@ const mirrorHexColors = (colors) =>
 
 module.exports = {
   content: ["./**/*.{ts,tsx}"],
+  darkMode: "class",
   theme: {
     borderWidth: {
       DEFAULT: "1px",
@@ -29,12 +32,26 @@ module.exports = {
     },
 
     colors: {
+      gray: {
+        50: "#F9FAFB",
+        100: "#F3F4F5",
+        200: "#EBECEF",
+        400: "#9BA3AE",
+        500: "#657080",
+        900: "#191C20",
+      },
+
+      blue: {
+        primary: "#4940E0",
+        secondary: "#EDECFC",
+      },
+
       neutral: {
         DEFAULT: "#858494", // FIXME: This color may be #191c20
-        primary: "#191c20",
-        secondary: "#9ba3ae",
+        primary: "#191c20", // gray-900
+        secondary: "#9ba3ae", // gray-400
 
-        dark: "#191c20",
+        dark: "#191c20", // gray-900
         medium: "#626467",
 
         muted: "#f0edf9",
@@ -49,8 +66,8 @@ module.exports = {
         },
       },
       primary: {
-        DEFAULT: "#4940e0",
-        light: "#edecfc",
+        DEFAULT: "#4940e0", // blue-primary
+        light: "#edecfc", // blue-secondary
       },
       success: {
         DEFAULT: "#00c313",
@@ -68,26 +85,30 @@ module.exports = {
       black: "#010101",
       ...mirrorHexColors([
         "#000000",
-        "#191c20",
+        "#010101",
+        "#191c20", //gray-900
         "#28303f",
         "#3c4040",
         "#487b8f",
         "#626467",
-        "#657080",
+        "#657080", // gray-500
         "#777e90",
         "#a39dff",
+        "#afafaf",
         "#d1d3d4",
         "#d6d9dd",
         "#dbe3e8",
-        "#ebecef",
+        "#ebecef", // gray-200
         "#edbd14",
         "#edecfc", //FIXME: duplicate for primary-light
         "#f0edf9",
         "#f1f5f8",
         "#f2f2f7",
-        "#f3f4f5",
+        "#f2f4f7",
+        "#f3f4f5", // gray-100
+        "#f4f4f4",
         "#f9f9f9",
-        "#f9fafb",
+        "#f9fafb", // gray-50
         "#fafafa",
         "#fbfbfb",
         "#fbfbfc",
@@ -107,11 +128,15 @@ module.exports = {
         box: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04)",
         input: "0px 10px 30px rgba(25, 28, 32, 0.1)",
         button: "0px 10px 20px rgba(25, 28, 32, 0.2)",
+        icon: "0px 10px 30px rgba(73, 64, 224, 0.5)",
+        card: "0px 10px 30px rgba(25, 28, 32, 0.1)",
+        lg: "0px 12px 16px -4px rgba(25, 28, 32, 0.08), 0px 4px 6px -2px rgba(25, 28, 32, 0.03)",
       },
 
       fontFamily: {
-        sora: ["var(--font-sora)", "sans-serif"],
-        rubik: ["var(--font-rubik)", "sans-serif"],
+        sans: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        sora: ["var(--font-sora)", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
       },
 

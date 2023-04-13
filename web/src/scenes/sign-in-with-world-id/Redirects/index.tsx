@@ -1,5 +1,5 @@
-import { Button } from "src/components/Button";
 import { memo } from "react";
+import { Button } from "src/components/Button";
 import useSignInAction from "src/hooks/useSignInAction";
 import { RedirectInput } from "./RedirectInput";
 
@@ -26,7 +26,7 @@ export const Redirects = memo(function Redirects() {
       </div>
 
       <div className="grid gap-y-2">
-        {redirects.map((redirect) => (
+        {redirects?.map((redirect) => (
           <RedirectInput
             key={`signin-redirect-input-${redirect.id}`}
             value={redirect.redirect_uri}

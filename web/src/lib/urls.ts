@@ -6,10 +6,10 @@ export const urls = {
   // ANCHOR: Apps
   app: (app_id?: string): `/app/${string}` | "/app" =>
     app_id ? `/app/${app_id}` : "/app",
-  appSignIn: (app_id: string): `/app/${string}/sign-in` =>
-    `/app/${app_id}/sign-in`,
-  appActions: (app_id: string): `/app/${string}/actions` =>
-    `/app/${app_id}/actions`,
+  appSignIn: (app_id?: string): `/app/${string}/sign-in` | "/app/sign-in" =>
+    app_id ? `/app/${app_id}/sign-in` : "/app/sign-in",
+  appActions: (app_id?: string): `/app/${string}/actions` | "/app/actions" =>
+    app_id ? `/app/${app_id}/actions` : "/app/actions",
 
   // ANCHOR: Others
   kiosk: (action_id: string): `/kiosk/${string}` => `/kiosk/${action_id}`,
@@ -21,4 +21,5 @@ export const urls = {
   login: (): "/login" => "/login",
   logout: (): "/logout" => "/logout",
   signup: (): "/signup" => "/signup",
+  waitlist: (): "/waitlist" => "/waitlist",
 };

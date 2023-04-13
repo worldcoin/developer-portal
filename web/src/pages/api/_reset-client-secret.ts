@@ -1,8 +1,10 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "src/backend/graphql";
-import { generateOIDCSecret } from "src/backend/oidc";
-import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getAPIServiceClient } from "src/backend/graphql";
+import {
+  generateHashedSecret,
+  protectInternalEndpoint,
+} from "src/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
 
 /**
@@ -76,7 +78,7 @@ export default async function handleSecretReset(
 
   // Maybe verify the user has permission to reset the client secret?
 
-  const { client_secret, hashed_secret } = generateOIDCSecret(app_id);
+  const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
   const mutation = gql`
     mutation UpdateSecret($app_id: String!, $hashed_secret: String!) {

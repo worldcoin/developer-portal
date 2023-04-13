@@ -5,7 +5,7 @@ import { Switch as BaseSwitch } from "@headlessui/react";
 interface SwitchInterface {
   className?: string;
   checked?: boolean;
-  toggle: () => void;
+  toggle: (value?: boolean) => void;
   customColors?: {
     checked?: string;
     unchecked?: string;
@@ -23,7 +23,8 @@ export const Switch = memo(function Switch(props: SwitchInterface) {
           [`${props.customColors?.unchecked ?? "bg-neutral-secondary"}`]:
             !props.checked,
         },
-        { [`${props.customColors?.checked ?? "bg-primary"}`]: props.checked }
+        { [`${props.customColors?.checked ?? "bg-primary"}`]: props.checked },
+        props.className
       )}
     >
       <span

@@ -1,8 +1,8 @@
-import { Icon, IconType } from "src/components/Icon";
-import { Link } from "src/components/Link";
+import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, memo, useMemo } from "react";
-import cn from "classnames";
+import { Icon, IconType } from "src/components/Icon";
+import { Link } from "src/components/Link";
 
 // NOTE: Pass "href" prop if you want link item.
 //  Pass "onClick" prop if you want button item.
@@ -33,37 +33,30 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
   return (
     <div
       className={cn(
-        "grid items-center grid-cols-auto/1fr gap-x-4 group",
+        "grid items-center grid-cols-auto/1fr gap-x-3 border text-gray-400 hover:bg-gray-100 hover:text-gray-500 rounded-xl transition-colors p-3",
+        {
+          "text-gray-900 bg-white  border-gray-200 hover:bg-white/70":
+            props.selected && !props.customColor,
+        },
+
+        { "border-transparent": !props.selected },
         props.className
       )}
     >
-      <div
-        className={cn("p-2.5 text-0 transition-colors rounded-xl", {
-          "group-hover:bg-f3f4f5": !props.selected,
-          "bg-neutral-primary": props.selected,
-        })}
-      >
-        <Icon
-          name={props.icon}
-          className={cn(
-            "h-5 w-5 transition-colors",
-            {
-              "group-hover:text-657080": !props.customColor && !props.selected,
-              "text-d6d9dd": !props.selected && !props.customColor,
-              "text-ffffff": props.selected && !props.customColor,
-            },
-            props.customColor
-          )}
-        />
-      </div>
+      <Icon
+        name={props.icon}
+        className={cn(
+          "h-5 w-5",
+          { "text-gray-900": props.selected && !props.customColor },
+          props.customColor
+        )}
+      />
 
       <div
         className={cn(
-          "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center transition-colors",
+          "font-sora text-14 grid grid-flow-col justify-start gap-x-2 items-center",
           {
-            "group-hover:text-657080": !props.customColor && !props.selected,
-            "text-d6d9dd": !props.selected && !props.customColor,
-            "text-neutral-primary": props.selected && !props.customColor,
+            "text-gray-900": props.selected && !props.customColor,
           },
           props.customColor
         )}

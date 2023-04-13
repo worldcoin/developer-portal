@@ -1,22 +1,32 @@
-import { createMocks } from "node-mocks-http";
 import fetchMock from "jest-fetch-mock";
-import handleInclusionProof from "src/pages/api/v1/clients/inclusion_proof";
+import { createMocks } from "node-mocks-http";
+import handleInclusionProof from "src/pages/api/v-alpha/clients/inclusion_proof";
 import { validSequencerInclusionProof } from "../__mocks__/sequencer.mock";
 
-const requestReturnFn = jest.fn();
+const apiReturnFn = jest.fn();
+const backendReturnFn = jest.fn();
 
 jest.mock(
   "src/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
-      query: requestReturnFn,
+      query: apiReturnFn,
+    }),
+    getWLDAppBackendServiceClient: (is_staging: boolean) => ({
+      query: backendReturnFn,
     }),
   }))
 );
 
-requestReturnFn.mockResolvedValue({
+apiReturnFn.mockResolvedValue({
   data: {
     revocation: [],
+  },
+});
+
+backendReturnFn.mockResolvedValue({
+  data: {
+    user: [],
   },
 });
 

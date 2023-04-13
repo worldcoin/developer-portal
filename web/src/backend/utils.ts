@@ -3,10 +3,25 @@
  */
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
-import { CacheModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getAPIServiceClient } from "./graphql";
 import { CredentialType } from "src/lib/types";
+import { getWLDAppBackendServiceClient } from "./graphql";
+import crypto from "crypto";
+
+const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
+if (!GENERAL_SECRET_KEY) {
+  throw new Error(
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+  );
+}
+
+const phoneVerifiedQuery = gql`
+  query PhoneNumberVerified($identity_commitment: String!) {
+    user(where: { phoneIdComm: { _eq: $identity_commitment } }) {
+      publicKeyId
+    }
+  }
+`;
 
 /**
  * Ensures endpoint is properly authenticated using internal token. For interactions between Hasura -> Next.js API
@@ -129,4 +144,85 @@ export const getSmartContractENSName = (
   throw new Error(
     `Invalid credential type for getSmartContractENSName: ${credential_type}`
   );
+};
+
+/**
+ * Check the consumer backend to see if the user's phone number is verified, and if so insert it on-the-fly
+ * @param req
+ * @param res
+ * @param isStaging
+ * @returns
+ */
+export async function checkConsumerBackendForPhoneVerification(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  isStaging: boolean
+) {
+  const client = await getWLDAppBackendServiceClient(isStaging);
+  const phoneVerifiedResponse = await client.query({
+    query: phoneVerifiedQuery,
+    variables: { identity_commitment: req.body.identity_commitment },
+  });
+
+  if (phoneVerifiedResponse.data.user.length) {
+    console.info(
+      `User's phone number is verified, but not on-chain. Inserting identity: ${req.body.identity_commitment}`
+    );
+    // FIXME: This is dirty, we should operate this internally
+    const insertResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CONSUMER_BACKEND_SECRET}`,
+          "Content-Type": "application/json",
+          "User-Agent": "WorldcoinDeveloperPortal/v-alpha",
+        },
+        body: JSON.stringify(req.body),
+      }
+    );
+
+    // Commitment inserted, return a pending inclusion error
+    if (insertResponse.status === 204) {
+      res.status(400).json({
+        code: "inclusion_pending",
+        detail:
+          "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
+      });
+    }
+
+    // Commitment not inserted, return generic error
+    else {
+      console.error(
+        `Error inserting identity on-the-fly: ${req.body.identity_commitment}`
+      );
+      res.status(503).json({
+        code: "server_error",
+        detail: "Something went wrong. Please try again.",
+      });
+    }
+  }
+
+  // Request not handled, continue the normal flow
+  throw new Error("Could not insert identity on-the-fly");
+}
+
+export const generateHashedSecret = (identifier: string) => {
+  const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${identifier}.${secret}`);
+  const hashed_secret = hmac.digest("hex");
+  return { secret, hashed_secret };
+};
+
+export const verifyHashedSecret = (
+  identifier: string,
+  secret: string,
+  hashed_secret: string
+) => {
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${identifier}.${secret}`);
+  const generated_secret = hmac.digest("hex");
+
+  return generated_secret === hashed_secret;
 };

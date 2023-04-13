@@ -1,0 +1,5 @@
+mutation DeleteTeamMember($id: String!) {
+  member: delete_user_by_pk(id: $id) {
+    id
+  }
+}

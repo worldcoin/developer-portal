@@ -5,8 +5,9 @@ import {
   NormalizedCacheObject,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import { generateServiceJWT } from "src/backend/jwts";
 import getConfig from "next/config";
+import { generateServiceJWT } from "src/backend/jwts";
+
 const { publicRuntimeConfig } = getConfig();
 
 const httpLink = createHttpLink({

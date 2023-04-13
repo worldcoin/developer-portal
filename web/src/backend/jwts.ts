@@ -5,12 +5,12 @@
  * * Developer Portal authentication
  */
 import { randomUUID } from "crypto";
+import dayjs from "dayjs";
 import * as jose from "jose";
 import { CredentialType, JwtConfig } from "../lib/types";
-import { JWK_ALG_OIDC } from "src/lib/constants";
 import { retrieveJWK } from "./jwks";
+import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
-import dayjs from "dayjs";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -31,6 +31,8 @@ if (!GENERAL_SECRET_KEY) {
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
 }
+
+// ANCHOR: -----------------HASURA JWTs--------------------------
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
@@ -115,6 +117,42 @@ export const verifyUserJWT = async (token: string) => {
 };
 
 /**
+ * Generates a JWT for a specific API key.
+ * @param team_id
+ * @returns
+ */
+export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
+  const payload = {
+    sub: team_id,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["api_key"],
+      "x-hasura-default-role": "api_key",
+      "x-hasura-team-id": team_id,
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+/**
+ * Generates a JWT for the analytics service.
+ * @returns
+ */
+export const generateAnalyticsJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "analytics_service",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["analytics"],
+      "x-hasura-default-role": "analytics",
+    },
+  };
+
+  return await _generateJWT(payload);
+};
+
+// ANCHOR: -----------------Sign up JWTs--------------------------
+
+/**
  * Generates a temporary JWT used to sign up a user.
  * After a user logs in with World ID if they don't have an account, we generate this temporary token. If they complete account creation, we exchange this token.
  * @param nullifier_hash
@@ -154,42 +192,45 @@ export const verifySignUpJWT = async (token: string) => {
 };
 
 /**
- * Generates a JWT for a specific API key.
- * @param team_id
+ * Generates a JWT that can be used to sign up for a developer portal account
  * @returns
  */
-export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
-  const payload = {
-    sub: team_id,
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["api_key"],
-      "x-hasura-default-role": "api_key",
-      "x-hasura-team-id": team_id,
-    },
-  };
+export const generateInviteJWT = async (email: string) => {
+  const payload = { email };
 
-  return await _generateJWT(payload);
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: "HS512" })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("7d")
+    .sign(Buffer.from(GENERAL_SECRET_KEY));
+
+  return token;
 };
 
 /**
- * Generates a JWT for the analytics service.
- * @returns
+ * Verifies an invite token. Returns the invited email address. If the token is invalid, throws an error.
+ * @param token
  */
-export const generateAnalyticsJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "analytics_service",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["analytics"],
-      "x-hasura-default-role": "analytics",
-    },
-  };
-
-  return await _generateJWT(payload);
+export const verifyInviteJWT = async (token: string) => {
+  const { payload } = await jose.jwtVerify(
+    token,
+    Buffer.from(GENERAL_SECRET_KEY),
+    {
+      issuer: JWT_ISSUER,
+    }
+  );
+  const { email } = payload;
+  if (!email) {
+    throw new Error("JWT does not contain email claim.");
+  }
+  return email as string;
 };
 
+// ANCHOR: -----------------OIDC JWTs--------------------------
+
 interface IVerificationJWT {
-  private_jwk: jose.JWK;
   kid: string;
+  kms_id: string;
   nonce?: string;
   nullifier_hash: string;
   app_id: string;
@@ -205,15 +246,16 @@ export const generateOIDCJWT = async ({
   app_id,
   nonce,
   nullifier_hash,
-  private_jwk,
   kid,
   credential_type,
   scope,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
+    iss: JWT_ISSUER,
     sub: nullifier_hash,
     jti: randomUUID(),
     iat: new Date().getTime(),
+    exp: Date.now() + 1000 * 60 * 60, // 1 hour
     aud: app_id,
     scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {
@@ -236,11 +278,19 @@ export const generateOIDCJWT = async ({
     payload.family_name = "User";
   }
 
-  return await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: JWK_ALG_OIDC, kid })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("1h")
-    .sign(await jose.importJWK(private_jwk, JWK_ALG_OIDC));
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+    kid,
+  };
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+  throw new Error("Failed to sign JWT from KMS.");
 };
 
 export const verifyOIDCJWT = async (
@@ -260,7 +310,7 @@ export const verifyOIDCJWT = async (
 
   const { payload } = await jose.jwtVerify(
     token,
-    await jose.importJWK(public_jwk, JWK_ALG_OIDC),
+    await jose.importJWK(public_jwk, "RS256"),
     {
       issuer: JWT_ISSUER,
     }

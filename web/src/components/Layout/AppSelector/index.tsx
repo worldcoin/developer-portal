@@ -1,6 +1,13 @@
 import cn from "classnames";
 import Image from "next/image";
-import { Fragment, memo, useCallback, useMemo, useState } from "react";
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 import { shallow } from "zustand/shallow";
 import { AppModel } from "src/lib/models";
@@ -11,6 +18,7 @@ import { useToggle } from "src/hooks/useToggle";
 import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
+import { Button } from "src/components/Button";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -19,11 +27,20 @@ export const ButtonContent = memo(function ButtonContent(props: {
 }) {
   const [image, setImage] = useState<string | null>(props.app.logo_url);
 
+  useEffect(() => {
+    if (!props.app.logo_url) {
+      return;
+    }
+
+    setImage(props.app.logo_url);
+  }, [props.app.logo_url]);
+
   return (
     <div
       className={cn(
-        "grid grid-cols-auto/1fr/auto gap-x-3 group hover:opacity-100 transition-opacity",
-        { "opacity-50": !props.selected },
+        "grid grid-cols-auto/1fr/auto gap-x-3 group transition-opacity",
+        { "opacity-50 hover:opacity-100": !props.selected },
+        { "opacity-100 hover:opacity-70": props.selected },
         props.className
       )}
     >
@@ -44,7 +61,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
           </div>
         )}
       </div>
-      <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto text-neutral-dark">
+      <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto text-gray-900 transition-colors">
         {props.app?.name}
       </span>
     </div>
@@ -63,16 +80,8 @@ export const AppSelector = memo(function AppsSelector(props: {
 }) {
   const selector = useToggle();
   const { apps } = useApps();
-  const { currentApp, setCurrentApp } = useAppStore(getStore, shallow);
+  const { currentApp } = useAppStore(getStore, shallow);
   const router = useRouter();
-
-  const selectApp = useCallback(
-    (app: AppModel) => {
-      setCurrentApp(app);
-      selector.toggleOff();
-    },
-    [setCurrentApp, selector]
-  );
 
   const handleNewAppClick = useCallback(() => {
     selector.toggleOff();
@@ -85,78 +94,102 @@ export const AppSelector = memo(function AppsSelector(props: {
   );
 
   const appsToRender = useMemo(
-    () => apps?.filter((app) => !isSelected(app)),
+    () =>
+      apps
+        ?.filter((app) => !isSelected(app))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     [apps, isSelected]
   );
 
   const getHref = useCallback(
     (id: string) => {
-      const route = router.pathname.replace("/app/[app_id]", "");
-
-      if (!route) {
-        return `/app/${id}`;
+      const pathname = router.pathname;
+      if (pathname.startsWith("/app/[app_id]")) {
+        return `/app/${id}${pathname.replace("/app/[app_id]", "")}`;
       }
-
-      return `/app/${id}${route}`;
+      return `/app/${id}`;
     },
     [router.pathname]
   );
 
   return (
-    <Menu as="div" className="relative h-[44px]">
-      {({ open }) => (
-        <div
-          className={cn(
-            "absolute top-0 left-0 right-0 min-h-[44px] bg-fbfbfc border border-ebecef rounded-xl z-10 transition-shadow duration-300",
-            {
-              "shadow-input": open,
-            }
-          )}
-        >
-          <Menu.Button className="flex items-center justify-between w-full h-11 px-4 py-3 outline-none">
-            {currentApp ? (
-              <ButtonContent
-                app={currentApp}
-                selected={isSelected(currentApp)}
-              />
-            ) : (
-              <div />
-            )}
-            <Icon
-              name="angle-down"
-              className={cn("w-5 h-5 transition-transform", {
-                "rotate-180": open,
-              })}
-            />
-          </Menu.Button>
-          <AnimateHeight
-            id="example-panel"
-            duration={300}
-            height={open ? "auto" : 0}
-          >
-            <Menu.Items className="relative" static>
-              {appsToRender?.map((app) => (
-                <Menu.Item key={app.id} as={Link} href={getHref(app.id)}>
-                  <ButtonContent
-                    app={app}
-                    className="px-4 py-3"
-                    selected={isSelected(app)}
-                  />
-                </Menu.Item>
-              ))}
-              <Menu.Item>
-                <button
-                  onClick={handleNewAppClick}
-                  className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4"
-                >
-                  <Icon name="plus" className="w-5 h-5" />
-                  <span className="text-start leading-none">Add new app</span>
-                </button>
-              </Menu.Item>
-            </Menu.Items>
-          </AnimateHeight>
-        </div>
+    <Fragment>
+      {apps?.length === 0 && (
+        <Button onClick={handleNewAppClick} className="px-4 py-3 text-white">
+          <span className="text-start font-sora text-14 mr-auto transition-colors">
+            Create New App
+          </span>
+
+          <Icon name="plus" className="w-5 h-5" />
+        </Button>
       )}
-    </Menu>
+
+      {(apps?.length ?? 0) > 0 && (
+        <Menu as="div" className="relative h-[44px] peer">
+          {({ open }) => (
+            <div
+              className={cn(
+                "absolute top-0 left-0 right-0 min-h-[44px] bg-fbfbfc border border-ebecef rounded-xl z-10 transition-shadow duration-300",
+                {
+                  "shadow-input": open,
+                }
+              )}
+            >
+              <Menu.Button className="flex items-center justify-between w-full h-11 px-4 py-3 outline-none">
+                {currentApp && (
+                  <ButtonContent
+                    app={currentApp}
+                    selected={isSelected(currentApp)}
+                  />
+                )}
+
+                {!currentApp && (
+                  <span className="text-14 text-gray-900 font-sora">
+                    Select app
+                  </span>
+                )}
+
+                <Icon
+                  name="angle-down"
+                  className={cn("w-5 h-5 transition-transform", {
+                    "rotate-180": open,
+                  })}
+                />
+              </Menu.Button>
+
+              <AnimateHeight
+                id="example-panel"
+                duration={300}
+                height={open ? "auto" : 0}
+              >
+                <Menu.Items className="relative" static>
+                  {appsToRender?.map((app) => (
+                    <Menu.Item key={app.id} as={Link} href={getHref(app.id)}>
+                      <ButtonContent
+                        app={app}
+                        className="px-4 py-3"
+                        selected={isSelected(app)}
+                      />
+                    </Menu.Item>
+                  ))}
+
+                  <Menu.Item>
+                    <button
+                      onClick={handleNewAppClick}
+                      className="grid grid-cols-auto/1fr items-center gap-x-3 py-3 px-4 text-gray-900 transition-colors hover:text-gray-900/70"
+                    >
+                      <Icon name="plus" className="w-5 h-5" />
+                      <span className="text-start leading-none">
+                        Add new app
+                      </span>
+                    </button>
+                  </Menu.Item>
+                </Menu.Items>
+              </AnimateHeight>
+            </div>
+          )}
+        </Menu>
+      )}
+    </Fragment>
   );
 });

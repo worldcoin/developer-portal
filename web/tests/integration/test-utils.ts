@@ -9,8 +9,8 @@ import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT } from "src/backend/jwts";
-import { generateOIDCSecret } from "src/backend/oidc";
 import { integrationDBExecuteQuery } from "./setup";
+import { generateHashedSecret } from "src/backend/utils";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -26,7 +26,7 @@ export const testGetDefaultApp = async () => {
 };
 
 export const setClientSecret = async (app_id: string) => {
-  const { client_secret, hashed_secret } = generateOIDCSecret(app_id);
+  const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
   const client = await getAPIServiceClient();
 

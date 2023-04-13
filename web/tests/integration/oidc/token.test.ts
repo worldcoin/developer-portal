@@ -7,13 +7,9 @@ import {
 } from "../setup";
 import { setClientSecret, testGetDefaultApp } from "../test-utils";
 import * as jose from "jose";
+import { publicJwk } from "tests/api/__mocks__/jwk";
 
-// FIXME: Pull from test mocks once #157 is merged
-const public_jwk = {
-  kty: "RSA",
-  n: "w5yjqASrPE84Fzx5K8UXTnU8yRgF2pNlArCjVe1NSne1PzPRu5q6CrrsUYr8Sq-aLKKtDWfLd77rwF5xcTcBwFa_5AKqU7Ls7ydZxXLTYt1PlqUYTaJQNeDxkTrhnmyBzeYubPlP5b3Ef5Y4I11CcnCOJ6snrDlif_Mel8dR6CHRlBQ3pbC98f_vBlT8AyJ5AZK2HcH_tO_STSA6MqNovftcPIOFiz7TLOL0AyjPeszGojFuPhBtRGKVE5BLrZqN_oAFpZtUCG_VIbb2XokpFlrG4wwqdQKvLvi8fguyeW_x9P7YcbO5TM3OG5mwAYkRnNupZkgUPUC7Iq6bZVoMWw",
-  e: "AQAB",
-};
+jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -129,7 +125,7 @@ describe("/api/v1/oidc/token", () => {
 
     const { payload } = await jose.jwtVerify(
       access_token,
-      await jose.importJWK(public_jwk, "RS256"),
+      await jose.importJWK(publicJwk, "RS256"),
       {
         issuer: process.env.JWT_ISSUER,
       }

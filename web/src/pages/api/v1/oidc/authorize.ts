@@ -1,22 +1,32 @@
+import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
-  errorValidation,
   errorResponse,
+  errorValidation,
 } from "src/backend/errors";
+import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
+import { generateOIDCJWT } from "src/backend/jwts";
 import {
-  fetchOIDCApp,
-  generateOIDCCode,
   OIDCResponseTypeMapping,
   OIDCScopes,
+  fetchOIDCApp,
+  generateOIDCCode,
 } from "src/backend/oidc";
-import { generateOIDCJWT } from "src/backend/jwts";
 import { verifyProof } from "src/backend/verify";
-import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, OIDCResponseType } from "src/lib/types";
-import { JWK_ALG_OIDC } from "src/lib/constants";
+
+const InsertNullifier = gql`
+  mutation SaveNullifier($object: nullifier_insert_input!) {
+    insert_nullifier_one(object: $object) {
+      id
+      nullifier_hash
+    }
+  }
+`;
 
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
@@ -184,7 +194,7 @@ export default async function handleOIDCAuthorize(
       ] === OIDCResponseType.JWT
     ) {
       if (!jwt) {
-        const jwk = await fetchActiveJWK(JWK_ALG_OIDC);
+        const jwk = await fetchActiveJWK();
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
@@ -196,6 +206,33 @@ export default async function handleOIDCAuthorize(
       }
       response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
     }
+  }
+
+  const client = await getAPIServiceClient();
+
+  try {
+    const { data: insertNullifierResult } = await client.mutate<{
+      insert_nullifier_one: {
+        id: "nil_c2c76cf4e599e6d1072662a52ae0abf0";
+        nullifier_hash: "0x123";
+      };
+    }>({
+      mutation: InsertNullifier,
+      variables: {
+        object: {
+          nullifier_hash,
+          merkle_root,
+          credential_type,
+          action_id: app.action_id,
+        },
+      },
+    });
+
+    if (!insertNullifierResult?.insert_nullifier_one) {
+      throw new Error("Error inserting nullifier.");
+    }
+  } catch (error) {
+    console.log(error);
   }
 
   res.status(200).json(response);
