@@ -1,9 +1,11 @@
 import { Dispatch, memo, SetStateAction, useCallback, useState } from "react";
 import { Credential } from "./Credential";
 import { useTeam } from "../hooks/useTeam";
+import useKeys from "src/hooks/useKeys";
 
 export const Credentials = memo(function Credentials() {
-  const { data: team, apiKey, resetAPIKey } = useTeam();
+  const { data: team } = useTeam();
+  const { currentSecret, resetAPIKey } = useKeys();
   const [teamIdCopied, setTeamIdCopied] = useState(false);
   const [apiKeyCopied, setAPIKeyCopied] = useState(false);
 
@@ -48,13 +50,13 @@ export const Credentials = memo(function Credentials() {
 
         <Credential
           name="API KEY"
-          value={apiKey ?? ""}
+          value={currentSecret ?? ""}
           buttons={[
             { text: "Reset", action: () => resetAPIKey() },
-            ...(apiKey
+            ...(currentSecret
               ? [
                   generateCopyButton({
-                    copyValue: apiKey,
+                    copyValue: currentSecret,
                     isCopied: apiKeyCopied,
                     setIsCopied: setAPIKeyCopied,
                   }),
