@@ -1,7 +1,5 @@
 import cn from "classnames";
-import dayjs from "dayjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
 import { Button } from "src/components/Button";
 import { Icon, IconType } from "src/components/Icon";
 
@@ -11,6 +9,8 @@ interface ResultProps {
   action: string;
   isStaging: boolean;
   response: string;
+  signal: string;
+  hasTried: boolean;
 }
 
 enum Status {
@@ -42,21 +42,12 @@ const messages = {
 
   NOT_VERIFIED: (
     <>
-      Your <b>proof</b> invalid
+      Your <b>Proof</b> is invalid
     </>
   ),
 
   REQUEST_ERROR: <>Something went wrong</>,
 } as const;
-
-const REQUIRED_RESPONSE_ATTRS = [
-  "merkle_root",
-  "nullifier_hash",
-  "proof",
-  "credential_type",
-] as const;
-
-type Message = (typeof messages)[keyof typeof messages];
 
 export function Result(props: ResultProps) {
   const [status, setStatus] = useState<Status>();
@@ -67,10 +58,12 @@ export function Result(props: ResultProps) {
     try {
       setResponse(JSON.parse(props.response));
     } catch {
-      setStatus(Status.ERROR);
-      setMessage(messages.INVALID_JSON);
+      if (props.hasTried) {
+        setStatus(Status.ERROR);
+        setMessage(messages.INVALID_JSON);
+      }
     }
-  }, [props.response]);
+  }, [props.hasTried, props.response]);
 
   const handleVerify = useCallback(async () => {
     if (!response) {
@@ -90,7 +83,7 @@ export function Result(props: ResultProps) {
           action: props.action,
           app_id: props.appId,
           is_staging: props.isStaging,
-          signal: dayjs().unix().toString(),
+          signal: props.signal,
         }),
       });
 

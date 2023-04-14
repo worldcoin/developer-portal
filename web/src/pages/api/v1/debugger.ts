@@ -31,27 +31,16 @@ export default async function handler(
   }
 
   for (const attr of [
-    "action",
     "app_id",
     "credential_type",
     "is_staging",
     "merkle_root",
     "nullifier_hash",
     "proof",
-    "signal",
   ]) {
     if (req.body[attr] === "") {
       return errorRequiredAttribute(attr, res);
     }
-  }
-
-  if (req.body.credential_type !== "phone") {
-    return errorValidation(
-      "invalid",
-      "Invalid credential type. Only `phone` is supported for now.",
-      "credential_type",
-      res
-    );
   }
 
   const external_nullifier = IDKitInternal.generateExternalNullifier(

@@ -100,8 +100,6 @@ export const Layout = (props: {
                   icon="document"
                   href="https://docs.worldcoin.org"
                 />
-                {/* FIXME: Coming soon! */}
-                {/*
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
