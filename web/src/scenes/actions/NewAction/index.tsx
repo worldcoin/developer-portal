@@ -167,9 +167,9 @@ export function NewAction() {
 
         <div className="mt-6 flex flex-col gap-y-2">
           <FieldLabel required className="font-rubik">
-            Action identifier
+            Action Identifier
           </FieldLabel>
-          {/* helper: "This is the identifier you will use in IDKit and any API calls." */}
+          {/* helper: "This is the value you will use in IDKit and any API calls." */}
           {/* FIXME: should only allow letters, numbers, underscore (_) & hyphen (-) */}
           <FieldInput
             register={register("action")}
@@ -186,8 +186,9 @@ export function NewAction() {
 
         <div className="mt-6 flex flex-col gap-y-2">
           <FieldLabel required className="font-rubik">
-            Choose a maximum number of verifications
+            Maximum Verifications Per Person
           </FieldLabel>
+          {/* helper: "The number of verifications the same person can do for this action." */}
           <Controller
             name="maxVerifications"
             control={control}
