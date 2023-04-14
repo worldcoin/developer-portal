@@ -13,7 +13,8 @@ export const urls = {
 
   // ANCHOR: Others
   kiosk: (action_id: string): `/kiosk/${string}` => `/kiosk/${action_id}`,
-  debugger: (): "/debugger" => "/debugger",
+  debugger: (app_id: string): `/app/${string}/debugger` =>
+    `/app/${app_id}/debugger`,
   team: (): "/team" => "/team",
 
   // ANCHOR: Authentication & sign up
