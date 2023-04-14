@@ -29,7 +29,7 @@ export type LoginRequestBody = {
 export type LoginRequestResponse =
   | {
       new_user: true;
-      email: string;
+      email?: string;
       signup_token: string;
     }
   | {
@@ -127,21 +127,27 @@ export default async function handleLogin(
 
   // NOTE: User does not have an account, check for an invite token
   const { invite_token } = req.body;
+  let email: string | undefined;
   if (!user) {
     if (invite_token) {
-      let email: string | undefined;
-      try {
-        email = await verifyInviteJWT(invite_token);
-      } catch {}
+      // TODO: Temporary static invite code for hackers at ETHTokyo
+      if (
+        !process.env.ETH_TOKYO_INVITE_CODE ||
+        process.env.ETH_TOKYO_INVITE_CODE !== invite_token
+      ) {
+        try {
+          email = await verifyInviteJWT(invite_token);
+        } catch {}
 
-      if (!email) {
-        // Invite token is invalid, return an error
-        return errorValidation(
-          "invalid_invite_token",
-          "Invite token was invalid, and may be expired.",
-          "invite_token",
-          res
-        );
+        if (!email) {
+          // Invite token is invalid, return an error
+          return errorValidation(
+            "invalid_invite_token",
+            "Invite token was invalid, and may be expired.",
+            "invite_token",
+            res
+          );
+        }
       }
 
       const signup_token = await generateSignUpJWT(payload.sub);

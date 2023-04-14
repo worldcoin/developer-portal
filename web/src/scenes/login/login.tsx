@@ -41,7 +41,9 @@ export function Login({ loginUrl }: ILoginPageProps) {
       if ("new_user" in payload && payload.new_user && payload.signup_token) {
         localStorage.setItem("signup_token", payload.signup_token);
         return router.push(
-          `${urls.signup()}?email=${encodeURIComponent(payload.email)}`
+          `${urls.signup()}${
+            payload.email ? `?email=${encodeURIComponent(payload.email)}` : ""
+          }`
         );
       }
 
