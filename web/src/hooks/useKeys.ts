@@ -15,13 +15,12 @@ const keyFields = `
     created_at
     updated_at
     is_active
-    api_key
     name
 `;
 
-const FetchKeyQuery = gql`
-  query FetchKey($id: String!) {
-    api_key(where: {id: {_eq: $id}}) {
+const FetchKeysQuery = gql`
+  query FetchKeys {
+    api_key(order_by: { created_at: asc }) {
       ${keyFields}
     }
   }
@@ -36,7 +35,7 @@ const InsertKeyQuery = gql`
 `;
 
 const UpdateKeyMutation = gql`
-  mutation UpdateAction($id: String!, $status: String!) {
+  mutation UpdateKey($id: String!, $name: String!, $is_active: Boolean!) {
     update_api_key_by_pk(pk_columns: {id: $id}, _set: {name: $name, is_active: $is_active}) {
       ${keyFields}
     }
@@ -52,30 +51,24 @@ const DeleteKeyQuery = gql`
 `;
 
 const ResetAPIKeyMutation = gql`
-  mutation ResetAPIKey($key_id: String!) {
-    reset_api_key(key_id: $key_id) {
+  mutation ResetAPIKey($id: String!) {
+    reset_api_key(id: $id) {
       api_key
     }
   }
 `;
 
-const fetchKey = async (_key: [string, string | undefined]) => {
-  const currentKey = useKeyStore.getState().currentKey;
-
-  if (!currentKey) {
-    return null;
-  }
-
+const fetchKeys = async () => {
   const response = await graphQLRequest<{
-    key: Array<APIKeyModel>;
+    api_key: Array<APIKeyModel>;
   }>({
-    query: FetchKeyQuery,
-    variables: {
-      id: currentKey.id,
-    },
+    query: FetchKeysQuery,
   });
 
-  return response.data?.key?.[0] ?? null;
+  if (response.data?.api_key.length) {
+    return response.data.api_key;
+  }
+  return [];
 };
 
 type NewKeyPayload = Pick<APIKeyModel, "name">;
@@ -111,7 +104,7 @@ const updateKeyFetcher = async (
     };
   }
 ) => {
-  const { is_active } = args.arg;
+  const { id, name, is_active } = args.arg;
   const currentKey = useKeyStore.getState().currentKey;
 
   if (!currentKey) {
@@ -123,9 +116,9 @@ const updateKeyFetcher = async (
   }>({
     query: UpdateKeyMutation,
     variables: {
-      id: currentKey.id,
-      name: currentKey.name,
-      is_active: is_active,
+      id,
+      name,
+      is_active,
     },
   });
 
@@ -146,18 +139,18 @@ const deleteKeyFetcher = async (
 ) => {
   const { id } = args.arg;
   const response = await graphQLRequest<{
-    api_key: Pick<APIKeyModel, "id">;
+    delete_api_key_by_pk: Pick<APIKeyModel, "id">;
   }>({
     query: DeleteKeyQuery,
     variables: { id },
   });
-  if (response.data?.api_key) {
-    return response.data?.api_key;
+  if (response.data?.delete_api_key_by_pk) {
+    return response.data?.delete_api_key_by_pk;
   }
   throw Error("Could not delete API key");
 };
 
-const resetAPIKeyFetcher = async (_key: [string, string | undefined]) => {
+const resetKeySecretFetcher = async (_key: [string, string | undefined]) => {
   const currentKey = useKeyStore.getState().currentKey;
 
   if (!currentKey) {
@@ -168,7 +161,7 @@ const resetAPIKeyFetcher = async (_key: [string, string | undefined]) => {
     reset_api_key: { api_key: string };
   }>({
     query: ResetAPIKeyMutation,
-    variables: { key_id: currentKey.id },
+    variables: { id: currentKey.id },
   });
 
   if (response.data?.reset_api_key.api_key) {
@@ -181,40 +174,45 @@ const resetAPIKeyFetcher = async (_key: [string, string | undefined]) => {
 const getKeyStore = (store: IKeyStore) => ({
   keys: store.keys,
   currentKey: store.currentKey,
-  currentSecret: store.currentSecret,
+  keySecret: store.keySecret,
   setKeys: store.setKeys,
   setCurrentKey: store.setCurrentKey,
   setCurrentKeyById: store.setCurrentKeyById,
-  setCurrentSecret: store.setCurrentSecret,
+  setKeySecret: store.setKeySecret,
 });
 
 const useKeys = () => {
   const {
     keys,
     currentKey,
-    currentSecret,
+    keySecret,
     setKeys,
     setCurrentKey,
-    setCurrentKeyById,
-    setCurrentSecret,
+    // setCurrentKeyById,
+    setKeySecret,
   } = useKeyStore(getKeyStore, shallow);
 
-  const {
-    data: key,
-    error: keyError,
-    isLoading: keyIsLoading,
-  } = useSWR<APIKeyModel | null>(["apiKey", currentKey?.id], fetchKey, {
-    onSuccess: (data) => setCurrentKey(data),
-  });
+  const { data, error, isLoading } = useSWR<Array<APIKeyModel>>(
+    "apiKey",
+    fetchKeys,
+    {
+      onSuccess: (data) => {
+        if (data.length) {
+          setKeys(data);
+          setCurrentKey(data[0]); // DEBUG
+        }
+      },
+    }
+  );
 
   const onInsertSuccess = useCallback(
     (data: APIKeyModel) => {
       if (data) {
-        setKeys([data]);
+        setKeys([...keys, data]);
         toast.success("API key created");
       }
     },
-    [setKeys]
+    [keys, setKeys]
   );
 
   const insertKeyMutation = useSWRMutation("apiKey", insertKeyFetcher, {
@@ -261,13 +259,13 @@ const useKeys = () => {
     });
   }, [currentKey, deleteKeyMutation]);
 
-  const { trigger: resetAPIKey } = useSWRMutation(
+  const { trigger: resetKeySecret } = useSWRMutation(
     ["apiKey", currentKey?.id],
-    resetAPIKeyFetcher,
+    resetKeySecretFetcher,
     {
       onSuccess: (apiKey) => {
         if (apiKey) {
-          setCurrentSecret(apiKey);
+          setKeySecret(apiKey);
           toast.success("API key has been reset");
         }
       },
@@ -278,19 +276,20 @@ const useKeys = () => {
 
   // NOTE: hide API secret on router history change
   useEffect(() => {
-    router.events.on("beforeHistoryChange", () => setCurrentSecret(null));
-  }, [router.events, setCurrentSecret]);
+    router.events.on("beforeHistoryChange", () => setKeySecret(null));
+  }, [router.events, setKeySecret]);
 
   return {
-    key,
-    keyError,
-    keyIsLoading,
+    keys: data,
+    error,
+    isLoading,
     createKey,
     updateKey,
     deleteKey,
 
-    currentSecret,
-    resetAPIKey,
+    currentKey,
+    keySecret,
+    resetKeySecret,
   };
 };
 

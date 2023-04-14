@@ -8,9 +8,9 @@ import {
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
 
 const updateAPIKeyQuery = gql`
-  mutation UpdateAPIKey($key_id: String = "", $hashed_secret: String = "") {
+  mutation UpdateAPIKey($id: String = "", $hashed_secret: String = "") {
     update_api_key(
-      where: { id: { _eq: $key_id } }
+      where: { id: { _eq: $id } }
       _set: { api_key: $hashed_secret }
     ) {
       affected_rows
@@ -43,11 +43,11 @@ export default async function handleAPIKeyReset(
     });
   }
 
-  const key_id = req.body.input.key_id;
-  if (!key_id) {
+  const id = req.body.input.id;
+  if (!id) {
     return errorHasuraQuery({
       res,
-      detail: "key_id must be set.",
+      detail: "id must be set.",
       code: "required",
     });
   }
@@ -63,15 +63,15 @@ export default async function handleAPIKeyReset(
   }
 
   // Generate a new API key for the given key id
-  const { secret, hashed_secret } = generateHashedSecret(key_id);
-  const api_key = `api_${Buffer.from(`${key_id}:${secret}`)
+  const { secret, hashed_secret } = generateHashedSecret(id);
+  const api_key = `api_${Buffer.from(`${id}:${secret}`)
     .toString("base64")
     .replace(/=/g, "")}`;
 
   const response = await client.mutate({
     mutation: updateAPIKeyQuery,
     variables: {
-      key_id,
+      id,
       hashed_secret,
     },
   });
