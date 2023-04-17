@@ -25,4 +25,5 @@ module.exports = {
       publicKey: pemKey,
     };
   }),
+  scheduleKeyDeletion: jest.fn(),
 };

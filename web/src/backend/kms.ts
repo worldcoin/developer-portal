@@ -17,6 +17,7 @@ export type CreateKeyResult =
   | {
       keyId: string;
       publicKey: string;
+      createdAt: Date;
     }
   | undefined;
 
@@ -41,8 +42,9 @@ export const createKMSKey = async (
     );
 
     const keyId = KeyMetadata?.KeyId;
+    const createdAt = KeyMetadata?.CreationDate;
 
-    if (keyId) {
+    if (keyId && createdAt) {
       const { PublicKey } = await client.send(
         new GetPublicKeyCommand({ KeyId: keyId })
       );
@@ -52,7 +54,7 @@ export const createKMSKey = async (
 ${Buffer.from(PublicKey).toString("base64")}
 -----END PUBLIC KEY-----`;
 
-        return { keyId, publicKey };
+        return { keyId, publicKey, createdAt };
       }
     }
   } catch (error) {

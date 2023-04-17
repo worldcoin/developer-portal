@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createAndStoreJWK } from "src/backend/jwks";
+import { _deleteExpiredJWKs, createAndStoreJWK } from "src/backend/jwks";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { errorNotAllowed } from "../../backend/errors";
 
@@ -8,7 +8,7 @@ import { errorNotAllowed } from "../../backend/errors";
  * @param req
  * @param res
  */
-export default async function handleJWKGen(
+export default async function handleDeleteJWKS(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -20,7 +20,11 @@ export default async function handleJWKGen(
     return errorNotAllowed(req.method, res);
   }
 
-  const jwk = await createAndStoreJWK();
+  console.info("Starting deletion of expired jwks.");
 
-  return res.status(201).json({ success: true, jwk });
+  const response = await _deleteExpiredJWKs();
+
+  console.info(`Deleted ${response} expired jwks.`);
+
+  return res.status(204).end();
 }
