@@ -20,7 +20,7 @@ import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
 
 const schema = yup.object({
   name: yup.string().required("This field is required"),
-  description: yup.string(),
+  description: yup.string().required(),
   action: yup.string().required("This field is required"),
   maxVerifications: yup.number().required("This field is required"),
 });
@@ -119,13 +119,25 @@ export function NewAction() {
 
   const isFormValid = useMemo(
     () =>
-      !errors.name && !errors.action && dirtyFields.name && dirtyFields.action,
-    [dirtyFields.action, dirtyFields.name, errors.action, errors.name]
+      !errors.name &&
+      !errors.action &&
+      !errors.description &&
+      dirtyFields.name &&
+      dirtyFields.action &&
+      dirtyFields.description,
+    [
+      dirtyFields.action,
+      dirtyFields.description,
+      dirtyFields.name,
+      errors.action,
+      errors.description,
+      errors.name,
+    ]
   );
 
   return (
     <Dialog
-      panelClassName="max-h-full overflow-y-auto lg:min-w-[486px]"
+      panelClassName="max-h-full overflow-y-auto lg:min-w-[490px]"
       open={isOpened}
       onClose={() => setIsOpened(false)}
     >
@@ -151,10 +163,16 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel className="font-rubik">Description</FieldLabel>
-          {/* helper: "Tell your users what the action is about. Shown in the World App." */}
+          <FieldLabel
+            required
+            isPublic
+            className="font-rubik"
+            description="Tell your users what the action is about. Shown in the World App."
+          >
+            Description
+          </FieldLabel>
+
           {/* FIXME: Max length 80 chars (API enforced) */}
-          {/* FIXME: Let's actually make this required and change the "(optional) for (public)" */}
           <FieldTextArea
             register={register("description")}
             errors={errors.description}
@@ -166,10 +184,14 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required className="font-rubik">
+          <FieldLabel
+            required
+            className="font-rubik"
+            description="This is the value you will use in IDKit and any API calls."
+          >
             Action Identifier
           </FieldLabel>
-          {/* helper: "This is the value you will use in IDKit and any API calls." */}
+
           {/* FIXME: should only allow letters, numbers, underscore (_) & hyphen (-) */}
           <FieldInput
             register={register("action")}
@@ -185,10 +207,14 @@ export function NewAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel required className="font-rubik">
+          <FieldLabel
+            required
+            className="font-rubik"
+            description="The number of verifications the same person can do for this action."
+          >
             Maximum Verifications Per Person
           </FieldLabel>
-          {/* helper: "The number of verifications the same person can do for this action." */}
+
           <Controller
             name="maxVerifications"
             control={control}
