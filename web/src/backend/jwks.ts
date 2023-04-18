@@ -9,6 +9,7 @@ import { JWK_TIME_TO_LIVE } from "src/lib/constants";
 export type CreateJWKResult = {
   keyId: string;
   publicJwk: JsonWebKey;
+  createdAt: Date;
 };
 
 const retrieveJWKQuery = gql`
@@ -138,7 +139,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
         format: "jwk",
       });
 
-      return { keyId: result.keyId, publicJwk };
+      return { keyId: result.keyId, publicJwk, createdAt: result.createdAt };
     } else {
       throw new Error("Unable to create KMS key.");
     }
@@ -154,8 +155,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
  */
 export const createAndStoreJWK = async () => {
   const key = await generateJWK();
-
-  const expiresAt = dayjs().add(JWK_TIME_TO_LIVE, "day"); // TODO: expiration should come from the KMS key
+  const expiresAt = dayjs(key.createdAt).add(JWK_TIME_TO_LIVE, "day");
 
   const client = await getAPIServiceClient();
   const response = await client.mutate<{
@@ -181,8 +181,7 @@ export const createAndStoreJWK = async () => {
  * Delete all expired JWKs from the database
  * @returns
  */
-// FIXME: Call this function from a cron job
-const _deleteExpiredJWKs = async () => {
+export const _deleteExpiredJWKs = async () => {
   const apiClient = await getAPIServiceClient();
   const response = await apiClient.mutate({
     mutation: deleteExpiredJWKsQuery,
@@ -199,7 +198,6 @@ const _deleteExpiredJWKs = async () => {
         await scheduleKeyDeletion(kmsClient, key.kms_id);
       }
     }
+    return response.data.delete_jwks.returning.length;
   }
-
-  throw new Error("Unable to delete expired JWKs.");
 };

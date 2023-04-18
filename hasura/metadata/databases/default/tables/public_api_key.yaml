@@ -8,9 +8,9 @@ object_relationships:
 insert_permissions:
   - role: user
     permission:
+      check: {}
       set:
         team_id: x-hasura-Team-Id
-      check: {}
       columns:
         - is_active
         - name
