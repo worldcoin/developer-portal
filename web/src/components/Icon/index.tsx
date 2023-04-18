@@ -77,6 +77,7 @@ const iconNames = [
   "wld-logo",
   "wld-sign-in",
   "world-id-sign-in",
+  "world-id-sign-in-disabled",
   "worldcoin",
   "withdraw",
 ] as const;

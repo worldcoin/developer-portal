@@ -1,6 +1,6 @@
 import cn from "classnames";
 import { useRouter } from "next/router";
-import { Fragment, memo, useMemo } from "react";
+import { Fragment, ReactNode, memo, useMemo } from "react";
 import { Icon, IconType } from "src/components/Icon";
 import { Link } from "src/components/Link";
 
@@ -15,6 +15,9 @@ type CommonNavItemProps = {
   selected?: boolean;
   //NOTE: tailwindcss color
   customColor?: string;
+  disabled?: boolean;
+  stamp?: ReactNode;
+  stampVisible?: boolean;
 };
 
 type NavItemProps = Omit<CommonNavItemProps, "selected"> &
@@ -34,12 +37,14 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
     <div
       className={cn(
         "grid items-center grid-cols-auto/1fr gap-x-3 border text-gray-400 hover:bg-gray-100 hover:text-gray-500 rounded-xl transition-colors p-3",
+
         {
           "text-gray-900 bg-white  border-gray-200 hover:bg-white/70":
             props.selected && !props.customColor,
         },
 
         { "border-transparent": !props.selected },
+        { "hover:bg-transparent hover:text-gray-400": props.disabled },
         props.className
       )}
     >
@@ -64,6 +69,7 @@ const CommonNavItem = memo(function CommonNavItem(props: CommonNavItemProps) {
         <span>{props.name}</span>
 
         {props.external && <Icon name="external" className="h-4 w-4" />}
+        {props.stamp && props.stampVisible && props.stamp}
       </div>
     </div>
   );
@@ -86,17 +92,32 @@ export const NavItem = memo(function NavItem(props: NavItemProps) {
 
   return (
     <Fragment>
-      {props.onClick && (
+      {props.disabled && (
+        <span>
+          <CommonNavItem
+            name={props.name}
+            icon={props.icon}
+            className={cn("select-none cursor-not-allowed", props.className)}
+            stamp={props.stamp}
+            stampVisible={props.stampVisible}
+            disabled
+          />
+        </span>
+      )}
+
+      {props.onClick && !props.disabled && (
         <button type="button" onClick={props.onClick}>
           <CommonNavItem
             name={props.name}
             icon={props.icon}
             className={props.className}
+            stamp={props.stamp}
+            stampVisible={props.stampVisible}
           />
         </button>
       )}
 
-      {props.href && (
+      {props.href && !props.disabled && (
         <Link href={props.href} external={isExternal}>
           <CommonNavItem
             name={props.name}
@@ -105,6 +126,8 @@ export const NavItem = memo(function NavItem(props: NavItemProps) {
             external={isExternal}
             selected={isCurrentSection}
             customColor={props.customColor}
+            stamp={props.stamp}
+            stampVisible={props.stampVisible}
           />
         </Link>
       )}
