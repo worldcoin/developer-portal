@@ -28,7 +28,7 @@
   comment: Schedules all expired JWKS for deletion by KMS
 - name: Update ENS addresses
   webhook: '{{NEXT_API_URL}}/_ens'
-  schedule: 0 * * * *
+  schedule: 0 0 * * *
   include_in_metadata: true
   payload: {}
   retry_conf:
