@@ -82,5 +82,14 @@ export default async function handler(
     return res.status(200).json({ success: true });
   }
 
-  return errorResponse(res, 500, "invalid", "invalid");
+  if (result.error) {
+    return res.status(400).json(result.error);
+  }
+
+  return errorResponse(
+    res,
+    500,
+    "server_error",
+    "Unable to verify proof due to a server error. Please try again."
+  );
 }
