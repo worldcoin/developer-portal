@@ -5,7 +5,7 @@
 import { CredentialType, SequencerMappingType } from "./types";
 
 // ANCHOR: Orb credential
-export const ORB_SEQUENCER = "https://signup-v2.crypto.worldcoin.dev"; // TODO: Update once deployed
+export const ORB_SEQUENCER = "https://signup.crypto.worldcoin.dev";
 export const ORB_SEQUENCER_STAGING =
   "https://signup-v2.stage-crypto.worldcoin.dev";
 
