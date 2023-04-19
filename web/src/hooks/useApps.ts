@@ -219,11 +219,11 @@ const useApps = () => {
   });
 
   const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data) {
-        setCurrentApp(null);
+        await router.replace("/app");
         toast.success("App deleted");
-        router.replace("/app");
+        setCurrentApp(null);
       }
     },
   });
