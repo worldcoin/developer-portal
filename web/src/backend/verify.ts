@@ -6,6 +6,21 @@ import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { getSmartContractENSName } from "./utils";
 import { sequencerMapping } from "src/lib/utils";
 
+const KNOWN_ERROR_CODES = [
+  {
+    rawMessage: "invalid root",
+    code: "invalid_merkle_root",
+    detail:
+      "The provided Merkle root is invalid. User appears to be unverified.",
+  },
+  {
+    rawMessage: "invalid proof",
+    code: "invalid_proof",
+    detail:
+      "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
+  },
+];
+
 interface IInputParams {
   merkle_root: string;
   signal: string;
@@ -202,10 +217,17 @@ export const verifyProof = async (
   });
 
   if (!response.ok) {
+    const rawErrorMessage = await response.text();
+    const knownError = KNOWN_ERROR_CODES.find(
+      ({ rawMessage }) => rawMessage === rawErrorMessage
+    );
+
     return {
       error: {
-        message: `We couldn't verify the provided proof.`,
-        code: "invalid_proof",
+        message:
+          knownError?.detail ||
+          `We couldn't verify the provided proof (error code ${rawErrorMessage}).`,
+        code: knownError?.code || "invalid_proof",
         statusCode: 400,
         attribute: null,
       },
