@@ -54,7 +54,7 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
     >
       <div className="space-y-12">
         <div className="grid grid-flow-col auto-cols-max gap-6 items-center">
-          <Illustration icon="speed-test" />
+          <Illustration icon="speed-test" className="w-auto p-5" />
 
           <div className="flex flex-col gap-1">
             <h1 className="font-sora text-20 font-semibold">Proof debugger</h1>
