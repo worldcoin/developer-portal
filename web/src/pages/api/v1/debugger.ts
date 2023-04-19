@@ -79,7 +79,7 @@ export default async function handler(
   );
 
   if (result.success) {
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, status: result.status });
   }
 
   return errorResponse(res, 500, "invalid", "invalid");

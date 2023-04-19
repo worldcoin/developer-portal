@@ -20,9 +20,15 @@ enum Status {
 }
 
 const messages = {
-  SUCCESS: (
+  SUCCESS_MINED: (
     <>
-      Your <b>Proof</b> is <b>valid</b>
+      Your <b>Proof</b> is <b>valid</b> and published <b>on-chain</b>
+    </>
+  ),
+
+  SUCCESS_PENDING: (
+    <>
+      Your <b>Proof</b> is <b>valid</b> and is <b>pending</b> inclusion
     </>
   ),
 
@@ -103,9 +109,13 @@ export function Result(props: ResultProps) {
         return;
       }
 
-      // NOTE: success
+      // NOTE: success mined
       setStatus(Status.SUCCESS);
-      setMessage(messages.SUCCESS);
+      if (data.status === "mined") {
+        setMessage(messages.SUCCESS_MINED);
+      } else {
+        setMessage(messages.SUCCESS_PENDING);
+      }
     } catch (err) {
       setStatus(Status.ERROR);
       setMessage(messages.REQUEST_ERROR);

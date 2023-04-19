@@ -2,31 +2,9 @@ import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
-import {
-  ORB_SEQUENCER,
-  ORB_SEQUENCER_STAGING,
-  PHONE_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
-} from "src/lib/constants";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { getSmartContractENSName } from "./utils";
-
-type SequencerMappingType = {
-  [key in CredentialType]: {
-    [is_staging: string]: string;
-  };
-};
-
-const sequencerMapping: SequencerMappingType = {
-  orb: {
-    true: ORB_SEQUENCER_STAGING,
-    false: ORB_SEQUENCER,
-  },
-  phone: {
-    true: PHONE_SEQUENCER_STAGING,
-    false: PHONE_SEQUENCER,
-  },
-};
+import { sequencerMapping } from "src/lib/utils";
 
 interface IInputParams {
   merkle_root: string;
@@ -196,7 +174,7 @@ export const fetchActionForProof = async (
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams
-): Promise<{ success?: true; error?: IInternalError }> => {
+): Promise<{ success?: true; status?: string; error?: IInternalError }> => {
   // Parse the inputs
   const signalHash = IDKitInternal.hashToField(proofParams.signal).digest;
   const proof = decodeProof(proofParams.proof);
@@ -211,12 +189,15 @@ export const verifyProof = async (
   });
 
   const sequencerUrl =
-    sequencerMapping[verifyParams.credential_type]?.[
+    sequencerMapping[verifyParams.credential_type.toString()]?.[
       verifyParams.is_staging.toString()
     ];
 
   const response = await fetch(`${sequencerUrl}/verifySemaphoreProof`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body,
   });
 
@@ -231,5 +212,7 @@ export const verifyProof = async (
     };
   }
 
-  return { success: true };
+  const result = await response.json();
+
+  return { success: true, status: result.status };
 };

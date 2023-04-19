@@ -1,6 +1,10 @@
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
+import {
+  errorNotAllowed,
+  errorRequiredAttribute,
+  errorValidation,
+} from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
 import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
@@ -46,6 +50,15 @@ export default async function handleInsert(
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
     }
+  }
+
+  if (req.body.credential_type !== "phone") {
+    return errorValidation(
+      "invalid",
+      "Invalid credential type. Only `phone` is supported for now.",
+      "credential_type",
+      res
+    );
   }
 
   const client = await getAPIServiceClient();

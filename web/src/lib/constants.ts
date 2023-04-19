@@ -2,7 +2,7 @@
  * Constants available to both backend and frontend.
  */
 
-import { CredentialType } from "./types";
+import { CredentialType, SequencerMappingType } from "./types";
 
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-v2.crypto.worldcoin.dev"; // TODO: Update once deployed
@@ -20,7 +20,8 @@ export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {
 };
 
 // ANCHOR: OIDC Base URL
-export const OIDC_BASE_URL = "https://id.worldcoin.org";
+// export const OIDC_BASE_URL = "https://id.worldcoin.org";
+export const OIDC_BASE_URL = "http://localhost:3001";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
