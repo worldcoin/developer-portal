@@ -28,8 +28,8 @@ export const AppHeader = memo(function AppHeader() {
 
   return (
     <section className="grid gap-y-8">
-      <div className="grid gap-x-6 grid-cols-auto/1fr grid-rows-2">
-        <div className="relative p-3.5 border border-f3f4f5 rounded-full row-span-2">
+      <div className="grid items-center gap-x-6 grid-cols-auto/1fr grid-rows-2">
+        <div className="grid relative p-3.5 border border-f3f4f5 rounded-full row-span-2">
           <div>
             {image && (
               <Image
