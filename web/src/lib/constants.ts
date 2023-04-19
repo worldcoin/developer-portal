@@ -20,8 +20,7 @@ export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {
 };
 
 // ANCHOR: OIDC Base URL
-// export const OIDC_BASE_URL = "https://id.worldcoin.org";
-export const OIDC_BASE_URL = "http://localhost:3001";
+export const OIDC_BASE_URL = "https://id.worldcoin.org";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
