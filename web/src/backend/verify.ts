@@ -1,6 +1,6 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { getSmartContractENSName } from "./utils";
@@ -8,18 +8,25 @@ import { sequencerMapping } from "src/lib/utils";
 
 const KNOWN_ERROR_CODES = [
   {
+    rawCode: "0x504570e3", // TODO: Add to docs once verified
     rawMessage: "invalid root",
     code: "invalid_merkle_root",
     detail:
       "The provided Merkle root is invalid. User appears to be unverified.",
   },
   {
+    rawCode: "0x09bde339", // TODO: Add to docs once verified
     rawMessage: "invalid proof",
     code: "invalid_proof",
     detail:
       "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
   },
 ];
+
+enum PublishedChains {
+  Polygon = "polygon",
+  // TODO: Add more chains once live
+}
 
 interface IInputParams {
   merkle_root: string;
@@ -184,23 +191,145 @@ export const fetchActionForProof = async (
 };
 
 /**
+ * Parses and validates the inputs to verify a proof
+ * @param body
+ * @param res
+ * @returns
+ */
+export const parseProofInputs = (params: IInputParams) => {
+  let proof,
+    nullifier_hash,
+    external_nullifier,
+    signal_hash,
+    merkle_root = null;
+
+  try {
+    proof = decodeProof(params.proof);
+  } catch (e) {
+    console.error(e);
+    return {
+      error: {
+        message:
+          "This attribute is improperly formatted. Expected an ABI-encoded uint256[8].",
+        code: "invalid_format",
+        statusCode: 400,
+        attribute: "proof",
+      },
+    };
+  }
+
+  try {
+    nullifier_hash = (
+      abi.decode(["uint256"], params.nullifier_hash)[0] as BigNumber
+    ).toHexString();
+  } catch (e) {
+    console.error(e);
+    return {
+      error: {
+        message:
+          "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
+        code: "invalid_format",
+        statusCode: 400,
+        attribute: "nullifier_hash",
+      },
+    };
+  }
+
+  try {
+    merkle_root = (
+      abi.decode(["uint256"], params.merkle_root)[0] as BigNumber
+    ).toHexString();
+  } catch (e) {
+    console.error(e);
+    return {
+      error: {
+        message:
+          "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
+        code: "invalid_format",
+        statusCode: 400,
+        attribute: "merkle_root",
+      },
+    };
+  }
+
+  try {
+    external_nullifier = (
+      abi.decode(["uint256"], params.external_nullifier)[0] as BigNumber
+    ).toHexString();
+  } catch (e) {
+    console.error(e);
+    return {
+      error: {
+        message:
+          "This attribute is improperly formatted. Expected an ABI-encoded uint256.",
+        code: "invalid_format",
+        statusCode: 400,
+        attribute: "external_nullifier",
+      },
+    };
+  }
+
+  if (IDKitInternal.validateABILikeEncoding(params.signal)) {
+    try {
+      signal_hash = (
+        abi.decode(["uint256"], params.signal)[0] as BigNumber
+      ).toHexString();
+    } catch (e) {
+      console.error(e);
+      return {
+        error: {
+          message:
+            "This attribute is improperly formatted. Expected an ABI-encoded uint256 or a string.",
+          code: "invalid_format",
+          statusCode: 400,
+          attribute: "signal",
+        },
+      };
+    }
+  } else {
+    signal_hash = BigNumber.from(
+      IDKitInternal.hashToField(params.signal).hash
+    ).toHexString();
+  }
+
+  return {
+    params: {
+      proof,
+      nullifier_hash,
+      external_nullifier,
+      signal_hash,
+      merkle_root,
+    },
+  };
+};
+
+/**
  * Verifies a ZKP with the World ID smart contract
  */
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams
-): Promise<{ success?: true; status?: string; error?: IInternalError }> => {
+): Promise<{
+  success?: true;
+  status?: string;
+  chains?: string[];
+  error?: IInternalError;
+}> => {
   // Parse the inputs
-  const signalHash = IDKitInternal.hashToField(proofParams.signal).digest;
-  const proof = decodeProof(proofParams.proof);
+  const parsed = parseProofInputs(proofParams);
+  if (parsed.error || !parsed.params) {
+    return { error: parsed.error };
+  }
+
+  const { params: parsedParams } = parsed;
 
   // Query the signup sequencer to verify the proof
   const body = JSON.stringify({
-    root: proofParams.merkle_root,
-    nullifierHash: proofParams.nullifier_hash,
-    externalNullifierHash: proofParams.external_nullifier,
-    signalHash,
-    proof,
+    root: parsedParams.merkle_root,
+    nullifierHash: parsedParams.nullifier_hash,
+    externalNullifierHash: parsedParams.external_nullifier,
+    signalHash: parsedParams.signal_hash,
+    proof: parsedParams.proof,
   });
 
   const sequencerUrl =
@@ -217,24 +346,33 @@ export const verifyProof = async (
   });
 
   if (!response.ok) {
-    const rawErrorMessage = await response.text();
-    const knownError = KNOWN_ERROR_CODES.find(
-      ({ rawMessage }) => rawMessage === rawErrorMessage
-    );
-
-    return {
-      error: {
-        message:
-          knownError?.detail ||
-          `We couldn't verify the provided proof (error code ${rawErrorMessage}).`,
-        code: knownError?.code || "invalid_proof",
-        statusCode: 400,
-        attribute: null,
-      },
-    };
+    try {
+      const rawErrorMessage = await response.text();
+      const knownError = KNOWN_ERROR_CODES.find(
+        ({ rawMessage }) => rawMessage === rawErrorMessage
+      );
+      return {
+        error: {
+          message:
+            knownError?.detail ||
+            `We couldn't verify the provided proof (error code ${rawErrorMessage}).`,
+          code: knownError?.code || "invalid_proof",
+          statusCode: 400,
+          attribute: null,
+        },
+      };
+    } catch {
+      return {
+        error: {
+          message: "There was an internal issue verifying this proof.",
+          code: "internal_error",
+          statusCode: 500,
+        },
+      };
+    }
   }
 
   const result = await response.json();
-
-  return { success: true, status: result.status };
+  const status = result.status === "mined" ? "on-chain" : "pending";
+  return { success: true, status, chains: [PublishedChains.Polygon] }; // TODO: Pass all chains once live
 };
