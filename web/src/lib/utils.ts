@@ -1,9 +1,27 @@
-import { EnvironmentType } from "src/lib/types";
+import { EnvironmentType, SequencerMappingType } from "src/lib/types";
+import {
+  ORB_SEQUENCER_STAGING,
+  ORB_SEQUENCER,
+  PHONE_SEQUENCER_STAGING,
+  PHONE_SEQUENCER,
+} from "./constants";
 
 export const ENVIRONMENTS: EnvironmentType[] = [
   { name: "Production", value: "production", icon: { name: "rocket" } },
   { name: "Staging", value: "staging", icon: { name: "chart" } },
 ];
+
+// Sequencer mapping
+export const sequencerMapping: SequencerMappingType = {
+  orb: {
+    true: ORB_SEQUENCER_STAGING,
+    false: ORB_SEQUENCER,
+  },
+  phone: {
+    true: PHONE_SEQUENCER_STAGING,
+    false: PHONE_SEQUENCER,
+  },
+};
 
 /**
  * Validates a string is a valid URL

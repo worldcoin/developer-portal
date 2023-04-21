@@ -20,9 +20,22 @@ enum Status {
 }
 
 const messages = {
-  SUCCESS: (
+  SUCCESS_ONCHAIN: (chains: string[]) => (
     <>
-      Your <b>Proof</b> is <b>valid</b>
+      Your <b>Proof</b> is <b>valid</b> and verifiable on:
+      <ul className="list-disc list-inside">
+        {chains.map((chain) => (
+          <li key={chain} className="first:mt-2">
+            {chain.charAt(0).toUpperCase() + chain.slice(1)}
+          </li>
+        ))}
+      </ul>
+    </>
+  ),
+
+  SUCCESS_PENDING: (
+    <>
+      Your <b>Proof</b> is <b>valid</b> and is <b>pending</b> inclusion
     </>
   ),
 
@@ -103,14 +116,25 @@ export function Result(props: ResultProps) {
         return;
       }
 
-      // NOTE: success
+      // NOTE: success mined
       setStatus(Status.SUCCESS);
-      setMessage(messages.SUCCESS);
+      if (data.status === "on-chain") {
+        setMessage(messages.SUCCESS_ONCHAIN(data.chains));
+      } else {
+        setMessage(messages.SUCCESS_PENDING);
+      }
     } catch (err) {
       setStatus(Status.ERROR);
       setMessage(messages.REQUEST_ERROR);
     }
-  }, [props, response]);
+  }, [
+    props.action,
+    props.appId,
+    props.isStaging,
+    props.response,
+    props.signal,
+    response,
+  ]);
 
   return (
     <div className={cn("pr-10", props.classNames)}>
@@ -148,9 +172,9 @@ export function Result(props: ResultProps) {
                   {["Success", "Warning", "Error"][status]}
                 </p>
 
-                <p className="text-12 leading-4.5 text-657080 font-mono">
+                <div className="text-12 leading-4.5 text-657080 font-mono">
                   {message}
-                </p>
+                </div>
               </div>
             </div>
           )}

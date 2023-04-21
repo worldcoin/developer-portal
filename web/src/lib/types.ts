@@ -85,3 +85,14 @@ export type ActionKioskType = Pick<
     "id" | "name" | "logo_url" | "is_staging" | "is_verified" | "__typename"
   >;
 };
+
+export type SequencerMappingType = {
+  [credential_type: string]: {
+    [is_staging: string]: string;
+  };
+};
+
+export enum Environment {
+  Production = "production",
+  Staging = "staging",
+}

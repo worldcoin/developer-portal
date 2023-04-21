@@ -7,12 +7,8 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { checkConsumerBackendForPhoneVerification } from "src/backend/utils";
-import {
-  PHONE_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
-  SEMAPHORE_GROUP_MAP,
-} from "src/lib/constants";
-import { CredentialType } from "src/lib/types";
+import { Environment } from "src/lib/types";
+import { sequencerMapping } from "src/lib/utils";
 
 const existsQuery = gql`
   query IdentityCommitmentExists($identity_commitment: String!) {
@@ -58,8 +54,7 @@ export default async function handleInclusionProof(
     }
   }
 
-  // TODO: Type environments
-  if (!["staging", "production"].includes(req.body.env)) {
+  if (!Object.values(Environment).includes(req.body.env)) {
     return errorValidation(
       "invalid",
       "Invalid environment value. `staging` or `production` expected.",
@@ -68,18 +63,10 @@ export default async function handleInclusionProof(
     );
   }
 
-  // TODO: Only phone credential supported for now
-  if (req.body.credential_type !== "phone") {
-    return errorValidation(
-      "invalid",
-      "Invalid credential type. Only `phone` is supported for now.",
-      "credential_type",
-      res
-    );
-  }
-
   const apiClient = await getAPIServiceClient();
   const isStaging = req.body.env === "production" ? false : true;
+  const sequencerUrl =
+    sequencerMapping[req.body.credential_type]?.[isStaging.toString()];
 
   // ANCHOR: Check if the identity commitment has been revoked
   const identityCommitmentExistsResponse = await apiClient.query({
@@ -103,29 +90,16 @@ export default async function handleInclusionProof(
 
   // Commitment is not in the revoke table, so query sequencer for inclusion proof
   const headers = new Headers();
-  headers.append(
-    "Authorization",
-    isStaging
-      ? `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
-      : `Basic ${process.env.PHONE_SEQUENCER_KEY}`
-  );
   headers.append("Content-Type", "application/json");
-  const body = JSON.stringify([
-    SEMAPHORE_GROUP_MAP[CredentialType.Phone],
-    req.body.identity_commitment,
-  ]);
+  const body = JSON.stringify({
+    identityCommitment: req.body.identity_commitment,
+  });
 
-  const response = await fetch(
-    req.body.env === "production"
-      ? `${PHONE_SEQUENCER}/inclusionProof`
-      : `${PHONE_SEQUENCER_STAGING}/inclusionProof`,
-    {
-      method: "POST",
-      headers,
-      body,
-    }
-  );
-
+  const response = await fetch(`${sequencerUrl}/inclusionProof`, {
+    method: "POST",
+    headers,
+    body,
+  });
   // Commitment found, return the proof
   if (response.status === 200) {
     res.status(200).json({
@@ -133,17 +107,8 @@ export default async function handleInclusionProof(
     });
   }
 
-  // Commitment is still pending inclusion, return an error
-  else if (response.status === 202) {
-    res.status(400).json({
-      code: "inclusion_pending",
-      detail:
-        "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-    });
-  }
-
   // Commitment not found by the sequencer
-  else if (response.status === 400) {
+  else if (response.status === 400 && req.body.credential_type === "phone") {
     const errorBody = await response.text();
 
     console.info(
@@ -175,7 +140,7 @@ export default async function handleInclusionProof(
     }
   } else {
     console.error(
-      `Unexpected error (${response.status}) fetching proof from phone sequencer`,
+      `Unexpected error (${response.status}) fetching proof from sequencer`,
       await response.text()
     );
     res.status(503).json({

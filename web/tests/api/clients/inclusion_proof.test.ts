@@ -1,7 +1,10 @@
 import fetchMock from "jest-fetch-mock";
 import { createMocks } from "node-mocks-http";
-import handleInclusionProof from "src/pages/api/v-alpha/clients/inclusion_proof";
-import { validSequencerInclusionProof } from "../__mocks__/sequencer.mock";
+import handleInclusionProof from "src/pages/api/v-alpha/inclusion_proof";
+import {
+  minedSequencerInclusionProof,
+  pendingSequencerInclusionProof,
+} from "../__mocks__/sequencer.mock";
 
 const apiReturnFn = jest.fn();
 const backendReturnFn = jest.fn();
@@ -46,14 +49,14 @@ describe("/api/v1/clients/inclusion_proof", () => {
     });
 
     // mocks sequencer response
-    fetchMock.mockResponseOnce(JSON.stringify(validSequencerInclusionProof));
+    fetchMock.mockResponseOnce(JSON.stringify(minedSequencerInclusionProof));
 
     await handleInclusionProof(req, res);
 
     expect(res._getStatusCode()).toBe(200);
     const response = res._getJSONData();
     expect(response).toMatchObject({
-      inclusion_proof: validSequencerInclusionProof,
+      inclusion_proof: minedSequencerInclusionProof,
     });
   });
 
@@ -68,7 +71,7 @@ describe("/api/v1/clients/inclusion_proof", () => {
     });
 
     // mocks sequencer response
-    fetchMock.mockResponseOnce("provided identity commitment not found", {
+    fetchMock.mockResponseOnce("provided identity commitment is invalid", {
       status: 400,
     });
 
@@ -93,18 +96,16 @@ describe("/api/v1/clients/inclusion_proof", () => {
     });
 
     // mocks sequencer response
-    fetchMock.mockResponseOnce("", {
-      status: 202,
+    fetchMock.mockResponseOnce(JSON.stringify(pendingSequencerInclusionProof), {
+      status: 200,
     });
 
     await handleInclusionProof(req, res);
 
-    expect(res._getStatusCode()).toBe(400);
+    expect(res._getStatusCode()).toBe(200);
     const response = res._getJSONData();
     expect(response).toMatchObject({
-      code: "inclusion_pending",
-      detail:
-        "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
+      inclusion_proof: pendingSequencerInclusionProof,
     });
   });
 });
