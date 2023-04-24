@@ -8,8 +8,8 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS runner
@@ -26,10 +26,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # TODO: Leverage Next.JS standalone output to significantly reduce image size
-RUN yarn build
+RUN pnpm build
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD [ "yarn" , "start" ]
+CMD [ "pnpm" , "start" ]
