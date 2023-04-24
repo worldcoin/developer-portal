@@ -1,6 +1,7 @@
 # This Dockerfile is used to build the production image
 # from https://github.com/vercel/next.js/blob/474b115e6d903394d58a51eef97ffa4f2ae2ce70/examples/with-docker/Dockerfile
 FROM --platform=linux/amd64 node:18-alpine AS base
+RUN wget -qO /bin/pnpm "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" && chmod +x /bin/pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
