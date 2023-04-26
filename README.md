@@ -96,7 +96,7 @@ If you have issues, please double check these values before debugging further.
 The following command will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
 
 ```bash
-docker compose up -d --abort-on-container-exit
+docker-compose up --detach
 cd web && pnpm dev
 ```
 
