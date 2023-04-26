@@ -235,7 +235,9 @@ const useKeys = () => {
     {
       onSuccess: (data) => {
         if (data) {
-          setCurrentKey(data);
+          const newKeys = keys.map((key) => (key.id === data.id ? data : key));
+
+          setKeys(newKeys);
         }
       },
     }
@@ -288,6 +290,7 @@ const useKeys = () => {
     deleteKey,
 
     currentKey,
+    setCurrentKey,
     keySecret,
     resetKeySecret,
   };

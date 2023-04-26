@@ -1,11 +1,9 @@
 import { useToggle } from "@/hooks/useToggle";
-import { Icon } from "@/components/Icon";
 import { memo, useMemo, useState } from "react";
-import { Controls } from "./Controls";
 import { InviteMembersDialog } from "./InviteMembersDialog";
-import { RemoveMemberDialog } from "./RemoveMemberDialog";
-import { useDebouncedCallback } from "use-debounce";
 import { TeamMember } from "@/scenes/team/hooks/useTeam";
+import { Button } from "src/components/Button";
+import { Member } from "./Member";
 
 export interface MemberListProps {
   members: TeamMember[];
@@ -15,14 +13,12 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
   const { members } = props;
   const inviteDialog = useToggle();
 
-  const [memberForRemove, setMemberForRemove] = useState<TeamMember>();
-
   const [keyword, setKeyword] = useState("");
 
-  const handleKeywordChange = useDebouncedCallback(
-    (value) => setKeyword(value),
-    500
-  );
+  // const handleKeywordChange = useDebouncedCallback(
+  //   (value) => setKeyword(value),
+  //   500
+  // );
 
   const filteredMembers = useMemo(() => {
     if (!keyword) return members;
@@ -38,59 +34,34 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
         onClose={inviteDialog.toggleOff}
       />
 
-      <RemoveMemberDialog
-        memberForRemove={memberForRemove}
-        onClose={() => setMemberForRemove(undefined)}
-      />
-
       <div className="grid gap-y-4">
-        <Controls
+        {/* <Controls
           onInviteClick={inviteDialog.toggleOn}
           keyword={keyword}
           onKeywordChange={handleKeywordChange}
-        />
+          members={members}
+        /> */}
 
-        <div className="space-x-2 text-neutral text-14 mt-4">
-          <span>Member</span>
+        <div className="flex justify-between text-14 mt-4">
+          <div className="space-x-2">
+            <span className="font-medium">Team members</span>
 
-          <span className="bg-ebecef py-1 px-1.5 rounded-[4px]">
-            {members.length}
-          </span>
+            <span className="bg-ebecef py-1 px-1.5 rounded-[4px]">
+              {members.length}
+            </span>
+          </div>
+
+          <Button
+            className="py-3.5 px-8 uppercase"
+            onClick={inviteDialog.toggleOn}
+          >
+            Invite new members
+          </Button>
         </div>
 
         <div className="grid gap-y-4">
           {filteredMembers.map((member, key) => (
-            <div
-              key={key}
-              className="flex items-center bg-ffffff rounded-xl shadow-lg p-4 gap-3"
-            >
-              <div className="relative w-10 h-10 grid place-items-center bg-success-light rounded-full">
-                <Icon name="user-solid" className="w-4 h-4 bg-success" />
-
-                {/* FIXME: add verified flag to hasura */}
-                {/*{member.verified && (*/}
-                {/*  <Icon*/}
-                {/*    name="badge-verification"*/}
-                {/*    className="absolute w-5 h-5 -bottom-1 -right-1"*/}
-                {/*    noMask*/}
-                {/*  />*/}
-                {/*)}*/}
-              </div>
-
-              <div className="flex-1 space-y-1">
-                <h5>{member.name}</h5>
-                <p className="text-12">{member.email}</p>
-              </div>
-
-              {members.length > 1 && (
-                <button
-                  className="text-danger hover:opacity-75 transition-opacity"
-                  onClick={() => setMemberForRemove(member)}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
+            <Member key={key} member={member} length={members.length} />
           ))}
         </div>
       </div>
