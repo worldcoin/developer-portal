@@ -12,7 +12,11 @@
     "yaml",
     "json"
   ],
-  "ignorePaths": ["web/tests/api/__mocks__/jwk.ts", "node_modules/**"],
+  "ignorePaths": [
+    "web/tests/api/__mocks__/jwk.ts",
+    "node_modules/**",
+    "pnpm-lock.yaml"
+  ],
   "words": [
     "arrayify",
     "chartjs",

@@ -1,6 +1,7 @@
 # This Dockerfile is used to build the production image
 # from https://github.com/vercel/next.js/blob/474b115e6d903394d58a51eef97ffa4f2ae2ce70/examples/with-docker/Dockerfile
 FROM --platform=linux/amd64 node:18-alpine AS base
+RUN wget -qO /bin/pnpm "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" && chmod +x /bin/pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -8,8 +9,8 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS runner
@@ -26,10 +27,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # TODO: Leverage Next.JS standalone output to significantly reduce image size
-RUN yarn build
+RUN pnpm build
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD [ "yarn" , "start" ]
+CMD [ "pnpm" , "start" ]
