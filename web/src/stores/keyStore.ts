@@ -11,7 +11,9 @@ export type IKeyStore = {
   setKeys: (keys: APIKeyModel[]) => void;
   setCurrentKey: (key: APIKeyModel | null) => void;
   setCurrentKeyById: (id: string) => void;
-  setKeySecret: (keySecret: Record<APIKeyModel["id"], APIKeyModel["api_key"] | undefined>) => void;
+  setKeySecret: (
+    keySecret: Record<APIKeyModel["id"], APIKeyModel["api_key"] | undefined>
+  ) => void;
   setIsNewKeyModalOpened: (value: boolean) => void;
   setIsUpdateKeyModalOpened: (value: boolean) => void;
   setIsDeleteKeyModalOpened: (value: boolean) => void;

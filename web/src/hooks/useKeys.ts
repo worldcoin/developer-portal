@@ -165,7 +165,7 @@ const resetKeySecretFetcher = async (_key: string) => {
   if (response.data?.reset_api_key.api_key) {
     return {
       id: currentKey.id,
-      api_key: response.data.reset_api_key.api_key
+      api_key: response.data.reset_api_key.api_key,
     };
   }
 
