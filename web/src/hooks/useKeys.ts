@@ -243,7 +243,7 @@ const useKeys = () => {
     }
   );
 
-  const deleteKeyMutation = useSWRMutation("app", deleteKeyFetcher, {
+  const deleteKeyMutation = useSWRMutation("apiKey", deleteKeyFetcher, {
     onSuccess: (data) => {
       if (data) {
         setCurrentKey(null);
