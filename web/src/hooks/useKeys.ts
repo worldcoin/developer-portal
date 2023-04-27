@@ -268,7 +268,7 @@ const useKeys = () => {
 
   // NOTE: hide API secret on router history change
   useEffect(() => {
-    router.events.on("beforeHistoryChange", () => setKeySecret(null));
+    router.events.on("beforeHistoryChange", () => setKeySecret({}));
   }, [router.events, setKeySecret]);
 
   return {
