@@ -51,8 +51,6 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
     setIsDeleteKeyModalOpened(true);
   };
 
-  console.log(props.apikey);
-
   return (
     <Fragment>
       <tr>
@@ -63,8 +61,8 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
             onClick={(e) => handleUpdateName(props.apikey)}
           />
         </td>
-        <td className="">
-          <div>{keySecret}</div>
+        <td className="pr-4">
+          <div className="break-all">{keySecret && keySecret[props.apikey.id]}</div>
         </td>
         <td>
           <div>{dayjs(props.apikey.created_at).format("MMM D, YYYY")}</div>

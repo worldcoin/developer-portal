@@ -95,7 +95,7 @@ const insertKeyFetcher = async (_key: string, args: { arg: NewKeyPayload }) => {
 };
 
 const updateKeyFetcher = async (
-  _key: [string, string | undefined],
+  _key: string,
   args: {
     arg: {
       id: APIKeyModel["id"];
@@ -106,11 +106,9 @@ const updateKeyFetcher = async (
 ) => {
   const { id, name, is_active } = args.arg;
   const currentKey = useKeyStore.getState().currentKey;
-
   if (!currentKey) {
     return null;
   }
-
   const response = await graphQLRequest<{
     update_api_key_by_pk: APIKeyModel;
   }>({
@@ -150,7 +148,7 @@ const deleteKeyFetcher = async (
   throw Error("Could not delete API key");
 };
 
-const resetKeySecretFetcher = async (_key: [string, string | undefined]) => {
+const resetKeySecretFetcher = async (_key: string) => {
   const currentKey = useKeyStore.getState().currentKey;
 
   if (!currentKey) {
@@ -165,7 +163,10 @@ const resetKeySecretFetcher = async (_key: [string, string | undefined]) => {
   });
 
   if (response.data?.reset_api_key.api_key) {
-    return response.data.reset_api_key.api_key;
+    return {
+      id: currentKey.id,
+      api_key: response.data.reset_api_key.api_key
+    };
   }
 
   throw new Error("Failed to reset API key.");
@@ -229,19 +230,7 @@ const useKeys = () => {
     [insertKeyMutation]
   );
 
-  const { trigger: updateKey } = useSWRMutation(
-    ["apiKey", currentKey?.id],
-    updateKeyFetcher,
-    {
-      onSuccess: (data) => {
-        if (data) {
-          const newKeys = keys.map((key) => (key.id === data.id ? data : key));
-
-          setKeys(newKeys);
-        }
-      },
-    }
-  );
+  const { trigger: updateKey } = useSWRMutation("apiKey", updateKeyFetcher);
 
   const deleteKeyMutation = useSWRMutation("apiKey", deleteKeyFetcher, {
     onSuccess: (data) => {
@@ -262,12 +251,13 @@ const useKeys = () => {
   }, [currentKey, deleteKeyMutation]);
 
   const { trigger: resetKeySecret } = useSWRMutation(
-    ["apiKey", currentKey?.id],
+    "apiKey",
     resetKeySecretFetcher,
     {
-      onSuccess: (apiKey) => {
+      onSuccess: (apiKey, key, config) => {
         if (apiKey) {
-          setKeySecret(apiKey);
+          const newKeySecret = { ...keySecret, [apiKey.id]: apiKey.api_key };
+          setKeySecret(newKeySecret);
           toast.success("API key has been reset");
         }
       },
