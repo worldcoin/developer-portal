@@ -34,9 +34,9 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
   const handleUpdateIsActive = (apikey: APIKeyModel) => {
     setCurrentKey(apikey);
     updateKey({
-      id: currentKey!.id,
-      name: currentKey!.name,
-      is_active: !currentKey!.is_active,
+      id: apikey.id,
+      name: apikey.name,
+      is_active: !apikey.is_active,
     });
   };
 
