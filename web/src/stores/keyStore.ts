@@ -4,14 +4,16 @@ import { create } from "zustand";
 export type IKeyStore = {
   keys: APIKeyModel[];
   currentKey: APIKeyModel | null;
-  keySecret: string | null;
+  keySecret: Record<APIKeyModel["id"], string | undefined>;
   isNewKeyModalOpened: boolean;
   isUpdateKeyModalOpened: boolean;
   isDeleteKeyModalOpened: boolean;
   setKeys: (keys: APIKeyModel[]) => void;
   setCurrentKey: (key: APIKeyModel | null) => void;
   setCurrentKeyById: (id: string) => void;
-  setKeySecret: (secret: string | null) => void;
+  setKeySecret: (
+    keySecret: Record<APIKeyModel["id"], APIKeyModel["api_key"] | undefined>
+  ) => void;
   setIsNewKeyModalOpened: (value: boolean) => void;
   setIsUpdateKeyModalOpened: (value: boolean) => void;
   setIsDeleteKeyModalOpened: (value: boolean) => void;
@@ -20,7 +22,7 @@ export type IKeyStore = {
 export const useKeyStore = create<IKeyStore>((set, get) => ({
   keys: [],
   currentKey: null,
-  keySecret: null,
+  keySecret: {},
   isNewKeyModalOpened: false,
   isUpdateKeyModalOpened: false,
   isDeleteKeyModalOpened: false,

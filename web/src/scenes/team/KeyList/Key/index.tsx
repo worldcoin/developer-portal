@@ -34,9 +34,9 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
   const handleUpdateIsActive = (apikey: APIKeyModel) => {
     setCurrentKey(apikey);
     updateKey({
-      id: currentKey!.id,
-      name: currentKey!.name,
-      is_active: !currentKey!.is_active,
+      id: apikey.id,
+      name: apikey.name,
+      is_active: !apikey.is_active,
     });
   };
 
@@ -51,8 +51,6 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
     setIsDeleteKeyModalOpened(true);
   };
 
-  console.log(props.apikey);
-
   return (
     <Fragment>
       <tr>
@@ -63,8 +61,10 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
             onClick={(e) => handleUpdateName(props.apikey)}
           />
         </td>
-        <td className="">
-          <div>{keySecret}</div>
+        <td className="pr-4">
+          <div className="break-all">
+            {keySecret && keySecret[props.apikey.id]}
+          </div>
         </td>
         <td>
           <div>{dayjs(props.apikey.created_at).format("MMM D, YYYY")}</div>
