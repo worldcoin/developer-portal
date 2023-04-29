@@ -225,7 +225,8 @@ const useKeys = () => {
 
   const createKey = useCallback(
     async (data: NewKeyPayload) => {
-      return await insertKeyMutation.trigger(data);
+      const response = await insertKeyMutation.trigger(data);
+      return response;
     },
     [insertKeyMutation]
   );
@@ -254,11 +255,16 @@ const useKeys = () => {
     "apiKey",
     resetKeySecretFetcher,
     {
-      onSuccess: (apiKey, key, config) => {
+      onSuccess: (apiKey) => {
         if (apiKey) {
           const newKeySecret = { ...keySecret, [apiKey.id]: apiKey.api_key };
           setKeySecret(newKeySecret);
-          toast.success("API key has been reset");
+          toast.success(
+            "API key has been reset. Save this value now, it will not be shown again!",
+            {
+              autoClose: 10000,
+            }
+          );
         }
       },
     }

@@ -15,11 +15,6 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
 
   const [keyword, setKeyword] = useState("");
 
-  // const handleKeywordChange = useDebouncedCallback(
-  //   (value) => setKeyword(value),
-  //   500
-  // );
-
   const filteredMembers = useMemo(() => {
     if (!keyword) return members;
     return members.filter((member) => {
@@ -35,13 +30,6 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
       />
 
       <div className="grid gap-y-4">
-        {/* <Controls
-          onInviteClick={inviteDialog.toggleOn}
-          keyword={keyword}
-          onKeywordChange={handleKeywordChange}
-          members={members}
-        /> */}
-
         <div className="flex justify-between text-14 mt-4">
           <div className="space-x-2">
             <span className="font-medium">Team members</span>

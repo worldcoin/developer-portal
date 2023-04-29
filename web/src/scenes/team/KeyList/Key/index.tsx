@@ -43,7 +43,6 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
   const handleResetKey = (apikey: APIKeyModel) => {
     setCurrentKey(apikey);
     resetKeySecret();
-    toast.success("API Key secret reset successfully");
   };
 
   const handleRemoveKey = (apikey: APIKeyModel) => {
@@ -64,6 +63,8 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
         <td className="pr-4">
           <div className="break-all">
             {keySecret && keySecret[props.apikey.id]}
+            {!keySecret[props.apikey.id] &&
+              "api_" + btoa(props.apikey.id).substring(0, 10) + "..."}
           </div>
         </td>
         <td>

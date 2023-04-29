@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { Illustration } from "src/components/Auth/Illustration";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAppStore } from "src/stores/appStore";
 import { toast } from "react-toastify";
 import { IKeyStore, useKeyStore } from "src/stores/keyStore";
 import useKeys from "src/hooks/useKeys";
@@ -54,7 +53,6 @@ export function NewKey() {
 
       setIsOpened(false);
       reset();
-      toast.success(`Action "${values.name}" created.`);
     },
     [createKey, reset, setIsOpened]
   );
