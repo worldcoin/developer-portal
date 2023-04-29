@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
 import useApps from "src/hooks/useApps";
@@ -7,10 +7,20 @@ import { Credentials } from "./Credentials";
 import { Header } from "./Header";
 import { Redirects } from "./Redirects";
 import { NotFound } from "@/components/NotFound";
+import { useRouter } from "next/router";
+import { urls } from "src/lib/urls";
 
 export const SignIn = memo(function SignIn(props: { user_id?: string }) {
   const { currentApp, isLoading: appIsLoading } = useApps();
   const { actionIsLoading } = useSignInAction();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (currentApp?.engine === "on-chain") {
+      router.push(urls.app(currentApp.id));
+      return;
+    }
+  }, [currentApp?.engine, currentApp?.id, router]);
 
   return (
     <Layout userId={props.user_id} title="Sign in" mainClassName="grid">

@@ -1,2 +1,2 @@
 SET check_function_bodies = false;
-INSERT INTO "public"."cache" (key, value) VALUES ('semaphore.wld.eth', '0x0000000000000000000000000'), ('staging.semaphore.wld.eth', '0x0000000000000000000000000');
+INSERT INTO "public"."cache" (key, value) VALUES ('semaphore.wld.eth', '0xD81dE4BCEf43840a2883e5730d014630eA6b7c4A'), ('staging.semaphore.wld.eth', '0xABB70f7F39035586Da57B3c8136035f87AC0d2Aa'), ('phone.wld.eth', '0xf87B9bf95521aC94bF5d65791f024Ab0f5cc4088'), ('staging.phone.wld.eth', '0xABB70f7F39035586Da57B3c8136035f87AC0d2Aa');

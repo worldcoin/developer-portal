@@ -219,10 +219,10 @@ describe("/api/verify [error cases]", () => {
       query: { app_id: "app_staging_112233445566778" },
     });
 
-    // mocks Alchemy response
-    fetchMock.mockResponseOnce(
-      JSON.stringify({ error: { data: "0x504570e3" } })
-    );
+    // mocks sequencer response
+    fetchMock.mockResponseOnce("invalid root", {
+      status: 500,
+    });
 
     await handleVerify(req, res);
 
@@ -243,10 +243,10 @@ describe("/api/verify [error cases]", () => {
       query: { app_id: "app_staging_112233445566778" },
     });
 
-    // mocks Alchemy response
-    fetchMock.mockResponseOnce(
-      JSON.stringify({ error: { data: "0x09bde339" } })
-    );
+    // mocks sequencer response
+    fetchMock.mockResponseOnce("invalid proof", {
+      status: 500,
+    });
 
     await handleVerify(req, res);
 

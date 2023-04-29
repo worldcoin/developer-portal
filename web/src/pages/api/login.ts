@@ -29,7 +29,7 @@ export type LoginRequestBody = {
 export type LoginRequestResponse =
   | {
       new_user: true;
-      email: string;
+      email?: string;
       signup_token: string;
     }
   | {
@@ -127,9 +127,9 @@ export default async function handleLogin(
 
   // NOTE: User does not have an account, check for an invite token
   const { invite_token } = req.body;
+  let email: string | undefined;
   if (!user) {
     if (invite_token) {
-      let email: string | undefined;
       try {
         email = await verifyInviteJWT(invite_token);
       } catch {}

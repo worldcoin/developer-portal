@@ -1,39 +1,52 @@
-import classNames from "classnames";
+import cn from "classnames";
 import { Illustration } from "src/components/Auth/Illustration";
-import { Button } from "src/components/Button";
 import { FieldGroup } from "src/components/FieldGroup";
 import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
 import { Icon, IconType } from "src/components/Icon";
 import { Layout } from "src/components/Layout";
 import { Selector } from "src/components/Selector";
-import { useCallback, useState } from "react";
-import { IAppStore, useAppStore } from "src/stores/appStore";
+import { useState } from "react";
+import { useAppStore } from "src/stores/appStore";
 import { Toggler } from "../../components/Toggler";
-import { AppModel } from "src/lib/models";
+import { Result } from "./Result";
 
-// FIXME: mocked
+enum DebuggerMode {
+  SignIn = "Sign in with Worldcoin",
+  Actions = "Actions",
+}
 
-const modes = ["Sign in with World ID", "Actions"];
 const envs = [
   { name: "Production", icon: "rocket" },
   { name: "Staging", icon: "cloud" },
 ] as Array<{ name: string; icon: IconType }>;
 
-// end mocked
+const exampleVR = `{
+  "nullifier_hash": "0x26a12376e45f7b93fba3d5ddd7f1092eb...",
+  "proof": "0x0751916cb52efab89f7045f5174638d072ea60d9e9...",
+  "merkle_root": "0x0f6ee51b93a1261af6c4302c30afbbdf8af5...",
+  "credential_type": "orb"
+}`;
 
 export function Debugger(props: { user_id?: string }): JSX.Element {
-  const [currentApp, setCurrentApp] = useState<AppModel | null>(null);
-  const [currentEnv, setCurrentEnv] = useState<(typeof envs)[0]>(envs[0]);
-  const [currentMode, setCurrentMode] = useState(modes[0]);
+  const [action, setAction] = useState("");
+  const [signal, setSignal] = useState("");
+  const [response, setResponse] = useState("");
+  const [mode, setMode] = useState(DebuggerMode.SignIn);
+  const [env, setEnv] = useState<(typeof envs)[0]>(envs[0]);
+  const [hasTried, setHasTried] = useState(false);
+  const currentApp = useAppStore((state) => state.currentApp);
 
-  const apps = useAppStore((state) => state.apps);
+  const handleResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setHasTried(true);
+    setResponse(e.target.value);
+  };
 
   return (
     <Layout
       userId={props.user_id}
       title="Debugger"
-      mainClassName={classNames(
+      mainClassName={cn(
         "grid gap-16",
         // NOTE: container - card - gap
         "grid-cols-[calc(100%-380px-64px)_380px]"
@@ -41,7 +54,7 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
     >
       <div className="space-y-12">
         <div className="grid grid-flow-col auto-cols-max gap-6 items-center">
-          <Illustration icon="speed-test" />
+          <Illustration icon="speed-test" className="w-auto p-5" />
 
           <div className="flex flex-col gap-1">
             <h1 className="font-sora text-20 font-semibold">Proof debugger</h1>
@@ -63,19 +76,14 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
 
         <div className="space-y-8">
           <FieldGroup label="App" className="!text-14">
-            <Selector
-              values={apps}
-              value={currentApp}
-              setValue={setCurrentApp}
-              render={(item) => <>{item ? item.name : "Loading"}</>}
-            />
+            <FieldInput value={currentApp?.name ?? "Loading..."} disabled />
           </FieldGroup>
 
           <FieldGroup label="Mode" className="!text-14">
             <Toggler
-              values={modes}
-              value={currentMode}
-              setValue={setCurrentMode}
+              values={Object.values(DebuggerMode)}
+              value={mode}
+              setValue={setMode}
               render={(item) => <>{item}</>}
             />
           </FieldGroup>
@@ -83,8 +91,8 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
           <FieldGroup label="Environment" className="!text-14">
             <Selector
               values={envs}
-              value={currentEnv}
-              setValue={setCurrentEnv}
+              value={env}
+              setValue={setEnv}
               render={(item) => (
                 <span className="flex items-center gap-2.5 text-14">
                   <Icon className="w-4.5 h-4.5" name={item.icon} />
@@ -98,15 +106,42 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
             </span>
           </FieldGroup>
 
-          <FieldGroup
-            className="group"
-            label={<FieldLabel className="!text-14">Action</FieldLabel>}
-          >
-            <FieldInput placeholder="my_action" className="w-full" />
-            <span className="text-12 text-neutral-secondary">
-              Enter your action as passed to IDKit
-            </span>
-          </FieldGroup>
+          {mode === DebuggerMode.Actions && (
+            <div className="flex w-full justify-between space-x-10">
+              <div className="grow">
+                <FieldGroup
+                  className="group"
+                  label={<FieldLabel className="!text-14">Action</FieldLabel>}
+                >
+                  <FieldInput
+                    placeholder="my_action"
+                    className="w-full"
+                    value={action}
+                    onChange={(e) => setAction(e.target.value)}
+                  />
+                  <span className="text-12 text-neutral-secondary">
+                    Enter your action as passed to IDKit
+                  </span>
+                </FieldGroup>
+              </div>
+              <div className="grow">
+                <FieldGroup
+                  className="group"
+                  label={<FieldLabel className="!text-14">Signal</FieldLabel>}
+                >
+                  <FieldInput
+                    placeholder="my_signal"
+                    className="w-full"
+                    value={signal}
+                    onChange={(e) => setSignal(e.target.value)}
+                  />
+                  <span className="text-12 text-neutral-secondary">
+                    Enter the signal as passed to IDKit
+                  </span>
+                </FieldGroup>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -124,37 +159,28 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
               Verification Response
             </h3>
 
-            <textarea className="w-full min-h-[340px] p-6"></textarea>
+            <textarea
+              placeholder={exampleVR}
+              className="w-full min-h-[340px] p-6"
+              onChange={handleResponseChange}
+            >
+              {response}
+            </textarea>
           </div>
         </div>
       </div>
 
-      <div className="pr-10 self-center">
-        <div className="rounded-xl p-6 border border-f0edf9 space-y-6">
-          <div className="space-y-4">
-            <h4 className="font-sora font-semibold">Debugging results</h4>
-
-            <div className="bg-fff9e5 grid grid-flow-col gap-4 p-6">
-              <Icon name="warning-triangle" className="w-4.5 h-4.5" noMask />
-
-              <div className="space-y-1.5">
-                <p className="text-ffb11b text-14 font-bold font-sora">
-                  Warning
-                </p>
-
-                <p className="text-12 leading-4.5 text-657080 font-mono">
-                  Your proof is almost valid. Looks like you are using custom
-                  advanced encoding but the action_id is not properly encoded.
-                  Check this guide on how to encode it or remove the advanced
-                  option.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <Button className="w-full p-4">Validate Proof</Button>
-        </div>
-      </div>
+      {currentApp && (
+        <Result
+          classNames="self-center"
+          appId={currentApp.id}
+          isStaging={env === envs[1]}
+          action={mode === DebuggerMode.Actions ? action : ""}
+          signal={mode === DebuggerMode.Actions ? signal : ""}
+          response={response}
+          hasTried={hasTried}
+        />
+      )}
     </Layout>
   );
 }

@@ -15,8 +15,8 @@ import { toast } from "react-toastify";
 import { ActionValue } from "../common/ActionValue";
 
 const schema = yup.object({
-  name: yup.string(),
-  description: yup.string(),
+  name: yup.string().required("This field is required"),
+  description: yup.string().required("This field is required"),
 });
 
 export type UpdateActionFormValues = yup.Asserts<typeof schema>;
@@ -68,13 +68,16 @@ export const UpdateAction = memo(function UpdateAction() {
   );
 
   const isFormValid = useMemo(
-    () => dirtyFields.name || dirtyFields.description,
-    [dirtyFields.description, dirtyFields.name]
+    () =>
+      !errors.description &&
+      !errors.name &&
+      (dirtyFields.name || dirtyFields.description),
+    [dirtyFields.description, dirtyFields.name, errors.description, errors.name]
   );
 
   return (
     <Dialog
-      panelClassName="max-h-full overflow-y-auto lg:min-w-[486px]"
+      panelClassName="max-h-full overflow-y-auto lg:min-w-[490px]"
       open={isOpened}
       onClose={() => setIsOpened(false)}
     >
@@ -104,10 +107,16 @@ export const UpdateAction = memo(function UpdateAction() {
         </div>
 
         <div className="mt-6 flex flex-col gap-y-2">
-          <FieldLabel className="font-rubik">Description</FieldLabel>
-          {/* helper: "Tell your users what the action is about. Shown in the World App." */}
+          <FieldLabel
+            required
+            isPublic
+            className="font-rubik"
+            description="Tell your users what the action is about. Shown in the World App."
+          >
+            Description
+          </FieldLabel>
+
           {/* FIXME: Max length 80 chars (API enforced) */}
-          {/* FIXME: Let's actually make this required and change the "(optional) for (public)" */}
           <FieldTextArea
             register={register("description")}
             errors={errors.description}

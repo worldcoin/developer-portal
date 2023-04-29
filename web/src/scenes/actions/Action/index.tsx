@@ -164,7 +164,7 @@ export const Action = memo(function Action(props: {
 
               <td className="pr-4">
                 <VerificationSelect
-                  hint="Changing this will not retroactively affect already verified users!"
+                  hint="Changes will not retroactively affect previously verified users."
                   value={props.action.max_verifications}
                   onChange={(value) =>
                     updateAction(props.action.id, {

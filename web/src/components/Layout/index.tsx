@@ -29,8 +29,7 @@ export const Layout = (props: {
 }) => {
   const newAppDialog = useToggle();
   const router = useRouter();
-
-  const { setCurrentAppById } = useAppStore(getStore);
+  const { currentApp, setCurrentAppById } = useAppStore(getStore);
   const { apps } = useApps();
 
   useEffect(() => {
@@ -49,6 +48,11 @@ export const Layout = (props: {
       return apps[0].id;
     }
   }, [apps, router.query.app_id]);
+
+  const signInDisabled = useMemo(
+    () => currentApp?.engine === "on-chain",
+    [currentApp?.engine]
+  );
 
   return (
     <Fragment>
@@ -82,9 +86,20 @@ export const Layout = (props: {
                 />
 
                 <NavItem
-                  icon="world-id-sign-in"
+                  icon={
+                    signInDisabled
+                      ? "world-id-sign-in-disabled"
+                      : "world-id-sign-in"
+                  }
                   name="Sign In"
                   href={urls.appSignIn(appId)}
+                  disabled={signInDisabled}
+                  stamp={
+                    <span className="text-[10px] leading-none py-0.5 px-1 rounded-[4px] bg-gray-500 text-ffffff">
+                      Unavailable for on-chain
+                    </span>
+                  }
+                  stampVisible={signInDisabled}
                 />
 
                 <NavItem
@@ -100,13 +115,11 @@ export const Layout = (props: {
                   icon="document"
                   href="https://docs.worldcoin.org"
                 />
-                {/* FIXME: Coming soon! */}
-                {/*
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
-                  href={urls.debugger()}
-                /> */}
+                  href={urls.debugger(router.query.app_id as string)}
+                />
 
                 {/* <NavItem
                   name="Support"

@@ -2,16 +2,17 @@
  * Constants available to both backend and frontend.
  */
 
-import { CredentialType } from "./types";
+import { CredentialType, SequencerMappingType } from "./types";
 
 // ANCHOR: Orb credential
+export const ORB_SEQUENCER = "https://signup.crypto.worldcoin.dev";
 export const ORB_SEQUENCER_STAGING =
-  "https://signup.stage-crypto.worldcoin.dev/inclusionProof";
+  "https://signup-v2.stage-crypto.worldcoin.dev";
 
 // ANCHOR: Phone credential
-export const PHONE_SEQUENCER = "https://phone-signup.crypto.worldcoin.dev";
+export const PHONE_SEQUENCER = "https://phone-signup.crypto.worldcoin.dev"; // TODO: Update once deployed
 export const PHONE_SEQUENCER_STAGING =
-  "https://phone-signup.stage-crypto.worldcoin.dev";
+  "https://phone-signup.stage-crypto.worldcoin.dev"; // TODO: Update once deployed
 
 export const SEMAPHORE_GROUP_MAP: Record<CredentialType, number> = {
   [CredentialType.Orb]: 1,

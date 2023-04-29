@@ -3,6 +3,7 @@ import handleOIDCAuthorize from "src/pages/api/v1/oidc/authorize";
 import { integrationDBSetup, integrationDBTearDown } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
 import fetchMock from "jest-fetch-mock";
+import { minedSequencerInclusionProof } from "tests/api/__mocks__/sequencer.mock";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -42,10 +43,10 @@ describe("/api/v1/oidc/authorize", () => {
       body: validParams(app_id),
     });
 
-    // mocks Alchemy response for proof verification
+    // mocks sequencer response for proof verification
     fetchMock
-      .mockIf(/alchemy.com/)
-      .mockResponse(JSON.stringify({ result: "0x" }));
+      .mockIf(/worldcoin.dev/)
+      .mockResponse(JSON.stringify(minedSequencerInclusionProof));
 
     await handleOIDCAuthorize(req, res);
 

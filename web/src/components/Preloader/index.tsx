@@ -6,7 +6,7 @@ export const Preloader = memo(function Preloader(props: {
 }) {
   return (
     <div className={props.className}>
-      <Icon name="wld-logo" className="w-full h-full animate-spin" />
+      <Icon name="spinner" className="w-full h-full animate-spin" noMask />
     </div>
   );
 });

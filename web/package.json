@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "NODE_OPTIONS='-r next-logger -r ./datadog' next start",
     "lint": "next lint",
-    "test": "yarn test:api && yarn test:integration",
+    "test": "pnpm test:api && pnpm test:integration",
     "format": "prettier -w ./",
     "test:api": "jest tests/api",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration",
