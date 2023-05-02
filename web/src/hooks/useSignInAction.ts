@@ -203,7 +203,7 @@ const updateRedirectFetcher = async (
     return response.data.update_redirect_by_pk;
   }
 
-  throw new Error("Fieled to update redirect");
+  throw new Error("Failed to update redirect");
 };
 
 const deleteRedirectFetcher = async (

@@ -30,6 +30,11 @@ export const sequencerMapping: SequencerMappingType = {
  */
 export const validateUrl = (candidate: string): boolean => {
   let parsedUrl;
+  const localhostRegex =
+    /^https?:\/\/localhost(:[0-9]+)?(\/[^\s?]*)(\\?[^\s]*)?$/;
+  const urlSchemeRegex =
+    /^(?!http:\/\/)[a-zA-Z0-9.+-]+:\/\/[^\s?]*(\\?[^\s]*)?$/;
+
   try {
     parsedUrl = new URL(candidate);
   } catch (_) {
@@ -37,14 +42,10 @@ export const validateUrl = (candidate: string): boolean => {
   }
 
   const isLocalhost = parsedUrl.hostname === "localhost";
-  const isHttps = parsedUrl.protocol === "https:";
 
   if (!isLocalhost) {
-    return isHttps;
+    return urlSchemeRegex.test(candidate);
   }
-
-  const localhostRegex =
-    /^https?:\/\/localhost(:[0-9]+)?(\/[^\s?]*)(\\?[^\s]*)?$/;
 
   return localhostRegex.test(candidate);
 };

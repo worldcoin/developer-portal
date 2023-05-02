@@ -2,7 +2,7 @@ actions:
   - name: reset_api_key
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-api-key"
+      handler: '{{NEXT_API_URL}}/_reset-api-key'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,7 +12,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-client-secret"
+      handler: '{{NEXT_API_URL}}/_reset-client-secret'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
