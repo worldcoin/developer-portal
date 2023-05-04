@@ -53,6 +53,7 @@ To start using the JWKS features of the portal, some prior setup in your AWS acc
       "Sid": "VisualEditor0",
       "Effect": "Allow",
       "Action": [
+        "kms:GetPublicKey",
         "kms:TagResource",
         "kms:ScheduleKeyDeletion",
         "kms:PutKeyPolicy",
