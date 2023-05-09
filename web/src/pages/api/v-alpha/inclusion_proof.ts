@@ -101,7 +101,7 @@ export default async function handleInclusionProof(
     body,
   });
   // Commitment found, return the proof
-  if (response.status === 200) {
+  if (response.ok) {
     res.status(200).json({
       inclusion_proof: await response.json(),
     });
