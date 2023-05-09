@@ -94,7 +94,7 @@ export default async function handleInsert(
       }
     );
 
-    if (response.status === 200) {
+    if (response.ok) {
       return res.status(204).end();
     } else if (response.status === 400) {
       return res.status(400).json({
