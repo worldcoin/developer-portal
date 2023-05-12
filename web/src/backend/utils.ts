@@ -77,12 +77,14 @@ export const protectConsumerBackendEndpoint = (
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
-  nullifiers: Array<{
-    nullifier_hash: string;
-  }>,
+  nullifiers:
+    | Array<{
+        nullifier_hash: string;
+      }>
+    | undefined,
   max_verifications_per_person: number
 ): boolean => {
-  if (!nullifiers.length) {
+  if (!nullifiers?.length) {
     // Person has not verified before, can always verify for the first time
     return true;
   } else if (max_verifications_per_person <= 0) {
@@ -91,7 +93,7 @@ export const canVerifyForAction = (
   }
 
   // Else, can only verify if the max number of verifications has not been met
-  return nullifiers.length < max_verifications_per_person;
+  return (nullifiers?.length ?? 0) < max_verifications_per_person;
 };
 
 export const reportAPIEventToPostHog = async (
