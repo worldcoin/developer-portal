@@ -130,24 +130,18 @@ export default async function handleLogin(
   let email: string | undefined;
   if (!user) {
     if (invite_token) {
-      // TODO: Temporary static invite code for hackers at ETHLisbon
-      if (
-        !process.env.ETH_LISBON_INVITE_CODE ||
-        process.env.ETH_LISBON_INVITE_CODE !== invite_token
-      ) {
-        try {
-          email = await verifyInviteJWT(invite_token);
-        } catch {}
+      try {
+        email = await verifyInviteJWT(invite_token);
+      } catch {}
 
-        if (!email) {
-          // Invite token is invalid, return an error
-          return errorValidation(
-            "invalid_invite_token",
-            "Invite token was invalid, and may be expired.",
-            "invite_token",
-            res
-          );
-        }
+      if (!email) {
+        // Invite token is invalid, return an error
+        return errorValidation(
+          "invalid_invite_token",
+          "Invite token was invalid, and may be expired.",
+          "invite_token",
+          res
+        );
       }
 
       const signup_token = await generateSignUpJWT(payload.sub);
