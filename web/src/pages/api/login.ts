@@ -130,19 +130,18 @@ export default async function handleLogin(
   let email: string | undefined;
   if (!user) {
     if (invite_token) {
-        try {
-          email = await verifyInviteJWT(invite_token);
-        } catch {}
+      try {
+        email = await verifyInviteJWT(invite_token);
+      } catch {}
 
-        if (!email) {
-          // Invite token is invalid, return an error
-          return errorValidation(
-            "invalid_invite_token",
-            "Invite token was invalid, and may be expired.",
-            "invite_token",
-            res
-          );
-        }
+      if (!email) {
+        // Invite token is invalid, return an error
+        return errorValidation(
+          "invalid_invite_token",
+          "Invite token was invalid, and may be expired.",
+          "invite_token",
+          res
+        );
       }
 
       const signup_token = await generateSignUpJWT(payload.sub);
