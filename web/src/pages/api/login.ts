@@ -130,11 +130,6 @@ export default async function handleLogin(
   let email: string | undefined;
   if (!user) {
     if (invite_token) {
-      // TODO: Temporary static invite code for hackers at ETHLisbon
-      if (
-        !process.env.ETH_LISBON_INVITE_CODE ||
-        process.env.ETH_LISBON_INVITE_CODE !== invite_token
-      ) {
         try {
           email = await verifyInviteJWT(invite_token);
         } catch {}
