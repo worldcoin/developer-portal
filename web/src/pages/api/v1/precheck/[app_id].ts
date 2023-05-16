@@ -5,6 +5,7 @@ import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "../../../../backend/cors";
+import { internal } from "@worldcoin/idkit";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
@@ -129,10 +130,11 @@ export default async function handlePrecheck(
   const app_id = req.query.app_id as string;
   const action = (req.body.action as string) ?? null;
   const nullifier_hash = (req.body.nullifier_hash as string) ?? "";
-  const external_nullifier = (req.body.external_nullifier as string) ?? "";
+  let external_nullifier = (req.body.external_nullifier as string) ?? "";
 
   if (!external_nullifier) {
-    return errorRequiredAttribute("external_nullifier", res);
+    if (action) return errorRequiredAttribute("external_nullifier", res);
+    external_nullifier = internal.generateExternalNullifier(app_id, "").digest;
   }
 
   const client = await getAPIServiceClient();
