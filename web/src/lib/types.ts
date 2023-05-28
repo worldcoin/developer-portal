@@ -11,6 +11,11 @@ export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
 };
 
+export enum Chain {
+  Polygon = "polygon",
+  Optimism = "optimism",
+}
+
 export enum CredentialType {
   Orb = "orb",
   Phone = "phone",
@@ -84,12 +89,6 @@ export type ActionKioskType = Pick<
     AppModel,
     "id" | "name" | "logo_url" | "is_staging" | "is_verified" | "__typename"
   >;
-};
-
-export type SequencerMappingType = {
-  [credential_type: string]: {
-    [is_staging: string]: string;
-  };
 };
 
 export enum Environment {
