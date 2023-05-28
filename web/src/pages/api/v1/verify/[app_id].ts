@@ -26,7 +26,6 @@ export default async function handleVerify(
     "nullifier_hash",
     "merkle_root",
     "credential_type",
-    "chain",
   ]) {
     if (!req.body[attr]) {
       return errorRequiredAttribute(attr, res);
@@ -54,7 +53,10 @@ export default async function handleVerify(
     );
   }
 
-  if (!Object.values(Chain).includes(req.body.chain)) {
+  if (
+    req.body.chain !== undefined &&
+    !Object.values(Chain).includes(req.body.chain)
+  ) {
     return errorValidation("invalid", "Invalid chain.", "chain", res);
   }
 
@@ -125,7 +127,7 @@ export default async function handleVerify(
       contract_address: data.contractAddress,
       is_staging: app.is_staging,
       credential_type: req.body.credential_type as CredentialType,
-      chain: req.body.chain as Chain,
+      chain: (req.body.chain as Chain) ?? Chain.Polygon, // Default to Polygon for now
     }
   );
   if (error || !success) {
