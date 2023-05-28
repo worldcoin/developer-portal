@@ -17,7 +17,7 @@ import {
   generateOIDCCode,
 } from "src/backend/oidc";
 import { verifyProof } from "src/backend/verify";
-import { CredentialType, OIDCResponseType } from "src/lib/types";
+import { Chain, CredentialType, OIDCResponseType } from "src/lib/types";
 
 const InsertNullifier = gql`
   mutation SaveNullifier($object: nullifier_insert_input!) {
@@ -162,6 +162,7 @@ export default async function handleOIDCAuthorize(
       is_staging: app.is_staging,
       contract_address: app.contract_address,
       credential_type,
+      chain: Chain.Polygon, // TODO: Add support for Optimism after production deployment
     }
   );
   if (verifyError) {

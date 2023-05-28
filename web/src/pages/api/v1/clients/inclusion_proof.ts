@@ -7,7 +7,7 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { checkConsumerBackendForPhoneVerification } from "src/backend/utils";
-import { Environment } from "src/lib/types";
+import { Chain, CredentialType, Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
 const existsQuery = gql`
@@ -63,10 +63,21 @@ export default async function handleInclusionProof(
     );
   }
 
+  if (
+    req.body.chain !== undefined &&
+    !Object.values(Chain).includes(req.body.chain)
+  ) {
+    return errorValidation("invalid", "Invalid chain.", "chain", res);
+  }
+
   const apiClient = await getAPIServiceClient();
+
+  const chain = (req.body.chain as Chain) ?? Chain.Polygon; // Default to Polygon for now
+  const credential_type = req.body.credential_type as CredentialType;
   const isStaging = req.body.env === "production" ? false : true;
+
   const sequencerUrl =
-    sequencerMapping[req.body.credential_type]?.[isStaging.toString()];
+    sequencerMapping[chain][credential_type]?.[isStaging.toString()];
 
   // ANCHOR: Check if the identity commitment has been revoked
   const identityCommitmentExistsResponse = await apiClient.query({
