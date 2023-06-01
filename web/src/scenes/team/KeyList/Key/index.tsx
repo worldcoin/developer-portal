@@ -1,15 +1,15 @@
-import cn from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import { Fragment, memo, MouseEvent as ReactMouseEvent, useState } from "react";
 import { InfoField } from "src/scenes/team/KeyList/Key/InfoField";
-import { APIKeyModel } from "src/lib/models";
+
 import { Button } from "src/components/Button";
 import { Switch } from "src/components/Switch";
 import useKeys from "src/hooks/useKeys";
-import { toast } from "react-toastify";
 import { IKeyStore, useKeyStore } from "src/stores/keyStore";
+import { FetchKeysQuery } from "src/hooks/useKeys/graphql/fetch-keys.generated";
+import { buffer } from "stream/consumers";
 
 dayjs.extend(relativeTime);
 
@@ -20,18 +20,20 @@ const getKeyStore = (store: IKeyStore) => ({
   setIsDeleteKeyModalOpened: store.setIsDeleteKeyModalOpened,
 });
 
-export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
+export const Key = memo(function Key(props: {
+  apikey: FetchKeysQuery["api_key"][number];
+}) {
   const { currentKey, setCurrentKey, updateKey, keySecret, resetKeySecret } =
     useKeys();
   const { setIsUpdateKeyModalOpened, setIsDeleteKeyModalOpened } =
     useKeyStore(getKeyStore);
 
-  const handleUpdateName = (apikey: APIKeyModel) => {
+  const handleUpdateName = (apikey: FetchKeysQuery["api_key"][number]) => {
     setCurrentKey(apikey);
     setIsUpdateKeyModalOpened(true);
   };
 
-  const handleUpdateIsActive = (apikey: APIKeyModel) => {
+  const handleUpdateIsActive = (apikey: FetchKeysQuery["api_key"][number]) => {
     setCurrentKey(apikey);
     updateKey({
       id: apikey.id,
@@ -40,12 +42,12 @@ export const Key = memo(function Key(props: { apikey: APIKeyModel }) {
     });
   };
 
-  const handleResetKey = (apikey: APIKeyModel) => {
+  const handleResetKey = (apikey: FetchKeysQuery["api_key"][number]) => {
     setCurrentKey(apikey);
     resetKeySecret();
   };
 
-  const handleRemoveKey = (apikey: APIKeyModel) => {
+  const handleRemoveKey = (apikey: FetchKeysQuery["api_key"][number]) => {
     setCurrentKey(apikey);
     setIsDeleteKeyModalOpened(true);
   };
