@@ -37,6 +37,7 @@ export default async function handler(
     "merkle_root",
     "nullifier_hash",
     "proof",
+    "chain",
   ]) {
     if (req.body[attr] === "") {
       return errorRequiredAttribute(attr, res);
@@ -75,6 +76,7 @@ export default async function handler(
       contract_address: contract_address,
       is_staging: req.body.is_staging,
       credential_type: req.body.credential_type,
+      chain: req.body.chain,
     }
   );
 

@@ -1,9 +1,11 @@
-import { EnvironmentType, SequencerMappingType } from "src/lib/types";
+import { Chain, CredentialType, EnvironmentType } from "src/lib/types";
 import {
-  ORB_SEQUENCER_STAGING,
-  ORB_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
-  PHONE_SEQUENCER,
+  POLYGON_ORB_SEQUENCER_STAGING,
+  POLYGON_ORB_SEQUENCER,
+  POLYGON_PHONE_SEQUENCER_STAGING,
+  POLYGON_PHONE_SEQUENCER,
+  OPTIMISM_ORB_SEQUENCER,
+  OPTIMISM_ORB_SEQUENCER_STAGING,
 } from "./constants";
 
 export const ENVIRONMENTS: EnvironmentType[] = [
@@ -12,14 +14,29 @@ export const ENVIRONMENTS: EnvironmentType[] = [
 ];
 
 // Sequencer mapping
-export const sequencerMapping: SequencerMappingType = {
-  orb: {
-    true: ORB_SEQUENCER_STAGING,
-    false: ORB_SEQUENCER,
+export const sequencerMapping: Record<
+  Chain,
+  Record<CredentialType, { [key: string]: string | undefined }>
+> = {
+  [Chain.Polygon]: {
+    [CredentialType.Orb]: {
+      true: POLYGON_ORB_SEQUENCER_STAGING,
+      false: POLYGON_ORB_SEQUENCER,
+    },
+    [CredentialType.Phone]: {
+      true: POLYGON_PHONE_SEQUENCER_STAGING,
+      false: POLYGON_PHONE_SEQUENCER,
+    },
   },
-  phone: {
-    true: PHONE_SEQUENCER_STAGING,
-    false: PHONE_SEQUENCER,
+  [Chain.Optimism]: {
+    [CredentialType.Orb]: {
+      true: OPTIMISM_ORB_SEQUENCER_STAGING,
+      false: OPTIMISM_ORB_SEQUENCER,
+    },
+    [CredentialType.Phone]: {
+      true: undefined,
+      false: undefined,
+    },
   },
 };
 

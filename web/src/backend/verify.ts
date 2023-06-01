@@ -5,6 +5,7 @@ import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { getSmartContractENSName } from "./utils";
 import { sequencerMapping } from "src/lib/utils";
+import { Chain } from "src/lib/types";
 
 const KNOWN_ERROR_CODES = [
   {
@@ -23,11 +24,6 @@ const KNOWN_ERROR_CODES = [
   },
 ];
 
-enum PublishedChains {
-  Polygon = "polygon",
-  // TODO: Add more chains once live
-}
-
 interface IInputParams {
   merkle_root: string;
   signal: string;
@@ -40,6 +36,7 @@ interface IVerifyParams {
   contract_address: string;
   is_staging: boolean;
   credential_type: CredentialType;
+  chain: Chain;
 }
 
 interface IAppActionWithContractAddress {
@@ -333,7 +330,7 @@ export const verifyProof = async (
   });
 
   const sequencerUrl =
-    sequencerMapping[verifyParams.credential_type.toString()]?.[
+    sequencerMapping[verifyParams.chain][verifyParams.credential_type]?.[
       verifyParams.is_staging.toString()
     ];
 
@@ -374,5 +371,5 @@ export const verifyProof = async (
 
   const result = await response.json();
   const status = result.status === "mined" ? "on-chain" : "pending";
-  return { success: true, status, chains: [PublishedChains.Polygon] }; // TODO: Pass all chains once live
+  return { success: true, status, chains: [verifyParams.chain] };
 };
