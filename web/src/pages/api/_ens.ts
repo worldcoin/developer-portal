@@ -27,32 +27,16 @@ export default async function handleENS(
     process.env.ALCHEMY_API_KEY
   );
 
-  // Orb credential
-  const productionAddress = await provider.resolveName("semaphore.wld.eth");
-  const stagingAddress = await provider.resolveName(
-    "staging.semaphore.wld.eth"
-  );
+  const polygonAddress = await provider.resolveName("polygon.id.worldcoin.eth");
+  const mumbaiAddress = await provider.resolveName("mumbai.id.worldcoin.eth");
 
-  // Phone credential
-  const phoneStagingAddress = await provider.resolveName(
-    "staging.phone.wld.eth"
-  );
-  const phoneAddress = await provider.resolveName("phone.wld.eth");
-
-  if (productionAddress && stagingAddress) {
+  if (polygonAddress && mumbaiAddress) {
     const mutation = gql`
-      mutation upsert_cache(
-        $productionAddress: String!
-        $stagingAddress: String!
-        $phoneAddress: String!
-        $phoneStagingAddress: String!
-      ) {
+      mutation upsert_cache($polygonAddress: String!, $mumbaiAddress: String!) {
         insert_cache(
           objects: [
-            { key: "semaphore.wld.eth", value: $productionAddress }
-            { key: "staging.semaphore.wld.eth", value: $stagingAddress }
-            { key: "phone.wld.eth", value: $phoneAddress }
-            { key: "staging.phone.wld.eth", value: $phoneStagingAddress }
+            { key: "polygon.id.worldcoin.eth", value: $polygonAddress }
+            { key: "mumbai.id.worldcoin.eth", value: $mumbaiAddress }
           ]
           on_conflict: { constraint: cache_key_key, update_columns: [value] }
         ) {
@@ -67,16 +51,14 @@ export default async function handleENS(
     await client.query({
       query: mutation,
       variables: {
-        productionAddress,
-        stagingAddress,
-        phoneStagingAddress,
-        phoneAddress,
+        polygonAddress,
+        mumbaiAddress,
       },
     });
   } else {
     res.status(500).json({
       success: false,
-      error: `Production address (${productionAddress}) or staging address (${stagingAddress}) not found.`,
+      error: `Polygon address (${polygonAddress}) or mumbai address (${mumbaiAddress}) not found.`,
     });
     return;
   }
