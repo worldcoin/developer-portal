@@ -54,7 +54,7 @@ export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
           />
 
           <LinkCard
-            href="https://discord.gg/worldcoin"
+            href="https://worldcoin.org/discord"
             external
             heading="Join our Discord community"
             description="Jam on ideas, see what others are building, ask questions. Look for the #developers channel."
