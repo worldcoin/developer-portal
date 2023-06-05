@@ -124,7 +124,7 @@ export const Layout = (props: {
                 {/* <NavItem
                   name="Support"
                   icon="help"
-                  href="https://discord.gg/worldcoin"
+                  href="https://worldcoin.org/discord"
                 /> */}
               </NavItemGroup>
 
