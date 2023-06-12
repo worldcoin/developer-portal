@@ -48,8 +48,8 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
     { width: 1920, height: 1080 },
   ];
 
-  const metaImages = metaImagesSizes.map(({ width, height }, index) => ({
-    url: `${process.env.NEXT_PUBLIC_APP_URL}/images/meta/${width}x${height}.png`,
+  const metaImages = metaImagesSizes.map(({ width, height }) => ({
+    url: `/images/meta/${width}x${height}.png`,
     width,
     height,
     alt: `Worldcoin Developer Portal`,
