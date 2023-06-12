@@ -19,7 +19,7 @@ Follow the [Quick Start](https://docs.worldcoin.org/quick-start) guide for the e
 
 ## 📄 Documentation
 
-All the technical docs for the Wordcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
+All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
 
 <a href="https://docs.worldcoin.org">
   <p align="center">
