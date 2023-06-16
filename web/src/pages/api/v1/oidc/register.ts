@@ -43,7 +43,6 @@ const updateSecretQuery = gql`
           id
           name
           logo_url
-          # redirect_uris // TODO: Add back once redirect table is live
           created_at
         }
       }
@@ -158,7 +157,8 @@ export default async function handleRegister(
     insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
       req.body.redirects.length
   ) {
-    throw Error("Could not insert the redirects");
+    // We let the response continue because the app and action were created, we just flag to the user that the redirects were not inserted
+    console.error("Could not insert the redirects");
   }
 
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
@@ -173,9 +173,15 @@ export default async function handleRegister(
       grant_types: (req.body.grant_types = "authorization_code"),
       logo_uri: app.logo_url,
 
-      redirect_uris: insertRedirectsResponse.data.insert_redirect.returning.map(
-        (redirect) => redirect.redirect_uri
-      ),
+      redirect_uris:
+        insertRedirectsResponse.data?.insert_redirect.returning.map(
+          (redirect) => redirect.redirect_uri
+        ),
+
+      ...(insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
+      req.body.redirects.length
+        ? { insertion_error: "Redirect URIs not recorded." }
+        : {}),
 
       response_types: (req.body.response_types = "code"),
     });
