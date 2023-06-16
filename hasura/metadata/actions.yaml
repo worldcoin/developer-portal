@@ -1,8 +1,18 @@
 actions:
+  - name: invite_team_members
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/_invite_team_members'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Create invites and send emails
   - name: reset_api_key
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-api-key"
+      handler: '{{NEXT_API_URL}}/_reset-api-key'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,7 +22,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-client-secret"
+      handler: '{{NEXT_API_URL}}/_reset-client-secret'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -26,4 +36,5 @@ custom_types:
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
+    - name: InviteTeamMembersOutput
   scalars: []

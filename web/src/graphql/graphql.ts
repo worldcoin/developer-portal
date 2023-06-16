@@ -48,6 +48,16 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Int"]>>;
 };
 
+export type InviteTeamMembersOutput = {
+  __typename?: "InviteTeamMembersOutput";
+  emails?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type ResetApiOutput = {
+  __typename?: "ResetAPIOutput";
+  api_key: Scalars["String"];
+};
+
 export type ResetClientOutput = {
   __typename?: "ResetClientOutput";
   client_secret: Scalars["String"];
@@ -721,9 +731,13 @@ export type Action_Variance_Order_By = {
 /** columns and relationships of "api_key" */
 export type Api_Key = {
   __typename?: "api_key";
+  api_key: Scalars["String"];
   created_at: Scalars["timestamptz"];
   id: Scalars["String"];
   is_active: Scalars["Boolean"];
+  name: Scalars["String"];
+  /** An object relationship */
+  team: Team;
   team_id: Scalars["String"];
   updated_at: Scalars["timestamptz"];
 };
@@ -754,9 +768,12 @@ export type Api_Key_Bool_Exp = {
   _and?: InputMaybe<Array<Api_Key_Bool_Exp>>;
   _not?: InputMaybe<Api_Key_Bool_Exp>;
   _or?: InputMaybe<Array<Api_Key_Bool_Exp>>;
+  api_key?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   is_active?: InputMaybe<Boolean_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -769,9 +786,12 @@ export enum Api_Key_Constraint {
 
 /** input type for inserting data into table "api_key" */
 export type Api_Key_Insert_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -779,8 +799,10 @@ export type Api_Key_Insert_Input = {
 /** aggregate max on columns */
 export type Api_Key_Max_Fields = {
   __typename?: "api_key_max_fields";
+  api_key?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -788,8 +810,10 @@ export type Api_Key_Max_Fields = {
 /** aggregate min on columns */
 export type Api_Key_Min_Fields = {
   __typename?: "api_key_min_fields";
+  api_key?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -812,9 +836,12 @@ export type Api_Key_On_Conflict = {
 
 /** Ordering options when selecting data from "api_key". */
 export type Api_Key_Order_By = {
+  api_key?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   is_active?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -827,11 +854,15 @@ export type Api_Key_Pk_Columns_Input = {
 /** select columns of table "api_key" */
 export enum Api_Key_Select_Column {
   /** column name */
+  ApiKey = "api_key",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Id = "id",
   /** column name */
   IsActive = "is_active",
+  /** column name */
+  Name = "name",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -840,9 +871,11 @@ export enum Api_Key_Select_Column {
 
 /** input type for updating data in table "api_key" */
 export type Api_Key_Set_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -857,9 +890,11 @@ export type Api_Key_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Api_Key_Stream_Cursor_Value_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -867,11 +902,15 @@ export type Api_Key_Stream_Cursor_Value_Input = {
 /** update columns of table "api_key" */
 export enum Api_Key_Update_Column {
   /** column name */
+  ApiKey = "api_key",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Id = "id",
   /** column name */
   IsActive = "is_active",
+  /** column name */
+  Name = "name",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -1938,6 +1977,168 @@ export enum Cursor_Ordering {
   Desc = "DESC",
 }
 
+/** Invites */
+export type Invite = {
+  __typename?: "invite";
+  email: Scalars["String"];
+  expires_at: Scalars["timestamptz"];
+  id: Scalars["String"];
+  /** An object relationship */
+  team: Team;
+  team_id: Scalars["String"];
+};
+
+/** aggregated selection of "invite" */
+export type Invite_Aggregate = {
+  __typename?: "invite_aggregate";
+  aggregate?: Maybe<Invite_Aggregate_Fields>;
+  nodes: Array<Invite>;
+};
+
+/** aggregate fields of "invite" */
+export type Invite_Aggregate_Fields = {
+  __typename?: "invite_aggregate_fields";
+  count: Scalars["Int"];
+  max?: Maybe<Invite_Max_Fields>;
+  min?: Maybe<Invite_Min_Fields>;
+};
+
+/** aggregate fields of "invite" */
+export type Invite_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Invite_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** Boolean expression to filter rows from the table "invite". All fields are combined with a logical 'AND'. */
+export type Invite_Bool_Exp = {
+  _and?: InputMaybe<Array<Invite_Bool_Exp>>;
+  _not?: InputMaybe<Invite_Bool_Exp>;
+  _or?: InputMaybe<Array<Invite_Bool_Exp>>;
+  email?: InputMaybe<String_Comparison_Exp>;
+  expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "invite" */
+export enum Invite_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  InvitePkey = "invite_pkey",
+}
+
+/** input type for inserting data into table "invite" */
+export type Invite_Insert_Input = {
+  email?: InputMaybe<Scalars["String"]>;
+  expires_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
+  team_id?: InputMaybe<Scalars["String"]>;
+};
+
+/** aggregate max on columns */
+export type Invite_Max_Fields = {
+  __typename?: "invite_max_fields";
+  email?: Maybe<Scalars["String"]>;
+  expires_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  team_id?: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type Invite_Min_Fields = {
+  __typename?: "invite_min_fields";
+  email?: Maybe<Scalars["String"]>;
+  expires_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  team_id?: Maybe<Scalars["String"]>;
+};
+
+/** response of any mutation on the table "invite" */
+export type Invite_Mutation_Response = {
+  __typename?: "invite_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Invite>;
+};
+
+/** on_conflict condition type for table "invite" */
+export type Invite_On_Conflict = {
+  constraint: Invite_Constraint;
+  update_columns?: Array<Invite_Update_Column>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "invite". */
+export type Invite_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team?: InputMaybe<Team_Order_By>;
+  team_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: invite */
+export type Invite_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "invite" */
+export enum Invite_Select_Column {
+  /** column name */
+  Email = "email",
+  /** column name */
+  ExpiresAt = "expires_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  TeamId = "team_id",
+}
+
+/** input type for updating data in table "invite" */
+export type Invite_Set_Input = {
+  email?: InputMaybe<Scalars["String"]>;
+  expires_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  team_id?: InputMaybe<Scalars["String"]>;
+};
+
+/** Streaming cursor of the table "invite" */
+export type Invite_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Invite_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Invite_Stream_Cursor_Value_Input = {
+  email?: InputMaybe<Scalars["String"]>;
+  expires_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  team_id?: InputMaybe<Scalars["String"]>;
+};
+
+/** update columns of table "invite" */
+export enum Invite_Update_Column {
+  /** column name */
+  Email = "email",
+  /** column name */
+  ExpiresAt = "expires_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  TeamId = "team_id",
+}
+
+export type Invite_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Invite_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Invite_Bool_Exp;
+};
+
 export type Jsonb_Cast_Exp = {
   String?: InputMaybe<String_Comparison_Exp>;
 };
@@ -2214,6 +2415,10 @@ export type Mutation_Root = {
   delete_cache?: Maybe<Cache_Mutation_Response>;
   /** delete single row from the table: "cache" */
   delete_cache_by_pk?: Maybe<Cache>;
+  /** delete data from the table: "invite" */
+  delete_invite?: Maybe<Invite_Mutation_Response>;
+  /** delete single row from the table: "invite" */
+  delete_invite_by_pk?: Maybe<Invite>;
   /** delete data from the table: "jwks" */
   delete_jwks?: Maybe<Jwks_Mutation_Response>;
   /** delete single row from the table: "jwks" */
@@ -2262,6 +2467,10 @@ export type Mutation_Root = {
   insert_cache?: Maybe<Cache_Mutation_Response>;
   /** insert a single row into the table: "cache" */
   insert_cache_one?: Maybe<Cache>;
+  /** insert data into the table: "invite" */
+  insert_invite?: Maybe<Invite_Mutation_Response>;
+  /** insert a single row into the table: "invite" */
+  insert_invite_one?: Maybe<Invite>;
   /** insert data into the table: "jwks" */
   insert_jwks?: Maybe<Jwks_Mutation_Response>;
   /** insert a single row into the table: "jwks" */
@@ -2286,6 +2495,10 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  /** Create invites and send emails */
+  invite_team_members?: Maybe<InviteTeamMembersOutput>;
+  /** Reset the given API key for the developer portal */
+  reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** update data of the table: "action" */
@@ -2326,6 +2539,12 @@ export type Mutation_Root = {
   update_cache_by_pk?: Maybe<Cache>;
   /** update multiples rows of table: "cache" */
   update_cache_many?: Maybe<Array<Maybe<Cache_Mutation_Response>>>;
+  /** update data of the table: "invite" */
+  update_invite?: Maybe<Invite_Mutation_Response>;
+  /** update single row of the table: "invite" */
+  update_invite_by_pk?: Maybe<Invite>;
+  /** update multiples rows of table: "invite" */
+  update_invite_many?: Maybe<Array<Maybe<Invite_Mutation_Response>>>;
   /** update data of the table: "jwks" */
   update_jwks?: Maybe<Jwks_Mutation_Response>;
   /** update single row of the table: "jwks" */
@@ -2421,6 +2640,16 @@ export type Mutation_RootDelete_CacheArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Cache_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_InviteArgs = {
+  where: Invite_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Invite_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -2557,6 +2786,18 @@ export type Mutation_RootInsert_Cache_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_InviteArgs = {
+  objects: Array<Invite_Insert_Input>;
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Invite_OneArgs = {
+  object: Invite_Insert_Input;
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_JwksArgs = {
   objects: Array<Jwks_Insert_Input>;
   on_conflict?: InputMaybe<Jwks_On_Conflict>;
@@ -2626,6 +2867,16 @@ export type Mutation_RootInsert_UserArgs = {
 export type Mutation_RootInsert_User_OneArgs = {
   object: User_Insert_Input;
   on_conflict?: InputMaybe<User_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInvite_Team_MembersArgs = {
+  emails?: InputMaybe<Array<Scalars["String"]>>;
+};
+
+/** mutation root */
+export type Mutation_RootReset_Api_KeyArgs = {
+  key_id: Scalars["String"];
 };
 
 /** mutation root */
@@ -2747,6 +2998,23 @@ export type Mutation_RootUpdate_Cache_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Cache_ManyArgs = {
   updates: Array<Cache_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_InviteArgs = {
+  _set?: InputMaybe<Invite_Set_Input>;
+  where: Invite_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Invite_By_PkArgs = {
+  _set?: InputMaybe<Invite_Set_Input>;
+  pk_columns: Invite_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Invite_ManyArgs = {
+  updates: Array<Invite_Updates>;
 };
 
 /** mutation root */
@@ -3177,6 +3445,12 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
+  /** fetch data from the table: "invite" */
+  invite: Array<Invite>;
+  /** fetch aggregated fields from the table: "invite" */
+  invite_aggregate: Invite_Aggregate;
+  /** fetch data from the table: "invite" using primary key columns */
+  invite_by_pk?: Maybe<Invite>;
   /** fetch data from the table: "jwks" */
   jwks: Array<Jwks>;
   /** fetch aggregated fields from the table: "jwks" */
@@ -3350,6 +3624,26 @@ export type Query_RootCache_AggregateArgs = {
 };
 
 export type Query_RootCache_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Query_RootInviteArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+export type Query_RootInvite_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+export type Query_RootInvite_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -3903,6 +4197,14 @@ export type Subscription_Root = {
   cache_by_pk?: Maybe<Cache>;
   /** fetch data from the table in a streaming manner: "cache" */
   cache_stream: Array<Cache>;
+  /** fetch data from the table: "invite" */
+  invite: Array<Invite>;
+  /** fetch aggregated fields from the table: "invite" */
+  invite_aggregate: Invite_Aggregate;
+  /** fetch data from the table: "invite" using primary key columns */
+  invite_by_pk?: Maybe<Invite>;
+  /** fetch data from the table in a streaming manner: "invite" */
+  invite_stream: Array<Invite>;
   /** fetch data from the table: "jwks" */
   jwks: Array<Jwks>;
   /** fetch aggregated fields from the table: "jwks" */
@@ -4125,6 +4427,32 @@ export type Subscription_RootCache_StreamArgs = {
   batch_size: Scalars["Int"];
   cursor: Array<InputMaybe<Cache_Stream_Cursor_Input>>;
   where?: InputMaybe<Cache_Bool_Exp>;
+};
+
+export type Subscription_RootInviteArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+export type Subscription_RootInvite_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+export type Subscription_RootInvite_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootInvite_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<Invite_Stream_Cursor_Input>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
 };
 
 export type Subscription_RootJwksArgs = {

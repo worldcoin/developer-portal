@@ -6,6 +6,7 @@ import { useUpdateTeamNameMutation } from "@/scenes/team/graphql/updateTeamName.
 import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { useDeleteTeamMemberMutation } from "@/scenes/team/graphql/deleteTeam.generated";
+import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMembers.generated";
 
 export type Team = NonNullable<
   NonNullable<ReturnType<typeof useTeamsQuery>["data"]>["teams"]
@@ -68,6 +69,31 @@ export const useDeleteTeamMember = () => {
 
   return {
     deleteTeamMember,
+    ...other,
+  };
+};
+
+export const useInviteTeamMembers = () => {
+  const [mutateFunction, other] = useInviteTeamMembersMutation({
+    refetchQueries: [{ query: TeamsDocument }],
+    onCompleted: () => {
+      toast.success("Members invited");
+    },
+  });
+
+  const inviteTeamMembers = useCallback(
+    (emails: string[]) => {
+      return mutateFunction({
+        variables: {
+          emails,
+        },
+      });
+    },
+    [mutateFunction]
+  );
+
+  return {
+    inviteTeamMembers,
     ...other,
   };
 };

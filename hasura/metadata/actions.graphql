@@ -1,4 +1,10 @@
 type Mutation {
+  invite_team_members(
+    emails: [String!]
+  ): InviteTeamMembersOutput
+}
+
+type Mutation {
   reset_api_key(
     key_id: String!
   ): ResetAPIOutput
@@ -16,5 +22,9 @@ type ResetClientOutput {
 
 type ResetAPIOutput {
   api_key: String!
+}
+
+type InviteTeamMembersOutput {
+  emails: [String!]
 }
 

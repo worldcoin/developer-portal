@@ -89,13 +89,16 @@ export const getDevToken = async (signing_key: string) => {
   return { token, expiration };
 };
 
-export const generateLoginUrl = (nonce: string) => {
+export const generateLoginUrl = (
+  nonce: string,
+  redirectTo: string = "/login"
+) => {
   const loginUrl = new URL(`${OIDC_BASE_URL}/authorize`);
   loginUrl.searchParams.append("nonce", nonce);
   loginUrl.searchParams.append("response_type", "id_token");
   loginUrl.searchParams.append(
     "redirect_uri",
-    `${process.env.NEXT_PUBLIC_APP_URL}/login`
+    `${process.env.NEXT_PUBLIC_APP_URL}${redirectTo}`
   );
   loginUrl.searchParams.append(
     "client_id",
