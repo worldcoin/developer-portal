@@ -71,7 +71,9 @@ export default async function handleLogin(
   const client = await getAPIServiceGraphqlClient();
 
   // ANCHOR: Check if the user is already in the DB
-  const [user] = await findUserByNullifierSdk(client).FindUserByNullifier({
+  const {
+    users: [user],
+  } = await findUserByNullifierSdk(client).FindUserByNullifier({
     nullifier,
   });
   if (user) {
@@ -102,7 +104,10 @@ export default async function handleLogin(
   }
 
   // ANCHOR: Generate a login token and authenticate
-  const { token, expiration } = await generateUserJWT(user.id, user.team_id);
+  const { token, expiration } = await generateUserJWT(
+    createdUser.id,
+    createdUser.team_id
+  );
   setCookie("auth", { token }, req as NextApiRequest, res, expiration);
   res.status(200).json({});
 }

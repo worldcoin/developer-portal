@@ -42,6 +42,9 @@ module.exports = {
         "typescript-operations",
         "typescript-graphql-request",
       ],
+      config: {
+        noGraphQLTag: true,
+      },
     },
 
     "src/scenes": {

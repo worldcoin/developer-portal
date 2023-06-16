@@ -52,16 +52,25 @@ export default async function handleInvite(
 
   const client = await getAPIServiceGraphqlClient();
 
-  const {
-    invites: { returning: invites },
-  } = await getCreateInvitesSdk(client).CreateInvites({
+  const createInvitesRes = await getCreateInvitesSdk(client).CreateInvites({
     objects: emails.map((email: string) => ({
       email,
       team_id: teamId,
     })),
   });
 
-  for (const invite of invites) {
+  if (
+    !createInvitesRes.invites?.returning ||
+    createInvitesRes.invites?.returning?.length !== emails.length
+  ) {
+    return errorHasuraQuery({
+      res,
+      detail: "Some emails could not be invited.",
+      code: "invalid_emails",
+    });
+  }
+
+  for (const invite of createInvitesRes.invites?.returning) {
     const link = `${process.env.NEXT_PUBLIC_APP_URL}/login-with-invite?invite=${invite.id}`;
     console.log(invite.email, link);
     // FIXME: send link to email
