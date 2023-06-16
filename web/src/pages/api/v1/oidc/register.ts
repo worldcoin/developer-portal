@@ -132,8 +132,19 @@ export default async function handleRegister(
   const updatedAction = updateSecretResponse?.data?.update_action?.returning[0];
 
   // Insert redirects
-  const insertRedirectsResponse = await client.mutate({
+  const insertRedirectsResponse = await client.mutate<{
+    insert_redirect: {
+      returning: Array<{
+        id: string;
+        action_id: string;
+        redirect_uri: string;
+      }>;
+
+      affected_rows: number;
+    };
+  }>({
     mutation: insertRedirectsQuery,
+
     variables: {
       objects: req.body.redirects.map((redirect: string) => ({
         action_id: updatedAction.id,
@@ -163,8 +174,7 @@ export default async function handleRegister(
       logo_uri: app.logo_url,
 
       redirect_uris: insertRedirectsResponse.data.insert_redirect.returning.map(
-        (redirect: { id: string; action_id: string; redirect_uri: string }) =>
-          redirect.redirect_uri
+        (redirect) => redirect.redirect_uri
       ),
 
       response_types: (req.body.response_types = "code"),
