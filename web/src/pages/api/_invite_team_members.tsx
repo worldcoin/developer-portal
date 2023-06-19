@@ -3,7 +3,10 @@ import { errorHasuraQuery, errorNotAllowed } from "@/backend/errors";
 import { protectInternalEndpoint } from "@/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql/createInvite.generated";
-import { sendEmail } from "@worldcoin/helpers";
+import { sendEmail } from "@/lib/send-email";
+import { Invite } from "@/components/EmailTemplates/Invite";
+import { renderToString } from "react-dom/server";
+import { inspect } from "util";
 
 export default async function handleInvite(
   req: NextApiRequest,
@@ -72,18 +75,25 @@ export default async function handleInvite(
   }
 
   const promises = [];
-
   for (const invite of createInvitesRes.invites?.returning) {
     const link = `${process.env.NEXT_PUBLIC_APP_URL}/login-with-invite?invite=${invite.id}`;
-    console.log(invite.email, link);
+
     promises.push(
       sendEmail({
         apiKey: process.env.SENDGRID_API_KEY!,
-        apiSecret: process.env.SENDGRID_API_SECRET!,
-        from: "",
+        from: process.env.SENDGRID_EMAIL_FROM!,
         to: invite.email,
         subject: "Teammate invited you",
         text: `Click this link to join: ${link}`,
+        html: renderToString(
+          <Invite
+            email={invite.email}
+            link={link}
+            // FIXME: pass below
+            teamName="test"
+            invitedBy={{ email: "test@gmail.com", name: "test" }}
+          />
+        ),
       })
     );
   }

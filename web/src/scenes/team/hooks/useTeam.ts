@@ -72,28 +72,3 @@ export const useDeleteTeamMember = () => {
     ...other,
   };
 };
-
-export const useInviteTeamMembers = () => {
-  const [mutateFunction, other] = useInviteTeamMembersMutation({
-    refetchQueries: [{ query: TeamsDocument }],
-    onCompleted: () => {
-      toast.success("Members invited");
-    },
-  });
-
-  const inviteTeamMembers = useCallback(
-    (emails: string[]) => {
-      return mutateFunction({
-        variables: {
-          emails,
-        },
-      });
-    },
-    [mutateFunction]
-  );
-
-  return {
-    inviteTeamMembers,
-    ...other,
-  };
-};

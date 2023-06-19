@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldLabel } from "@/components/FieldLabel";
@@ -7,7 +7,9 @@ import { EmailsInput } from "./EmailsInput";
 import { Icon } from "@/components/Icon";
 import cn from "classnames";
 import { DialogHeaderIcon } from "@/components/DialogHeaderIcon";
-import { useInviteTeamMembers } from "@/scenes/team/hooks/useTeam";
+import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMembers.generated";
+import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
+import { toast } from "react-toastify";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
@@ -15,15 +17,30 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
 }) {
   const { onClose } = props;
 
-  const { inviteTeamMembers, loading, called, reset } = useInviteTeamMembers();
+  const [inviteTeamMembers, { loading, called }] = useInviteTeamMembersMutation(
+    {
+      refetchQueries: [{ query: TeamsDocument }],
+
+      onCompleted: (data) => {
+        if (!data) {
+          return;
+        }
+
+        toast.success("Members invited");
+        onClose();
+      },
+
+      onError: () => {
+        toast.error("Cannot invite members, please try again");
+      },
+    }
+  );
 
   const [emails, setEmails] = useState<string[]>([]);
 
   const handleSubmit = useCallback(async () => {
-    await inviteTeamMembers(emails);
-    reset();
-    onClose();
-  }, [inviteTeamMembers, emails, reset, onClose]);
+    await inviteTeamMembers({ variables: { emails } });
+  }, [inviteTeamMembers, emails]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
