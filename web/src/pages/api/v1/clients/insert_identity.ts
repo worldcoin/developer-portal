@@ -7,7 +7,10 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
-import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
+import {
+  POLYGON_PHONE_SEQUENCER,
+  POLYGON_PHONE_SEQUENCER_STAGING,
+} from "src/lib/constants";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -85,8 +88,8 @@ export default async function handleInsert(
 
     const response = await fetch(
       req.body.env === "production"
-        ? `${PHONE_SEQUENCER}/insertIdentity`
-        : `${PHONE_SEQUENCER_STAGING}/insertIdentity`,
+        ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
+        : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
       {
         method: "POST",
         headers,
@@ -94,7 +97,7 @@ export default async function handleInsert(
       }
     );
 
-    if (response.status === 200) {
+    if (response.ok) {
       return res.status(204).end();
     } else if (response.status === 400) {
       return res.status(400).json({

@@ -4,7 +4,7 @@
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CredentialType } from "src/lib/types";
+import { CredentialType, IInternalError } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -77,12 +77,14 @@ export const protectConsumerBackendEndpoint = (
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
-  nullifiers: Array<{
-    nullifier_hash: string;
-  }>,
+  nullifiers:
+    | Array<{
+        nullifier_hash: string;
+      }>
+    | undefined,
   max_verifications_per_person: number
 ): boolean => {
-  if (!nullifiers.length) {
+  if (!nullifiers?.length) {
     // Person has not verified before, can always verify for the first time
     return true;
   } else if (max_verifications_per_person <= 0) {
@@ -91,7 +93,7 @@ export const canVerifyForAction = (
   }
 
   // Else, can only verify if the max number of verifications has not been met
-  return nullifiers.length < max_verifications_per_person;
+  return (nullifiers?.length ?? 0) < max_verifications_per_person;
 };
 
 export const reportAPIEventToPostHog = async (
@@ -148,26 +150,27 @@ export const getSmartContractENSName = (
 
 /**
  * Check the consumer backend to see if the user's phone number is verified, and if so insert it on-the-fly
- * @param req
- * @param res
- * @param isStaging
- * @returns
  */
-export async function checkConsumerBackendForPhoneVerification(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  isStaging: boolean
-) {
+export async function checkConsumerBackendForPhoneVerification({
+  isStaging,
+  identity_commitment,
+  body,
+}: {
+  isStaging: boolean;
+  identity_commitment: string;
+  body: Record<string, any>; // FIXME: dirty, shouldn't be inserted this way
+}): Promise<{ response: IInternalError } | undefined> {
   const client = await getWLDAppBackendServiceClient(isStaging);
   const phoneVerifiedResponse = await client.query({
     query: phoneVerifiedQuery,
-    variables: { identity_commitment: req.body.identity_commitment },
+    variables: { identity_commitment },
   });
 
   if (phoneVerifiedResponse.data.user.length) {
     console.info(
-      `User's phone number is verified, but not on-chain. Inserting identity: ${req.body.identity_commitment}`
+      `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
+
     // FIXME: This is dirty, we should operate this internally
     const insertResponse = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
@@ -178,33 +181,34 @@ export async function checkConsumerBackendForPhoneVerification(
           "Content-Type": "application/json",
           "User-Agent": "WorldcoinDeveloperPortal/v-alpha",
         },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(body),
       }
     );
 
     // Commitment inserted, return a pending inclusion error
     if (insertResponse.status === 204) {
-      res.status(400).json({
-        code: "inclusion_pending",
-        detail:
-          "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-      });
-    }
-
-    // Commitment not inserted, return generic error
-    else {
+      return {
+        response: {
+          code: "inclusion_pending",
+          statusCode: 400,
+          message:
+            "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
+        },
+      };
+    } else {
+      // Commitment not inserted, return generic error
       console.error(
-        `Error inserting identity on-the-fly: ${req.body.identity_commitment}`
+        `Error inserting identity on-the-fly: ${identity_commitment}`
       );
-      res.status(503).json({
-        code: "server_error",
-        detail: "Something went wrong. Please try again.",
-      });
+      return {
+        response: {
+          code: "server_error",
+          statusCode: 503,
+          message: "Something went wrong. Please try again.",
+        },
+      };
     }
   }
-
-  // Request not handled, continue the normal flow
-  throw new Error("Could not insert identity on-the-fly");
 }
 
 export const generateHashedSecret = (identifier: string) => {

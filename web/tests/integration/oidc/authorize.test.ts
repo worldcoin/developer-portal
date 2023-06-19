@@ -45,7 +45,7 @@ describe("/api/v1/oidc/authorize", () => {
 
     // mocks sequencer response for proof verification
     fetchMock
-      .mockIf(/worldcoin.dev/)
+      .mockIf(/crypto.worldcoin.org/)
       .mockResponse(JSON.stringify(minedSequencerInclusionProof));
 
     await handleOIDCAuthorize(req, res);

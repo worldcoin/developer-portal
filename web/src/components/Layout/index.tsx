@@ -124,7 +124,7 @@ export const Layout = (props: {
                 {/* <NavItem
                   name="Support"
                   icon="help"
-                  href="https://discord.gg/worldcoin"
+                  href="https://worldcoin.org/discord"
                 /> */}
               </NavItemGroup>
 
@@ -132,7 +132,11 @@ export const Layout = (props: {
 
               <NavItemGroup withoutHeading>
                 <NavItem name="My Team" icon="team" href={urls.team()} />
-
+                <NavItem
+                  name="Leave Feedback"
+                  icon="edit-alt"
+                  href="https://toolsforhumanity.typeform.com/SDKFeedback"
+                />
                 <NavItem
                   name="Log Out"
                   icon="logout"
