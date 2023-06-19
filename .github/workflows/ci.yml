@@ -22,10 +22,6 @@ jobs:
           node-version: 18
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
-          registry-url: https://npm.pkg.github.com/
-          scope: "@worldcoin"
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GPR_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -57,10 +53,6 @@ jobs:
           node-version: 18
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
-          registry-url: https://npm.pkg.github.com/
-            scope: "@worldcoin"
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GPR_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -112,10 +104,6 @@ jobs:
           node-version: 18
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
-          registry-url: https://npm.pkg.github.com/
-            scope: "@worldcoin"
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GPR_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -150,10 +138,6 @@ jobs:
           node-version: 18
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
-          registry-url: https://npm.pkg.github.com/
-          scope: "@worldcoin"
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GPR_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
