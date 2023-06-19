@@ -16,7 +16,6 @@ export type IKeyStore = {
   isDeleteKeyModalOpened: boolean;
   setKeys: (keys: FetchKeysQuery["api_key"]) => void;
   setCurrentKey: (key: FetchKeysQuery["api_key"][number] | null) => void;
-  setCurrentKeyById: (id: string) => void;
 
   setKeySecret: (
     keySecret: Record<
@@ -39,10 +38,6 @@ export const useKeyStore = create<IKeyStore>((set, get) => ({
   isDeleteKeyModalOpened: false,
   setKeys: (keys) => set({ keys }),
   setCurrentKey: (currentKey) => set({ currentKey }),
-
-  setCurrentKeyById: (id) =>
-    set({ currentKey: get().keys.find((key) => key.id === id) }),
-
   setKeySecret: (keySecret) => set({ keySecret }),
   setIsNewKeyModalOpened: (value) => set({ isNewKeyModalOpened: value }),
   setIsUpdateKeyModalOpened: (value) => set({ isUpdateKeyModalOpened: value }),

@@ -28,19 +28,12 @@ const getKeyStore = (store: IKeyStore) => ({
   keySecret: store.keySecret,
   setKeys: store.setKeys,
   setCurrentKey: store.setCurrentKey,
-  setCurrentKeyById: store.setCurrentKeyById,
   setKeySecret: store.setKeySecret,
 });
 
 const useKeys = () => {
-  const {
-    currentKey,
-    keySecret,
-    setKeys,
-    setCurrentKey,
-    // setCurrentKeyById,
-    setKeySecret,
-  } = useKeyStore(getKeyStore, shallow);
+  const { currentKey, keySecret, setKeys, setCurrentKey, setKeySecret } =
+    useKeyStore(getKeyStore, shallow);
 
   const {
     data: fetchedKeys,
