@@ -8,7 +8,6 @@ import {
 import { runCors } from "../../../backend/cors";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { verifyProof } from "src/backend/verify";
-import { getSmartContractENSName } from "src/backend/utils";
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 
@@ -49,21 +48,6 @@ export default async function handler(
     req.body.action
   ).digest;
 
-  const ensName = getSmartContractENSName(
-    req.body.is_staging,
-    req.body.credential_type
-  );
-
-  const client = await getAPIServiceClient();
-  const { data } = await client.query<{
-    cache: [{ key: string; value: string }];
-  }>({
-    query: cacheQuery,
-    variables: { ensName },
-  });
-
-  const contract_address = data.cache[0].value;
-
   const result = await verifyProof(
     {
       merkle_root: req.body.merkle_root,
@@ -73,7 +57,6 @@ export default async function handler(
       proof: req.body.proof,
     },
     {
-      contract_address: contract_address,
       is_staging: req.body.is_staging,
       credential_type: req.body.credential_type,
       chain: req.body.chain,

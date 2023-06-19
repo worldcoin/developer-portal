@@ -129,26 +129,6 @@ export const reportAPIEventToPostHog = async (
 };
 
 /**
- * Returns the ENS name for the relevant Semaphore smart contract
- * @param is_staging
- * @param credential_type
- */
-export const getSmartContractENSName = (
-  is_staging: boolean,
-  credential_type: CredentialType
-): string => {
-  if (credential_type === CredentialType.Orb) {
-    return is_staging ? "staging.semaphore.wld.eth" : "semaphore.wld.eth";
-  }
-  if (credential_type === CredentialType.Phone) {
-    return is_staging ? "staging.phone.wld.eth" : "phone.wld.eth";
-  }
-  throw new Error(
-    `Invalid credential type for getSmartContractENSName: ${credential_type}`
-  );
-};
-
-/**
  * Check the consumer backend to see if the user's phone number is verified, and if so insert it on-the-fly
  */
 export async function checkConsumerBackendForPhoneVerification({

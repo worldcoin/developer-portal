@@ -33,6 +33,6 @@ export default async function handleOidcConfig(
     ],
     grant_types_supported: ["authorization_code", "implicit"],
     subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
-    id_token_signing_alg_values_supported: ["RSA"],
+    id_token_signing_alg_values_supported: ["PS256"],
   });
 }

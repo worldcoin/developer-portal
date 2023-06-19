@@ -7,7 +7,6 @@ import {
   OIDCResponseType,
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
-import { getSmartContractENSName } from "./utils";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -49,11 +48,6 @@ const fetchAppQuery = gql`
         }
       }
     }
-
-    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
-      key
-      value
-    }
   }
 `;
 
@@ -86,7 +80,6 @@ interface OIDCApp {
   is_staging: AppModel["is_staging"];
   external_nullifier: ActionModel["external_nullifier"];
   action_id: ActionModel["id"];
-  contract_address: string;
   registered_redirect_uri?: string;
 }
 
@@ -100,12 +93,10 @@ type FetchOIDCAppResult = {
       >;
     }
   >;
-  cache: Array<{ key: string; value: string }>;
 };
 
 export const fetchOIDCApp = async (
   app_id: string,
-  credential_type: CredentialType,
   redirect_uri: string
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
@@ -154,27 +145,12 @@ export const fetchOIDCApp = async (
   const registered_redirect_uri = app.actions[0].redirects[0]?.redirect_uri;
   delete app.actions;
 
-  const ensName = getSmartContractENSName(app.is_staging, credential_type);
-
-  const contractRecord = data.cache.find(({ key }) => key === ensName);
-  if (!contractRecord) {
-    return {
-      error: {
-        message:
-          "There was an internal issue verifying this proof. Please try again.",
-        code: "contract_not_found",
-        statusCode: 500,
-      },
-    };
-  }
-
   return {
     app: {
       ...app,
       action_id,
       external_nullifier,
       registered_redirect_uri,
-      contract_address: contractRecord.value,
     },
   };
 };

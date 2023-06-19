@@ -30,7 +30,6 @@ export default async function handleOIDCValidate(
 
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    CredentialType.Orb, // ignored at this step, any credential type would do
     redirect_uri ?? ""
   );
   if (!app || fetchAppError) {

@@ -33,7 +33,6 @@ interface IInputParams {
 }
 
 interface IVerifyParams {
-  contract_address: string;
   is_staging: boolean;
   credential_type: CredentialType;
   chain: Chain;
