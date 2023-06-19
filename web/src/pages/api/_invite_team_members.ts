@@ -3,6 +3,7 @@ import { errorHasuraQuery, errorNotAllowed } from "@/backend/errors";
 import { protectInternalEndpoint } from "@/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql/createInvite.generated";
+import { sendEmail } from "@worldcoin/helpers";
 
 export default async function handleInvite(
   req: NextApiRequest,
@@ -70,11 +71,24 @@ export default async function handleInvite(
     });
   }
 
+  const promises = [];
+
   for (const invite of createInvitesRes.invites?.returning) {
     const link = `${process.env.NEXT_PUBLIC_APP_URL}/login-with-invite?invite=${invite.id}`;
     console.log(invite.email, link);
-    // FIXME: send link to email
+    promises.push(
+      sendEmail({
+        apiKey: process.env.SENDGRID_API_KEY!,
+        apiSecret: process.env.SENDGRID_API_SECRET!,
+        from: "",
+        to: invite.email,
+        subject: "Teammate invited you",
+        text: `Click this link to join: ${link}`,
+      })
+    );
   }
+
+  await Promise.all(promises);
 
   res.status(200).json({ emails });
 }
