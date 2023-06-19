@@ -7,9 +7,10 @@ import { DeleteKey } from "./DeleteKey";
 import { NewKey } from "./NewKey";
 import { IKeyStore, useKeyStore } from "src/stores/keyStore";
 import { UpdateKey } from "./UpdateKey";
+import { FetchKeysQuery } from "src/hooks/useKeys/graphql/fetch-keys.generated";
 
 export interface KeyListProps {
-  keys: APIKeyModel[];
+  keys: FetchKeysQuery["api_key"];
 }
 
 const getKeyStore = (store: IKeyStore) => ({
