@@ -102,7 +102,7 @@ const useKeys = () => {
       },
 
       onError: () => {
-        toast.error("Failed to update API key");
+        toast.error("Failed to update this API key. Please try again.");
       },
     });
 
