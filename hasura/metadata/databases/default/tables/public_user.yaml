@@ -23,6 +23,7 @@ select_permissions:
         - email
         - id
         - ironclad_id
+        - name
         - team_id
         - updated_at
         - world_id_nullifier

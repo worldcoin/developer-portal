@@ -2,11 +2,11 @@
 import { Button } from "@/components/EmailTemplates/common/Button";
 import { Layout } from "@/components/EmailTemplates/common/Layout";
 import { Link } from "@/components/EmailTemplates/common/Link";
+import { FetchUserQuery } from "@/api/invite-team-members/graphql/fetchUser.generated";
 
 export const Invite = (props: {
   email: string;
-  invitedBy: { name: string; email: string };
-  teamName: string;
+  user: FetchUserQuery["user"][number];
   link: string;
 }) => {
   return (
@@ -41,15 +41,17 @@ export const Invite = (props: {
       >
         <p>You were invited by</p>
 
-        <p style={{ color: "#000" }}>
-          <b>{props.invitedBy.name}</b>
-        </p>
+        {props.user.name && (
+          <p style={{ color: "#000" }}>
+            <b>{props.user.name}</b>
+          </p>
+        )}
 
-        <Link href={`mailto:${props.invitedBy.email}`}>
-          <b>{props.invitedBy?.email}</b>
+        <Link href={`mailto:${props.user.email}`}>
+          <b>{props.user?.email}</b>
         </Link>
 
-        <p>to join team {props.teamName}.</p>
+        {props.user.team.name && <p>to join team {props.user.team.name}.</p>}
       </div>
 
       <Button href={props.link} style={{ marginTop: 64, marginBottom: 16 }}>
