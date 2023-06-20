@@ -3,7 +3,7 @@ import { memo } from "react";
 
 export const Header = memo(function Header() {
   return (
-    <div className="flex items-center gap-6">
+    <div className="grid grid-cols-auto/1fr items-center gap-6">
       <Illustration icon="team" className="w-auto p-5" />
 
       <div className="space-y-1">
