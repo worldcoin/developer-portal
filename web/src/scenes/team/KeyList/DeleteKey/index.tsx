@@ -1,26 +1,44 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { Button } from "src/components/Button";
 import { IKeyStore, useKeyStore } from "src/stores/keyStore";
 import useKeys from "src/hooks/useKeys";
+import { toast } from "react-toastify";
 
 const getKeyStore = (store: IKeyStore) => ({
   currentKey: store.currentKey,
+  setCurrentKey: store.setCurrentKey,
   isOpened: store.isDeleteKeyModalOpened,
   setIsOpened: store.setIsDeleteKeyModalOpened,
 });
 
 export const DeleteKey = memo(function DeleteKey() {
-  const { currentKey, deleteKey, isLoading } = useKeys();
-  const { isOpened, setIsOpened } = useKeyStore(getKeyStore);
+  const { deleteKey, isLoading } = useKeys();
+  const { currentKey, setCurrentKey, isOpened, setIsOpened } =
+    useKeyStore(getKeyStore);
+
+  const handleDeleteKey = useCallback(async () => {
+    if (!currentKey?.id) {
+      return toast.error("Something went wrong");
+    }
+
+    await deleteKey(currentKey.id);
+    setIsOpened(false);
+    setCurrentKey(null);
+  }, [currentKey?.id, deleteKey, setCurrentKey, setIsOpened]);
+
+  const close = useCallback(() => {
+    setIsOpened(false);
+    setCurrentKey(null);
+  }, [setCurrentKey, setIsOpened]);
 
   return (
     <Dialog
       className="max-h-full overflow-y-auto lg:min-w-[486px]"
       open={isOpened}
-      onClose={() => setIsOpened(false)}
+      onClose={close}
     >
       <DialogHeader
         icon={<Illustration color="danger" icon="api" />}
@@ -35,10 +53,7 @@ export const DeleteKey = memo(function DeleteKey() {
         variant="danger"
         className="w-full h-[56px] mt-12 text-base"
         disabled={isLoading}
-        onClick={() => {
-          deleteKey();
-          setIsOpened(false);
-        }}
+        onClick={handleDeleteKey}
       >
         Delete
       </Button>

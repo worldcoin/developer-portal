@@ -1,19 +1,17 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-
-import { Fragment, memo, MouseEvent as ReactMouseEvent, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useState } from "react";
 import { InfoField } from "src/scenes/team/KeyList/Key/InfoField";
-
 import { Button } from "src/components/Button";
 import { Switch } from "src/components/Switch";
 import useKeys from "src/hooks/useKeys";
 import { IKeyStore, useKeyStore } from "src/stores/keyStore";
 import { FetchKeysQuery } from "src/hooks/useKeys/graphql/fetch-keys.generated";
-import { buffer } from "stream/consumers";
 
 dayjs.extend(relativeTime);
 
 const getKeyStore = (store: IKeyStore) => ({
+  setCurrentKey: store.setCurrentKey,
   isUpdateKeyModalOpened: store.isUpdateKeyModalOpened,
   setIsUpdateKeyModalOpened: store.setIsUpdateKeyModalOpened,
   isDeleteKeyModalOpened: store.isDeleteKeyModalOpened,
@@ -23,34 +21,39 @@ const getKeyStore = (store: IKeyStore) => ({
 export const Key = memo(function Key(props: {
   apikey: FetchKeysQuery["api_key"][number];
 }) {
-  const { currentKey, setCurrentKey, updateKey, keySecret, resetKeySecret } =
-    useKeys();
-  const { setIsUpdateKeyModalOpened, setIsDeleteKeyModalOpened } =
-    useKeyStore(getKeyStore);
+  const [secretKey, setSecretKey] = useState<string | null>(null);
+  const { updateKey, resetKeySecret } = useKeys();
 
-  const handleUpdateName = (apikey: FetchKeysQuery["api_key"][number]) => {
-    setCurrentKey(apikey);
+  const {
+    setCurrentKey,
+    setIsUpdateKeyModalOpened,
+    setIsDeleteKeyModalOpened,
+  } = useKeyStore(getKeyStore);
+
+  const handleUpdateName = useCallback(() => {
     setIsUpdateKeyModalOpened(true);
-  };
+    setCurrentKey(props.apikey);
+  }, [props.apikey, setCurrentKey, setIsUpdateKeyModalOpened]);
 
-  const handleUpdateIsActive = (apikey: FetchKeysQuery["api_key"][number]) => {
-    setCurrentKey(apikey);
-    updateKey({
-      id: apikey.id,
-      name: apikey.name,
-      is_active: !apikey.is_active,
-    });
-  };
+  const handleUpdateIsActive = useCallback(
+    () =>
+      updateKey({
+        id: props.apikey.id,
+        name: props.apikey.name,
+        is_active: !props.apikey.is_active,
+      }),
+    [props.apikey.id, props.apikey.is_active, props.apikey.name, updateKey]
+  );
 
-  const handleResetKey = (apikey: FetchKeysQuery["api_key"][number]) => {
-    setCurrentKey(apikey);
-    resetKeySecret();
-  };
+  const handleResetKey = useCallback(async () => {
+    const key = await resetKeySecret(props.apikey.id);
+    setSecretKey(key);
+  }, [props.apikey.id, resetKeySecret]);
 
-  const handleRemoveKey = (apikey: FetchKeysQuery["api_key"][number]) => {
-    setCurrentKey(apikey);
+  const handleRemoveKey = useCallback(() => {
     setIsDeleteKeyModalOpened(true);
-  };
+    setCurrentKey(props.apikey);
+  }, [props.apikey, setCurrentKey, setIsDeleteKeyModalOpened]);
 
   return (
     <Fragment>
@@ -59,13 +62,12 @@ export const Key = memo(function Key(props: {
           <InfoField
             placeholder="Click to set key name"
             value={props.apikey.name}
-            onClick={(e) => handleUpdateName(props.apikey)}
+            onClick={handleUpdateName}
           />
         </td>
         <td className="pr-4">
           <div className="break-all">
-            {keySecret && keySecret[props.apikey.id]}
-            {!keySecret[props.apikey.id] &&
+            {secretKey ??
               "api_" + btoa(props.apikey.id).substring(0, 10) + "..."}
           </div>
         </td>
@@ -75,14 +77,14 @@ export const Key = memo(function Key(props: {
         <td className="pr-4">
           <Switch
             checked={props.apikey.is_active}
-            toggle={() => handleUpdateIsActive(props.apikey)}
+            toggle={handleUpdateIsActive}
           />
         </td>
         <td>
           <Button
             variant="secondary"
             className="px-4 py-2.5"
-            onClick={() => handleResetKey(props.apikey)}
+            onClick={handleResetKey}
           >
             Reset Key
           </Button>
@@ -91,7 +93,7 @@ export const Key = memo(function Key(props: {
           <Button
             variant="danger"
             className="px-4 py-2.5"
-            onClick={() => handleRemoveKey(props.apikey)}
+            onClick={handleRemoveKey}
           >
             Remove
           </Button>

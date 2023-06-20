@@ -23,12 +23,14 @@ export type UpdateKeyFormValues = yup.Asserts<typeof schema>;
 
 const getKeyStore = (store: IKeyStore) => ({
   currentKey: store.currentKey,
+  setCurrentKey: store.setCurrentKey,
   isOpened: store.isUpdateKeyModalOpened,
   setIsOpened: store.setIsUpdateKeyModalOpened,
 });
 
 export const UpdateKey = memo(function UpdateKey() {
-  const { currentKey, isOpened, setIsOpened } = useKeyStore(getKeyStore);
+  const { currentKey, isOpened, setCurrentKey, setIsOpened } =
+    useKeyStore(getKeyStore);
 
   const defaultValues = useMemo(
     () => ({
@@ -55,20 +57,27 @@ export const UpdateKey = memo(function UpdateKey() {
   const { updateKey, isLoading } = useKeys();
 
   const submit = useCallback(
-    (values: UpdateKeyFormValues) => {
+    async (values: UpdateKeyFormValues) => {
       if (!currentKey) {
         return toast.error("Error while updating API key");
       }
 
-      updateKey({
+      await updateKey({
         id: currentKey.id,
         name: values.name!,
         is_active: values.is_active!,
       });
+
       setIsOpened(false);
+      setCurrentKey(null);
     },
-    [currentKey, setIsOpened, updateKey]
+    [currentKey, setCurrentKey, setIsOpened, updateKey]
   );
+
+  const close = useCallback(() => {
+    setIsOpened(false);
+    setCurrentKey(null);
+  }, [setCurrentKey, setIsOpened]);
 
   const isFormValid = useMemo(
     () => dirtyFields.name || dirtyFields.is_active,
@@ -79,7 +88,7 @@ export const UpdateKey = memo(function UpdateKey() {
     <Dialog
       panelClassName="max-h-full overflow-y-auto lg:min-w-[486px]"
       open={isOpened}
-      onClose={() => setIsOpened(false)}
+      onClose={close}
     >
       <DialogHeader
         icon={<Illustration icon="api" />}

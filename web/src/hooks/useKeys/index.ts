@@ -1,8 +1,4 @@
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { IKeyStore, useKeyStore } from "src/stores/keyStore";
-import { shallow } from "zustand/shallow";
 
 import {
   FetchKeysDocument,
@@ -22,30 +18,12 @@ import {
 import { useDeleteKeyMutation } from "./graphql/delete-key.generated";
 import { useResetApiKeyMutation } from "./graphql/reset-key.generated";
 
-const getKeyStore = (store: IKeyStore) => ({
-  keys: store.keys,
-  currentKey: store.currentKey,
-  keySecret: store.keySecret,
-  setKeys: store.setKeys,
-  setCurrentKey: store.setCurrentKey,
-  setKeySecret: store.setKeySecret,
-});
-
 const useKeys = () => {
-  const { currentKey, keySecret, setKeys, setCurrentKey, setKeySecret } =
-    useKeyStore(getKeyStore, shallow);
-
   const {
     data: fetchedKeys,
     error,
     loading,
   } = useFetchKeysQuery({
-    onCompleted: (data) => {
-      if (data?.api_key && data?.api_key.length) {
-        setKeys(data?.api_key);
-        setCurrentKey(data.api_key[0]);
-      }
-    },
     onError: (e) => {
       console.error(e);
       toast.error("Failed to fetch API keys");
@@ -64,7 +42,6 @@ const useKeys = () => {
 
       onCompleted: (data) => {
         if (data?.insert_api_key_one) {
-          setCurrentKey(data.insert_api_key_one);
           toast.success("API key created");
         }
       },
@@ -108,14 +85,10 @@ const useKeys = () => {
 
   const [deleteKeyMutation] = useDeleteKeyMutation();
 
-  const deleteKey = async () => {
-    if (!currentKey) {
-      return null;
-    }
-
+  const deleteKey = async (id: string) => {
     const { data: deletedKey, errors } = await deleteKeyMutation({
       variables: {
-        id: currentKey?.id,
+        id,
       },
 
       refetchQueries: [{ query: FetchKeysDocument }],
@@ -140,24 +113,13 @@ const useKeys = () => {
 
   const [resetApiKeyMutation] = useResetApiKeyMutation();
 
-  const resetKeySecret = async () => {
-    if (!currentKey) {
-      return null;
-    }
-
+  const resetKeySecret = async (id: string) => {
     const { data: keyAfterReset, errors } = await resetApiKeyMutation({
-      variables: { id: currentKey?.id },
+      variables: { id },
       refetchQueries: [{ query: FetchKeysDocument }],
 
       onCompleted: (data) => {
         if (data?.reset_api_key?.api_key) {
-          const newKeySecret = {
-            ...keySecret,
-            [currentKey?.id]: data.reset_api_key.api_key,
-          };
-
-          setKeySecret(newKeySecret);
-
           toast.success(
             "API key has been reset. Save this value now, it will not be shown again!",
             {
@@ -180,13 +142,6 @@ const useKeys = () => {
     return keyAfterReset?.reset_api_key?.api_key;
   };
 
-  const router = useRouter();
-
-  // NOTE: hide API secret on router history change
-  useEffect(() => {
-    router.events.on("beforeHistoryChange", () => setKeySecret({}));
-  }, [router.events, setKeySecret]);
-
   return {
     keys: fetchedKeys?.api_key ?? [],
     error,
@@ -194,10 +149,6 @@ const useKeys = () => {
     createKey,
     updateKey,
     deleteKey,
-
-    currentKey,
-    setCurrentKey,
-    keySecret,
     resetKeySecret,
   };
 };
