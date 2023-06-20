@@ -134,3 +134,14 @@ export interface AppStatsModel {
   verifications: number;
   unique_users: number;
 }
+
+export interface APIKeyModel {
+  id: string;
+  team_id: string;
+  created_at: DateTime;
+  updated_at?: DateTime;
+  is_active: boolean;
+  api_key: string;
+  name: string;
+  __typename: "api_key";
+}

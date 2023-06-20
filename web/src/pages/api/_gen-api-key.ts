@@ -6,6 +6,7 @@ import {
   protectInternalEndpoint,
 } from "src/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
+import { APIKeyModel } from "src/lib/models";
 
 const updateAPIKeyQuery = gql`
   mutation UpdateAPIKey($id: String = "", $hashed_secret: String = "") {
@@ -23,28 +24,27 @@ const updateAPIKeyQuery = gql`
  * @param req
  * @param res
  */
-export default async function handleAPIKeyReset(
+export default async function handleAPIKey(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
   }
-
   if (req.method !== "POST") {
     return errorNotAllowed(req.method, res);
   }
 
-  if (req.body.action?.name !== "reset_api_key") {
+  if (req.body.trigger?.name !== "generate_api_key") {
     return errorHasuraQuery({
       res,
-      detail: "Invalid action.",
-      code: "invalid_action",
+      detail: "Invalid trigger.",
+      code: "invalid_trigger",
     });
   }
 
-  const id = req.body.input.id;
-  if (!id) {
+  const key = req.body.event.data.new as APIKeyModel;
+  if (!key.id) {
     return errorHasuraQuery({
       res,
       detail: "id must be set.",
@@ -54,24 +54,16 @@ export default async function handleAPIKeyReset(
 
   const client = await getAPIServiceClient();
 
-  if (req.body.session_variables["x-hasura-role"] === "admin") {
-    return errorHasuraQuery({
-      res,
-      detail: "Admin is not allowed to run this query.",
-      code: "admin_not_allowed",
-    });
-  }
-
   // Generate a new API key for the given key id
-  const { secret, hashed_secret } = generateHashedSecret(id);
-  const api_key = `api_${Buffer.from(`${id}:${secret}`)
+  const { secret, hashed_secret } = generateHashedSecret(key.id);
+  const api_key = `api_${Buffer.from(`${key.id}:${secret}`)
     .toString("base64")
     .replace(/=/g, "")}`;
 
   const response = await client.mutate({
     mutation: updateAPIKeyQuery,
     variables: {
-      id,
+      id: key.id,
       hashed_secret,
     },
   });
@@ -83,6 +75,5 @@ export default async function handleAPIKeyReset(
       code: "rotate_failed",
     });
   }
-
   res.status(200).json({ api_key });
 }

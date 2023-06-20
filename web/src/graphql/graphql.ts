@@ -48,6 +48,11 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Int"]>>;
 };
 
+export type ResetApiOutput = {
+  __typename?: "ResetAPIOutput";
+  api_key: Scalars["String"];
+};
+
 export type ResetClientOutput = {
   __typename?: "ResetClientOutput";
   client_secret: Scalars["String"];
@@ -721,9 +726,13 @@ export type Action_Variance_Order_By = {
 /** columns and relationships of "api_key" */
 export type Api_Key = {
   __typename?: "api_key";
+  api_key: Scalars["String"];
   created_at: Scalars["timestamptz"];
   id: Scalars["String"];
   is_active: Scalars["Boolean"];
+  name: Scalars["String"];
+  /** An object relationship */
+  team: Team;
   team_id: Scalars["String"];
   updated_at: Scalars["timestamptz"];
 };
@@ -754,9 +763,12 @@ export type Api_Key_Bool_Exp = {
   _and?: InputMaybe<Array<Api_Key_Bool_Exp>>;
   _not?: InputMaybe<Api_Key_Bool_Exp>;
   _or?: InputMaybe<Array<Api_Key_Bool_Exp>>;
+  api_key?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   is_active?: InputMaybe<Boolean_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -769,9 +781,12 @@ export enum Api_Key_Constraint {
 
 /** input type for inserting data into table "api_key" */
 export type Api_Key_Insert_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -779,8 +794,10 @@ export type Api_Key_Insert_Input = {
 /** aggregate max on columns */
 export type Api_Key_Max_Fields = {
   __typename?: "api_key_max_fields";
+  api_key?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -788,8 +805,10 @@ export type Api_Key_Max_Fields = {
 /** aggregate min on columns */
 export type Api_Key_Min_Fields = {
   __typename?: "api_key_min_fields";
+  api_key?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -812,9 +831,12 @@ export type Api_Key_On_Conflict = {
 
 /** Ordering options when selecting data from "api_key". */
 export type Api_Key_Order_By = {
+  api_key?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   is_active?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -827,11 +849,15 @@ export type Api_Key_Pk_Columns_Input = {
 /** select columns of table "api_key" */
 export enum Api_Key_Select_Column {
   /** column name */
+  ApiKey = "api_key",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Id = "id",
   /** column name */
   IsActive = "is_active",
+  /** column name */
+  Name = "name",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -840,9 +866,11 @@ export enum Api_Key_Select_Column {
 
 /** input type for updating data in table "api_key" */
 export type Api_Key_Set_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -857,9 +885,11 @@ export type Api_Key_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Api_Key_Stream_Cursor_Value_Input = {
+  api_key?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_active?: InputMaybe<Scalars["Boolean"]>;
+  name?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
@@ -867,11 +897,15 @@ export type Api_Key_Stream_Cursor_Value_Input = {
 /** update columns of table "api_key" */
 export enum Api_Key_Update_Column {
   /** column name */
+  ApiKey = "api_key",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Id = "id",
   /** column name */
   IsActive = "is_active",
+  /** column name */
+  Name = "name",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -2286,6 +2320,8 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  /** Reset the given API key for the developer portal */
+  reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** update data of the table: "action" */
@@ -2626,6 +2662,11 @@ export type Mutation_RootInsert_UserArgs = {
 export type Mutation_RootInsert_User_OneArgs = {
   object: User_Insert_Input;
   on_conflict?: InputMaybe<User_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootReset_Api_KeyArgs = {
+  id: Scalars["String"];
 };
 
 /** mutation root */
