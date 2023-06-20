@@ -1,46 +1,46 @@
-// @ts-check
-
-/** @type {import('next-safe').nextSafe} */
-// @ts-ignore
-const nextSafe = require("next-safe");
-const isDev = process.env.NODE_ENV !== "production";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
-        headers: nextSafe({
-          isDev,
-          contentSecurityPolicy: {
-            mergeDefaultDirectives: true,
-            "img-src": [
-              "'self'",
-              "https://world-id-public.s3.amazonaws.com",
-              "https://worldcoin.org",
-            ],
-            "style-src": "'unsafe-inline'",
-            "connect-src": [
-              "'self'",
-              "wss://relay.walletconnect.com",
-              "https://app.posthog.com",
-              "https://cookie-cdn.cookiepro.com",
-            ],
-            "script-src": ["'self'", "https://cookie-cdn.cookiepro.com"],
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "connect-src 'self' https://app.posthog.com https://cookie-cdn.cookiepro.com wss://relay.walletconnect.com; img-src 'self' https://cookie-cdn.cookiepro.com https://world-id-public.s3.amazonaws.com https://worldcoin.org; script-src 'self' 'unsafe-eval' https://cookie-cdn.cookiepro.com; style-src 'unsafe-inline';",
           },
-          permissionsPolicy: {
-            "clipboard-write": `self`,
+          {
+            key: "Permissions-Policy",
+            value: "clipboard-write=(self)",
           },
-        }),
+        ],
       },
     ];
   },
-
-  reactStrictMode: true,
   images: {
-    domains: ["world-id-public.s3.amazonaws.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cookie-cdn.cookiepro.com",
+        port: "",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "world-id-public.s3.amazonaws.com",
+        port: "",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "worldcoin.org",
+        port: "",
+        pathname: "**",
+      },
+    ],
   },
+  reactStrictMode: true,
   publicRuntimeConfig: Object.fromEntries(
     Object.entries(process.env).filter(([key, value]) =>
       key.startsWith("NEXT_PUBLIC_")

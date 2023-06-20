@@ -44,7 +44,6 @@
     "next": "13.2.0",
     "next-logger": "3.0.1",
     "next-redux-wrapper": "^7.0.5",
-    "next-safe": "^3.4.1",
     "next-seo": "^5.15.0",
     "postcss-import": "^15.1.0",
     "postcss-selector-matches": "^4.0.0",
