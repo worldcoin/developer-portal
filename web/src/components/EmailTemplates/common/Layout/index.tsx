@@ -56,9 +56,8 @@ export const Layout = (props: {
         >
           <div style={{ width: "100%", textAlign: "center" }}>
             <img
-              src={`${process.env.NEXT_PUBLIC_APP_URL}/email/logo-dev.png`}
+              src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/logo.png`}
               alt="Worldcoin dev portal"
-              width={175}
               height={45}
               style={{ maxWidth: "100%", margin: "0 auto" }}
             />
@@ -83,9 +82,8 @@ export const Layout = (props: {
 
           <div style={{ width: "100%", textAlign: "center" }}>
             <img
-              src={`${process.env.NEXT_PUBLIC_APP_URL}/email/logo.png`}
+              src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/logo.png`}
               alt="Worldcoin"
-              width={140}
               height={23}
               style={{ maxWidth: "100%", margin: "0 auto", paddingTop: 43 }}
             />

@@ -6,7 +6,6 @@ import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql
 import { sendEmail } from "@/lib/send-email";
 import { Invite } from "@/components/EmailTemplates/Invite";
 import { renderToString } from "react-dom/server";
-import { inspect } from "util";
 
 export default async function handleInvite(
   req: NextApiRequest,

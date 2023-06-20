@@ -30,16 +30,6 @@ export const Invite = (props: {
         You&apos;ve gotten new team invitation
       </span>
 
-      <img
-        src={`${process.env.NEXT_PUBLIC_APP_URL}/email/invite.png`}
-        width={104}
-        height={104}
-        alt="Invite"
-        style={{
-          margin: "48px auto",
-        }}
-      />
-
       <h2 style={{ marginBottom: 24 }}>
         <b>Hello {props.email}</b>
       </h2>
