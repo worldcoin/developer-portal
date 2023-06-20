@@ -17,8 +17,8 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
 }) {
   const { onClose } = props;
 
-  const [inviteTeamMembers, { loading, called }] = useInviteTeamMembersMutation(
-    {
+  const [inviteTeamMembers, { loading, called, reset, error }] =
+    useInviteTeamMembersMutation({
       refetchQueries: [{ query: TeamsDocument }],
 
       onCompleted: (data) => {
@@ -27,14 +27,14 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
         }
 
         toast.success("Members invited");
+        reset();
         onClose();
       },
 
       onError: () => {
         toast.error("Cannot invite members, please try again");
       },
-    }
-  );
+    });
 
   const [emails, setEmails] = useState<string[]>([]);
 
@@ -63,7 +63,8 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
 
         <Button
           className={cn("w-full gap-x-4 h-[56px] mt-12 font-medium", {
-            "!text-accents-success-700 !bg-accents-success-300": called,
+            "!text-accents-success-700 !bg-accents-success-300":
+              called && !error && !loading,
           })}
           disabled={loading}
           onClick={handleSubmit}
@@ -75,14 +76,14 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
             </>
           )}
 
-          {!loading && called && (
+          {!loading && called && !error && (
             <>
               <Icon name="check" className="h-5 w-5" />
               Invite sent
             </>
           )}
 
-          {!loading && !called && "Send invite"}
+          {((!loading && !called) || error) && "Send invite"}
         </Button>
       </div>
     </Dialog>
