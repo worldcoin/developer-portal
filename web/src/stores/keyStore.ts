@@ -7,6 +7,7 @@ export type IKeyStore = {
   isNewKeyModalOpened: boolean;
   isUpdateKeyModalOpened: boolean;
   isDeleteKeyModalOpened: boolean;
+
   setCurrentKey: (key: FetchKeysQuery["api_key"][number] | null) => void;
   setIsNewKeyModalOpened: (value: boolean) => void;
   setIsUpdateKeyModalOpened: (value: boolean) => void;
@@ -15,10 +16,11 @@ export type IKeyStore = {
 
 export const useKeyStore = create<IKeyStore>((set, get) => ({
   currentKey: null,
-  setCurrentKey: (key) => set({ currentKey: key }),
   isNewKeyModalOpened: false,
   isUpdateKeyModalOpened: false,
   isDeleteKeyModalOpened: false,
+
+  setCurrentKey: (key) => set({ currentKey: key }),
   setIsNewKeyModalOpened: (value) => set({ isNewKeyModalOpened: value }),
   setIsUpdateKeyModalOpened: (value) => set({ isUpdateKeyModalOpened: value }),
   setIsDeleteKeyModalOpened: (value) => set({ isDeleteKeyModalOpened: value }),
