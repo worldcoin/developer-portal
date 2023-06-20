@@ -14,7 +14,6 @@ insert_permissions:
       columns:
         - is_active
         - name
-        - team_id
 select_permissions:
   - role: service
     permission:
@@ -34,6 +33,8 @@ select_permissions:
         - id
         - is_active
         - name
+        - team_id
+        - updated_at
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -59,3 +60,17 @@ delete_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
+event_triggers:
+  - name: generate_api_key
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 5
+      timeout_sec: 20
+    webhook: '{{NEXT_API_URL}}/_gen-api-key'
+    headers:
+      - name: Authorization
+        value_from_env: INTERNAL_ENDPOINTS_SECRET

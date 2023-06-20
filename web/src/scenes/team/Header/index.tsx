@@ -1,10 +1,10 @@
-import { Illustration } from "@/components/Auth/Illustration";
 import { memo } from "react";
+import { Icon } from "src/components/Icon";
 
 export const Header = memo(function Header() {
   return (
-    <div className="grid grid-cols-auto/1fr items-center gap-6">
-      <Illustration icon="team" className="w-auto p-5" />
+    <div className="flex items-center gap-6">
+      <Icon name="team" className="w-10 h-10 text-primary" />
 
       <div className="space-y-1">
         <h1 className="text-20 font-sora font-semibold">My Team</h1>

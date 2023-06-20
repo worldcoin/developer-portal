@@ -18906,7 +18906,7 @@
             "description": "Reset the given API key for the developer portal",
             "args": [
               {
-                "name": "key_id",
+                "name": "id",
                 "description": null,
                 "type": {
                   "kind": "NON_NULL",

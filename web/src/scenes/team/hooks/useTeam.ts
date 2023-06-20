@@ -3,7 +3,7 @@ import {
   TeamsDocument,
 } from "@/scenes/team/graphql/teams.generated";
 import { useUpdateTeamNameMutation } from "@/scenes/team/graphql/updateTeamName.generated";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { useDeleteTeamMemberMutation } from "@/scenes/team/graphql/deleteTeam.generated";
 import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMembers.generated";
@@ -15,6 +15,7 @@ export type TeamMember = NonNullable<Team["members"]>[0];
 
 export const useTeam = () => {
   const { data, ...other } = useTeamsQuery();
+
   return {
     data: data?.teams[0],
     ...other,

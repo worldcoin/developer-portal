@@ -2876,7 +2876,7 @@ export type Mutation_RootInvite_Team_MembersArgs = {
 
 /** mutation root */
 export type Mutation_RootReset_Api_KeyArgs = {
-  key_id: Scalars["String"];
+  id: Scalars["String"];
 };
 
 /** mutation root */

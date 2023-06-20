@@ -6,7 +6,7 @@ type Mutation {
 
 type Mutation {
   reset_api_key(
-    key_id: String!
+    id: String!
   ): ResetAPIOutput
 }
 

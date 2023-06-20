@@ -43,10 +43,22 @@ const updateSecretQuery = gql`
           id
           name
           logo_url
-          # redirect_uris // TODO: Add back once redirect table is live
           created_at
         }
       }
+    }
+  }
+`;
+
+const insertRedirectsQuery = gql`
+  mutation InsertRedirects($objects: [redirect_insert_input!]!) {
+    insert_redirect(objects: $objects) {
+      returning {
+        id
+        action_id
+        redirect_uri
+      }
+      affected_rows
     }
   }
 `;
@@ -116,6 +128,39 @@ export default async function handleRegister(
     },
   });
 
+  const updatedAction = updateSecretResponse?.data?.update_action?.returning[0];
+
+  // Insert redirects
+  const insertRedirectsResponse = await client.mutate<{
+    insert_redirect: {
+      returning: Array<{
+        id: string;
+        action_id: string;
+        redirect_uri: string;
+      }>;
+
+      affected_rows: number;
+    };
+  }>({
+    mutation: insertRedirectsQuery,
+
+    variables: {
+      objects: req.body.redirects.map((redirect: string) => ({
+        action_id: updatedAction.id,
+        redirect_uri: redirect,
+      })),
+    },
+  });
+
+  if (
+    !insertRedirectsResponse?.data?.insert_redirect?.returning?.length ||
+    insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
+      req.body.redirects.length
+  ) {
+    // We let the response continue because the app and action were created, we just flag to the user that the redirects were not inserted
+    console.error("Could not insert the redirects");
+  }
+
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
     const app = updateSecretResponse.data.update_action.returning[0].app;
     res.status(201).json({
@@ -127,7 +172,17 @@ export default async function handleRegister(
       client_secret_expires_at: 0,
       grant_types: (req.body.grant_types = "authorization_code"),
       logo_uri: app.logo_url,
-      // redirect_uris: app.redirect_uris, // TODO: Add back once redirect table is live
+
+      redirect_uris:
+        insertRedirectsResponse.data?.insert_redirect.returning.map(
+          (redirect) => redirect.redirect_uri
+        ),
+
+      ...(insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
+      req.body.redirects.length
+        ? { insertion_error: "Redirect URIs not recorded." }
+        : {}),
+
       response_types: (req.body.response_types = "code"),
     });
   } else {
