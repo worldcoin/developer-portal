@@ -35,47 +35,18 @@ All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guide
 
 ## 🧑‍💻 Developing Locally
 
-The Developer Portal uses some external services to operate. You do **not** need all credentials to be set for the Dev Portal to work. The credentials you need depends on which services you are running locally. Here are the list of external credentials you will need.
+The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
 
-- [Alchemy API](https://docs.alchemy.com/reference/api-overview)
-- [Worldcoin Signup Sequencer](https://github.com/worldcoin/signup-sequencer)
-- [AWS Key Management Service](https://aws.amazon.com/kms/)
+1. Copy the `.env.test` into a local env file
 
-### KMS Setup
-
-To start using the JWKS features of the portal, some prior setup in your AWS account is required. Specifically, an IAM role needs to be provisioned with the following policies attached:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "VisualEditor0",
-      "Effect": "Allow",
-      "Action": [
-        "kms:GetPublicKey",
-        "kms:TagResource",
-        "kms:ScheduleKeyDeletion",
-        "kms:PutKeyPolicy",
-        "kms:DescribeKey",
-        "kms:Verify",
-        "kms:Sign"
-      ],
-      "Resource": "arn:aws:kms:*:<ACCOUNT_NUMBER>:key/*"
-    },
-    {
-      "Sid": "VisualEditor1",
-      "Effect": "Allow",
-      "Action": "kms:CreateKey",
-      "Resource": "*"
-    }
-  ]
-}
+```
+cd web/
+cp .env.test .env
 ```
 
-### Dev Login
-
-To make it easy to debug
+2. Edit any environment variables for which you have real credentials.
+3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with Worldcoin. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](aws-role-sample-policy.json) for this.
+   1. If you are a core contributor with AWS access to TFH, follow the instructions here instead.
 
 ### Starting the app
 
