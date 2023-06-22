@@ -281,7 +281,7 @@ export const generateOIDCJWT = async ({
   // Sign the JWT with a KMS managed key
   const client = await getKMSClient();
   const header = {
-    alg: "PS256",
+    alg: "ES256",
     typ: "JWT",
     kid,
   };
