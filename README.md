@@ -35,7 +35,7 @@ All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guide
 
 ## 🧑‍💻 Developing Locally
 
-The Developer Portal uses several external services to operate. Credentials for each of these services can be placed in the [.env.test](./web/.env.test) or .env.local file. These include:
+The Developer Portal uses some external services to operate. You do **not** need all credentials to be set for the Dev Portal to work. The credentials you need depends on which services you are running locally. Here are the list of external credentials you will need.
 
 - [Alchemy API](https://docs.alchemy.com/reference/api-overview)
 - [Worldcoin Signup Sequencer](https://github.com/worldcoin/signup-sequencer)
@@ -73,24 +73,9 @@ To start using the JWKS features of the portal, some prior setup in your AWS acc
 }
 ```
 
-Then, generate an access key to the role, and add the below details to the `.env` file:
-
-```txt
-AWS_REGION_NAME=<REGION_NAME>
-AWS_ACCESS_KEY_ID=<ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY=<ACCESS_KEY_SECRET>
-TASK_ROLE_ARN=<IAM_ROLE_ARN>
-```
-
 ### Dev Login
 
-To bypass the KMS requirement, the codebase contains conditional logic to allow developers to login when running locally. This feature is dependent on the following HS512 JWT keys matching each other:
-
-- `NEXT_PUBLIC_DEV_LOGIN_KEY` ([.env](./web/.env.test))
-- `HASURA_GRAPHQL_JWT_SECRET` ([.env](./web/.env.test))
-- `HASURA_GRAPHQL_JWT_SECRET` ([docker-compose.yaml](./docker-compose.yaml))
-
-If you have issues, please double check these values before debugging further.
+To make it easy to debug
 
 ### Starting the app
 

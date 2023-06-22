@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "VisualEditor0",
+      "Effect": "Allow",
+      "Action": [
+        "kms:GetPublicKey",
+        "kms:TagResource",
+        "kms:ScheduleKeyDeletion",
+        "kms:PutKeyPolicy",
+        "kms:DescribeKey",
+        "kms:Verify",
+        "kms:Sign"
+      ],
+      "Resource": "arn:aws:kms:*:<ACCOUNT_NUMBER>:key/*"
+    },
+    {
+      "Sid": "VisualEditor1",
+      "Effect": "Allow",
+      "Action": "kms:CreateKey",
+      "Resource": "*"
+    }
+  ]
+}
