@@ -3,20 +3,20 @@ import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { BigNumber, ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
-import { getSmartContractENSName } from "./utils";
 import { sequencerMapping } from "src/lib/utils";
 import { Chain } from "src/lib/types";
 
+// TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
   {
-    rawCode: "0x504570e3", // TODO: Add to docs once verified
+    rawCode: "0x504570e3",
     rawMessage: "invalid root",
     code: "invalid_merkle_root",
     detail:
       "The provided Merkle root is invalid. User appears to be unverified.",
   },
   {
-    rawCode: "0x09bde339", // TODO: Add to docs once verified
+    rawCode: "0x09bde339",
     rawMessage: "invalid proof",
     code: "invalid_proof",
     detail:
@@ -33,18 +33,12 @@ interface IInputParams {
 }
 
 interface IVerifyParams {
-  contract_address: string;
   is_staging: boolean;
   credential_type: CredentialType;
   chain: Chain;
 }
 
-interface IAppActionWithContractAddress {
-  cache: {
-    key: string;
-    value: string;
-  }[];
-
+interface IAppAction {
   app: {
     id: string;
     is_staging: true;
@@ -62,16 +56,12 @@ interface IAppActionWithContractAddress {
   }[];
 }
 
-const queryFetchAppActionWithContractAddress = gql`
-  query FetchAppActionWithContractAddress(
+const queryFetchAppAction = gql`
+  query FetchAppAction(
     $app_id: String!
     $action: String!
     $nullifier_hash: String!
   ) {
-    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
-      key
-      value
-    }
     app(
       where: {
         id: { _eq: $app_id }
@@ -120,11 +110,10 @@ export const fetchActionForProof = async (
   graphQLClient: ApolloClient<NormalizedCacheObject>,
   app_id: string,
   nullifier_hash: string,
-  action: string,
-  credential_type: CredentialType
+  action: string
 ) => {
-  const result = await graphQLClient.query<IAppActionWithContractAddress>({
-    query: queryFetchAppActionWithContractAddress,
+  const result = await graphQLClient.query<IAppAction>({
+    query: queryFetchAppAction,
     variables: {
       app_id,
       nullifier_hash,
@@ -167,22 +156,7 @@ export const fetchActionForProof = async (
     };
   }
 
-  // Obtain appropriate Semaphore contract address
-  const ensName = getSmartContractENSName(app.is_staging, credential_type);
-  const contractRecord = result.data.cache.find(({ key }) => key === ensName);
-  if (!contractRecord) {
-    return {
-      error: {
-        message:
-          "There was an internal issue verifying this proof. Please try again.",
-        code: "contract_not_found",
-        statusCode: 500,
-      },
-    };
-  }
-
   return {
-    contractAddress: contractRecord.value,
     app: { ...app, action: app.actions[0], actions: undefined },
   };
 };

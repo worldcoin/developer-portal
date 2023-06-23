@@ -5,7 +5,6 @@ import {
   errorResponse,
 } from "src/backend/errors";
 import { fetchOIDCApp } from "src/backend/oidc";
-import { CredentialType } from "src/lib/types";
 
 /**
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback
@@ -30,7 +29,6 @@ export default async function handleOIDCValidate(
 
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    CredentialType.Orb, // ignored at this step, any credential type would do
     redirect_uri ?? ""
   );
   if (!app || fetchAppError) {

@@ -65,8 +65,7 @@ export default async function handleVerify(
     client,
     req.query.app_id?.toString(),
     req.body.nullifier_hash,
-    req.body.action,
-    req.body.credential_type
+    req.body.action
   );
 
   if (data.error || !data.app) {
@@ -124,7 +123,6 @@ export default async function handleVerify(
       external_nullifier: action.external_nullifier,
     },
     {
-      contract_address: data.contractAddress,
       is_staging: app.is_staging,
       credential_type: req.body.credential_type as CredentialType,
       chain: (req.body.chain as Chain) ?? Chain.Polygon, // Default to Polygon for now

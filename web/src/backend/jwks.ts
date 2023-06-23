@@ -133,7 +133,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
   const client = await getKMSClient();
 
   if (client) {
-    const result = await createKMSKey(client, "RSA_2048"); // TODO: alg parameter for other key types
+    const result = await createKMSKey(client, "RSA_2048");
     if (result?.keyId && result?.publicKey) {
       const publicJwk = createPublicKey(result.publicKey).export({
         format: "jwk",
