@@ -76,7 +76,7 @@ export default async function handleOIDCToken(
   app_id = await authenticateOIDCEndpoint(authToken);
 
   if (!app_id) {
-    // TODO: Wrap all OIDC errors as they need to include the standard `error` and `error_description` attributes. @igorosip0v
+    // FIXME ASAP: Wrap all OIDC errors as they need to include the standard `error` and `error_description` attributes. @igorosip0v
     return errorUnauthenticated("Invalid authentication credentials.", res);
   }
 
@@ -95,7 +95,7 @@ export default async function handleOIDCToken(
     return errorRequiredAttribute("code", res);
   }
 
-  // FIXME: Verify the redirect_uri coming in the body
+  // FIXME ASAP: Verify the redirect_uri coming in the body
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();

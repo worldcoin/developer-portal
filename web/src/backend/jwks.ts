@@ -111,7 +111,7 @@ export const fetchActiveJWK = async () => {
     const { id, kms_id, expires_at } = data.jwks[0];
 
     // Only return JWK if it's not expiring in the next 7 days
-    // FIXME: Use JWK_TIME_TO_LIVE
+    // FIXME ASAP: Use JWK_TIME_TO_LIVE
     const now = dayjs();
     const expires = dayjs(expires_at);
     if (expires.diff(now, "day") > 7) {
@@ -133,7 +133,7 @@ export const generateJWK = async (): Promise<CreateJWKResult> => {
   const client = await getKMSClient();
 
   if (client) {
-    const result = await createKMSKey(client, "RSA_2048"); // TODO: alg parameter for other key types
+    const result = await createKMSKey(client, "RSA_2048");
     if (result?.keyId && result?.publicKey) {
       const publicJwk = createPublicKey(result.publicKey).export({
         format: "jwk",

@@ -33,7 +33,7 @@ export type IKioskStore = {
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: { mobile: string; default: string }) => void;
   setKioskAction: (kioskAction: ActionKioskType) => void;
-  setVerificationState: (verificationState: VerificationState) => void; // TODO: Fix typing of verificationState, should be VerificationState from IDKit
+  setVerificationState: (verificationState: VerificationState) => void; // FIXME ASAP: Fix typing of verificationState, should be VerificationState from IDKit
   setWCReset: (fn: () => void) => void;
   setSuccessParams: (successParams: ISuccessParams) => void;
   setProofResult: (proofResult: ISuccessResult) => void;

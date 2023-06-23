@@ -76,8 +76,6 @@ export default async function handleSecretReset(
     });
   }
 
-  // Maybe verify the user has permission to reset the client secret?
-
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
   const mutation = gql`

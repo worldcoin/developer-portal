@@ -158,7 +158,7 @@ export async function checkConsumerBackendForPhoneVerification({
 }: {
   isStaging: boolean;
   identity_commitment: string;
-  body: Record<string, any>; // FIXME: dirty, shouldn't be inserted this way
+  body: Record<string, any>; // FIXME ASAP: dirty, shouldn't be inserted this way
 }): Promise<{ response: IInternalError } | undefined> {
   const client = await getWLDAppBackendServiceClient(isStaging);
   const phoneVerifiedResponse = await client.query({
@@ -171,7 +171,7 @@ export async function checkConsumerBackendForPhoneVerification({
       `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
 
-    // FIXME: This is dirty, we should operate this internally
+    // FIXME ASAP: This is dirty, we should operate this internally
     const insertResponse = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
       {
