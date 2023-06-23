@@ -1,4 +1,3 @@
-import { Illustration } from "@/components/Auth/Illustration";
 import { memo } from "react";
 import { Icon } from "src/components/Icon";
 

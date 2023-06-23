@@ -103,7 +103,7 @@ export default async function handleLogin(
     return errorUnauthenticated("Invalid or expired token.", res);
   }
 
-  if (!payload.nonce || !verifyLoginNonce(payload.nonce as string)) {
+  if (!payload.nonce || !(await verifyLoginNonce(payload.nonce as string))) {
     return errorValidation(
       "expired_request",
       "This request has expired. Please try again.",

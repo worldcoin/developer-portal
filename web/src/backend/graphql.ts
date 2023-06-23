@@ -7,6 +7,7 @@ import {
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
 import { generateServiceJWT } from "src/backend/jwts";
+import { GraphQLClient } from "graphql-request";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -70,6 +71,19 @@ export const getWLDAppBackendServiceClient = async (
       query: {
         fetchPolicy: "no-cache",
       },
+    },
+  });
+};
+
+/**
+ * Used for generated requests
+ * Returns an GraphQLClient to interact with GraphQL's API with a service token
+ * @returns
+ */
+export const getAPIServiceGraphqlClient = async () => {
+  return new GraphQLClient(publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL, {
+    headers: {
+      authorization: `Bearer ${await generateServiceJWT()}`,
     },
   });
 };
