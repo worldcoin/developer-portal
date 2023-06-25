@@ -4,6 +4,7 @@
 - "!include public_app_stats_returning.yaml"
 - "!include public_auth_code.yaml"
 - "!include public_cache.yaml"
+- "!include public_invite.yaml"
 - "!include public_jwks.yaml"
 - "!include public_nullifier.yaml"
 - "!include public_redirect.yaml"
