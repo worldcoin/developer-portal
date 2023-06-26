@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
-import { JWK_TIME_TO_LIVE } from "src/lib/constants";
+import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "src/lib/constants";
 
 export type CreateJWKResult = {
   keyId: string;
@@ -110,11 +110,10 @@ export const fetchActiveJWK = async () => {
   if (data.jwks?.length) {
     const { id, kms_id, expires_at } = data.jwks[0];
 
-    // Only return JWK if it's not expiring in the next 7 days
-    // FIXME ASAP: Use JWK_TIME_TO_LIVE
+    // Only return JWK if it's not expiring in the next few days
     const now = dayjs();
     const expires = dayjs(expires_at);
-    if (expires.diff(now, "day") > 7) {
+    if (expires.diff(now, "day") > JWK_TTL_USABLE) {
       return { kid: id, kms_id };
     }
   }
