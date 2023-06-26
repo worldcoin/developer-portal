@@ -91,7 +91,7 @@ export const signJWTWithKMSKey = async (
         KeyId: kms_id,
         Message: Buffer.from(encodedHeaderPayload),
         MessageType: "RAW",
-        SigningAlgorithm: "ECDSA_SHA_256",
+        SigningAlgorithm: "RSASSA_PSS_SHA_256",
       })
     );
 
