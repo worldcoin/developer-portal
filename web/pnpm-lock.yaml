@@ -36,8 +36,8 @@ dependencies:
     specifier: ^1.7.8
     version: 1.8.0
   '@worldcoin/idkit':
-    specifier: 0.4.9
-    version: 0.4.9(@types/node@17.0.36)(@types/react@18.0.33)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.1)(typescript@5.0.3)
+    specifier: 0.5.1
+    version: 0.5.1(@types/node@17.0.36)(@types/react@18.0.33)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.1)(typescript@5.0.3)
   chart.js:
     specifier: ^4.2.1
     version: 4.2.1
@@ -268,6 +268,10 @@ packages:
   /@adobe/css-tools@4.2.0:
     resolution: {integrity: sha512-E09FiIft46CmH5Qnjb0wsW54/YQd69LsxeKUOWawmws1XWvyFGURnAChH0mlr7YPFR1ofwvUQfcL0J3lMxXqPA==}
     dev: true
+
+  /@adraffy/ens-normalize@1.9.0:
+    resolution: {integrity: sha512-iowxq3U30sghZotgl4s/oJRci6WPBfNO5YYgk2cIOMCHr3LeGPcsZjCEr+33Q4N+oV3OABDAtA+pyvWjbvBifQ==}
+    dev: false
 
   /@ampproject/remapping@2.2.1:
     resolution: {integrity: sha512-lFMjJTrFL3j7L9yBxwYfCq2k6qqwHyzuUl/XBnif78PWTJYyL/dfowQHWE3sp6U6ZzqWiiIZnpTMO96zhkjwtg==}
@@ -3250,6 +3254,16 @@ packages:
     dev: false
     optional: true
 
+  /@noble/curves@1.0.0:
+    resolution: {integrity: sha512-2upgEu0iLiDVDZkNLeFV2+ht0BAVgQnEmCk6JsOch9Rp8xfkMCbvbAZlA2pBHQc73dbl+vFOXfqkf4uemdn0bw==}
+    dependencies:
+      '@noble/hashes': 1.3.0
+    dev: false
+
+  /@noble/hashes@1.3.0:
+    resolution: {integrity: sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==}
+    dev: false
+
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -3606,6 +3620,25 @@ packages:
   /@rushstack/eslint-patch@1.2.0:
     resolution: {integrity: sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==}
     dev: true
+
+  /@scure/base@1.1.1:
+    resolution: {integrity: sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==}
+    dev: false
+
+  /@scure/bip32@1.3.0:
+    resolution: {integrity: sha512-bcKpo1oj54hGholplGLpqPHRbIsnbixFtc06nwuNM5/dwSXOq/AAYoIBRsBmnZJSdfeNW5rnff7NTAz3ZCqR9Q==}
+    dependencies:
+      '@noble/curves': 1.0.0
+      '@noble/hashes': 1.3.0
+      '@scure/base': 1.1.1
+    dev: false
+
+  /@scure/bip39@1.2.0:
+    resolution: {integrity: sha512-SX/uKq52cuxm4YFXWFaVByaSHJh2w3BnokVSeUJVCv6K7WulT9u2BuNRBhuFl8vAuYnzx9bEu9WgpcNYTrYieg==}
+    dependencies:
+      '@noble/hashes': 1.3.0
+      '@scure/base': 1.1.1
+    dev: false
 
   /@sendgrid/client@7.7.0:
     resolution: {integrity: sha512-SxH+y8jeAQSnDavrTD0uGDXYIIkFylCo+eDofVmZLQ0f862nnqbC3Vd1ej6b7Le7lboyzQF6F7Fodv02rYspuA==}
@@ -4120,6 +4153,17 @@ packages:
       eslint-visitor-keys: 3.4.0
     dev: true
 
+  /@wagmi/chains@1.0.0(typescript@5.0.3):
+    resolution: {integrity: sha512-eNbqRWyHbivcMNq5tbXJks4NaOzVLHnNQauHPeE/EDT9AlpqzcrMc+v2T1/2Iw8zN4zgqB86NCsxeJHJs7+xng==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      typescript: 5.0.3
+    dev: false
+
   /@walletconnect/browser-utils@1.8.0:
     resolution: {integrity: sha512-Wcqqx+wjxIo9fv6eBUFHPsW1y/bGWWRboni5dfD8PtOmrihrEpOCmvRJe4rfl7xgJW8Ea9UqKEaq0bIRLHlK4A==}
     dependencies:
@@ -4485,35 +4529,35 @@ packages:
       tslib: 2.5.0
     dev: true
 
-  /@worldcoin/idkit@0.4.9(@types/node@17.0.36)(@types/react@18.0.33)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.1)(typescript@5.0.3):
-    resolution: {integrity: sha512-fbRAXfB+DSvDLnKdqBu6AY4XeIoO8jnPvJe1gOSjxrXgM39zOTs6t7k1aivtr0rR0mVV6pCz36AIu+EwTL8s4A==}
+  /@worldcoin/idkit@0.5.1(@types/node@17.0.36)(@types/react@18.0.33)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.1)(typescript@5.0.3):
+    resolution: {integrity: sha512-S/1+TkWEl5gJ16e8pC+sHe5WZMBa3FFZRk+FnKB82L+6B3eBOBoAWSoD2AYffW1Ybg1BS/gOgt//0aCN32ILMQ==}
     peerDependencies:
       react: '>18.0.0'
       react-dom: '>18.0.0'
     dependencies:
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/solidity': 5.7.0
       '@fontsource/rubik': 4.5.14
       '@headlessui/react': 1.7.13(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-dialog': 1.0.3(@types/react@18.0.33)(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-toast': 1.1.3(react-dom@18.2.0)(react@18.2.0)
       '@stitches/react': 1.2.8(react@18.2.0)
       '@tailwindcss/forms': 0.5.3(tailwindcss@3.3.1)
-      '@walletconnect/client': 1.8.0
       '@walletconnect/sign-client': 2.6.2(@types/node@17.0.36)(typescript@5.0.3)
       '@walletconnect/types': 2.6.2(@types/node@17.0.36)(typescript@5.0.3)
       '@walletconnect/utils': 2.6.2(@types/node@17.0.36)(typescript@5.0.3)
       copy-to-clipboard: 3.3.3
+      country-telephone-data: 0.6.3
       framer-motion: 7.10.3(react-dom@18.2.0)(react@18.2.0)
-      js-sha3: 0.8.0
-      posthog-js-lite: 2.0.0
+      phone: 3.1.37
+      posthog-js-lite: 2.4.0
       qr-code-styling-new: 1.6.1
       qrcode: 1.5.1
       react: 18.2.0
       react-countdown: 2.3.5(react-dom@18.2.0)(react@18.2.0)
+      react-country-flag: 3.1.0(react@18.2.0)
       react-dom: 18.2.0(react@18.2.0)
       react-frame-component: 5.2.6(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
       react-shadow: 19.1.0(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
+      viem: 0.3.50(typescript@5.0.3)
       zustand: 4.3.7(react@18.2.0)
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
@@ -4528,6 +4572,7 @@ packages:
       - tailwindcss
       - typescript
       - utf-8-validate
+      - zod
     dev: false
 
   /@wry/context@0.7.0:
@@ -4558,6 +4603,18 @@ packages:
   /abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
     dev: true
+
+  /abitype@0.8.7(typescript@5.0.3):
+    resolution: {integrity: sha512-wQ7hV8Yg/yKmGyFpqrNZufCxbszDe5es4AZGYPBitocfSqXtjrTG9JMWFcc4N30ukl2ve48aBTwt7NJxVQdU3w==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.19.1
+    peerDependenciesMeta:
+      zod:
+        optional: true
+    dependencies:
+      typescript: 5.0.3
+    dev: false
 
   /accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
@@ -5434,6 +5491,10 @@ packages:
       parse-json: 5.2.0
       path-type: 4.0.0
     dev: true
+
+  /country-telephone-data@0.6.3:
+    resolution: {integrity: sha512-3tQLA0vec+NDVlcaHhXGqILq/oQRsv4fRi4EedCfJqUuJUjQGdcSPM8r2IJIT2kZ5yWbiOCkXMgy7YTo8FNS2w==}
+    dev: false
 
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
@@ -7358,6 +7419,14 @@ packages:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
     dev: true
 
+  /isomorphic-ws@5.0.0(ws@8.12.0):
+    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
+    peerDependencies:
+      ws: '*'
+    dependencies:
+      ws: 8.12.0
+    dev: false
+
   /isomorphic-ws@5.0.0(ws@8.13.0):
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
     peerDependencies:
@@ -9015,6 +9084,11 @@ packages:
       split2: 4.2.0
     dev: true
 
+  /phone@3.1.37:
+    resolution: {integrity: sha512-DV7+e8TkH1SHITfzayRVa4X6hRzIOX/Ptr7S2NhoetbeaZ6Sw330UO2gtyP8+TWj+KpoCfRJn2d6cFUO2jH5jw==}
+    engines: {node: '>=12'}
+    dev: false
+
   /picocolors@0.2.1:
     resolution: {integrity: sha512-cMlDqaLEqfSaW8Z7N5Jw+lyIW869EzT73/F5lhtY9cLGoVxSXznfgfXMO0Z5K0o0Q2TkTXq+0KFsdnSe3jDViA==}
     dev: false
@@ -9192,8 +9266,8 @@ packages:
       xtend: 4.0.2
     dev: true
 
-  /posthog-js-lite@2.0.0:
-    resolution: {integrity: sha512-q6y0LWF7/faYtsMpX8tLoYDBsvhinMIVoVuubaK4K/md4VYYrfWgiOuhmqj48L2fWkkU2Qjv1gSuA9lsqrcVNw==}
+  /posthog-js-lite@2.4.0:
+    resolution: {integrity: sha512-BslsygPtDEeFIIRgW9za0mzTtZGv5iy5HrmpRd5KIUPtd3J24mItFMhf8cU9GguqS+oq/Dugt2K2ijpC8mSlzQ==}
     dev: false
 
   /posthog-js@1.57.2:
@@ -9439,6 +9513,15 @@ packages:
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /react-country-flag@3.1.0(react@18.2.0):
+    resolution: {integrity: sha512-JWQFw1efdv9sTC+TGQvTKXQg1NKbDU2mBiAiRWcKM9F1sK+/zjhP2yGmm8YDddWyZdXVkR8Md47rPMJmo4YO5g==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16'
+    dependencies:
+      react: 18.2.0
     dev: false
 
   /react-dom@18.2.0(react@18.2.0):
@@ -10845,6 +10928,25 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
+  /viem@0.3.50(typescript@5.0.3):
+    resolution: {integrity: sha512-s+LxCYZTR9F/qPk1/n1YDVAX9vSeVz7GraqBZWGrDuenCJxo9ArCoIceJ6ksI0WwSeNzcZ0VVbD/kWRzTxkipw==}
+    dependencies:
+      '@adraffy/ens-normalize': 1.9.0
+      '@noble/curves': 1.0.0
+      '@noble/hashes': 1.3.0
+      '@scure/bip32': 1.3.0
+      '@scure/bip39': 1.2.0
+      '@wagmi/chains': 1.0.0(typescript@5.0.3)
+      abitype: 0.8.7(typescript@5.0.3)
+      isomorphic-ws: 5.0.0(ws@8.12.0)
+      ws: 8.12.0
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
   /w3c-xmlserializer@4.0.0:
     resolution: {integrity: sha512-d+BFHzbiCx6zGfz0HyQ6Rg69w9k19nviJspaj4yNscGjrHu94sVP+aRm75yEbCh+r2/yR+7q6hux9LVtbuTGBw==}
     engines: {node: '>=14'}
@@ -11033,6 +11135,19 @@ packages:
     peerDependencies:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: false
+
+  /ws@8.12.0:
+    resolution: {integrity: sha512-kU62emKIdKVeEIOIKVegvqpXMSTAMLJozpHZaJNDYqBjzlSYXQGviYwN1osDLJ9av68qHd4a2oSjd7yD4pacig==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
     peerDependenciesMeta:
       bufferutil:
         optional: true
