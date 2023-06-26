@@ -130,10 +130,13 @@ export default async function handleLogin(
   let email: string | undefined;
   if (!user) {
     if (invite_token) {
-      // NOTE: Temporary static invite codes set in env for hackers at conferences
       if (
-        !process.env.CONFERENCE_INVITE_CODE ||
-        process.env.CONFERENCE_INVITE_CODE !== invite_token
+        // NOTE: Temporary static invite codes set in env for hackers at conferences
+        (!process.env.CONFERENCE_INVITE_CODE ||
+          process.env.CONFERENCE_INVITE_CODE !== invite_token) &&
+        // NOTE: Static invite code for auth0 integration instructions
+        (!process.env.AUTH0_INVITE_CODE ||
+          process.env.AUTH0_INVITE_CODE !== invite_token)
       ) {
         try {
           email = await verifyInviteJWT(invite_token);
