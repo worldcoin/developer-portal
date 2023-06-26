@@ -4,7 +4,7 @@
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CredentialType, IInternalError } from "src/lib/types";
+import { IInternalError } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -126,26 +126,6 @@ export const reportAPIEventToPostHog = async (
   } catch (e) {
     console.error(`Error reporting ${event} to PostHog`, e);
   }
-};
-
-/**
- * Returns the ENS name for the relevant Semaphore smart contract
- * @param is_staging
- * @param credential_type
- */
-export const getSmartContractENSName = (
-  is_staging: boolean,
-  credential_type: CredentialType
-): string => {
-  if (credential_type === CredentialType.Orb) {
-    return is_staging ? "staging.semaphore.wld.eth" : "semaphore.wld.eth";
-  }
-  if (credential_type === CredentialType.Phone) {
-    return is_staging ? "staging.phone.wld.eth" : "phone.wld.eth";
-  }
-  throw new Error(
-    `Invalid credential type for getSmartContractENSName: ${credential_type}`
-  );
 };
 
 /**
