@@ -134,12 +134,10 @@ export const reportAPIEventToPostHog = async (
 export async function checkConsumerBackendForPhoneVerification({
   isStaging,
   identity_commitment,
-  sequencerUrl,
   body,
 }: {
   isStaging: boolean;
   identity_commitment: string;
-  sequencerUrl: string;
   body: Record<string, any>; // FIXME: dirty, shouldn't be inserted this way
 }): Promise<{ error?: IInternalError; insertion?: IPendingProofResponse }> {
   const client = await getWLDAppBackendServiceClient(isStaging);
@@ -168,17 +166,6 @@ export async function checkConsumerBackendForPhoneVerification({
     );
 
     if (insertResponse.ok) {
-      // Commitment inserted, fetch inclusion proof, but we need to wait for the sequencer to index
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      const response = await rawFetchInclusionProof({
-        sequencerUrl,
-        identityCommitment: identity_commitment,
-      });
-
-      if (response.ok) {
-        return { insertion: await response.json() };
-      }
-
       return { insertion: { proof: null, root: null, status: "new" } };
     } else {
       // Commitment not inserted, return generic error
