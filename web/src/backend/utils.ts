@@ -4,7 +4,7 @@
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
-import { IInternalError } from "src/lib/types";
+import { IInternalError, IPendingProofResponse } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 
@@ -139,7 +139,7 @@ export async function checkConsumerBackendForPhoneVerification({
   isStaging: boolean;
   identity_commitment: string;
   body: Record<string, any>; // FIXME: dirty, shouldn't be inserted this way
-}): Promise<{ response: IInternalError } | undefined> {
+}): Promise<{ error?: IInternalError; insertion?: IPendingProofResponse }> {
   const client = await getWLDAppBackendServiceClient(isStaging);
   const phoneVerifiedResponse = await client.query({
     query: phoneVerifiedQuery,
@@ -151,7 +151,7 @@ export async function checkConsumerBackendForPhoneVerification({
       `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
 
-    // FIXME: This is dirty, we should operate this internally
+    // FIXME: This is terrible for many, many reasons, should be handled with internal functions
     const insertResponse = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
       {
@@ -165,23 +165,17 @@ export async function checkConsumerBackendForPhoneVerification({
       }
     );
 
-    // Commitment inserted, return a pending inclusion error
-    if (insertResponse.status === 204) {
-      return {
-        response: {
-          code: "inclusion_pending",
-          statusCode: 400,
-          message:
-            "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-        },
-      };
+    if (insertResponse.ok) {
+      return { insertion: { proof: null, root: null, status: "new" } };
     } else {
       // Commitment not inserted, return generic error
       console.error(
-        `Error inserting identity on-the-fly: ${identity_commitment}`
+        `Error inserting identity on the fly: ${identity_commitment}`,
+        insertResponse.status,
+        await insertResponse.text()
       );
       return {
-        response: {
+        error: {
           code: "server_error",
           statusCode: 503,
           message: "Something went wrong. Please try again.",
@@ -189,7 +183,33 @@ export async function checkConsumerBackendForPhoneVerification({
       };
     }
   }
+  return {};
 }
+
+/**
+ * Fetches the inclusion proof from the sequencer
+ * @returns
+ */
+export const rawFetchInclusionProof = async ({
+  sequencerUrl,
+  identityCommitment,
+}: {
+  sequencerUrl: string;
+  identityCommitment: string;
+}) => {
+  const headers = new Headers();
+  headers.append("Content-Type", "application/json");
+  const body = JSON.stringify({
+    identityCommitment,
+  });
+
+  const response = await fetch(`${sequencerUrl}/inclusionProof`, {
+    method: "POST",
+    headers,
+    body,
+  });
+  return response;
+};
 
 export const generateHashedSecret = (identifier: string) => {
   const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
