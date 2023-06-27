@@ -6,7 +6,10 @@ import {
   errorValidation,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { checkConsumerBackendForPhoneVerification } from "src/backend/utils";
+import {
+  checkConsumerBackendForPhoneVerification,
+  rawFetchInclusionProof,
+} from "src/backend/utils";
 import { Chain, CredentialType, Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
@@ -77,7 +80,7 @@ export default async function handleInclusionProof(
   const isStaging = req.body.env === "production" ? false : true;
 
   const sequencerUrl =
-    sequencerMapping[chain][credential_type]?.[isStaging.toString()];
+    sequencerMapping[chain][credential_type]?.[isStaging.toString()]!;
 
   // ANCHOR: Check if the identity commitment has been revoked
   const identityCommitmentExistsResponse = await apiClient.query({
@@ -100,20 +103,14 @@ export default async function handleInclusionProof(
   }
 
   // Commitment is not in the revoke table, so query sequencer for inclusion proof
-  const headers = new Headers();
-  headers.append("Content-Type", "application/json");
-  const body = JSON.stringify({
+  const response = await rawFetchInclusionProof({
+    sequencerUrl,
     identityCommitment: req.body.identity_commitment,
   });
 
-  const response = await fetch(`${sequencerUrl}/inclusionProof`, {
-    method: "POST",
-    headers,
-    body,
-  });
-  // Commitment found, return the proof
+  // Commitment found, return the proof (NOTE this may include a pending proof)
   if (response.ok) {
-    res.status(200).json({
+    res.status(response.status).json({
       inclusion_proof: await response.json(),
     });
   }
@@ -128,14 +125,20 @@ export default async function handleInclusionProof(
 
     // User may have previously verified their phone number, before the phone sequencer contract was deployed
     // Check with the consumer backend if this is the case, and if so insert the identity commitment on-the-fly
-    const onTheFlyInsertion = await checkConsumerBackendForPhoneVerification({
-      isStaging,
-      identity_commitment: req.body.identity_commitment,
-      body: req.body,
-    });
-    if (onTheFlyInsertion?.response) {
-      const { response: errorResponse } = onTheFlyInsertion;
-      const { statusCode, ...errorBody } = errorResponse;
+    const { error: onTheFlyInsertionError, insertion: onTheFlyInsertion } =
+      await checkConsumerBackendForPhoneVerification({
+        isStaging,
+        identity_commitment: req.body.identity_commitment,
+        sequencerUrl,
+        body: req.body,
+      });
+
+    if (onTheFlyInsertion) {
+      return res.status(202).json(onTheFlyInsertion);
+    }
+
+    if (onTheFlyInsertionError) {
+      const { statusCode, ...errorBody } = onTheFlyInsertionError;
       return res.status(statusCode ?? 500).json(errorBody);
     }
 
