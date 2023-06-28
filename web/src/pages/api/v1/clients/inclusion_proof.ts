@@ -131,7 +131,6 @@ export default async function handleInclusionProof(
     const onTheFlyInsertion = await checkConsumerBackendForPhoneVerification({
       isStaging,
       identity_commitment: req.body.identity_commitment,
-      body: req.body,
     });
     if (onTheFlyInsertion?.response) {
       const { response: errorResponse } = onTheFlyInsertion;

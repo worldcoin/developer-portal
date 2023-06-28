@@ -64,12 +64,22 @@ export default async function handleInsert(
     );
   }
 
+  const response = await insertIdentity(req.body);
+
+  res.status(response.status).json(response.json);
+}
+
+export const insertIdentity = async (payload: {
+  credential_type: "phone";
+  identity_commitment: string;
+  env: "staging" | "production";
+}): Promise<{ status: number; json: Record<string, string> | null }> => {
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
   const revokeExistsResponse = await client.query({
     query: existsQuery,
-    variables: { identity_commitment: req.body.identity_commitment },
+    variables: { identity_commitment: payload.identity_commitment },
   });
 
   // Identity commitment is new, so send it to the signup sequencer
@@ -77,55 +87,64 @@ export default async function handleInsert(
     const headers = new Headers();
     headers.append(
       "Authorization",
-      req.body.env === "production"
+      payload.env === "production"
         ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
         : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
     );
     headers.append("Content-Type", "application/json");
-    const body = JSON.stringify({
-      identityCommitment: req.body.identity_commitment,
-    });
 
     const response = await fetch(
-      req.body.env === "production"
+      payload.env === "production"
         ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
         : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
       {
         method: "POST",
         headers,
-        body,
+        body: JSON.stringify({
+          identityCommitment: payload.identity_commitment,
+        }),
       }
     );
 
     if (response.ok) {
-      return res.status(204).end();
-    } else if (response.status === 400) {
-      return res.status(400).json({
-        code: "already_included",
-        detail: "The identity commitment is already included",
-      });
-    } else {
-      return res.status(503).json({
+      return { status: 204, json: null };
+    }
+    if (response.status === 400) {
+      return {
+        status: 400,
+        json: {
+          code: "already_included",
+          detail: "The identity commitment is already included",
+        },
+      };
+    }
+
+    return {
+      status: 503,
+      json: {
         code: "server_error",
         detail: "Something went wrong. Please try again.",
-      });
-    }
+      },
+    };
   }
 
   // Identity commitment has been revoked before, so remove it from the table
   const deleteRevokeResponse = await client.mutate({
     mutation: deleteQuery,
     variables: {
-      identity_commitment: req.body.identity_commitment,
+      identity_commitment: payload.identity_commitment,
     },
   });
 
   if (deleteRevokeResponse?.data) {
-    res.status(204).end();
-  } else {
-    res.status(503).json({
+    return { status: 204, json: null };
+  }
+
+  return {
+    status: 503,
+    json: {
       code: "server_error",
       detail: "Something went wrong. Please try again.",
-    });
-  }
-}
+    },
+  };
+};

@@ -7,6 +7,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
+import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -154,11 +155,9 @@ export const getSmartContractENSName = (
 export async function checkConsumerBackendForPhoneVerification({
   isStaging,
   identity_commitment,
-  body,
 }: {
   isStaging: boolean;
   identity_commitment: string;
-  body: Record<string, any>; // FIXME ASAP: dirty, shouldn't be inserted this way
 }): Promise<{ response: IInternalError } | undefined> {
   const client = await getWLDAppBackendServiceClient(isStaging);
   const phoneVerifiedResponse = await client.query({
@@ -171,19 +170,11 @@ export async function checkConsumerBackendForPhoneVerification({
       `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
 
-    // FIXME ASAP: This is dirty, we should operate this internally
-    const insertResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/clients/insert_identity`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.CONSUMER_BACKEND_SECRET}`,
-          "Content-Type": "application/json",
-          "User-Agent": "WorldcoinDeveloperPortal/v-alpha",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const insertResponse = await insertIdentity({
+      credential_type: "phone",
+      identity_commitment,
+      env: isStaging ? "staging" : "production",
+    });
 
     // Commitment inserted, return a pending inclusion error
     if (insertResponse.status === 204) {
