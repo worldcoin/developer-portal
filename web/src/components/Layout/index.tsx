@@ -69,7 +69,10 @@ export const Layout = (props: {
           <header className="cursor-pointer">
             <Link href="/">
               <div className="grid justify-start gap-y-0.5">
-                <Icon name="logo-dev" className="w-40 h-12 text-black" />
+                <Icon
+                  name="logo-dev"
+                  className="w-[141px] h-[38px] text-black"
+                />
               </div>
             </Link>
           </header>
