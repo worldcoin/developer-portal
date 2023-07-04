@@ -6,7 +6,9 @@ import type {
   internal as IDKitInternal,
 } from "@worldcoin/idkit";
 
-type VerificationState = typeof IDKitInternal.VerificationState;
+type VerificationState = ReturnType<
+  typeof IDKitInternal.useAppConnection
+>["verificationState"];
 
 export enum KioskScreen {
   Waiting,

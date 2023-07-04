@@ -6,7 +6,7 @@ const timeSpans = [
   { label: "This month", value: "month" },
 ] as const;
 
-export type TimeSpan = typeof timeSpans[number];
+export type TimeSpan = (typeof timeSpans)[number];
 
 export type IAppStatsStore = {
   stats: Array<AppStatsModel>;
