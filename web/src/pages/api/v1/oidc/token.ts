@@ -1,12 +1,5 @@
 import { gql } from "@apollo/client";
-import {
-  errorNotAllowed,
-  errorOIDCResponse,
-  errorRequiredAttribute,
-  errorUnauthenticated,
-  errorValidation,
-  oauth2Error,
-} from "src/backend/errors";
+import { errorOIDCResponse } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
 import { generateOIDCJWT } from "src/backend/jwts";
