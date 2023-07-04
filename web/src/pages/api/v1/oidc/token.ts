@@ -5,6 +5,7 @@ import {
   errorRequiredAttribute,
   errorUnauthenticated,
   errorValidation,
+  oauth2Error,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
@@ -40,15 +41,20 @@ export default async function handleOIDCToken(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorOIDCResponse(
+      res,
+      400,
+      "invalid_request",
+      "Method not allowed."
+    );
   }
 
   if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
-    return errorValidation(
-      "invalid_content_type",
-      "Invalid content type. Only application/x-www-form-urlencoded is supported.",
-      null,
-      res
+    return errorOIDCResponse(
+      res,
+      400,
+      "invalid_request",
+      "Invalid content type. Only application/x-www-form-urlencoded is supported."
     );
   }
 
@@ -66,9 +72,11 @@ export default async function handleOIDCToken(
   }
 
   if (!authToken) {
-    return errorUnauthenticated(
-      "Please provide your app authentication credentials.",
-      res
+    return errorOIDCResponse(
+      res,
+      401,
+      "unauthorized_client",
+      "Please provide your app authentication credentials."
     );
   }
 
@@ -76,15 +84,19 @@ export default async function handleOIDCToken(
   app_id = await authenticateOIDCEndpoint(authToken);
 
   if (!app_id) {
-    // FIXME ASAP: Wrap all OIDC errors as they need to include the standard `error` and `error_description` attributes. @igorosip0v
-    return errorUnauthenticated("Invalid authentication credentials.", res);
+    return errorOIDCResponse(
+      res,
+      401,
+      "unauthorized_client",
+      "Invalid authentication credentials"
+    );
   }
 
   if (req.body.grant_type !== "authorization_code") {
     return errorOIDCResponse(
       res,
       400,
-      "invalid_grant_type",
+      "invalid_grant",
       "Invalid grant type. Only authorization_code is supported.",
       null
     );
@@ -92,7 +104,13 @@ export default async function handleOIDCToken(
 
   const auth_code = req.body.code as string;
   if (!auth_code) {
-    return errorRequiredAttribute("code", res);
+    return errorOIDCResponse(
+      res,
+      400,
+      "invalid_request",
+      "Required parameter code is missing.",
+      "code"
+    );
   }
 
   const client = await getAPIServiceClient();
