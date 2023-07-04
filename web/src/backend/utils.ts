@@ -4,7 +4,7 @@
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CredentialType, IInternalError } from "src/lib/types";
+import { IInternalError, IPendingProofResponse } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
@@ -130,26 +130,6 @@ export const reportAPIEventToPostHog = async (
 };
 
 /**
- * Returns the ENS name for the relevant Semaphore smart contract
- * @param is_staging
- * @param credential_type
- */
-export const getSmartContractENSName = (
-  is_staging: boolean,
-  credential_type: CredentialType
-): string => {
-  if (credential_type === CredentialType.Orb) {
-    return is_staging ? "staging.semaphore.wld.eth" : "semaphore.wld.eth";
-  }
-  if (credential_type === CredentialType.Phone) {
-    return is_staging ? "staging.phone.wld.eth" : "phone.wld.eth";
-  }
-  throw new Error(
-    `Invalid credential type for getSmartContractENSName: ${credential_type}`
-  );
-};
-
-/**
  * Check the consumer backend to see if the user's phone number is verified, and if so insert it on-the-fly
  */
 export async function checkConsumerBackendForPhoneVerification({
@@ -158,7 +138,7 @@ export async function checkConsumerBackendForPhoneVerification({
 }: {
   isStaging: boolean;
   identity_commitment: string;
-}): Promise<{ response: IInternalError } | undefined> {
+}): Promise<{ error?: IInternalError; insertion?: IPendingProofResponse }> {
   const client = await getWLDAppBackendServiceClient(isStaging);
   const phoneVerifiedResponse = await client.query({
     query: phoneVerifiedQuery,
@@ -176,23 +156,17 @@ export async function checkConsumerBackendForPhoneVerification({
       env: isStaging ? "staging" : "production",
     });
 
-    // Commitment inserted, return a pending inclusion error
-    if (insertResponse.status === 204) {
-      return {
-        response: {
-          code: "inclusion_pending",
-          statusCode: 400,
-          message:
-            "This identity is in progress of being included on-chain. Please wait a few minutes and try again.",
-        },
-      };
+    if (insertResponse.ok) {
+      return { insertion: { proof: null, root: null, status: "new" } };
     } else {
       // Commitment not inserted, return generic error
       console.error(
-        `Error inserting identity on-the-fly: ${identity_commitment}`
+        `Error inserting identity on the fly: ${identity_commitment}`,
+        insertResponse.status,
+        await insertResponse.text()
       );
       return {
-        response: {
+        error: {
           code: "server_error",
           statusCode: 503,
           message: "Something went wrong. Please try again.",
@@ -200,7 +174,33 @@ export async function checkConsumerBackendForPhoneVerification({
       };
     }
   }
+  return {};
 }
+
+/**
+ * Fetches the inclusion proof from the sequencer
+ * @returns
+ */
+export const rawFetchInclusionProof = async ({
+  sequencerUrl,
+  identityCommitment,
+}: {
+  sequencerUrl: string;
+  identityCommitment: string;
+}) => {
+  const headers = new Headers();
+  headers.append("Content-Type", "application/json");
+  const body = JSON.stringify({
+    identityCommitment,
+  });
+
+  const response = await fetch(`${sequencerUrl}/inclusionProof`, {
+    method: "POST",
+    headers,
+    body,
+  });
+  return response;
+};
 
 export const generateHashedSecret = (identifier: string) => {
   const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;

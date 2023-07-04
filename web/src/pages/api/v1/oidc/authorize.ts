@@ -113,7 +113,6 @@ export default async function handleOIDCAuthorize(
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    credential_type,
     redirect_uri ?? ""
   );
   if (!app || fetchAppError) {
@@ -160,7 +159,6 @@ export default async function handleOIDCAuthorize(
     },
     {
       is_staging: app.is_staging,
-      contract_address: app.contract_address,
       credential_type,
       chain: Chain.Polygon, // TODO: Add support for Optimism after production deployment
     }

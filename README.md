@@ -35,62 +35,18 @@ All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guide
 
 ## 🧑‍💻 Developing Locally
 
-The Developer Portal uses several external services to operate. Credentials for each of these services can be placed in the [.env.test](./web/.env.test) or .env.local file. These include:
+The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
 
-- [Alchemy API](https://docs.alchemy.com/reference/api-overview)
-- [Worldcoin Signup Sequencer](https://github.com/worldcoin/signup-sequencer)
-- [AWS Key Management Service](https://aws.amazon.com/kms/)
+1. Copy the `.env.test` into a local env file
 
-### KMS Setup
-
-To start using the JWKS features of the portal, some prior setup in your AWS account is required. Specifically, an IAM role needs to be provisioned with the following policies attached:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "VisualEditor0",
-      "Effect": "Allow",
-      "Action": [
-        "kms:GetPublicKey",
-        "kms:TagResource",
-        "kms:ScheduleKeyDeletion",
-        "kms:PutKeyPolicy",
-        "kms:DescribeKey",
-        "kms:Verify",
-        "kms:Sign"
-      ],
-      "Resource": "arn:aws:kms:*:<ACCOUNT_NUMBER>:key/*"
-    },
-    {
-      "Sid": "VisualEditor1",
-      "Effect": "Allow",
-      "Action": "kms:CreateKey",
-      "Resource": "*"
-    }
-  ]
-}
+```
+cd web/
+cp .env.test .env
 ```
 
-Then, generate an access key to the role, and add the below details to the `.env` file:
-
-```txt
-AWS_REGION_NAME=<REGION_NAME>
-AWS_ACCESS_KEY_ID=<ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY=<ACCESS_KEY_SECRET>
-TASK_ROLE_ARN=<IAM_ROLE_ARN>
-```
-
-### Dev Login
-
-To bypass the KMS requirement, the codebase contains conditional logic to allow developers to login when running locally. This feature is dependent on the following HS512 JWT keys matching each other:
-
-- `NEXT_PUBLIC_DEV_LOGIN_KEY` ([.env](./web/.env.test))
-- `HASURA_GRAPHQL_JWT_SECRET` ([.env](./web/.env.test))
-- `HASURA_GRAPHQL_JWT_SECRET` ([docker-compose.yaml](./docker-compose.yaml))
-
-If you have issues, please double check these values before debugging further.
+2. Edit any environment variables for which you have real credentials.
+3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with Worldcoin. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](aws-role-sample-policy.json) for this.
+   1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
 ### Starting the app
 
