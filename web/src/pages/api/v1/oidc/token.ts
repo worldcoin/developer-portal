@@ -95,8 +95,6 @@ export default async function handleOIDCToken(
     return errorRequiredAttribute("code", res);
   }
 
-  // FIXME ASAP: Verify the redirect_uri coming in the body
-
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
   const { data } = await client.mutate<{
