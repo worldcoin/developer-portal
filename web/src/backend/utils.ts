@@ -156,14 +156,13 @@ export async function checkConsumerBackendForPhoneVerification({
       env: isStaging ? "staging" : "production",
     });
 
-    if (insertResponse.ok) {
+    if (insertResponse.status === 204) {
       return { insertion: { proof: null, root: null, status: "new" } };
     } else {
       // Commitment not inserted, return generic error
       console.error(
         `Error inserting identity on the fly: ${identity_commitment}`,
-        insertResponse.status,
-        await insertResponse.text()
+        insertResponse
       );
       return {
         error: {
