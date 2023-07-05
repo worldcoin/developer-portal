@@ -11,6 +11,7 @@ import {
   POLYGON_PHONE_SEQUENCER,
   POLYGON_PHONE_SEQUENCER_STAGING,
 } from "src/lib/constants";
+import { RevocationModel } from "src/lib/models";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -77,47 +78,32 @@ export const insertIdentity = async (payload: {
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
-  const revokeExistsResponse = await client.query({
+  const revokeExistsResponse = await client.query<{
+    revocation: Array<Pick<RevocationModel, "identity_commitment">>;
+  }>({
     query: existsQuery,
     variables: { identity_commitment: payload.identity_commitment },
   });
 
-  // Identity commitment is new, so send it to the signup sequencer
-  if (!revokeExistsResponse.data.revocation.length) {
-    const headers = new Headers();
-    headers.append(
-      "Authorization",
-      payload.env === "production"
-        ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
-        : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
-    );
-    headers.append("Content-Type", "application/json");
+  if (revokeExistsResponse.data.revocation.length) {
+    // Identity commitment has been revoked before, so remove it from the table
+    const deleteRevokeResponse = await client.mutate<{
+      delete_revocation: Array<Pick<RevocationModel, "identity_commitment">>;
+    }>({
+      mutation: deleteQuery,
+      variables: {
+        identity_commitment: payload.identity_commitment,
+      },
+    });
 
-    const response = await fetch(
-      payload.env === "production"
-        ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
-        : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          identityCommitment: payload.identity_commitment,
-        }),
-      }
-    );
-
-    if (response.ok) {
+    if (deleteRevokeResponse?.data?.delete_revocation.length) {
       return { status: 204, json: null };
     }
-    if (response.status === 400) {
-      return {
-        status: 400,
-        json: {
-          code: "already_included",
-          detail: "The identity commitment is already included",
-        },
-      };
-    }
+
+    console.error(
+      "insertIdentity unhandled error from hasura",
+      deleteRevokeResponse
+    );
 
     return {
       status: 503,
@@ -128,17 +114,50 @@ export const insertIdentity = async (payload: {
     };
   }
 
-  // Identity commitment has been revoked before, so remove it from the table
-  const deleteRevokeResponse = await client.mutate({
-    mutation: deleteQuery,
-    variables: {
-      identity_commitment: payload.identity_commitment,
-    },
-  });
+  // Identity commitment is new, so send it to the signup sequencer
+  const headers = new Headers();
+  headers.append(
+    "Authorization",
+    payload.env === "production"
+      ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
+      : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+  );
+  headers.append("Content-Type", "application/json");
 
-  if (deleteRevokeResponse?.data) {
+  const response = await fetch(
+    payload.env === "production"
+      ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
+      : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        identityCommitment: payload.identity_commitment,
+      }),
+    }
+  );
+
+  if (response.ok) {
     return { status: 204, json: null };
   }
+  if (response.status === 400) {
+    console.info(
+      "insertIdentity `400` response from sequencer",
+      await response.text()
+    );
+    return {
+      status: 400,
+      json: {
+        code: "already_included",
+        detail: "The identity commitment is already included",
+      },
+    };
+  }
+
+  console.error(
+    `insertIdentity unhandled error from sequencer ${response.status}`,
+    await response.text()
+  );
 
   return {
     status: 503,
