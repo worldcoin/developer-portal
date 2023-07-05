@@ -4,12 +4,10 @@ import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
 import handleOIDCUserinfo from "src/pages/api/v1/oidc/userinfo";
 
-jest.mock(
-  "src/backend/kms",
-  jest.fn(() => ({
-    getKMSClient: () => ({}),
-    signJWTWithKMSKey: () => ({}),
-  }))
+jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+
+jest.mock("src/backend/jwks", () =>
+  require("tests/api/__mocks__/jwks.mock.ts")
 );
 
 describe("/api/v1/oidc/userinfo", () => {
@@ -23,6 +21,9 @@ describe("/api/v1/oidc/userinfo", () => {
       credential_type: CredentialType.Orb,
       scope: [OIDCScopes.OpenID, OIDCScopes.Profile],
     });
+    // Ensure we're actually generating a JWT
+    expect(jwt).toMatch(/^[\w-]*\.[\w-]*\.[\w-]*$/);
+
     const { req, res } = createMocks({
       method: "POST",
       headers: {

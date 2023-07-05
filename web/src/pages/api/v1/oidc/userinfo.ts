@@ -22,7 +22,7 @@ export default async function handler(
   const token = authorization.replace("Bearer ", "");
 
   try {
-    const payload = await verifyOIDCJWT(token); // FIXME: Add test for expired tokens
+    const payload = await verifyOIDCJWT(token);
     const response: Record<string, any> = {
       sub: payload.sub,
       "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],

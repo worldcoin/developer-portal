@@ -159,16 +159,13 @@ export async function checkConsumerBackendForPhoneVerification({
     if (insertResponse.status === 204) {
       return { insertion: { proof: null, root: null, status: "new" } };
     } else {
-      // Commitment not inserted, return generic error
-      console.error(
-        `Error inserting identity on the fly: ${identity_commitment}`,
-        insertResponse
-      );
       return {
         error: {
-          code: "server_error",
-          statusCode: 503,
-          message: "Something went wrong. Please try again.",
+          statusCode: insertResponse.status,
+          ...(insertResponse.json ?? {
+            code: "server_error",
+            message: "Something went wrong. Please try again.",
+          }),
         },
       };
     }

@@ -8,7 +8,6 @@ import handleLogin from "src/pages/api/login";
 import { getTokenFromCookie } from "src/backend/cookies";
 import * as jose from "jose";
 import { MOCKED_GENERAL_SECRET_KEY } from "jest.setup";
-import { integrationDBExecuteQuery } from "tests/integration/setup";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();

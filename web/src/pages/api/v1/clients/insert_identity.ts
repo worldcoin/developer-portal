@@ -12,6 +12,7 @@ import {
   POLYGON_PHONE_SEQUENCER_STAGING,
 } from "src/lib/constants";
 import { RevocationModel } from "src/lib/models";
+import { IInternalError } from "src/lib/types";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -76,7 +77,7 @@ export const insertIdentity = async (payload: {
   env: "staging" | "production";
 }): Promise<{
   status: 204 | 400 | 503;
-  json: Record<string, string> | null;
+  json: IInternalError | null;
 }> => {
   const client = await getAPIServiceClient();
 
@@ -112,7 +113,7 @@ export const insertIdentity = async (payload: {
       status: 503,
       json: {
         code: "server_error",
-        detail: "Something went wrong. Please try again.",
+        message: "Something went wrong. Please try again.",
       },
     };
   }
@@ -152,7 +153,7 @@ export const insertIdentity = async (payload: {
       status: 400,
       json: {
         code: "already_included",
-        detail: "The identity commitment is already included",
+        message: "The identity commitment is already included",
       },
     };
   }
@@ -166,7 +167,7 @@ export const insertIdentity = async (payload: {
     status: 503,
     json: {
       code: "server_error",
-      detail: "Something went wrong. Please try again.",
+      message: "Something went wrong. Please try again.",
     },
   };
 };
