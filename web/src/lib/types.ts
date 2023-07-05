@@ -63,6 +63,12 @@ export interface IInternalError {
   attribute?: string | null;
 }
 
+export interface IPendingProofResponse {
+  proof: Array<{ Right?: string; Left?: string }> | null;
+  root: string | null;
+  status: "pending" | "mined" | "new";
+}
+
 export type ActionKioskType = Pick<
   ActionModel,
   "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"

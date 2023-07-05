@@ -74,7 +74,10 @@ export const insertIdentity = async (payload: {
   credential_type: "phone";
   identity_commitment: string;
   env: "staging" | "production";
-}): Promise<{ status: number; json: Record<string, string> | null }> => {
+}): Promise<{
+  status: 204 | 400 | 503;
+  json: Record<string, string> | null;
+}> => {
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
