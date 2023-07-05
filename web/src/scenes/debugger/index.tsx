@@ -33,7 +33,7 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
   const [signal, setSignal] = useState("");
   const [response, setResponse] = useState("");
   const [mode, setMode] = useState(DebuggerMode.SignIn);
-  const [env, setEnv] = useState<typeof envs[0]>(envs[0]);
+  const [env, setEnv] = useState<(typeof envs)[0]>(envs[0]);
   const [hasTried, setHasTried] = useState(false);
   const currentApp = useAppStore((state) => state.currentApp);
 

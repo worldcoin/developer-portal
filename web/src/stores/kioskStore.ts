@@ -1,8 +1,14 @@
-import { ISuccessResult } from "@worldcoin/idkit";
 import dayjs from "dayjs";
-import { ActionKioskType } from "src/lib/types";
 import { create } from "zustand";
-import { VerificationState } from "@worldcoin/idkit/build/src/types/app";
+import { ActionKioskType } from "src/lib/types";
+import type {
+  ISuccessResult,
+  internal as IDKitInternal,
+} from "@worldcoin/idkit";
+
+type VerificationState = ReturnType<
+  typeof IDKitInternal.useAppConnection
+>["verificationState"];
 
 export enum KioskScreen {
   Waiting,
@@ -33,7 +39,7 @@ export type IKioskStore = {
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: { mobile: string; default: string }) => void;
   setKioskAction: (kioskAction: ActionKioskType) => void;
-  setVerificationState: (verificationState: VerificationState) => void; // TODO: Fix typing of verificationState, should be VerificationState from IDKit
+  setVerificationState: (verificationState: VerificationState) => void;
   setWCReset: (fn: () => void) => void;
   setSuccessParams: (successParams: ISuccessParams) => void;
   setProofResult: (proofResult: ISuccessResult) => void;

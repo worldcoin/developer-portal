@@ -65,6 +65,7 @@ const insertRedirectsQuery = gql`
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
+ * NOTE: This endpoint is rate limited with WAF to prevent abuse
  * @param req
  * @param res
  */
@@ -80,9 +81,7 @@ export default async function handleRegister(
     return errorRequiredAttribute("redirect_uris", res);
   }
 
-  // TODO: Add heavy rate limiting to the endpoint
-
-  // Parse redirect_uris into array and validate
+  // ANCHOR: Parse redirect_uris into array and validate
   for (const redirect in req.body.redirects) {
     try {
       const url = new URL(redirect);
