@@ -90,11 +90,6 @@ jobs:
         with:
           image: developer-portal-test:latest
 
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.sarif
-
       # - name: Run API tests
       #   run: docker run developer-portal-test pnpm test:api
 
