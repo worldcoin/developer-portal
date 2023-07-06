@@ -145,3 +145,15 @@ jobs:
       - name: Run integration tests
         run: |
           pnpm test:integration
+
+  snyk:
+    name: Snyk
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
