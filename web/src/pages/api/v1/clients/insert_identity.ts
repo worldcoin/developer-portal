@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
+  errorResponse,
   errorValidation,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
@@ -12,7 +12,8 @@ import {
   POLYGON_PHONE_SEQUENCER_STAGING,
 } from "src/lib/constants";
 import { RevocationModel } from "src/lib/models";
-import { IInternalError } from "src/lib/types";
+import { Environment, IInternalError } from "src/lib/types";
+import * as yup from "yup";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -51,22 +52,30 @@ export default async function handleInsert(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["credential_type", "identity_commitment", "env"]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
-    }
-  }
+  const schema = yup.object({
+    credential_type: yup.string().oneOf(["phone"]).required(), // NOTE: Only phone is supported for now
+    identity_commitment: yup.string().required(),
+    env: yup.string().oneOf(Object.values(Environment)).required(),
+  });
 
-  if (req.body.credential_type !== "phone") {
-    return errorValidation(
-      "invalid",
-      "Invalid credential type. Only `phone` is supported for now.",
-      "credential_type",
-      res
+  // TODO: Standardize yup error handling
+  let input;
+  try {
+    input = await schema.validate(req.body);
+  } catch (e) {
+    if (e instanceof yup.ValidationError) {
+      return errorValidation("invalid", e.message, e.path || null, res);
+    }
+    console.error("Unhandled yup validation error.", e);
+    return errorResponse(
+      res,
+      500,
+      "server_error",
+      "Something went wrong. Please try again."
     );
   }
 
-  const response = await insertIdentity(req.body);
+  const response = await insertIdentity(input);
 
   res.status(response.status).json(response.json);
 }

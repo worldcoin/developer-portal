@@ -213,7 +213,7 @@ type FetchAppSecretResult = {
   >;
 };
 
-// TODO: Hash secrets as passwords (e.g. `PBKDF2`) instead of using HMAC encryption
+// TODO: Hash secrets as passwords (e.g. `PBKDF2`) instead of HMAC
 export const authenticateOIDCEndpoint = async (
   auth_header: string
 ): Promise<string | null> => {
