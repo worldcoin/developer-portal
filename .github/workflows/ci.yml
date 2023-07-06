@@ -83,6 +83,18 @@ jobs:
       - name: Build Docker image
         run: docker build --cache-from developer-portal-test:latest -t developer-portal-test:latest .
 
+      - name: Run Snyk to check Docker image for vulnerabilities
+        # Snyk can be used to break the build when it detects vulnerabilities.
+        # In this case we want to upload the issues to GitHub Code Scanning
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: developer-portal-test:latest
+          args: --file=Dockerfile
+          command: monitor
+
       # - name: Run API tests
       #   run: docker run developer-portal-test pnpm test:api
 
@@ -149,9 +161,11 @@ jobs:
   snyk:
     name: Snyk
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v3
-      - uses: snyk/actions/setup@master
 
       - name: Set up Node 18
         uses: actions/setup-node@v3
@@ -160,9 +174,9 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 
+      - uses: snyk/actions/setup@master
+
       - name: Snyk Test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          cd web/
-          snyk test
+        run: snyk test
