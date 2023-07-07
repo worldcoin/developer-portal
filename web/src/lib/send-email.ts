@@ -15,10 +15,10 @@ export const sendEmail = async (params: {
   apiKey: string;
   to: Array<EmailData> | EmailData;
   from: EmailData;
-  subject: string;
+  subject?: string;
   templateData?: Record<string, any>;
   templateId?: string;
-  text: string;
+  text?: string;
   html?: string;
   attachments?: Array<Attachment>;
 }): Promise<boolean> => {
@@ -28,24 +28,29 @@ export const sendEmail = async (params: {
   ) {
     throw new Error("templateId and templateData must be passed together");
   }
+  if (!params.templateId && !params.templateData && !params.text) {
+    throw new Error(
+      "Either templateId and templateData OR text must be passed"
+    );
+  }
 
   sendgrid.setApiKey(params.apiKey);
 
   try {
     await sendgrid.send({
       ...(params.attachments ? { attachments: params.attachments } : {}),
-      ...(params.html ? { html: params.html } : {}),
-
       ...(params.templateId && params.templateData
         ? {
             dynamicTemplateData: params.templateData,
             templateId: params.templateId,
           }
-        : {}),
-
+        : {
+            // we should probably always use templates in prod but this at least makes this flexible for testing
+            ...(params.html ? { html: params.html } : {}),
+            ...(params.subject ? { subject: params.subject } : {}),
+            text: params.text!,
+          }),
       from: params.from,
-      subject: params.subject,
-      text: params.text,
       to: params.to,
     });
   } catch (err) {

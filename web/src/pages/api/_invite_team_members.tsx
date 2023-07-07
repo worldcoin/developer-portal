@@ -104,20 +104,12 @@ export default async function handleInvite(
           apiKey: process.env.SENDGRID_API_KEY!,
           from: process.env.SENDGRID_EMAIL_FROM!,
           to: invite.email,
-          subject: "Teammate invited you",
-          text: `Click this link to join: ${link}`,
-          html: renderToString(
-            <Invite
-              email={invite.email}
-              link={link}
-              user={{
-                id: "test",
-                email: "test",
-                name: "test",
-                team: { name: "test", id: "test" },
-              }}
-            />
-          ),
+          templateId: process.env.SENDGRID_TEMPLATE_ID!,
+          templateData: {
+            inviter: fetchUserRes.user[0].name,
+            team: fetchUserRes.user[0].team.name ?? "their team",
+            inviteLink: link,
+          },
         })
       );
     }
