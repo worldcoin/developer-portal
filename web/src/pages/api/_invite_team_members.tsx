@@ -5,8 +5,6 @@ import { getAPIServiceGraphqlClient } from "@/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql/createInvite.generated";
 import { getSdk as getFetchUserSdk } from "@/api/invite-team-members/graphql/fetchUser.generated";
 import { sendEmail } from "@/lib/send-email";
-import { Invite } from "@/components/EmailTemplates/Invite";
-import { renderToString } from "react-dom/server";
 
 export default async function handleInvite(
   req: NextApiRequest,
