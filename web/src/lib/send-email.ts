@@ -29,9 +29,7 @@ export const sendEmail = async (params: {
     throw new Error("templateId and templateData must be passed together");
   }
   if (!params.templateId && !params.text) {
-    throw new Error(
-      "Either templateId and templateData OR text must be passed"
-    );
+    throw new Error("Either templateId OR text must be passed");
   }
 
   sendgrid.setApiKey(params.apiKey);

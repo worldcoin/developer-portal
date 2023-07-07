@@ -93,6 +93,10 @@ export default async function handleInvite(
       });
     }
 
+    if (!process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID) {
+      throw new Error("SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.");
+    }
+
     const promises = [];
     for (const invite of createInvitesRes.invites?.returning) {
       const link = `${process.env.NEXT_PUBLIC_APP_URL}/login-with-invite?invite=${invite.id}`;
@@ -102,9 +106,9 @@ export default async function handleInvite(
           apiKey: process.env.SENDGRID_API_KEY!,
           from: process.env.SENDGRID_EMAIL_FROM!,
           to: invite.email,
-          templateId: process.env.SENDGRID_TEMPLATE_ID!,
+          templateId: process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID!,
           templateData: {
-            inviter: fetchUserRes.user[0].name,
+            inviter: fetchUserRes.user[0].name ?? fetchUserRes.user[0].email,
             team: fetchUserRes.user[0].team.name ?? "their team",
             inviteLink: link,
           },
