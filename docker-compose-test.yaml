@@ -16,7 +16,7 @@ services:
   hasura_test:
     image: hasura/graphql-engine:v2.18.0.cli-migrations-v3
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       postgres_test:
         condition: service_healthy

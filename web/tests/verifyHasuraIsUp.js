@@ -6,7 +6,7 @@ async function loop() {
   counter = counter + 1;
   console.log("Checking if Hasura is up and migrations are ready....");
   try {
-    const response = await fetch("http://localhost:8081/healthz");
+    const response = await fetch("http://localhost:8080/healthz");
     if (response.ok) {
       console.log("✅ Hasura is ready");
       return;
