@@ -11,11 +11,6 @@ export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
 };
 
-export enum Chain {
-  Polygon = "polygon",
-  Optimism = "optimism",
-}
-
 export enum CredentialType {
   Orb = "orb",
   Phone = "phone",
