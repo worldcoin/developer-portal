@@ -84,6 +84,7 @@ export default async function handleLogin(
   const { invite } = await getInviteByIdSdk(client).GetInviteById({
     id: invite_id,
   });
+
   if (!invite || new Date(invite.expires_at) <= new Date()) {
     return errorResponse(res, 400, "invalid_invite");
   }
@@ -94,7 +95,7 @@ export default async function handleLogin(
   ).CreateUserAndDeleteInvite({
     email: invite.email,
     team_id: invite.team_id,
-    ironclad_id: "",
+    ironclad_id: "", // REVIEW: How to get ironclad_id when we create user after email invite?
     nullifier,
     invite_id: invite.id,
   });

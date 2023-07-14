@@ -5,8 +5,6 @@ import { getAPIServiceGraphqlClient } from "@/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql/createInvite.generated";
 import { getSdk as getFetchUserSdk } from "@/api/invite-team-members/graphql/fetchUser.generated";
 import { sendEmail } from "@/lib/send-email";
-import { Invite } from "@/components/EmailTemplates/Invite";
-import { renderToString } from "react-dom/server";
 
 export default async function handleInvite(
   req: NextApiRequest,
@@ -95,6 +93,10 @@ export default async function handleInvite(
       });
     }
 
+    if (!process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID) {
+      throw new Error("SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.");
+    }
+
     const promises = [];
     for (const invite of createInvitesRes.invites?.returning) {
       const link = `${process.env.NEXT_PUBLIC_APP_URL}/login-with-invite?invite=${invite.id}`;
@@ -104,20 +106,12 @@ export default async function handleInvite(
           apiKey: process.env.SENDGRID_API_KEY!,
           from: process.env.SENDGRID_EMAIL_FROM!,
           to: invite.email,
-          subject: "Teammate invited you",
-          text: `Click this link to join: ${link}`,
-          html: renderToString(
-            <Invite
-              email={invite.email}
-              link={link}
-              user={{
-                id: "test",
-                email: "test",
-                name: "test",
-                team: { name: "test", id: "test" },
-              }}
-            />
-          ),
+          templateId: process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID!,
+          templateData: {
+            inviter: fetchUserRes.user[0].name ?? fetchUserRes.user[0].email,
+            team: fetchUserRes.user[0].team.name ?? "their team",
+            inviteLink: link,
+          },
         })
       );
     }

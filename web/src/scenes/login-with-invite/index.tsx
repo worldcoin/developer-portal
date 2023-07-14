@@ -9,6 +9,7 @@ import {
   LoginRequestBody,
   LoginRequestResponse,
 } from "@/pages/api/login-with-invite";
+import { deleteCookie, getCookie } from "cookies-next";
 
 export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
@@ -36,6 +37,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
         );
       }
 
+      deleteCookie("invite_id");
       router.push(urls.app());
     },
     [router]
@@ -52,9 +54,11 @@ export function Login({ loginUrl }: ILoginPageProps) {
     }
 
     if (router.query.id_token) {
+      const invite_id = getCookie("invite_id")?.toString();
+
       doLogin({
         sign_in_with_world_id_token: router.query.id_token as string,
-        invite_id: router.query.invite as string,
+        invite_id: invite_id ?? "",
       });
     } else if (router.query.invite) {
       router.push(loginUrl ?? "");
