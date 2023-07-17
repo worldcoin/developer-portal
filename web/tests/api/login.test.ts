@@ -1,5 +1,5 @@
 import { when } from "jest-when";
-import { generateInviteJWT, generateOIDCJWT } from "src/backend/jwts";
+import { generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
 import { publicJwk } from "./__mocks__/jwk";
@@ -35,7 +35,6 @@ const validPayload = async () => ({
     credential_type: CredentialType.Orb,
     scope: [OIDCScopes.OpenID],
   }),
-  invite_token: await generateInviteJWT("name@example.com"),
 });
 
 const sampleExistingUserResponse = () => ({

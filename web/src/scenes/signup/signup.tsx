@@ -55,7 +55,6 @@ export function Signup() {
       if (response.ok) {
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
-        localStorage.removeItem("invite_token");
         router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
       } else {
         setLoading(false);

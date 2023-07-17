@@ -47,7 +47,7 @@ export const Connected = memo(function Connected() {
         close={hideModal}
         isShown={isModalShow}
       >
-        <Icon className="w-48 h-8" name="worldcoin" />
+        <Icon className="w-48 h-8" name="logo" />
 
         <div className="grid px-5 gap-y-4">
           <p className="font-sora font-semibold text-[26px] leading-[1.2]">

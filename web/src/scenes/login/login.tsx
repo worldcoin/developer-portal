@@ -15,7 +15,6 @@ export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState(false);
-  const [inviteError, setInviteError] = useState(false);
 
   const doLogin = useCallback(
     async (body: LoginRequestBody) => {
@@ -59,28 +58,19 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
   // Route user to the correct destination based on the query params
   useEffect(() => {
-    const invite_token = localStorage.getItem("invite_token");
-
     if (router.isReady) {
       setLoading(false);
 
       // Handle login error cases
       if (router.query.error === "login_failed") {
         setLoginError(true);
-      } else if (router.query.error === "invalid_invite_token") {
-        setInviteError(true);
-      } else if (router.query.error === "invite_token_required") {
-        router.push(urls.waitlist());
       }
 
       // Handle login and signup cases
       if (!router.query.error && router.query.id_token) {
         doLogin({
           sign_in_with_world_id_token: router.query.id_token as string,
-          invite_token: invite_token as string,
         });
-      } else if (!router.query.error && invite_token) {
-        router.push(loginUrl ?? "");
       }
     }
   }, [router, doLogin, loginUrl]);
@@ -105,11 +95,6 @@ export function Login({ loginUrl }: ILoginPageProps) {
                 Dev Login
               </Button>
             )}
-            <Link href={loginUrl ?? ""}>
-              <Button variant="secondary" className="py-3 px-8">
-                Log in
-              </Button>
-            </Link>
           </div>
         </div>
 
@@ -119,25 +104,19 @@ export function Login({ loginUrl }: ILoginPageProps) {
               There was a problem with your login. Please try again.
             </div>
           )}
-          {inviteError && (
-            <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
-              Your invite code was invalid, please reach out to a Worldcoin
-              contributor.
-            </div>
-          )}
 
           {loading && <Spinner className="mt-4" />}
           {!loading && (
             <>
               <div className="relative">
-                <Icon name="wld-logo" className="w-16 h-16" />
+                <Icon name="logomark" className="w-16 h-16" />
                 {/* span[className="absolute rounded-full"]/*3 */}
                 <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
                 <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
                 <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
               </div>
               <h1 className="mt-9 text-32 font-semibold font-sora">
-                Build for the People of the World
+                World ID is now generally available!
               </h1>
 
               <p className="mt-4 font-rubik text-20 text-657080">
@@ -145,7 +124,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
                 built on top of proof of personhood.
               </p>
               <p className="mt-6 font-sora">
-                Join the waitlist for early access to the SDK.
+                Build for the People of the World
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
                 <a
@@ -162,17 +141,12 @@ export function Login({ loginUrl }: ILoginPageProps) {
                   </Button>
                 </a>
 
-                <a
-                  href="https://docs.worldcoin.org/waitlist"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="contents"
-                >
+                <Link href={loginUrl ?? ""} className="contents">
                   <Button className="flex flex-1 justify-between px-6 py-5 text-16 font-semibold">
-                    Join Waitlist
+                    Log in
                     <Icon name="arrow-right" className="w-6 h-6" />
                   </Button>
-                </a>
+                </Link>
               </div>
             </>
           )}
