@@ -22,6 +22,7 @@ export default async function handleInvite(
     if (req.body.action?.name !== "invite_team_members") {
       return errorHasuraQuery({
         res,
+        req,
         detail: "Invalid action.",
         code: "invalid_action",
       });
@@ -30,6 +31,7 @@ export default async function handleInvite(
     if (req.body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
         res,
+        req,
         detail: "Admin is not allowed to run this query.",
         code: "admin_not_allowed",
       });
@@ -39,6 +41,7 @@ export default async function handleInvite(
     if (!userId) {
       return errorHasuraQuery({
         res,
+        req,
         detail: "userId must be set.",
         code: "required",
       });
@@ -48,6 +51,7 @@ export default async function handleInvite(
     if (!teamId) {
       return errorHasuraQuery({
         res,
+        req,
         detail: "teamId must be set.",
         code: "required",
       });
@@ -57,6 +61,7 @@ export default async function handleInvite(
     if (!emails) {
       return errorHasuraQuery({
         res,
+        req,
         detail: "emails must be set.",
         code: "required",
       });
@@ -70,6 +75,7 @@ export default async function handleInvite(
     if (!fetchUserRes.user[0]) {
       return errorHasuraQuery({
         res,
+        req,
         detail: "User not found",
         code: "user_not_found",
       });
@@ -88,6 +94,7 @@ export default async function handleInvite(
     ) {
       return errorHasuraQuery({
         res,
+        req,
         detail: "Some emails could not be invited.",
         code: "invalid_emails",
       });
@@ -124,6 +131,7 @@ export default async function handleInvite(
 
     return errorHasuraQuery({
       res,
+      req,
       detail: "Unhandled api error",
       code: "unhandled_error",
     });

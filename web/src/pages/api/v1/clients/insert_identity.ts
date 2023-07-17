@@ -48,12 +48,12 @@ export default async function handleInsert(
   }
 
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["credential_type", "identity_commitment", "env"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -62,7 +62,8 @@ export default async function handleInsert(
       "invalid",
       "Invalid credential type. Only `phone` is supported for now.",
       "credential_type",
-      res
+      res,
+      req
     );
   }
 

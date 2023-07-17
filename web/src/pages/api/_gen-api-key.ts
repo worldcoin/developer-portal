@@ -32,12 +32,13 @@ export default async function handleAPIKey(
     return;
   }
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   if (req.body.trigger?.name !== "generate_api_key") {
     return errorHasuraQuery({
       res,
+      req,
       detail: "Invalid trigger.",
       code: "invalid_trigger",
     });
@@ -47,6 +48,7 @@ export default async function handleAPIKey(
   if (!key.id) {
     return errorHasuraQuery({
       res,
+      req,
       detail: "id must be set.",
       code: "required",
     });
@@ -71,6 +73,7 @@ export default async function handleAPIKey(
   if (!response.data.update_api_key.affected_rows) {
     return errorHasuraQuery({
       res,
+      req,
       detail: "Failed to rotate the API key.",
       code: "rotate_failed",
     });

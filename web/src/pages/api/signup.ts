@@ -48,12 +48,12 @@ export default async function handleSignUp(
   res: NextApiResponse<SignupResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["signup_token", "team_name", "ironclad_id"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 

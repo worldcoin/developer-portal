@@ -17,12 +17,12 @@ export default async function handleOIDCValidate(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["app_id"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 

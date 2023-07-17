@@ -13,7 +13,7 @@ export default async function handleContracts(
   res: NextApiResponse
 ) {
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const query = gql`

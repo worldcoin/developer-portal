@@ -19,7 +19,7 @@ export default async function handleENS(
   }
 
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const provider = new ethers.providers.AlchemyProvider(

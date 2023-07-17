@@ -18,7 +18,7 @@ export default async function handleVerify(
 ) {
   // NOTE: Lack of CORS headers, because this endpoint should not be called from the frontend (security reasons)
   if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of [
@@ -28,20 +28,20 @@ export default async function handleVerify(
     "credential_type",
   ]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
   if (!req.query.app_id) {
-    return errorRequiredAttribute("app_id", res);
+    return errorRequiredAttribute("app_id", res, req);
   }
 
   if (req.body.action === null || req.body.action === undefined) {
-    return errorRequiredAttribute("action", res);
+    return errorRequiredAttribute("action", res, req);
   }
 
   if (req.body.signal === null || req.body.signal === undefined) {
-    return errorRequiredAttribute("signal", res);
+    return errorRequiredAttribute("signal", res, req);
   }
 
   if (!Object.values(CredentialType).includes(req.body.credential_type)) {
@@ -49,7 +49,8 @@ export default async function handleVerify(
       "invalid",
       "Invalid credential type.",
       "credential_type",
-      res
+      res,
+      req
     );
   }
 
@@ -57,7 +58,7 @@ export default async function handleVerify(
     req.body.chain !== undefined &&
     !Object.values(Chain).includes(req.body.chain)
   ) {
-    return errorValidation("invalid", "Invalid chain.", "chain", res);
+    return errorValidation("invalid", "Invalid chain.", "chain", res, req);
   }
 
   const client = await getAPIServiceClient();
@@ -100,7 +101,7 @@ export default async function handleVerify(
         action.max_verifications === 1
           ? "This person has already verified for this action."
           : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-      return errorValidation("already_verified", errorMsg, null, res);
+      return errorValidation("already_verified", errorMsg, null, res, req);
     }
   }
 

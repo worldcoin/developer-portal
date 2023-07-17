@@ -34,11 +34,11 @@ export default async function handleLogin(
   const { sign_in_with_world_id_token, invite_id } = req.body;
 
   if (!sign_in_with_world_id_token) {
-    return errorRequiredAttribute("sign_in_with_world_id_token", res);
+    return errorRequiredAttribute("sign_in_with_world_id_token", res, req);
   }
 
   if (!invite_id) {
-    return errorRequiredAttribute("invite_id", res);
+    return errorRequiredAttribute("invite_id", res, req);
   }
 
   // ANCHOR: Verify the received JWT from Sign in with World ID
@@ -54,7 +54,7 @@ export default async function handleLogin(
   }
 
   if (!payload?.sub) {
-    return errorUnauthenticated("Invalid or expired token.", res);
+    return errorUnauthenticated("Invalid or expired token.", res, req);
   }
 
   if (!payload.nonce || !(await verifyLoginNonce(payload.nonce as string))) {
@@ -62,7 +62,8 @@ export default async function handleLogin(
       "expired_request",
       "This request has expired. Please try again.",
       "nonce",
-      res
+      res,
+      req
     );
   }
 

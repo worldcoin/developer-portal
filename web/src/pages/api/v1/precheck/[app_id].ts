@@ -123,7 +123,7 @@ export default async function handlePrecheck(
 ) {
   await runCors(req, res);
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const app_id = req.query.app_id as string;
@@ -132,7 +132,7 @@ export default async function handlePrecheck(
   const external_nullifier = (req.body.external_nullifier as string) ?? "";
 
   if (!external_nullifier) {
-    return errorRequiredAttribute("external_nullifier", res);
+    return errorRequiredAttribute("external_nullifier", res, req);
   }
 
   const client = await getAPIServiceClient();

@@ -6,6 +6,7 @@ import {
   errorResponse,
 } from "../../backend/errors";
 
+// FIXME: @igorosip0v, @paolodamico this is work handler?
 /**
  * Generates an new invite token to the Developer Portal
  * @param req
@@ -27,22 +28,43 @@ export default async function handleInvite(
     });
   }
 
+  if (!process.env.NEXT_PUBLIC_APP_URL) {
+    return errorResponse(
+      res,
+      500,
+      "error_next_app_url",
+      "NEXT_PUBLIC_APP_URL env is not defined",
+      null,
+      req
+    );
+  }
+
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["email"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
   const token = await generateInviteJWT(req.body.email);
-  const invite = `${process.env.NEXT_PUBLIC_APP_URL}/invite?token=${token}`;
 
-  if (!invite) {
-    return errorResponse(res, 500, "Failed to generate invite token");
+  if (!token) {
+    return errorResponse(
+      res,
+      500,
+      "error_invite_token",
+      "Failed to generate invite token",
+      null,
+      req
+    );
   }
+
+  const invite = new URL(
+    `${process.env.NEXT_PUBLIC_APP_URL}/invite?token=${token}`
+  );
 
   res.status(200).json({ invite, token });
 }

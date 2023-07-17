@@ -74,11 +74,11 @@ export default async function handleRegister(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   if (!req.body["redirect_uris"]) {
-    return errorRequiredAttribute("redirect_uris", res);
+    return errorRequiredAttribute("redirect_uris", res, req);
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
