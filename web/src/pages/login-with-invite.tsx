@@ -20,7 +20,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 
   if (ctx.query?.invite) {
     setCookie("invite_id", ctx.query.invite as string, {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60, // 1 hour
       secure: process.env.NODE_ENV === "production",
       req: ctx.req,
       res: ctx.res,

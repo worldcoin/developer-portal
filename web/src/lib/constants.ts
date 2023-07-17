@@ -27,3 +27,4 @@ export const OIDC_BASE_URL = "https://id.worldcoin.org";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
+export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated

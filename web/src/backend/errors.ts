@@ -22,6 +22,14 @@ export function errorNotAllowed(
   );
 }
 
+type OIDCErrorParam =
+  | "invalid_request"
+  | "invalid_client"
+  | "invalid_grant"
+  | "unauthorized_client"
+  | "unsupported_grant_type"
+  | "invalid_scope";
+
 export function errorUnauthenticated(
   detail: string = "Invalid credentials.",
   res: NextApiResponse
@@ -54,7 +62,7 @@ export function errorValidation(
 export function errorOIDCResponse(
   res: NextApiResponse,
   statusCode: number,
-  code: string,
+  code: OIDCErrorParam,
   detail: string = "Something went wrong",
   attribute: string | null = null
 ): void {

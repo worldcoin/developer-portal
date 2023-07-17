@@ -11,6 +11,8 @@ import {
   POLYGON_PHONE_SEQUENCER,
   POLYGON_PHONE_SEQUENCER_STAGING,
 } from "src/lib/constants";
+import { RevocationModel } from "src/lib/models";
+import { IInternalError } from "src/lib/types";
 
 const existsQuery = gql`
   query RevokeExists($identity_commitment: String!) {
@@ -64,68 +66,108 @@ export default async function handleInsert(
     );
   }
 
+  const response = await insertIdentity(req.body);
+
+  res.status(response.status).json(response.json);
+}
+
+export const insertIdentity = async (payload: {
+  credential_type: "phone";
+  identity_commitment: string;
+  env: "staging" | "production";
+}): Promise<{
+  status: 204 | 400 | 503;
+  json: IInternalError | null;
+}> => {
   const client = await getAPIServiceClient();
 
   // Check if the identity commitment already exists
-  const revokeExistsResponse = await client.query({
+  const revokeExistsResponse = await client.query<{
+    revocation: Array<Pick<RevocationModel, "identity_commitment">>;
+  }>({
     query: existsQuery,
-    variables: { identity_commitment: req.body.identity_commitment },
+    variables: { identity_commitment: payload.identity_commitment },
   });
+
+  if (revokeExistsResponse.data.revocation.length) {
+    // Identity commitment has been revoked before, so remove it from the table
+    const deleteRevokeResponse = await client.mutate<{
+      delete_revocation: Array<Pick<RevocationModel, "identity_commitment">>;
+    }>({
+      mutation: deleteQuery,
+      variables: {
+        identity_commitment: payload.identity_commitment,
+      },
+    });
+
+    if (deleteRevokeResponse?.data?.delete_revocation.length) {
+      return { status: 204, json: null };
+    }
+
+    console.error(
+      "insertIdentity unhandled error from hasura",
+      deleteRevokeResponse
+    );
+
+    return {
+      status: 503,
+      json: {
+        code: "server_error",
+        message: "Something went wrong. Please try again.",
+      },
+    };
+  }
 
   // Identity commitment is new, so send it to the signup sequencer
-  if (!revokeExistsResponse.data.revocation.length) {
-    const headers = new Headers();
-    headers.append(
-      "Authorization",
-      req.body.env === "production"
-        ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
-        : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
-    );
-    headers.append("Content-Type", "application/json");
-    const body = JSON.stringify({
-      identityCommitment: req.body.identity_commitment,
-    });
+  const headers = new Headers();
+  headers.append(
+    "Authorization",
+    payload.env === "production"
+      ? `Basic ${process.env.PHONE_SEQUENCER_KEY}`
+      : `Basic ${process.env.PHONE_SEQUENCER_STAGING_KEY}`
+  );
+  headers.append("Content-Type", "application/json");
 
-    const response = await fetch(
-      req.body.env === "production"
-        ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
-        : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
-      {
-        method: "POST",
-        headers,
-        body,
-      }
-    );
-
-    if (response.ok) {
-      return res.status(204).end();
-    } else if (response.status === 400) {
-      return res.status(400).json({
-        code: "already_included",
-        detail: "The identity commitment is already included",
-      });
-    } else {
-      return res.status(503).json({
-        code: "server_error",
-        detail: "Something went wrong. Please try again.",
-      });
+  const response = await fetch(
+    payload.env === "production"
+      ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
+      : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        identityCommitment: payload.identity_commitment,
+      }),
     }
+  );
+
+  if (response.ok) {
+    return { status: 204, json: null };
+  }
+  if (response.status === 400) {
+    console.info(
+      "insertIdentity `400` response from sequencer",
+      await response.text()
+    );
+    return {
+      status: 400,
+      json: {
+        code: "already_included",
+        message: "The identity commitment is already included",
+      },
+    };
   }
 
-  // Identity commitment has been revoked before, so remove it from the table
-  const deleteRevokeResponse = await client.mutate({
-    mutation: deleteQuery,
-    variables: {
-      identity_commitment: req.body.identity_commitment,
-    },
-  });
+  console.error(
+    `insertIdentity unhandled error from sequencer ${response.status}`,
+    await response.text()
+  );
 
-  if (deleteRevokeResponse?.data) {
-    res.status(204).end();
-  } else {
-    res.status(503).json({
+  return {
+    status: 503,
+    json: {
       code: "server_error",
-      detail: "Something went wrong. Please try again.",
-    });
-  }
-}
+      message: "Something went wrong. Please try again.",
+    },
+  };
+};

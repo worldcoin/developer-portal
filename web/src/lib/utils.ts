@@ -1,4 +1,4 @@
-import { Chain, CredentialType, EnvironmentType } from "src/lib/types";
+import { Chain, CredentialType } from "src/lib/types";
 import {
   POLYGON_ORB_SEQUENCER_STAGING,
   POLYGON_ORB_SEQUENCER,
@@ -7,11 +7,6 @@ import {
   OPTIMISM_ORB_SEQUENCER,
   OPTIMISM_ORB_SEQUENCER_STAGING,
 } from "./constants";
-
-export const ENVIRONMENTS: EnvironmentType[] = [
-  { name: "Production", value: "production", icon: { name: "rocket" } },
-  { name: "Staging", value: "staging", icon: { name: "chart" } },
-];
 
 // Sequencer mapping
 export const sequencerMapping: Record<
@@ -80,3 +75,5 @@ export const validateEmail = (candidate: string): boolean => {
 };
 
 export const isSSR = () => typeof window === "undefined";
+
+export const uriHasJS = (uri: string) => /javascript:/.test(uri);

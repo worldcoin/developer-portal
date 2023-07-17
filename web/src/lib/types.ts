@@ -51,24 +51,6 @@ export type ActionStatsModel = Array<{
   total_cumulative: number;
 }>;
 
-// FIXME: Remove
-export interface PublicNullifier {
-  nullifier_hash: string;
-}
-
-// FIXME: Remove
-export interface ContractType {
-  key: string;
-  value: string;
-}
-
-// FIXME: Remove ?
-export type EnvironmentType = {
-  name: string;
-  value: "production" | "staging";
-  icon: { name: IconType; noMask?: boolean };
-};
-
 export enum OIDCResponseType {
   Code = "code", // authorization code
   JWT = "jwt", // implicit flow
