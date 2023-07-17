@@ -16,18 +16,19 @@ export const Illustration = memo(function Illustration(
   return (
     <div
       className={cn(
-        className,
-        "grid items-center justify-center w-full h-full rounded-full",
+        "grid items-center justify-center rounded-full",
         { "bg-primary-light": color === "primary" },
         { "bg-success-light": color === "success" },
         { "bg-danger-light": color === "danger" },
-        { "bg-warning-light": color === "warning" }
+        { "bg-warning-light": color === "warning" },
+        { "w-full h-full": !className },
+        className
       )}
     >
       <div className="relative flex">
         <Icon
           className={cn(
-            "w-10 h-10 shadow-icon",
+            "w-8 h-8 shadow-icon",
             { "text-primary": color === "primary" },
             { "text-success": color === "success" },
             { "text-danger": color === "danger" },
@@ -39,7 +40,7 @@ export const Illustration = memo(function Illustration(
         <div className="absolute top-[10px] left-0 blur-xl">
           <Icon
             className={cn(
-              "w-10 h-10 shadow-icon",
+              "w-8 h-8 shadow-icon",
               { "text-primary/50": color === "primary" },
               { "text-success/50": color === "success" },
               { "text-danger/50": color === "danger" },
