@@ -2,7 +2,6 @@ import cn from "classnames";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "src/components/Button";
 import { Icon, IconType } from "src/components/Icon";
-import { Chain } from "src/lib/types";
 
 interface ResultProps {
   classNames?: string;
@@ -23,14 +22,14 @@ enum Status {
 const messages = {
   SUCCESS_ONCHAIN: (chains: string[]) => (
     <>
-      Your <b>Proof</b> is <b>valid</b> and verifiable on:
-      <ul className="list-disc list-inside">
+      Your <b>Proof</b> is <b>valid</b> and <b>verifiable</b>!
+      {/* <ul className="list-disc list-inside">
         {chains.map((chain) => (
           <li key={chain} className="first:mt-2">
             {chain.charAt(0).toUpperCase() + chain.slice(1)}
           </li>
         ))}
-      </ul>
+      </ul> */}
     </>
   ),
 
@@ -98,7 +97,6 @@ export function Result(props: ResultProps) {
           app_id: props.appId,
           is_staging: props.isStaging,
           signal: props.signal,
-          chain: Chain.Polygon, // TODO: Add UI for chain selection
         }),
       });
 

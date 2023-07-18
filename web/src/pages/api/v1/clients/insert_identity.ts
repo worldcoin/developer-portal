@@ -7,10 +7,7 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
-import {
-  POLYGON_PHONE_SEQUENCER,
-  POLYGON_PHONE_SEQUENCER_STAGING,
-} from "src/lib/constants";
+import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
 import { RevocationModel } from "src/lib/models";
 import { IInternalError } from "src/lib/types";
 
@@ -130,8 +127,8 @@ export const insertIdentity = async (payload: {
 
   const response = await fetch(
     payload.env === "production"
-      ? `${POLYGON_PHONE_SEQUENCER}/insertIdentity`
-      : `${POLYGON_PHONE_SEQUENCER_STAGING}/insertIdentity`,
+      ? `${PHONE_SEQUENCER}/insertIdentity`
+      : `${PHONE_SEQUENCER_STAGING}/insertIdentity`,
     {
       method: "POST",
       headers,

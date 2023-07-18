@@ -24,7 +24,6 @@ export default async function handler(
     "merkle_root",
     "nullifier_hash",
     "proof",
-    "chain",
   ]) {
     if (req.body[attr] === "") {
       return errorRequiredAttribute(attr, res);
@@ -47,14 +46,11 @@ export default async function handler(
     {
       is_staging: req.body.is_staging,
       credential_type: req.body.credential_type,
-      chain: req.body.chain,
     }
   );
 
   if (result.success) {
-    return res
-      .status(200)
-      .json({ success: true, status: result.status, chains: result.chains });
+    return res.status(200).json({ success: true, status: result.status });
   }
 
   if (result.error) {
