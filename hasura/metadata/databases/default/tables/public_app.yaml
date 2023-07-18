@@ -116,8 +116,10 @@ select_permissions:
         - is_verified
         - verified_app_logo
       filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
+        team:
+          users:
+            id:
+              _eq: X-Hasura-User-Id
 update_permissions:
   - role: api_key
     permission:
@@ -139,8 +141,10 @@ update_permissions:
         - name
         - status
       filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
+        team:
+          users:
+            id:
+              _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
   - role: api_key
@@ -151,5 +155,7 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
+        team:
+          users:
+            id:
+              _eq: X-Hasura-User-Id

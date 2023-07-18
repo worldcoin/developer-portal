@@ -15,6 +15,8 @@ select_permissions:
         - verifications
       filter:
         app:
-          team_id:
-            _eq: X-Hasura-Team-Id
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
       allow_aggregations: true
