@@ -10,6 +10,7 @@ import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { ILoginPageProps } from "src/pages/login";
 import Image from "next/image";
 import torShape from "public/images/tor-shape.svg";
+import cn from "classnames";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -118,7 +119,12 @@ export function Login({ loginUrl }: ILoginPageProps) {
           </div>
         </div>
 
-        <div className="grid content-start w-full text-center">
+        <div
+          className={cn(
+            "grid items-center justify-items-center w-full text-center",
+            { "content-start": !loading }
+          )}
+        >
           {loginError && (
             <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
               There was a problem with your login. Please try again.
