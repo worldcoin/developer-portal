@@ -8,6 +8,8 @@ import { Spinner } from "src/components/Spinner";
 import { urls } from "src/lib/urls";
 import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { ILoginPageProps } from "src/pages/login";
+import Image from "next/image";
+import torShape from "public/images/tor-shape.svg";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
@@ -78,14 +80,22 @@ export function Login({ loginUrl }: ILoginPageProps) {
   return (
     <Auth pageTitle="Login" pageUrl="login">
       <div className="grid w-full min-h-screen grid-rows-[auto_1fr] py-8">
-        <div className="flex justify-between items-center px-24">
-          <Icon name="logo" className="w-48 h-8" />
+        <div className="flex justify-between items-center px-24 border-b border-gray-900/10 pb-6">
+          <div className="grid">
+            <Icon name="logo" className="w-[141px] h-6" />
+
+            <span className="text-12 justify-self-end leading-none font-rubik">
+              {"<"}
+              <span className="font-medium">Dev</span>
+              {"/Portal>"}
+            </span>
+          </div>
 
           <div className="grid grid-flow-col items-center gap-6">
             {canDevLogin && (
               <Button
                 variant="danger"
-                className="py-3 px-8"
+                className="py-3 px-6"
                 onClick={() => {
                   doLogin({
                     dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
@@ -95,10 +105,20 @@ export function Login({ loginUrl }: ILoginPageProps) {
                 Dev Login
               </Button>
             )}
+
+            <Link href={loginUrl ?? ""} className="contents">
+              <Button
+                className="flex gap-x-1 justify-between items-center px-6 py-2.5 text-16 text-gray-500 font-semibold"
+                variant="secondary"
+              >
+                <span className="leading-[1.25]">Log in</span>
+                <Icon name="arrow-right" className="w-6 h-6" />
+              </Button>
+            </Link>
           </div>
         </div>
 
-        <div className="grid place-content-center justify-items-center justify-self-center max-w-[532px] text-center">
+        <div className="grid content-start w-full text-center">
           {loginError && (
             <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
               There was a problem with your login. Please try again.
@@ -106,47 +126,62 @@ export function Login({ loginUrl }: ILoginPageProps) {
           )}
 
           {loading && <Spinner className="mt-4" />}
+
           {!loading && (
             <>
-              <div className="relative">
-                <Icon name="logomark" className="w-16 h-16" />
-                {/* span[className="absolute rounded-full"]/*3 */}
-                <span className="absolute rounded-full bg-[#f7b12f] w-32 h-32 blur-xl opacity-[.15] left-1/2 -translate-x-1/2 bottom-1.5" />
-                <span className="absolute rounded-full bg-[#007fd3] w-32 h-32 blur-xl opacity-10 top-[7px] right-px" />
-                <span className="absolute rounded-full bg-[#ff4231] w-32 h-32 blur-xl opacity-10 left-[52px] bottom-[-22px]" />
+              <div className="relative w-full h-[290px] overflow-hidden">
+                <div className="absolute inset-x-0 -top-36 grid grid-cols-1 grid-rows-1 justify-items-center items-center">
+                  <Image
+                    src={torShape}
+                    alt="tor shape illustration"
+                    className="col-start-1 row-start-1"
+                  />
+
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white h-[80%]" />
+
+                  <Icon
+                    name="logomark"
+                    className="w-16 h-16 col-start-1 row-start-1"
+                  />
+                </div>
               </div>
-              <h1 className="mt-9 text-32 font-semibold font-sora">
-                World ID is now generally available!
-              </h1>
 
-              <p className="mt-4 font-rubik text-20 text-657080">
-                The Worldcoin Protocol will enable a new class of applications
-                built on top of proof of personhood.
-              </p>
-              <p className="mt-6 font-sora">
-                Build for the People of the World
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
-                <a
-                  href="https://docs.worldcoin.org"
-                  className="contents"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button
-                    className="flex flex-1 justify-between py-5 px-6 text-657080 text-16 font-semibold"
-                    variant="secondary"
+              <div className="justify-self-center max-w-[598px]">
+                <h1 className="mt-9 text-32 font-semibold font-sora">
+                  World ID is now generally available!
+                </h1>
+
+                <p className="mt-4 font-rubik text-20 text-657080">
+                  The Worldcoin Protocol will enable a new class of applications
+                  built on top of proof of personhood.
+                </p>
+
+                <p className="mt-6 font-sora">
+                  Build for the People of the World
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
+                  <a
+                    href="https://docs.worldcoin.org"
+                    className="contents"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    Explore Docs <Icon name="book" className="w-6 h-6" />
-                  </Button>
-                </a>
+                    <Button
+                      className="flex flex-1 justify-between py-4 px-6 text-657080 text-16 font-semibold"
+                      variant="secondary"
+                    >
+                      Explore Docs <Icon name="book" className="w-6 h-6" />
+                    </Button>
+                  </a>
 
-                <Link href={loginUrl ?? ""} className="contents">
-                  <Button className="flex flex-1 justify-between px-6 py-5 text-16 font-semibold">
-                    Log in
-                    <Icon name="arrow-right" className="w-6 h-6" />
-                  </Button>
-                </Link>
+                  <Link href={loginUrl ?? ""} className="contents">
+                    <Button className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold">
+                      Log in
+                      <Icon name="arrow-right" className="w-6 h-6" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </>
           )}
