@@ -28,7 +28,11 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
       panelClassName="flex flex-col space-y-8"
     >
       <div className="flex flex-col items-center space-y-6">
-        <Illustration icon="warning-triangle" color="danger" />
+        <Illustration
+          icon="warning-triangle"
+          color="danger"
+          className="w-[72px] h-[72px]"
+        />
 
         <div className="flex flex-col space-y-2 text-center">
           <span className="text-24 font-sora font-semibold">

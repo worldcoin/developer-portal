@@ -152,13 +152,27 @@ export const Layout = (props: {
 
           <footer className="grid items-center justify-between gap-y-2">
             <LoggedUserDisplay userId={props.userId} />
-            <Link
-              className="text-11 leading-4 text-neutral-secondary"
-              href="https://worldcoin.org/privacy-statement"
-              target="_blank"
-            >
-              Privacy Policy
-            </Link>
+
+            <div className="flex gap-x-3 items-center">
+              <Link
+                className="text-11 leading-4 text-neutral-secondary"
+                href="https://worldcoin.org/privacy-statement"
+                target="_blank"
+              >
+                Privacy Policy
+              </Link>
+
+              <span className="text-neutral-secondary">·</span>
+
+              <Link
+                className="text-11 leading-4 text-neutral-secondary"
+                href="https://worldcoin.pactsafe.io/rjd5nsvyq.html"
+                target="_blank"
+              >
+                Terms
+              </Link>
+            </div>
+
             <SystemStatus />
           </footer>
         </aside>
