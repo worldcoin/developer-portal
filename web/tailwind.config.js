@@ -64,6 +64,10 @@ module.exports = {
           700: "#00c313",
           300: "#d6f6d9",
         },
+
+        info: {
+          700: "#506dff",
+        },
       },
       primary: {
         DEFAULT: "#4940e0", // blue-primary
