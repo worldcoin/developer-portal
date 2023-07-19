@@ -154,7 +154,9 @@ export default async function handlePrecheck(
       res,
       404,
       "not_found",
-      "We couldn't find an app with this ID. Action may be inactive."
+      "We couldn't find an app with this ID. Action may be inactive.",
+      null,
+      req
     );
   }
 
@@ -166,7 +168,8 @@ export default async function handlePrecheck(
         400,
         "required",
         "This attribute is required for new actions.",
-        "action"
+        "action",
+        req
       );
     }
 
@@ -191,7 +194,8 @@ export default async function handlePrecheck(
           400,
           "external_nullifier_mismatch",
           "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
-          "external_nullifier"
+          "external_nullifier",
+          req
         );
       }
     }
@@ -205,7 +209,8 @@ export default async function handlePrecheck(
       400,
       "action_inactive",
       "This action is inactive.",
-      "status"
+      "status",
+      req
     );
   }
 

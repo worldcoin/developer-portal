@@ -123,7 +123,8 @@ export default async function handleOIDCAuthorize(
       fetchAppError?.statusCode ?? 400,
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
-      fetchAppError?.attribute ?? "app_id"
+      fetchAppError?.attribute ?? "app_id",
+      req
     );
   }
 
@@ -172,7 +173,8 @@ export default async function handleOIDCAuthorize(
       verifyError.statusCode ?? 400,
       verifyError.code ?? "invalid_proof",
       verifyError.message ?? "Verification request error. Please try again.",
-      verifyError.attribute
+      verifyError.attribute,
+      req
     );
   }
 

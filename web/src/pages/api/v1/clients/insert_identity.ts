@@ -61,7 +61,7 @@ export default async function handleInsert(
     input = await schema.validate(req.body);
   } catch (e) {
     if (e instanceof yup.ValidationError) {
-      return errorValidation("invalid", e.message, e.path || null, res);
+      return errorValidation("invalid", e.message, e.path || null, res, req);
     }
     console.error("Unhandled yup validation error.", e);
     return errorResponse(

@@ -68,7 +68,8 @@ export default async function handleVerify(
       data.error?.statusCode || 400,
       data.error?.code || "unknown_error",
       data.error?.message || "There was an error verifying this proof.",
-      data.error?.attribute || null
+      data.error?.attribute || null,
+      req
     );
   }
 
@@ -81,7 +82,8 @@ export default async function handleVerify(
       400,
       "action_inactive",
       "This action is inactive.",
-      "status"
+      "status",
+      req
     );
   }
 
@@ -103,7 +105,9 @@ export default async function handleVerify(
       res,
       400,
       "verification_error",
-      "This action does not have a valid external nullifier set."
+      "This action does not have a valid external nullifier set.",
+      null,
+      req
     );
   }
 
@@ -127,7 +131,8 @@ export default async function handleVerify(
       error?.statusCode || 400,
       error?.code || "unknown_error",
       error?.message || "There was an error verifying this proof.",
-      error?.attribute || null
+      error?.attribute || null,
+      req
     );
   }
 

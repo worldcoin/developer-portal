@@ -34,7 +34,8 @@ export default async function handleOIDCValidate(
       400,
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
-      "redirect_uri"
+      "redirect_uri",
+      req
     );
   }
 
@@ -48,7 +49,8 @@ export default async function handleOIDCValidate(
       fetchAppError?.statusCode ?? 400,
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
-      fetchAppError?.attribute ?? "app_id"
+      fetchAppError?.attribute ?? "app_id",
+      req
     );
   }
 
@@ -58,7 +60,8 @@ export default async function handleOIDCValidate(
       400,
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
-      "redirect_uri"
+      "redirect_uri",
+      req
     );
   }
 

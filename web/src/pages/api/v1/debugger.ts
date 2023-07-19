@@ -61,6 +61,8 @@ export default async function handler(
     res,
     500,
     "server_error",
-    "Unable to verify proof due to a server error. Please try again."
+    "Unable to verify proof due to a server error. Please try again.",
+    null,
+    req
   );
 }

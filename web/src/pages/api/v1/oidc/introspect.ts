@@ -38,7 +38,8 @@ export default async function handler(
   if (!authToken) {
     return errorUnauthenticated(
       "Please provide your app authentication credentials.",
-      res
+      res,
+      req
     );
   }
 
@@ -68,7 +69,8 @@ export default async function handler(
       401,
       "invalid_token",
       "Token is invalid or expired.",
-      "token"
+      "token",
+      req
     );
   }
 }

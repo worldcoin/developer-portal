@@ -28,7 +28,7 @@ export default async function handleLogin(
   res: NextApiResponse<LoginRequestResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method!, res);
+    return errorNotAllowed(req.method!, res, req);
   }
 
   const { sign_in_with_world_id_token, invite_id } = req.body;
@@ -78,7 +78,7 @@ export default async function handleLogin(
     nullifier,
   });
   if (user) {
-    return errorResponse(res, 500, "user_already_exists");
+    return errorResponse(res, 500, "user_already_exists", undefined, null, req);
   }
 
   // ANCHOR: If the user is not in the DB, check invite
@@ -87,7 +87,7 @@ export default async function handleLogin(
   });
 
   if (!invite || new Date(invite.expires_at) <= new Date()) {
-    return errorResponse(res, 400, "invalid_invite");
+    return errorResponse(res, 400, "invalid_invite", undefined, null, req);
   }
 
   // ANCHOR: Create user and delete invite
@@ -102,7 +102,7 @@ export default async function handleLogin(
   });
 
   if (!createdUser) {
-    return errorResponse(res, 500, "user_not_created");
+    return errorResponse(res, 500, "user_not_created", undefined, null, req);
   }
 
   // ANCHOR: Generate a login token and authenticate

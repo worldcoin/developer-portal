@@ -63,7 +63,14 @@ export default async function handleSignUp(
   let nullifier_hash: string | undefined = tokenPayload.sub;
 
   if (!nullifier_hash) {
-    return errorResponse(res, 400, "Invalid signup token.");
+    return errorResponse(
+      res,
+      400,
+      "Invalid signup token.",
+      undefined,
+      null,
+      req
+    );
   }
 
   const client = await getAPIServiceClient();
@@ -81,7 +88,7 @@ export default async function handleSignUp(
   const user = team.users[0];
 
   if (!team || !user) {
-    return errorResponse(res, 500, "Failed to signup");
+    return errorResponse(res, 500, "Failed to signup",undefined, null, req);
   }
 
   const { token, expiration } = await generateUserJWT(user.id, team.id);

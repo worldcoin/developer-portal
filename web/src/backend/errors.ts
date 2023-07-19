@@ -7,7 +7,7 @@ export function errorResponse(
   code: string,
   detail: string = "Something went wrong",
   attribute: string | null = null,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   logger.error(detail, { req });
   res.status(statusCode).json({ code, detail, attribute });
@@ -16,7 +16,7 @@ export function errorResponse(
 export function errorNotAllowed(
   method: string = "",
   res: NextApiResponse,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   return errorResponse(
     res,
@@ -39,7 +39,7 @@ type OIDCErrorParam =
 export function errorUnauthenticated(
   detail: string = "Invalid credentials.",
   res: NextApiResponse,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   return errorResponse(res, 401, "unauthenticated", detail, null, req);
 }
@@ -47,7 +47,7 @@ export function errorUnauthenticated(
 export function errorRequiredAttribute(
   attribute: string = "",
   res: NextApiResponse,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   return errorResponse(
     res,
@@ -64,10 +64,10 @@ export function errorValidation(
   detail: string = "This attribute is invalid.",
   attribute: string | null,
   res: NextApiResponse,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   logger.warn("Validation error", { req });
-  return errorResponse(res, 400, code, detail, attribute);
+  return errorResponse(res, 400, code, detail, attribute, req);
 }
 
 export function errorOIDCResponse(
@@ -76,7 +76,7 @@ export function errorOIDCResponse(
   code: OIDCErrorParam,
   detail: string = "Something went wrong",
   attribute: string | null = null,
-  req?: NextApiRequest
+  req: NextApiRequest
 ): void {
   if (statusCode >= 400) {
     logger.error(`OIDC Error {detail}`, { req });
@@ -98,7 +98,7 @@ export function errorHasuraQuery({
   req,
 }: {
   res: NextApiResponse;
-  req?: NextApiRequest;
+  req: NextApiRequest;
   code: string;
   detail: string;
 }) {

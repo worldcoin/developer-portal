@@ -16,7 +16,7 @@ export default async function handleInvite(
     }
 
     if (req.method !== "POST") {
-      return errorNotAllowed(req.method!, res);
+      return errorNotAllowed(req.method!, res, req);
     }
 
     if (req.body.action?.name !== "invite_team_members") {

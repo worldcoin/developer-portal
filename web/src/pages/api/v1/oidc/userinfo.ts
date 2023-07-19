@@ -46,7 +46,8 @@ export default async function handler(
       401,
       "invalid_token",
       "Token is invalid or expired.",
-      "token"
+      "token",
+      req
     );
   }
 }
