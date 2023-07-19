@@ -12,7 +12,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
-import { IronClad } from "src/lib/ironclad-activity-api";
+import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
 
 const schema = yup.object({
@@ -63,11 +63,11 @@ export function Signup() {
   const submit = useCallback(
     async (values: SignupFormValues) => {
       const signup_token = localStorage.getItem("signup_token");
-      const ironClad = new IronClad(crypto.randomUUID());
+      const ironCladUserId = crypto.randomUUID();
 
       // NOTE: send acceptance
       try {
-        await ironClad.sendAcceptance();
+        await sendAcceptance(ironCladUserId);
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong. Please try again later.");
@@ -87,7 +87,7 @@ export function Signup() {
           email: values.email,
           team_name: values.teamName,
           signup_token,
-          ironclad_id: ironClad.signerId,
+          ironclad_id: ironCladUserId,
         }),
       });
 

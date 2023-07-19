@@ -2,89 +2,74 @@ import { toast } from "react-toastify";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-export class IronClad {
-  #psAccessId = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_ACCESS_ID as string;
-  #psGroupKey = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_GROUP_KEY as string;
-  #baseUrl = "https://pactsafe.io";
+const psAccessId = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_ACCESS_ID as string;
+const psGroupKey = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_GROUP_KEY as string;
+const baseUrl = "https://pactsafe.io";
+let isLatestSigned: boolean | null = null;
+let groupData: { versions: Array<string>; group: number } | null = null;
 
-  #isLatestSigned: boolean | null = null;
-  #groupData: { versions: Array<string>; group: number } | null = null;
+if (!psAccessId) {
+  throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
+}
 
-  constructor(public signerId: string) {
-    if (!this.#psAccessId) {
-      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
-    }
+if (!psGroupKey) {
+  throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
+}
 
-    if (!this.#psGroupKey) {
-      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
-    }
-  }
+const fetcher = <R,>(url: string): Promise<R> =>
+  fetch(url, { method: "GET" })
+    .then((response) => response.json())
+    .then((data) => data);
 
-  #fetcher = <R,>(url: string): Promise<R> =>
-    fetch(url, { method: "GET" })
-      .then((response) => response.json())
-      .then((data) => data);
-
-  get isLatestSigned() {
-    return new Promise(async (resolve, reject) => {
-      if (!this.#isLatestSigned) {
-        const latestSigned = await this.#fetcher<{ [key: number]: boolean }>(
-          `${this.#baseUrl}/latest?sid=${this.#psAccessId}&sig=${
-            this.signerId
-          }&gkey=${this.#psGroupKey}`
-        );
-
-        if (!latestSigned) {
-          reject(new Error("Unable to get lastSigned"));
-        }
-
-        this.#isLatestSigned = Object.values(latestSigned).every(
-          (isLatest) => isLatest
-        );
-      }
-
-      resolve(this.#isLatestSigned);
-    });
-  }
-
-  async #fetchGroupData() {
-    const res = await this.#fetcher<{
-      versions: Array<string>;
-      group: number;
-    }>(
-      `${this.#baseUrl}/load/json?sid=${this.#psAccessId}&gkey=${
-        this.#psGroupKey
-      }`
+export async function getIsLastSigned(signerId: string) {
+  if (!isLatestSigned) {
+    const latestSigned = await fetcher<{ [key: number]: boolean }>(
+      `${baseUrl}/latest?sid=${psAccessId}&sig=${signerId}&gkey=${psGroupKey}`
     );
 
-    if (!res) {
-      throw Error("Unable to fetch group data");
+    if (!latestSigned) {
+      throw new Error("Unable to get lastSigned");
     }
 
-    this.#groupData = res;
+    isLatestSigned = Object.values(latestSigned).every((isLatest) => isLatest);
   }
 
-  async sendAcceptance() {
-    if (!this.#groupData) {
-      await this.#fetchGroupData();
-    }
+  return isLatestSigned;
+}
 
-    const res = await fetch(`${this.#baseUrl}/send`, {
-      body: JSON.stringify({
-        et: "agreed",
-        gkey: this.#psGroupKey,
-        sid: this.#psAccessId,
-        sig: this.signerId,
-        gid: this.#groupData!.group,
-        vid: this.#groupData!.versions.join(","),
-      }),
-      headers: { "Content-Type": "application/json" },
-      method: "POST",
-    });
+async function fetchGroupData() {
+  const res = await fetcher<{
+    versions: Array<string>;
+    group: number;
+  }>(`${baseUrl}/load/json?sid=${psAccessId}&gkey=${psGroupKey}`);
 
-    if (!res.ok) {
-      console.log("Error while sending acceptance", res);
-      throw new Error("Error while sending acceptance");
-    }
+  if (!res) {
+    throw Error("Unable to fetch group data");
+  }
+
+  groupData = res;
+}
+
+export async function sendAcceptance(signerId: string) {
+  if (!groupData) {
+    await fetchGroupData();
+  }
+
+  const res = await fetch(`${baseUrl}/send`, {
+    body: JSON.stringify({
+      et: "agreed",
+      gkey: psGroupKey,
+      sid: psAccessId,
+      sig: signerId,
+      gid: groupData!.group,
+      vid: groupData!.versions.join(","),
+    }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    console.log("Error while sending acceptance", res);
+    throw new Error("Error while sending acceptance");
   }
 }
