@@ -68,7 +68,6 @@ export default async function handleInclusionProof(
 
   const apiClient = await getAPIServiceClient();
 
-  // const chain = (req.body.chain as Chain) ?? Chain.Polygon; // Default to Polygon for now
   const credential_type = req.body.credential_type as CredentialType;
   const isStaging = req.body.env === "production" ? false : true;
 
