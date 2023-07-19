@@ -27,11 +27,7 @@ export class IronClad {
 
   get isLatestSigned() {
     return new Promise(async (resolve, reject) => {
-      if (this.#isLatestSigned) {
-        resolve(this.#isLatestSigned);
-      }
-
-      try {
+      if (!this.#isLatestSigned) {
         const latestSigned = await this.#fetcher<{ [key: number]: boolean }>(
           `${this.#baseUrl}/latest?sid=${this.#psAccessId}&sig=${
             this.signerId
@@ -39,23 +35,15 @@ export class IronClad {
         );
 
         if (!latestSigned) {
-          throw Error;
+          reject(new Error("Unable to get lastSigned"));
         }
 
         this.#isLatestSigned = Object.values(latestSigned).every(
           (isLatest) => isLatest
         );
-        resolve(this.#isLatestSigned);
-      } catch (error) {
-        console.error({
-          error,
-          message: "Error while fetching last signed contracts",
-        });
-
-        toast.error(
-          "Something went wrong with the terms signature. Please try again."
-        );
       }
+
+      resolve(this.#isLatestSigned);
     });
   }
 
