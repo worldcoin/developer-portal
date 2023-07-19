@@ -213,7 +213,6 @@ type FetchAppSecretResult = {
   >;
 };
 
-// TODO: Hash secrets as passwords (e.g. `PBKDF2`) instead of HMAC
 export const authenticateOIDCEndpoint = async (
   auth_header: string
 ): Promise<string | null> => {
@@ -234,9 +233,9 @@ export const authenticateOIDCEndpoint = async (
     return null;
   }
 
-  const hmac_secret = data.app[0]?.actions?.[0]?.client_secret;
+  const hashed_secret = data.app[0]?.actions?.[0]?.client_secret;
 
-  if (!hmac_secret) {
+  if (!hashed_secret) {
     console.info(
       "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
     );
@@ -244,7 +243,7 @@ export const authenticateOIDCEndpoint = async (
   }
 
   // ANCHOR: Verify client secret
-  if (!verifyHashedSecret(app_id, client_secret, hmac_secret)) {
+  if (!verifyHashedSecret(app_id, client_secret, hashed_secret)) {
     console.warn("authenticateOIDCEndpoint - Invalid client secret.");
     return null;
   }

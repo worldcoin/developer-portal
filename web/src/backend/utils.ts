@@ -200,9 +200,19 @@ export const rawFetchInclusionProof = async ({
 
 export const generateHashedSecret = (identifier: string) => {
   const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
-  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
-  hmac.update(`${identifier}.${secret}`);
-  const hashed_secret = hmac.digest("hex");
+
+  const hashed_secret = crypto
+    .pbkdf2Sync(
+      `${identifier}.${secret}`,
+      GENERAL_SECRET_KEY,
+      // NOTE: 10_000 is the number of iterations in the PBKDF2
+      // @see https://csrc.nist.gov/csrc/media/Projects/crypto-publication-review-project/documents/initial-comments/sp800-132-initial-public-comments-2023.pdf
+      10_000,
+      32,
+      "sha512"
+    )
+    .toString("hex");
+
   return { secret, hashed_secret };
 };
 
@@ -211,9 +221,15 @@ export const verifyHashedSecret = (
   secret: string,
   hashed_secret: string
 ) => {
-  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
-  hmac.update(`${identifier}.${secret}`);
-  const generated_secret = hmac.digest("hex");
+  const generated_secret = crypto
+    .pbkdf2Sync(
+      `${identifier}.${secret}`,
+      GENERAL_SECRET_KEY,
+      10_000,
+      32,
+      "sha512"
+    )
+    .toString("hex");
 
   return generated_secret === hashed_secret;
 };
