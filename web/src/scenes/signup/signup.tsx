@@ -12,7 +12,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
-import { ironCladActivityApi } from "src/lib/ironclad-activity-api";
+import { IronClad } from "src/lib/ironclad-activity-api";
+import { toast } from "react-toastify";
 
 const schema = yup.object({
   email: yup.string().email(),
@@ -62,11 +63,16 @@ export function Signup() {
   const submit = useCallback(
     async (values: SignupFormValues) => {
       const signup_token = localStorage.getItem("signup_token");
-      const ironcladId = crypto.randomUUID();
-      const ironClad = await ironCladActivityApi({ signerId: ironcladId });
+      const ironClad = new IronClad(crypto.randomUUID());
 
       // NOTE: send acceptance
-      await ironClad.sendAcceptance();
+      try {
+        await ironClad.sendAcceptance();
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong. Please try again later.");
+        return;
+      }
 
       // NOTE: save form
       // FIXME: move to axios
@@ -81,7 +87,7 @@ export function Signup() {
           email: values.email,
           team_name: values.teamName,
           signup_token,
-          ironclad_id: ironcladId,
+          ironclad_id: ironClad.signerId,
         }),
       });
 

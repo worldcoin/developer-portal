@@ -2,93 +2,94 @@ import { toast } from "react-toastify";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-const psAccessId = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_ACCESS_ID;
-const psGroupKey = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_GROUP_KEY;
-const activityApiUrl = "https://pactsafe.io";
-const retrieveGroupUrl = `${activityApiUrl}/load/json?sid=${psAccessId}&gkey=${psGroupKey}`;
+export class IronClad {
+  #psAccessId = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_ACCESS_ID as string;
+  #psGroupKey = publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_GROUP_KEY as string;
+  #baseUrl = "https://pactsafe.io";
 
-// NOTE pass some identifier (email, number) to signerId
-// if there's will be no signer id, hook returned null on each field of return object
-export async function ironCladActivityApi(params: {
-  signerId: string;
-}): Promise<
-  | { isLatestSigned: boolean | null; sendAcceptance: () => Promise<void> }
-  | never
-> {
-  const latestSignedUrl = `${activityApiUrl}/latest?sid=${psAccessId}&sig=${params.signerId}&gkey=${psGroupKey}`;
-  let isLatestSigned: boolean | null = null;
-  let groupJson: { versions: Array<string>; group: number } | null = null;
+  #isLatestSigned: boolean | null = null;
+  #groupData: { versions: Array<string>; group: number } | null = null;
 
-  const fetcher = <R,>(url: string): Promise<R> =>
+  constructor(public signerId: string) {
+    if (!this.#psAccessId) {
+      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
+    }
+
+    if (!this.#psGroupKey) {
+      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
+    }
+  }
+
+  #fetcher = <R,>(url: string): Promise<R> =>
     fetch(url, { method: "GET" })
       .then((response) => response.json())
       .then((data) => data);
 
-  if (!psAccessId) {
-    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
-  }
+  get isLatestSigned() {
+    return new Promise(async (resolve, reject) => {
+      if (this.#isLatestSigned) {
+        resolve(this.#isLatestSigned);
+      }
 
-  if (!psGroupKey) {
-    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
-  }
+      try {
+        const latestSigned = await this.#fetcher<{ [key: number]: boolean }>(
+          `${this.#baseUrl}/latest?sid=${this.#psAccessId}&sig=${
+            this.signerId
+          }&gkey=${this.#psGroupKey}`
+        );
 
-  // NOTE https://clickwrap-developer.ironcladapp.com/reference/get-the-latest-versions-signed
-  try {
-    const latestSigned = await fetcher<{ [key: number]: boolean }>(
-      latestSignedUrl
-    );
+        if (!latestSigned) {
+          throw Error;
+        }
 
-    if (!latestSigned) {
-      throw Error;
-    }
+        this.#isLatestSigned = Object.values(latestSigned).every(
+          (isLatest) => isLatest
+        );
+        resolve(this.#isLatestSigned);
+      } catch (error) {
+        console.error({
+          error,
+          message: "Error while fetching last signed contracts",
+        });
 
-    isLatestSigned = Object.values(latestSigned).every((isLatest) => isLatest);
-  } catch (error) {
-    console.error({
-      error,
-      message: "Error while fetching last signed contracts",
+        toast.error(
+          "Something went wrong with the terms signature. Please try again."
+        );
+      }
     });
-
-    toast.error(
-      "Something went wrong with the terms signature. Please try again."
-    );
   }
 
-  try {
-    const groupData = await fetcher<{
+  async #fetchGroupData() {
+    const res = await this.#fetcher<{
       versions: Array<string>;
       group: number;
-    }>(retrieveGroupUrl);
+    }>(
+      `${this.#baseUrl}/load/json?sid=${this.#psAccessId}&gkey=${
+        this.#psGroupKey
+      }`
+    );
 
-    if (!groupData) {
-      throw Error;
+    if (!res) {
+      throw Error("Unable to fetch group data");
     }
 
-    groupJson = groupData;
-  } catch (error) {
-    console.error({
-      error,
-      message: "Error while group JSON",
-    });
-
-    toast.error(
-      "Something went wrong with the terms signature. Please try again."
-    );
+    this.#groupData = res;
   }
 
-  const acceptanceBody = {
-    et: "agreed",
-    gkey: psGroupKey, // cspell:disable-line
-    gid: groupJson?.group,
-    sid: psAccessId,
-    sig: params.signerId,
-    vid: groupJson?.versions.join(","),
-  };
+  async sendAcceptance() {
+    if (!this.#groupData) {
+      await this.#fetchGroupData();
+    }
 
-  // https://clickwrap-developer.ironcladapp.com/reference/send-contracts-signedaccepted-by-signer
-  const sendAcceptance = async (): Promise<void | never> => {
-    const res = await fetch(`${activityApiUrl}/send`, {
-      body: JSON.stringify(acceptanceBody),
+    const res = await fetch(`${this.#baseUrl}/send`, {
+      body: JSON.stringify({
+        et: "agreed",
+        gkey: this.#psGroupKey,
+        sid: this.#psAccessId,
+        sig: this.signerId,
+        gid: this.#groupData!.group,
+        vid: this.#groupData!.versions.join(","),
+      }),
       headers: { "Content-Type": "application/json" },
       method: "POST",
     });
@@ -97,14 +98,5 @@ export async function ironCladActivityApi(params: {
       console.log("Error while sending acceptance", res);
       throw new Error("Error while sending acceptance");
     }
-  };
-
-  // NOTE Use isLatestSigned if you need to check if user accepted latest versions of contracts
-  // Use sendAcceptance when you need sign docs
-  // NOTE if proper env vars are not set (e.g. because on staging/dev we don't sign ToS), the signature reporting will be bypassed
-  // WARNING critical to set the proper env vars on production
-  return {
-    isLatestSigned,
-    sendAcceptance,
-  };
+  }
 }
