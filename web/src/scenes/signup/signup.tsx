@@ -72,23 +72,10 @@ export function Signup() {
       const ironcladId = crypto.randomUUID();
       const ironClad = await ironCladActivityApi({ signerId: ironcladId });
 
-      try {
-        await new Promise(async (resolve, reject) => {
-          if (!ironClad || !ironClad.sendAcceptance) {
-            throw new Error("Cannot init ironclad");
-          }
+      // NOTE: send acceptance
+      await ironClad.sendAcceptance();
 
-          await ironClad.sendAcceptance({
-            onSuccess: resolve,
-            onError: reject,
-          });
-        });
-      } catch (err) {
-        toast.error("Something went wrong");
-        console.log(err);
-        return;
-      }
-
+      // NOTE: save form
       // FIXME: move to axios
       const response = await fetch("/api/signup", {
         method: "POST",

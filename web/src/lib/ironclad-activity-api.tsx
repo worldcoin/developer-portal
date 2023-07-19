@@ -9,7 +9,12 @@ const retrieveGroupUrl = `${activityApiUrl}/load/json?sid=${psAccessId}&gkey=${p
 
 // NOTE pass some identifier (email, number) to signerId
 // if there's will be no signer id, hook returned null on each field of return object
-export async function ironCladActivityApi(params: { signerId: string }) {
+export async function ironCladActivityApi(params: {
+  signerId: string;
+}): Promise<
+  | { isLatestSigned: boolean | null; sendAcceptance: () => Promise<void> }
+  | never
+> {
   const latestSignedUrl = `${activityApiUrl}/latest?sid=${psAccessId}&sig=${params.signerId}&gkey=${psGroupKey}`;
   let isLatestSigned: boolean | null = null;
   let groupJson: { versions: Array<string>; group: number } | null = null;
@@ -19,52 +24,56 @@ export async function ironCladActivityApi(params: { signerId: string }) {
       .then((response) => response.json())
       .then((data) => data);
 
+  if (!psAccessId) {
+    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
+  }
+
+  if (!psGroupKey) {
+    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
+  }
+
   // NOTE https://clickwrap-developer.ironcladapp.com/reference/get-the-latest-versions-signed
-  if (psAccessId && psGroupKey) {
-    try {
-      const latestSigned = await fetcher<{ [key: number]: boolean }>(
-        latestSignedUrl
-      );
+  try {
+    const latestSigned = await fetcher<{ [key: number]: boolean }>(
+      latestSignedUrl
+    );
 
-      if (!latestSigned) {
-        throw Error;
-      }
-
-      isLatestSigned = Object.values(latestSigned).every(
-        (isLatest) => isLatest
-      );
-    } catch (error) {
-      console.error({
-        error,
-        message: "Error while fetching last signed contracts",
-      });
-
-      toast.error(
-        "Something went wrong with the terms signature. Please try again."
-      );
+    if (!latestSigned) {
+      throw Error;
     }
 
-    try {
-      const groupData = await fetcher<{
-        versions: Array<string>;
-        group: number;
-      }>(retrieveGroupUrl);
+    isLatestSigned = Object.values(latestSigned).every((isLatest) => isLatest);
+  } catch (error) {
+    console.error({
+      error,
+      message: "Error while fetching last signed contracts",
+    });
 
-      if (!groupData) {
-        throw Error;
-      }
+    toast.error(
+      "Something went wrong with the terms signature. Please try again."
+    );
+  }
 
-      groupJson = groupData;
-    } catch (error) {
-      console.error({
-        error,
-        message: "Error while group JSON",
-      });
+  try {
+    const groupData = await fetcher<{
+      versions: Array<string>;
+      group: number;
+    }>(retrieveGroupUrl);
 
-      toast.error(
-        "Something went wrong with the terms signature. Please try again."
-      );
+    if (!groupData) {
+      throw Error;
     }
+
+    groupJson = groupData;
+  } catch (error) {
+    console.error({
+      error,
+      message: "Error while group JSON",
+    });
+
+    toast.error(
+      "Something went wrong with the terms signature. Please try again."
+    );
   }
 
   const acceptanceBody = {
@@ -76,31 +85,17 @@ export async function ironCladActivityApi(params: { signerId: string }) {
     vid: groupJson?.versions.join(","),
   };
 
-  // NOTE You can pass some external functions which will be executed on request success or error
   // https://clickwrap-developer.ironcladapp.com/reference/send-contracts-signedaccepted-by-signer
-  const sendAcceptance = async (args?: {
-    onSuccess?: (response: Response) => void;
-    onError?: (error: { code: string; message: string }) => void;
-  }) => {
-    try {
-      const response_1 = await fetch(`${activityApiUrl}/send`, {
-        body: JSON.stringify(acceptanceBody),
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
-      if (response_1.status === 200 && args?.onSuccess) {
-        args.onSuccess(response_1);
-      }
+  const sendAcceptance = async (): Promise<void | never> => {
+    const res = await fetch(`${activityApiUrl}/send`, {
+      body: JSON.stringify(acceptanceBody),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
 
-      if (response_1.status === 400 || response_1.status === 422) {
-        throw response_1;
-      }
-    } catch (error_1) {
-      if (args?.onError) {
-        args.onError(error_1 as { code: string; message: string });
-      }
-
-      throw error_1;
+    if (!res.ok) {
+      console.log("Error while sending acceptance", res);
+      throw new Error("Error while sending acceptance");
     }
   };
 
@@ -109,9 +104,7 @@ export async function ironCladActivityApi(params: { signerId: string }) {
   // NOTE if proper env vars are not set (e.g. because on staging/dev we don't sign ToS), the signature reporting will be bypassed
   // WARNING critical to set the proper env vars on production
   return {
-    isLatestSigned:
-      params.signerId && psAccessId && psGroupKey ? isLatestSigned : null,
-    sendAcceptance:
-      params.signerId && psAccessId && psGroupKey ? sendAcceptance : null,
+    isLatestSigned,
+    sendAcceptance,
   };
 }
