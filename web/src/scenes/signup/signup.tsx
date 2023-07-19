@@ -73,7 +73,7 @@ export function Signup() {
       const ironClad = await ironCladActivityApi({ signerId: ironcladId });
 
       try {
-        new Promise(async (resolve, reject) => {
+        await new Promise(async (resolve, reject) => {
           if (!ironClad || !ironClad.sendAcceptance) {
             throw new Error("Cannot init ironclad");
           }
