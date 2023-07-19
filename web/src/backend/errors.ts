@@ -78,7 +78,7 @@ export function errorOIDCResponse(
   req: NextApiRequest
 ): void {
   if (statusCode >= 400) {
-    logger.error(`OIDC Error {detail}`, {
+    logger.error(`OIDC Error ${detail}`, {
       req,
       error: { statusCode, code, detail, attribute },
     });
