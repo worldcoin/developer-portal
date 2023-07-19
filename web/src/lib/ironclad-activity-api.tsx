@@ -8,21 +8,25 @@ const baseUrl = "https://pactsafe.io";
 let isLatestSigned: boolean | null = null;
 let groupData: { versions: Array<string>; group: number } | null = null;
 
-if (!psAccessId) {
-  throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
-}
-
-if (!psGroupKey) {
-  throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
-}
-
 const fetcher = <R,>(url: string): Promise<R> =>
   fetch(url, { method: "GET" })
     .then((response) => response.json())
     .then((data) => data);
 
+function validateVariables() {
+  if (!psAccessId) {
+    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
+  }
+
+  if (!psGroupKey) {
+    throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
+  }
+}
+
 export async function getIsLastSigned(signerId: string) {
   if (!isLatestSigned) {
+    validateVariables();
+
     const latestSigned = await fetcher<{ [key: number]: boolean }>(
       `${baseUrl}/latest?sid=${psAccessId}&sig=${signerId}&gkey=${psGroupKey}`
     );
@@ -51,6 +55,8 @@ async function fetchGroupData() {
 }
 
 export async function sendAcceptance(signerId: string) {
+  validateVariables();
+
   if (!groupData) {
     await fetchGroupData();
   }
