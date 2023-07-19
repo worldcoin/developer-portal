@@ -44,7 +44,7 @@ describe("/api/v1/signup [error cases]", () => {
       expect(res._getStatusCode()).toBe(400);
       expect(res._getJSONData()).toEqual(
         expect.objectContaining({
-          detail: "This attribute is required.",
+          code: "invalid",
           attribute: attr,
         })
       );
