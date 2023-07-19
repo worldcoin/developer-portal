@@ -118,7 +118,7 @@ export function Signup() {
   useEffect(() => {
     const signup_token = localStorage.getItem("signup_token");
     if (!signup_token) {
-      // router.push(urls.login());
+      router.push(urls.login());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
   }, []);
