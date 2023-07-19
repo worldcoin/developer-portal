@@ -14,7 +14,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
@@ -22,13 +22,14 @@ export default async function handler(
       "invalid_content_type",
       "Invalid content type. Only application/x-www-form-urlencoded is supported.",
       null,
-      res
+      res,
+      req
     );
   }
 
   const userToken = req.body.token as string;
   if (!userToken) {
-    return errorRequiredAttribute("token", res);
+    return errorRequiredAttribute("token", res, req);
   }
 
   // ANCHOR: Authenticate the request comes from the app
@@ -37,7 +38,8 @@ export default async function handler(
   if (!authToken) {
     return errorUnauthenticated(
       "Please provide your app authentication credentials.",
-      res
+      res,
+      req
     );
   }
 
@@ -45,7 +47,11 @@ export default async function handler(
   app_id = await authenticateOIDCEndpoint(authToken);
 
   if (!app_id) {
-    return errorUnauthenticated("Invalid authentication credentials.", res);
+    return errorUnauthenticated(
+      "Invalid authentication credentials.",
+      res,
+      req
+    );
   }
 
   try {
@@ -63,7 +69,8 @@ export default async function handler(
       401,
       "invalid_token",
       "Token is invalid or expired.",
-      "token"
+      "token",
+      req
     );
   }
 }

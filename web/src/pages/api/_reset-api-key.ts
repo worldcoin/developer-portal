@@ -32,12 +32,13 @@ export default async function handleAPIKeyReset(
   }
 
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   if (req.body.action?.name !== "reset_api_key") {
     return errorHasuraQuery({
       res,
+      req,
       detail: "Invalid action.",
       code: "invalid_action",
     });
@@ -47,6 +48,7 @@ export default async function handleAPIKeyReset(
   if (!id) {
     return errorHasuraQuery({
       res,
+      req,
       detail: "id must be set.",
       code: "required",
     });
@@ -57,6 +59,7 @@ export default async function handleAPIKeyReset(
   if (req.body.session_variables["x-hasura-role"] === "admin") {
     return errorHasuraQuery({
       res,
+      req,
       detail: "Admin is not allowed to run this query.",
       code: "admin_not_allowed",
     });
@@ -79,6 +82,7 @@ export default async function handleAPIKeyReset(
   if (!response.data.update_api_key.affected_rows) {
     return errorHasuraQuery({
       res,
+      req,
       detail: "Failed to rotate the API key.",
       code: "rotate_failed",
     });

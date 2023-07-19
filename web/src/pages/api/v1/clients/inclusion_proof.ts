@@ -48,12 +48,12 @@ export default async function handleInclusionProof(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["credential_type", "identity_commitment", "env"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -62,7 +62,8 @@ export default async function handleInclusionProof(
       "invalid",
       "Invalid environment value. `staging` or `production` expected.",
       "env",
-      res
+      res,
+      req
     );
   }
 
@@ -90,7 +91,8 @@ export default async function handleInclusionProof(
       "unverified_identity",
       "This identity is not verified for the phone credential.",
       "identity_commitment",
-      res
+      res,
+      req
     );
   }
 

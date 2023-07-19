@@ -56,7 +56,7 @@ export default async function handleLogin(
   res: NextApiResponse<LoginRequestResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const { sign_in_with_world_id_token, dev_login } = req.body;
@@ -84,7 +84,7 @@ export default async function handleLogin(
   }
 
   if (!sign_in_with_world_id_token) {
-    return errorRequiredAttribute("sign_in_with_world_id_token", res);
+    return errorRequiredAttribute("sign_in_with_world_id_token", res, req);
   }
 
   // ANCHOR: Verify the received JWT from Sign in with World ID
@@ -100,7 +100,7 @@ export default async function handleLogin(
   }
 
   if (!payload?.sub) {
-    return errorUnauthenticated("Invalid or expired token.", res);
+    return errorUnauthenticated("Invalid or expired token.", res, req);
   }
 
   if (!payload.nonce || !(await verifyLoginNonce(payload.nonce as string))) {
@@ -108,7 +108,8 @@ export default async function handleLogin(
       "expired_request",
       "This request has expired. Please try again.",
       "nonce",
-      res
+      res,
+      req
     );
   }
 
@@ -148,7 +149,8 @@ export default async function handleLogin(
             "invalid_invite_token",
             "Invite token was invalid, and may be expired.",
             "invite_token",
-            res
+            res,
+            req
           );
         }
       }
@@ -160,7 +162,8 @@ export default async function handleLogin(
         "invite_token_required",
         "You need to provide a waitlist invite token to sign up. Visit https://docs.worldcoin.org/waitlist to get yours.",
         "invite_token",
-        res
+        res,
+        req
       );
     }
   }

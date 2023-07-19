@@ -14,7 +14,7 @@ export default async function handleOidcConfig(
   res: NextApiResponse
 ) {
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   res.status(200).json({

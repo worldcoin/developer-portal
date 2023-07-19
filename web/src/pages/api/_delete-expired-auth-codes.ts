@@ -18,7 +18,7 @@ export default async function handler(
   }
 
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   console.info("Starting deletion of expired auth codes.");

@@ -15,7 +15,7 @@ export default async function handleJWKs(
 ) {
   await runCors(req, res);
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const query = gql`

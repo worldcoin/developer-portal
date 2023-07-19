@@ -14,7 +14,7 @@ export default async function handler(
 ) {
   await runCors(req, res);
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of [
@@ -26,7 +26,7 @@ export default async function handler(
     "proof",
   ]) {
     if (req.body[attr] === "") {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -61,6 +61,8 @@ export default async function handler(
     res,
     500,
     "server_error",
-    "Unable to verify proof due to a server error. Please try again."
+    "Unable to verify proof due to a server error. Please try again.",
+    null,
+    req
   );
 }
