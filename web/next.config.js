@@ -27,7 +27,11 @@ const nextConfig = {
               "https://app.posthog.com",
               "https://cookie-cdn.cookiepro.com",
             ],
-            "script-src": ["'self'", "https://cookie-cdn.cookiepro.com"],
+            "script-src": [
+              "'self'",
+              "https://cookie-cdn.cookiepro.com",
+              "https://app.posthog.com",
+            ],
           },
           permissionsPolicy: {
             "clipboard-write": `self`,
