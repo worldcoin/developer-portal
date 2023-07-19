@@ -1,11 +1,5 @@
 import { useRouter } from "next/router";
-import {
-  MouseEvent as ReactMouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Auth } from "src/components/Auth";
 import { Checkbox } from "src/components/Auth/Checkbox";
 import { FieldText } from "src/components/Auth/FieldText";
@@ -19,7 +13,6 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
 import { ironCladActivityApi } from "src/lib/ironclad-activity-api";
-import { toast } from "react-toastify";
 
 const schema = yup.object({
   email: yup.string().email(),
