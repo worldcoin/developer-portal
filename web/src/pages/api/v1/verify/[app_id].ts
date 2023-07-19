@@ -10,7 +10,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { Chain, CredentialType } from "src/lib/types";
+import { CredentialType } from "src/lib/types";
 
 export default async function handleVerify(
   req: NextApiRequest,
@@ -52,13 +52,6 @@ export default async function handleVerify(
       res,
       req
     );
-  }
-
-  if (
-    req.body.chain !== undefined &&
-    !Object.values(Chain).includes(req.body.chain)
-  ) {
-    return errorValidation("invalid", "Invalid chain.", "chain", res, req);
   }
 
   const client = await getAPIServiceClient();
@@ -126,7 +119,6 @@ export default async function handleVerify(
     {
       is_staging: app.is_staging,
       credential_type: req.body.credential_type as CredentialType,
-      chain: (req.body.chain as Chain) ?? Chain.Polygon, // Default to Polygon for now
     }
   );
   if (error || !success) {
