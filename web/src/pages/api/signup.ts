@@ -88,7 +88,7 @@ export default async function handleSignUp(
   const user = team.users[0];
 
   if (!team || !user) {
-    return errorResponse(res, 500, "Failed to signup",undefined, null, req);
+    return errorResponse(res, 500, "Failed to signup", undefined, null, req);
   }
 
   const { token, expiration } = await generateUserJWT(user.id, team.id);
