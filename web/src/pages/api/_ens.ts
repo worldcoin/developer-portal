@@ -27,16 +27,43 @@ export default async function handleENS(
     process.env.ALCHEMY_API_KEY
   );
 
-  const polygonAddress = await provider.resolveName("polygon.id.worldcoin.eth");
-  const mumbaiAddress = await provider.resolveName("mumbai.id.worldcoin.eth");
+  const addresses = [
+    "id.worldcoin.eth",
+    "goerli.id.worldcoin.eth",
+    "optimism.id.worldcoin.eth",
+    "op-goerli.id.worldcoin.eth",
+    "polygon.id.worldcoin.eth",
+    "mumbai.id.worldcoin.eth",
+  ];
 
-  if (polygonAddress && mumbaiAddress) {
-    const mutation = gql`
-      mutation upsert_cache($polygonAddress: String!, $mumbaiAddress: String!) {
+  const updateStatements = {
+    params: [] as string[],
+    objects: [] as string[],
+    variables: {} as Record<string, string>,
+  };
+
+  for (const address of addresses) {
+    const resolvedAddress = await provider.resolveName(address);
+    if (resolvedAddress) {
+      const addressKey = address.replaceAll(/\W/g, "");
+      updateStatements.params.push(`$${addressKey}: String!`);
+      updateStatements.objects.push(
+        `{ key: "${address}", value: $${addressKey} }`
+      );
+      updateStatements.variables[addressKey] = resolvedAddress;
+    } else {
+      console.error(`Could not resolve ${address}.`);
+    }
+  }
+
+  if (updateStatements.params.length) {
+    const mutationString = `
+      mutation upsert_cache(
+       ${updateStatements.params.join("\n")}
+      ) {
         insert_cache(
           objects: [
-            { key: "polygon.id.worldcoin.eth", value: $polygonAddress }
-            { key: "mumbai.id.worldcoin.eth", value: $mumbaiAddress }
+            ${updateStatements.objects.join("\n")}
           ]
           on_conflict: { constraint: cache_key_key, update_columns: [value] }
         ) {
@@ -47,20 +74,14 @@ export default async function handleENS(
       }
     `;
 
+    const mutation = gql(mutationString);
     const client = await getAPIServiceClient();
     await client.query({
       query: mutation,
-      variables: {
-        polygonAddress,
-        mumbaiAddress,
-      },
+      variables: updateStatements.variables,
     });
   } else {
-    res.status(500).json({
-      success: false,
-      error: `Polygon address (${polygonAddress}) or mumbai address (${mumbaiAddress}) not found.`,
-    });
-    return;
+    console.error("No addresses resolved.");
   }
 
   res.status(200).json({ success: true });
