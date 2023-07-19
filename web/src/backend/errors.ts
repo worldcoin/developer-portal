@@ -66,7 +66,6 @@ export function errorValidation(
   res: NextApiResponse,
   req: NextApiRequest
 ): void {
-  logger.warn("Validation error", { req });
   return errorResponse(res, 400, code, detail, attribute, req);
 }
 
