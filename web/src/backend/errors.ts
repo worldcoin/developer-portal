@@ -9,7 +9,7 @@ export function errorResponse(
   attribute: string | null = null,
   req: NextApiRequest
 ): void {
-  logger.error(detail, { req });
+  logger.error(detail, { req, error: { statusCode, code, detail, attribute } });
   res.status(statusCode).json({ code, detail, attribute });
 }
 
@@ -78,7 +78,10 @@ export function errorOIDCResponse(
   req: NextApiRequest
 ): void {
   if (statusCode >= 400) {
-    logger.error(`OIDC Error {detail}`, { req });
+    logger.error(`OIDC Error {detail}`, {
+      req,
+      error: { statusCode, code, detail, attribute },
+    });
   }
 
   res.status(statusCode).json({
@@ -101,7 +104,8 @@ export function errorHasuraQuery({
   code: string;
   detail: string;
 }) {
-  logger.error(detail, { req });
+  logger.error(detail, { req, error: { code, detail } });
+
   return res.status(400).json({
     message: detail,
     extensions: {
