@@ -1,7 +1,7 @@
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
   errorResponse,
+  errorValidation,
 } from "src/backend/errors";
 
 import { gql } from "@apollo/client";
@@ -9,6 +9,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
+import * as yup from "yup";
 
 export type SignupResponse = { returnTo: string };
 
@@ -43,6 +44,15 @@ const mutation = gql`
   }
 `;
 
+const schema = yup.object({
+  email: yup.string().email(),
+  team_name: yup.string().required(),
+  signup_token: yup.string().required(),
+  ironclad_id: yup.string().required(),
+});
+
+type Body = yup.InferType<typeof schema>;
+
 export default async function handleSignUp(
   req: NextApiRequest,
   res: NextApiResponse<SignupResponse>
@@ -51,13 +61,26 @@ export default async function handleSignUp(
     return errorNotAllowed(req.method, res);
   }
 
-  for (const attr of ["signup_token", "team_name", "ironclad_id"]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+  let body: Body;
+
+  try {
+    body = await schema.validate(req.body);
+  } catch (e) {
+    if (e instanceof yup.ValidationError) {
+      return errorValidation("invalid", e.message, e.path || null, res);
     }
+
+    console.error("Unhandled yup validation error.", e);
+
+    return errorResponse(
+      res,
+      500,
+      "server_error",
+      "Something went wrong. Please try again."
+    );
   }
 
-  const { signup_token, email, team_name } = req.body;
+  const { signup_token, email, team_name } = body;
 
   const tokenPayload = await verifySignUpJWT(signup_token);
   let nullifier_hash: string | undefined = tokenPayload.sub;
@@ -67,13 +90,15 @@ export default async function handleSignUp(
   }
 
   const client = await getAPIServiceClient();
+
   const { data } = await client.mutate({
     mutation,
+
     variables: {
       nullifier_hash,
       team_name,
       email: email ?? "",
-      ironclad_id: req.body.ironclad_id,
+      ironclad_id: body.ironclad_id,
     },
   });
 

@@ -1,11 +1,5 @@
 import { useRouter } from "next/router";
-import {
-  MouseEvent as ReactMouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Auth } from "src/components/Auth";
 import { Checkbox } from "src/components/Auth/Checkbox";
 import { FieldText } from "src/components/Auth/FieldText";
@@ -18,6 +12,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
+import { sendAcceptance } from "src/lib/ironclad-activity-api";
+import { toast } from "react-toastify";
 
 const schema = yup.object({
   email: yup.string().email(),
@@ -66,8 +62,19 @@ export function Signup() {
 
   const submit = useCallback(
     async (values: SignupFormValues) => {
-      console.log(values);
       const signup_token = localStorage.getItem("signup_token");
+      const ironCladUserId = crypto.randomUUID();
+
+      // NOTE: send acceptance
+      try {
+        await sendAcceptance(ironCladUserId);
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong. Please try again later.");
+        return;
+      }
+
+      // NOTE: save form
       // FIXME: move to axios
       const response = await fetch("/api/signup", {
         method: "POST",
@@ -80,8 +87,7 @@ export function Signup() {
           email: values.email,
           team_name: values.teamName,
           signup_token,
-          ironclad_id: "temp",
-          // FIXME: missing `ironclad_id` & ToS signature stuff
+          ironclad_id: ironCladUserId,
         }),
       });
 

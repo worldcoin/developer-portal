@@ -26,6 +26,7 @@ const nextConfig = {
               "wss://relay.walletconnect.com",
               "https://app.posthog.com",
               "https://cookie-cdn.cookiepro.com",
+              "https://pactsafe.io",
             ],
             "script-src": ["'self'", "https://cookie-cdn.cookiepro.com"],
           },
