@@ -18,6 +18,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
+import { ironCladActivityApi } from "src/lib/ironclad-activity-api";
+import { toast } from "react-toastify";
 
 const schema = yup.object({
   email: yup.string().email(),
@@ -66,8 +68,27 @@ export function Signup() {
 
   const submit = useCallback(
     async (values: SignupFormValues) => {
-      console.log(values);
       const signup_token = localStorage.getItem("signup_token");
+      const ironcladId = crypto.randomUUID();
+      const ironClad = await ironCladActivityApi({ signerId: ironcladId });
+
+      try {
+        new Promise(async (resolve, reject) => {
+          if (!ironClad || !ironClad.sendAcceptance) {
+            throw new Error("Cannot init ironclad");
+          }
+
+          await ironClad.sendAcceptance({
+            onSuccess: resolve,
+            onError: reject,
+          });
+        });
+      } catch (err) {
+        toast.error("Something went wrong");
+        console.log(err);
+        return;
+      }
+
       // FIXME: move to axios
       const response = await fetch("/api/signup", {
         method: "POST",
@@ -80,8 +101,7 @@ export function Signup() {
           email: values.email,
           team_name: values.teamName,
           signup_token,
-          ironclad_id: "temp",
-          // FIXME: missing `ironclad_id` & ToS signature stuff
+          ironclad_id: ironcladId,
         }),
       });
 
@@ -98,7 +118,7 @@ export function Signup() {
   useEffect(() => {
     const signup_token = localStorage.getItem("signup_token");
     if (!signup_token) {
-      router.push(urls.login());
+      // router.push(urls.login());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
   }, []);
