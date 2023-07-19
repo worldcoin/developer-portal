@@ -6,9 +6,19 @@ import {
 } from "../graphql/fetch-user.generated";
 
 import { useUpdateUserMutation } from "../graphql/update-user.generated";
+import { useRouter } from "next/router";
 
 export const useFetchUser = (id: string) => {
-  const { data, ...other } = useFetchUserQuery({ variables: { id } });
+  const router = useRouter();
+
+  const { data, ...other } = useFetchUserQuery({
+    variables: { id },
+    onCompleted: (data) => {
+      if (!data.user[0]) {
+        router.push("/logout");
+      }
+    },
+  });
   return { user: data?.user[0], ...other };
 };
 
