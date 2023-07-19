@@ -14,9 +14,9 @@ export default async function handleENS(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // if (!protectInternalEndpoint(req, res)) {
-  //   return;
-  // }
+  if (!protectInternalEndpoint(req, res)) {
+    return;
+  }
 
   if (req.method !== "POST") {
     return errorNotAllowed(req.method, res);
