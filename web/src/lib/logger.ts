@@ -40,52 +40,104 @@ const errorFormatter = winston.format((info) => {
   };
 });
 
-const vercelFormatter = winston.format(
-  (info: winston.Logform.TransformableInfo) => {
-    const { req, ...restInfo } = info as winston.Logform.TransformableInfo & {
-      req: NextApiRequest;
-    };
+// if (process.env.NODE_ENV === "production") {
+transports.push(new winston.transports.Http(httpTransportOptions));
+// } else {
+transports.push(new winston.transports.Console());
+// }
 
-    if (!process.env.VERCEL || !req) {
-      return restInfo;
-    }
-
-    if (req) {
-      let body = req.body;
-      if (req.headers["content-type"]?.includes("application/json")) {
-        try {
-          body = JSON.parse(req.body);
-        } catch {}
-      }
-      return {
-        ...restInfo,
-        env: process.env.NODE_ENV,
-        userAgent: req.headers["user-agent"],
-        method: req.method,
-        url: req.url,
-        query: req.query,
-        body,
-      };
-    }
-
-    return restInfo;
-  }
-);
-
-if (process.env.NODE_ENV === "production") {
-  transports.push(new winston.transports.Http(httpTransportOptions));
-} else {
-  transports.push(new winston.transports.Console());
-}
-
-export const logger = winston.createLogger({
+const _logger = winston.createLogger({
   level: "info",
   exitOnError: false,
   format: winston.format.combine(
     errorFormatter(),
-    vercelFormatter(),
     winston.format.timestamp(),
     winston.format.json()
   ),
   transports,
 });
+
+// NOTE: this is wrapper and formatter for debug request data (this is workaround, because winston don't support async formatters)
+async function requestFormatter(req: NextApiRequest | IncomingMessage) {
+  if (!req) {
+    return {};
+  }
+
+  const ip = req.socket.remoteAddress;
+  const url = req.url?.replace(/\?.*$/, "");
+  const method = req.method;
+  const userAgent = req.headers["user-agent"];
+
+  const query = req.url?.includes("?")
+    ? Object.fromEntries(
+        new URLSearchParams(req.url?.replace(/^.*\?/, "")).entries()
+      )
+    : {};
+
+  let body: any = null;
+
+  if ("body" in req) {
+    body = req.body;
+  } else {
+    body = await (async () =>
+      await new Promise<string>((resolve) => {
+        let data: Array<any> = [];
+        req
+          .on("data", (chunk) => data.push(chunk))
+          .on("end", () => {
+            resolve(Buffer.concat(data).toString("utf8"));
+          });
+      }))();
+  }
+
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch {}
+  }
+
+  if (
+    (typeof body === "string" && body === "") ||
+    (typeof body === "object" && Object.keys(body).length === 0)
+  ) {
+    body = null;
+  }
+
+  return {
+    body,
+    env: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined,
+    host: process.env.VERCEL_URL ?? undefined,
+    ip,
+    method,
+    query,
+    url,
+    userAgent: userAgent,
+  };
+}
+
+async function loggerWrapper(
+  handler: "error" | "warn" | "info" | "debug",
+  msg: string,
+  data?: Record<string, any>
+) {
+  if (data && data.req) {
+    data.request = await requestFormatter(data.req);
+    delete data.req;
+  }
+
+  _logger[handler](msg, data);
+}
+
+export const logger = {
+  error: (msg: string, data?: Record<string, any>) =>
+    loggerWrapper("error", msg, data),
+
+  warn: (msg: string, data?: Record<string, any>) =>
+    loggerWrapper("warn", msg, data),
+
+  info: (msg: string, data?: Record<string, any>) =>
+    loggerWrapper("info", msg, data),
+
+  debug: (msg: string, data?: Record<string, any>) =>
+    loggerWrapper("debug", msg, data),
+};
