@@ -40,11 +40,11 @@ const errorFormatter = winston.format((info) => {
   };
 });
 
-// if (process.env.NODE_ENV === "production") {
-transports.push(new winston.transports.Http(httpTransportOptions));
-// } else {
-transports.push(new winston.transports.Console());
-// }
+if (process.env.NODE_ENV === "production") {
+  transports.push(new winston.transports.Http(httpTransportOptions));
+} else {
+  transports.push(new winston.transports.Console());
+}
 
 const _logger = winston.createLogger({
   level: "info",
