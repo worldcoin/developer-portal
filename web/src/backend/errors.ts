@@ -9,7 +9,8 @@ export function errorResponse(
   attribute: string | null = null,
   req: NextApiRequest
 ): void {
-  if (statusCode >= 500) logger.error(detail, { req, error: { statusCode, code, attribute } });
+  if (statusCode >= 500)
+    logger.error(detail, { req, error: { statusCode, code, attribute } });
   else logger.warn(detail, { req, error: { statusCode, code, attribute } });
 
   res.status(statusCode).json({ code, detail, attribute });
