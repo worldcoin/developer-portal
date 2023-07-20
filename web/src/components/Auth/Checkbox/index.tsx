@@ -7,47 +7,59 @@ import {
 } from "react";
 import cn from "classnames";
 import { Icon } from "src/components/Icon";
+import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 interface CheckboxInterface extends InputHTMLAttributes<HTMLInputElement> {
   label: ReactNode;
+  register: UseFormRegisterReturn;
+  errors?: FieldError;
+  isDirty?: boolean;
 }
 
 export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
-  const { className, label, disabled, value, onChange, ...otherProps } = props;
-
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      if (!disabled && onChange) {
-        onChange(e);
-      }
-    },
-    [disabled, onChange]
-  );
+  const {
+    className,
+    label,
+    disabled,
+    value,
+    register,
+    errors,
+    isDirty,
+    ...otherProps
+  } = props;
 
   return (
     <label
       className={cn(
         className,
-        "grid grid-cols-auto/1fr gap-x-4 leading-5 cursor-pointer text-neutral-secondary"
+        "grid grid-cols-auto/1fr gap-x-4 leading-5 cursor-pointer "
       )}
     >
       <input
+        {...register}
         className="sr-only peer"
         {...otherProps}
         type="checkbox"
-        onChange={handleChange}
       />
       <Icon
-        className={cn("block peer-checked:hidden w-6 h-6")}
+        className={cn(
+          "block peer-checked:hidden w-6 h-6",
+          { "text-danger": errors },
+          { "text-gray-400": !errors }
+        )}
         name="checkbox"
       />
       <Icon
-        className={cn("hidden peer-checked:block w-6 h-6")}
+        className={cn(
+          "hidden peer-checked:block w-6 h-6",
+          { "text-danger": errors },
+          { "text-gray-400": !errors }
+        )}
         name="checkbox-on"
       />
       <span
         className={cn(
-          "min-h-[30px] grid items-center select-none text-14 leading-5"
+          "min-h-[30px] grid items-center select-none text-14 leading-5 text-gray-400"
         )}
       >
         {label}

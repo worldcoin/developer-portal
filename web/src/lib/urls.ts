@@ -21,5 +21,4 @@ export const urls = {
   login: (): "/login" => "/login",
   logout: (): "/logout" => "/logout",
   signup: (): "/signup" => "/signup",
-  waitlist: (): "/waitlist" => "/waitlist",
 };

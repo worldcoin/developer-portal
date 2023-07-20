@@ -184,46 +184,11 @@ export const verifySignUpJWT = async (token: string) => {
       issuer: JWT_ISSUER,
     }
   );
-  const { sub, waitlist_invite } = payload;
+  const { sub } = payload;
   if (!sub) {
     throw new Error("JWT does not contain valid `sub` claim.");
   }
-  return { sub, waitlist_invite };
-};
-
-/**
- * Generates a JWT that can be used to sign up for a developer portal account
- * @returns
- */
-export const generateInviteJWT = async (email: string) => {
-  const payload = { email };
-
-  const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: "HS512" })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("7d")
-    .sign(Buffer.from(GENERAL_SECRET_KEY));
-
-  return token;
-};
-
-/**
- * Verifies an invite token. Returns the invited email address. If the token is invalid, throws an error.
- * @param token
- */
-export const verifyInviteJWT = async (token: string) => {
-  const { payload } = await jose.jwtVerify(
-    token,
-    Buffer.from(GENERAL_SECRET_KEY),
-    {
-      issuer: JWT_ISSUER,
-    }
-  );
-  const { email } = payload;
-  if (!email) {
-    throw new Error("JWT does not contain email claim.");
-  }
-  return email as string;
+  return { sub };
 };
 
 // ANCHOR: -----------------OIDC JWTs--------------------------

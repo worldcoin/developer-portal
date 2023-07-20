@@ -13,7 +13,6 @@ import { getAPIServiceClient } from "src/backend/graphql";
 import {
   generateSignUpJWT,
   generateUserJWT,
-  verifyInviteJWT,
   verifyOIDCJWT,
 } from "src/backend/jwts";
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
@@ -23,7 +22,6 @@ import { NextApiRequestWithBody } from "src/lib/types";
 export type LoginRequestBody = {
   dev_login?: string;
   sign_in_with_world_id_token?: string;
-  invite_token?: string;
 };
 
 export type LoginRequestResponse =
@@ -126,46 +124,10 @@ export default async function handleLogin(
 
   const user = userQueryResult.data.user[0];
 
-  // NOTE: User does not have an account, check for an invite token
-  const { invite_token } = req.body;
-  let email: string | undefined;
+  // NOTE: User does not have an account
   if (!user) {
-    if (invite_token) {
-      if (
-        // NOTE: Temporary static invite codes set in env for hackers at conferences
-        (!process.env.CONFERENCE_INVITE_CODE ||
-          process.env.CONFERENCE_INVITE_CODE !== invite_token) &&
-        // NOTE: Static invite code for auth0 integration instructions
-        (!process.env.AUTH0_INVITE_CODE ||
-          process.env.AUTH0_INVITE_CODE !== invite_token)
-      ) {
-        try {
-          email = await verifyInviteJWT(invite_token);
-        } catch {}
-
-        if (!email) {
-          // Invite token is invalid, return an error
-          return errorValidation(
-            "invalid_invite_token",
-            "Invite token was invalid, and may be expired.",
-            "invite_token",
-            res,
-            req
-          );
-        }
-      }
-
-      const signup_token = await generateSignUpJWT(payload.sub);
-      return res.status(200).json({ new_user: true, email, signup_token });
-    } else {
-      return errorValidation(
-        "invite_token_required",
-        "You need to provide a waitlist invite token to sign up. Visit https://docs.worldcoin.org/waitlist to get yours.",
-        "invite_token",
-        res,
-        req
-      );
-    }
+    const signup_token = await generateSignUpJWT(payload.sub);
+    return res.status(200).json({ new_user: true, signup_token });
   }
 
   const returnTo = getReturnToFromCookie(req, res);

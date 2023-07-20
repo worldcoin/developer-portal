@@ -11,7 +11,7 @@ export const Invite = (props: {
 }) => {
   return (
     <Layout
-      title={"Teamate invited you"}
+      title={"Teammate invited you"}
       style={{
         textAlign: "center",
       }}
@@ -23,7 +23,7 @@ export const Invite = (props: {
           lineHeight: 1.2,
         }}
       >
-        Teamate invited you
+        Teammate invited you
       </h1>
 
       <span style={{ fontSize: 14, color: "#858494" }}>

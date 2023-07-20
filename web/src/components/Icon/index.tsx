@@ -45,6 +45,7 @@ const iconNames = [
   "lock",
   "logo",
   "logo-dev",
+  "logomark",
   "logout",
   "magnifier",
   "maximize",
@@ -74,11 +75,8 @@ const iconNames = [
   "warning-illustration",
   "warning-triangle",
   "window",
-  "wld-logo",
-  "wld-sign-in",
   "world-id-sign-in",
   "world-id-sign-in-disabled",
-  "worldcoin",
   "withdraw",
 ] as const;
 
