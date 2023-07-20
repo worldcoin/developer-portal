@@ -1,12 +1,15 @@
 import { useRouter } from "next/router";
 import posthog from "posthog-js";
 import { useEffect } from "react";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 if (typeof window !== "undefined") {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
+  posthog.init(publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_API_KEY!, {
+    api_host:
+      publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
     loaded: (posthog) => {
-      if (process.env.NODE_ENV === "development") posthog.debug();
+      if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
     },
   });
 }
