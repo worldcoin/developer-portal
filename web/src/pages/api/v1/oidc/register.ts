@@ -4,13 +4,6 @@ import { getAPIServiceClient } from "src/backend/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateHashedSecret } from "src/backend/utils";
 
-const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
-if (!GENERAL_SECRET_KEY) {
-  throw new Error(
-    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
-  );
-}
-
 const insertClientQuery = gql`
   mutation InsertClient(
     $name: String = ""
@@ -74,11 +67,11 @@ export default async function handleRegister(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   if (!req.body["redirect_uris"]) {
-    return errorRequiredAttribute("redirect_uris", res);
+    return errorRequiredAttribute("redirect_uris", res, req);
   }
 
   // ANCHOR: Parse redirect_uris into array and validate

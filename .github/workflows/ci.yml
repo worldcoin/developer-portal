@@ -83,6 +83,13 @@ jobs:
       - name: Build Docker image
         run: docker build --cache-from developer-portal-test:latest -t developer-portal-test:latest .
 
+      - name: Run Snyk to check Docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: developer-portal-test:latest
+
       # - name: Run API tests
       #   run: docker run developer-portal-test pnpm test:api
 
@@ -145,3 +152,33 @@ jobs:
       - name: Run integration tests
         run: |
           pnpm test:integration
+
+  snyk:
+    name: Snyk
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: snyk/actions/setup@master
+
+      - name: Snyk Test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test

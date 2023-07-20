@@ -17,7 +17,7 @@ import {
   generateOIDCCode,
 } from "src/backend/oidc";
 import { verifyProof } from "src/backend/verify";
-import { Chain, CredentialType, OIDCResponseType } from "src/lib/types";
+import { CredentialType, OIDCResponseType } from "src/lib/types";
 
 const InsertNullifier = gql`
   mutation SaveNullifier($object: nullifier_insert_input!) {
@@ -48,7 +48,7 @@ export default async function handleOIDCAuthorize(
   }
 
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of [
@@ -59,7 +59,7 @@ export default async function handleOIDCAuthorize(
     "app_id",
   ]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -80,7 +80,8 @@ export default async function handleOIDCAuthorize(
       "invalid",
       "Invalid credential type.",
       "credential_type",
-      res
+      res,
+      req
     );
   }
 
@@ -94,7 +95,8 @@ export default async function handleOIDCAuthorize(
         "invalid",
         `Invalid response type: ${response_type}.`,
         "response_type",
-        res
+        res,
+        req
       );
     }
   }
@@ -121,7 +123,8 @@ export default async function handleOIDCAuthorize(
       fetchAppError?.statusCode ?? 400,
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
-      fetchAppError?.attribute ?? "app_id"
+      fetchAppError?.attribute ?? "app_id",
+      req
     );
   }
 
@@ -135,7 +138,8 @@ export default async function handleOIDCAuthorize(
       "required",
       "This attribute is required for the authorization code flow.",
       "redirect_uri",
-      res
+      res,
+      req
     );
   }
 
@@ -144,7 +148,8 @@ export default async function handleOIDCAuthorize(
       "invalid",
       "Invalid redirect URI. Redirect URIs should be preregistered.",
       "redirect_uri",
-      res
+      res,
+      req
     );
   }
 
@@ -160,7 +165,6 @@ export default async function handleOIDCAuthorize(
     {
       is_staging: app.is_staging,
       credential_type,
-      chain: Chain.Polygon, // TODO: Add support for Optimism after production deployment
     }
   );
   if (verifyError) {
@@ -169,7 +173,8 @@ export default async function handleOIDCAuthorize(
       verifyError.statusCode ?? 400,
       verifyError.code ?? "invalid_proof",
       verifyError.message ?? "Verification request error. Please try again.",
-      verifyError.attribute
+      verifyError.attribute,
+      req
     );
   }
 

@@ -14,7 +14,7 @@ export default async function handler(
 ) {
   await runCors(req, res);
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of [
@@ -24,10 +24,9 @@ export default async function handler(
     "merkle_root",
     "nullifier_hash",
     "proof",
-    "chain",
   ]) {
     if (req.body[attr] === "") {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -47,14 +46,11 @@ export default async function handler(
     {
       is_staging: req.body.is_staging,
       credential_type: req.body.credential_type,
-      chain: req.body.chain,
     }
   );
 
   if (result.success) {
-    return res
-      .status(200)
-      .json({ success: true, status: result.status, chains: result.chains });
+    return res.status(200).json({ success: true, status: result.status });
   }
 
   if (result.error) {
@@ -65,6 +61,8 @@ export default async function handler(
     res,
     500,
     "server_error",
-    "Unable to verify proof due to a server error. Please try again."
+    "Unable to verify proof due to a server error. Please try again.",
+    null,
+    req
   );
 }

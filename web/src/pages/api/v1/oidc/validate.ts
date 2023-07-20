@@ -17,12 +17,12 @@ export default async function handleOIDCValidate(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["app_id"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -34,7 +34,8 @@ export default async function handleOIDCValidate(
       400,
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
-      "redirect_uri"
+      "redirect_uri",
+      req
     );
   }
 
@@ -48,7 +49,8 @@ export default async function handleOIDCValidate(
       fetchAppError?.statusCode ?? 400,
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
-      fetchAppError?.attribute ?? "app_id"
+      fetchAppError?.attribute ?? "app_id",
+      req
     );
   }
 
@@ -58,7 +60,8 @@ export default async function handleOIDCValidate(
       400,
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
-      "redirect_uri"
+      "redirect_uri",
+      req
     );
   }
 

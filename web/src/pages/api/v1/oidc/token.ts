@@ -38,7 +38,9 @@ export default async function handleOIDCToken(
       res,
       400,
       "invalid_request",
-      "Method not allowed."
+      "Method not allowed.",
+      null,
+      req
     );
   }
 
@@ -47,7 +49,9 @@ export default async function handleOIDCToken(
       res,
       400,
       "invalid_request",
-      "Invalid content type. Only application/x-www-form-urlencoded is supported."
+      "Invalid content type. Only application/x-www-form-urlencoded is supported.",
+      null,
+      req
     );
   }
 
@@ -69,7 +73,9 @@ export default async function handleOIDCToken(
       res,
       401,
       "unauthorized_client",
-      "Please provide your app authentication credentials."
+      "Please provide your app authentication credentials.",
+      null,
+      req
     );
   }
 
@@ -81,7 +87,9 @@ export default async function handleOIDCToken(
       res,
       401,
       "unauthorized_client",
-      "Invalid authentication credentials"
+      "Invalid authentication credentials",
+      null,
+      req
     );
   }
 
@@ -91,7 +99,8 @@ export default async function handleOIDCToken(
       400,
       "invalid_grant",
       "Invalid grant type. Only authorization_code is supported.",
-      null
+      null,
+      req
     );
   }
 
@@ -102,7 +111,8 @@ export default async function handleOIDCToken(
       400,
       "invalid_request",
       "Required parameter code is missing.",
-      "code"
+      "code",
+      req
     );
   }
 
@@ -130,7 +140,9 @@ export default async function handleOIDCToken(
       res,
       400,
       "invalid_grant",
-      "Invalid authorization code."
+      "Invalid authorization code.",
+      null,
+      req
     );
   }
 

@@ -52,12 +52,12 @@ export default async function handleGraphQL(
       variables: { key_id: key_id },
     });
     if (!response.data.api_key.length) {
-      return errorUnauthenticated("Invalid or inactive API key.", res);
+      return errorUnauthenticated("Invalid or inactive API key.", res, req);
     }
 
     // Verify the secret against the given API key
     if (!verifyHashedSecret(key_id, secret, response.data.api_key[0].api_key)) {
-      return errorUnauthenticated("Invalid API key secret.", res);
+      return errorUnauthenticated("Invalid API key secret.", res, req);
     }
 
     headers.delete("Authorization");
@@ -70,7 +70,7 @@ export default async function handleGraphQL(
   // Check if request is from the analytics service
   if (authorization?.startsWith("analytics_")) {
     if (authorization !== process.env.ANALYTICS_API_KEY) {
-      return errorUnauthenticated("Invalid analytics API key", res);
+      return errorUnauthenticated("Invalid analytics API key", res, req);
     }
 
     headers.delete("Authorization");

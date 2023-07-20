@@ -58,7 +58,7 @@ export default async function handleSignUp(
   res: NextApiResponse<SignupResponse>
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   let body: Body;
@@ -67,7 +67,7 @@ export default async function handleSignUp(
     body = await schema.validate(req.body);
   } catch (e) {
     if (e instanceof yup.ValidationError) {
-      return errorValidation("invalid", e.message, e.path || null, res);
+      return errorValidation("invalid", e.message, e.path || null, res, req);
     }
 
     console.error("Unhandled yup validation error.", e);
@@ -76,7 +76,9 @@ export default async function handleSignUp(
       res,
       500,
       "server_error",
-      "Something went wrong. Please try again."
+      "Something went wrong. Please try again.",
+      null,
+      req
     );
   }
 
@@ -86,7 +88,14 @@ export default async function handleSignUp(
   let nullifier_hash: string | undefined = tokenPayload.sub;
 
   if (!nullifier_hash) {
-    return errorResponse(res, 400, "Invalid signup token.");
+    return errorResponse(
+      res,
+      400,
+      "Invalid signup token.",
+      undefined,
+      null,
+      req
+    );
   }
 
   const client = await getAPIServiceClient();
@@ -106,7 +115,7 @@ export default async function handleSignUp(
   const user = team.users[0];
 
   if (!team || !user) {
-    return errorResponse(res, 500, "Failed to signup");
+    return errorResponse(res, 500, "Failed to signup", undefined, null, req);
   }
 
   const { token, expiration } = await generateUserJWT(user.id, team.id);

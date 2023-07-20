@@ -4,7 +4,6 @@ import { BigNumber, ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
-import { Chain } from "src/lib/types";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
@@ -35,7 +34,6 @@ interface IInputParams {
 interface IVerifyParams {
   is_staging: boolean;
   credential_type: CredentialType;
-  chain: Chain;
 }
 
 interface IAppAction {
@@ -283,7 +281,6 @@ export const verifyProof = async (
 ): Promise<{
   success?: true;
   status?: string;
-  chains?: string[];
   error?: IInternalError;
 }> => {
   // Parse the inputs
@@ -304,7 +301,7 @@ export const verifyProof = async (
   });
 
   const sequencerUrl =
-    sequencerMapping[verifyParams.chain][verifyParams.credential_type]?.[
+    sequencerMapping[verifyParams.credential_type]?.[
       verifyParams.is_staging.toString()
     ];
 
@@ -345,5 +342,5 @@ export const verifyProof = async (
 
   const result = await response.json();
   const status = result.status === "mined" ? "on-chain" : "pending";
-  return { success: true, status, chains: [verifyParams.chain] };
+  return { success: true, status };
 };

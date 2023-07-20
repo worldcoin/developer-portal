@@ -28,7 +28,11 @@ const nextConfig = {
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
             ],
-            "script-src": ["'self'", "https://cookie-cdn.cookiepro.com"],
+            "script-src": [
+              "'self'",
+              "https://cookie-cdn.cookiepro.com",
+              "https://app.posthog.com",
+            ],
           },
           permissionsPolicy: {
             "clipboard-write": `self`,

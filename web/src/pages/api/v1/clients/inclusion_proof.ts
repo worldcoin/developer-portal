@@ -10,7 +10,7 @@ import {
   checkConsumerBackendForPhoneVerification,
   rawFetchInclusionProof,
 } from "src/backend/utils";
-import { Chain, CredentialType, Environment } from "src/lib/types";
+import { CredentialType, Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
 const existsQuery = gql`
@@ -48,12 +48,12 @@ export default async function handleInclusionProof(
   res: NextApiResponse
 ) {
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   for (const attr of ["credential_type", "identity_commitment", "env"]) {
     if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res);
+      return errorRequiredAttribute(attr, res, req);
     }
   }
 
@@ -62,25 +62,18 @@ export default async function handleInclusionProof(
       "invalid",
       "Invalid environment value. `staging` or `production` expected.",
       "env",
-      res
+      res,
+      req
     );
-  }
-
-  if (
-    req.body.chain !== undefined &&
-    !Object.values(Chain).includes(req.body.chain)
-  ) {
-    return errorValidation("invalid", "Invalid chain.", "chain", res);
   }
 
   const apiClient = await getAPIServiceClient();
 
-  const chain = (req.body.chain as Chain) ?? Chain.Polygon; // Default to Polygon for now
   const credential_type = req.body.credential_type as CredentialType;
   const isStaging = req.body.env === "production" ? false : true;
 
   const sequencerUrl =
-    sequencerMapping[chain][credential_type]?.[isStaging.toString()]!;
+    sequencerMapping[credential_type]?.[isStaging.toString()]!;
 
   // ANCHOR: Check if the identity commitment has been revoked
   const identityCommitmentExistsResponse = await apiClient.query({
@@ -98,7 +91,8 @@ export default async function handleInclusionProof(
       "unverified_identity",
       "This identity is not verified for the phone credential.",
       "identity_commitment",
-      res
+      res,
+      req
     );
   }
 

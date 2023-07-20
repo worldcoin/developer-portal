@@ -17,7 +17,7 @@ export default async function handleGenJWKS(
   }
 
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const jwk = await createAndStoreJWK();

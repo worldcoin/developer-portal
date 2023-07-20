@@ -11,12 +11,12 @@ export default async function handler(
   await runCors(req, res);
 
   if (!req.method || !["GET", "POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const authorization = req.headers.authorization;
   if (!authorization) {
-    return errorUnauthenticated("Missing credentials.", res);
+    return errorUnauthenticated("Missing credentials.", res, req);
   }
 
   const token = authorization.replace("Bearer ", "");
@@ -46,7 +46,8 @@ export default async function handler(
       401,
       "invalid_token",
       "Token is invalid or expired.",
-      "token"
+      "token",
+      req
     );
   }
 }

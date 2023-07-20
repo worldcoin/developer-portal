@@ -20,7 +20,7 @@ export default async function handler(
   }
 
   if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res);
+    return errorNotAllowed(req.method, res, req);
   }
 
   const action = req.body.event.data.new as ActionModel;
