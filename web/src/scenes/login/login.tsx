@@ -76,7 +76,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
         });
       }
     }
-  }, [router, doLogin, loginUrl]);
+  }, [router, doLogin]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">

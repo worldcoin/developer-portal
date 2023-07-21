@@ -47,7 +47,7 @@ const nextConfig = {
     domains: ["world-id-public.s3.amazonaws.com"],
   },
   publicRuntimeConfig: Object.fromEntries(
-    Object.entries(process.env).filter(([key, value]) =>
+    Object.entries(process.env).filter(([key]) =>
       key.startsWith("NEXT_PUBLIC_")
     )
   ),

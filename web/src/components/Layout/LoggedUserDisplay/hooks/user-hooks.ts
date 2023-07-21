@@ -14,9 +14,10 @@ export const useFetchUser = (id: string) => {
   const { data, ...other } = useFetchUserQuery({
     variables: { id },
     onCompleted: (data) => {
-      if (!data.user[0]) {
-        router.push("/logout");
-      }
+      // FIXME: Temporary fix for NoApps issue
+      // if (!data.user[0]) {
+      //   router.push("/logout");
+      // }
     },
   });
   return { user: data?.user[0], ...other };
