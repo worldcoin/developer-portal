@@ -86,7 +86,7 @@ export default async function handleGraphQL(
     return res.status(415).json({
       code: "unsupported_media_type",
       detail: "The body request does not look like a valid JSON payload.",
-      attr: null,
+      attribute: null,
     });
   }
 
