@@ -49,6 +49,14 @@ export function errorUnauthenticated(
   return errorResponse(res, 401, "unauthenticated", detail, null, req);
 }
 
+export function errorForbidden(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  detail: string = "You do not have permission to perform this action."
+): void {
+  return errorResponse(res, 403, "permission_denied", detail, null, req);
+}
+
 export function errorRequiredAttribute(
   attribute: string = "",
   res: NextApiResponse,

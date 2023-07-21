@@ -8,6 +8,7 @@ import { IInternalError, IPendingProofResponse } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
+import { errorForbidden } from "./errors";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -39,11 +40,7 @@ export const protectInternalEndpoint = (
     req.headers.authorization?.replace("Bearer ", "") !==
       process.env.INTERNAL_ENDPOINTS_SECRET
   ) {
-    res.status(403).json({
-      code: "permission_denied",
-      detail: "You do not have permission to perform this action.",
-      attr: null,
-    });
+    errorForbidden(req, res);
     return false;
   }
   return true;
@@ -64,11 +61,7 @@ export const protectConsumerBackendEndpoint = (
     req.headers.authorization?.replace("Bearer ", "") !==
       process.env.CONSUMER_BACKEND_SECRET
   ) {
-    res.status(403).json({
-      code: "permission_denied",
-      detail: "You do not have permission to perform this action.",
-      attr: null,
-    });
+    errorForbidden(req, res);
     return false;
   }
   return true;
