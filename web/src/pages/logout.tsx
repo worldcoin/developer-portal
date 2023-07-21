@@ -1,6 +1,6 @@
 import { Spinner } from "src/components/Spinner";
 import { GetServerSideProps, Redirect } from "next";
-import { removeCookies } from "cookies-next";
+import { deleteCookie } from "cookies-next";
 
 export default function Logout(): JSX.Element {
   return (
@@ -11,7 +11,7 @@ export default function Logout(): JSX.Element {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  removeCookies("auth", context);
+  deleteCookie("auth", context);
 
   return {
     redirect: {

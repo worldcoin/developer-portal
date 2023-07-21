@@ -5,7 +5,6 @@ import { Layout } from "src/components/Layout";
 import { NewAppDialog } from "src/components/Layout/NewAppDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { LinkCard } from "./LinkCard";
-import { PageInfo } from "@/components/PageInfo";
 
 export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
   const newAppDialog = useToggle();
