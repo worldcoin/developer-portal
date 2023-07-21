@@ -9,5 +9,6 @@ describe("/api/v1/contracts", () => {
     });
 
     await handleContracts(req, res);
+    expect(res._getStatusCode()).toBe(200);
   });
 });
