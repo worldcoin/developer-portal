@@ -18,7 +18,7 @@ export default async function handleContracts(
 
   const query = gql`
     query ENS {
-      cache(where: { key: { _iregex: "^[a-z-.]*id.worldcoin.eth$" } }) {
+      cache(where: { key: { _iregex: "^[a-z.-]*id.worldcoin.eth$" } }) {
         key
         value
       }
