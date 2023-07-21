@@ -39,7 +39,7 @@ describe("/api/v1/_delete-jwks", () => {
     expect(res._getJSONData()).toEqual({
       code: "permission_denied",
       detail: "You do not have permission to perform this action.",
-      attr: null,
+      attribute: null,
     });
   });
 
