@@ -59,7 +59,7 @@ describe("/api/_gen-hashed-action-id", () => {
     expect(res._getJSONData()).toEqual({
       code: "permission_denied",
       detail: "You do not have permission to perform this action.",
-      attr: null,
+      attribute: null,
     });
   });
 });
