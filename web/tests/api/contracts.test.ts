@@ -14,7 +14,6 @@ jest.mock(
   }))
 );
 
-// TODO
 describe("/api/v1/contracts", () => {
   test("can obtain semaphore contracts", async () => {
     const { req, res } = createMocks({
