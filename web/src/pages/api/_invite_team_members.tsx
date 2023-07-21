@@ -126,7 +126,7 @@ export default async function handleInvite(
 
     (await Promise.allSettled(promises)).map((item) => {
       if (item.status === "rejected") {
-        logger.error("Cannot send email for user", {
+        logger.error("Cannot send invite(s)", {
           req,
           error: item.reason,
         });
