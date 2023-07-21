@@ -52,8 +52,11 @@ export const sendEmail = async (params: {
       to: params.to,
     });
   } catch (err) {
-    console.log(inspect(err, { depth: 16 }));
-    throw err;
+    const emails = [params.to]
+      .flat()
+      .map((email) => (typeof email === "string" ? email : email.email))
+      .join(", ");
+    throw new Error(`Cannot send email for user ${emails}`);
   }
 
   return true;
