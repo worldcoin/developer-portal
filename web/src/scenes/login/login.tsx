@@ -183,7 +183,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
 
                   <Link href={loginUrl ?? ""} className="contents">
                     <Button className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold">
-                      Log in
+                      Log in or Sign up
                       <Icon name="arrow-right" className="w-6 h-6" />
                     </Button>
                   </Link>
