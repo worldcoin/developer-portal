@@ -17,7 +17,7 @@ const mutation = gql`
   mutation Signup(
     $nullifier_hash: String!
     $team_name: String!
-    $email: String!
+    $email: String
     $ironclad_id: String!
   ) {
     insert_team_one(
@@ -34,7 +34,7 @@ const mutation = gql`
     ) {
       id
       name
-      users(where: { email: { _eq: $email } }) {
+      users {
         id
         ironclad_id
         email
@@ -106,7 +106,7 @@ export default async function handleSignUp(
     variables: {
       nullifier_hash,
       team_name,
-      email: email ?? null,
+      email: email || null,
       ironclad_id: body.ironclad_id,
     },
   });
