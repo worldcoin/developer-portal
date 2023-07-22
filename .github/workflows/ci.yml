@@ -89,7 +89,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: developer-portal-test:latest
-          args: --file=Dockerfile --policy-path=../.snyk # --exclude-base-image-vulns
+          args: --file=web/Dockerfile --policy-path=./.snyk # --exclude-base-image-vulns
 
       # - name: Run API tests
       #   run: docker run developer-portal-test pnpm test:api
