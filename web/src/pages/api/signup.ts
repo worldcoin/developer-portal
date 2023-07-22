@@ -106,7 +106,7 @@ export default async function handleSignUp(
     variables: {
       nullifier_hash,
       team_name,
-      email: email ?? "",
+      email: email ?? null,
       ironclad_id: body.ironclad_id,
     },
   });
