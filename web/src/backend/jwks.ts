@@ -5,6 +5,7 @@ import { JWKModel } from "src/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
 import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "src/lib/constants";
+import { logger } from "src/lib/logger";
 
 export type CreateJWKResult = {
   keyId: string;
@@ -172,7 +173,7 @@ export const createAndStoreJWK = async () => {
     return response.data.insert_jwks_one;
   }
 
-  console.error(response);
+  logger.error("Unable to create new JWK.", { response });
   throw new Error("Unable to create new JWK.");
 };
 

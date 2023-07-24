@@ -4,6 +4,7 @@ import { BigNumber, ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
+import { logger } from "src/lib/logger";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
@@ -174,8 +175,8 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     proof = decodeProof(params.proof);
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    logger.error("Error decode proof", { error });
     return {
       error: {
         message:
@@ -191,8 +192,8 @@ export const parseProofInputs = (params: IInputParams) => {
     nullifier_hash = (
       abi.decode(["uint256"], params.nullifier_hash)[0] as BigNumber
     ).toHexString();
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    logger.error("Error create nullifier hash", { error });
     return {
       error: {
         message:
@@ -208,8 +209,8 @@ export const parseProofInputs = (params: IInputParams) => {
     merkle_root = (
       abi.decode(["uint256"], params.merkle_root)[0] as BigNumber
     ).toHexString();
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    logger.error("Error create merkle root", { error });
     return {
       error: {
         message:
@@ -225,8 +226,8 @@ export const parseProofInputs = (params: IInputParams) => {
     external_nullifier = (
       abi.decode(["uint256"], params.external_nullifier)[0] as BigNumber
     ).toHexString();
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    logger.error("Error create external nullifier", { error });
     return {
       error: {
         message:
@@ -243,8 +244,8 @@ export const parseProofInputs = (params: IInputParams) => {
       signal_hash = (
         abi.decode(["uint256"], params.signal)[0] as BigNumber
       ).toHexString();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      logger.error("Error create signal hash", { error });
       return {
         error: {
           message:

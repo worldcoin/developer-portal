@@ -15,6 +15,7 @@ import { getSdk as findUserByNullifierSdk } from "@/api/login-with-invite/graphq
 import { getSdk as getInviteByIdSdk } from "@/api/login-with-invite/graphql/getInviteById.generated";
 import { getSdk as createUserAndDeleteInviteSdk } from "@/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
 import { setCookie } from "@/backend/cookies";
+import { logger } from "src/lib/logger";
 
 export type LoginRequestBody = {
   sign_in_with_world_id_token?: string;
@@ -46,10 +47,10 @@ export default async function handleLogin(
   let payload: JWTPayload | undefined;
   try {
     payload = await verifyOIDCJWT(sign_in_with_world_id_token);
-  } catch (e) {
-    console.error(
+  } catch (error) {
+    logger.error(
       "Error verifying received login JWT from Sign in with World ID",
-      e
+      { error }
     );
   }
 

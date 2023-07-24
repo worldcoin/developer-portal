@@ -12,6 +12,7 @@ import {
 } from "@aws-sdk/client-kms";
 import { base64url } from "jose";
 import { retrieveJWK } from "./jwks";
+import { logger } from "src/lib/logger";
 
 export type CreateKeyResult =
   | {
@@ -58,7 +59,7 @@ ${Buffer.from(PublicKey).toString("base64")}
       }
     }
   } catch (error) {
-    console.error("Error creating key:", error);
+    logger.error("Error creating key.", { error });
   }
 };
 
@@ -71,7 +72,7 @@ export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
     );
     return KeyMetadata?.Enabled;
   } catch (error) {
-    console.error("Error describing key:", error);
+    logger.error("Error describing key.", { error });
   }
 };
 
@@ -105,7 +106,7 @@ export const signJWTWithKMSKey = async (
       return `${encodedHeaderPayload}.${encodedSignature}`;
     }
   } catch (error) {
-    console.error("Error signing JWT:", error);
+    logger.error("Error signing JWT:", { error });
   }
 };
 
@@ -118,6 +119,6 @@ export const scheduleKeyDeletion = async (client: KMSClient, keyId: string) => {
       })
     );
   } catch (error) {
-    console.error("Error scheduling key deletion:", error);
+    logger.error("Error scheduling key deletion:", { error });
   }
 };

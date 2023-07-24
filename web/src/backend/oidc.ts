@@ -8,6 +8,7 @@ import {
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
+import { logger } from "src/lib/logger";
 
 export const OIDCResponseTypeMapping = {
   code: OIDCResponseType.Code,
@@ -230,14 +231,14 @@ export const authenticateOIDCEndpoint = async (
   });
 
   if (data.app.length === 0) {
-    console.info("authenticateOIDCEndpoint - App not found or not active.");
+    logger.info("authenticateOIDCEndpoint - App not found or not active.");
     return null;
   }
 
   const hmac_secret = data.app[0]?.actions?.[0]?.client_secret;
 
   if (!hmac_secret) {
-    console.info(
+    logger.info(
       "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
     );
     return null;
@@ -245,7 +246,7 @@ export const authenticateOIDCEndpoint = async (
 
   // ANCHOR: Verify client secret
   if (!verifyHashedSecret(app_id, client_secret, hmac_secret)) {
-    console.warn("authenticateOIDCEndpoint - Invalid client secret.");
+    logger.warn("authenticateOIDCEndpoint - Invalid client secret.");
     return null;
   }
 

@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { errorNotAllowed } from "../../backend/errors";
+import { logger } from "src/lib/logger";
 
 /**
  * Updates the cache for the Semaphore contracts through ENS
@@ -52,7 +53,7 @@ export default async function handleENS(
       );
       updateStatements.variables[addressKey] = resolvedAddress;
     } else {
-      console.error(`Could not resolve ${address}.`);
+      logger.error(`Could not resolve ${address}.`, { req });
     }
   }
 
@@ -81,7 +82,7 @@ export default async function handleENS(
       variables: updateStatements.variables,
     });
   } else {
-    console.error("No addresses resolved.");
+    logger.error("No addresses resolved.", { req });
   }
 
   res.status(200).json({ success: true });

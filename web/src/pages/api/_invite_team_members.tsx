@@ -134,8 +134,8 @@ export default async function handleInvite(
     });
 
     res.status(200).json({ emails });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    logger.error("Cannot send invite(s)", { error, req });
 
     return errorHasuraQuery({
       res,

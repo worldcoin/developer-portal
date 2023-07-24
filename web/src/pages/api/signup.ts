@@ -10,6 +10,7 @@ import { setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
 import * as yup from "yup";
+import { logger } from "src/lib/logger";
 
 export type SignupResponse = { returnTo: string };
 
@@ -65,12 +66,18 @@ export default async function handleSignUp(
 
   try {
     body = await schema.validate(req.body);
-  } catch (e) {
-    if (e instanceof yup.ValidationError) {
-      return errorValidation("invalid", e.message, e.path || null, res, req);
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      return errorValidation(
+        "invalid",
+        error.message,
+        error.path || null,
+        res,
+        req
+      );
     }
 
-    console.error("Unhandled yup validation error.", e);
+    logger.error("Unhandled yup validation error.", { error, req });
 
     return errorResponse(
       res,
