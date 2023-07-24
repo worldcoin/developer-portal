@@ -6,9 +6,10 @@ import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
 
-export default function App() {
+export default function App(props: { user_id?: string }) {
   return (
     <NoApps
+      userId={props.user_id}
       pageInfo={
         <PageInfo
           icon="apps"
@@ -49,7 +50,9 @@ export const getServerSideProps: GetServerSideProps = requireAuthentication(
     }
 
     return {
-      props: {},
+      props: {
+        user_id,
+      },
     };
   }
 );

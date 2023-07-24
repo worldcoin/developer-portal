@@ -5,16 +5,23 @@ import { Icon } from "src/components/Icon";
 import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { useFetchUser } from "./hooks/user-hooks";
+import { IUserStore, useUserStore } from "@/stores/userStore";
 
-export function LoggedUserDisplay(props: {
-  className?: string;
-  userId?: string;
-}) {
+const getUserStore = (store: IUserStore) => ({
+  userId: store.userId,
+});
+
+export function LoggedUserDisplay(props: { className?: string }) {
+  const { userId } = useUserStore(getUserStore);
   const modal = useToggle(false);
-  const { user } = useFetchUser(props.userId ?? "");
+  const { user, loading } = useFetchUser(userId ?? "");
 
   // FIXME: remove when real user image is available
   const image = "";
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <Fragment>
