@@ -8,12 +8,12 @@ import { useTeam } from "@/scenes/team/hooks/useTeam";
 import useKeys from "src/hooks/useKeys";
 import { KeyList } from "./KeyList";
 
-export const Team = memo(function Team(props: { user_id?: string }) {
+export const Team = memo(function Team() {
   const { data: team, loading } = useTeam();
   const { keys, isLoading } = useKeys();
 
   return (
-    <Layout userId={props.user_id} mainClassName="grid gap-y-8">
+    <Layout mainClassName="grid gap-y-8">
       {loading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />

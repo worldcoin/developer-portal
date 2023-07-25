@@ -5,11 +5,13 @@ import { requireAuthentication } from "src/lib/require-authentication";
 import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
+import { withUserId } from "@/hocks/withUserId";
 
-export default function Actions(props: { user_id?: string }) {
+export default withUserId(Actions);
+
+function Actions() {
   return (
     <NoApps
-      userId={props.user_id}
       pageInfo={
         <PageInfo
           icon="notepad"

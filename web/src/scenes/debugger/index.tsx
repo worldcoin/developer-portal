@@ -28,7 +28,7 @@ const exampleVR = `{
   "credential_type": "orb"
 }`;
 
-export function Debugger(props: { user_id?: string }): JSX.Element {
+export function Debugger(): JSX.Element {
   const [action, setAction] = useState("");
   const [signal, setSignal] = useState("");
   const [response, setResponse] = useState("");
@@ -44,7 +44,6 @@ export function Debugger(props: { user_id?: string }): JSX.Element {
 
   return (
     <Layout
-      userId={props.user_id}
       title="Debugger"
       mainClassName={cn(
         "grid gap-16",

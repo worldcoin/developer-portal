@@ -22,21 +22,15 @@ const getAppStore = (store: IAppStore) => ({
   setCurrentAppById: store.setCurrentAppById,
 });
 
-const getUserStore = (store: IUserStore) => ({
-  setUserId: store.setUserId,
-});
-
 export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
-  userId?: string;
 }) => {
   const newAppDialog = useToggle();
   const router = useRouter();
   const { currentApp, setCurrentAppById } = useAppStore(getAppStore);
   const { apps } = useApps();
-  const { setUserId } = useUserStore(getUserStore);
 
   useEffect(() => {
     if (!router.query.app_id || !apps) {
@@ -59,12 +53,6 @@ export const Layout = (props: {
     () => currentApp?.engine === "on-chain",
     [currentApp?.engine]
   );
-
-  const { userId } = props;
-
-  useEffect(() => {
-    setUserId(userId);
-  }, [userId, setUserId]);
 
   return (
     <Fragment>

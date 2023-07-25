@@ -6,15 +6,11 @@ import { NewAppDialog } from "src/components/Layout/NewAppDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { LinkCard } from "./LinkCard";
 
-export const NoApps = memo(function NoApps(props: {
-  pageInfo: ReactNode;
-  userId?: string;
-}) {
+export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
   const newAppDialog = useToggle();
 
   return (
     <Layout
-      userId={props.userId}
       title="Apps"
       mainClassName="grid grid-rows-auto/1fr/auto px-12 py-8 gap-y-12"
     >
