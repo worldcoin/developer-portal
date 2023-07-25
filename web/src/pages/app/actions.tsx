@@ -5,7 +5,7 @@ import { requireAuthentication } from "src/lib/require-authentication";
 import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
-import { withUserId } from "@/hocks/withUserId";
+import { withUserId } from "@/hocs/withUserId";
 
 export default withUserId(Actions);
 
