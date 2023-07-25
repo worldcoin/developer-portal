@@ -10,7 +10,7 @@ import { NotFound } from "@/components/NotFound";
 import { useRouter } from "next/router";
 import { urls } from "src/lib/urls";
 
-export const SignIn = memo(function SignIn(props: { user_id?: string }) {
+export const SignIn = memo(function SignIn() {
   const { currentApp, isLoading: appIsLoading } = useApps();
   const { actionIsLoading } = useSignInAction();
   const router = useRouter();
@@ -23,7 +23,7 @@ export const SignIn = memo(function SignIn(props: { user_id?: string }) {
   }, [currentApp?.engine, currentApp?.id, router]);
 
   return (
-    <Layout userId={props.user_id} title="Sign in" mainClassName="grid">
+    <Layout title="Sign in" mainClassName="grid">
       {(appIsLoading || actionIsLoading) && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />

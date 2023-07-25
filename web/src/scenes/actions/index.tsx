@@ -19,7 +19,7 @@ const getActionsStore = (store: IActionStore) => ({
   setNewActionOpened: store.setIsNewActionModalOpened,
 });
 
-export function Actions(props: { user_id?: string }): JSX.Element | null {
+export function Actions(): JSX.Element | null {
   const { currentApp, isLoading: appIsLoading } = useApps();
   const { actions, isActionsLoading } = useFetchActions();
   const { setNewActionOpened } = useActionStore(getActionsStore);
@@ -56,11 +56,7 @@ export function Actions(props: { user_id?: string }): JSX.Element | null {
   }, [actions, actionsSearch]);
 
   return (
-    <Layout
-      title="Actions"
-      userId={props.user_id}
-      mainClassName="grid items-start"
-    >
+    <Layout title="Actions" mainClassName="grid items-start">
       {(appIsLoading || isActionsLoading) && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />

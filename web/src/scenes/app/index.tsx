@@ -16,17 +16,14 @@ const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
-export const App = memo(function App(props: {
-  appId: string;
-  user_id?: string;
-}) {
+export const App = memo(function App(props: { appId: string }) {
   const { isLoading } = useApps();
   const { currentApp } = useAppStore(getStore, shallow);
 
   const removeAppDialog = useToggle();
 
   return (
-    <Layout userId={props.user_id} mainClassName="grid">
+    <Layout mainClassName="grid">
       {isLoading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
