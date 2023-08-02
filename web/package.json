@@ -10,7 +10,7 @@
     "dev": "next dev",
     "typecheck": "tsc",
     "build": "next build",
-    "start": "NODE_OPTIONS='-r ./tracing.js' next start",
+    "start": "next start",
     "lint": "next lint",
     "test": "pnpm test:api && pnpm test:integration",
     "format": "prettier -w ./",
