@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { logger } from "src/lib/logger";
 
 export type GetMonitorsResponse = {
   stat: "ok" | "fail";
@@ -55,7 +56,6 @@ export default async function handler(
 
       result = await response.json();
     } catch (error) {
-      console.log(error);
       return Error("Error fetching data", { cause: error as Error });
     }
 
@@ -65,6 +65,7 @@ export default async function handler(
   const result = await fetcher<GetMonitorsResponse>(_getUrl("getMonitors"));
 
   if (result instanceof Error) {
+    logger.error("Uptime robot error", { req, error: result });
     return res.status(500).json({
       message: result.message,
       name: result.name,

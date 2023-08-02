@@ -10,6 +10,7 @@ import {
   checkConsumerBackendForPhoneVerification,
   rawFetchInclusionProof,
 } from "src/backend/utils";
+import { logger } from "src/lib/logger";
 import { CredentialType, Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
@@ -83,8 +84,9 @@ export default async function handleInclusionProof(
 
   if (identityCommitmentExistsResponse.data.revocation.length) {
     // Commitment is in the revocation table, deny the proof request
-    console.info(
-      `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`
+    logger.info(
+      `Declined inclusion proof request for revoked commitment: ${req.body.identity_commitment}`,
+      { req }
     );
 
     return errorValidation(
@@ -113,8 +115,9 @@ export default async function handleInclusionProof(
   else if (response.status === 400 && req.body.credential_type === "phone") {
     const errorBody = await response.text();
 
-    console.info(
-      `Identity ${req.body.identity_commitment} is not on-chain. Checking with the consumer backend if it already has a verified phone number.`
+    logger.info(
+      `Identity ${req.body.identity_commitment} is not on-chain. Checking with the consumer backend if it already has a verified phone number.`,
+      { req }
     );
 
     // User may have previously verified their phone number, before the phone sequencer contract was deployed
@@ -138,9 +141,9 @@ export default async function handleInclusionProof(
     if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {
       return res.status(400).json(EXPECTED_ERRORS[errorBody]);
     } else {
-      console.error(
+      logger.error(
         "Unexpected error (400) fetching proof from phone sequencer",
-        errorBody
+        { errorBody }
       );
       res.status(400).json({
         code: "server_error",
@@ -149,9 +152,9 @@ export default async function handleInclusionProof(
       });
     }
   } else {
-    console.error(
+    logger.error(
       `Unexpected error (${response.status}) fetching proof from sequencer`,
-      await response.text()
+      { response: await response.text() }
     );
     res.status(503).json({
       code: "server_error",

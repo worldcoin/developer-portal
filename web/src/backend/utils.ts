@@ -9,6 +9,7 @@ import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
 import { errorForbidden } from "./errors";
+import { logger } from "src/lib/logger";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -112,13 +113,13 @@ export const reportAPIEventToPostHog = async (
       }),
     });
     if (!response.ok) {
-      console.error(
+      logger.error(
         `Error reporting ${event} to PostHog. Non-200 response: ${response.status}`,
-        await response.text()
+        { response: await response.text() }
       );
     }
-  } catch (e) {
-    console.error(`Error reporting ${event} to PostHog`, e);
+  } catch (error) {
+    logger.error(`Error reporting ${event} to PostHog`, { error });
   }
 };
 
@@ -139,7 +140,7 @@ export async function checkConsumerBackendForPhoneVerification({
   });
 
   if (phoneVerifiedResponse.data.user.length) {
-    console.info(
+    logger.info(
       `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
 

@@ -3,6 +3,7 @@ import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateHashedSecret } from "src/backend/utils";
+import { logger } from "src/lib/logger";
 
 const insertClientQuery = gql`
   mutation InsertClient(
@@ -150,7 +151,7 @@ export default async function handleRegister(
       req.body.redirects.length
   ) {
     // We let the response continue because the app and action were created, we just flag to the user that the redirects were not inserted
-    console.error("Could not insert the redirects");
+    logger.error("Could not insert the redirects", { req });
   }
 
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
@@ -178,6 +179,7 @@ export default async function handleRegister(
       response_types: (req.body.response_types = "code"),
     });
   } else {
+    logger.error("Could not insert the client", { req });
     throw Error("Could not insert the client");
   }
 }

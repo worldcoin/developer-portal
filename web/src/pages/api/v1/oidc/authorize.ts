@@ -17,6 +17,7 @@ import {
   generateOIDCCode,
 } from "src/backend/oidc";
 import { verifyProof } from "src/backend/verify";
+import { logger } from "src/lib/logger";
 import { CredentialType, OIDCResponseType } from "src/lib/types";
 
 const InsertNullifier = gql`
@@ -236,7 +237,7 @@ export default async function handleOIDCAuthorize(
       throw new Error("Error inserting nullifier.");
     }
   } catch (error) {
-    console.log(error);
+    logger.error("Error inserting nullifier", { req, error });
   }
 
   res.status(200).json(response);
