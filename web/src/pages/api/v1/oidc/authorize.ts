@@ -45,6 +45,8 @@ const schema = yup.object({
   scope: yup.string().required("The openid scope is always required."),
   response_type: yup.string().required("This attribute is required."),
   redirect_uri: yup.string().required("This attribute is required."),
+  code_challenge: yup.string(),
+  code_challenge_method: yup.string(),
 });
 type Body = yup.InferType<typeof schema>;
 
@@ -77,9 +79,7 @@ export default async function handleOIDCAuthorize(
     schema,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
-  }
+  if (!isValid || !parsedParams) return;
 
   const {
     proof,
@@ -91,6 +91,8 @@ export default async function handleOIDCAuthorize(
     app_id,
     scope,
     redirect_uri,
+    code_challenge,
+    code_challenge_method,
   } = parsedParams;
 
   const response_types = decodeURIComponent(
@@ -107,6 +109,16 @@ export default async function handleOIDCAuthorize(
         req
       );
     }
+  }
+
+  if (code_challenge && code_challenge_method !== "S256") {
+    return errorValidation(
+      OIDCErrorCodes.InvalidRequest,
+      `Invalid code_challenge_method: ${code_challenge_method}.`,
+      "code_challenge_method",
+      res,
+      req
+    );
   }
 
   const scopes = decodeURIComponent(
@@ -191,7 +203,9 @@ export default async function handleOIDCAuthorize(
       app.id,
       nullifier_hash,
       credential_type,
-      sanitizedScopes
+      sanitizedScopes,
+      code_challenge,
+      code_challenge_method
     );
   }
 
