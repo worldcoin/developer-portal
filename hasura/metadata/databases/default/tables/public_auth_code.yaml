@@ -8,6 +8,8 @@ insert_permissions:
       columns:
         - app_id
         - auth_code
+        - code_challenge
+        - code_challenge_method
         - credential_type
         - expires_at
         - nullifier_hash
@@ -18,6 +20,8 @@ select_permissions:
       columns:
         - app_id
         - auth_code
+        - code_challenge
+        - code_challenge_method
         - credential_type
         - expires_at
         - id
