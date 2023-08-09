@@ -1,16 +1,11 @@
-import {
-  errorNotAllowed,
-  errorResponse,
-  errorValidation,
-} from "src/backend/errors";
-
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
 import * as yup from "yup";
-import { logger } from "src/lib/logger";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type SignupResponse = { returnTo: string };
 
@@ -62,34 +57,17 @@ export default async function handleSignUp(
     return errorNotAllowed(req.method, res, req);
   }
 
-  let body: Body;
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
 
-  try {
-    body = await schema.validate(req.body);
-  } catch (error) {
-    if (error instanceof yup.ValidationError) {
-      return errorValidation(
-        "invalid",
-        error.message,
-        error.path || null,
-        res,
-        req
-      );
-    }
-
-    logger.error("Unhandled yup validation error.", { error, req });
-
-    return errorResponse(
-      res,
-      500,
-      "server_error",
-      "Something went wrong. Please try again.",
-      null,
-      req
-    );
+  if (!isValid || !parsedParams) {
+    return;
   }
 
-  const { signup_token, email, team_name } = body;
+  const { signup_token, email, team_name, ironclad_id } = parsedParams;
 
   const tokenPayload = await verifySignUpJWT(signup_token);
   let nullifier_hash: string | undefined = tokenPayload.sub;
@@ -114,7 +92,7 @@ export default async function handleSignUp(
       nullifier_hash,
       team_name,
       email: email || null,
-      ironclad_id: body.ironclad_id,
+      ironclad_id: ironclad_id,
     },
   });
 

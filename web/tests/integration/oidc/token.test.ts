@@ -11,7 +11,6 @@ import { publicJwk } from "tests/api/__mocks__/jwk";
 
 jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
-// TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 

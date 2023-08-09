@@ -193,6 +193,10 @@ export const verifySignUpJWT = async (token: string) => {
 
 // ANCHOR: -----------------OIDC JWTs--------------------------
 
+const formatOIDCDateTime = (date: Date | dayjs.Dayjs): number => {
+  return dayjs(date).unix();
+};
+
 interface IVerificationJWT {
   kid: string;
   kms_id: string;
@@ -219,8 +223,8 @@ export const generateOIDCJWT = async ({
     iss: JWT_ISSUER,
     sub: nullifier_hash,
     jti: randomUUID(),
-    iat: new Date().getTime(),
-    exp: Date.now() + 1000 * 60 * 60, // 1 hour
+    iat: formatOIDCDateTime(new Date()),
+    exp: formatOIDCDateTime(dayjs().add(1, "hour")),
     aud: app_id,
     scope: scope.join(" "),
     "https://id.worldcoin.org/beta": {

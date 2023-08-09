@@ -135,3 +135,10 @@ export const pendingSequencerInclusionProof = {
     },
   ],
 };
+
+export const validSemaphoreProofMock = {
+  root: "0x11e5d699e4e35482496543e242ec6fcbe033c67260985c66236ca75979ff79b2",
+  status: "mined",
+  pendingValidAsOf: "2023-08-09T08:31:49.778Z",
+  minedValidAsOf: "2023-08-09T08:31:49.778Z",
+};
