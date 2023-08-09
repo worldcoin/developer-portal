@@ -19,20 +19,22 @@ export default async function handleOidcConfig(
 
   res.status(200).json({
     issuer: JWT_ISSUER,
-    authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
+    jwks_uri: `${OIDC_BASE_URL}/jwks.json`,
     token_endpoint: `${OIDC_BASE_URL}/token`,
+    code_challenge_methods_supported: ["S256"],
+    scopes_supported: Object.values(OIDCScopes),
+    id_token_signing_alg_values_supported: ["RSA"],
     userinfo_endpoint: `${OIDC_BASE_URL}/userinfo`,
     registration_endpoint: `${OIDC_BASE_URL}/register`,
-    jwks_uri: `${OIDC_BASE_URL}/jwks.json`,
-    scopes_supported: Object.values(OIDCScopes),
+    authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
+    grant_types_supported: ["authorization_code", "implicit"],
+    service_documentation: "https://docs.worldcoin.org/id/sign-in",
+    subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
     response_types_supported: [
       "code", // Authorization code flow
       "id_token", // Implicit flow
       "id_token token", // Implicit flow
       "code id_token", // Hybrid flow
     ],
-    grant_types_supported: ["authorization_code", "implicit"],
-    subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
-    id_token_signing_alg_values_supported: ["RSA"],
   });
 }
