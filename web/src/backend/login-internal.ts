@@ -104,6 +104,7 @@ export const generateLoginUrl = (
     "client_id",
     process.env.SIGN_IN_WITH_WORLD_ID_APP_ID ?? "app_developer_portal"
   );
+  loginUrl.searchParams.append("scope", "openid");
 
   return loginUrl.toString();
 };
