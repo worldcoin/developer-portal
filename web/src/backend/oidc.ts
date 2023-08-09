@@ -22,8 +22,14 @@ export enum OIDCScopes {
   Profile = "profile",
 }
 
-const fetchAppQuery = gql`
-  query FetchAppQuery($app_id: String!, $redirect_uri: String!) {
+export enum OIDCErrorCodes {
+  UnsupportedResponseType = "unsupported_response_type", // RFC6749 OAuth 2.0 (4.1.2.1)
+  InvalidScope = "invalid_scope", // RFC6749 OAuth 2.0 (4.1.2.1)
+  InvalidRedirectURI = "invalid_redirect_uri", // Custom
+}
+
+export const fetchOIDCAppQuery = gql`
+  query FetchOIDCAppQuery($app_id: String!, $redirect_uri: String!) {
     app(
       where: {
         id: { _eq: $app_id }
@@ -43,15 +49,22 @@ const fetchAppQuery = gql`
         }
       }
     }
-
-    cache(where: { key: { _iregex: "[a-z.]+.wld.eth" } }) {
-      key
-      value
-    }
   }
 `;
 
-const insertAuthCodeQuery = gql`
+type FetchOIDCAppResult = {
+  app: Array<
+    Pick<AppModel, "id" | "is_staging"> & {
+      actions?: Array<
+        Pick<ActionModel, "external_nullifier" | "status" | "id"> & {
+          redirects: Array<Pick<RedirectModel, "redirect_uri">>;
+        }
+      >;
+    }
+  >;
+};
+
+export const insertAuthCodeQuery = gql`
   mutation InsertAuthCode(
     $auth_code: String!
     $expires_at: timestamptz!
@@ -83,60 +96,33 @@ interface OIDCApp {
   registered_redirect_uri?: string;
 }
 
-type FetchOIDCAppResult = {
-  app: Array<
-    Pick<AppModel, "id" | "is_staging"> & {
-      actions?: Array<
-        Pick<ActionModel, "external_nullifier" | "status" | "id"> & {
-          redirects: Array<Pick<RedirectModel, "redirect_uri">>;
-        }
-      >;
-    }
-  >;
-  cache: Array<{ key: string; value: string }>;
-};
-
 export const fetchOIDCApp = async (
   app_id: string,
   redirect_uri: string
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchOIDCAppResult>({
-    query: fetchAppQuery,
+    query: fetchOIDCAppQuery,
     variables: { app_id, redirect_uri },
   });
 
   if (data.app.length === 0) {
     return {
       error: {
-        code: "not_found",
+        code: "app_not_found",
         message: "App not found or not active.",
         statusCode: 404,
-        attribute: "app_id",
       },
     };
   }
 
   const app = data.app[0];
-  if (!app.actions?.length) {
+  if (!app.actions?.length || app.actions[0].status === "inactive") {
     return {
       error: {
         code: "sign_in_not_enabled",
         message: "App does not have Sign in with World ID enabled.",
         statusCode: 400,
-        attribute: "app_id",
-      },
-    };
-  }
-
-  // REVIEW
-  if (app.actions[0].status === "inactive") {
-    return {
-      error: {
-        code: "sign_in_not_enabled",
-        message: "App has Sign in with Worldcoin disabled.",
-        statusCode: 400,
-        attribute: "status",
       },
     };
   }
@@ -144,11 +130,14 @@ export const fetchOIDCApp = async (
   const external_nullifier = app.actions[0].external_nullifier;
   const action_id = app.actions[0].id;
   const registered_redirect_uri = app.actions[0].redirects[0]?.redirect_uri;
-  delete app.actions;
+
+  const sanitizedApp = { ...app };
+
+  delete sanitizedApp.actions;
 
   return {
     app: {
-      ...app,
+      ...sanitizedApp,
       action_id,
       external_nullifier,
       registered_redirect_uri,

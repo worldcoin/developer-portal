@@ -8,8 +8,9 @@ import { IInternalError, IPendingProofResponse } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
-import { errorForbidden } from "./errors";
+import { errorForbidden, errorResponse, errorValidation } from "./errors";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -45,6 +46,46 @@ export const protectInternalEndpoint = (
     return false;
   }
   return true;
+};
+
+/**
+ * Validate a request body against a yup schema and returns an error if applicable
+ */
+export const validateRequestSchema = async <T>({
+  schema,
+  req,
+  res,
+}: {
+  schema: yup.Schema<any>;
+  req: NextApiRequest;
+  res: NextApiResponse;
+}): Promise<
+  { isValid: true; parsedParams: T } | { isValid: false; parsedParams?: null }
+> => {
+  let parsedParams: T;
+
+  try {
+    parsedParams = await schema.validate(req.body);
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      errorValidation("invalid", error.message, error.path || null, res, req);
+      return { isValid: false };
+    }
+
+    logger.error("Unhandled yup validation error.", { error, req });
+
+    errorResponse(
+      res,
+      500,
+      "server_error",
+      "Something went wrong. Please try again.",
+      null,
+      req
+    );
+    return { isValid: false };
+  }
+
+  return { isValid: true, parsedParams };
 };
 
 /**
