@@ -15,6 +15,7 @@ import { Button } from "src/components/Button";
 import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
 import { SignupBody } from "src/api/signup";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   email: yup.string().email(),
@@ -29,7 +30,7 @@ const schema = yup.object({
 
 type SignupFormValues = yup.Asserts<typeof schema>;
 
-export function Signup() {
+export function Signup(props: { hasAuth0User: boolean }) {
   const router = useRouter();
 
   const {
@@ -104,13 +105,13 @@ export function Signup() {
     [router]
   );
 
-  // useEffect(() => {
-  //   const signup_token = localStorage.getItem("signup_token");
-  //   if (!signup_token) {
-  //     router.push(urls.login());
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
-  // }, []);
+  useEffect(() => {
+    const signup_token = localStorage.getItem("signup_token");
+
+    if (!signup_token && !props.hasAuth0User) {
+      router.push(urls.login());
+    }
+  }, [props.hasAuth0User, router]);
 
   const email = useWatch({
     control,
