@@ -1,0 +1,8 @@
+mutation UpdateUser($id: String!, $propsToUpdate: user_set_input) {
+  update_user_by_pk(pk_columns: { id: $id }, _set: $propsToUpdate) {
+    id
+    auth0Id
+    name
+    email
+  }
+}

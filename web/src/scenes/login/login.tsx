@@ -166,8 +166,30 @@ export function Login({ loginUrl }: ILoginPageProps) {
                   Build for the People of the World
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
-                  <a
+                <div className="grid gap-y-4 mt-12 w-full">
+                  <div className="grid grid-cols-2 gap-x-4">
+                    <Link href="/api/auth/login">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="flex w-full h-full justify-between py-4 px-6 text-657080 text-16 font-semibold"
+                      >
+                        Login with email
+                      </Button>
+                    </Link>
+
+                    <Link href={loginUrl ?? ""} className="contents">
+                      <Button
+                        type="button"
+                        className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold"
+                      >
+                        Log in or Sign up
+                        <Icon name="arrow-right" className="w-6 h-6" />
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <Link
                     href="https://docs.worldcoin.org"
                     className="contents"
                     target="_blank"
@@ -178,13 +200,6 @@ export function Login({ loginUrl }: ILoginPageProps) {
                       variant="secondary"
                     >
                       Explore Docs <Icon name="book" className="w-6 h-6" />
-                    </Button>
-                  </a>
-
-                  <Link href={loginUrl ?? ""} className="contents">
-                    <Button className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold">
-                      Log in or Sign up
-                      <Icon name="arrow-right" className="w-6 h-6" />
                     </Button>
                   </Link>
                 </div>

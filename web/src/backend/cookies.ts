@@ -5,6 +5,7 @@ import {
 } from "cookies-next";
 import { GetServerSideProps, NextApiRequest, NextApiResponse } from "next";
 import { verifyUserJWT } from "./jwts";
+import { OptionsType } from "cookies-next/lib/types";
 
 type GSSRRequest = Parameters<GetServerSideProps>[0]["req"];
 type GSSRResponse = Parameters<GetServerSideProps>[0]["res"];
@@ -14,15 +15,18 @@ export const setCookie = (
   value: Record<string, unknown>,
   req: NextApiRequest | GSSRRequest,
   res: NextApiResponse | GSSRResponse,
-  expires_at?: number
+  expires_at?: number,
+  sameSite?: OptionsType["sameSite"],
+  path?: string
 ) => {
   nextSetCookie(name, JSON.stringify(value), {
-    sameSite: true,
+    sameSite: sameSite ?? true,
     secure: process.env.NODE_ENV === "production", // this is already ignored for `localhost` (according to spec)
     httpOnly: true, // NOTE: Auth cookie is only used in SSR for security reasons
     res,
     req,
     maxAge: expires_at ? (expires_at * 1000 - Date.now()) / 1000 : undefined,
+    path: path ?? "/",
   });
 };
 

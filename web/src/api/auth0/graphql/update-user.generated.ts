@@ -4,31 +4,29 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserQueryVariables = Types.Exact<{
+export type UpdateUserMutationVariables = Types.Exact<{
   id: Types.Scalars["String"];
+  propsToUpdate?: Types.InputMaybe<Types.User_Set_Input>;
 }>;
 
-export type FetchUserQuery = {
-  __typename?: "query_root";
-  user: Array<{
+export type UpdateUserMutation = {
+  __typename?: "mutation_root";
+  update_user_by_pk?: {
     __typename?: "user";
     id: string;
+    auth0Id?: string | null;
     name: string;
     email?: string | null;
-    team: { __typename?: "team"; id: string; name?: string | null };
-  }>;
+  } | null;
 };
 
-export const FetchUserDocument = gql`
-  query FetchUser($id: String!) {
-    user(where: { id: { _eq: $id } }) {
+export const UpdateUserDocument = gql`
+  mutation UpdateUser($id: String!, $propsToUpdate: user_set_input) {
+    update_user_by_pk(pk_columns: { id: $id }, _set: $propsToUpdate) {
       id
+      auth0Id
       name
       email
-      team {
-        id
-        name
-      }
     }
   }
 `;
@@ -50,18 +48,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUser(
-      variables: FetchUserQueryVariables,
+    UpdateUser(
+      variables: UpdateUserMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserQuery> {
+    ): Promise<UpdateUserMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserQuery>(FetchUserDocument, variables, {
+          client.request<UpdateUserMutation>(UpdateUserDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "FetchUser",
-        "query"
+        "UpdateUser",
+        "mutation"
       );
     },
   };

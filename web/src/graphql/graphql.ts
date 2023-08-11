@@ -289,7 +289,7 @@ export type Action_Bool_Exp = {
 
 /** unique or primary key constraints on table "action" */
 export enum Action_Constraint {
-  /** unique or primary key constraint on columns "app_id", "action" */
+  /** unique or primary key constraint on columns "action", "app_id" */
   ActionAppIdActionKey = "action_app_id_action_key",
   /** unique or primary key constraint on columns "external_nullifier", "app_id" */
   ActionAppIdExternalNullifierKey = "action_app_id_external_nullifier_key",
@@ -1091,6 +1091,8 @@ export type App_Max_Fields = {
   status?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  /** A computed field, executes function "get_verified_app_logo" */
+  verified_app_logo?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -1120,6 +1122,8 @@ export type App_Min_Fields = {
   status?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  /** A computed field, executes function "get_verified_app_logo" */
+  verified_app_logo?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -4843,8 +4847,9 @@ export type Timestamptz_Comparison_Exp = {
 /** columns and relationships of "user" */
 export type User = {
   __typename?: "user";
+  auth0Id?: Maybe<Scalars["String"]>;
   created_at: Scalars["timestamptz"];
-  email: Scalars["String"];
+  email?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   ironclad_id: Scalars["String"];
   is_subscribed: Scalars["Boolean"];
@@ -4923,6 +4928,7 @@ export type User_Bool_Exp = {
   _and?: InputMaybe<Array<User_Bool_Exp>>;
   _not?: InputMaybe<User_Bool_Exp>;
   _or?: InputMaybe<Array<User_Bool_Exp>>;
+  auth0Id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -4937,6 +4943,8 @@ export type User_Bool_Exp = {
 
 /** unique or primary key constraints on table "user" */
 export enum User_Constraint {
+  /** unique or primary key constraint on columns "auth0Id" */
+  UserAuth0IdKey = "user_auth0Id_key",
   /** unique or primary key constraint on columns "email" */
   UserEmailKey = "user_email_key",
   /** unique or primary key constraint on columns "id" */
@@ -4945,6 +4953,7 @@ export enum User_Constraint {
 
 /** input type for inserting data into table "user" */
 export type User_Insert_Input = {
+  auth0Id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
@@ -4960,6 +4969,7 @@ export type User_Insert_Input = {
 /** aggregate max on columns */
 export type User_Max_Fields = {
   __typename?: "user_max_fields";
+  auth0Id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   email?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
@@ -4972,6 +4982,7 @@ export type User_Max_Fields = {
 
 /** order by max() on columns of table "user" */
 export type User_Max_Order_By = {
+  auth0Id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -4985,6 +4996,7 @@ export type User_Max_Order_By = {
 /** aggregate min on columns */
 export type User_Min_Fields = {
   __typename?: "user_min_fields";
+  auth0Id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   email?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
@@ -4997,6 +5009,7 @@ export type User_Min_Fields = {
 
 /** order by min() on columns of table "user" */
 export type User_Min_Order_By = {
+  auth0Id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -5025,6 +5038,7 @@ export type User_On_Conflict = {
 
 /** Ordering options when selecting data from "user". */
 export type User_Order_By = {
+  auth0Id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -5044,6 +5058,8 @@ export type User_Pk_Columns_Input = {
 
 /** select columns of table "user" */
 export enum User_Select_Column {
+  /** column name */
+  Auth0Id = "auth0Id",
   /** column name */
   CreatedAt = "created_at",
   /** column name */
@@ -5078,6 +5094,7 @@ export enum User_Select_Column_User_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
 
 /** input type for updating data in table "user" */
 export type User_Set_Input = {
+  auth0Id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
@@ -5099,6 +5116,7 @@ export type User_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type User_Stream_Cursor_Value_Input = {
+  auth0Id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
@@ -5112,6 +5130,8 @@ export type User_Stream_Cursor_Value_Input = {
 
 /** update columns of table "user" */
 export enum User_Update_Column {
+  /** column name */
+  Auth0Id = "auth0Id",
   /** column name */
   CreatedAt = "created_at",
   /** column name */

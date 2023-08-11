@@ -10,15 +10,18 @@ insert_permissions:
     permission:
       check: {}
       columns:
+        - auth0Id
         - email
         - ironclad_id
         - is_subscribed
-        - world_id_nullifier
+        - name
         - team_id
+        - world_id_nullifier
 select_permissions:
   - role: service
     permission:
       columns:
+        - auth0Id
         - created_at
         - email
         - id

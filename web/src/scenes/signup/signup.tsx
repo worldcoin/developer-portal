@@ -14,6 +14,7 @@ import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
 import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
+import { SignupBody } from "src/api/signup";
 
 const schema = yup.object({
   email: yup.string().email(),
@@ -85,10 +86,12 @@ export function Signup() {
 
         body: JSON.stringify({
           email: values.email,
+          auth0Id: router.query.auth0Id,
+          name: router.query.name,
           team_name: values.teamName,
           signup_token,
           ironclad_id: ironCladUserId,
-        }),
+        } as SignupBody),
       });
 
       if (response.ok) {
@@ -101,13 +104,13 @@ export function Signup() {
     [router]
   );
 
-  useEffect(() => {
-    const signup_token = localStorage.getItem("signup_token");
-    if (!signup_token) {
-      router.push(urls.login());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
-  }, []);
+  // useEffect(() => {
+  //   const signup_token = localStorage.getItem("signup_token");
+  //   if (!signup_token) {
+  //     router.push(urls.login());
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
+  // }, []);
 
   const email = useWatch({
     control,
