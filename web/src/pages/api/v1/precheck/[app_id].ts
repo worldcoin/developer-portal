@@ -1,6 +1,6 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { canVerifyForAction } from "src/backend/utils";
+import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
@@ -10,6 +10,7 @@ import {
   errorRequiredAttribute,
   errorResponse,
 } from "../../../../backend/errors";
+import * as yup from "yup";
 
 type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
 interface _Action
@@ -108,6 +109,15 @@ const createActionQuery = gql`
   }
 `;
 
+const schema = yup.object({
+  app_id: yup.string().required("This attribute is required."),
+  action: yup.string(),
+  nullifier_hash: yup.string().default(""),
+  external_nullifier: yup.string().required("This attribute is required."),
+});
+
+type Body = yup.InferType<typeof schema>;
+
 /**
  * Fetches public metadata for an app & action.
  * Can be used to check whether a user can verify for a particular action.
@@ -126,14 +136,20 @@ export default async function handlePrecheck(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const app_id = req.query.app_id as string;
-  const action = (req.body.action as string) ?? null;
-  const nullifier_hash = (req.body.nullifier_hash as string) ?? "";
-  const external_nullifier = (req.body.external_nullifier as string) ?? "";
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
 
-  if (!external_nullifier) {
-    return errorRequiredAttribute("external_nullifier", res, req);
+  if (!isValid || !parsedParams) {
+    return;
   }
+
+  const app_id = parsedParams.app_id;
+  const action = parsedParams.action ?? null;
+  const nullifier_hash = parsedParams.nullifier_hash;
+  const external_nullifier = parsedParams.external_nullifier;
 
   const client = await getAPIServiceClient();
 

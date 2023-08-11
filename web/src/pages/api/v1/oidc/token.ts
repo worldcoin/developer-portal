@@ -6,6 +6,8 @@ import { generateOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
+import { validateRequestSchema } from "@/backend/utils";
 
 const verifyAuthCodeQuery = gql`
   mutation VerifyAuthCode(
@@ -28,6 +30,16 @@ const verifyAuthCodeQuery = gql`
     }
   }
 `;
+
+const schema = yup.object({
+  grant_type: yup
+    .string()
+    .required("This attribute is required.")
+    .oneOf(["authorization_code"]),
+  code: yup.string().required("This attribute is required."),
+});
+
+type Body = yup.InferType<typeof schema>;
 
 export default async function handleOIDCToken(
   req: NextApiRequest,
@@ -93,28 +105,17 @@ export default async function handleOIDCToken(
     );
   }
 
-  if (req.body.grant_type !== "authorization_code") {
-    return errorOIDCResponse(
-      res,
-      400,
-      "invalid_grant",
-      "Invalid grant type. Only authorization_code is supported.",
-      null,
-      req
-    );
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
+
+  if (!isValid || !parsedParams) {
+    return;
   }
 
-  const auth_code = req.body.code as string;
-  if (!auth_code) {
-    return errorOIDCResponse(
-      res,
-      400,
-      "invalid_request",
-      "Required parameter code is missing.",
-      "code",
-      req
-    );
-  }
+  const auth_code = parsedParams.code;
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();

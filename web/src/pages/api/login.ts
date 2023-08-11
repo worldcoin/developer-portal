@@ -19,6 +19,8 @@ import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
 import { UserModel } from "src/lib/models";
 import { NextApiRequestWithBody } from "src/lib/types";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "@/backend/utils";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -50,6 +52,13 @@ const query = gql`
   }
 `;
 
+const schema = yup.object({
+  dev_login: yup.string(),
+  sign_in_with_world_id_token: yup.string(),
+});
+
+type Body = yup.InferType<typeof schema>;
+
 export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
   res: NextApiResponse<LoginRequestResponse>
@@ -58,7 +67,17 @@ export default async function handleLogin(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { sign_in_with_world_id_token, dev_login } = req.body;
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
+
+  if (!isValid || !parsedParams) {
+    return;
+  }
+
+  const { sign_in_with_world_id_token, dev_login } = parsedParams;
 
   if (
     dev_login &&

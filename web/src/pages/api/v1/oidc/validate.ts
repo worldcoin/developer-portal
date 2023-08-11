@@ -1,11 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "src/backend/errors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { fetchOIDCApp } from "src/backend/oidc";
 import { uriHasJS } from "src/lib/utils";
+import * as yup from "yup";
+import { validateRequestSchema } from "@/backend/utils";
+
+const schema = yup.object({
+  app_id: yup.string().required("This attribute is required."),
+  redirect_uri: yup.string().default(""),
+});
+
+type Body = yup.InferType<typeof schema>;
 
 /**
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback
@@ -20,13 +25,17 @@ export default async function handleOIDCValidate(
     return errorNotAllowed(req.method, res, req);
   }
 
-  for (const attr of ["app_id"]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res, req);
-    }
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
+
+  if (!isValid || !parsedParams) {
+    return;
   }
 
-  const { app_id, redirect_uri } = req.body;
+  const { app_id, redirect_uri } = parsedParams;
 
   if (uriHasJS(redirect_uri)) {
     return errorResponse(

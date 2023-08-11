@@ -56,7 +56,7 @@ export const validateRequestSchema = async <T>({
   req,
   res,
 }: {
-  schema: yup.Schema<any>;
+  schema: yup.Schema<T>;
   req: NextApiRequest;
   res: NextApiResponse;
 }): Promise<

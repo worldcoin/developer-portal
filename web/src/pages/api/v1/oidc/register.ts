@@ -1,9 +1,11 @@
 import { gql } from "@apollo/client";
-import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
+import { errorNotAllowed } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateHashedSecret } from "src/backend/utils";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "@/backend/utils";
 
 const insertClientQuery = gql`
   mutation InsertClient(
@@ -57,6 +59,20 @@ const insertRedirectsQuery = gql`
   }
 `;
 
+const schema = yup.object({
+  client_name: yup.string(),
+  logo_uri: yup.string(),
+  application_type: yup.string().default("nothing"),
+  grant_types: yup.string().default("authorization_code"),
+  response_types: yup.string().default("code"),
+  redirects: yup
+    .array()
+    .of(yup.string())
+    .required("This attribute is required."),
+});
+
+type Body = yup.InferType<typeof schema>;
+
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * NOTE: This endpoint is rate limited with WAF to prevent abuse
@@ -71,12 +87,18 @@ export default async function handleRegister(
     return errorNotAllowed(req.method, res, req);
   }
 
-  if (!req.body["redirect_uris"]) {
-    return errorRequiredAttribute("redirect_uris", res, req);
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
+
+  if (!isValid || !parsedParams) {
+    return;
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
-  for (const redirect in req.body.redirects) {
+  for (const redirect in parsedParams.redirects) {
     try {
       const url = new URL(redirect);
       if (url.protocol !== "https:") {
@@ -99,9 +121,9 @@ export default async function handleRegister(
   const insertClientResponse = await client.mutate({
     mutation: insertClientQuery,
     variables: {
-      name: req.body.client_name,
-      logo_url: req.body.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
-      team_name: req.body.client_name,
+      name: parsedParams.client_name,
+      logo_url: parsedParams.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
+      team_name: parsedParams.client_name,
     },
   });
 
@@ -154,16 +176,18 @@ export default async function handleRegister(
     logger.error("Could not insert the redirects", { req });
   }
 
+  const { application_type, grant_types, response_types } = parsedParams;
+
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
     const app = updateSecretResponse.data.update_action.returning[0].app;
     res.status(201).json({
-      application_type: (req.body.application_type = "web"),
+      application_type,
       client_id: app.id,
       client_id_issued_at: app.created_at,
       client_name: app.name,
       client_secret,
       client_secret_expires_at: 0,
-      grant_types: (req.body.grant_types = "authorization_code"),
+      grant_types,
       logo_uri: app.logo_url,
 
       redirect_uris:
@@ -176,7 +200,7 @@ export default async function handleRegister(
         ? { insertion_error: "Redirect URIs not recorded." }
         : {}),
 
-      response_types: (req.body.response_types = "code"),
+      response_types,
     });
   } else {
     logger.error("Could not insert the client", { req });

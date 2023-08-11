@@ -16,6 +16,8 @@ import { getSdk as getInviteByIdSdk } from "@/api/login-with-invite/graphql/getI
 import { getSdk as createUserAndDeleteInviteSdk } from "@/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
 import { setCookie } from "@/backend/cookies";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "@/backend/utils";
 
 export type LoginRequestBody = {
   sign_in_with_world_id_token?: string;
@@ -23,6 +25,15 @@ export type LoginRequestBody = {
 };
 
 export type LoginRequestResponse = {};
+
+const schema = yup.object({
+  invite_id: yup.string().required("This attribute is required."),
+  sign_in_with_world_id_token: yup
+    .string()
+    .required("This attribute is required."),
+});
+
+type Body = yup.InferType<typeof schema>;
 
 export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
@@ -32,15 +43,17 @@ export default async function handleLogin(
     return errorNotAllowed(req.method!, res, req);
   }
 
-  const { sign_in_with_world_id_token, invite_id } = req.body;
+  const { isValid, parsedParams } = await validateRequestSchema<Body>({
+    req,
+    res,
+    schema,
+  });
 
-  if (!sign_in_with_world_id_token) {
-    return errorRequiredAttribute("sign_in_with_world_id_token", res, req);
+  if (!isValid || !parsedParams) {
+    return;
   }
 
-  if (!invite_id) {
-    return errorRequiredAttribute("invite_id", res, req);
-  }
+  const { sign_in_with_world_id_token, invite_id } = parsedParams;
 
   // ANCHOR: Verify the received JWT from Sign in with World ID
   // NOTE: Normally we would call the certificates/JWKs endpoint from the IdP, but as we're the IdP, taking a shortcut
