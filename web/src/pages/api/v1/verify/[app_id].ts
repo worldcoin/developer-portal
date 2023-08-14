@@ -14,7 +14,7 @@ import { CredentialType } from "src/lib/types";
 import * as yup from "yup";
 
 const schema = yup.object({
-  action: yup.string().required("This attribute is required."),
+  action: yup.string().nonNullable().defined("This attribute is required."),
   signal: yup.string().required("This attribute is required."),
   proof: yup.string().required("This attribute is required."),
   nullifier_hash: yup.string().required("This attribute is required."),

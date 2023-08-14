@@ -106,7 +106,6 @@ const createActionQuery = gql`
 `;
 
 const schema = yup.object({
-  app_id: yup.string().required("This attribute is required."),
   action: yup.string(),
   nullifier_hash: yup.string().default(""),
   external_nullifier: yup.string().required("This attribute is required."),
@@ -142,7 +141,7 @@ export default async function handlePrecheck(
     return;
   }
 
-  const app_id = parsedParams.app_id;
+  const app_id = req.query.app_id as string;
   const action = parsedParams.action ?? null;
   const nullifier_hash = parsedParams.nullifier_hash;
   const external_nullifier = parsedParams.external_nullifier;
