@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed, errorResponse } from "../../../backend/errors";
-import { runCors } from "../../../backend/cors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
+import { runCors } from "src/backend/cors";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { verifyProof } from "src/backend/verify";
-import { CredentialType } from "@/lib/types";
+import { CredentialType } from "src/lib/types";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().required("This attribute is required."),

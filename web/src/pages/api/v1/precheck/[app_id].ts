@@ -4,12 +4,8 @@ import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
-import { runCors } from "../../../../backend/cors";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "../../../../backend/errors";
+import { runCors } from "src/backend/cors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
 
 type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;

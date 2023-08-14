@@ -7,7 +7,7 @@ import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 const verifyAuthCodeQuery = gql`
   mutation VerifyAuthCode(

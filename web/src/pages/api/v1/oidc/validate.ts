@@ -3,7 +3,7 @@ import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { fetchOIDCApp } from "src/backend/oidc";
 import { uriHasJS } from "src/lib/utils";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().required("This attribute is required."),

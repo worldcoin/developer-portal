@@ -8,7 +8,7 @@ import { verifyOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
   token: yup.string().required("This attribute is required."),

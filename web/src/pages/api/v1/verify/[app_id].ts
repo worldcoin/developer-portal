@@ -5,7 +5,7 @@ import {
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
-} from "../../../../backend/errors";
+} from "src/backend/errors";
 
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";

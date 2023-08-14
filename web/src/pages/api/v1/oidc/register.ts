@@ -5,7 +5,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { generateHashedSecret } from "src/backend/utils";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 const insertClientQuery = gql`
   mutation InsertClient(

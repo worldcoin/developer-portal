@@ -20,7 +20,7 @@ import { UserModel } from "src/lib/models";
 import { NextApiRequestWithBody } from "src/lib/types";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type LoginRequestBody = {
   dev_login?: string;

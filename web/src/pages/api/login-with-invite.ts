@@ -1,23 +1,22 @@
-import { NextApiRequestWithBody } from "@/lib/types";
+import { NextApiRequestWithBody } from "src/lib/types";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
   errorResponse,
   errorUnauthenticated,
   errorValidation,
-} from "@/backend/errors";
+} from "src/backend/errors";
 import { JWTPayload } from "jose";
-import { generateUserJWT, verifyOIDCJWT } from "@/backend/jwts";
-import { verifyLoginNonce } from "@/backend/login-internal";
-import { getAPIServiceGraphqlClient } from "@/backend/graphql";
-import { getSdk as findUserByNullifierSdk } from "@/api/login-with-invite/graphql/findUserByNullifier.generated";
-import { getSdk as getInviteByIdSdk } from "@/api/login-with-invite/graphql/getInviteById.generated";
-import { getSdk as createUserAndDeleteInviteSdk } from "@/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
-import { setCookie } from "@/backend/cookies";
+import { generateUserJWT, verifyOIDCJWT } from "src/backend/jwts";
+import { verifyLoginNonce } from "src/backend/login-internal";
+import { getAPIServiceGraphqlClient } from "src/backend/graphql";
+import { getSdk as findUserByNullifierSdk } from "src/api/login-with-invite/graphql/findUserByNullifier.generated";
+import { getSdk as getInviteByIdSdk } from "src/api/login-with-invite/graphql/getInviteById.generated";
+import { getSdk as createUserAndDeleteInviteSdk } from "src/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
+import { setCookie } from "src/backend/cookies";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/backend/utils";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type LoginRequestBody = {
   sign_in_with_world_id_token?: string;
