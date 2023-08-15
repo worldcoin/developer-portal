@@ -6,8 +6,8 @@ import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
-  app_id: yup.string().required("This attribute is required."),
-  redirect_uri: yup.string().required("This attribute is required."),
+  app_id: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().strict().required("This attribute is required."),
 });
 
 /**

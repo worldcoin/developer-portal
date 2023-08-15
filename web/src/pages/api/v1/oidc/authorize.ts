@@ -33,18 +33,18 @@ const InsertNullifier = gql`
 
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup.object({
-  proof: yup.string().required("This attribute is required."),
-  nullifier_hash: yup.string().required("This attribute is required."),
-  merkle_root: yup.string().required("This attribute is required."),
+  proof: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
   credential_type: yup
     .string()
     .required("This attribute is required.")
     .oneOf(Object.values(CredentialType)),
-  app_id: yup.string().required("This attribute is required."),
+  app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string(), // `signal` in the context of World ID; `nonce` in the context of OIDC
-  scope: yup.string().required("The openid scope is always required."),
-  response_type: yup.string().required("This attribute is required."),
-  redirect_uri: yup.string().required("This attribute is required."),
+  scope: yup.string().strict().required("The openid scope is always required."),
+  response_type: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().strict().required("This attribute is required."),
 });
 
 /**

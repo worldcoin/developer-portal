@@ -41,10 +41,10 @@ const mutation = gql`
 `;
 
 const schema = yup.object({
-  email: yup.string().email(),
-  team_name: yup.string().required(),
-  signup_token: yup.string().required(),
-  ironclad_id: yup.string().required(),
+  email: yup.string().strict().email(),
+  team_name: yup.string().strict().required(),
+  signup_token: yup.string().strict().required(),
+  ironclad_id: yup.string().strict().required(),
 });
 
 export default async function handleSignUp(

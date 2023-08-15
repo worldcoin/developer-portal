@@ -36,7 +36,7 @@ const schema = yup.object({
     .string()
     .required("This attribute is required.")
     .oneOf(["authorization_code"]),
-  code: yup.string().required("This attribute is required."),
+  code: yup.string().strict().required("This attribute is required."),
 });
 
 export default async function handleOIDCToken(

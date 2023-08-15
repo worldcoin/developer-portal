@@ -106,9 +106,12 @@ const createActionQuery = gql`
 `;
 
 const schema = yup.object({
-  action: yup.string(),
-  nullifier_hash: yup.string().default(""),
-  external_nullifier: yup.string().required("This attribute is required."),
+  action: yup.string().strict(),
+  nullifier_hash: yup.string().strict().default(""),
+  external_nullifier: yup
+    .string()
+    .strict()
+    .required("This attribute is required."),
 });
 
 /**

@@ -11,7 +11,7 @@ import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
-  token: yup.string().required("This attribute is required."),
+  token: yup.string().strict().required("This attribute is required."),
 });
 
 export default async function handler(

@@ -14,11 +14,15 @@ import { CredentialType } from "src/lib/types";
 import * as yup from "yup";
 
 const schema = yup.object({
-  action: yup.string().nonNullable().defined("This attribute is required."),
-  signal: yup.string().required("This attribute is required."),
-  proof: yup.string().required("This attribute is required."),
-  nullifier_hash: yup.string().required("This attribute is required."),
-  merkle_root: yup.string().required("This attribute is required."),
+  action: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  signal: yup.string().strict().required("This attribute is required."),
+  proof: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
   credential_type: yup
     .string()
     .required("This attribute is required.")

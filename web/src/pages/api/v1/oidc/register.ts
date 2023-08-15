@@ -60,14 +60,14 @@ const insertRedirectsQuery = gql`
 `;
 
 const schema = yup.object({
-  client_name: yup.string(),
-  logo_uri: yup.string(),
-  application_type: yup.string().default("nothing"),
-  grant_types: yup.string().default("authorization_code"),
-  response_types: yup.string().default("code"),
+  client_name: yup.string().strict(),
+  logo_uri: yup.string().strict(),
+  application_type: yup.string().strict().default("nothing"),
+  grant_types: yup.string().strict().default("authorization_code"),
+  response_types: yup.string().strict().default("code"),
   redirects: yup
     .array()
-    .of(yup.string())
+    .of(yup.string().strict())
     .required("This attribute is required."),
 });
 

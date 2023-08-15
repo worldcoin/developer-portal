@@ -53,8 +53,8 @@ const query = gql`
 `;
 
 const schema = yup.object({
-  dev_login: yup.string(),
-  sign_in_with_world_id_token: yup.string(),
+  dev_login: yup.string().strict(),
+  sign_in_with_world_id_token: yup.string().strict(),
 });
 
 export default async function handleLogin(

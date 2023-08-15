@@ -26,9 +26,10 @@ export type LoginRequestBody = {
 export type LoginRequestResponse = {};
 
 const schema = yup.object({
-  invite_id: yup.string().required("This attribute is required."),
+  invite_id: yup.string().strict().required("This attribute is required."),
   sign_in_with_world_id_token: yup
     .string()
+    .strict()
     .required("This attribute is required."),
 });
 
