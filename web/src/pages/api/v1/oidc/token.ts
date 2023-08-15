@@ -39,8 +39,6 @@ const schema = yup.object({
   code: yup.string().required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
@@ -105,14 +103,13 @@ export default async function handleOIDCToken(
     );
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const auth_code = parsedParams.code;

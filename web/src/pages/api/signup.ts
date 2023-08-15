@@ -47,8 +47,6 @@ const schema = yup.object({
   ironclad_id: yup.string().required(),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 export default async function handleSignUp(
   req: NextApiRequest,
   res: NextApiResponse<SignupResponse>
@@ -57,14 +55,13 @@ export default async function handleSignUp(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const { signup_token, email, team_name, ironclad_id } = parsedParams;

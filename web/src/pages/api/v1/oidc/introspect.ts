@@ -14,8 +14,6 @@ const schema = yup.object({
   token: yup.string().required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -34,14 +32,13 @@ export default async function handler(
     );
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const userToken = parsedParams.token;

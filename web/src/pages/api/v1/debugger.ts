@@ -21,8 +21,6 @@ const schema = yup.object({
     .oneOf(Object.values(CredentialType)),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -32,14 +30,13 @@ export default async function handler(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const external_nullifier = IDKitInternal.generateExternalNullifier(

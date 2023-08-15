@@ -46,7 +46,6 @@ const schema = yup.object({
   response_type: yup.string().required("This attribute is required."),
   redirect_uri: yup.string().required("This attribute is required."),
 });
-type Body = yup.InferType<typeof schema>;
 
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
@@ -71,14 +70,13 @@ export default async function handleOIDCAuthorize(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const {

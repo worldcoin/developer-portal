@@ -32,8 +32,6 @@ const schema = yup.object({
     .required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
   res: NextApiResponse<LoginRequestResponse>
@@ -42,14 +40,13 @@ export default async function handleLogin(
     return errorNotAllowed(req.method!, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const { sign_in_with_world_id_token, invite_id } = parsedParams;

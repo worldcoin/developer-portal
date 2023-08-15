@@ -71,8 +71,6 @@ const schema = yup.object({
     .required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * NOTE: This endpoint is rate limited with WAF to prevent abuse
@@ -87,14 +85,13 @@ export default async function handleRegister(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   // ANCHOR: Parse redirect_uris into array and validate

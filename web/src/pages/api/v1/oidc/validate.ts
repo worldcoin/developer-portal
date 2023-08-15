@@ -10,8 +10,6 @@ const schema = yup.object({
   redirect_uri: yup.string().required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 /**
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback
  * @param req
@@ -25,14 +23,13 @@ export default async function handleOIDCValidate(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const { app_id, redirect_uri } = parsedParams;

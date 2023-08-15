@@ -111,8 +111,6 @@ const schema = yup.object({
   external_nullifier: yup.string().required("This attribute is required."),
 });
 
-type Body = yup.InferType<typeof schema>;
-
 /**
  * Fetches public metadata for an app & action.
  * Can be used to check whether a user can verify for a particular action.
@@ -131,14 +129,13 @@ export default async function handlePrecheck(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const app_id = req.query.app_id as string;
