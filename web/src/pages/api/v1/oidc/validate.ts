@@ -7,7 +7,7 @@ import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().required("This attribute is required."),
-  redirect_uri: yup.string().default(""),
+  redirect_uri: yup.string().required("This attribute is required."),
 });
 
 type Body = yup.InferType<typeof schema>;
@@ -50,7 +50,7 @@ export default async function handleOIDCValidate(
 
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    redirect_uri ?? ""
+    redirect_uri
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -63,7 +63,7 @@ export default async function handleOIDCValidate(
     );
   }
 
-  if (redirect_uri && app.registered_redirect_uri !== redirect_uri) {
+  if (app.registered_redirect_uri !== redirect_uri) {
     return errorResponse(
       res,
       400,

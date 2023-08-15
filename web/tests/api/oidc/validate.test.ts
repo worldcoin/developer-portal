@@ -67,6 +67,7 @@ describe("/api/v1/oidc/validate", () => {
       method: "POST",
       body: {
         app_id: "app_invalid",
+        redirect_uri: "https://example.com",
       },
     });
 
