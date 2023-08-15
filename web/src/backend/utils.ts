@@ -51,16 +51,16 @@ export const protectInternalEndpoint = (
 /**
  * Validate a request body against a yup schema and returns an error if applicable
  */
-export const validateRequestSchema = async ({
+export const validateRequestSchema = async <T extends yup.Schema>({
   schema,
   value,
 }: {
-  schema: yup.Schema;
+  schema: T;
   value: any;
 }): Promise<
   | {
       isValid: true;
-      parsedParams: yup.InferType<typeof schema>;
+      parsedParams: yup.InferType<T>;
       handleError?: never;
     }
   | {
