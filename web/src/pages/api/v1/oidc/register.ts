@@ -65,9 +65,9 @@ const schema = yup.object({
   application_type: yup.string().strict().default("nothing"),
   grant_types: yup.string().strict().default("authorization_code"),
   response_types: yup.string().strict().default("code"),
-  redirects: yup
+  redirect_uris: yup
     .array()
-    .of(yup.string().strict())
+    .of(yup.string().strict().required())
     .required("This attribute is required."),
 });
 
@@ -95,7 +95,7 @@ export default async function handleRegister(
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
-  for (const redirect in parsedParams.redirects) {
+  for (const redirect in parsedParams.redirect_uris) {
     try {
       const url = new URL(redirect);
       if (url.protocol !== "https:") {
@@ -157,7 +157,7 @@ export default async function handleRegister(
     mutation: insertRedirectsQuery,
 
     variables: {
-      objects: req.body.redirects.map((redirect: string) => ({
+      objects: parsedParams.redirect_uris.map((redirect) => ({
         action_id: updatedAction.id,
         redirect_uri: redirect,
       })),
@@ -167,7 +167,7 @@ export default async function handleRegister(
   if (
     !insertRedirectsResponse?.data?.insert_redirect?.returning?.length ||
     insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
-      req.body.redirects.length
+      parsedParams.redirect_uris.length
   ) {
     // We let the response continue because the app and action were created, we just flag to the user that the redirects were not inserted
     logger.error("Could not insert the redirects", { req });
@@ -193,7 +193,7 @@ export default async function handleRegister(
         ),
 
       ...(insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
-      req.body.redirects.length
+      parsedParams.redirect_uris.length
         ? { insertion_error: "Redirect URIs not recorded." }
         : {}),
 
