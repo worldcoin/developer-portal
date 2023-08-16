@@ -9,8 +9,16 @@ import { validateRequestSchema } from "src/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().strict().required("This attribute is required."),
-  action: yup.string().strict(),
-  signal: yup.string().strict().required("This attribute is required."),
+  action: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  signal: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
   proof: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
