@@ -72,7 +72,6 @@ select_permissions:
       columns:
         - id
         - is_staging
-        - logo_url
         - name
         - team_id
       computed_fields:
@@ -90,7 +89,6 @@ select_permissions:
         - id
         - is_archived
         - is_staging
-        - logo_url
         - name
         - status
         - team_id
@@ -108,7 +106,6 @@ select_permissions:
         - engine
         - id
         - is_staging
-        - logo_url
         - name
         - status
         - team_id

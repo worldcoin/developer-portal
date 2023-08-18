@@ -13,7 +13,7 @@ import { shallow } from "zustand/shallow";
 
 const appFields = `
 id
-logo_url
+verified_app_logo
 name
 is_verified
 engine
