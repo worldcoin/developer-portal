@@ -25,6 +25,7 @@ export default async function handleOidcConfig(
     registration_endpoint: `${OIDC_BASE_URL}/register`,
     jwks_uri: `${OIDC_BASE_URL}/jwks.json`,
     scopes_supported: Object.values(OIDCScopes),
+    response_modes_supported: ["query", "fragment", "form_post"],
     response_types_supported: [
       "code", // Authorization code flow
       "id_token", // Implicit flow

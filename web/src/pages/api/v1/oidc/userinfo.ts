@@ -2,7 +2,7 @@ import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorUnauthenticated } from "src/backend/errors";
 import { verifyOIDCJWT } from "src/backend/jwts";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorResponse } from "../../../../backend/errors";
+import { errorResponse } from "src/backend/errors";
 
 export default async function handler(
   req: NextApiRequest,

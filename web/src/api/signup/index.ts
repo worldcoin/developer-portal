@@ -10,12 +10,12 @@ import { getSdk } from "./graphql/signup.generated";
 export type SignupResponse = { returnTo: string };
 
 const schema = yup.object({
-  email: yup.string().email(),
-  name: yup.string(),
-  auth0Id: yup.string(),
-  team_name: yup.string().required(),
-  signup_token: yup.string().nullable(),
-  ironclad_id: yup.string().required(),
+  email: yup.string().strict().email(),
+  name: yup.string().strict(),
+  auth0Id: yup.string().strict(),
+  team_name: yup.string().strict().required(),
+  signup_token: yup.string().strict().nullable(),
+  ironclad_id: yup.string().strict().required(),
 });
 
 export type SignupBody = yup.InferType<typeof schema>;
@@ -28,14 +28,13 @@ export const handleSignUp = async (
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<SignupBody>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    value: req.body,
     schema,
   });
 
   if (!isValid || !parsedParams) {
-    return;
+    return handleError(req, res);
   }
 
   const { signup_token, email, team_name, ironclad_id, name, auth0Id } =
