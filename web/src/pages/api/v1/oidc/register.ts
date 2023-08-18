@@ -1,9 +1,11 @@
 import { gql } from "@apollo/client";
-import { errorNotAllowed, errorRequiredAttribute } from "src/backend/errors";
+import { errorNotAllowed } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { generateHashedSecret } from "src/backend/utils";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
 
 const insertClientQuery = gql`
   mutation InsertClient(
@@ -57,6 +59,18 @@ const insertRedirectsQuery = gql`
   }
 `;
 
+const schema = yup.object({
+  client_name: yup.string().strict(),
+  logo_uri: yup.string().strict(),
+  application_type: yup.string().strict().default("web"),
+  grant_types: yup.string().strict().default("authorization_code"),
+  response_types: yup.string().strict().default("code"),
+  redirect_uris: yup
+    .array()
+    .of(yup.string().strict().required())
+    .required("This attribute is required."),
+});
+
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * NOTE: This endpoint is rate limited with WAF to prevent abuse
@@ -71,12 +85,17 @@ export default async function handleRegister(
     return errorNotAllowed(req.method, res, req);
   }
 
-  if (!req.body["redirect_uris"]) {
-    return errorRequiredAttribute("redirect_uris", res, req);
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
-  for (const redirect in req.body.redirects) {
+  for (const redirect in parsedParams.redirect_uris) {
     try {
       const url = new URL(redirect);
       if (url.protocol !== "https:") {
@@ -99,9 +118,9 @@ export default async function handleRegister(
   const insertClientResponse = await client.mutate({
     mutation: insertClientQuery,
     variables: {
-      name: req.body.client_name,
-      logo_url: req.body.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
-      team_name: req.body.client_name,
+      name: parsedParams.client_name,
+      logo_url: parsedParams.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
+      team_name: parsedParams.client_name,
     },
   });
 
@@ -138,7 +157,7 @@ export default async function handleRegister(
     mutation: insertRedirectsQuery,
 
     variables: {
-      objects: req.body.redirects.map((redirect: string) => ({
+      objects: parsedParams.redirect_uris.map((redirect) => ({
         action_id: updatedAction.id,
         redirect_uri: redirect,
       })),
@@ -148,22 +167,24 @@ export default async function handleRegister(
   if (
     !insertRedirectsResponse?.data?.insert_redirect?.returning?.length ||
     insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
-      req.body.redirects.length
+      parsedParams.redirect_uris.length
   ) {
     // We let the response continue because the app and action were created, we just flag to the user that the redirects were not inserted
     logger.error("Could not insert the redirects", { req });
   }
 
+  const { application_type, grant_types, response_types } = parsedParams;
+
   if (updateSecretResponse?.data?.update_action?.returning?.length) {
     const app = updateSecretResponse.data.update_action.returning[0].app;
     res.status(201).json({
-      application_type: (req.body.application_type = "web"),
+      application_type,
       client_id: app.id,
       client_id_issued_at: app.created_at,
       client_name: app.name,
       client_secret,
       client_secret_expires_at: 0,
-      grant_types: (req.body.grant_types = "authorization_code"),
+      grant_types,
       logo_uri: app.logo_url,
 
       redirect_uris:
@@ -172,11 +193,11 @@ export default async function handleRegister(
         ),
 
       ...(insertRedirectsResponse?.data?.insert_redirect?.affected_rows !==
-      req.body.redirects.length
+      parsedParams.redirect_uris.length
         ? { insertion_error: "Redirect URIs not recorded." }
         : {}),
 
-      response_types: (req.body.response_types = "code"),
+      response_types,
     });
   } else {
     logger.error("Could not insert the client", { req });

@@ -1,21 +1,22 @@
-import { NextApiRequestWithBody } from "@/lib/types";
+import { NextApiRequestWithBody } from "src/lib/types";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
   errorResponse,
   errorUnauthenticated,
   errorValidation,
-} from "@/backend/errors";
+} from "src/backend/errors";
 import { JWTPayload } from "jose";
-import { generateUserJWT, verifyOIDCJWT } from "@/backend/jwts";
-import { verifyLoginNonce } from "@/backend/login-internal";
-import { getAPIServiceGraphqlClient } from "@/backend/graphql";
-import { getSdk as findUserByNullifierSdk } from "@/api/login-with-invite/graphql/findUserByNullifier.generated";
-import { getSdk as getInviteByIdSdk } from "@/api/login-with-invite/graphql/getInviteById.generated";
-import { getSdk as createUserAndDeleteInviteSdk } from "@/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
-import { setCookie } from "@/backend/cookies";
+import { generateUserJWT, verifyOIDCJWT } from "src/backend/jwts";
+import { verifyLoginNonce } from "src/backend/login-internal";
+import { getAPIServiceGraphqlClient } from "src/backend/graphql";
+import { getSdk as findUserByNullifierSdk } from "src/api/login-with-invite/graphql/findUserByNullifier.generated";
+import { getSdk as getInviteByIdSdk } from "src/api/login-with-invite/graphql/getInviteById.generated";
+import { getSdk as createUserAndDeleteInviteSdk } from "src/api/login-with-invite/graphql/createUserAndDeleteInvite.generated";
+import { setCookie } from "src/backend/cookies";
 import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type LoginRequestBody = {
   sign_in_with_world_id_token?: string;
@@ -23,6 +24,14 @@ export type LoginRequestBody = {
 };
 
 export type LoginRequestResponse = {};
+
+const schema = yup.object({
+  invite_id: yup.string().strict().required("This attribute is required."),
+  sign_in_with_world_id_token: yup
+    .string()
+    .strict()
+    .required("This attribute is required."),
+});
 
 export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
@@ -32,15 +41,16 @@ export default async function handleLogin(
     return errorNotAllowed(req.method!, res, req);
   }
 
-  const { sign_in_with_world_id_token, invite_id } = req.body;
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
 
-  if (!sign_in_with_world_id_token) {
-    return errorRequiredAttribute("sign_in_with_world_id_token", res, req);
+  if (!isValid) {
+    return handleError(req, res);
   }
 
-  if (!invite_id) {
-    return errorRequiredAttribute("invite_id", res, req);
-  }
+  const { sign_in_with_world_id_token, invite_id } = parsedParams;
 
   // ANCHOR: Verify the received JWT from Sign in with World ID
   // NOTE: Normally we would call the certificates/JWKs endpoint from the IdP, but as we're the IdP, taking a shortcut

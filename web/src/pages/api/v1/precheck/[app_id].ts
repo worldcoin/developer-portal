@@ -1,15 +1,12 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { canVerifyForAction } from "src/backend/utils";
+import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
-import { runCors } from "../../../../backend/cors";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "../../../../backend/errors";
+import { runCors } from "src/backend/cors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
+import * as yup from "yup";
 
 type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
 interface _Action
@@ -108,6 +105,15 @@ const createActionQuery = gql`
   }
 `;
 
+const schema = yup.object({
+  action: yup.string().strict(),
+  nullifier_hash: yup.string().strict().default(""),
+  external_nullifier: yup
+    .string()
+    .strict()
+    .required("This attribute is required."),
+});
+
 /**
  * Fetches public metadata for an app & action.
  * Can be used to check whether a user can verify for a particular action.
@@ -126,14 +132,19 @@ export default async function handlePrecheck(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const app_id = req.query.app_id as string;
-  const action = (req.body.action as string) ?? null;
-  const nullifier_hash = (req.body.nullifier_hash as string) ?? "";
-  const external_nullifier = (req.body.external_nullifier as string) ?? "";
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
 
-  if (!external_nullifier) {
-    return errorRequiredAttribute("external_nullifier", res, req);
+  if (!isValid) {
+    return handleError(req, res);
   }
+
+  const app_id = req.query.app_id as string;
+  const action = parsedParams.action ?? null;
+  const nullifier_hash = parsedParams.nullifier_hash;
+  const external_nullifier = parsedParams.external_nullifier;
 
   const client = await getAPIServiceClient();
 

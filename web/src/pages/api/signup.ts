@@ -41,13 +41,11 @@ const mutation = gql`
 `;
 
 const schema = yup.object({
-  email: yup.string().email(),
-  team_name: yup.string().required(),
-  signup_token: yup.string().required(),
-  ironclad_id: yup.string().required(),
+  email: yup.string().strict().email(),
+  team_name: yup.string().strict().required(),
+  signup_token: yup.string().strict().required(),
+  ironclad_id: yup.string().strict().required(),
 });
-
-type Body = yup.InferType<typeof schema>;
 
 export default async function handleSignUp(
   req: NextApiRequest,
@@ -57,14 +55,13 @@ export default async function handleSignUp(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) {
-    return;
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const { signup_token, email, team_name, ironclad_id } = parsedParams;
