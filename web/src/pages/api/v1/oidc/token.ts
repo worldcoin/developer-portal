@@ -32,7 +32,7 @@ const verifyAuthCodeQuery = gql`
 `;
 
 const schema = yup.object({
-  grant_type: yup.string().strict().default("authorization_code"),
+  grant_type: yup.string().default("authorization_code"),
   code: yup.string().strict().required("This attribute is required."),
 });
 
