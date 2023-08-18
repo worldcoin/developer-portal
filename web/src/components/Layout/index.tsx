@@ -2,6 +2,7 @@ import useApps from "@/hooks/useApps";
 import { useToggle } from "@/hooks/useToggle";
 import { urls } from "@/lib/urls";
 import { IAppStore, useAppStore } from "@/stores/appStore";
+import { IUserStore, useUserStore } from "@/stores/userStore";
 import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode, useEffect, useMemo } from "react";
@@ -16,7 +17,7 @@ import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
 
-const getStore = (store: IAppStore) => ({
+const getAppStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
   setCurrentAppById: store.setCurrentAppById,
 });
@@ -25,11 +26,10 @@ export const Layout = (props: {
   title?: string;
   mainClassName?: string;
   children: ReactNode;
-  userId?: string;
 }) => {
   const newAppDialog = useToggle();
   const router = useRouter();
-  const { currentApp, setCurrentAppById } = useAppStore(getStore);
+  const { currentApp, setCurrentAppById } = useAppStore(getAppStore);
   const { apps } = useApps();
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export const Layout = (props: {
           </div>
 
           <footer className="grid items-center justify-between gap-y-2">
-            <LoggedUserDisplay userId={props.userId} />
+            <LoggedUserDisplay />
 
             <div className="flex gap-x-3 items-center">
               <Link

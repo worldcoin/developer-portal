@@ -1,15 +1,11 @@
-import {
-  errorNotAllowed,
-  errorResponse,
-  errorValidation,
-} from "src/backend/errors";
-
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { setCookie } from "src/backend/cookies";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
 import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type SignupResponse = { returnTo: string };
 
@@ -17,7 +13,7 @@ const mutation = gql`
   mutation Signup(
     $nullifier_hash: String!
     $team_name: String!
-    $email: String!
+    $email: String
     $ironclad_id: String!
   ) {
     insert_team_one(
@@ -34,7 +30,7 @@ const mutation = gql`
     ) {
       id
       name
-      users(where: { email: { _eq: $email } }) {
+      users {
         id
         ironclad_id
         email
@@ -45,13 +41,11 @@ const mutation = gql`
 `;
 
 const schema = yup.object({
-  email: yup.string().email(),
-  team_name: yup.string().required(),
-  signup_token: yup.string().required(),
-  ironclad_id: yup.string().required(),
+  email: yup.string().strict().email(),
+  team_name: yup.string().strict().required(),
+  signup_token: yup.string().strict().required(),
+  ironclad_id: yup.string().strict().required(),
 });
-
-type Body = yup.InferType<typeof schema>;
 
 export default async function handleSignUp(
   req: NextApiRequest,
@@ -61,28 +55,16 @@ export default async function handleSignUp(
     return errorNotAllowed(req.method, res, req);
   }
 
-  let body: Body;
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
 
-  try {
-    body = await schema.validate(req.body);
-  } catch (e) {
-    if (e instanceof yup.ValidationError) {
-      return errorValidation("invalid", e.message, e.path || null, res, req);
-    }
-
-    console.error("Unhandled yup validation error.", e);
-
-    return errorResponse(
-      res,
-      500,
-      "server_error",
-      "Something went wrong. Please try again.",
-      null,
-      req
-    );
+  if (!isValid) {
+    return handleError(req, res);
   }
 
-  const { signup_token, email, team_name } = body;
+  const { signup_token, email, team_name, ironclad_id } = parsedParams;
 
   const tokenPayload = await verifySignUpJWT(signup_token);
   let nullifier_hash: string | undefined = tokenPayload.sub;
@@ -106,8 +88,8 @@ export default async function handleSignUp(
     variables: {
       nullifier_hash,
       team_name,
-      email: email ?? "",
-      ironclad_id: body.ironclad_id,
+      email: email || null,
+      ironclad_id: ironclad_id,
     },
   });
 

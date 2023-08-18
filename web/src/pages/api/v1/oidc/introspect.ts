@@ -1,6 +1,5 @@
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
   errorResponse,
   errorUnauthenticated,
   errorValidation,
@@ -8,6 +7,12 @@ import {
 import { verifyOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
+
+const schema = yup.object({
+  token: yup.string().strict().required("This attribute is required."),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -27,10 +32,16 @@ export default async function handler(
     );
   }
 
-  const userToken = req.body.token as string;
-  if (!userToken) {
-    return errorRequiredAttribute("token", res, req);
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
+
+  const userToken = parsedParams.token;
 
   // ANCHOR: Authenticate the request comes from the app
   const authToken = req.headers.authorization;

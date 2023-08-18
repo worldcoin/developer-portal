@@ -1,4 +1,5 @@
 import { createMocks } from "node-mocks-http";
+import { OIDCErrorCodes } from "src/backend/oidc";
 import handleOIDCValidate from "src/pages/api/v1/oidc/validate";
 
 const requestReturnFn = jest.fn();
@@ -66,6 +67,7 @@ describe("/api/v1/oidc/validate", () => {
       method: "POST",
       body: {
         app_id: "app_invalid",
+        redirect_uri: "https://example.com",
       },
     });
 
@@ -87,7 +89,7 @@ describe("/api/v1/oidc/validate", () => {
     const response = res._getJSONData();
     expect(response).toMatchObject({
       attribute: "app_id",
-      code: "not_found",
+      code: "app_not_found",
     });
   });
 
@@ -105,7 +107,7 @@ describe("/api/v1/oidc/validate", () => {
     expect(res._getStatusCode()).toBe(400);
     const response = res._getJSONData();
     expect(response).toMatchObject({
-      code: "invalid_redirect_uri",
+      code: OIDCErrorCodes.InvalidRedirectURI,
       attribute: "redirect_uri",
     });
   });

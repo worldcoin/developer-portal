@@ -1,6 +1,7 @@
 import { createMocks } from "node-mocks-http";
 import handleDeleteJWKS from "src/pages/api/_delete-jwks";
 import { when } from "jest-when";
+import { logger } from "src/lib/logger";
 
 let consoleInfoSpy: jest.SpyInstance;
 const requestReturnFn = jest.fn();
@@ -19,7 +20,9 @@ jest.mock(
 jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
 beforeEach(() => {
-  consoleInfoSpy = jest.spyOn(console, "info").mockImplementation(() => {});
+  consoleInfoSpy = jest
+    .spyOn(logger, "info")
+    .mockImplementation(async () => {});
 });
 
 afterEach(() => {

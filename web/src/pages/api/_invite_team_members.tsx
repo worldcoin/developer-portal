@@ -5,6 +5,7 @@ import { getAPIServiceGraphqlClient } from "@/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/api/invite-team-members/graphql/createInvite.generated";
 import { getSdk as getFetchUserSdk } from "@/api/invite-team-members/graphql/fetchUser.generated";
 import { sendEmail } from "@/lib/send-email";
+import { logger } from "src/lib/logger";
 
 export default async function handleInvite(
   req: NextApiRequest,
@@ -123,11 +124,18 @@ export default async function handleInvite(
       );
     }
 
-    await Promise.all(promises);
+    (await Promise.allSettled(promises)).map((item) => {
+      if (item.status === "rejected") {
+        logger.error("Cannot send invite(s)", {
+          req,
+          error: item.reason,
+        });
+      }
+    });
 
     res.status(200).json({ emails });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    logger.error("Cannot send invite(s)", { error, req });
 
     return errorHasuraQuery({
       res,

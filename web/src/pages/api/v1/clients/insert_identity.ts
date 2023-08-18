@@ -8,6 +8,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectConsumerBackendEndpoint } from "src/backend/utils";
 import { PHONE_SEQUENCER, PHONE_SEQUENCER_STAGING } from "src/lib/constants";
+import { logger } from "src/lib/logger";
 import { RevocationModel } from "src/lib/models";
 import { Environment, IInternalError } from "src/lib/types";
 import * as yup from "yup";
@@ -59,11 +60,17 @@ export default async function handleInsert(
   let input;
   try {
     input = await schema.validate(req.body);
-  } catch (e) {
-    if (e instanceof yup.ValidationError) {
-      return errorValidation("invalid", e.message, e.path || null, res, req);
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      return errorValidation(
+        "invalid",
+        error.message,
+        error.path || null,
+        res,
+        req
+      );
     }
-    console.error("Unhandled yup validation error.", e);
+    logger.error("Unhandled yup validation error.", { error, req });
     return errorResponse(
       res,
       500,
@@ -112,10 +119,9 @@ export const insertIdentity = async (payload: {
       return { status: 204, json: null };
     }
 
-    console.error(
-      "insertIdentity unhandled error from hasura",
-      deleteRevokeResponse
-    );
+    logger.error("insertIdentity unhandled error from hasura", {
+      deleteRevokeResponse,
+    });
 
     return {
       status: 503,
@@ -153,10 +159,9 @@ export const insertIdentity = async (payload: {
     return { status: 204, json: null };
   }
   if (response.status === 400) {
-    console.info(
-      "insertIdentity `400` response from sequencer",
-      await response.text()
-    );
+    logger.info("insertIdentity `400` response from sequencer", {
+      response: await response.text(),
+    });
     return {
       status: 400,
       json: {
@@ -166,9 +171,9 @@ export const insertIdentity = async (payload: {
     };
   }
 
-  console.error(
+  logger.error(
     `insertIdentity unhandled error from sequencer ${response.status}`,
-    await response.text()
+    { response: await response.text() }
   );
 
   return {

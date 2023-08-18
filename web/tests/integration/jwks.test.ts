@@ -1,10 +1,5 @@
-import fetchMock from "jest-fetch-mock";
 import { fetchActiveJWK, generateJWK, retrieveJWK } from "src/backend/jwks";
-import {
-  createKMSKey,
-  getKMSClient,
-  scheduleKeyDeletion,
-} from "src/backend/kms";
+import { createKMSKey, getKMSClient } from "src/backend/kms";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,

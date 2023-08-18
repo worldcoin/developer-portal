@@ -5,12 +5,33 @@ import {
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
-} from "../../../../backend/errors";
+} from "src/backend/errors";
 
 import { getAPIServiceClient } from "src/backend/graphql";
-import { canVerifyForAction } from "src/backend/utils";
+import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
 import { CredentialType } from "src/lib/types";
+import * as yup from "yup";
+
+const schema = yup.object({
+  action: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  signal: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  proof: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
+  credential_type: yup
+    .string()
+    .required("This attribute is required.")
+    .oneOf(Object.values(CredentialType)),
+});
 
 export default async function handleVerify(
   req: NextApiRequest,
@@ -21,45 +42,25 @@ export default async function handleVerify(
     return errorNotAllowed(req.method, res, req);
   }
 
-  for (const attr of [
-    "proof",
-    "nullifier_hash",
-    "merkle_root",
-    "credential_type",
-  ]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res, req);
-    }
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   if (!req.query.app_id) {
     return errorRequiredAttribute("app_id", res, req);
   }
 
-  if (req.body.action === null || req.body.action === undefined) {
-    return errorRequiredAttribute("action", res, req);
-  }
-
-  if (req.body.signal === null || req.body.signal === undefined) {
-    return errorRequiredAttribute("signal", res, req);
-  }
-
-  if (!Object.values(CredentialType).includes(req.body.credential_type)) {
-    return errorValidation(
-      "invalid",
-      "Invalid credential type.",
-      "credential_type",
-      res,
-      req
-    );
-  }
-
   const client = await getAPIServiceClient();
   const data = await fetchActionForProof(
     client,
     req.query.app_id?.toString(),
-    req.body.nullifier_hash,
-    req.body.action
+    parsedParams.nullifier_hash,
+    parsedParams.action
   );
 
   if (data.error || !data.app) {
@@ -114,15 +115,15 @@ export default async function handleVerify(
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
-      signal: req.body.signal,
-      proof: req.body.proof,
-      merkle_root: req.body.merkle_root,
-      nullifier_hash: req.body.nullifier_hash,
+      signal: parsedParams.signal,
+      proof: parsedParams.proof,
+      merkle_root: parsedParams.merkle_root,
+      nullifier_hash: parsedParams.nullifier_hash,
       external_nullifier: action.external_nullifier,
     },
     {
       is_staging: app.is_staging,
-      credential_type: req.body.credential_type as CredentialType,
+      credential_type: parsedParams.credential_type,
     }
   );
   if (error || !success) {
@@ -161,10 +162,10 @@ export default async function handleVerify(
   const insertResponse = await client.query({
     query: insertNullifierQuery,
     variables: {
-      nullifier_hash: req.body.nullifier_hash,
+      nullifier_hash: parsedParams.nullifier_hash,
       action_id: action.id,
-      merkle_root: req.body.merkle_root,
-      credential_type: req.body.credential_type,
+      merkle_root: parsedParams.merkle_root,
+      credential_type: parsedParams.credential_type,
     },
   });
 

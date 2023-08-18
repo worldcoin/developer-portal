@@ -18,6 +18,9 @@ import {
 import { getDevToken, verifyLoginNonce } from "src/backend/login-internal";
 import { UserModel } from "src/lib/models";
 import { NextApiRequestWithBody } from "src/lib/types";
+import { logger } from "src/lib/logger";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -49,6 +52,11 @@ const query = gql`
   }
 `;
 
+const schema = yup.object({
+  dev_login: yup.string().strict(),
+  sign_in_with_world_id_token: yup.string().strict(),
+});
+
 export default async function handleLogin(
   req: NextApiRequestWithBody<LoginRequestBody>,
   res: NextApiResponse<LoginRequestResponse>
@@ -57,7 +65,16 @@ export default async function handleLogin(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { sign_in_with_world_id_token, dev_login } = req.body;
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
+  }
+
+  const { sign_in_with_world_id_token, dev_login } = parsedParams;
 
   if (
     dev_login &&
@@ -90,10 +107,10 @@ export default async function handleLogin(
   let payload: JWTPayload | undefined;
   try {
     payload = await verifyOIDCJWT(sign_in_with_world_id_token);
-  } catch (e) {
-    console.error(
+  } catch (error) {
+    logger.error(
       "Error verifying received login JWT from Sign in with World ID",
-      e
+      { error, req }
     );
   }
 

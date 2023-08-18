@@ -1,0 +1,20 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-ALPINE318-OPENSSL-5788370:
+    - '*':
+        reason: Patch not released on alpine yet.
+        expires: 2023-08-21T14:55:21.290Z
+        created: 2023-07-22T14:55:21.304Z
+  SNYK-ALPINE318-OPENSSL-5776808:
+    - '*':
+        reason: Patch not released on alpine yet.
+        expires: 2023-08-21T14:55:38.867Z
+        created: 2023-07-22T14:55:38.880Z
+  SNYK-ALPINE318-OPENSSL-5821142:
+    - '*':
+        reason: Patch not released on alpine yet.
+        expires: 2023-09-09T14:55:38.867Z
+        created: 2023-08-09T14:55:38.880Z
+patch: {}

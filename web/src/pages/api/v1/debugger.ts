@@ -1,12 +1,33 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "../../../backend/errors";
-import { runCors } from "../../../backend/cors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
+import { runCors } from "src/backend/cors";
 import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { verifyProof } from "src/backend/verify";
+import { CredentialType } from "src/lib/types";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
+
+const schema = yup.object({
+  app_id: yup.string().strict().required("This attribute is required."),
+  action: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  signal: yup
+    .string()
+    .strict()
+    .nonNullable()
+    .defined("This attribute is required."),
+  proof: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  is_staging: yup.boolean().strict().required("This attribute is required."),
+  credential_type: yup
+    .string()
+    .required("This attribute is required.")
+    .oneOf(Object.values(CredentialType)),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,35 +38,31 @@ export default async function handler(
     return errorNotAllowed(req.method, res, req);
   }
 
-  for (const attr of [
-    "app_id",
-    "credential_type",
-    "is_staging",
-    "merkle_root",
-    "nullifier_hash",
-    "proof",
-  ]) {
-    if (req.body[attr] === "") {
-      return errorRequiredAttribute(attr, res, req);
-    }
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const external_nullifier = IDKitInternal.generateExternalNullifier(
-    req.body.app_id,
-    req.body.action
+    parsedParams.app_id,
+    parsedParams.action
   ).digest;
 
   const result = await verifyProof(
     {
-      merkle_root: req.body.merkle_root,
-      signal: req.body.signal,
-      nullifier_hash: req.body.nullifier_hash,
+      merkle_root: parsedParams.merkle_root,
+      signal: parsedParams.signal,
+      nullifier_hash: parsedParams.nullifier_hash,
       external_nullifier,
-      proof: req.body.proof,
+      proof: parsedParams.proof,
     },
     {
-      is_staging: req.body.is_staging,
-      credential_type: req.body.credential_type,
+      is_staging: parsedParams.is_staging,
+      credential_type: parsedParams.credential_type,
     }
   );
 

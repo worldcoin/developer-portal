@@ -3,6 +3,7 @@ import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed } from "../../backend/errors";
+import { logger } from "src/lib/logger";
 
 /**
  * Deletes expired auth codes
@@ -21,7 +22,7 @@ export default async function handler(
     return errorNotAllowed(req.method, res, req);
   }
 
-  console.info("Starting deletion of expired auth codes.");
+  logger.info("Starting deletion of expired auth codes.");
 
   const mutation = gql`
     mutation DeleteExpiredAuthCodes($now: timestamptz!) {
@@ -41,7 +42,7 @@ export default async function handler(
     },
   });
 
-  console.info(
+  logger.info(
     `Deleted ${response.data?.delete_auth_code.affected_rows} expired auth codes.`
   );
 

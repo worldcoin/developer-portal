@@ -3,7 +3,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
   errorNotAllowed,
-  errorRequiredAttribute,
   errorResponse,
   errorValidation,
 } from "src/backend/errors";
@@ -11,13 +10,17 @@ import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
 import { generateOIDCJWT } from "src/backend/jwts";
 import {
+  OIDCErrorCodes,
   OIDCResponseTypeMapping,
   OIDCScopes,
   fetchOIDCApp,
   generateOIDCCode,
 } from "src/backend/oidc";
+import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
+import { logger } from "src/lib/logger";
 import { CredentialType, OIDCResponseType } from "src/lib/types";
+import * as yup from "yup";
 
 const InsertNullifier = gql`
   mutation SaveNullifier($object: nullifier_insert_input!) {
@@ -27,6 +30,22 @@ const InsertNullifier = gql`
     }
   }
 `;
+
+// NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
+const schema = yup.object({
+  proof: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
+  credential_type: yup
+    .string()
+    .required("This attribute is required.")
+    .oneOf(Object.values(CredentialType)),
+  app_id: yup.string().strict().required("This attribute is required."),
+  signal: yup.string(), // `signal` in the context of World ID; `nonce` in the context of OIDC
+  scope: yup.string().strict().required("The openid scope is always required."),
+  response_type: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().strict().required("This attribute is required."),
+});
 
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
@@ -51,39 +70,26 @@ export default async function handleOIDCAuthorize(
     return errorNotAllowed(req.method, res, req);
   }
 
-  for (const attr of [
-    "proof", // ZKP param
-    "nullifier_hash", // ZKP param
-    "merkle_root", // ZKP param
-    "credential_type",
-    "app_id",
-  ]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res, req);
-    }
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
 
   const {
     proof,
     nullifier_hash,
     merkle_root,
-    nonce,
+    signal,
     credential_type,
     response_type,
     app_id,
     scope,
     redirect_uri,
-  } = req.body;
-
-  if (!Object.values(CredentialType).includes(credential_type)) {
-    return errorValidation(
-      "invalid",
-      "Invalid credential type.",
-      "credential_type",
-      res,
-      req
-    );
-  }
+  } = parsedParams;
 
   const response_types = decodeURIComponent(
     (response_type as string | string[]).toString()
@@ -92,7 +98,7 @@ export default async function handleOIDCAuthorize(
   for (const response_type of response_types) {
     if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
       return errorValidation(
-        "invalid",
+        OIDCErrorCodes.UnsupportedResponseType,
         `Invalid response type: ${response_type}.`,
         "response_type",
         res,
@@ -107,15 +113,26 @@ export default async function handleOIDCAuthorize(
   const sanitizedScopes: OIDCScopes[] = scopes.length
     ? [
         ...new Set(
+          // NOTE: Invalid scopes are ignored per spec (3.1.2.1)
           scopes.filter((scope) => Object.values(OIDCScopes).includes(scope))
         ),
       ]
-    : [OIDCScopes.OpenID];
+    : [];
+
+  if (!sanitizedScopes.length || !sanitizedScopes.includes(OIDCScopes.OpenID)) {
+    return errorValidation(
+      OIDCErrorCodes.InvalidScope,
+      `The ${OIDCScopes.OpenID} scope is always required.`,
+      "scope",
+      res,
+      req
+    );
+  }
 
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    redirect_uri ?? ""
+    redirect_uri
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -129,24 +146,10 @@ export default async function handleOIDCAuthorize(
   }
 
   // ANCHOR: Verify redirect URI is valid
-  if (
-    response_types.length === 1 &&
-    response_types.includes(OIDCResponseType.Code) &&
-    !redirect_uri
-  ) {
+  if (app.registered_redirect_uri !== redirect_uri) {
     return errorValidation(
-      "required",
-      "This attribute is required for the authorization code flow.",
-      "redirect_uri",
-      res,
-      req
-    );
-  }
-
-  if (redirect_uri && app.registered_redirect_uri !== redirect_uri) {
-    return errorValidation(
-      "invalid",
-      "Invalid redirect URI. Redirect URIs should be preregistered.",
+      OIDCErrorCodes.InvalidRedirectURI,
+      "Invalid redirect URI.",
       "redirect_uri",
       res,
       req
@@ -159,7 +162,7 @@ export default async function handleOIDCAuthorize(
       proof,
       nullifier_hash,
       merkle_root,
-      signal: nonce ?? "",
+      signal: signal ?? "",
       external_nullifier: app.external_nullifier,
     },
     {
@@ -203,7 +206,7 @@ export default async function handleOIDCAuthorize(
           app_id: app.id,
           nullifier_hash,
           credential_type,
-          nonce: nonce ?? "",
+          nonce: signal,
           scope: sanitizedScopes,
           ...jwk,
         });
@@ -217,8 +220,8 @@ export default async function handleOIDCAuthorize(
   try {
     const { data: insertNullifierResult } = await client.mutate<{
       insert_nullifier_one: {
-        id: "nil_c2c76cf4e599e6d1072662a52ae0abf0";
-        nullifier_hash: "0x123";
+        id: string;
+        nullifier_hash: string;
       };
     }>({
       mutation: InsertNullifier,
@@ -233,10 +236,10 @@ export default async function handleOIDCAuthorize(
     });
 
     if (!insertNullifierResult?.insert_nullifier_one) {
-      throw new Error("Error inserting nullifier.");
+      logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
     }
   } catch (error) {
-    console.log(error);
+    logger.error("Error inserting nullifier", { req, error });
   }
 
   res.status(200).json(response);

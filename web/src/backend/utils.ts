@@ -8,7 +8,9 @@ import { IInternalError, IPendingProofResponse } from "src/lib/types";
 import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
 import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
-import { errorForbidden } from "./errors";
+import { errorForbidden, errorResponse, errorValidation } from "./errors";
+import { logger } from "src/lib/logger";
+import * as yup from "yup";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -44,6 +46,63 @@ export const protectInternalEndpoint = (
     return false;
   }
   return true;
+};
+
+/**
+ * Validate a request body against a yup schema and returns an error if applicable
+ */
+export const validateRequestSchema = async <T extends yup.Schema>({
+  schema,
+  value,
+}: {
+  schema: T;
+  value: any;
+}): Promise<
+  | {
+      isValid: true;
+      parsedParams: yup.InferType<T>;
+      handleError?: never;
+    }
+  | {
+      isValid: false;
+      parsedParams?: never;
+      handleError: (req: NextApiRequest, res: NextApiResponse) => void;
+    }
+> => {
+  let parsedParams: yup.InferType<typeof schema>;
+
+  try {
+    parsedParams = await schema.validate(value);
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      const handleError = (req: NextApiRequest, res: NextApiResponse) => {
+        const validationError = error as yup.ValidationError;
+        errorValidation(
+          "invalid",
+          validationError.message,
+          validationError.path || null,
+          res,
+          req
+        );
+      };
+      return { isValid: false, handleError };
+    }
+
+    const handleError = (req: NextApiRequest, res: NextApiResponse) => {
+      errorResponse(
+        res,
+        500,
+        "server_error",
+        "Something went wrong. Please try again.",
+        null,
+        req
+      );
+    };
+
+    return { isValid: false, handleError };
+  }
+
+  return { isValid: true, parsedParams };
 };
 
 /**
@@ -112,13 +171,13 @@ export const reportAPIEventToPostHog = async (
       }),
     });
     if (!response.ok) {
-      console.error(
+      logger.error(
         `Error reporting ${event} to PostHog. Non-200 response: ${response.status}`,
-        await response.text()
+        { response: await response.text() }
       );
     }
-  } catch (e) {
-    console.error(`Error reporting ${event} to PostHog`, e);
+  } catch (error) {
+    logger.error(`Error reporting ${event} to PostHog`, { error });
   }
 };
 
@@ -139,7 +198,7 @@ export async function checkConsumerBackendForPhoneVerification({
   });
 
   if (phoneVerifiedResponse.data.user.length) {
-    console.info(
+    logger.info(
       `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
     );
 
