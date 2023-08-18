@@ -185,7 +185,7 @@ export default async function handleRegister(
       client_secret,
       client_secret_expires_at: 0,
       grant_types,
-      logo_uri: app.logo_url,
+      logo_uri: app.verified_app_logo,
 
       redirect_uris:
         insertRedirectsResponse.data?.insert_redirect.returning.map(

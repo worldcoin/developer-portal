@@ -134,7 +134,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
             {kioskAction?.app.name}
           </div>
           <Icon
-            path={kioskAction?.app.logo_url}
+            path={kioskAction?.app.verified_app_logo}
             className="w-11 h-11 rounded-full"
           />
         </div>

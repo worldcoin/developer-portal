@@ -32,7 +32,6 @@ interface _App
     | "engine"
     | "is_staging"
     | "is_verified"
-    | "logo_url"
     | "name"
     | "verified_app_logo"
   > {
@@ -59,7 +58,6 @@ const appPrecheckQuery = gql`
       id
       is_staging
       is_verified
-      logo_url
       name
       verified_app_logo
       engine
