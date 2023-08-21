@@ -105,7 +105,7 @@ const createActionQuery = gql`
 
 const schema = yup.object({
   action: yup.string().strict(),
-  nullifier_hash: yup.string().strict().default(""),
+  nullifier_hash: yup.string().default(""),
   external_nullifier: yup
     .string()
     .strict()
