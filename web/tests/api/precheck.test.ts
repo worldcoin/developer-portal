@@ -120,7 +120,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const mockedResponse = { ...appPayload };
-    mockedResponse.actions[0].nullifiers = [{ nullifier_hash: "0x123" }];
+    mockedResponse.actions[0].nullifiers = [];
 
     requestReturnFn.mockResolvedValue({
       data: {
