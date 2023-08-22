@@ -13,13 +13,14 @@ import {
   OIDCErrorCodes,
   OIDCResponseTypeMapping,
   OIDCScopes,
+  checkFlowType,
   fetchOIDCApp,
   generateOIDCCode,
 } from "src/backend/oidc";
 import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
 import { logger } from "src/lib/logger";
-import { CredentialType, OIDCResponseType } from "src/lib/types";
+import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
 const InsertNullifier = gql`
@@ -184,12 +185,18 @@ export default async function handleOIDCAuthorize(
   // ANCHOR: Proof is valid, issue relevant codes
   const response = {} as { code?: string; id_token?: string; token?: string };
 
+  // REVIEW: Do we need store code in hybrid flow too? (it can include "code")
   if (response_types.includes(OIDCResponseType.Code)) {
+    const shouldStoreSignal =
+      checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
+      signal;
+
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
       credential_type,
-      sanitizedScopes
+      sanitizedScopes,
+      shouldStoreSignal ? signal : null
     );
   }
 

@@ -4,6 +4,7 @@ import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
 import {
   CredentialType,
   IInternalError,
+  OIDCFlowType,
   OIDCResponseType,
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
@@ -72,6 +73,7 @@ export const insertAuthCodeQuery = gql`
     $app_id: String!
     $credential_type: String!
     $scope: jsonb!
+    $signal: String
   ) {
     insert_auth_code_one(
       object: {
@@ -81,9 +83,11 @@ export const insertAuthCodeQuery = gql`
         app_id: $app_id
         credential_type: $credential_type
         scope: $scope
+        signal: $signal
       }
     ) {
       auth_code
+      signal
     }
   }
 `;
@@ -149,7 +153,8 @@ export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
   credential_type: CredentialType,
-  scope: OIDCScopes[]
+  scope: OIDCScopes[],
+  signal?: string | null
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -167,6 +172,7 @@ export const generateOIDCCode = async (
       nullifier_hash,
       credential_type,
       scope,
+      signal,
     },
   });
 
@@ -241,3 +247,41 @@ export const authenticateOIDCEndpoint = async (
 
   return app_id;
 };
+
+export function checkFlowType(responseTypes: string[]) {
+  const includesAll = (requiredParams: string[]): boolean => {
+    return requiredParams.every((param) => responseTypes.includes(param));
+  };
+
+  // NOTE: List of valid response types for the code flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth:~:text=Authorization%20Code%20Flow%2C-,this%20value%20is%20code.,-client_id
+  if (includesAll([OIDCResponseType.Code])) {
+    return OIDCFlowType.AuthorizationCode;
+  }
+
+  // NOTE: List of valid response types for the implicit flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth:~:text=this%20value%20is%20id_token%C2%A0token%20or%20id_token
+  if (
+    includesAll([OIDCResponseType.Token]) ||
+    includesAll([OIDCResponseType.IdToken]) ||
+    includesAll([OIDCResponseType.IdToken, OIDCResponseType.Token])
+  ) {
+    return OIDCFlowType.Implicit;
+  }
+
+  // NOTE: List of valid response types for the hybrid flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth:~:text=this%20value%20is%20code%C2%A0id_token%2C%20code%C2%A0token%2C%20or%20code%C2%A0id_token%C2%A0token.
+  if (
+    includesAll([OIDCResponseType.Code, OIDCResponseType.IdToken]) ||
+    includesAll([OIDCResponseType.Code, OIDCResponseType.Token]) ||
+    includesAll([
+      OIDCResponseType.Code,
+      OIDCResponseType.IdToken,
+      OIDCResponseType.Token,
+    ])
+  ) {
+    return OIDCFlowType.Hybrid;
+  }
+
+  return null;
+}

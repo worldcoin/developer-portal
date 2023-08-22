@@ -12,6 +12,7 @@ insert_permissions:
         - expires_at
         - nullifier_hash
         - scope
+        - signal
 select_permissions:
   - role: service
     permission:
@@ -23,6 +24,7 @@ select_permissions:
         - id
         - nullifier_hash
         - scope
+        - signal
       filter: {}
 delete_permissions:
   - role: service
