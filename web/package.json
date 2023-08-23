@@ -15,6 +15,7 @@
     "test": "pnpm test:api && pnpm test:integration",
     "format": "prettier -w ./",
     "test:api": "jest tests/api",
+    "test:unit": "jest tests/unit",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "format:check": "prettier --check ./",
