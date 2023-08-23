@@ -75,7 +75,7 @@ export default async function handleVerify(
   }
 
   const { app } = data;
-  const { action } = app;
+  const { action, nullifier } = app;
 
   if (action.status === "inactive") {
     return errorResponse(
@@ -91,7 +91,7 @@ export default async function handleVerify(
   // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
   if (action.action !== "") {
     // NOTE: If `action != ""`, action is NOT for Sign in with World ID
-    if (!canVerifyForAction(action.nullifiers, action.max_verifications)) {
+    if (!canVerifyForAction(nullifier, action.max_verifications)) {
       // Return error response if person has already verified before and exceeded the max number of times to verify
       const errorMsg =
         action.max_verifications === 1
@@ -137,42 +137,82 @@ export default async function handleVerify(
     );
   }
 
-  const insertNullifierQuery = gql`
-    mutation InsertNullifier(
-      $nullifier_hash: String!
-      $action_id: String!
-      $merkle_root: String
-      $credential_type: String!
-    ) {
-      insert_nullifier_one(
-        object: {
-          nullifier_hash: $nullifier_hash
-          merkle_root: $merkle_root
-          action_id: $action_id
-          credential_type: $credential_type
-        }
-      ) {
-        nullifier_hash
-        created_at
-        credential_type
-      }
+  if (nullifier) {
+    const updateResponse = await client.query({
+      query: updateNullifierQuery,
+      variables: {
+        nullifier_hash: nullifier.nullifier_hash,
+        uses: nullifier.uses,
+      },
+    });
+
+    if (updateResponse.data.update_nullifier.affected_rows === 0) {
+      return errorValidation(
+        "already_verified",
+        "This person has already verified for this action.",
+        null,
+        res,
+        req
+      );
     }
-  `;
 
-  const insertResponse = await client.query({
-    query: insertNullifierQuery,
-    variables: {
-      nullifier_hash: parsedParams.nullifier_hash,
-      action_id: action.id,
-      merkle_root: parsedParams.merkle_root,
-      credential_type: parsedParams.credential_type,
-    },
-  });
+    res.status(200).json({
+      success: true,
+      action: action.action ?? null,
+      created_at: nullifier.created_at,
+      nullifier_hash: nullifier.nullifier_hash,
+    });
+  } else {
+    const insertResponse = await client.query({
+      query: insertNullifierQuery,
+      variables: {
+        action_id: action.id,
+        nullifier_hash: parsedParams.nullifier_hash,
+        credential_type: parsedParams.credential_type,
+      },
+    });
 
-  res.status(200).json({
-    success: true,
-    action: action.action ?? null,
-    nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
-    created_at: insertResponse.data.insert_nullifier_one.created_at,
-  });
+    res.status(200).json({
+      success: true,
+      action: action.action ?? null,
+      nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
+      created_at: insertResponse.data.insert_nullifier_one.created_at,
+    });
+  }
 }
+
+const insertNullifierQuery = gql`
+  mutation InsertNullifier(
+    $action_id: String!
+    $nullifier_hash: String!
+    $credential_type: String!
+  ) {
+    insert_nullifier_one(
+      object: {
+        action_id: $action_id
+        nullifier_hash: $nullifier_hash
+        credential_type: $credential_type
+      }
+    ) {
+      created_at
+      nullifier_hash
+      credential_type
+    }
+  }
+`;
+
+const updateNullifierQuery = gql`
+  mutation UpdateNullifierUses($nullifier_hash: String!, $uses: Int!) {
+    update_nullifier(
+      where: {
+        where: {
+          uses: { _eq: $uses }
+          nullifier_hash: { _eq: $nullifier_hash }
+        }
+      }
+      _inc: { uses: 1 }
+    ) {
+      affected_rows
+    }
+  }
+`;

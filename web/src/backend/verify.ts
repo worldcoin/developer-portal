@@ -48,6 +48,8 @@ interface IAppAction {
       status: string;
       external_nullifier: string;
       nullifiers: {
+        uses: number;
+        created_at: string;
         nullifier_hash: string;
       }[];
       max_verifications: number;
@@ -78,6 +80,8 @@ const queryFetchAppAction = gql`
         external_nullifier
         status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+          uses
+          created_at
           nullifier_hash
         }
       }
@@ -156,7 +160,12 @@ export const fetchActionForProof = async (
   }
 
   return {
-    app: { ...app, action: app.actions[0], actions: undefined },
+    app: {
+      ...app,
+      actions: undefined,
+      action: app.actions[0],
+      nullifier: app.actions[0]?.nullifiers?.[0],
+    },
   };
 };
 
