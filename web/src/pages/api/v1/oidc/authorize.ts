@@ -185,7 +185,6 @@ export default async function handleOIDCAuthorize(
   // ANCHOR: Proof is valid, issue relevant codes
   const response = {} as { code?: string; id_token?: string; token?: string };
 
-  // REVIEW: Do we need store code in hybrid flow too? (it can include "code")
   if (response_types.includes(OIDCResponseType.Code)) {
     const shouldStoreSignal =
       checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
@@ -209,6 +208,7 @@ export default async function handleOIDCAuthorize(
     ) {
       if (!jwt) {
         const jwk = await fetchActiveJWK();
+
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
@@ -218,6 +218,7 @@ export default async function handleOIDCAuthorize(
           ...jwk,
         });
       }
+
       response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
     }
   }

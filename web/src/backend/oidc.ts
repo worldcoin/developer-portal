@@ -73,7 +73,7 @@ export const insertAuthCodeQuery = gql`
     $app_id: String!
     $credential_type: String!
     $scope: jsonb!
-    $signal: String
+    $nonce: String
   ) {
     insert_auth_code_one(
       object: {
@@ -83,11 +83,11 @@ export const insertAuthCodeQuery = gql`
         app_id: $app_id
         credential_type: $credential_type
         scope: $scope
-        signal: $signal
+        nonce: $nonce
       }
     ) {
       auth_code
-      signal
+      nonce
     }
   }
 `;
@@ -154,7 +154,7 @@ export const generateOIDCCode = async (
   nullifier_hash: string,
   credential_type: CredentialType,
   scope: OIDCScopes[],
-  signal?: string | null
+  nonce?: string | null
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -172,7 +172,7 @@ export const generateOIDCCode = async (
       nullifier_hash,
       credential_type,
       scope,
-      signal,
+      nonce,
     },
   });
 

@@ -10,9 +10,9 @@ insert_permissions:
         - auth_code
         - credential_type
         - expires_at
+        - nonce
         - nullifier_hash
         - scope
-        - signal
 select_permissions:
   - role: service
     permission:
@@ -22,9 +22,9 @@ select_permissions:
         - credential_type
         - expires_at
         - id
+        - nonce
         - nullifier_hash
         - scope
-        - signal
       filter: {}
 delete_permissions:
   - role: service
