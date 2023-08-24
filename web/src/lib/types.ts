@@ -49,6 +49,15 @@ export type ActionStatsModel = Array<{
 export enum OIDCResponseType {
   Code = "code", // authorization code
   JWT = "jwt", // implicit flow
+  IdToken = "id_token",
+  Token = "token",
+}
+
+export enum OIDCFlowType {
+  AuthorizationCode = "authorization_code",
+  Implicit = "implicit",
+  Hybrid = "hybrid",
+  Token = "token",
 }
 
 export interface IInternalError {
