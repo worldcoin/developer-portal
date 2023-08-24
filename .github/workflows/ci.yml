@@ -156,23 +156,16 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: web
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-
-      - name: Run services
-        run: |
-          docker-compose -f ../docker-compose-test.yaml up -d hasura_test
 
       - name: Set up Node 18
         uses: actions/setup-node@v3
