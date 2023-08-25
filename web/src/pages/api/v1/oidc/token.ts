@@ -2,7 +2,11 @@ import { gql } from "@apollo/client";
 import { errorOIDCResponse } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
-import { generateOIDCJWT } from "src/backend/jwts";
+import {
+  generateAccessToken,
+  generateIdToken,
+  generateOIDCJWT,
+} from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -121,6 +125,7 @@ export default async function handleOIDCToken(
     };
   }>({
     mutation: verifyAuthCodeQuery,
+
     variables: {
       auth_code,
       app_id,
@@ -142,6 +147,23 @@ export default async function handleOIDCToken(
   }
 
   const jwk = await fetchActiveJWK();
+
+  const access_token = generateAccessToken({
+    ...jwk,
+    app_id,
+    nullifier_hash: code.nullifier_hash,
+    credential_type: code.credential_type,
+    scope: code.scope,
+  });
+
+  const id_token = generateIdToken({
+    ...jwk,
+    app_id,
+    nullifier_hash: code.nullifier_hash,
+    credential_type: code.credential_type,
+    scope: code.scope,
+  });
+
   const token = await generateOIDCJWT({
     app_id,
     nullifier_hash: code.nullifier_hash,
@@ -151,10 +173,10 @@ export default async function handleOIDCToken(
   });
 
   return res.status(200).json({
-    access_token: token,
+    access_token,
     token_type: "Bearer",
     expires_in: 3600,
     scope: code.scope.join(" "),
-    id_token: token,
+    id_token,
   });
 }

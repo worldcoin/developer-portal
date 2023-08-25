@@ -11,6 +11,7 @@ import { CredentialType, JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
+import * as yup from "yup";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -205,7 +206,158 @@ interface IVerificationJWT {
   app_id: string;
   credential_type: CredentialType;
   scope: OIDCScopes[];
+  email?: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
 }
+
+export const generateAccessToken = async ({
+  kid,
+  app_id,
+  nullifier_hash,
+  scope,
+}: IVerificationJWT) => {
+  const payloadSchema = yup.object({
+    iss: yup
+      .string()
+      .strict()
+      .oneOf(["https://developer.worldcoin.org"])
+      .required(),
+
+    aud: yup.string().strict().required(),
+    sub: yup.string().strict().required(),
+    exp: yup.number().required(),
+    iat: yup.number().required(),
+    jti: yup.string().strict().required(),
+    scope: yup.string().strict().required(),
+  });
+
+  let payload: yup.InferType<typeof payloadSchema> | null = null;
+
+  try {
+    payload = await payloadSchema.validate({
+      iss: JWT_ISSUER,
+      sub: nullifier_hash,
+      jti: randomUUID(),
+      iat: formatOIDCDateTime(new Date()),
+      exp: formatOIDCDateTime(dayjs().add(1, "hour")),
+      aud: app_id,
+      scope: scope.join(" "),
+    });
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      throw new Error(`Invalid payload: ${error.message}`);
+    }
+
+    throw error;
+  }
+
+  if (!payload) {
+    throw new Error("Payload is null");
+  }
+
+  const header = {
+    typ: "application/token+jwt",
+    alg: "RS256",
+    kid,
+  };
+
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+
+  throw new Error("Failed to sign JWT from KMS.");
+};
+
+export const generateIdToken = async ({
+  kid,
+  app_id,
+  nonce,
+  nullifier_hash,
+  credential_type,
+  scope,
+  email,
+  name,
+  given_name,
+  family_name,
+}: IVerificationJWT) => {
+  const payloadSchema = yup.object({
+    iss: yup
+      .string()
+      .strict()
+      .oneOf(["https://developer.worldcoin.org"])
+      .required(),
+
+    aud: yup.string().strict().required(),
+    sub: yup.string().strict().required(),
+    exp: yup.number().required(),
+    iat: yup.number().required(),
+    jti: yup.string().strict().required(),
+    nonce: yup.string().strict().required(),
+    email: yup.string().strict().email(),
+    name: yup.string().strict().required(),
+    given_name: yup.string().strict().required(),
+    family_name: yup.string().strict().required(),
+    "https://id.worldcoin.org/beta": yup
+      .object({
+        likely_human: yup.string().strict().required(),
+        credential_type: yup.string().strict().required(),
+      })
+      .required(),
+  });
+
+  let payload: yup.InferType<typeof payloadSchema> | null = null;
+
+  try {
+    payload = payloadSchema.validateSync({
+      iss: JWT_ISSUER,
+      sub: nullifier_hash,
+      jti: randomUUID(),
+      iat: formatOIDCDateTime(new Date()),
+      exp: formatOIDCDateTime(dayjs().add(1, "hour")),
+      aud: app_id,
+      nonce,
+      ...(scope.includes(OIDCScopes.Email)
+        ? { email: email ?? `${nullifier_hash}@id.worldcoin.org` }
+        : {}),
+
+      name,
+      given_name,
+      family_name,
+      "https://id.worldcoin.org/beta": {
+        likely_human:
+          credential_type === CredentialType.Orb ? "strong" : "weak",
+        credential_type,
+      },
+    });
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      throw new Error(`Invalid payload: ${error.message}`);
+    }
+
+    throw error;
+  }
+
+  const header = {
+    typ: "application/id_token+jwt",
+    alg: "RS256",
+    kid,
+  };
+
+  const client = await getKMSClient();
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+
+  throw new Error("Failed to sign JWT from KMS.");
+};
 
 /**
  * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
