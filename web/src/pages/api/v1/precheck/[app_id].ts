@@ -227,6 +227,7 @@ export default async function handlePrecheck(
 
   const response = {
     ...app,
+    logo_url: "",
     sign_in_with_world_id: action === "",
     can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
     action: { ...actionItem, nullifiers: undefined },
