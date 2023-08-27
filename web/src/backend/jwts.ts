@@ -349,46 +349,6 @@ export const generateIdToken = async ({
     kid,
   };
 
-  const client = await getKMSClient();
-
-  if (client) {
-    const token = await signJWTWithKMSKey(client, header, payload);
-    if (token) return token;
-  }
-
-  throw new Error("Failed to sign JWT from KMS.");
-};
-
-/**
- * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
- * @returns
- */
-export const generateOIDCJWT = async ({
-  app_id,
-  nonce,
-  nullifier_hash,
-  kid,
-  credential_type,
-  scope,
-}: IVerificationJWT): Promise<string> => {
-  const payload = {
-    iss: JWT_ISSUER,
-    sub: nullifier_hash,
-    jti: randomUUID(),
-    iat: formatOIDCDateTime(new Date()),
-    exp: formatOIDCDateTime(dayjs().add(1, "hour")),
-    aud: app_id,
-    scope: scope.join(" "),
-    "https://id.worldcoin.org/beta": {
-      likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
-      credential_type,
-    },
-  } as Record<string, any>;
-
-  if (nonce) {
-    payload.nonce = nonce;
-  }
-
   if (scope.includes(OIDCScopes.Email)) {
     payload.email = `${nullifier_hash}@id.worldcoin.org`;
   }
@@ -399,18 +359,13 @@ export const generateOIDCJWT = async ({
     payload.family_name = "User";
   }
 
-  // Sign the JWT with a KMS managed key
   const client = await getKMSClient();
-  const header = {
-    alg: "RS256",
-    typ: "JWT",
-    kid,
-  };
 
   if (client) {
     const token = await signJWTWithKMSKey(client, header, payload);
     if (token) return token;
   }
+
   throw new Error("Failed to sign JWT from KMS.");
 };
 

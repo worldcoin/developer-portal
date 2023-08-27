@@ -2,11 +2,7 @@ import { gql } from "@apollo/client";
 import { errorOIDCResponse } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
-import {
-  generateAccessToken,
-  generateIdToken,
-  generateOIDCJWT,
-} from "src/backend/jwts";
+import { generateAccessToken, generateIdToken } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -161,14 +157,6 @@ export default async function handleOIDCToken(
     app_id,
     nullifier_hash: code.nullifier_hash,
     credential_type: code.credential_type,
-    scope: code.scope,
-  });
-
-  const token = await generateOIDCJWT({
-    app_id,
-    nullifier_hash: code.nullifier_hash,
-    credential_type: code.credential_type,
-    ...jwk,
     scope: code.scope,
   });
 

@@ -8,7 +8,7 @@ import {
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { fetchActiveJWK } from "src/backend/jwks";
-import { generateOIDCJWT } from "src/backend/jwts";
+import { generateIdToken } from "src/backend/jwts";
 import {
   OIDCErrorCodes,
   OIDCResponseTypeMapping,
@@ -209,7 +209,7 @@ export default async function handleOIDCAuthorize(
       if (!jwt) {
         const jwk = await fetchActiveJWK();
 
-        jwt = await generateOIDCJWT({
+        jwt = await generateIdToken({
           app_id: app.id,
           nullifier_hash,
           credential_type,
