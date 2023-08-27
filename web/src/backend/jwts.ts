@@ -299,10 +299,10 @@ export const generateIdToken = async ({
     iat: yup.number().required(),
     jti: yup.string().strict().required(),
     nonce: yup.string().strict().required(),
-    email: yup.string().strict().email(),
-    name: yup.string().strict().required(),
-    given_name: yup.string().strict().required(),
-    family_name: yup.string().strict().required(),
+    email: yup.string().strict(),
+    name: yup.string().strict(),
+    given_name: yup.string().strict(),
+    family_name: yup.string().strict(),
     "https://id.worldcoin.org/beta": yup
       .object({
         likely_human: yup.string().strict().required(),
