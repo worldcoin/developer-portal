@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
@@ -163,21 +163,38 @@ export default async function handleVerify(
       nullifier_hash: nullifier.nullifier_hash,
     });
   } else {
-    const insertResponse = await client.query({
-      query: insertNullifierQuery,
-      variables: {
-        action_id: action.id,
-        nullifier_hash: parsedParams.nullifier_hash,
-        credential_type: parsedParams.credential_type,
-      },
-    });
+    try {
+      const insertResponse = await client.query({
+        query: insertNullifierQuery,
+        variables: {
+          action_id: action.id,
+          nullifier_hash: parsedParams.nullifier_hash,
+          credential_type: parsedParams.credential_type,
+        },
+      });
 
-    res.status(200).json({
-      success: true,
-      action: action.action ?? null,
-      nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
-      created_at: insertResponse.data.insert_nullifier_one.created_at,
-    });
+      res.status(200).json({
+        success: true,
+        action: action.action ?? null,
+        nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
+        created_at: insertResponse.data.insert_nullifier_one.created_at,
+      });
+    } catch (e) {
+      if (
+        (e as ApolloError)?.graphQLErrors?.[0]?.extensions?.code ==
+        "constraint-violation"
+      ) {
+        return errorValidation(
+          "already_verified",
+          "This person has already verified for this action.",
+          null,
+          res,
+          req
+        );
+      }
+
+      throw e;
+    }
   }
 }
 
