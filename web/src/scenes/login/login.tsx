@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Auth } from "src/components/Auth";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
@@ -18,6 +18,12 @@ export function Login({ loginUrl }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState(false);
+  const { asPath } = useRouter();
+
+  const id_token = useMemo(() => {
+    const params = new URLSearchParams(asPath.split("#")[1]);
+    return params.get("id_token");
+  }, [asPath]);
 
   const doLogin = useCallback(
     async (body: LoginRequestBody) => {
@@ -70,13 +76,13 @@ export function Login({ loginUrl }: ILoginPageProps) {
       }
 
       // Handle login and signup cases
-      if (!router.query.error && router.query.id_token) {
+      if (!router.query.error && id_token) {
         doLogin({
-          sign_in_with_world_id_token: router.query.id_token as string,
+          sign_in_with_world_id_token: id_token as string,
         });
       }
     }
-  }, [router, doLogin]);
+  }, [router, doLogin, id_token]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">

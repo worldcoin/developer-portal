@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { runCors } from "../../../backend/cors";
+import { runCors } from "src/backend/cors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed } from "src/backend/errors";
 

@@ -30,6 +30,7 @@ export default async function handleOidcConfig(
     grant_types_supported: ["authorization_code", "implicit"],
     service_documentation: "https://docs.worldcoin.org/id/sign-in",
     subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
+    response_modes_supported: ["query", "fragment", "form_post"],
     response_types_supported: [
       "code", // Authorization code flow
       "id_token", // Implicit flow

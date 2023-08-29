@@ -12,6 +12,7 @@ insert_permissions:
         - code_challenge_method
         - credential_type
         - expires_at
+        - nonce
         - nullifier_hash
         - scope
 select_permissions:
@@ -25,6 +26,7 @@ select_permissions:
         - credential_type
         - expires_at
         - id
+        - nonce
         - nullifier_hash
         - scope
       filter: {}

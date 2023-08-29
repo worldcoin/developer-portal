@@ -49,6 +49,15 @@ export type ActionStatsModel = Array<{
 export enum OIDCResponseType {
   Code = "code", // authorization code
   JWT = "jwt", // implicit flow
+  IdToken = "id_token",
+  Token = "token",
+}
+
+export enum OIDCFlowType {
+  AuthorizationCode = "authorization_code",
+  Implicit = "implicit",
+  Hybrid = "hybrid",
+  Token = "token",
 }
 
 export interface IInternalError {
@@ -70,7 +79,12 @@ export type ActionKioskType = Pick<
 > & {
   app: Pick<
     AppModel,
-    "id" | "name" | "logo_url" | "is_staging" | "is_verified" | "__typename"
+    | "id"
+    | "name"
+    | "verified_app_logo"
+    | "is_staging"
+    | "is_verified"
+    | "__typename"
   >;
 };
 

@@ -1,11 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  errorNotAllowed,
-  errorRequiredAttribute,
-  errorResponse,
-} from "src/backend/errors";
+import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { fetchOIDCApp } from "src/backend/oidc";
 import { uriHasJS } from "src/lib/utils";
+import * as yup from "yup";
+import { validateRequestSchema } from "src/backend/utils";
+
+const schema = yup.object({
+  app_id: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().strict().required("This attribute is required."),
+});
 
 /**
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback
@@ -20,13 +23,16 @@ export default async function handleOIDCValidate(
     return errorNotAllowed(req.method, res, req);
   }
 
-  for (const attr of ["app_id"]) {
-    if (!req.body[attr]) {
-      return errorRequiredAttribute(attr, res, req);
-    }
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
   }
 
-  const { app_id, redirect_uri } = req.body;
+  const { app_id, redirect_uri } = parsedParams;
 
   if (uriHasJS(redirect_uri)) {
     return errorResponse(
@@ -41,7 +47,7 @@ export default async function handleOIDCValidate(
 
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    redirect_uri ?? ""
+    redirect_uri
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -54,7 +60,7 @@ export default async function handleOIDCValidate(
     );
   }
 
-  if (redirect_uri && app.registered_redirect_uri !== redirect_uri) {
+  if (app.registered_redirect_uri !== redirect_uri) {
     return errorResponse(
       res,
       400,

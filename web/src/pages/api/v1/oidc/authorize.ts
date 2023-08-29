@@ -13,13 +13,14 @@ import {
   OIDCErrorCodes,
   OIDCResponseTypeMapping,
   OIDCScopes,
+  checkFlowType,
   fetchOIDCApp,
   generateOIDCCode,
 } from "src/backend/oidc";
 import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
 import { logger } from "src/lib/logger";
-import { CredentialType, OIDCResponseType } from "src/lib/types";
+import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
 const InsertNullifier = gql`
@@ -33,22 +34,21 @@ const InsertNullifier = gql`
 
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup.object({
-  proof: yup.string().required("This attribute is required."),
-  nullifier_hash: yup.string().required("This attribute is required."),
-  merkle_root: yup.string().required("This attribute is required."),
+  proof: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  merkle_root: yup.string().strict().required("This attribute is required."),
   credential_type: yup
     .string()
     .required("This attribute is required.")
     .oneOf(Object.values(CredentialType)),
-  app_id: yup.string().required("This attribute is required."),
+  app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string(), // `signal` in the context of World ID; `nonce` in the context of OIDC
-  scope: yup.string().required("The openid scope is always required."),
-  response_type: yup.string().required("This attribute is required."),
-  redirect_uri: yup.string().required("This attribute is required."),
   code_challenge: yup.string(),
   code_challenge_method: yup.string(),
+  scope: yup.string().strict().required("The openid scope is always required."),
+  response_type: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().strict().required("This attribute is required."),
 });
-type Body = yup.InferType<typeof schema>;
 
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
@@ -73,13 +73,14 @@ export default async function handleOIDCAuthorize(
     return errorNotAllowed(req.method, res, req);
   }
 
-  const { isValid, parsedParams } = await validateRequestSchema<Body>({
-    req,
-    res,
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
+    value: req.body,
   });
 
-  if (!isValid || !parsedParams) return;
+  if (!isValid) {
+    return handleError(req, res);
+  }
 
   const {
     proof,
@@ -199,6 +200,10 @@ export default async function handleOIDCAuthorize(
   const response = {} as { code?: string; id_token?: string; token?: string };
 
   if (response_types.includes(OIDCResponseType.Code)) {
+    const shouldStoreSignal =
+      checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
+      signal;
+
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
@@ -206,6 +211,7 @@ export default async function handleOIDCAuthorize(
       sanitizedScopes,
       code_challenge,
       code_challenge_method ?? "S256"
+      shouldStoreSignal ? signal : null
     );
   }
 
@@ -218,6 +224,7 @@ export default async function handleOIDCAuthorize(
     ) {
       if (!jwt) {
         const jwk = await fetchActiveJWK();
+
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
@@ -227,6 +234,7 @@ export default async function handleOIDCAuthorize(
           ...jwk,
         });
       }
+
       response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
     }
   }

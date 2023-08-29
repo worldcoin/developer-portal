@@ -51,38 +51,55 @@ export const protectInternalEndpoint = (
 /**
  * Validate a request body against a yup schema and returns an error if applicable
  */
-export const validateRequestSchema = async <T>({
+export const validateRequestSchema = async <T extends yup.Schema>({
   schema,
-  req,
-  res,
+  value,
 }: {
-  schema: yup.Schema<any>;
-  req: NextApiRequest;
-  res: NextApiResponse;
+  schema: T;
+  value: any;
 }): Promise<
-  { isValid: true; parsedParams: T } | { isValid: false; parsedParams?: null }
+  | {
+      isValid: true;
+      parsedParams: yup.InferType<T>;
+      handleError?: never;
+    }
+  | {
+      isValid: false;
+      parsedParams?: never;
+      handleError: (req: NextApiRequest, res: NextApiResponse) => void;
+    }
 > => {
-  let parsedParams: T;
+  let parsedParams: yup.InferType<typeof schema>;
 
   try {
-    parsedParams = await schema.validate(req.body);
+    parsedParams = await schema.validate(value);
   } catch (error) {
     if (error instanceof yup.ValidationError) {
-      errorValidation("invalid", error.message, error.path || null, res, req);
-      return { isValid: false };
+      const handleError = (req: NextApiRequest, res: NextApiResponse) => {
+        const validationError = error as yup.ValidationError;
+        errorValidation(
+          "invalid",
+          validationError.message,
+          validationError.path || null,
+          res,
+          req
+        );
+      };
+      return { isValid: false, handleError };
     }
 
-    logger.error("Unhandled yup validation error.", { error, req });
+    const handleError = (req: NextApiRequest, res: NextApiResponse) => {
+      errorResponse(
+        res,
+        500,
+        "server_error",
+        "Something went wrong. Please try again.",
+        null,
+        req
+      );
+    };
 
-    errorResponse(
-      res,
-      500,
-      "server_error",
-      "Something went wrong. Please try again.",
-      null,
-      req
-    );
-    return { isValid: false };
+    return { isValid: false, handleError };
   }
 
   return { isValid: true, parsedParams };
