@@ -150,6 +150,7 @@ describe("/api/v1/oidc/authorize", () => {
     const { rows } = await integrationDBExecuteQuery(
       `SELECT * FROM public.auth_code WHERE auth_code = '${code}' LIMIT 1;`
     );
+    console.log(rows);
     const { code_challenge, code_challenge_method } = rows[0];
 
     expect(code_challenge_method).toEqual("S256");
