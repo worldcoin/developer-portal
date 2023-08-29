@@ -68,8 +68,6 @@ describe("/api/v1/oidc/authorize", () => {
 
     await handleOIDCAuthorize(req, res);
 
-    console.log(res._getJSONData());
-
     expect(res._getStatusCode()).toBe(200);
     expect(res._getJSONData()).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
@@ -155,7 +153,6 @@ describe("/api/v1/oidc/authorize", () => {
     const { rows } = await integrationDBExecuteQuery(
       `SELECT * FROM public.auth_code WHERE auth_code = '${code}' LIMIT 1;`
     );
-    console.log(rows);
     const { code_challenge, code_challenge_method } = rows[0];
 
     expect(code_challenge_method).toEqual("S256");
