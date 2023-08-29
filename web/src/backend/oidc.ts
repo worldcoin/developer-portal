@@ -160,7 +160,7 @@ export const generateOIDCCode = async (
   credential_type: CredentialType,
   scope: OIDCScopes[],
   code_challenge?: string,
-  code_challenge_method?: string
+  code_challenge_method?: string,
   nonce?: string | null
 ): Promise<string> => {
   // Generate a random code
