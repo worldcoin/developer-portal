@@ -13,13 +13,14 @@ import {
   OIDCErrorCodes,
   OIDCResponseTypeMapping,
   OIDCScopes,
+  checkFlowType,
   fetchOIDCApp,
   generateOIDCCode,
 } from "src/backend/oidc";
 import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
 import { logger } from "src/lib/logger";
-import { CredentialType, OIDCResponseType } from "src/lib/types";
+import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
 const InsertNullifier = gql`
@@ -185,11 +186,16 @@ export default async function handleOIDCAuthorize(
   const response = {} as { code?: string; id_token?: string; token?: string };
 
   if (response_types.includes(OIDCResponseType.Code)) {
+    const shouldStoreSignal =
+      checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
+      signal;
+
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
       credential_type,
-      sanitizedScopes
+      sanitizedScopes,
+      shouldStoreSignal ? signal : null
     );
   }
 
@@ -202,6 +208,7 @@ export default async function handleOIDCAuthorize(
     ) {
       if (!jwt) {
         const jwk = await fetchActiveJWK();
+
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
@@ -211,6 +218,7 @@ export default async function handleOIDCAuthorize(
           ...jwk,
         });
       }
+
       response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
     }
   }
