@@ -161,7 +161,7 @@ export default async function handleOIDCToken(
       return errorOIDCResponse(
         res,
         400,
-        "invalid_grant",
+        "invalid_request",
         "Missing code verifier.",
         "code_verifier",
         req
@@ -173,8 +173,19 @@ export default async function handleOIDCToken(
       return errorOIDCResponse(
         res,
         400,
-        "invalid_grant",
+        "invalid_request",
         "Invalid code verifier.",
+        "code_verifier",
+        req
+      );
+    }
+  } else {
+    if (req.body.code_verifier) {
+      return errorOIDCResponse(
+        res,
+        400,
+        "invalid_request",
+        "Code verifier was not expected.",
         "code_verifier",
         req
       );
