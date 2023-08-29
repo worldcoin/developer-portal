@@ -148,7 +148,7 @@ describe("/api/v1/oidc/authorize", () => {
     const code = res._getJSONData().code;
 
     const { rows } = await integrationDBExecuteQuery(
-      `SELECT code_challenge, code_challenge_method FROM "public"."auth_code" WHERE "auth_code" = "${code}" LIMIT 1;`
+      `SELECT code_challenge, code_challenge_method FROM auth_code WHERE auth_code = "${code}" LIMIT 1;`
     );
     const { code_challenge, code_challenge_method } = rows[0];
 
