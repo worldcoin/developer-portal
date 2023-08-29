@@ -130,7 +130,7 @@ describe("/api/v1/oidc/authorize", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: validParams(app_id),
+      body: validParams(app_id, true),
     });
 
     // mocks sequencer response for proof verification
