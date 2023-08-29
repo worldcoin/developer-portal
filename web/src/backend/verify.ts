@@ -24,7 +24,7 @@ const KNOWN_ERROR_CODES = [
   },
 ];
 
-interface IInputParams {
+export interface IInputParams {
   merkle_root: string;
   signal: string;
   nullifier_hash: string;
@@ -32,7 +32,7 @@ interface IInputParams {
   proof: string;
 }
 
-interface IVerifyParams {
+export interface IVerifyParams {
   is_staging: boolean;
   credential_type: CredentialType;
 }

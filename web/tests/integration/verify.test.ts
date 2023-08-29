@@ -6,7 +6,11 @@ import {
   integrationDBTearDown,
   integrationDBExecuteQuery,
 } from "./setup";
-import { fetchActionForProof } from "src/backend/verify";
+import {
+  IInputParams,
+  IVerifyParams,
+  fetchActionForProof,
+} from "src/backend/verify";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -17,7 +21,7 @@ jest.mock(
     const originalModule = jest.requireActual("src/backend/verify");
     return {
       ...originalModule,
-      verifyProof: (proof, params) =>
+      verifyProof: (proofParams: IInputParams, verifyParams: IVerifyParams) =>
         Promise.resolve({
           success: true,
           status: "on-chain",
