@@ -37,7 +37,12 @@ const validParams = (app_id: string, pkce = false) =>
     response_type: "code",
     redirect_uri: "http://localhost:3000/login",
     state: "my_state",
-    ...(pkce ? { code_challenge: pkceChallenge("my_code_challenge") } : {}),
+    ...(pkce
+      ? {
+          code_challenge: pkceChallenge("my_code_challenge"),
+          code_challenge_method: "S256",
+        }
+      : {}),
   } as Record<string, string>);
 
 // TODO: Add additional test cases
