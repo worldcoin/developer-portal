@@ -205,7 +205,7 @@ export default async function handleOIDCAuthorize(
       credential_type,
       sanitizedScopes,
       code_challenge,
-      code_challenge_method
+      code_challenge_method ?? "S256"
     );
   }
 
