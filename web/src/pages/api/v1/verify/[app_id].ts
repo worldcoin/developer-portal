@@ -31,7 +31,16 @@ const schema = yup.object({
     .string()
     .required("This attribute is required.")
     .oneOf(Object.values(CredentialType)),
-  max_age: yup.number().integer().min(180).max(604800).strict().optional(),
+  max_age: yup
+    .number()
+    .integer()
+    .min(180, "Maximum root age cannot be less than 180 seconds (3 minutes).")
+    .max(
+      604800,
+      "Maximum root age cannot be more than 604800 seconds (7 days)."
+    )
+    .strict()
+    .optional(),
 });
 
 export default async function handleVerify(
