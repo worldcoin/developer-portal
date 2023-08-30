@@ -31,6 +31,7 @@ const schema = yup.object({
     .string()
     .required("This attribute is required.")
     .oneOf(Object.values(CredentialType)),
+  max_age: yup.number().integer().min(180).max(604800).strict().optional(),
 });
 
 export default async function handleVerify(
@@ -124,6 +125,7 @@ export default async function handleVerify(
     {
       is_staging: app.is_staging,
       credential_type: parsedParams.credential_type,
+      max_age: parsedParams.max_age,
     }
   );
   if (error || !success) {
