@@ -7,7 +7,7 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { CredentialType, JwtConfig } from "../lib/types";
+import { CredentialType, JwtConfig, OIDCTyp } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
@@ -258,7 +258,7 @@ export const generateAccessToken = async ({
   }
 
   const header = {
-    typ: "application/token+jwt",
+    typ: OIDCTyp.AccessToken,
     alg: "RS256",
     kid,
   };
@@ -344,7 +344,7 @@ export const generateIdToken = async ({
   }
 
   const header = {
-    typ: "application/id_token+jwt",
+    typ: OIDCTyp.IdToken,
     alg: "RS256",
     kid,
   };
@@ -370,12 +370,25 @@ export const generateIdToken = async ({
 };
 
 export const verifyOIDCJWT = async (
-  token: string
+  token: string,
+  validationOptions: {
+    nonceRequired: boolean;
+    issValue: string;
+    typValue: string;
+  }
 ): Promise<jose.JWTPayload> => {
-  const { kid } = jose.decodeProtectedHeader(token);
+  const { kid, typ } = jose.decodeProtectedHeader(token);
 
   if (!kid) {
     throw new Error("JWT is invalid. Does not contain a `kid` claim.");
+  }
+
+  if (!typ) {
+    throw new Error("JWT is invalid. Does not contain a `typ` claim.");
+  }
+
+  if (typ !== validationOptions?.typValue) {
+    throw new Error("JWT is invalid. `typ` claim has wrong value.");
   }
 
   const { public_jwk } = await retrieveJWK(kid);
@@ -392,5 +405,43 @@ export const verifyOIDCJWT = async (
     }
   );
 
+  if (validationOptions?.nonceRequired && !payload.nonce) {
+    throw new Error("JWT is invalid. Does not contain a `nonce` claim.");
+  }
+
+  if (!payload.aud) {
+    throw new Error("JWT is invalid. Does not contain an `aud` claim.");
+  }
+
+  if (!payload.exp) {
+    throw new Error("JWT is invalid. Does not contain an `exp` claim.");
+  }
+
+  if (!payload.iat) {
+    throw new Error("JWT is invalid. Does not contain an `iat` claim.");
+  }
+
+  if (!payload.iss) {
+    throw new Error("JWT is invalid. Does not contain an `iss` claim.");
+  }
+
+  if (payload.iss !== validationOptions?.issValue) {
+    throw new Error("JWT is invalid. `iss` claim has wrong value.");
+  }
+
   return payload;
 };
+
+export const verifyAccessToken = async (token: string) =>
+  await verifyOIDCJWT(token, {
+    nonceRequired: false,
+    issValue: "https://developer.worldcoin.org",
+    typValue: OIDCTyp.AccessToken,
+  });
+
+export const verifyIdToken = async (token: string): Promise<jose.JWTPayload> =>
+  await verifyOIDCJWT(token, {
+    nonceRequired: true,
+    issValue: JWT_ISSUER,
+    typValue: OIDCTyp.IdToken,
+  });

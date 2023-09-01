@@ -4,7 +4,7 @@ import {
   errorUnauthenticated,
   errorValidation,
 } from "src/backend/errors";
-import { verifyOIDCJWT } from "src/backend/jwts";
+import { verifyIdToken, verifyOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
@@ -66,7 +66,7 @@ export default async function handler(
   }
 
   try {
-    const payload = await verifyOIDCJWT(userToken);
+    const payload = await verifyIdToken(userToken);
 
     return res.status(200).json({
       active: true,

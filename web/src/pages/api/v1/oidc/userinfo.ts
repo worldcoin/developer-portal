@@ -1,6 +1,6 @@
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorUnauthenticated } from "src/backend/errors";
-import { verifyOIDCJWT } from "src/backend/jwts";
+import { verifyIdToken, verifyOIDCJWT } from "src/backend/jwts";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
@@ -22,7 +22,8 @@ export default async function handler(
   const token = authorization.replace("Bearer ", "");
 
   try {
-    const payload = await verifyOIDCJWT(token);
+    const payload = await verifyIdToken(token);
+
     const response: Record<string, any> = {
       sub: payload.sub,
       "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],
