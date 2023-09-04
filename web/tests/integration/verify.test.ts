@@ -6,11 +6,7 @@ import {
   integrationDBTearDown,
   integrationDBExecuteQuery,
 } from "./setup";
-import {
-  IInputParams,
-  IVerifyParams,
-  fetchActionForProof,
-} from "src/backend/verify";
+import { IInputParams, IVerifyParams } from "src/backend/verify";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -107,6 +103,7 @@ describe("/api/v1/verify/[app_id]", () => {
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );
     const action = actionQuery.rows[0].action;
+    console.log(action);
 
     const validRequestPayload = validParams(app_id, action);
     const { req, res } = createMocks({

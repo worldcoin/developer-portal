@@ -235,8 +235,8 @@ export default async function handleOIDCAuthorize(
       mutation: InsertNullifier,
       variables: {
         object: {
+          // FIXME: This should upsert and update for relevant uses
           nullifier_hash,
-          merkle_root,
           credential_type,
           action_id: app.action_id,
         },
