@@ -138,8 +138,8 @@ export default async function handleVerify(
   }
 
   if (nullifier) {
-    const updateResponse = await client.query({
-      query: updateNullifierQuery,
+    const updateResponse = await client.mutate({
+      mutation: updateNullifierQuery,
       variables: {
         nullifier_hash: nullifier.nullifier_hash,
         uses: nullifier.uses,
@@ -225,12 +225,7 @@ const insertNullifierQuery = gql`
 const updateNullifierQuery = gql`
   mutation UpdateNullifierUses($nullifier_hash: String!, $uses: Int!) {
     update_nullifier(
-      where: {
-        where: {
-          uses: { _eq: $uses }
-          nullifier_hash: { _eq: $nullifier_hash }
-        }
-      }
+      where: { uses: { _eq: $uses }, nullifier_hash: { _eq: $nullifier_hash } }
       _inc: { uses: 1 }
     ) {
       affected_rows
