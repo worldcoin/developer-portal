@@ -138,8 +138,8 @@ export default async function handleVerify(
   }
 
   if (nullifier) {
-    const updateResponse = await client.query({
-      query: updateNullifierQuery,
+    const updateResponse = await client.mutate({
+      mutation: updateNullifierQuery,
       variables: {
         nullifier_hash: nullifier.nullifier_hash,
         uses: nullifier.uses,
@@ -166,8 +166,8 @@ export default async function handleVerify(
     });
   } else {
     try {
-      const insertResponse = await client.query({
-        query: insertNullifierQuery,
+      const insertResponse = await client.mutate({
+        mutation: insertNullifierQuery,
         variables: {
           action_id: action.id,
           nullifier_hash: parsedParams.nullifier_hash,
