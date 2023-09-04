@@ -65,6 +65,7 @@ jest.mock(
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
+      mutation: requestReturnFn,
     }),
   }))
 );
