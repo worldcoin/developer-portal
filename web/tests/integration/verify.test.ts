@@ -144,5 +144,9 @@ describe("/api/v1/verify/[app_id]", () => {
       ({ res }) => res._getStatusCode() !== 200
     );
     expect(errorResponses.length).toBe(4);
+    const nullifierHash = await integrationDBExecuteQuery(
+      `SELECT uses FROM nullifier WHERE nullifier_hash = '${validRequestPayload.nullifier_hash}';`
+    );
+    expect(nullifierHash.rows[0].uses).toBe(1);
   });
 });
