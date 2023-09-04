@@ -57,6 +57,16 @@ describe("/api/v1/verify/[app_id]", () => {
     await handleVerify(req, res);
 
     expect(res._getStatusCode()).toBe(200);
+    expect(res._getJSONData()).toEqual(
+      expect.objectContaining({
+        action,
+        uses: 1,
+        max_uses: 2,
+        success: true,
+        created_at: expect.any(String),
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+      })
+    );
   });
 
   test("handles nullifier insertion", async () => {

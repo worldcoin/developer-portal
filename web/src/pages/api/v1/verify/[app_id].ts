@@ -158,8 +158,10 @@ export default async function handleVerify(
 
     res.status(200).json({
       success: true,
+      uses: nullifier.uses + 1,
       action: action.action ?? null,
       created_at: nullifier.created_at,
+      max_uses: action.max_verifications,
       nullifier_hash: nullifier.nullifier_hash,
     });
   } else {
@@ -174,8 +176,10 @@ export default async function handleVerify(
       });
 
       res.status(200).json({
+        uses: 1,
         success: true,
         action: action.action ?? null,
+        max_uses: action.max_verifications,
         nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
         created_at: insertResponse.data.insert_nullifier_one.created_at,
       });
