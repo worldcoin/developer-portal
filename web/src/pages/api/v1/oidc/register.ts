@@ -61,7 +61,6 @@ const insertRedirectsQuery = gql`
 
 const schema = yup.object({
   client_name: yup.string().strict(),
-  logo_uri: yup.string().strict(),
   application_type: yup.string().default("web"),
   grant_types: yup.string().default("authorization_code"),
   response_types: yup.string().default("code"),
@@ -119,7 +118,6 @@ export default async function handleRegister(
     mutation: insertClientQuery,
     variables: {
       name: parsedParams.client_name,
-      logo_url: parsedParams.logo_uri, // TODO: Fetch images ourselves to prevent malicious behavior
       team_name: parsedParams.client_name,
     },
   });
@@ -185,7 +183,6 @@ export default async function handleRegister(
       client_secret,
       client_secret_expires_at: 0,
       grant_types,
-      logo_uri: app.verified_app_logo,
 
       redirect_uris:
         insertRedirectsResponse.data?.insert_redirect.returning.map(
