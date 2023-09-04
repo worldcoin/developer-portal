@@ -89,7 +89,7 @@ describe("/api/v1/verify/[app_id]", () => {
       })
     );
 
-    // Send both requests at the same time
+    // Send all requests at the same time
     await Promise.all(requests.map(({ req, res }) => handleVerify(req, res)));
 
     // Only one of the requests should be successful
