@@ -260,7 +260,6 @@ export default async function handleOIDCAuthorize(
         },
         on_conflict: {
           constraint: "nullifier_pkey",
-          update_columns: ["credential_type", "action_id"],
         },
       },
     });
