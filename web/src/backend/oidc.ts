@@ -24,6 +24,7 @@ export enum OIDCScopes {
 }
 
 export enum OIDCErrorCodes {
+  InvalidRequest = "invalid_request", // RFC6749 OAuth 2.0 (4.1.2.1)
   UnsupportedResponseType = "unsupported_response_type", // RFC6749 OAuth 2.0 (4.1.2.1)
   InvalidScope = "invalid_scope", // RFC6749 OAuth 2.0 (4.1.2.1)
   InvalidRedirectURI = "invalid_redirect_uri", // Custom
@@ -68,6 +69,8 @@ type FetchOIDCAppResult = {
 export const insertAuthCodeQuery = gql`
   mutation InsertAuthCode(
     $auth_code: String!
+    $code_challenge: String
+    $code_challenge_method: String
     $expires_at: timestamptz!
     $nullifier_hash: String!
     $app_id: String!
@@ -78,6 +81,8 @@ export const insertAuthCodeQuery = gql`
     insert_auth_code_one(
       object: {
         auth_code: $auth_code
+        code_challenge: $code_challenge
+        code_challenge_method: $code_challenge_method
         expires_at: $expires_at
         nullifier_hash: $nullifier_hash
         app_id: $app_id
@@ -154,6 +159,8 @@ export const generateOIDCCode = async (
   nullifier_hash: string,
   credential_type: CredentialType,
   scope: OIDCScopes[],
+  code_challenge?: string,
+  code_challenge_method?: string,
   nonce?: string | null
 ): Promise<string> => {
   // Generate a random code
@@ -162,12 +169,18 @@ export const generateOIDCCode = async (
   const client = await getAPIServiceClient();
 
   const { data } = await client.mutate<{
-    insert_auth_code_one: { auth_code: string };
+    insert_auth_code_one: {
+      auth_code: string;
+      code_challenge?: string;
+      code_challenge_method?: string;
+    };
   }>({
     mutation: insertAuthCodeQuery,
     variables: {
       app_id,
       auth_code,
+      code_challenge,
+      code_challenge_method,
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
       credential_type,
