@@ -9,6 +9,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { createHash, timingSafeEqual } from "crypto";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { runCors } from "src/backend/cors";
 
 const findAuthCodeQuery = gql`
   query FindAuthCode(
@@ -59,6 +60,12 @@ export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (req.method === "OPTIONS") {
+    // This endpoint should only support CORS when using PKCE, but since preflight requests are
+    // not allowed to have a body, we can't check for the presence of the `code_verifier` param.
+    await runCors(req, res);
+  }
+
   if (!req.method || !["POST"].includes(req.method)) {
     return errorOIDCResponse(
       res,
