@@ -259,6 +259,7 @@ describe("/api/v1/oidc/token", () => {
     );
     expect(result.rowCount).toEqual(0);
   });
+
   test("prevent PKCE downgrade", async () => {
     const app_id = await testGetDefaultApp();
     const { client_secret } = await setClientSecret(app_id);
@@ -299,6 +300,55 @@ describe("/api/v1/oidc/token", () => {
       detail: "Missing code verifier.",
       error: "invalid_request",
       error_description: "Missing code verifier.",
+    });
+
+    // Verify that the auth code is not deleted
+    const result = await integrationDBExecuteQuery(
+      "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
+      [app_id, "83a313c5939399ba017d2381"]
+    );
+    expect(result.rowCount).toEqual(1);
+  });
+
+  test("error when PKCE not expected", async () => {
+    const app_id = await testGetDefaultApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // Insert a valid auth code with PKCE
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope) VALUES ($1, $2, $3, $4, $5)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+      ]
+    );
+
+    const { req, res } = createMocks({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+        code_verifier: "my_code_challenge",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+    expect(res._getJSONData()).toEqual({
+      code: "invalid_request",
+      error: "invalid_request",
+      attribute: "code_verifier",
+      detail: "Code verifier was not expected.",
+      error_description: "Code verifier was not expected.",
     });
 
     // Verify that the auth code is not deleted
