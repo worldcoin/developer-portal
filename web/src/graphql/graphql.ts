@@ -1558,6 +1558,7 @@ export type Auth_Code = {
   credential_type: Scalars["String"];
   expires_at: Scalars["timestamptz"];
   id: Scalars["String"];
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash: Scalars["String"];
   scope?: Maybe<Scalars["jsonb"]>;
   updated_at: Scalars["timestamptz"];
@@ -1607,6 +1608,7 @@ export type Auth_Code_Bool_Exp = {
   credential_type?: InputMaybe<String_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  nonce?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   scope?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1643,6 +1645,7 @@ export type Auth_Code_Insert_Input = {
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1659,6 +1662,7 @@ export type Auth_Code_Max_Fields = {
   credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -1674,6 +1678,7 @@ export type Auth_Code_Min_Fields = {
   credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -1704,6 +1709,7 @@ export type Auth_Code_Order_By = {
   credential_type?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   scope?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -1738,6 +1744,8 @@ export enum Auth_Code_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
+  Nonce = "nonce",
+  /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
   Scope = "scope",
@@ -1755,6 +1763,7 @@ export type Auth_Code_Set_Input = {
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1778,6 +1787,7 @@ export type Auth_Code_Stream_Cursor_Value_Input = {
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1801,6 +1811,8 @@ export enum Auth_Code_Update_Column {
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
+  /** column name */
+  Nonce = "nonce",
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
