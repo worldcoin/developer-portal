@@ -6,7 +6,7 @@ import { generateOIDCJWT } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createHash } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 
@@ -245,5 +245,5 @@ const verifyChallenge = (challenge: string, verifier: string) => {
     .replace(/\//g, "_")
     .replace(/=/g, "");
 
-  return challenge === hashedVerifier;
+  return timingSafeEqual(Buffer.from(challenge), Buffer.from(hashedVerifier));
 };
