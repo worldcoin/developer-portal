@@ -112,6 +112,8 @@ export interface AuthCodeModel {
   app_id: string;
   expires_at: DateTime;
   nullifier_hash: string;
+  code_challenge: string;
+  code_challenge_method: string;
   credential_type: CredentialType;
   scope: [];
   created_at: DateTime;

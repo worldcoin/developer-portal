@@ -43,6 +43,8 @@ const schema = yup.object({
     .oneOf(Object.values(CredentialType)),
   app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string(), // `signal` in the context of World ID; `nonce` in the context of OIDC
+  code_challenge: yup.string(),
+  code_challenge_method: yup.string(),
   scope: yup.string().strict().required("The openid scope is always required."),
   response_type: yup.string().strict().required("This attribute is required."),
   redirect_uri: yup.string().strict().required("This attribute is required."),
@@ -90,6 +92,8 @@ export default async function handleOIDCAuthorize(
     app_id,
     scope,
     redirect_uri,
+    code_challenge,
+    code_challenge_method,
   } = parsedParams;
 
   const response_types = decodeURIComponent(
@@ -106,6 +110,16 @@ export default async function handleOIDCAuthorize(
         req
       );
     }
+  }
+
+  if (code_challenge && code_challenge_method !== "S256") {
+    return errorValidation(
+      OIDCErrorCodes.InvalidRequest,
+      `Invalid code_challenge_method: ${code_challenge_method}.`,
+      "code_challenge_method",
+      res,
+      req
+    );
   }
 
   const scopes = decodeURIComponent(
@@ -195,6 +209,8 @@ export default async function handleOIDCAuthorize(
       nullifier_hash,
       credential_type,
       sanitizedScopes,
+      code_challenge,
+      code_challenge_method,
       shouldStoreSignal ? signal : null
     );
   }
