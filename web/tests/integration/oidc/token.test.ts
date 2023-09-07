@@ -301,11 +301,11 @@ describe("/api/v1/oidc/token", () => {
       error_description: "Missing code verifier.",
     });
 
-    // Verify that the auth code is deleted
+    // Verify that the auth code is not deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
       [app_id, "83a313c5939399ba017d2381"]
     );
-    expect(result.rowCount).toEqual(0);
+    expect(result.rowCount).toEqual(1);
   });
 });

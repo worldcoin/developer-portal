@@ -10,26 +10,42 @@ import { createHash } from "crypto";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 
-const verifyAuthCodeQuery = gql`
-  mutation VerifyAuthCode(
+const findAuthCodeQuery = gql`
+  query FindAuthCode(
+    $auth_code: String!
+    $app_id: String!
+    $now: timestamptz!
+  ) {
+    auth_code(
+      where: {
+        app_id: { _eq: $app_id }
+        expires_at: { _gt: $now }
+        auth_code: { _eq: $auth_code }
+      }
+    ) {
+      nullifier_hash
+      credential_type
+      scope
+      code_challenge
+      code_challenge_method
+    }
+  }
+`;
+
+const deleteAuthCodeQuery = gql`
+  mutation DeleteAuthCode(
     $auth_code: String!
     $app_id: String!
     $now: timestamptz!
   ) {
     delete_auth_code(
       where: {
-        auth_code: { _eq: $auth_code }
         app_id: { _eq: $app_id }
         expires_at: { _gt: $now }
+        auth_code: { _eq: $auth_code }
       }
     ) {
-      returning {
-        nullifier_hash
-        credential_type
-        scope
-        code_challenge
-        code_challenge_method
-      }
+      affected_rows
     }
   }
 `;
@@ -116,21 +132,19 @@ export default async function handleOIDCToken(
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
-  const { data } = await client.mutate<{
-    delete_auth_code: {
-      returning: Array<
-        Pick<
-          AuthCodeModel,
-          | "nullifier_hash"
-          | "credential_type"
-          | "scope"
-          | "code_challenge"
-          | "code_challenge_method"
-        >
-      >;
-    };
+  const { data } = await client.query<{
+    auth_code: Array<
+      Pick<
+        AuthCodeModel,
+        | "nullifier_hash"
+        | "credential_type"
+        | "scope"
+        | "code_challenge"
+        | "code_challenge_method"
+      >
+    >;
   }>({
-    mutation: verifyAuthCodeQuery,
+    query: findAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
@@ -138,7 +152,7 @@ export default async function handleOIDCToken(
     },
   });
 
-  const code = data?.delete_auth_code?.returning[0];
+  const code = data?.auth_code[0];
 
   if (!code) {
     return errorOIDCResponse(
@@ -165,6 +179,15 @@ export default async function handleOIDCToken(
 
     // We only support S256 method
     if (!verifyChallenge(code.code_challenge, req.body.code_verifier)) {
+      await client.mutate({
+        mutation: deleteAuthCodeQuery,
+        variables: {
+          auth_code,
+          app_id,
+          now,
+        },
+      });
+
       return errorOIDCResponse(
         res,
         400,
@@ -194,6 +217,15 @@ export default async function handleOIDCToken(
     credential_type: code.credential_type,
     ...jwk,
     scope: code.scope,
+  });
+
+  await client.mutate({
+    mutation: deleteAuthCodeQuery,
+    variables: {
+      auth_code,
+      app_id,
+      now,
+    },
   });
 
   return res.status(200).json({
