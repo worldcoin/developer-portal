@@ -127,8 +127,7 @@ export const fetchActionForProof = async (
   if (!result.data.app.length) {
     return {
       error: {
-        message:
-          "We couldn't find an app with this ID. App may be no longer active.",
+        message: "App not found. App may be no longer active.",
         code: "not_found",
         statusCode: 404,
       },
@@ -140,7 +139,7 @@ export const fetchActionForProof = async (
   if (!app.actions.length) {
     return {
       error: {
-        message: "We couldn't find the relevant action.",
+        message: "Action not found.",
         code: "invalid_action",
         statusCode: 400,
         attribute: "action",

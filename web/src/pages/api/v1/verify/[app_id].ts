@@ -88,17 +88,13 @@ export default async function handleVerify(
     );
   }
 
-  // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
-  if (action.action !== "") {
-    // NOTE: If `action != ""`, action is NOT for Sign in with World ID
-    if (!canVerifyForAction(nullifier, action.max_verifications)) {
-      // Return error response if person has already verified before and exceeded the max number of times to verify
-      const errorMsg =
-        action.max_verifications === 1
-          ? "This person has already verified for this action."
-          : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-      return errorValidation("already_verified", errorMsg, null, res, req);
-    }
+  if (!canVerifyForAction(nullifier, action.max_verifications)) {
+    // Return error response if person has already verified before and exceeded the max number of times to verify
+    const errorMsg =
+      action.max_verifications === 1
+        ? "This person has already verified for this action."
+        : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
+    return errorValidation("already_verified", errorMsg, null, res, req);
   }
 
   if (!action.external_nullifier) {
@@ -174,6 +170,20 @@ export default async function handleVerify(
           credential_type: parsedParams.credential_type,
         },
       });
+
+      if (
+        insertResponse.data.insert_nullifier_one.nullifier_hash !==
+        parsedParams.nullifier_hash
+      ) {
+        return errorResponse(
+          res,
+          400,
+          "verification_error",
+          "There was an error inserting the nullifier. Please try again.",
+          null,
+          req
+        );
+      }
 
       res.status(200).json({
         uses: 1,
