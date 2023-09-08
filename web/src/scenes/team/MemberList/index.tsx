@@ -18,7 +18,7 @@ export const MemberList = memo(function MemberList(props: MemberListProps) {
   const filteredMembers = useMemo(() => {
     if (!keyword) return members;
     return members.filter((member) => {
-      return member.name.includes(keyword) || member.email.includes(keyword);
+      return member.name.includes(keyword) || member.email?.includes(keyword);
     });
   }, [keyword, members]);
 
