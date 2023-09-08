@@ -65,9 +65,9 @@ export interface ActionModelWithNullifiers extends ActionModel {
 
 export interface NullifierModel {
   id: string;
-  uses: number;
   action_id: string;
   nullifier_hash: string;
+  merkle_root: string;
   created_at: DateTime;
   updated_at: DateTime;
   credential_type: CredentialType;

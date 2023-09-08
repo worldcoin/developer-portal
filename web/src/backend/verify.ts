@@ -24,7 +24,7 @@ const KNOWN_ERROR_CODES = [
   },
 ];
 
-export interface IInputParams {
+interface IInputParams {
   merkle_root: string;
   signal: string;
   nullifier_hash: string;
@@ -32,7 +32,7 @@ export interface IInputParams {
   proof: string;
 }
 
-export interface IVerifyParams {
+interface IVerifyParams {
   is_staging: boolean;
   credential_type: CredentialType;
 }
@@ -48,8 +48,6 @@ interface IAppAction {
       status: string;
       external_nullifier: string;
       nullifiers: {
-        uses: number;
-        created_at: string;
         nullifier_hash: string;
       }[];
       max_verifications: number;
@@ -80,8 +78,6 @@ const queryFetchAppAction = gql`
         external_nullifier
         status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-          uses
-          created_at
           nullifier_hash
         }
       }
@@ -127,7 +123,8 @@ export const fetchActionForProof = async (
   if (!result.data.app.length) {
     return {
       error: {
-        message: "App not found. App may be no longer active.",
+        message:
+          "We couldn't find an app with this ID. App may be no longer active.",
         code: "not_found",
         statusCode: 404,
       },
@@ -139,7 +136,7 @@ export const fetchActionForProof = async (
   if (!app.actions.length) {
     return {
       error: {
-        message: "Action not found.",
+        message: "We couldn't find the relevant action.",
         code: "invalid_action",
         statusCode: 400,
         attribute: "action",
@@ -159,12 +156,7 @@ export const fetchActionForProof = async (
   }
 
   return {
-    app: {
-      ...app,
-      actions: undefined,
-      action: app.actions[0],
-      nullifier: app.actions[0]?.nullifiers?.[0],
-    },
+    app: { ...app, action: app.actions[0], actions: undefined },
   };
 };
 

@@ -8,10 +8,7 @@ import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
 
-type _Nullifier = Pick<
-  NullifierModel,
-  "nullifier_hash" | "uses" | "__typename"
->;
+type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
 interface _Action
   extends Pick<
     ActionModel,
@@ -24,7 +21,7 @@ interface _Action
     | "status"
     | "__typename"
   > {
-  nullifiers: [_Nullifier] | [];
+  nullifiers: _Nullifier[];
 }
 
 interface _App
@@ -73,7 +70,6 @@ const appPrecheckQuery = gql`
         max_accounts_per_user
         status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-          uses
           nullifier_hash
         }
       }
@@ -155,8 +151,8 @@ export default async function handlePrecheck(
     query: appPrecheckQuery,
     variables: {
       app_id,
-      nullifier_hash,
       external_nullifier,
+      nullifier_hash,
     },
   });
 
@@ -191,8 +187,8 @@ export default async function handlePrecheck(
         mutation: createActionQuery,
         variables: {
           app_id,
-          action,
           external_nullifier,
+          action,
         },
         errorPolicy: "none",
       });
@@ -227,15 +223,15 @@ export default async function handlePrecheck(
     );
   }
 
-  const nullifier = actionItem.nullifiers?.[0];
+  const nullifiers = actionItem.nullifiers;
 
   const response = {
     ...app,
-    actions: undefined,
     logo_url: "",
     sign_in_with_world_id: action === "",
-    action: { ...actionItem, nullifiers: undefined },
     can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
+    action: { ...actionItem, nullifiers: undefined },
+    actions: undefined,
   };
 
   if (app.engine === EngineType.OnChain) {
@@ -250,7 +246,7 @@ export default async function handlePrecheck(
     // ANCHOR: If a nullifier hash is provided, determine if the user can verify
     if (nullifier_hash && response.action) {
       response.can_user_verify = canVerifyForAction(
-        nullifier,
+        nullifiers,
         response.action.max_verifications
       )
         ? CanUserVerifyType.Yes

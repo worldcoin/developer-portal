@@ -16,7 +16,7 @@ export type TeamsQuery = {
       __typename?: "user";
       id: string;
       name: string;
-      email?: string | null;
+      email: string;
     }>;
   }>;
 };
