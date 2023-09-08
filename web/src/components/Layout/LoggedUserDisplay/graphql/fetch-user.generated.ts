@@ -13,7 +13,7 @@ export type FetchUserQuery = {
   user: Array<{
     __typename?: "user";
     id: string;
-    email?: string | null;
+    email: string;
     name: string;
     team: { __typename?: "team"; id: string; name?: string | null };
   }>;

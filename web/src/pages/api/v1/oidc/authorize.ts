@@ -23,12 +23,9 @@ import { logger } from "src/lib/logger";
 import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
-const UpsertNullifier = gql`
-  mutation UpsertNullifier(
-    $object: nullifier_insert_input!
-    $on_conflict: nullifier_on_conflict!
-  ) {
-    insert_nullifier_one(object: $object, on_conflict: $on_conflict) {
+const InsertNullifier = gql`
+  mutation SaveNullifier($object: nullifier_insert_input!) {
+    insert_nullifier_one(object: $object) {
       id
       nullifier_hash
     }
@@ -251,15 +248,13 @@ export default async function handleOIDCAuthorize(
         nullifier_hash: string;
       };
     }>({
-      mutation: UpsertNullifier,
+      mutation: InsertNullifier,
       variables: {
         object: {
           nullifier_hash,
+          merkle_root,
           credential_type,
           action_id: app.action_id,
-        },
-        on_conflict: {
-          constraint: "nullifier_pkey",
         },
       },
     });
