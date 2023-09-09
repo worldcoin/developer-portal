@@ -137,7 +137,7 @@ export default async function handleOIDCToken(
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
-  const { data } = await client.query<{
+  const { data } = await client.mutate<{
     auth_code: Array<
       Pick<
         AuthCodeModel,
@@ -149,7 +149,7 @@ export default async function handleOIDCToken(
       >
     >;
   }>({
-    query: findAuthCodeQuery,
+    mutation: findAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
