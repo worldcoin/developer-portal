@@ -60,9 +60,7 @@ export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === "OPTIONS") {
-    // This endpoint should only support CORS when using PKCE, but since preflight requests are
-    // not allowed to have a body, we can't check for the presence of the `code_verifier` param.
+  if (req.method === "OPTIONS" || req.body.code_verifier) {
     await runCors(req, res);
   }
 
