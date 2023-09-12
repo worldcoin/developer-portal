@@ -2,7 +2,7 @@ BEGIN;
 
 ALTER TABLE "public"."nullifier"
     DROP CONSTRAINT unique_nullifier_hash,
-    ADD COLUMN "merkle_root" TEXT;
+    ADD COLUMN "merkle_root" TEXT NOT NULL;
 
 DO $$
 DECLARE

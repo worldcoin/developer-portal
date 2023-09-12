@@ -4,30 +4,29 @@ ALTER TABLE "public"."nullifier"
     DROP COLUMN "merkle_root",
     ADD COLUMN uses INT DEFAULT 1;
 
+-- for each nullifier_hash, get the earliest id and the count of records
 WITH duplicates AS (
-  SELECT nullifier_hash, MIN(id) AS min_id, COUNT(*) AS cnt
+  SELECT nullifier_hash, MIN(created_at) AS min_created_at, COUNT(*) AS cnt
   FROM "public"."nullifier"
   GROUP BY nullifier_hash
   HAVING COUNT(*) > 1
+), earliest AS (
+  SELECT id, nullifier_hash, created_at
+  FROM "public"."nullifier"
+  WHERE (nullifier_hash, created_at) IN (SELECT nullifier_hash, min_created_at FROM duplicates)
 )
+-- update the main nullifier_hash record with the appropriate number of uses
 UPDATE "public"."nullifier"
 SET uses = duplicates.cnt
-FROM duplicates
-WHERE "public"."nullifier"."nullifier_hash" = duplicates.nullifier_hash
-AND "public"."nullifier"."id" = duplicates.min_id;
+FROM duplicates, earliest
+WHERE "public"."nullifier".id = earliest.id
+AND earliest.nullifier_hash = duplicates.nullifier_hash;
 
-WITH duplicates AS (
-  SELECT nullifier_hash, MIN(id) AS min_id
-  FROM "public"."nullifier"
-  GROUP BY nullifier_hash
-  HAVING COUNT(*) > 1
-)
+-- remove all but the earliest record for each nullifier_hash
 DELETE FROM "public"."nullifier"
-WHERE (nullifier_hash, id) NOT IN (
-  SELECT duplicates.nullifier_hash, duplicates.min_id
-  FROM duplicates
-);
+WHERE id NOT IN (SELECT id FROM earliest);
 
+-- add the uniqueness constraint
 ALTER TABLE "public"."nullifier" ADD CONSTRAINT unique_nullifier_hash UNIQUE(nullifier_hash);
 
 COMMIT;
