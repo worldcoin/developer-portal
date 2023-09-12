@@ -4,7 +4,7 @@ ALTER TABLE "public"."nullifier"
     DROP COLUMN "merkle_root",
     ADD COLUMN uses INT DEFAULT 1;
 
-CREATE TEMPORARY TABLE duplicates AS (
+CREATE TEMPORARY TABLE duplicates ON COMMIT DROP AS (
   SELECT nullifier_hash, MIN(created_at) AS min_created_at, COUNT(*) AS cnt
   FROM "public"."nullifier"
   GROUP BY nullifier_hash
@@ -12,7 +12,7 @@ CREATE TEMPORARY TABLE duplicates AS (
 );
 
 -- get the earliest record for each nullifier_hash
-CREATE TEMPORARY TABLE earliest AS (
+CREATE TEMPORARY TABLE earliest ON COMMIT DROP AS (
   SELECT id, nullifier_hash, created_at
   FROM "public"."nullifier"
   WHERE (nullifier_hash, created_at) IN (SELECT nullifier_hash, min_created_at FROM duplicates)
@@ -27,6 +27,7 @@ AND earliest.nullifier_hash = duplicates.nullifier_hash;
 
 -- remove all but the earliest record for each nullifier_hash
 DELETE FROM "public"."nullifier"
+WHERE nullifier_hash IN (SELECT nullifier_hash FROM duplicates)
 WHERE id NOT IN (SELECT id FROM earliest);
 
 -- add the uniqueness constraint
