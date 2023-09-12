@@ -28,7 +28,7 @@ AND earliest.nullifier_hash = duplicates.nullifier_hash;
 -- remove all but the earliest record for each nullifier_hash
 DELETE FROM "public"."nullifier"
 WHERE nullifier_hash IN (SELECT nullifier_hash FROM duplicates)
-WHERE id NOT IN (SELECT id FROM earliest);
+AND id NOT IN (SELECT id FROM earliest);
 
 -- add the uniqueness constraint
 ALTER TABLE "public"."nullifier" ADD CONSTRAINT unique_nullifier_hash UNIQUE(nullifier_hash);
