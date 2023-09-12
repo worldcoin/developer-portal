@@ -4,17 +4,20 @@ ALTER TABLE "public"."nullifier"
     DROP COLUMN "merkle_root",
     ADD COLUMN uses INT DEFAULT 1;
 
--- for each nullifier_hash, get the earliest id and the count of records
-WITH duplicates AS (
+CREATE TEMPORARY TABLE duplicates AS (
   SELECT nullifier_hash, MIN(created_at) AS min_created_at, COUNT(*) AS cnt
   FROM "public"."nullifier"
   GROUP BY nullifier_hash
   HAVING COUNT(*) > 1
-), earliest AS (
+);
+
+-- get the earliest record for each nullifier_hash
+CREATE TEMPORARY TABLE earliest AS (
   SELECT id, nullifier_hash, created_at
   FROM "public"."nullifier"
   WHERE (nullifier_hash, created_at) IN (SELECT nullifier_hash, min_created_at FROM duplicates)
-)
+);
+
 -- update the main nullifier_hash record with the appropriate number of uses
 UPDATE "public"."nullifier"
 SET uses = duplicates.cnt
