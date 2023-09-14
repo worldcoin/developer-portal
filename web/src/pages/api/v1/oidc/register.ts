@@ -6,6 +6,7 @@ import { generateHashedSecret } from "src/backend/utils";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { validateUrl } from "src/lib/utils";
 
 const insertClientQuery = gql`
   mutation InsertClient(
@@ -28,10 +29,19 @@ const insertClientQuery = gql`
 `;
 
 const updateSecretQuery = gql`
-  mutation UpdateSecret($app_id: String = "", $client_secret: String = "") {
+  mutation UpdateSecret(
+    $app_id: String = ""
+    $client_secret: String = ""
+    $privacy_policy_uri: String
+    $terms_uri: String
+  ) {
     update_action(
       where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
-      _set: { client_secret: $client_secret }
+      _set: {
+        client_secret: $client_secret
+        privacy_policy_uri: $privacy_policy_uri
+        terms_uri: $terms_uri
+      }
     ) {
       returning {
         id
@@ -68,6 +78,18 @@ const schema = yup.object({
     .array()
     .of(yup.string().strict().required())
     .required("This attribute is required."),
+  privacy_policy_uri: yup
+    .string()
+    .strict()
+    .test("is-url", "Must be a valid URL", (value) => {
+      return value != null ? validateUrl(value) : true;
+    }),
+  terms_uri: yup
+    .string()
+    .strict()
+    .test("is-url", "Must be a valid URL", (value) => {
+      return value != null ? validateUrl(value) : true;
+    }),
 });
 
 /**
@@ -135,6 +157,8 @@ export default async function handleRegister(
     variables: {
       app_id,
       client_secret: hashed_secret,
+      privacy_policy_uri: parsedParams.privacy_policy_uri,
+      terms_uri: parsedParams.terms_uri,
     },
   });
 

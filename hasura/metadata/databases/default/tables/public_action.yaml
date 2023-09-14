@@ -65,7 +65,9 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
 select_permissions:
   - role: analytics
     permission:
@@ -129,7 +131,9 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
         - updated_at
       filter:
         app:
@@ -156,6 +160,8 @@ update_permissions:
       columns:
         - client_secret
         - external_nullifier
+        - privacy_policy_uri
+        - terms_uri
       filter: {}
       check: null
   - role: user
@@ -166,7 +172,9 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
       filter:
         app:
           team:

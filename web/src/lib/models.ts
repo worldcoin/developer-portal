@@ -54,6 +54,8 @@ export interface ActionModel {
   updated_at: DateTime;
   kiosk_enabled: boolean;
   status: "active" | "inactive"; // TODO: need add constraint for status field in hasura (or use boolean)
+  terms_uri: string;
+  privacy_policy_uri: string;
   __typename: "action";
 }
 

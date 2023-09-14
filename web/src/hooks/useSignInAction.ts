@@ -17,6 +17,8 @@ const actionFields = `
     id
     app_id
     status
+    privacy_policy_uri
+    terms_uri
 `;
 
 const FetchActionQuery = gql`
@@ -28,7 +30,8 @@ const FetchActionQuery = gql`
 `;
 
 const UpdateActionMutation = gql`
-  mutation UpdateAction($id: String!, $status: String!) {    update_action_by_pk(pk_columns: { id: $id }, _set: { status: $status }) {
+  mutation UpdateAction($id: String!, $changes: action_set_input) {
+    update_action_by_pk(pk_columns: { id: $id }, _set: $changes) {
       ${actionFields}
     }
   }
@@ -106,9 +109,17 @@ const fetchAction = async (_key: [string, string | undefined]) => {
 
 const updateActionFetcher = async (
   _key: [string, string | undefined],
-  args: { arg: { status: ActionModel["status"] } }
+  args: {
+    arg: {
+      changes: {
+        status?: ActionModel["status"];
+        terms_uri?: ActionModel["terms_uri"];
+        privacy_policy_uri?: ActionModel["privacy_policy_uri"];
+      };
+    };
+  }
 ) => {
-  const { status } = args.arg;
+  const { changes } = args.arg;
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
@@ -121,7 +132,7 @@ const updateActionFetcher = async (
     query: UpdateActionMutation,
     variables: {
       id: currentAction.id,
-      status,
+      changes,
     },
   });
 
