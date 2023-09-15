@@ -72,6 +72,8 @@ const appPrecheckQuery = gql`
         max_verifications
         max_accounts_per_user
         status
+        privacy_policy_uri
+        terms_uri
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
           uses
           nullifier_hash
