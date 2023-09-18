@@ -76,7 +76,7 @@ const schema = yup.object({
   response_types: yup.string().default("code"),
   redirect_uris: yup
     .array()
-    .of(yup.string().strict().required())
+    .of(yup.string())
     .required("This attribute is required."),
   privacy_policy_uri: yup
     .string()
@@ -118,7 +118,7 @@ export default async function handleRegister(
   // ANCHOR: Parse redirect_uris into array and validate
   for (const redirect in parsedParams.redirect_uris) {
     try {
-      const url = new URL(redirect);
+      const url = new URL(parsedParams.redirect_uris[redirect] ?? "");
       if (url.protocol !== "https:") {
         return res.status(400).json({
           error: "invalid_redirect_uri",
