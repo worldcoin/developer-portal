@@ -48,7 +48,7 @@ const updateSecretQuery = gql`
         app {
           id
           name
-          logo_url
+          verified_app_logo
           created_at
         }
       }
@@ -76,7 +76,7 @@ const schema = yup.object({
   response_types: yup.string().default("code"),
   redirect_uris: yup
     .array()
-    .of(yup.string())
+    .of(yup.string().strict().required())
     .required("This attribute is required."),
   privacy_policy_uri: yup
     .string()
