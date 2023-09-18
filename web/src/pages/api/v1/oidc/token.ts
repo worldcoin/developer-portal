@@ -99,7 +99,12 @@ export default async function handleOIDCToken(
     }
   }
 
-  if (!authToken) {
+  let app_id: string | null;
+  if (authToken) {
+    app_id = await authenticateOIDCEndpoint(authToken);
+  } else if (req.body.code_verifier) {
+    app_id = req.body.client_id;
+  } else {
     return errorOIDCResponse(
       res,
       401,
@@ -109,9 +114,6 @@ export default async function handleOIDCToken(
       req
     );
   }
-
-  let app_id: string | null;
-  app_id = await authenticateOIDCEndpoint(authToken);
 
   if (!app_id) {
     return errorOIDCResponse(
