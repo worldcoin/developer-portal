@@ -108,9 +108,9 @@ export default async function handleRegister(
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
-  for (const redirect in parsedParams.redirect_uris) {
+  for (const redirect of parsedParams.redirect_uris) {
     try {
-      const url = new URL(parsedParams.redirect_uris[redirect] ?? "");
+      const url = new URL(redirect ?? "");
       if (url.protocol !== "https:") {
         return res.status(400).json({
           error: "invalid_redirect_uri",
