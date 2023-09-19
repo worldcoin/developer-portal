@@ -21,8 +21,8 @@ const insertClientQuery = gql`
   }
 `;
 
-const updateSecretQuery = gql`
-  mutation UpdateSecret(
+const updateSigninActionQuery = gql`
+  mutation UpdateSigninAction(
     $app_id: String = ""
     $client_secret: String = ""
     $privacy_policy_uri: String
@@ -144,8 +144,8 @@ export default async function handleRegister(
   const app_id = insertClientResponse.data.insert_team_one.apps[0].id;
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
-  const updateSecretResponse = await client.mutate({
-    mutation: updateSecretQuery,
+  const updateSigninActionResponse = await client.mutate({
+    mutation: updateSigninActionQuery,
     variables: {
       app_id,
       client_secret: hashed_secret,
@@ -154,7 +154,7 @@ export default async function handleRegister(
     },
   });
 
-  const updatedAction = updateSecretResponse?.data?.update_action?.returning[0];
+  const updatedAction = updateSigninActionResponse?.data?.update_action?.returning[0];
 
   // Insert redirects
   const insertRedirectsResponse = await client.mutate<{
@@ -189,8 +189,8 @@ export default async function handleRegister(
 
   const { application_type, grant_types, response_types } = parsedParams;
 
-  if (updateSecretResponse?.data?.update_action?.returning?.length) {
-    const app = updateSecretResponse.data.update_action.returning[0].app;
+  if (updateSigninActionResponse?.data?.update_action?.returning?.length) {
+    const app = updateSigninActionResponse.data.update_action.returning[0].app;
     res.status(201).json({
       application_type,
       client_id: app.id,
