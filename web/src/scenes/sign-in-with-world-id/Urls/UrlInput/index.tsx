@@ -25,7 +25,7 @@ export function UrlInput(props: UrlInputProps) {
 
   const handleKeyboard = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" || e.key === "Tab") {
+      if (e.key === "Enter") {
         submit();
       }
     },
