@@ -302,6 +302,7 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setAction(data);
+          toast.success("Action updated");
         }
       },
     }
