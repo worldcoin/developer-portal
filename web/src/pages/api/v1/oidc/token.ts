@@ -103,6 +103,8 @@ export default async function handleOIDCToken(
   if (authToken) {
     app_id = await authenticateOIDCEndpoint(authToken);
   } else if (req.body.code_verifier) {
+    // NOTE: Public clients (e.g. SPAs) are not required to pass a client secret (as they cannot maintain confidentiality of their secret). For Sign in with Worldcoin we only support public clients with PKCE.
+    // REFERENCE: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
     app_id = req.body.client_id;
   } else {
     return errorOIDCResponse(
