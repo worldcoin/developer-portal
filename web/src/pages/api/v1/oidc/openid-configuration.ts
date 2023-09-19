@@ -37,5 +37,9 @@ export default async function handleOidcConfig(
       "id_token token", // Implicit flow
       "code id_token", // Hybrid flow
     ],
+    token_endpoint_auth_methods_supported: [
+      "client_secret_basic",
+      "client_secret_post",
+    ],
   });
 }
