@@ -9,16 +9,9 @@ import { validateRequestSchema } from "src/backend/utils";
 import { validateUrl } from "src/lib/utils";
 
 const insertClientQuery = gql`
-  mutation InsertClient(
-    $name: String = ""
-    $logo_url: String = ""
-    $team_name: String = ""
-  ) {
+  mutation InsertClient($name: String = "", $team_name: String = "") {
     insert_team_one(
-      object: {
-        apps: { data: { name: $name, logo_url: $logo_url } }
-        name: $team_name
-      }
+      object: { apps: { data: { name: $name } }, name: $team_name }
     ) {
       apps {
         id
@@ -48,7 +41,6 @@ const updateSecretQuery = gql`
         app {
           id
           name
-          verified_app_logo
           created_at
         }
       }
