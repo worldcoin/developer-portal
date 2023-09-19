@@ -11,9 +11,12 @@ interface UrlInputProps {
 }
 
 const schema = yup.object({
-  url: yup.string().required().test("is-url", "Must be a valid URL", (value) => {
-    return value != null ? validateUrl(value) : true;
-  }),
+  url: yup
+    .string()
+    .required()
+    .test("is-url", "Must be a valid URL", (value) => {
+      return value != null ? validateUrl(value) : true;
+    }),
 });
 
 type UrlFormValues = yup.InferType<typeof schema>;
@@ -40,7 +43,7 @@ export function UrlInput(props: UrlInputProps) {
     <form onSubmit={handleSave}>
       <FieldInput
         className={cn("w-full", { "border-danger/75": !isValid })}
-        {...register("url", { onBlur:handleSave })}
+        {...register("url", { onBlur: handleSave })}
       />
     </form>
   );
