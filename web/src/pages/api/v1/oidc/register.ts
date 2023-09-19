@@ -154,7 +154,8 @@ export default async function handleRegister(
     },
   });
 
-  const updatedAction = updateSigninActionResponse?.data?.update_action?.returning[0];
+  const updatedAction =
+    updateSigninActionResponse?.data?.update_action?.returning[0];
 
   // Insert redirects
   const insertRedirectsResponse = await client.mutate<{
