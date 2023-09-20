@@ -1975,6 +1975,18 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "redirects",
             "description": "An array relationship",
             "args": [
@@ -2180,6 +2192,18 @@
                 "name": "String",
                 "ofType": null
               }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -3184,6 +3208,18 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "redirects",
             "description": null,
             "type": {
@@ -3209,6 +3245,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -3475,6 +3523,18 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "redirects",
             "description": null,
             "type": {
@@ -3488,6 +3548,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -3653,7 +3725,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "args": [],
             "type": {
@@ -3821,7 +3917,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -3987,7 +4107,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "args": [],
             "type": {
@@ -4155,7 +4299,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -4511,6 +4679,18 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "redirects_aggregate",
             "description": null,
             "type": {
@@ -4524,6 +4704,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -4659,7 +4851,19 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -4858,7 +5062,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -5286,7 +5514,31 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -5465,7 +5717,19 @@
             "deprecationReason": null
           },
           {
+            "name": "privacy_policy_uri",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "terms_uri",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -21310,22 +21574,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "args": [],
@@ -22051,18 +22299,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "type": {
@@ -22216,18 +22452,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "type": {
@@ -22311,18 +22535,6 @@
           },
           {
             "name": "id",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "merkle_root",
             "description": null,
             "args": [],
             "type": {
@@ -22430,18 +22642,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "type": {
@@ -22525,18 +22725,6 @@
           },
           {
             "name": "id",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "merkle_root",
             "description": null,
             "args": [],
             "type": {
@@ -22633,18 +22821,6 @@
           },
           {
             "name": "id",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "merkle_root",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -22877,18 +23053,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "type": {
@@ -22989,12 +23153,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": "column name",
             "isDeprecated": false,
@@ -23059,18 +23217,6 @@
           },
           {
             "name": "id",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "merkle_root",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -23354,18 +23500,6 @@
             "deprecationReason": null
           },
           {
-            "name": "merkle_root",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "nullifier_hash",
             "description": null,
             "type": {
@@ -23480,12 +23614,6 @@
           },
           {
             "name": "id",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "merkle_root",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
