@@ -35,7 +35,7 @@ export function UrlInput(props: UrlInputProps) {
     },
   });
 
-  const handleSave = handleSubmit((data, event) => {
+  const handleSave = handleSubmit((data) => {
     props.onChange(data.url);
   });
 
