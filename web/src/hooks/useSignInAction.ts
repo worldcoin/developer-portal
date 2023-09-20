@@ -54,8 +54,8 @@ const FetchRedirectsQuery = gql`
 `;
 
 const InsertRedirectMutation = gql`
-  mutation InsertRedirect($action_id: String!) {
-    insert_redirect_one(object: { action_id: $action_id, redirect_uri: "" }) {
+  mutation InsertRedirect($action_id: String!, $uri: String!) {
+    insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
       ${redirectFields}
     }
   }
@@ -166,12 +166,21 @@ const fetchRedirects = async () => {
   throw new Error("Error fetching redirects");
 };
 
-const addRedirectFetcher = async (_key: [string, string | undefined]) => {
+const addRedirectFetcher = async (
+  _key: [string, string | undefined],
+  args: {
+    arg: {
+      uri: RedirectModel["redirect_uri"];
+    };
+  }
+) => {
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
     return;
   }
+
+  const { uri } = args.arg;
 
   const response = await graphQLRequest<{
     insert_redirect_one: RedirectModel;
@@ -179,6 +188,7 @@ const addRedirectFetcher = async (_key: [string, string | undefined]) => {
     query: InsertRedirectMutation,
     variables: {
       action_id: currentAction.id,
+      uri,
     },
   });
 
@@ -323,8 +333,7 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          // TODO: do not save the redirect before the user populates the uri
-          //toast.success("Redirect added");
+          toast.success("Redirect added");
         }
       },
     }
