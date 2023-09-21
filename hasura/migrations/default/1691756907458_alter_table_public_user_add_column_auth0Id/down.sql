@@ -1,4 +1,1 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."user" add column "auth0Id" varchar
---  null unique;
+alter table "public"."user" drop column "auth0Id";
