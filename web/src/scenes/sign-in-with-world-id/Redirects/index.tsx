@@ -44,9 +44,8 @@ export const Redirects = memo(function Redirects() {
           <RedirectInput
             value=""
             onChange={(value) => {
-              addRedirect({ uri: value }).then(() => {
-                setAddRedirectFormShown(false);
-              });
+              setAddRedirectFormShown(false);
+              addRedirect({ uri: value });
             }}
             onDelete={() => setAddRedirectFormShown(false)}
           />

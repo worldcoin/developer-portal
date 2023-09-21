@@ -47,7 +47,7 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
+    redirect(where: {action_id: {_eq: $action_id}}, order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
@@ -319,12 +319,17 @@ const useSignInAction = () => {
   );
 
   const {
+    mutate: mutateRedirects,
     data: redirects,
     error: redirectsError,
     isLoading: redirectsIsLoading,
-  } = useSWR<Array<RedirectModel>>(["redirect", _action?.id], fetchRedirects, {
-    onSuccess: (data) => setCurrentRedirects(data),
-  });
+  } = useSWR<Array<Pick<RedirectModel, "id" | "redirect_uri">>>(
+    ["redirect", _action?.id],
+    fetchRedirects,
+    {
+      onSuccess: (data) => setCurrentRedirects(data),
+    }
+  );
 
   const { trigger: addRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -338,6 +343,16 @@ const useSignInAction = () => {
       },
     }
   );
+
+  const addRedirectOptimistic = async ({
+    uri,
+  }: {
+    uri: RedirectModel["redirect_uri"];
+  }) => {
+    const newRedirects = [...(redirects ?? []), { id: "", redirect_uri: uri }];
+    await mutateRedirects(newRedirects, false);
+    return addRedirect({ uri });
+  };
 
   const { trigger: updateRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -402,7 +417,7 @@ const useSignInAction = () => {
     redirects,
     redirectsError,
     redirectsIsLoading,
-    addRedirect,
+    addRedirect: addRedirectOptimistic,
     updateRedirect,
     deleteRedirect,
 
