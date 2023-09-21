@@ -341,6 +341,8 @@ const useSignInAction = () => {
           toast.success("Redirect added");
         }
       },
+
+      onError: () => toast.error("Error while adding redirect"),
     }
   );
 
