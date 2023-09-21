@@ -1,8 +1,10 @@
 import { createMocks } from "node-mocks-http";
 import handlePrecheck from "../../src/pages/api/v1/precheck/[app_id]";
+import { Nullifier } from "src/graphql/graphql";
 
 const requestReturnFn = jest.fn();
 
+type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
 const appPayload = {
   id: "app_staging_6d1c9fb86751a40d952749022db1c1",
   name: "The Yellow App",
@@ -19,7 +21,7 @@ const appPayload = {
         "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
       max_verifications: 1,
       max_accounts_per_user: 1,
-      nullifiers: [] as Record<string, string>[],
+      nullifiers: [] as [_Nullifier] | [],
     },
   ],
 };
@@ -89,7 +91,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const mockedResponse = { ...appPayload };
-    mockedResponse.actions[0].nullifiers = [{ nullifier_hash: "0x123" }];
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
 
     requestReturnFn.mockResolvedValue({
       data: {
@@ -111,6 +115,37 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
   });
 
+  test("can fetch precheck response without nullifier", async () => {
+    // This is used to check if a specific person has already verified for an action
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: { ...exampleValidRequestPayload, nullifier_hash: undefined },
+    });
+
+    const mockedResponse = { ...appPayload };
+    mockedResponse.actions[0].nullifiers = [];
+
+    requestReturnFn.mockResolvedValue({
+      data: {
+        app: [mockedResponse],
+      },
+    });
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      engine: "cloud",
+      sign_in_with_world_id: false,
+      can_user_verify: "undetermined",
+      action: {
+        max_verifications: 1,
+      },
+    });
+  });
+
   test("precheck with nullifier and below max number of verifications", async () => {
     const { req, res } = createMocks({
       method: "POST",
@@ -119,7 +154,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const mockedResponse = { ...appPayload };
-    mockedResponse.actions[0].nullifiers = [{ nullifier_hash: "0x123" }];
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
     mockedResponse.actions[0].max_verifications = 2;
 
     requestReturnFn.mockResolvedValue({
@@ -151,8 +188,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
-      { nullifier_hash: "0x123" },
-      { nullifier_hash: "0x123" },
+      { nullifier_hash: "0x123", uses: 2 },
     ];
     mockedResponse.actions[0].max_verifications = 2;
 

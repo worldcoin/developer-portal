@@ -4,6 +4,7 @@ import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
 import {
   CredentialType,
   IInternalError,
+  OIDCFlowType,
   OIDCResponseType,
 } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
@@ -23,6 +24,7 @@ export enum OIDCScopes {
 }
 
 export enum OIDCErrorCodes {
+  InvalidRequest = "invalid_request", // RFC6749 OAuth 2.0 (4.1.2.1)
   UnsupportedResponseType = "unsupported_response_type", // RFC6749 OAuth 2.0 (4.1.2.1)
   InvalidScope = "invalid_scope", // RFC6749 OAuth 2.0 (4.1.2.1)
   InvalidRedirectURI = "invalid_redirect_uri", // Custom
@@ -67,23 +69,30 @@ type FetchOIDCAppResult = {
 export const insertAuthCodeQuery = gql`
   mutation InsertAuthCode(
     $auth_code: String!
+    $code_challenge: String
+    $code_challenge_method: String
     $expires_at: timestamptz!
     $nullifier_hash: String!
     $app_id: String!
     $credential_type: String!
     $scope: jsonb!
+    $nonce: String
   ) {
     insert_auth_code_one(
       object: {
         auth_code: $auth_code
+        code_challenge: $code_challenge
+        code_challenge_method: $code_challenge_method
         expires_at: $expires_at
         nullifier_hash: $nullifier_hash
         app_id: $app_id
         credential_type: $credential_type
         scope: $scope
+        nonce: $nonce
       }
     ) {
       auth_code
+      nonce
     }
   }
 `;
@@ -149,7 +158,10 @@ export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
   credential_type: CredentialType,
-  scope: OIDCScopes[]
+  scope: OIDCScopes[],
+  code_challenge?: string,
+  code_challenge_method?: string,
+  nonce?: string | null
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -157,16 +169,23 @@ export const generateOIDCCode = async (
   const client = await getAPIServiceClient();
 
   const { data } = await client.mutate<{
-    insert_auth_code_one: { auth_code: string };
+    insert_auth_code_one: {
+      auth_code: string;
+      code_challenge?: string;
+      code_challenge_method?: string;
+    };
   }>({
     mutation: insertAuthCodeQuery,
     variables: {
       app_id,
       auth_code,
+      code_challenge,
+      code_challenge_method,
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
       credential_type,
       scope,
+      nonce,
     },
   });
 
@@ -241,3 +260,44 @@ export const authenticateOIDCEndpoint = async (
 
   return app_id;
 };
+
+export function checkFlowType(responseTypes: string[]) {
+  const includesAll = (requiredParams: string[]): boolean => {
+    return requiredParams.every((param) => responseTypes.includes(param));
+  };
+
+  // NOTE: List of valid response types for the hybrid flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth:~:text=this%20value%20is%20code%C2%A0id_token%2C%20code%C2%A0token%2C%20or%20code%C2%A0id_token%C2%A0token.
+  if (
+    includesAll([OIDCResponseType.Code, OIDCResponseType.IdToken]) ||
+    includesAll([OIDCResponseType.Code, OIDCResponseType.Token]) ||
+    includesAll([
+      OIDCResponseType.Code,
+      OIDCResponseType.IdToken,
+      OIDCResponseType.Token,
+    ])
+  ) {
+    return OIDCFlowType.Hybrid;
+  }
+
+  // NOTE: List of valid response types for the code flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth:~:text=Authorization%20Code%20Flow%2C-,this%20value%20is%20code.,-client_id
+  if (includesAll([OIDCResponseType.Code])) {
+    return OIDCFlowType.AuthorizationCode;
+  }
+
+  // NOTE: List of valid response types for the implicit flow
+  // Source: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth:~:text=this%20value%20is%20id_token%C2%A0token%20or%20id_token
+  if (
+    includesAll([OIDCResponseType.IdToken]) ||
+    includesAll([OIDCResponseType.IdToken, OIDCResponseType.Token])
+  ) {
+    return OIDCFlowType.Implicit;
+  }
+
+  if (includesAll([OIDCResponseType.Token])) {
+    return OIDCFlowType.Token;
+  }
+
+  return null;
+}

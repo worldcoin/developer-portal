@@ -122,11 +122,13 @@ export type Action = {
   nullifiers: Array<Nullifier>;
   /** An aggregate relationship */
   nullifiers_aggregate: Nullifier_Aggregate;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   /** An array relationship */
   redirects: Array<Redirect>;
   /** An aggregate relationship */
   redirects_aggregate: Redirect_Aggregate;
   status: Scalars["String"];
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at: Scalars["timestamptz"];
 };
 
@@ -281,9 +283,11 @@ export type Action_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   nullifiers?: InputMaybe<Nullifier_Bool_Exp>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Bool_Exp>;
+  privacy_policy_uri?: InputMaybe<String_Comparison_Exp>;
   redirects?: InputMaybe<Redirect_Bool_Exp>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Bool_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
+  terms_uri?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -326,8 +330,10 @@ export type Action_Insert_Input = {
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
   nullifiers?: InputMaybe<Nullifier_Arr_Rel_Insert_Input>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   redirects?: InputMaybe<Redirect_Arr_Rel_Insert_Input>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -350,7 +356,9 @@ export type Action_Max_Fields = {
   max_verifications?: Maybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -372,7 +380,9 @@ export type Action_Max_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -395,7 +405,9 @@ export type Action_Min_Fields = {
   max_verifications?: Maybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -417,7 +429,9 @@ export type Action_Min_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -460,8 +474,10 @@ export type Action_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -497,7 +513,11 @@ export enum Action_Select_Column {
   /** column name */
   Name = "name",
   /** column name */
+  PrivacyPolicyUri = "privacy_policy_uri",
+  /** column name */
   Status = "status",
+  /** column name */
+  TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
 }
@@ -533,7 +553,9 @@ export type Action_Set_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -615,7 +637,9 @@ export type Action_Stream_Cursor_Value_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -663,7 +687,11 @@ export enum Action_Update_Column {
   /** column name */
   Name = "name",
   /** column name */
+  PrivacyPolicyUri = "privacy_policy_uri",
+  /** column name */
   Status = "status",
+  /** column name */
+  TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
 }
@@ -1552,10 +1580,13 @@ export type Auth_Code = {
   __typename?: "auth_code";
   app_id: Scalars["String"];
   auth_code: Scalars["String"];
+  code_challenge?: Maybe<Scalars["String"]>;
+  code_challenge_method?: Maybe<Scalars["String"]>;
   created_at: Scalars["timestamptz"];
   credential_type: Scalars["String"];
   expires_at: Scalars["timestamptz"];
   id: Scalars["String"];
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash: Scalars["String"];
   scope?: Maybe<Scalars["jsonb"]>;
   updated_at: Scalars["timestamptz"];
@@ -1599,10 +1630,13 @@ export type Auth_Code_Bool_Exp = {
   _or?: InputMaybe<Array<Auth_Code_Bool_Exp>>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   auth_code?: InputMaybe<String_Comparison_Exp>;
+  code_challenge?: InputMaybe<String_Comparison_Exp>;
+  code_challenge_method?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   credential_type?: InputMaybe<String_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  nonce?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   scope?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1633,10 +1667,13 @@ export type Auth_Code_Delete_Key_Input = {
 export type Auth_Code_Insert_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   auth_code?: InputMaybe<Scalars["String"]>;
+  code_challenge?: InputMaybe<Scalars["String"]>;
+  code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1647,10 +1684,13 @@ export type Auth_Code_Max_Fields = {
   __typename?: "auth_code_max_fields";
   app_id?: Maybe<Scalars["String"]>;
   auth_code?: Maybe<Scalars["String"]>;
+  code_challenge?: Maybe<Scalars["String"]>;
+  code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -1660,10 +1700,13 @@ export type Auth_Code_Min_Fields = {
   __typename?: "auth_code_min_fields";
   app_id?: Maybe<Scalars["String"]>;
   auth_code?: Maybe<Scalars["String"]>;
+  code_challenge?: Maybe<Scalars["String"]>;
+  code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
+  nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
@@ -1688,10 +1731,13 @@ export type Auth_Code_On_Conflict = {
 export type Auth_Code_Order_By = {
   app_id?: InputMaybe<Order_By>;
   auth_code?: InputMaybe<Order_By>;
+  code_challenge?: InputMaybe<Order_By>;
+  code_challenge_method?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   scope?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -1714,6 +1760,10 @@ export enum Auth_Code_Select_Column {
   /** column name */
   AuthCode = "auth_code",
   /** column name */
+  CodeChallenge = "code_challenge",
+  /** column name */
+  CodeChallengeMethod = "code_challenge_method",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   CredentialType = "credential_type",
@@ -1721,6 +1771,8 @@ export enum Auth_Code_Select_Column {
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
+  /** column name */
+  Nonce = "nonce",
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
@@ -1733,10 +1785,13 @@ export enum Auth_Code_Select_Column {
 export type Auth_Code_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   auth_code?: InputMaybe<Scalars["String"]>;
+  code_challenge?: InputMaybe<Scalars["String"]>;
+  code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1754,10 +1809,13 @@ export type Auth_Code_Stream_Cursor_Input = {
 export type Auth_Code_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   auth_code?: InputMaybe<Scalars["String"]>;
+  code_challenge?: InputMaybe<Scalars["String"]>;
+  code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
+  nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1770,6 +1828,10 @@ export enum Auth_Code_Update_Column {
   /** column name */
   AuthCode = "auth_code",
   /** column name */
+  CodeChallenge = "code_challenge",
+  /** column name */
+  CodeChallengeMethod = "code_challenge_method",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   CredentialType = "credential_type",
@@ -1777,6 +1839,8 @@ export enum Auth_Code_Update_Column {
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
+  /** column name */
+  Nonce = "nonce",
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
@@ -3050,12 +3114,14 @@ export type Mutation_RootUpdate_Jwks_ManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdate_NullifierArgs = {
+  _inc?: InputMaybe<Nullifier_Inc_Input>;
   _set?: InputMaybe<Nullifier_Set_Input>;
   where: Nullifier_Bool_Exp;
 };
 
 /** mutation root */
 export type Mutation_RootUpdate_Nullifier_By_PkArgs = {
+  _inc?: InputMaybe<Nullifier_Inc_Input>;
   _set?: InputMaybe<Nullifier_Set_Input>;
   pk_columns: Nullifier_Pk_Columns_Input;
 };
@@ -3142,9 +3208,9 @@ export type Nullifier = {
   created_at: Scalars["timestamptz"];
   credential_type: Scalars["String"];
   id: Scalars["String"];
-  merkle_root: Scalars["String"];
   nullifier_hash: Scalars["String"];
   updated_at: Scalars["timestamptz"];
+  uses?: Maybe<Scalars["Int"]>;
 };
 
 /** aggregated selection of "nullifier" */
@@ -3168,9 +3234,17 @@ export type Nullifier_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "nullifier" */
 export type Nullifier_Aggregate_Fields = {
   __typename?: "nullifier_aggregate_fields";
+  avg?: Maybe<Nullifier_Avg_Fields>;
   count: Scalars["Int"];
   max?: Maybe<Nullifier_Max_Fields>;
   min?: Maybe<Nullifier_Min_Fields>;
+  stddev?: Maybe<Nullifier_Stddev_Fields>;
+  stddev_pop?: Maybe<Nullifier_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Nullifier_Stddev_Samp_Fields>;
+  sum?: Maybe<Nullifier_Sum_Fields>;
+  var_pop?: Maybe<Nullifier_Var_Pop_Fields>;
+  var_samp?: Maybe<Nullifier_Var_Samp_Fields>;
+  variance?: Maybe<Nullifier_Variance_Fields>;
 };
 
 /** aggregate fields of "nullifier" */
@@ -3181,9 +3255,17 @@ export type Nullifier_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "nullifier" */
 export type Nullifier_Aggregate_Order_By = {
+  avg?: InputMaybe<Nullifier_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Nullifier_Max_Order_By>;
   min?: InputMaybe<Nullifier_Min_Order_By>;
+  stddev?: InputMaybe<Nullifier_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Nullifier_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Nullifier_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Nullifier_Sum_Order_By>;
+  var_pop?: InputMaybe<Nullifier_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Nullifier_Var_Samp_Order_By>;
+  variance?: InputMaybe<Nullifier_Variance_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "nullifier" */
@@ -3191,6 +3273,17 @@ export type Nullifier_Arr_Rel_Insert_Input = {
   data: Array<Nullifier_Insert_Input>;
   /** upsert condition */
   on_conflict?: InputMaybe<Nullifier_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Nullifier_Avg_Fields = {
+  __typename?: "nullifier_avg_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by avg() on columns of table "nullifier" */
+export type Nullifier_Avg_Order_By = {
+  uses?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "nullifier". All fields are combined with a logical 'AND'. */
@@ -3203,16 +3296,23 @@ export type Nullifier_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   credential_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  merkle_root?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  uses?: InputMaybe<Int_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "nullifier" */
 export enum Nullifier_Constraint {
   /** unique or primary key constraint on columns "id" */
   NullifierPkey = "nullifier_pkey",
+  /** unique or primary key constraint on columns "nullifier_hash" */
+  UniqueNullifierHash = "unique_nullifier_hash",
 }
+
+/** input type for incrementing numeric columns in table "nullifier" */
+export type Nullifier_Inc_Input = {
+  uses?: InputMaybe<Scalars["Int"]>;
+};
 
 /** input type for inserting data into table "nullifier" */
 export type Nullifier_Insert_Input = {
@@ -3221,9 +3321,9 @@ export type Nullifier_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  uses?: InputMaybe<Scalars["Int"]>;
 };
 
 /** aggregate max on columns */
@@ -3233,9 +3333,9 @@ export type Nullifier_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
-  merkle_root?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  uses?: Maybe<Scalars["Int"]>;
 };
 
 /** order by max() on columns of table "nullifier" */
@@ -3244,9 +3344,9 @@ export type Nullifier_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  uses?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -3256,9 +3356,9 @@ export type Nullifier_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
-  merkle_root?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  uses?: Maybe<Scalars["Int"]>;
 };
 
 /** order by min() on columns of table "nullifier" */
@@ -3267,9 +3367,9 @@ export type Nullifier_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  uses?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "nullifier" */
@@ -3295,9 +3395,9 @@ export type Nullifier_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  uses?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: nullifier */
@@ -3316,11 +3416,11 @@ export enum Nullifier_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  MerkleRoot = "merkle_root",
-  /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  Uses = "uses",
 }
 
 /** input type for updating data in table "nullifier" */
@@ -3329,9 +3429,42 @@ export type Nullifier_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  uses?: InputMaybe<Scalars["Int"]>;
+};
+
+/** aggregate stddev on columns */
+export type Nullifier_Stddev_Fields = {
+  __typename?: "nullifier_stddev_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev() on columns of table "nullifier" */
+export type Nullifier_Stddev_Order_By = {
+  uses?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Nullifier_Stddev_Pop_Fields = {
+  __typename?: "nullifier_stddev_pop_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev_pop() on columns of table "nullifier" */
+export type Nullifier_Stddev_Pop_Order_By = {
+  uses?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Nullifier_Stddev_Samp_Fields = {
+  __typename?: "nullifier_stddev_samp_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev_samp() on columns of table "nullifier" */
+export type Nullifier_Stddev_Samp_Order_By = {
+  uses?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "nullifier" */
@@ -3348,9 +3481,20 @@ export type Nullifier_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  uses?: InputMaybe<Scalars["Int"]>;
+};
+
+/** aggregate sum on columns */
+export type Nullifier_Sum_Fields = {
+  __typename?: "nullifier_sum_fields";
+  uses?: Maybe<Scalars["Int"]>;
+};
+
+/** order by sum() on columns of table "nullifier" */
+export type Nullifier_Sum_Order_By = {
+  uses?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "nullifier" */
@@ -3364,18 +3508,53 @@ export enum Nullifier_Update_Column {
   /** column name */
   Id = "id",
   /** column name */
-  MerkleRoot = "merkle_root",
-  /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  Uses = "uses",
 }
 
 export type Nullifier_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Nullifier_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Nullifier_Set_Input>;
   /** filter the rows which have to be updated */
   where: Nullifier_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Nullifier_Var_Pop_Fields = {
+  __typename?: "nullifier_var_pop_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by var_pop() on columns of table "nullifier" */
+export type Nullifier_Var_Pop_Order_By = {
+  uses?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Nullifier_Var_Samp_Fields = {
+  __typename?: "nullifier_var_samp_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by var_samp() on columns of table "nullifier" */
+export type Nullifier_Var_Samp_Order_By = {
+  uses?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Nullifier_Variance_Fields = {
+  __typename?: "nullifier_variance_fields";
+  uses?: Maybe<Scalars["Float"]>;
+};
+
+/** order by variance() on columns of table "nullifier" */
+export type Nullifier_Variance_Order_By = {
+  uses?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */

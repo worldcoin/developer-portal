@@ -6,6 +6,7 @@ import useSignInAction from "src/hooks/useSignInAction";
 import { Credentials } from "./Credentials";
 import { Header } from "./Header";
 import { Redirects } from "./Redirects";
+import { Urls } from "./Urls";
 import { NotFound } from "@/components/NotFound";
 import { useRouter } from "next/router";
 import { urls } from "src/lib/urls";
@@ -37,6 +38,7 @@ export const SignIn = memo(function SignIn() {
           <Header />
           <Credentials />
           <Redirects />
+          <Urls />
           {/* NOTE: https://linear.app/worldcoin/issue/WID-370#comment-d47da43e  */}
           {/* <DefaultAuthorizationLink /> */}
         </div>
