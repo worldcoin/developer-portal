@@ -17,6 +17,8 @@ const actionFields = `
     id
     app_id
     status
+    privacy_policy_uri
+    terms_uri
 `;
 
 const FetchActionQuery = gql`
@@ -28,7 +30,8 @@ const FetchActionQuery = gql`
 `;
 
 const UpdateActionMutation = gql`
-  mutation UpdateAction($id: String!, $status: String!) {    update_action_by_pk(pk_columns: { id: $id }, _set: { status: $status }) {
+  mutation UpdateAction($id: String!, $changes: action_set_input) {
+    update_action_by_pk(pk_columns: { id: $id }, _set: $changes) {
       ${actionFields}
     }
   }
@@ -44,15 +47,15 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
+    redirect(where: {action_id: {_eq: $action_id}}, order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
 `;
 
 const InsertRedirectMutation = gql`
-  mutation InsertRedirect($action_id: String!) {
-    insert_redirect_one(object: { action_id: $action_id, redirect_uri: "" }) {
+  mutation InsertRedirect($action_id: String!, $uri: String!) {
+    insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
       ${redirectFields}
     }
   }
@@ -106,9 +109,17 @@ const fetchAction = async (_key: [string, string | undefined]) => {
 
 const updateActionFetcher = async (
   _key: [string, string | undefined],
-  args: { arg: { status: ActionModel["status"] } }
+  args: {
+    arg: {
+      changes: {
+        status?: ActionModel["status"];
+        terms_uri?: ActionModel["terms_uri"];
+        privacy_policy_uri?: ActionModel["privacy_policy_uri"];
+      };
+    };
+  }
 ) => {
-  const { status } = args.arg;
+  const { changes } = args.arg;
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
@@ -121,7 +132,7 @@ const updateActionFetcher = async (
     query: UpdateActionMutation,
     variables: {
       id: currentAction.id,
-      status,
+      changes,
     },
   });
 
@@ -155,12 +166,21 @@ const fetchRedirects = async () => {
   throw new Error("Error fetching redirects");
 };
 
-const addRedirectFetcher = async (_key: [string, string | undefined]) => {
+const addRedirectFetcher = async (
+  _key: [string, string | undefined],
+  args: {
+    arg: {
+      uri: RedirectModel["redirect_uri"];
+    };
+  }
+) => {
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
     return;
   }
+
+  const { uri } = args.arg;
 
   const response = await graphQLRequest<{
     insert_redirect_one: RedirectModel;
@@ -168,6 +188,7 @@ const addRedirectFetcher = async (_key: [string, string | undefined]) => {
     query: InsertRedirectMutation,
     variables: {
       action_id: currentAction.id,
+      uri,
     },
   });
 
@@ -291,18 +312,24 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setAction(data);
+          toast.success("Action updated");
         }
       },
     }
   );
 
   const {
+    mutate: mutateRedirects,
     data: redirects,
     error: redirectsError,
     isLoading: redirectsIsLoading,
-  } = useSWR<Array<RedirectModel>>(["redirect", _action?.id], fetchRedirects, {
-    onSuccess: (data) => setCurrentRedirects(data),
-  });
+  } = useSWR<Array<Pick<RedirectModel, "id" | "redirect_uri">>>(
+    ["redirect", _action?.id],
+    fetchRedirects,
+    {
+      onSuccess: (data) => setCurrentRedirects(data),
+    }
+  );
 
   const { trigger: addRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -311,12 +338,23 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          // TODO: do not save the redirect before the user populates the uri
-          //toast.success("Redirect added");
+          toast.success("Redirect added");
         }
       },
+
+      onError: () => toast.error("Error while adding redirect"),
     }
   );
+
+  const addRedirectOptimistic = async ({
+    uri,
+  }: {
+    uri: RedirectModel["redirect_uri"];
+  }) => {
+    const newRedirects = [...(redirects ?? []), { id: "", redirect_uri: uri }];
+    await mutateRedirects(newRedirects, false);
+    return addRedirect({ uri });
+  };
 
   const { trigger: updateRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -381,7 +419,7 @@ const useSignInAction = () => {
     redirects,
     redirectsError,
     redirectsIsLoading,
-    addRedirect,
+    addRedirect: addRedirectOptimistic,
     updateRedirect,
     deleteRedirect,
 

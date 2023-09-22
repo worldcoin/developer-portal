@@ -27,7 +27,7 @@ export const PageInfo = memo(function PageInfo(props: PageInfoProps) {
         </h2>
         {(Array.isArray(props.text) ? props.text : [props.text]).map(
           (line, i) => (
-            <p key={i} className="max-w-[543px] text-14 text-657080 leading-4">
+            <p key={i} className="max-w-[720px] text-14 text-657080 leading-4">
               {line}
             </p>
           )

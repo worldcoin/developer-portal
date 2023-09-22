@@ -65,6 +65,7 @@ jest.mock(
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
+      mutate: requestReturnFn,
     }),
   }))
 );
@@ -81,7 +82,6 @@ beforeEach(() => {
         variables: expect.objectContaining({
           action_id: expect.stringMatching(/^action_[A-Za-z0-9_]+$/),
           nullifier_hash: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
-          merkle_root: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
         }),
       })
     )

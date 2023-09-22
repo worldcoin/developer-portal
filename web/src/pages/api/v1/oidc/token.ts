@@ -6,27 +6,47 @@ import { generateAccessToken, generateIdToken } from "src/backend/jwts";
 import { authenticateOIDCEndpoint } from "src/backend/oidc";
 import { AuthCodeModel } from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createHash, timingSafeEqual } from "crypto";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { runCors } from "src/backend/cors";
 
-const verifyAuthCodeQuery = gql`
-  mutation VerifyAuthCode(
+const findAuthCodeQuery = gql`
+  query FindAuthCode(
+    $auth_code: String!
+    $app_id: String!
+    $now: timestamptz!
+  ) {
+    auth_code(
+      where: {
+        app_id: { _eq: $app_id }
+        expires_at: { _gt: $now }
+        auth_code: { _eq: $auth_code }
+      }
+    ) {
+      nullifier_hash
+      credential_type
+      scope
+      code_challenge
+      code_challenge_method
+    }
+  }
+`;
+
+const deleteAuthCodeQuery = gql`
+  mutation DeleteAuthCode(
     $auth_code: String!
     $app_id: String!
     $now: timestamptz!
   ) {
     delete_auth_code(
       where: {
-        auth_code: { _eq: $auth_code }
         app_id: { _eq: $app_id }
         expires_at: { _gt: $now }
+        auth_code: { _eq: $auth_code }
       }
     ) {
-      returning {
-        nullifier_hash
-        credential_type
-        scope
-      }
+      affected_rows
     }
   }
 `;
@@ -40,6 +60,10 @@ export default async function handleOIDCToken(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (req.method === "OPTIONS" || req.body.code_verifier) {
+    await runCors(req, res);
+  }
+
   if (!req.method || !["POST"].includes(req.method)) {
     return errorOIDCResponse(
       res,
@@ -114,14 +138,18 @@ export default async function handleOIDCToken(
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
   const { data } = await client.mutate<{
-    delete_auth_code: {
-      returning: Array<
-        Pick<AuthCodeModel, "nullifier_hash" | "credential_type" | "scope">
-      >;
-    };
+    auth_code: Array<
+      Pick<
+        AuthCodeModel,
+        | "nullifier_hash"
+        | "credential_type"
+        | "scope"
+        | "code_challenge"
+        | "code_challenge_method"
+      >
+    >;
   }>({
-    mutation: verifyAuthCodeQuery,
-
+    mutation: findAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
@@ -129,7 +157,7 @@ export default async function handleOIDCToken(
     },
   });
 
-  const code = data?.delete_auth_code?.returning[0];
+  const code = data?.auth_code[0];
 
   if (!code) {
     return errorOIDCResponse(
@@ -140,6 +168,51 @@ export default async function handleOIDCToken(
       null,
       req
     );
+  }
+
+  if (code.code_challenge) {
+    if (!req.body.code_verifier) {
+      return errorOIDCResponse(
+        res,
+        400,
+        "invalid_request",
+        "Missing code verifier.",
+        "code_verifier",
+        req
+      );
+    }
+
+    // We only support S256 method
+    if (!verifyChallenge(code.code_challenge, req.body.code_verifier)) {
+      await client.mutate({
+        mutation: deleteAuthCodeQuery,
+        variables: {
+          auth_code,
+          app_id,
+          now,
+        },
+      });
+
+      return errorOIDCResponse(
+        res,
+        400,
+        "invalid_request",
+        "Invalid code verifier.",
+        "code_verifier",
+        req
+      );
+    }
+  } else {
+    if (req.body.code_verifier) {
+      return errorOIDCResponse(
+        res,
+        400,
+        "invalid_request",
+        "Code verifier was not expected.",
+        "code_verifier",
+        req
+      );
+    }
   }
 
   const jwk = await fetchActiveJWK();
@@ -160,6 +233,15 @@ export default async function handleOIDCToken(
     scope: code.scope,
   });
 
+  await client.mutate({
+    mutation: deleteAuthCodeQuery,
+    variables: {
+      auth_code,
+      app_id,
+      now,
+    },
+  });
+
   return res.status(200).json({
     access_token,
     token_type: "Bearer",
@@ -168,3 +250,14 @@ export default async function handleOIDCToken(
     id_token,
   });
 }
+
+const verifyChallenge = (challenge: string, verifier: string) => {
+  const hashedVerifier = createHash("sha256")
+    .update(verifier)
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  return timingSafeEqual(Buffer.from(challenge), Buffer.from(hashedVerifier));
+};

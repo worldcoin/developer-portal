@@ -8,7 +8,10 @@ import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
 
-type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
+type _Nullifier = Pick<
+  NullifierModel,
+  "nullifier_hash" | "uses" | "__typename"
+>;
 interface _Action
   extends Pick<
     ActionModel,
@@ -21,7 +24,7 @@ interface _Action
     | "status"
     | "__typename"
   > {
-  nullifiers: _Nullifier[];
+  nullifiers: [_Nullifier] | [];
 }
 
 interface _App
@@ -69,7 +72,10 @@ const appPrecheckQuery = gql`
         max_verifications
         max_accounts_per_user
         status
+        privacy_policy_uri
+        terms_uri
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+          uses
           nullifier_hash
         }
       }
@@ -151,8 +157,8 @@ export default async function handlePrecheck(
     query: appPrecheckQuery,
     variables: {
       app_id,
-      external_nullifier,
       nullifier_hash,
+      external_nullifier,
     },
   });
 
@@ -187,8 +193,8 @@ export default async function handlePrecheck(
         mutation: createActionQuery,
         variables: {
           app_id,
-          external_nullifier,
           action,
+          external_nullifier,
         },
         errorPolicy: "none",
       });
@@ -223,14 +229,15 @@ export default async function handlePrecheck(
     );
   }
 
-  const nullifiers = actionItem.nullifiers;
+  const nullifier = actionItem.nullifiers?.[0];
 
   const response = {
     ...app,
-    sign_in_with_world_id: action === "",
-    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
-    action: { ...actionItem, nullifiers: undefined },
     actions: undefined,
+    logo_url: "",
+    sign_in_with_world_id: action === "",
+    action: { ...actionItem, nullifiers: undefined },
+    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
   };
 
   if (app.engine === EngineType.OnChain) {
@@ -245,7 +252,7 @@ export default async function handlePrecheck(
     // ANCHOR: If a nullifier hash is provided, determine if the user can verify
     if (nullifier_hash && response.action) {
       response.can_user_verify = canVerifyForAction(
-        nullifiers,
+        nullifier,
         response.action.max_verifications
       )
         ? CanUserVerifyType.Yes

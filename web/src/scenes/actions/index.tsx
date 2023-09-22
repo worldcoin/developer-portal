@@ -81,9 +81,9 @@ export function Actions(): JSX.Element | null {
                 iconClassName="text-primary"
                 title="Anonymous Actions"
                 text={[
-                  "Verify independent actions in your app.",
-                  "Each action is independent from other actions, providing the maximum level of privacy.",
-                  "For example: a voting application where each vote is independent of each other.",
+                  "Anonymous Actions allow users to verify that they're a unique person without revealing their identity.",
+                  "Actions are independent from each other, preventing two separate actions from being linked to the same user.",
+                  "You can also limit how many times a user can perform any given action to prevent sybil attacks.",
                 ]}
                 linkText="Tech Docs"
                 linkHref="https://docs.worldcoin.org/id/anonymous-actions"

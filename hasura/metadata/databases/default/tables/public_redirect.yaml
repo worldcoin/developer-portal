@@ -22,6 +22,12 @@ insert_permissions:
       columns:
         - redirect_uri
         - action_id
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - action_id
+        - redirect_uri
   - role: user
     permission:
       check:
