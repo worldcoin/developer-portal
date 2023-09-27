@@ -9,6 +9,7 @@ import { setClientSecret, testGetDefaultApp } from "../test-utils";
 import * as jose from "jose";
 import { publicJwk } from "tests/api/__mocks__/jwk";
 import { createHash } from "crypto";
+import { generateOIDCJWT } from "src/backend/jwts";
 
 jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
 
@@ -418,5 +419,161 @@ describe("/api/v1/oidc/token", () => {
         "access-control-allow-origin": "*",
       })
     );
+  });
+
+  test("Can get app_id using auth token", async () => {
+    const app_id = await testGetDefaultApp();
+    const { client_secret } = await setClientSecret(app_id);
+    const client_id = app_id;
+
+    // #region -> Can get app_id using auth token
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, credential_type) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "orb",
+      ]
+    );
+
+    const authToken = `Basic ${Buffer.from(
+      `${client_id}:${client_secret}`
+    ).toString("base64")}`;
+
+    const { req, res } = createMocks({
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        authorization: authToken,
+      },
+
+      body: {
+        code: "83a313c5939399ba017d2381",
+        grant_type: "authorization_code",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+    expect(res._getStatusCode()).toBe(200);
+    const { access_token } = res._getJSONData();
+
+    const { payload } = await jose.jwtVerify(
+      access_token,
+      await jose.importJWK(publicJwk, "RS256"),
+
+      {
+        issuer: process.env.JWT_ISSUER,
+      }
+    );
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        aud: app_id,
+      })
+    );
+    // #endregion
+
+    // #region -> Can get app_id using auth token without passing it directly
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, credential_type) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "orb",
+      ]
+    );
+
+    const { req: req2, res: res2 } = createMocks({
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id,
+        client_secret,
+        grant_type: "authorization_code",
+      },
+    });
+
+    await handleOIDCToken(req2, res2);
+    expect(res2._getStatusCode()).toBe(200);
+    const { access_token: access_token2 } = res2._getJSONData();
+
+    const { payload: payload2 } = await jose.jwtVerify(
+      access_token2,
+      await jose.importJWK(publicJwk, "RS256"),
+
+      {
+        issuer: process.env.JWT_ISSUER,
+      }
+    );
+
+    expect(payload2).toEqual(
+      expect.objectContaining({
+        aud: app_id,
+      })
+    );
+    // #endregion
+
+    // #region -> Can get app_id with code_verifier & client_id
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        pkceChallenge("my_code_challenge"),
+        "S256",
+      ]
+    );
+
+    const { req: req3, res: res3 } = createMocks({
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id,
+        code_verifier: "my_code_challenge",
+
+        grant_type: "authorization_code",
+      },
+    });
+
+    await handleOIDCToken(req3, res3);
+    console.log(res3._getJSONData());
+    expect(res3._getStatusCode()).toBe(200);
+    const { access_token: access_token3 } = res3._getJSONData();
+
+    const { payload: payload3 } = await jose.jwtVerify(
+      access_token3,
+      await jose.importJWK(publicJwk, "RS256"),
+
+      {
+        issuer: process.env.JWT_ISSUER,
+      }
+    );
+
+    expect(payload3).toEqual(
+      expect.objectContaining({
+        aud: app_id,
+      })
+    );
+    // #endregion
   });
 });
