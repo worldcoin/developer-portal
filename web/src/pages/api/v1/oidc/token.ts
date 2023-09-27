@@ -54,6 +54,9 @@ const deleteAuthCodeQuery = gql`
 const schema = yup.object({
   grant_type: yup.string().default("authorization_code"),
   code: yup.string().strict().required("This attribute is required."),
+  code_verifier: yup.string().strict(),
+  client_id: yup.string().strict(),
+  client_secret: yup.string().strict(),
 });
 
 export default async function handleOIDCToken(
@@ -86,12 +89,22 @@ export default async function handleOIDCToken(
     );
   }
 
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: req.body,
+  });
+
+  if (!isValid) {
+    return handleError(req, res);
+  }
+
   // ANCHOR: Authenticate the request
   let authToken = req.headers.authorization;
 
   if (!authToken) {
     // Attempt to get the credentials in the request body
-    const { client_id, client_secret } = req.body;
+    const { client_id, client_secret } = parsedParams;
+
     if (client_id && client_secret) {
       authToken = `Basic ${Buffer.from(
         `${client_id}:${client_secret}`
@@ -100,12 +113,13 @@ export default async function handleOIDCToken(
   }
 
   let app_id: string | null;
+
   if (authToken) {
     app_id = await authenticateOIDCEndpoint(authToken);
-  } else if (req.body.code_verifier) {
+  } else if (parsedParams.code_verifier) {
     // NOTE: Public clients (e.g. SPAs) are not required to pass a client secret (as they cannot maintain confidentiality of their secret). For Sign in with Worldcoin we only support public clients with PKCE.
     // REFERENCE: https://datatracker.ietf.org/doc/html/rfc6749#section-2.1
-    app_id = req.body.client_id;
+    app_id = parsedParams.client_id ?? null;
   } else {
     return errorOIDCResponse(
       res,
@@ -128,19 +142,11 @@ export default async function handleOIDCToken(
     );
   }
 
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema,
-    value: req.body,
-  });
-
-  if (!isValid) {
-    return handleError(req, res);
-  }
-
   const auth_code = parsedParams.code;
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
+
   const { data } = await client.mutate<{
     auth_code: Array<
       Pick<
@@ -175,7 +181,7 @@ export default async function handleOIDCToken(
   }
 
   if (code.code_challenge) {
-    if (!req.body.code_verifier) {
+    if (!parsedParams.code_verifier) {
       return errorOIDCResponse(
         res,
         400,
@@ -187,7 +193,7 @@ export default async function handleOIDCToken(
     }
 
     // We only support S256 method
-    if (!verifyChallenge(code.code_challenge, req.body.code_verifier)) {
+    if (!verifyChallenge(code.code_challenge, parsedParams.code_verifier)) {
       await client.mutate({
         mutation: deleteAuthCodeQuery,
         variables: {
@@ -207,7 +213,7 @@ export default async function handleOIDCToken(
       );
     }
   } else {
-    if (req.body.code_verifier) {
+    if (parsedParams.code_verifier) {
       return errorOIDCResponse(
         res,
         400,

@@ -122,11 +122,13 @@ export type Action = {
   nullifiers: Array<Nullifier>;
   /** An aggregate relationship */
   nullifiers_aggregate: Nullifier_Aggregate;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   /** An array relationship */
   redirects: Array<Redirect>;
   /** An aggregate relationship */
   redirects_aggregate: Redirect_Aggregate;
   status: Scalars["String"];
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at: Scalars["timestamptz"];
 };
 
@@ -281,9 +283,11 @@ export type Action_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   nullifiers?: InputMaybe<Nullifier_Bool_Exp>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Bool_Exp>;
+  privacy_policy_uri?: InputMaybe<String_Comparison_Exp>;
   redirects?: InputMaybe<Redirect_Bool_Exp>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Bool_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
+  terms_uri?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -326,8 +330,10 @@ export type Action_Insert_Input = {
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
   nullifiers?: InputMaybe<Nullifier_Arr_Rel_Insert_Input>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   redirects?: InputMaybe<Redirect_Arr_Rel_Insert_Input>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -350,7 +356,9 @@ export type Action_Max_Fields = {
   max_verifications?: Maybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -372,7 +380,9 @@ export type Action_Max_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -395,7 +405,9 @@ export type Action_Min_Fields = {
   max_verifications?: Maybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
+  privacy_policy_uri?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
+  terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -417,7 +429,9 @@ export type Action_Min_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -460,8 +474,10 @@ export type Action_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Order_By>;
+  privacy_policy_uri?: InputMaybe<Order_By>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Order_By>;
   status?: InputMaybe<Order_By>;
+  terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -497,7 +513,11 @@ export enum Action_Select_Column {
   /** column name */
   Name = "name",
   /** column name */
+  PrivacyPolicyUri = "privacy_policy_uri",
+  /** column name */
   Status = "status",
+  /** column name */
+  TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
 }
@@ -533,7 +553,9 @@ export type Action_Set_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -615,7 +637,9 @@ export type Action_Stream_Cursor_Value_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]>;
+  privacy_policy_uri?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
+  terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
@@ -663,7 +687,11 @@ export enum Action_Update_Column {
   /** column name */
   Name = "name",
   /** column name */
+  PrivacyPolicyUri = "privacy_policy_uri",
+  /** column name */
   Status = "status",
+  /** column name */
+  TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
 }
@@ -3180,7 +3208,6 @@ export type Nullifier = {
   created_at: Scalars["timestamptz"];
   credential_type: Scalars["String"];
   id: Scalars["String"];
-  merkle_root: Scalars["String"];
   nullifier_hash: Scalars["String"];
   updated_at: Scalars["timestamptz"];
   uses?: Maybe<Scalars["Int"]>;
@@ -3269,7 +3296,6 @@ export type Nullifier_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   credential_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  merkle_root?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   uses?: InputMaybe<Int_Comparison_Exp>;
@@ -3295,7 +3321,6 @@ export type Nullifier_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   uses?: InputMaybe<Scalars["Int"]>;
@@ -3308,7 +3333,6 @@ export type Nullifier_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
-  merkle_root?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   uses?: Maybe<Scalars["Int"]>;
@@ -3320,7 +3344,6 @@ export type Nullifier_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
@@ -3333,7 +3356,6 @@ export type Nullifier_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
-  merkle_root?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   uses?: Maybe<Scalars["Int"]>;
@@ -3345,7 +3367,6 @@ export type Nullifier_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
@@ -3374,7 +3395,6 @@ export type Nullifier_Order_By = {
   created_at?: InputMaybe<Order_By>;
   credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  merkle_root?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
@@ -3396,8 +3416,6 @@ export enum Nullifier_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  MerkleRoot = "merkle_root",
-  /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
   UpdatedAt = "updated_at",
@@ -3411,7 +3429,6 @@ export type Nullifier_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   uses?: InputMaybe<Scalars["Int"]>;
@@ -3464,7 +3481,6 @@ export type Nullifier_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
-  merkle_root?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   uses?: InputMaybe<Scalars["Int"]>;
@@ -3491,8 +3507,6 @@ export enum Nullifier_Update_Column {
   CredentialType = "credential_type",
   /** column name */
   Id = "id",
-  /** column name */
-  MerkleRoot = "merkle_root",
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */

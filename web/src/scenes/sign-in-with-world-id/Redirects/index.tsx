@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Button } from "src/components/Button";
 import useSignInAction from "src/hooks/useSignInAction";
 import { RedirectInput } from "./RedirectInput";
@@ -11,6 +11,8 @@ export const Redirects = memo(function Redirects() {
     updateRedirect,
     deleteRedirect,
   } = useSignInAction();
+
+  const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   if (redirectsIsLoading) {
     return null;
@@ -38,11 +40,21 @@ export const Redirects = memo(function Redirects() {
             onDelete={() => deleteRedirect({ id: redirect.id })}
           />
         ))}
+        {addRedirectFormShown && (
+          <RedirectInput
+            value=""
+            onChange={(value) => {
+              setAddRedirectFormShown(false);
+              addRedirect({ uri: value });
+            }}
+            onDelete={() => setAddRedirectFormShown(false)}
+          />
+        )}
       </div>
 
       <div className="grid grid-flow-col justify-start gap-x-2">
         <Button
-          onClick={() => addRedirect()}
+          onClick={() => setAddRedirectFormShown(true)}
           className="px-4 py-2"
           variant="secondary"
         >
