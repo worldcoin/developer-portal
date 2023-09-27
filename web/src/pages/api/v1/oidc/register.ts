@@ -6,18 +6,12 @@ import { generateHashedSecret } from "src/backend/utils";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { validateUrl } from "src/lib/utils";
 
 const insertClientQuery = gql`
-  mutation InsertClient(
-    $name: String = ""
-    $logo_url: String = ""
-    $team_name: String = ""
-  ) {
+  mutation InsertClient($name: String = "", $team_name: String = "") {
     insert_team_one(
-      object: {
-        apps: { data: { name: $name, logo_url: $logo_url } }
-        name: $team_name
-      }
+      object: { apps: { data: { name: $name } }, name: $team_name }
     ) {
       apps {
         id
@@ -27,18 +21,26 @@ const insertClientQuery = gql`
   }
 `;
 
-const updateSecretQuery = gql`
-  mutation UpdateSecret($app_id: String = "", $client_secret: String = "") {
+const updateSigninActionQuery = gql`
+  mutation UpdateSigninAction(
+    $app_id: String = ""
+    $client_secret: String = ""
+    $privacy_policy_uri: String
+    $terms_uri: String
+  ) {
     update_action(
       where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
-      _set: { client_secret: $client_secret }
+      _set: {
+        client_secret: $client_secret
+        privacy_policy_uri: $privacy_policy_uri
+        terms_uri: $terms_uri
+      }
     ) {
       returning {
         id
         app {
           id
           name
-          logo_url
           created_at
         }
       }
@@ -68,6 +70,18 @@ const schema = yup.object({
     .array()
     .of(yup.string().strict().required())
     .required("This attribute is required."),
+  privacy_policy_uri: yup
+    .string()
+    .strict()
+    .test("is-url", "Must be a valid URL", (value) => {
+      return value != null ? validateUrl(value) : true;
+    }),
+  terms_uri: yup
+    .string()
+    .strict()
+    .test("is-url", "Must be a valid URL", (value) => {
+      return value != null ? validateUrl(value) : true;
+    }),
 });
 
 /**
@@ -94,9 +108,9 @@ export default async function handleRegister(
   }
 
   // ANCHOR: Parse redirect_uris into array and validate
-  for (const redirect in parsedParams.redirect_uris) {
+  for (const redirect of parsedParams.redirect_uris) {
     try {
-      const url = new URL(redirect);
+      const url = new URL(redirect ?? "");
       if (url.protocol !== "https:") {
         return res.status(400).json({
           error: "invalid_redirect_uri",
@@ -130,15 +144,18 @@ export default async function handleRegister(
   const app_id = insertClientResponse.data.insert_team_one.apps[0].id;
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 
-  const updateSecretResponse = await client.mutate({
-    mutation: updateSecretQuery,
+  const updateSigninActionResponse = await client.mutate({
+    mutation: updateSigninActionQuery,
     variables: {
       app_id,
       client_secret: hashed_secret,
+      privacy_policy_uri: parsedParams.privacy_policy_uri,
+      terms_uri: parsedParams.terms_uri,
     },
   });
 
-  const updatedAction = updateSecretResponse?.data?.update_action?.returning[0];
+  const updatedAction =
+    updateSigninActionResponse?.data?.update_action?.returning[0];
 
   // Insert redirects
   const insertRedirectsResponse = await client.mutate<{
@@ -173,8 +190,8 @@ export default async function handleRegister(
 
   const { application_type, grant_types, response_types } = parsedParams;
 
-  if (updateSecretResponse?.data?.update_action?.returning?.length) {
-    const app = updateSecretResponse.data.update_action.returning[0].app;
+  if (updateSigninActionResponse?.data?.update_action?.returning?.length) {
+    const app = updateSigninActionResponse.data.update_action.returning[0].app;
     res.status(201).json({
       application_type,
       client_id: app.id,
