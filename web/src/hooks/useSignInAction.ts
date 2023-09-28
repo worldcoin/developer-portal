@@ -47,15 +47,15 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
+    redirect(where: {action_id: {_eq: $action_id}}, order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
 `;
 
 const InsertRedirectMutation = gql`
-  mutation InsertRedirect($action_id: String!) {
-    insert_redirect_one(object: { action_id: $action_id, redirect_uri: "" }) {
+  mutation InsertRedirect($action_id: String!, $uri: String!) {
+    insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
       ${redirectFields}
     }
   }
@@ -166,12 +166,21 @@ const fetchRedirects = async () => {
   throw new Error("Error fetching redirects");
 };
 
-const addRedirectFetcher = async (_key: [string, string | undefined]) => {
+const addRedirectFetcher = async (
+  _key: [string, string | undefined],
+  args: {
+    arg: {
+      uri: RedirectModel["redirect_uri"];
+    };
+  }
+) => {
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
     return;
   }
+
+  const { uri } = args.arg;
 
   const response = await graphQLRequest<{
     insert_redirect_one: RedirectModel;
@@ -179,6 +188,7 @@ const addRedirectFetcher = async (_key: [string, string | undefined]) => {
     query: InsertRedirectMutation,
     variables: {
       action_id: currentAction.id,
+      uri,
     },
   });
 
@@ -309,12 +319,17 @@ const useSignInAction = () => {
   );
 
   const {
+    mutate: mutateRedirects,
     data: redirects,
     error: redirectsError,
     isLoading: redirectsIsLoading,
-  } = useSWR<Array<RedirectModel>>(["redirect", _action?.id], fetchRedirects, {
-    onSuccess: (data) => setCurrentRedirects(data),
-  });
+  } = useSWR<Array<Pick<RedirectModel, "id" | "redirect_uri">>>(
+    ["redirect", _action?.id],
+    fetchRedirects,
+    {
+      onSuccess: (data) => setCurrentRedirects(data),
+    }
+  );
 
   const { trigger: addRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -323,12 +338,23 @@ const useSignInAction = () => {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          // TODO: do not save the redirect before the user populates the uri
-          //toast.success("Redirect added");
+          toast.success("Redirect added");
         }
       },
+
+      onError: () => toast.error("Error while adding redirect"),
     }
   );
+
+  const addRedirectOptimistic = async ({
+    uri,
+  }: {
+    uri: RedirectModel["redirect_uri"];
+  }) => {
+    const newRedirects = [...(redirects ?? []), { id: "", redirect_uri: uri }];
+    await mutateRedirects(newRedirects, false);
+    return addRedirect({ uri });
+  };
 
   const { trigger: updateRedirect } = useSWRMutation(
     ["redirect", _action?.id],
@@ -393,7 +419,7 @@ const useSignInAction = () => {
     redirects,
     redirectsError,
     redirectsIsLoading,
-    addRedirect,
+    addRedirect: addRedirectOptimistic,
     updateRedirect,
     deleteRedirect,
 
