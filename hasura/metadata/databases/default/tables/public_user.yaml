@@ -11,7 +11,6 @@ insert_permissions:
       check: {}
       columns:
         - auth0Id
-        - email
         - ironclad_id
         - is_subscribed
         - name
@@ -23,7 +22,6 @@ select_permissions:
       columns:
         - auth0Id
         - created_at
-        - email
         - id
         - ironclad_id
         - name
@@ -35,7 +33,6 @@ select_permissions:
     permission:
       columns:
         - created_at
-        - email
         - id
         - is_subscribed
         - name
@@ -55,7 +52,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - email
         - name
       filter:
         id:
