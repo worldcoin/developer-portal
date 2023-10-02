@@ -6,6 +6,7 @@ import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { useFetchUser } from "./hooks/user-hooks";
 import { IUserStore, useUserStore } from "@/stores/userStore";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const getUserStore = (store: IUserStore) => ({
   userId: store.userId,
@@ -15,6 +16,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
   const { userId } = useUserStore(getUserStore);
   const modal = useToggle(false);
   const { user, loading } = useFetchUser(userId ?? "");
+  const { user: auth0user } = useUser();
 
   // FIXME: remove when real user image is available
   const image = "";
@@ -61,8 +63,11 @@ export function LoggedUserDisplay(props: { className?: string }) {
         </div>
 
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
-          {user?.email}
-          {!user?.email && <span className="font-medium">Add your email</span>}
+          {auth0user?.email}
+
+          {!auth0user?.email && (
+            <span className="font-medium">Add your email</span>
+          )}
         </span>
 
         <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">

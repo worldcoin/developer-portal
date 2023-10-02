@@ -5,7 +5,6 @@ import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type FetchUserQueryVariables = Types.Exact<{
-  email?: Types.InputMaybe<Types.Scalars["String"]>;
   auth0Id?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
@@ -14,23 +13,15 @@ export type FetchUserQuery = {
   user: Array<{
     __typename?: "user";
     id: string;
-    name: string;
-    email?: string | null;
     auth0Id?: string | null;
     team_id: string;
   }>;
 };
 
 export const FetchUserDocument = gql`
-  query FetchUser($email: String, $auth0Id: String) {
-    user(
-      where: {
-        _or: [{ email: { _eq: $email } }, { auth0Id: { _eq: $auth0Id } }]
-      }
-    ) {
+  query FetchUser($auth0Id: String) {
+    user(where: { auth0Id: { _eq: $auth0Id } }) {
       id
-      name
-      email
       auth0Id
       team_id
     }

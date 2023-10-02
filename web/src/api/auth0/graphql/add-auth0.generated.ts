@@ -4,29 +4,27 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type UpdateUserMutationVariables = Types.Exact<{
+export type AddAuth0MutationVariables = Types.Exact<{
   id: Types.Scalars["String"];
-  propsToUpdate?: Types.InputMaybe<Types.User_Set_Input>;
+  auth0Id: Types.Scalars["String"];
 }>;
 
-export type UpdateUserMutation = {
+export type AddAuth0Mutation = {
   __typename?: "mutation_root";
   update_user_by_pk?: {
     __typename?: "user";
     id: string;
+    team_id: string;
     auth0Id?: string | null;
-    name: string;
-    email?: string | null;
   } | null;
 };
 
-export const UpdateUserDocument = gql`
-  mutation UpdateUser($id: String!, $propsToUpdate: user_set_input) {
-    update_user_by_pk(pk_columns: { id: $id }, _set: $propsToUpdate) {
+export const AddAuth0Document = gql`
+  mutation AddAuth0($id: String!, $auth0Id: String!) {
+    update_user_by_pk(pk_columns: { id: $id }, _set: { auth0Id: $auth0Id }) {
       id
+      team_id
       auth0Id
-      name
-      email
     }
   }
 `;
@@ -48,17 +46,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    UpdateUser(
-      variables: UpdateUserMutationVariables,
+    AddAuth0(
+      variables: AddAuth0MutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<UpdateUserMutation> {
+    ): Promise<AddAuth0Mutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateUserMutation>(UpdateUserDocument, variables, {
+          client.request<AddAuth0Mutation>(AddAuth0Document, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "UpdateUser",
+        "AddAuth0",
         "mutation"
       );
     },

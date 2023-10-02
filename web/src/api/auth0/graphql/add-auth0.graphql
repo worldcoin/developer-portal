@@ -1,0 +1,7 @@
+mutation AddAuth0($id: String!, $auth0Id: String!) {
+  update_user_by_pk(pk_columns: { id: $id }, _set: { auth0Id: $auth0Id }) {
+    id
+    team_id
+    auth0Id
+  }
+}
