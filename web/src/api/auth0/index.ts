@@ -13,6 +13,8 @@ import { generateUserJWT } from "src/backend/jwts";
 import { setCookie } from "src/backend/cookies";
 import { Auth0Error } from "src/lib/types";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
+import { get } from "http";
+import { deleteCookie, getCookie } from "cookies-next";
 
 interface Auth0User extends Claims {
   given_name: string;
@@ -33,7 +35,7 @@ export const auth0Handler = async (
   res: NextApiResponse
 ) => {
   let session: Session | null | undefined = null;
-  const id = req.query.id;
+  const id = getCookie("hasura_user_id", { req, res });
 
   try {
     session = await getSession(req, res);
@@ -82,6 +84,7 @@ export const auth0Handler = async (
       );
 
       setCookie("auth", { token }, req, res, expiration, "lax", "/");
+      deleteCookie("hasura_user_id", { req, res });
       return res.redirect(307, urls.app());
     } catch (error) {
       console.error(error);

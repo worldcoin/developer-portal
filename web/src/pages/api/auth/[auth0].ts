@@ -3,12 +3,8 @@ import { NextApiRequest } from "next";
 import { Auth0Error } from "src/lib/types";
 
 export default handleAuth({
-  login: handleLogin((req) => {
-    const id = (req as NextApiRequest).query.id;
-
-    return {
-      returnTo: id ? `/api/auth0?id=${id}` : "/api/auth0",
-    };
+  login: handleLogin({
+    returnTo: "/api/auth0",
   }),
 
   logout: handleLogout((req) => {
