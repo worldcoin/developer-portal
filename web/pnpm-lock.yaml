@@ -29,6 +29,9 @@ dependencies:
   '@hookform/resolvers':
     specifier: ^3.0.0
     version: 3.0.1(react-hook-form@7.43.9)
+  '@next/env':
+    specifier: ^13.5.4
+    version: 13.5.4
   '@sendgrid/mail':
     specifier: ^7.7.0
     version: 7.7.0
