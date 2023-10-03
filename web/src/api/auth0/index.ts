@@ -59,6 +59,10 @@ export const auth0Handler = async (
     );
   }
 
+  if (!session.user.email_verified) {
+    return res.redirect(307, urls.logout({ error: Auth0Error.NotVerified }));
+  }
+
   const client = await getAPIServiceGraphqlClient();
 
   if (id) {

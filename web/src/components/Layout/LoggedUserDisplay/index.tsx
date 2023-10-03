@@ -15,20 +15,19 @@ const getUserStore = (store: IUserStore) => ({
 export function LoggedUserDisplay(props: { className?: string }) {
   const { userId } = useUserStore(getUserStore);
   const modal = useToggle(false);
-  const { user, loading } = useFetchUser(userId ?? "");
-  const { user: auth0user } = useUser();
+  const { user } = useFetchUser(userId ?? "");
 
   // FIXME: remove when real user image is available
   const image = "";
 
-  if (loading) {
+  if (user.hasura.loading) {
     return null;
   }
 
   return (
     <Fragment>
       <ProfileSettingsDialog
-        open={Boolean(user?.id) && modal.isOn}
+        open={Boolean(user.hasura?.id) && modal.isOn}
         onClose={modal.toggleOff}
         user={user}
       />
@@ -38,7 +37,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
         tabIndex={0}
         className={cn(
           "grid grid-cols-auto/1fr gap-x-3 gap-y-1 cursor-default",
-          { "cursor-pointer": user?.id },
+          { "cursor-pointer": user.hasura?.id },
           props.className
         )}
         onClick={() => modal.toggleOn()}
@@ -63,15 +62,15 @@ export function LoggedUserDisplay(props: { className?: string }) {
         </div>
 
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
-          {auth0user?.email}
+          {user.auth0User.user?.email}
 
-          {!auth0user?.email && (
+          {!user.auth0User.user?.email && (
             <span className="font-medium">Add your email</span>
           )}
         </span>
 
         <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
-          {user?.team.name}
+          {user?.hasura.team?.name}
         </span>
       </div>
     </Fragment>
