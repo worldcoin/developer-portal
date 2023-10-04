@@ -121,6 +121,6 @@ export default async function handleLogin(
     createdUser.id,
     createdUser.team_id
   );
-  setCookie("auth", { token }, req as NextApiRequest, res, expiration);
+  setCookie("auth", { token }, req as NextApiRequest, res, expiration, "lax");
   res.status(200).json({});
 }

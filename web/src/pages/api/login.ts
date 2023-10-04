@@ -91,7 +91,8 @@ export default async function handleLogin(
         { token: devToken.token },
         req,
         res,
-        devToken.expiration
+        devToken.expiration,
+        "lax"
       );
       return res.status(200).json({ new_user: false, returnTo });
     }
@@ -151,6 +152,6 @@ export default async function handleLogin(
 
   // NOTE: User has an account, generate a login token and authenticate
   const { token, expiration } = await generateUserJWT(user.id, user.team_id);
-  setCookie("auth", { token }, req, res, expiration);
+  setCookie("auth", { token }, req, res, expiration, "lax");
   res.status(200).json({ new_user: false, returnTo });
 }

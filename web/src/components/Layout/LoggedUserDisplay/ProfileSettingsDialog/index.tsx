@@ -8,17 +8,13 @@ import { DialogHeader } from "src/components/DialogHeader";
 import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
 // import { ImageInput } from "src/components/Layout/common/ImageInput";
-import { FetchUserQuery } from "../graphql/fetch-user.generated";
 import { useFetchUser, useUpdateUser } from "../hooks/user-hooks";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { Link } from "src/components/Link";
 import { Button } from "src/components/Button";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { updateSession } from "@auth0/nextjs-auth0";
 import { useRouter } from "next/router";
 import { urls } from "src/lib/urls";
-import { setCookie } from "cookies-next";
 
 const userDataSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -129,11 +125,6 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     ]
   );
 
-  const connectAuth0 = useCallback(() => {
-    setCookie("hasura_user_id", props.user?.hasura.id ?? "");
-    router.push("/api/auth/login");
-  }, [props.user?.hasura.id, router]);
-
   return (
     <Dialog open={props.open} onClose={props.onClose}>
       <form onSubmit={handleUserDataSubmit(submitUserData)}>
@@ -235,12 +226,13 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
       </form>
 
       {!props.user?.auth0User?.user?.email && (
-        <Button
-          onClick={connectAuth0}
-          className="w-full h-[56px] mt-4 font-medium"
-          type="button"
-        >
-          Connect Email
+        <Button className="w-full h-[56px] mt-4 font-medium" type="button">
+          <Link
+            href="/api/auth/login"
+            className="w-full h-full flex justify-center items-center"
+          >
+            Connect Email
+          </Link>
         </Button>
       )}
     </Dialog>
