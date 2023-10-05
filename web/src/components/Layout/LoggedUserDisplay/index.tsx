@@ -6,7 +6,6 @@ import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { useFetchUser } from "./hooks/user-hooks";
 import { IUserStore, useUserStore } from "@/stores/userStore";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 const getUserStore = (store: IUserStore) => ({
   userId: store.userId,
@@ -62,9 +61,9 @@ export function LoggedUserDisplay(props: { className?: string }) {
         </div>
 
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
-          {user.auth0User.user?.email}
+          {user.auth0?.email}
 
-          {!user.auth0User.user?.email && (
+          {!user.auth0?.email && (
             <span className="font-medium">Add your email</span>
           )}
         </span>

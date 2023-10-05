@@ -13,14 +13,14 @@ export const fetchUserHandler = async (
   res: NextApiResponse
 ) => {
   if (
-    !process.env.AUTH0_API_DOMAIN ||
-    !process.env.AUTH0_API_CLIENT_ID ||
-    !process.env.AUTH0_API_CLIENT_SECRET
+    !process.env.AUTH0_DOMAIN ||
+    !process.env.AUTH0_CLIENT_ID ||
+    !process.env.AUTH0_CLIENT_SECRET
   ) {
     const missing = [
-      "AUTH0_API_DOMAIN",
-      "AUTH0_API_CLIENT_ID",
-      "AUTH0_API_CLIENT_SECRET",
+      "AUTH0_DOMAIN",
+      "AUTH0_CLIENT_ID",
+      "AUTH0_CLIENT_SECRET",
     ].filter((key) => !process.env[key]);
 
     return errorResponse(
@@ -47,9 +47,9 @@ export const fetchUserHandler = async (
   }
 
   const managementClient = new ManagementClient({
-    domain: process.env.AUTH0_API_DOMAIN,
-    clientSecret: process.env.AUTH0_API_CLIENT_SECRET,
-    clientId: process.env.AUTH0_API_CLIENT_ID,
+    domain: process.env.AUTH0_DOMAIN,
+    clientSecret: process.env.AUTH0_CLIENT_SECRET,
+    clientId: process.env.AUTH0_CLIENT_ID,
   });
 
   let auth0User: GetUsers200ResponseOneOfInner | null = null;

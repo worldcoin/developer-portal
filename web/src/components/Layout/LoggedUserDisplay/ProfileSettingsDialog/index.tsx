@@ -1,5 +1,5 @@
 import { FieldError } from "@/components/FieldError";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Illustration } from "src/components/Auth/Illustration";
@@ -13,8 +13,7 @@ import { Link } from "src/components/Link";
 import { Button } from "src/components/Button";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/router";
-import { urls } from "src/lib/urls";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const userDataSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -40,7 +39,6 @@ export interface ProfileSettingsDialogProps {
 export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
   props: ProfileSettingsDialogProps
 ) {
-  const router = useRouter();
   const { updateUser } = useUpdateUser(props.user?.hasura.id ?? "");
 
   const {
@@ -65,7 +63,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     formState: emailFormState,
   } = useForm<EmailForm>({
     values: {
-      email: props.user?.auth0User.user?.email ?? "",
+      email: props.user?.auth0?.email ?? "",
     },
 
     resolver: yupResolver(emailSchema),
@@ -94,7 +92,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     [props, updateUser, userDataReset]
   );
 
-  const submitEmail = useCallback(
+  const updateEmail = useCallback(
     async (data: EmailForm) => {
       const res = await fetch("/api/auth/update-email", {
         method: "POST",
@@ -104,9 +102,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
         },
 
         body: JSON.stringify({
-          id: props.user?.auth0User.isSessionData
-            ? props.user?.auth0User.user?.sub
-            : props.user?.auth0User.user?.user_id,
+          id: props.user?.auth0.user_id,
           email: data.email,
         }),
       });
@@ -115,14 +111,10 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
         return toast.error("Error occurred while saving email.");
       }
 
-      router.push(urls.logout());
+      toast.success("Please, check your email to verify email");
+      props.user?.auth0?.mutate();
     },
-    [
-      props.user?.auth0User.isSessionData,
-      props.user?.auth0User.user?.sub,
-      props.user?.auth0User.user?.user_id,
-      router,
-    ]
+    [props.user?.auth0]
   );
 
   return (
@@ -179,7 +171,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
         </div>
       </form>
 
-      <form onSubmit={handleEmailSubmit(submitEmail)}>
+      <form onSubmit={handleEmailSubmit(updateEmail)}>
         <div className="mt-6 flex flex-col gap-y-2">
           <div className="grid gap-y-1">
             <FieldLabel className="font-rubik" required>
@@ -191,7 +183,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
             </span>
           </div>
 
-          {props.user?.auth0User?.user?.email && (
+          {props.user?.auth0?.email && (
             <FieldInput
               className="w-full font-rubik"
               type="email"
@@ -205,27 +197,24 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
           )}
         </div>
 
-        {props.user?.hasura.auth0Id &&
-          !props.user?.auth0User.user?.email_verified && (
-            <div className="grid gap-y-2 mt-2">
-              <span className="text-danger text-12">
-                Please, log in again with email to verify
-              </span>
+        {props.user?.hasura.auth0Id && !props.user?.auth0?.email_verified && (
+          <span className="text-danger text-12">
+            Email is not verified. Please, verify it before your next login.
+          </span>
+        )}
 
-              <Button variant="danger" className="h-[56px]">
-                <Link href={urls.logout()}>Logout</Link>
-              </Button>
-            </div>
-          )}
-
-        {props.user?.auth0User.user?.email && (
-          <Button className="w-full h-[56px] mt-4 font-medium" type="submit">
+        {props.user?.auth0?.email && (
+          <Button
+            disabled={emailFormState.isSubmitting || !emailFormState.isDirty}
+            className="w-full h-[56px] mt-4 font-medium"
+            type="submit"
+          >
             Update email
           </Button>
         )}
       </form>
 
-      {!props.user?.auth0User?.user?.email && (
+      {!props.user?.auth0?.email && (
         <Button className="w-full h-[56px] mt-4 font-medium" type="button">
           <Link
             href="/api/auth/login"

@@ -1,9 +1,20 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed, errorResponse } from "src/backend/errors";
+import {
+  errorForbidden,
+  errorNotAllowed,
+  errorResponse,
+} from "src/backend/errors";
 import { validateRequestSchema } from "src/backend/utils";
 import * as yup from "yup";
-import { GetUsers200ResponseOneOfInner, ManagementClient } from "auth0";
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+
+import {
+  GetUsers200ResponseOneOfInner,
+  ManagementClient,
+  Passwordless,
+} from "auth0";
+
+import { getCookie } from "cookies-next";
+import { verifyUserJWT } from "src/backend/jwts";
 
 const schema = yup.object({
   email: yup.string().email().required(),
@@ -14,15 +25,19 @@ export const updateEmailHandler = async (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
+  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
+    return errorNotAllowed(req.method, res, req);
+  }
+
   if (
-    !process.env.AUTH0_API_DOMAIN ||
-    !process.env.AUTH0_API_CLIENT_ID ||
-    !process.env.AUTH0_API_CLIENT_SECRET
+    !process.env.AUTH0_DOMAIN ||
+    !process.env.AUTH0_CLIENT_ID ||
+    !process.env.AUTH0_CLIENT_SECRET
   ) {
     const missing = [
-      "AUTH0_API_DOMAIN",
-      "AUTH0_API_CLIENT_ID",
-      "AUTH0_API_CLIENT_SECRET",
+      "AUTH0_DOMAIN",
+      "AUTH0_CLIENT_ID",
+      "AUTH0_CLIENT_SECRET",
     ].filter((key) => !process.env[key]);
 
     return errorResponse(
@@ -35,8 +50,18 @@ export const updateEmailHandler = async (
     );
   }
 
-  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res, req);
+  const auth = getCookie("auth", { req, res }) as string;
+
+  try {
+    const token = JSON.parse(auth).token;
+    const isTokenValid = await verifyUserJWT(token);
+
+    if (!isTokenValid) {
+      throw new Error("Invalid token");
+    }
+  } catch (error) {
+    console.error(error);
+    return errorForbidden(req, res);
   }
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
@@ -49,9 +74,9 @@ export const updateEmailHandler = async (
   }
 
   const managementClient = new ManagementClient({
-    domain: process.env.AUTH0_API_DOMAIN,
-    clientSecret: process.env.AUTH0_API_CLIENT_SECRET,
-    clientId: process.env.AUTH0_API_CLIENT_ID,
+    domain: process.env.AUTH0_DOMAIN,
+    clientSecret: process.env.AUTH0_CLIENT_SECRET,
+    clientId: process.env.AUTH0_CLIENT_ID,
   });
 
   let updatedUser: GetUsers200ResponseOneOfInner | null = null;
@@ -61,6 +86,22 @@ export const updateEmailHandler = async (
       { id: parsedParams.id },
       { email: parsedParams.email, email_verified: false }
     );
+
+    const passwordless = new Passwordless({
+      domain: process.env.AUTH0_DOMAIN,
+      clientSecret: process.env.AUTH0_CLIENT_SECRET,
+      clientId: process.env.AUTH0_CLIENT_ID,
+    });
+
+    passwordless.sendEmail({
+      email: parsedParams.email,
+      send: "link",
+
+      authParams: {
+        response_type: "code",
+        redirect_uri: "http://localhost:3000/api/auth/change-email-callback",
+      },
+    });
 
     if (!updateUserQueryResult.data) {
       throw new Error("No data returned from Auth0");
@@ -79,16 +120,6 @@ export const updateEmailHandler = async (
       req
     );
   }
-
-  const session = await getSession(req, res);
-
-  await updateSession(req, res, {
-    ...session,
-    user: {
-      ...session?.user,
-      email: updatedUser.email,
-    },
-  });
 
   const response = {
     success: true,
