@@ -57,7 +57,7 @@ export const auth0Handler = async (
 
     id = result.payload.sub;
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   try {

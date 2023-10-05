@@ -21,6 +21,7 @@ import { NextApiRequestWithBody } from "src/lib/types";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { GetUsers200ResponseOneOfInner, ManagementClient } from "auth0";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -48,6 +49,16 @@ const query = gql`
       id
       team_id
       world_id_nullifier
+      auth0Id
+      email
+    }
+  }
+`;
+
+const addAuth0Mutation = gql`
+  mutation AddAuth0($id: String!, $auth0Id: String!) {
+    update_user_by_pk(pk_columns: { id: $id }, _set: { auth0Id: $auth0Id }) {
+      auth0Id
     }
   }
 `;
@@ -132,7 +143,12 @@ export default async function handleLogin(
   // ANCHOR: Check if the user has an account
   const client = await getAPIServiceClient();
   const userQueryResult = await client.query<{
-    user: Array<Pick<UserModel, "id" | "world_id_nullifier" | "team_id">>;
+    user: Array<
+      Pick<
+        UserModel,
+        "id" | "world_id_nullifier" | "team_id" | "auth0Id" | "email"
+      >
+    >;
   }>({
     query,
     variables: {
@@ -146,6 +162,47 @@ export default async function handleLogin(
   if (!user) {
     const signup_token = await generateSignUpJWT(payload.sub);
     return res.status(200).json({ new_user: true, signup_token });
+  }
+
+  if (
+    process.env.AUTH0_API_DOMAIN &&
+    process.env.AUTH0_API_CLIENT_ID &&
+    process.env.AUTH0_API_CLIENT_SECRET
+  ) {
+    if (!user.auth0Id && user.email) {
+      const managementClient = new ManagementClient({
+        domain: process.env.AUTH0_API_DOMAIN,
+        clientSecret: process.env.AUTH0_API_CLIENT_SECRET,
+        clientId: process.env.AUTH0_API_CLIENT_ID,
+      });
+
+      let auth0User: GetUsers200ResponseOneOfInner | null = null;
+
+      try {
+        const createUserQuery = await managementClient.users.create({
+          email: user.email,
+          email_verified: false,
+          connection: "email",
+        });
+
+        auth0User = createUserQuery.data;
+      } catch (error) {
+        console.error("Error while creating auth0 account for a user", error);
+      }
+
+      if (auth0User) {
+        const updateUserMutationResult = await client.mutate<
+          Pick<UserModel, "auth0Id">
+        >({
+          mutation: addAuth0Mutation,
+
+          variables: {
+            id: user.id,
+            auth0Id: auth0User.user_id,
+          },
+        });
+      }
+    }
   }
 
   const returnTo = getReturnToFromCookie(req, res);
