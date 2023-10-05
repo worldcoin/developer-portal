@@ -11,7 +11,7 @@ import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
 import { generateUserJWT } from "src/backend/jwts";
 import { setCookie } from "src/backend/cookies";
-import { Auth0Error, JwtConfig } from "src/lib/types";
+import { JwtConfig } from "src/lib/types";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
 import { getCookie } from "cookies-next";
 import * as jose from "jose";
@@ -85,7 +85,7 @@ export const auth0Handler = async (
   }
 
   if (!session.user.email_verified) {
-    return res.redirect(307, urls.logout({ error: Auth0Error.NotVerified }));
+    return res.redirect(307, urls.logout({ error: true }));
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -110,7 +110,7 @@ export const auth0Handler = async (
       return res.redirect(307, urls.app());
     } catch (error) {
       console.error(error);
-      return res.redirect(307, urls.logout({ error: Auth0Error.Internal }));
+      return res.redirect(307, urls.logout({ error: true }));
     }
   }
 
@@ -124,7 +124,7 @@ export const auth0Handler = async (
     });
   } catch (error) {
     console.error(error);
-    return res.redirect(307, urls.logout({ error: Auth0Error.Internal }));
+    return res.redirect(307, urls.logout({ error: true }));
   }
 
   const user = userData.user[0];

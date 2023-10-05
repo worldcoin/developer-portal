@@ -1,9 +1,7 @@
 // URLs for frontend pages
 
-import { Auth0Error } from "./types";
-
 type LogoutParams = {
-  error?: Auth0Error;
+  error?: boolean | string;
 };
 
 export const urls = {

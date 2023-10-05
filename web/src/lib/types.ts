@@ -92,9 +92,3 @@ export enum Environment {
   Production = "production",
   Staging = "staging",
 }
-
-export enum Auth0Error {
-  Auth0IdMismatch = "auth0_id_mismatch",
-  Internal = "internal_error",
-  NotVerified = "not_verified",
-}

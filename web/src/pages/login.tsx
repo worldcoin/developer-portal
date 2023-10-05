@@ -6,13 +6,12 @@ import {
 } from "src/backend/login-internal";
 
 import { OIDC_BASE_URL } from "src/lib/constants";
-import { Auth0Error } from "src/lib/types";
 import { Login } from "src/scenes/login/login";
 export default Login;
 
 export interface ILoginPageProps {
   loginUrl?: string;
-  error?: Auth0Error | null;
+  error?: string | null;
 }
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
