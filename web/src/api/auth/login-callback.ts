@@ -1,4 +1,4 @@
-import { Claims, Session, getSession } from "@auth0/nextjs-auth0";
+import { Claims, Session, getSession, handleLogin } from "@auth0/nextjs-auth0";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
@@ -26,15 +26,14 @@ interface Auth0User extends Claims {
   sid: string;
 }
 
-export const auth0Handler = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
+export const auth0Login = async (req: NextApiRequest, res: NextApiResponse) => {
   let session: Session | null | undefined = null;
 
   try {
     session = await getSession(req, res);
   } catch (error) {
+    console.error(error);
+
     return errorResponse(
       res,
       500,

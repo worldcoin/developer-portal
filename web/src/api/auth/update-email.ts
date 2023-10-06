@@ -21,7 +21,7 @@ const schema = yup.object({
   id: yup.string().required(),
 });
 
-export const updateEmailHandler = async (
+export const auth0UpdateEmail = async (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
@@ -99,7 +99,7 @@ export const updateEmailHandler = async (
 
       authParams: {
         response_type: "code",
-        redirect_uri: "http://localhost:3000/api/auth/change-email-callback",
+        redirect_uri: "http://localhost:3000/api/auth/update-email-callback",
       },
     });
 

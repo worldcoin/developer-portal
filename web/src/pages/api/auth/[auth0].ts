@@ -5,15 +5,22 @@ import {
   handleLogout,
 } from "@auth0/nextjs-auth0";
 
-import { getCookie } from "cookies-next";
 import { NextApiRequest, NextApiResponse } from "next";
-import { urls } from "src/lib/urls";
-import { verifyUserJWT } from "src/backend/jwts";
+import { auth0FetchUser } from "src/api/auth/fetch-user";
+import { auth0Login } from "src/api/auth/login-callback";
+import { auth0UpdateEmail } from "src/api/auth/update-email";
+import { auth0UpdateEmailCallback } from "src/api/auth/update-email-callback";
 
 export default handleAuth({
   login: handleLogin({
-    returnTo: "/api/auth0",
+    returnTo: "/api/auth/login-callback",
   }),
+
+  callback: handleCallback,
+  "login-callback": auth0Login,
+  "fetch-user": auth0FetchUser,
+  "update-email": auth0UpdateEmail,
+  "update-email-callback": auth0UpdateEmailCallback,
 
   logout: handleLogout((req) => {
     const error = (req as NextApiRequest).query.error;
@@ -22,29 +29,6 @@ export default handleAuth({
       returnTo: error ? `/logout?error=${error}` : "/logout",
     };
   }),
-
-  callback: handleCallback,
-
-  "change-email-callback": async (
-    req: NextApiRequest,
-    res: NextApiResponse
-  ) => {
-    const auth = getCookie("auth", { req, res }) as string;
-
-    try {
-      const token = JSON.parse(auth).token;
-      const isTokenValid = await verifyUserJWT(token);
-
-      if (!isTokenValid) {
-        throw new Error("Invalid token");
-      }
-    } catch (error) {
-      console.error("Auth0 callback error:", error);
-      res.redirect(urls.logout({ error: true }));
-    }
-
-    res.redirect(307, urls.app());
-  },
 
   onError: (_req, res, error) => {
     console.error("Auth0 error:", error);

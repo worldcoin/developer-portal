@@ -8,7 +8,7 @@ const schema = yup.object({
   id: yup.string().required(),
 });
 
-export const fetchUserHandler = async (
+export const auth0FetchUser = async (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
