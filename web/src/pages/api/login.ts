@@ -21,7 +21,11 @@ import { NextApiRequestWithBody } from "src/lib/types";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
-import { GetUsers200ResponseOneOfInner, ManagementClient } from "auth0";
+import {
+  GetUsers200ResponseOneOfInner,
+  ManagementClient,
+  Passwordless,
+} from "auth0";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -165,27 +169,53 @@ export default async function handleLogin(
   }
 
   if (
-    process.env.AUTH0_API_DOMAIN &&
-    process.env.AUTH0_API_CLIENT_ID &&
-    process.env.AUTH0_API_CLIENT_SECRET
+    process.env.AUTH0_DOMAIN &&
+    process.env.AUTH0_CLIENT_ID &&
+    process.env.AUTH0_CLIENT_SECRET
   ) {
     if (!user.auth0Id && user.email) {
       const managementClient = new ManagementClient({
-        domain: process.env.AUTH0_API_DOMAIN,
-        clientSecret: process.env.AUTH0_API_CLIENT_SECRET,
-        clientId: process.env.AUTH0_API_CLIENT_ID,
+        domain: process.env.AUTH0_DOMAIN,
+        clientSecret: process.env.AUTH0_CLIENT_SECRET,
+        clientId: process.env.AUTH0_CLIENT_ID,
       });
 
       let auth0User: GetUsers200ResponseOneOfInner | null = null;
 
       try {
-        const createUserQuery = await managementClient.users.create({
+        const createdUser = await managementClient.users.create({
           email: user.email,
-          email_verified: false,
+          email_verified: true,
+          verify_email: false,
           connection: "email",
         });
 
-        auth0User = createUserQuery.data;
+        const updatedUser = await managementClient.users.update(
+          { id: createdUser.data.user_id },
+          {
+            email_verified: false,
+            verify_email: false,
+          }
+        );
+
+        const passwordless = new Passwordless({
+          domain: process.env.AUTH0_DOMAIN,
+          clientSecret: process.env.AUTH0_CLIENT_SECRET,
+          clientId: process.env.AUTH0_CLIENT_ID,
+        });
+
+        passwordless.sendEmail({
+          email: user.email,
+          send: "link",
+
+          authParams: {
+            response_type: "code",
+            redirect_uri:
+              "http://localhost:3000/api/auth/update-email-callback",
+          },
+        });
+
+        auth0User = updatedUser.data;
       } catch (error) {
         console.error("Error while creating auth0 account for a user", error);
       }
