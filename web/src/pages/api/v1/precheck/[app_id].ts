@@ -146,7 +146,9 @@ export default async function handlePrecheck(
   const app_id = req.query.app_id as string;
   const action = parsedParams.action ?? null;
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier = parsedParams.external_nullifier ?? internal.generateExternalNullifier(app_id, action).digest;
+  const external_nullifier =
+    parsedParams.external_nullifier ??
+    internal.generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
