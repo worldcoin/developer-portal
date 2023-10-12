@@ -110,27 +110,33 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object({
-  action: yup
-    .string()
-    .strict()
-    .when("external_nullifier", {
-      is: (external_nullifier: unknown) => !external_nullifier,
-      then: (s) =>
-        s.required(
-          "This attribute is required when external_nullifier is not provided."
-        ),
-    }),
-  nullifier_hash: yup.string().default(""),
-  external_nullifier: yup
-    .string()
-    .strict()
-    .when("action", {
-      is: (action: unknown) => !action,
-      then: (s) =>
-        s.required("This attribute is required when action is not provided."),
-    }),
-});
+const schema = yup.object().shape(
+  {
+    action: yup
+      .string()
+      .strict()
+      .when("external_nullifier", {
+        is: (external_nullifier: unknown) => !external_nullifier,
+        then: (s) =>
+          s.required(
+            "This attribute is required when external_nullifier is not provided."
+          ),
+      }),
+    nullifier_hash: yup.string().default(""),
+    external_nullifier: yup
+      .string()
+      .strict()
+      .when("action", {
+        is: (action: unknown) => !action,
+        then: (s) =>
+          s.required("This attribute is required when action is not provided."),
+      }),
+  },
+  [
+    ["action", "external_nullifier"],
+    ["nullifier_hash", "external_nullifier"],
+  ]
+);
 
 /**
  * Fetches public metadata for an app & action.
