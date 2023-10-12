@@ -7,6 +7,7 @@ import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
+import { internal } from "@worldcoin/idkit";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -109,14 +110,30 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object({
-  action: yup.string().strict(),
-  nullifier_hash: yup.string().default(""),
-  external_nullifier: yup
-    .string()
-    .strict()
-    .required("This attribute is required."),
-});
+const schema = yup.object().shape(
+  {
+    action: yup
+      .string()
+      .strict()
+      .when("external_nullifier", {
+        is: (external_nullifier: unknown) => !external_nullifier,
+        then: (s) =>
+          s.required(
+            "This attribute is required when external_nullifier is not provided."
+          ),
+      }),
+    nullifier_hash: yup.string().default(""),
+    external_nullifier: yup
+      .string()
+      .strict()
+      .when("action", {
+        is: (action: unknown) => !action,
+        then: (s) =>
+          s.required("This attribute is required when action is not provided."),
+      }),
+  },
+  [["action", "external_nullifier"]]
+);
 
 /**
  * Fetches public metadata for an app & action.
@@ -148,7 +165,9 @@ export default async function handlePrecheck(
   const app_id = req.query.app_id as string;
   const action = parsedParams.action ?? null;
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier = parsedParams.external_nullifier;
+  const external_nullifier =
+    parsedParams.external_nullifier ??
+    internal.generateExternalNullifier(app_id, action!).digest;
 
   const client = await getAPIServiceClient();
 
