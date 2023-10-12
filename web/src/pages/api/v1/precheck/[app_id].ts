@@ -132,10 +132,7 @@ const schema = yup.object().shape(
           s.required("This attribute is required when action is not provided."),
       }),
   },
-  [
-    ["action", "external_nullifier"],
-    ["nullifier_hash", "external_nullifier"],
-  ]
+  [["action", "external_nullifier"]]
 );
 
 /**
