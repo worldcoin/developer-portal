@@ -110,30 +110,18 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object().shape(
-  {
-    action: yup
-      .string()
-      .strict()
-      .when("external_nullifier", {
-        is: (external_nullifier: unknown) => !external_nullifier,
-        then: (s) =>
-          s.required(
-            "This attribute is required when external_nullifier is not provided."
-          ),
-      }),
-    nullifier_hash: yup.string().default(""),
-    external_nullifier: yup
-      .string()
-      .strict()
-      .when("action", {
-        is: (action: unknown) => !action,
-        then: (s) =>
-          s.required("This attribute is required when action is not provided."),
-      }),
-  },
-  [["action", "external_nullifier"]]
-);
+const schema = yup.object().shape({
+  action: yup.string().strict().default(""),
+  nullifier_hash: yup.string().default(""),
+  external_nullifier: yup
+    .string()
+    .strict()
+    .when("action", {
+      is: (action: unknown) => action === null,
+      then: (s) =>
+        s.required("This attribute is required when action is not provided."),
+    }),
+});
 
 /**
  * Fetches public metadata for an app & action.
@@ -163,11 +151,11 @@ export default async function handlePrecheck(
   }
 
   const app_id = req.query.app_id as string;
-  const action = parsedParams.action ?? null;
+  const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
   const external_nullifier =
     parsedParams.external_nullifier ??
-    internal.generateExternalNullifier(app_id, action!).digest;
+    internal.generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
