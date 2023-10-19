@@ -1,5 +1,5 @@
 import { FieldError } from "@/components/FieldError";
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Illustration } from "src/components/Auth/Illustration";
@@ -15,6 +15,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/router";
 import { useToggle } from "src/hooks/useToggle";
+import dayjs from "dayjs";
 
 const userDataSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -47,6 +48,12 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
 ) {
   const router = useRouter();
   const otpForm = useToggle(false);
+
+  const [resendTimer, setResendTimer] = useState<number>(
+    localStorage.getItem("reset_timer")
+      ? Number(localStorage.getItem("reset_timer")) - dayjs().unix()
+      : 0
+  );
 
   const { updateUser } = useUpdateUser(props.user?.hasura.id ?? "");
 
@@ -151,6 +158,54 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     [getEmailFormValues, router]
   );
 
+  const resendCode = useCallback(async () => {
+    const result = await fetch("/api/auth/send-otp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: props.user?.auth0.email,
+      }),
+    });
+
+    if (!result.ok) {
+      return toast.error("Error occurred while sending OTP.");
+    }
+
+    const { success } = await result.json();
+
+    if (!success) {
+      return toast.error("Error occurred while sending OTP.");
+    }
+
+    toast.success("Please, check your email to verify email");
+
+    const seconds = 30;
+
+    localStorage.setItem(
+      "reset_timer",
+      dayjs().add(seconds, "second").unix().toString()
+    );
+    setResendTimer(seconds);
+  }, [props.user?.auth0.email]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (resendTimer > 0) {
+        setResendTimer(resendTimer - 1);
+      }
+
+      if (resendTimer === 0) {
+        setResendTimer(0);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [resendTimer]);
+
   return (
     <Dialog open={props.open} onClose={props.onClose}>
       <form onSubmit={handleUserDataSubmit(submitUserData)}>
@@ -248,7 +303,7 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
         )}
       </form>
 
-      {otpForm.isOn && (
+      {!props.user?.auth0.email_verified && (
         <form
           className="grid gap-y-4 mt-6"
           onSubmit={otpFormHandleSubmit(submitOtp)}
@@ -269,21 +324,32 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
             )}
           </div>
 
-          <Button
-            type="submit"
-            className="py-4"
-            disabled={
-              !otpFormState.isValid ||
-              otpFormState.isSubmitting ||
-              !otpFormState.dirtyFields.otp
-            }
-          >
-            Verify
-          </Button>
+          <div className="grid grid-cols-2 gap-x-2">
+            <Button
+              type="submit"
+              className="py-4"
+              disabled={
+                !otpFormState.isValid ||
+                otpFormState.isSubmitting ||
+                !otpFormState.dirtyFields.otp
+              }
+            >
+              Verify
+            </Button>
+
+            <Button
+              type="button"
+              className="py-4"
+              onClick={resendCode}
+              disabled={resendTimer > 0}
+            >
+              Resend code {resendTimer > 0 && `(${resendTimer}s)`}
+            </Button>
+          </div>
         </form>
       )}
 
-      {!props.user?.auth0?.email && (
+      {!props.user?.hasura.auth0Id && (
         <Button className="w-full h-[56px] mt-4 font-medium" type="button">
           <Link
             href="/api/auth/login"

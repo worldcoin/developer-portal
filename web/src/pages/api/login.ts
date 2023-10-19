@@ -206,13 +206,7 @@ export default async function handleLogin(
 
         passwordless.sendEmail({
           email: user.email,
-          send: "link",
-
-          authParams: {
-            response_type: "code",
-            redirect_uri:
-              "http://localhost:3000/api/auth/update-email-callback",
-          },
+          send: "code",
         });
 
         auth0User = updatedUser.data;
@@ -221,16 +215,24 @@ export default async function handleLogin(
       }
 
       if (auth0User) {
-        const updateUserMutationResult = await client.mutate<
-          Pick<UserModel, "auth0Id">
-        >({
-          mutation: addAuth0Mutation,
+        try {
+          const updateUserMutationResult = await client.mutate<
+            Pick<UserModel, "auth0Id">
+          >({
+            mutation: addAuth0Mutation,
 
-          variables: {
-            id: user.id,
-            auth0Id: auth0User.user_id,
-          },
-        });
+            variables: {
+              id: user.id,
+              auth0Id: auth0User.user_id,
+            },
+          });
+
+          if (!updateUserMutationResult.data) {
+            throw new Error("Error while updating user with auth0Id");
+          }
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
   }
