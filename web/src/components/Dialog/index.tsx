@@ -8,13 +8,16 @@ interface DialogProps {
   panelClassName?: string;
   children: ReactNode;
   open?: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const Dialog = memo(function Dialog(props: DialogProps) {
   return (
     <Transition show={props.open} as={Fragment}>
-      <BaseDialog className={cn(props.className)} onClose={props.onClose}>
+      <BaseDialog
+        className={cn(props.className)}
+        onClose={props.onClose ?? (() => {})}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -46,12 +49,14 @@ export const Dialog = memo(function Dialog(props: DialogProps) {
                 "relative w-[448px] px-8 py-12 bg-ffffff rounded-xl"
               )}
             >
-              <button
-                className="absolute top-4 left-4 flex items-center justify-center w-9 h-9 rounded-full bg-ebecef"
-                onClick={props.onClose}
-              >
-                <Icon className="w-6 h-6 text-neutral-primary" name="close" />
-              </button>
+              {props.onClose && (
+                <button
+                  className="absolute top-4 left-4 flex items-center justify-center w-9 h-9 rounded-full bg-ebecef"
+                  onClick={props.onClose}
+                >
+                  <Icon className="w-6 h-6 text-neutral-primary" name="close" />
+                </button>
+              )}
               {props.children}
             </BaseDialog.Panel>
           </Transition.Child>

@@ -12,7 +12,7 @@ type GSSRResponse = Parameters<GetServerSideProps>[0]["res"];
 
 export const setCookie = (
   name: string,
-  value: Record<string, unknown>,
+  value: Record<string, unknown> | boolean,
   req: NextApiRequest | GSSRRequest,
   res: NextApiResponse | GSSRResponse,
   expires_at?: number,

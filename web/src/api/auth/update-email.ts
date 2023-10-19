@@ -95,12 +95,7 @@ export const auth0UpdateEmail = async (
 
     passwordless.sendEmail({
       email: parsedParams.email,
-      send: "link",
-
-      authParams: {
-        response_type: "code",
-        redirect_uri: "http://localhost:3000/api/auth/update-email-callback",
-      },
+      send: "code",
     });
 
     if (!updateUserQueryResult.data) {

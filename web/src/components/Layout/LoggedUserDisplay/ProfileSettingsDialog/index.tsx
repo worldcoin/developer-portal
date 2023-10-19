@@ -13,7 +13,8 @@ import { Link } from "src/components/Link";
 import { Button } from "src/components/Button";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter } from "next/router";
+import { useToggle } from "src/hooks/useToggle";
 
 const userDataSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -27,8 +28,13 @@ const emailSchema = yup.object({
     .required("This field is required"),
 });
 
+const otpSchema = yup.object({
+  otp: yup.string().required("This field is required"),
+});
+
 type UserDataForm = yup.InferType<typeof userDataSchema>;
 type EmailForm = yup.InferType<typeof emailSchema>;
+type OtpFormData = yup.InferType<typeof otpSchema>;
 
 export interface ProfileSettingsDialogProps {
   open: boolean;
@@ -39,6 +45,9 @@ export interface ProfileSettingsDialogProps {
 export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
   props: ProfileSettingsDialogProps
 ) {
+  const router = useRouter();
+  const otpForm = useToggle(false);
+
   const { updateUser } = useUpdateUser(props.user?.hasura.id ?? "");
 
   const {
@@ -61,12 +70,22 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
     handleSubmit: handleEmailSubmit,
     register: emailRegister,
     formState: emailFormState,
+    getValues: getEmailFormValues,
   } = useForm<EmailForm>({
     values: {
       email: props.user?.auth0?.email ?? "",
     },
 
     resolver: yupResolver(emailSchema),
+  });
+
+  const {
+    register: otpFormRegister,
+    handleSubmit: otpFormHandleSubmit,
+    formState: otpFormState,
+  } = useForm<OtpFormData>({
+    resolver: yupResolver(otpSchema),
+    mode: "onChange",
   });
 
   const submitUserData = useCallback(
@@ -113,8 +132,23 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
 
       toast.success("Please, check your email to verify email");
       props.user?.auth0?.mutate();
+      otpForm.toggleOn();
     },
-    [props.user?.auth0]
+    [otpForm, props.user?.auth0]
+  );
+
+  const submitOtp = useCallback(
+    async (values: OtpFormData) => {
+      const query = new URLSearchParams({
+        email: getEmailFormValues().email,
+        otp: values.otp,
+      });
+
+      router.push(`/api/auth/verify-otp?${query.toString()}`, undefined, {
+        shallow: true,
+      });
+    },
+    [getEmailFormValues, router]
   );
 
   return (
@@ -213,6 +247,41 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
           </Button>
         )}
       </form>
+
+      {otpForm.isOn && (
+        <form
+          className="grid gap-y-4 mt-6"
+          onSubmit={otpFormHandleSubmit(submitOtp)}
+        >
+          <div className="w-full grid gap-y-1">
+            <FieldLabel className="font-rubik" required>
+              OTP
+            </FieldLabel>
+
+            <FieldInput
+              type="text"
+              {...otpFormRegister("otp")}
+              placeholder="OTP"
+              className="w-full"
+            />
+            {otpFormState.errors.otp?.message && (
+              <FieldError message={otpFormState.errors.otp?.message} />
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            className="py-4"
+            disabled={
+              !otpFormState.isValid ||
+              otpFormState.isSubmitting ||
+              !otpFormState.dirtyFields.otp
+            }
+          >
+            Verify
+          </Button>
+        </form>
+      )}
 
       {!props.user?.auth0?.email && (
         <Button className="w-full h-[56px] mt-4 font-medium" type="button">

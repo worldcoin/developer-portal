@@ -15,7 +15,6 @@ import { Button } from "src/components/Button";
 import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
 import { SignupBody } from "src/api/signup";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   email: yup.string().email(),

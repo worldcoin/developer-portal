@@ -180,7 +180,7 @@ export function Login({ loginUrl, error }: ILoginPageProps) {
 
                 <div className="grid gap-y-4 mt-12 w-full">
                   <div className="grid grid-cols-2 gap-x-4">
-                    <Link href="/api/auth/login">
+                    <Link href="/auth0">
                       <Button
                         type="button"
                         variant="secondary"
