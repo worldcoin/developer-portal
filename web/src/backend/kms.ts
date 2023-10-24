@@ -7,6 +7,7 @@ import {
   DescribeKeyCommand,
   GetPublicKeyCommand,
   KMSClient,
+  KeySpec,
   ScheduleKeyDeletionCommand,
   SignCommand,
 } from "@aws-sdk/client-kms";
@@ -30,7 +31,7 @@ export const getKMSClient = async () => {
 
 export const createKMSKey = async (
   client: KMSClient,
-  alg: string
+  alg: KeySpec
 ): Promise<CreateKeyResult> => {
   try {
     const { KeyMetadata } = await client.send(

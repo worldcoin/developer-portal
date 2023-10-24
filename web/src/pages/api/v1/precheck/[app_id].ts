@@ -7,6 +7,7 @@ import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
+import { internal } from "@worldcoin/idkit";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -109,13 +110,17 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object({
-  action: yup.string().strict(),
+const schema = yup.object().shape({
+  action: yup.string().strict().default(""),
   nullifier_hash: yup.string().default(""),
   external_nullifier: yup
     .string()
     .strict()
-    .required("This attribute is required."),
+    .when("action", {
+      is: (action: unknown) => action === null,
+      then: (s) =>
+        s.required("This attribute is required when action is not provided."),
+    }),
 });
 
 /**
@@ -146,9 +151,11 @@ export default async function handlePrecheck(
   }
 
   const app_id = req.query.app_id as string;
-  const action = parsedParams.action ?? null;
+  const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier = parsedParams.external_nullifier;
+  const external_nullifier =
+    parsedParams.external_nullifier ??
+    internal.generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
@@ -234,7 +241,6 @@ export default async function handlePrecheck(
   const response = {
     ...app,
     actions: undefined,
-    logo_url: "",
     sign_in_with_world_id: action === "",
     action: { ...actionItem, nullifiers: undefined },
     can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
