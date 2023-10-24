@@ -14,7 +14,7 @@ const useFetchAuth0User = (auth0Id: string | undefined | null) => {
   const { data: auth0User, ...rest } =
     useSWRImmutable<GetUsers200ResponseOneOfInner>(
       auth0Id ? "/api/auth/fetch-user" : null,
-      (url) =>
+      (url: string) =>
         fetch(url, {
           method: "POST",
           headers: {
