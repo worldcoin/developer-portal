@@ -12,7 +12,7 @@ insert_permissions:
       columns:
         - action_id
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
         - credential_type
 select_permissions:
@@ -30,7 +30,6 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
         - nullifier_hash
         - credential_type
       filter:
@@ -44,7 +43,7 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
         - credential_type
       filter: {}
@@ -54,7 +53,7 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
         - credential_type
       filter:
@@ -64,3 +63,10 @@ select_permissions:
               users:
                 id:
                   _eq: X-Hasura-User-Id
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - uses
+      filter: {}
+      check: null

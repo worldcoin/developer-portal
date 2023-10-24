@@ -4,8 +4,10 @@ import { create } from "zustand";
 export type ISignInActionStore = {
   action: ActionModel | null;
   setAction: (action: ActionModel | null) => void;
-  redirects: Array<RedirectModel>;
-  setRedirects: (redirects: Array<RedirectModel>) => void;
+  redirects: Array<Pick<RedirectModel, "id" | "redirect_uri">>;
+  setRedirects: (
+    redirects: Array<Pick<RedirectModel, "id" | "redirect_uri">>
+  ) => void;
   clientSecret: null | string;
   setClientSecret: (clientSecret: null | string) => void;
 };

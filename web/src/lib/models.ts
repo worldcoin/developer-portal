@@ -54,6 +54,8 @@ export interface ActionModel {
   updated_at: DateTime;
   kiosk_enabled: boolean;
   status: "active" | "inactive"; // TODO: need add constraint for status field in hasura (or use boolean)
+  terms_uri: string;
+  privacy_policy_uri: string;
   __typename: "action";
 }
 
@@ -65,9 +67,9 @@ export interface ActionModelWithNullifiers extends ActionModel {
 
 export interface NullifierModel {
   id: string;
+  uses: number;
   action_id: string;
   nullifier_hash: string;
-  merkle_root: string;
   created_at: DateTime;
   updated_at: DateTime;
   credential_type: CredentialType;

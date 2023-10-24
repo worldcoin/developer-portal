@@ -7,8 +7,12 @@ import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
+import { internal } from "@worldcoin/idkit";
 
-type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
+type _Nullifier = Pick<
+  NullifierModel,
+  "nullifier_hash" | "uses" | "__typename"
+>;
 interface _Action
   extends Pick<
     ActionModel,
@@ -21,7 +25,7 @@ interface _Action
     | "status"
     | "__typename"
   > {
-  nullifiers: _Nullifier[];
+  nullifiers: [_Nullifier] | [];
 }
 
 interface _App
@@ -69,7 +73,10 @@ const appPrecheckQuery = gql`
         max_verifications
         max_accounts_per_user
         status
+        privacy_policy_uri
+        terms_uri
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+          uses
           nullifier_hash
         }
       }
@@ -103,13 +110,17 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object({
-  action: yup.string().strict(),
+const schema = yup.object().shape({
+  action: yup.string().strict().default(""),
   nullifier_hash: yup.string().default(""),
   external_nullifier: yup
     .string()
     .strict()
-    .required("This attribute is required."),
+    .when("action", {
+      is: (action: unknown) => action === null,
+      then: (s) =>
+        s.required("This attribute is required when action is not provided."),
+    }),
 });
 
 /**
@@ -140,9 +151,11 @@ export default async function handlePrecheck(
   }
 
   const app_id = req.query.app_id as string;
-  const action = parsedParams.action ?? null;
+  const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier = parsedParams.external_nullifier;
+  const external_nullifier =
+    parsedParams.external_nullifier ??
+    internal.generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
@@ -151,8 +164,8 @@ export default async function handlePrecheck(
     query: appPrecheckQuery,
     variables: {
       app_id,
-      external_nullifier,
       nullifier_hash,
+      external_nullifier,
     },
   });
 
@@ -187,8 +200,8 @@ export default async function handlePrecheck(
         mutation: createActionQuery,
         variables: {
           app_id,
-          external_nullifier,
           action,
+          external_nullifier,
         },
         errorPolicy: "none",
       });
@@ -223,15 +236,14 @@ export default async function handlePrecheck(
     );
   }
 
-  const nullifiers = actionItem.nullifiers;
+  const nullifier = actionItem.nullifiers?.[0];
 
   const response = {
     ...app,
-    logo_url: "",
-    sign_in_with_world_id: action === "",
-    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
-    action: { ...actionItem, nullifiers: undefined },
     actions: undefined,
+    sign_in_with_world_id: action === "",
+    action: { ...actionItem, nullifiers: undefined },
+    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
   };
 
   if (app.engine === EngineType.OnChain) {
@@ -246,7 +258,7 @@ export default async function handlePrecheck(
     // ANCHOR: If a nullifier hash is provided, determine if the user can verify
     if (nullifier_hash && response.action) {
       response.can_user_verify = canVerifyForAction(
-        nullifiers,
+        nullifier,
         response.action.max_verifications
       )
         ? CanUserVerifyType.Yes
