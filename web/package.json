@@ -48,7 +48,7 @@
     "jose": "^4.11.1",
     "js-sha3": "^0.8.0",
     "jsonwebtoken": "^9.0.0",
-    "next": "13.2.0",
+    "next": "13.5.0",
     "next-redux-wrapper": "^7.0.5",
     "next-safe": "^3.4.1",
     "next-seo": "^5.15.0",
