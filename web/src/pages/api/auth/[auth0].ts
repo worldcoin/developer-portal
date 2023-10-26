@@ -22,7 +22,7 @@ export default handleAuth({
     const error = (req as NextApiRequest).query.error;
 
     return {
-      returnTo: error ? `/logout?error=${error}` : "/logout",
+      returnTo: error ? `/login?error=${error}` : "/login",
     };
   }),
 
