@@ -14,33 +14,8 @@ import {
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
-
-type Auth0EmailUser = {
-  nickname: string;
-  name: string;
-  picture: string;
-  updated_at: string;
-  sid: string;
-  sub: `email|${string}`;
-  email: string;
-  email_verified: boolean;
-};
-
-type Auth0WorldcoinUser = {
-  nickname: string;
-  name: string;
-  picture: string;
-  updated_at: string;
-  sid: string;
-  sub: `oauth2|worldcoin|${string}`;
-  email?: never;
-  email_verified?: never;
-};
-
-type Auth0User = Auth0EmailUser | Auth0WorldcoinUser;
-
-const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
-  user.sub.startsWith("email|");
+import { Auth0User } from "src/lib/types";
+import { isEmailUser } from "src/lib/utils";
 
 const wait = (time: number) =>
   new Promise((resolve) => setTimeout(resolve, time));
@@ -107,13 +82,7 @@ export const auth0Login = withApiAuthRequired(
     }
 
     if (!user) {
-      const searchParams = new URLSearchParams({
-        email: auth0User.email as string,
-        name: auth0User.name,
-        auth0Id: auth0User.sub as string,
-      });
-
-      return res.status(200).redirect(`/signup?${searchParams.toString()}`);
+      return res.status(200).redirect("/setup");
     }
 
     if (user && !user.auth0Id) {

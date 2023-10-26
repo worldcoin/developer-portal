@@ -5,8 +5,8 @@ import {
   handleLogout,
 } from "@auth0/nextjs-auth0";
 
-import { NextApiRequest, NextApiResponse } from "next";
-import { auth0FetchUser } from "src/api/auth/fetch-user";
+import { NextApiRequest } from "next";
+import { deleteAccount } from "src/api/auth/delete-account";
 import { auth0Login } from "src/api/auth/login-callback";
 
 export default handleAuth({
@@ -16,7 +16,7 @@ export default handleAuth({
 
   callback: handleCallback,
   "login-callback": auth0Login,
-  "fetch-user": auth0FetchUser,
+  "delete-account": deleteAccount,
 
   logout: handleLogout((req) => {
     const error = (req as NextApiRequest).query.error;
