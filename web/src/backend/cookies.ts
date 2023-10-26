@@ -16,7 +16,7 @@ export const setCookie = (
   req: NextApiRequest | GSSRRequest,
   res: NextApiResponse | GSSRResponse,
   expires_at?: number,
-  sameSite?: OptionsType["sameSite"],
+  sameSite: OptionsType["sameSite"] = "strict",
   path?: string
 ) => {
   nextSetCookie(name, JSON.stringify(value), {
