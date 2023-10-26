@@ -77,7 +77,7 @@ export const handleSignUp = async (
   }
 
   const { token, expiration } = await generateUserJWT(user.id, team.id);
-  setCookie("auth", { token }, req, res, expiration);
+  setCookie("auth", { token }, req, res, expiration, "lax");
 
   res.status(200).json({
     returnTo: "/app",

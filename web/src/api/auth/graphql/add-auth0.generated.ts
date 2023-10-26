@@ -4,35 +4,27 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserQueryVariables = Types.Exact<{
-  email?: Types.InputMaybe<Types.Scalars["String"]>;
-  auth0Id?: Types.InputMaybe<Types.Scalars["String"]>;
+export type AddAuth0MutationVariables = Types.Exact<{
+  id: Types.Scalars["String"];
+  auth0Id: Types.Scalars["String"];
 }>;
 
-export type FetchUserQuery = {
-  __typename?: "query_root";
-  user: Array<{
+export type AddAuth0Mutation = {
+  __typename?: "mutation_root";
+  update_user_by_pk?: {
     __typename?: "user";
     id: string;
-    name: string;
-    email?: string | null;
-    auth0Id?: string | null;
     team_id: string;
-  }>;
+    auth0Id?: string | null;
+  } | null;
 };
 
-export const FetchUserDocument = gql`
-  query FetchUser($email: String, $auth0Id: String) {
-    user(
-      where: {
-        _or: [{ email: { _eq: $email } }, { auth0Id: { _eq: $auth0Id } }]
-      }
-    ) {
+export const AddAuth0Document = gql`
+  mutation AddAuth0($id: String!, $auth0Id: String!) {
+    update_user_by_pk(pk_columns: { id: $id }, _set: { auth0Id: $auth0Id }) {
       id
-      name
-      email
-      auth0Id
       team_id
+      auth0Id
     }
   }
 `;
@@ -54,18 +46,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUser(
-      variables?: FetchUserQueryVariables,
+    AddAuth0(
+      variables: AddAuth0MutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserQuery> {
+    ): Promise<AddAuth0Mutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserQuery>(FetchUserDocument, variables, {
+          client.request<AddAuth0Mutation>(AddAuth0Document, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "FetchUser",
-        "query"
+        "AddAuth0",
+        "mutation"
       );
     },
   };

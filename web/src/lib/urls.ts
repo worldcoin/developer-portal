@@ -1,5 +1,9 @@
 // URLs for frontend pages
 
+type LogoutParams = {
+  error?: boolean | string;
+};
+
 export const urls = {
   home: (): "/" => "/",
 
@@ -19,6 +23,11 @@ export const urls = {
 
   // ANCHOR: Authentication & sign up
   login: (): "/login" => "/login",
-  logout: (): "/logout" => "/logout",
+
+  logout: (params?: LogoutParams): string =>
+    params?.error
+      ? `/api/auth/logout?error=${params.error}`
+      : "/api/auth/logout",
+
   signup: (): "/signup" => "/signup",
 };

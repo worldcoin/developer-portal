@@ -21,6 +21,11 @@ import { NextApiRequestWithBody } from "src/lib/types";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import {
+  GetUsers200ResponseOneOfInner,
+  ManagementClient,
+  Passwordless,
+} from "auth0";
 
 export type LoginRequestBody = {
   dev_login?: string;
@@ -48,6 +53,16 @@ const query = gql`
       id
       team_id
       world_id_nullifier
+      auth0Id
+      email
+    }
+  }
+`;
+
+const addAuth0Mutation = gql`
+  mutation AddAuth0($id: String!, $auth0Id: String!) {
+    update_user_by_pk(pk_columns: { id: $id }, _set: { auth0Id: $auth0Id }) {
+      auth0Id
     }
   }
 `;
@@ -91,7 +106,8 @@ export default async function handleLogin(
         { token: devToken.token },
         req,
         res,
-        devToken.expiration
+        devToken.expiration,
+        "lax"
       );
       return res.status(200).json({ new_user: false, returnTo });
     }
@@ -131,7 +147,12 @@ export default async function handleLogin(
   // ANCHOR: Check if the user has an account
   const client = await getAPIServiceClient();
   const userQueryResult = await client.query<{
-    user: Array<Pick<UserModel, "id" | "world_id_nullifier" | "team_id">>;
+    user: Array<
+      Pick<
+        UserModel,
+        "id" | "world_id_nullifier" | "team_id" | "auth0Id" | "email"
+      >
+    >;
   }>({
     query,
     variables: {
@@ -147,10 +168,77 @@ export default async function handleLogin(
     return res.status(200).json({ new_user: true, signup_token });
   }
 
+  if (
+    process.env.AUTH0_DOMAIN &&
+    process.env.AUTH0_CLIENT_ID &&
+    process.env.AUTH0_CLIENT_SECRET
+  ) {
+    if (!user.auth0Id && user.email) {
+      const managementClient = new ManagementClient({
+        domain: process.env.AUTH0_DOMAIN,
+        clientSecret: process.env.AUTH0_CLIENT_SECRET,
+        clientId: process.env.AUTH0_CLIENT_ID,
+      });
+
+      let auth0User: GetUsers200ResponseOneOfInner | null = null;
+
+      try {
+        const createdUser = await managementClient.users.create({
+          email: user.email,
+          email_verified: true,
+          verify_email: false,
+          connection: "email",
+        });
+
+        const updatedUser = await managementClient.users.update(
+          { id: createdUser.data.user_id },
+          {
+            email_verified: false,
+            verify_email: false,
+          }
+        );
+
+        const passwordless = new Passwordless({
+          domain: process.env.AUTH0_DOMAIN,
+          clientSecret: process.env.AUTH0_CLIENT_SECRET,
+          clientId: process.env.AUTH0_CLIENT_ID,
+        });
+
+        passwordless.sendEmail({
+          email: user.email,
+          send: "link",
+
+          authParams: {
+            response_type: "code",
+            redirect_uri:
+              "http://localhost:3000/api/auth/update-email-callback",
+          },
+        });
+
+        auth0User = updatedUser.data;
+      } catch (error) {
+        console.error("Error while creating auth0 account for a user", error);
+      }
+
+      if (auth0User) {
+        const updateUserMutationResult = await client.mutate<
+          Pick<UserModel, "auth0Id">
+        >({
+          mutation: addAuth0Mutation,
+
+          variables: {
+            id: user.id,
+            auth0Id: auth0User.user_id,
+          },
+        });
+      }
+    }
+  }
+
   const returnTo = getReturnToFromCookie(req, res);
 
   // NOTE: User has an account, generate a login token and authenticate
   const { token, expiration } = await generateUserJWT(user.id, user.team_id);
-  setCookie("auth", { token }, req, res, expiration);
+  setCookie("auth", { token }, req, res, expiration, "lax");
   res.status(200).json({ new_user: false, returnTo });
 }

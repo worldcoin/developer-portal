@@ -7,6 +7,25 @@ import {
 
 import { useUpdateUserMutation } from "../graphql/update-user.generated";
 import { useRouter } from "next/router";
+import { GetUsers200ResponseOneOfInner } from "auth0";
+import useSWRImmutable from "swr/immutable";
+
+const useFetchAuth0User = (auth0Id: string | undefined | null) => {
+  const { data: auth0User, ...rest } =
+    useSWRImmutable<GetUsers200ResponseOneOfInner>(
+      auth0Id ? "/api/auth/fetch-user" : null,
+      (url: string) =>
+        fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: auth0Id }),
+        }).then((res) => res.json())
+    );
+
+  return { auth0User, ...rest };
+};
 
 export const useFetchUser = (id: string) => {
   const router = useRouter();
@@ -19,7 +38,24 @@ export const useFetchUser = (id: string) => {
       }
     },
   });
-  return { user: data?.user[0], ...other };
+
+  const { auth0User, ...rest } = useFetchAuth0User(
+    data?.user[0]?.auth0Id ?? ""
+  );
+
+  return {
+    user: {
+      hasura: {
+        ...data?.user[0],
+        ...other,
+      },
+
+      auth0: {
+        ...auth0User,
+        ...rest,
+      },
+    },
+  };
 };
 
 export const useUpdateUser = (id: string) => {

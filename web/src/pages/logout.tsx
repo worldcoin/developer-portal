@@ -12,11 +12,12 @@ export default function Logout(): JSX.Element {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   deleteCookie("auth", context);
+  const error = context.query.error;
 
   return {
     redirect: {
       statusCode: 302,
-      destination: "/login",
+      destination: error ? `/login?error=${error}` : "/login",
     } as Redirect,
   };
 };

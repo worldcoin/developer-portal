@@ -14,7 +14,7 @@ import cn from "classnames";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
-export function Login({ loginUrl }: ILoginPageProps) {
+export function Login({ loginUrl, error }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState(false);
@@ -83,6 +83,12 @@ export function Login({ loginUrl }: ILoginPageProps) {
       }
     }
   }, [router, doLogin, id_token]);
+
+  useEffect(() => {
+    if (error) {
+      setLoginError(true);
+    }
+  }, [error]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">

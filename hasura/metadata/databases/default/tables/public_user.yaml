@@ -34,6 +34,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - auth0Id
         - created_at
         - email
         - id
@@ -46,6 +47,12 @@ select_permissions:
             id:
               _eq: X-Hasura-User-Id
 update_permissions:
+  - role: service
+    permission:
+      columns:
+        - auth0Id
+      filter: {}
+      check: null
   - role: user
     permission:
       columns:
