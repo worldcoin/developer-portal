@@ -14,7 +14,7 @@ import cn from "classnames";
 
 const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
 
-export function Login({ loginUrl, error }: ILoginPageProps) {
+export function Login({ error }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState(false);
@@ -119,7 +119,7 @@ export function Login({ loginUrl, error }: ILoginPageProps) {
               </Button>
             )}
 
-            <Link href={loginUrl ?? ""} className="contents">
+            <Link href="/api/auth/login" className="contents">
               <Button
                 className="flex gap-x-1 justify-between items-center px-6 py-2.5 text-16 text-gray-500 font-semibold"
                 variant="secondary"
@@ -178,29 +178,7 @@ export function Login({ loginUrl, error }: ILoginPageProps) {
                   Build for the People of the World
                 </p>
 
-                <div className="grid gap-y-4 mt-12 w-full">
-                  <div className="grid grid-cols-2 gap-x-4">
-                    <Link href="/api/auth/login">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="flex w-full h-full justify-between py-4 px-6 text-657080 text-16 font-semibold"
-                      >
-                        Login with email
-                      </Button>
-                    </Link>
-
-                    <Link href={loginUrl ?? ""} className="contents">
-                      <Button
-                        type="button"
-                        className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold"
-                      >
-                        Log in or Sign up
-                        <Icon name="arrow-right" className="w-6 h-6" />
-                      </Button>
-                    </Link>
-                  </div>
-
+                <div className="grid grid-cols-2 gap-x-4 mt-12">
                   <Link
                     href="https://docs.worldcoin.org"
                     className="contents"
@@ -212,6 +190,16 @@ export function Login({ loginUrl, error }: ILoginPageProps) {
                       variant="secondary"
                     >
                       Explore Docs <Icon name="book" className="w-6 h-6" />
+                    </Button>
+                  </Link>
+
+                  <Link href="/api/auth/login" className="contents">
+                    <Button
+                      type="button"
+                      className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold"
+                    >
+                      Log in or Sign up
+                      <Icon name="arrow-right" className="w-6 h-6" />
                     </Button>
                   </Link>
                 </div>
