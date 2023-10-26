@@ -8,8 +8,6 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { auth0FetchUser } from "src/api/auth/fetch-user";
 import { auth0Login } from "src/api/auth/login-callback";
-import { auth0UpdateEmail } from "src/api/auth/update-email";
-import { auth0UpdateEmailCallback } from "src/api/auth/update-email-callback";
 
 export default handleAuth({
   login: handleLogin({
@@ -19,8 +17,6 @@ export default handleAuth({
   callback: handleCallback,
   "login-callback": auth0Login,
   "fetch-user": auth0FetchUser,
-  "update-email": auth0UpdateEmail,
-  "update-email-callback": auth0UpdateEmailCallback,
 
   logout: handleLogout((req) => {
     const error = (req as NextApiRequest).query.error;

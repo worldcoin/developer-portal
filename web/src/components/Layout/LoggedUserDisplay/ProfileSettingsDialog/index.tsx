@@ -9,26 +9,16 @@ import { FieldInput } from "src/components/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
 // import { ImageInput } from "src/components/Layout/common/ImageInput";
 import { useFetchUser, useUpdateUser } from "../hooks/user-hooks";
-import { Link } from "src/components/Link";
 import { Button } from "src/components/Button";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 const userDataSchema = yup.object({
   name: yup.string().required("This field is required"),
   imageUrl: yup.string(),
 });
 
-const emailSchema = yup.object({
-  email: yup
-    .string()
-    .email("Please, enter valid email")
-    .required("This field is required"),
-});
-
 type UserDataForm = yup.InferType<typeof userDataSchema>;
-type EmailForm = yup.InferType<typeof emailSchema>;
 
 export interface ProfileSettingsDialogProps {
   open: boolean;
@@ -41,33 +31,16 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
 ) {
   const { updateUser } = useUpdateUser(props.user?.hasura.id ?? "");
 
-  const {
-    control: userDataControl,
-    register: userDataRegister,
-    reset: userDataReset,
-    handleSubmit: handleUserDataSubmit,
-    formState: userDataFormState,
-  } = useForm<UserDataForm>({
-    values: {
-      name: props.user?.hasura.name ?? "",
-      //FIXME: add user image field to hasura
-      imageUrl: "",
-    },
+  const { control, register, reset, handleSubmit, formState } =
+    useForm<UserDataForm>({
+      values: {
+        name: props.user?.hasura.name ?? "",
+        //FIXME: add user image field to hasura
+        imageUrl: "",
+      },
 
-    resolver: yupResolver(userDataSchema),
-  });
-
-  const {
-    handleSubmit: handleEmailSubmit,
-    register: emailRegister,
-    formState: emailFormState,
-  } = useForm<EmailForm>({
-    values: {
-      email: props.user?.auth0?.email ?? "",
-    },
-
-    resolver: yupResolver(emailSchema),
-  });
+      resolver: yupResolver(userDataSchema),
+    });
 
   const submitUserData = useCallback(
     async (data: UserDataForm) => {
@@ -86,46 +59,21 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
         props.onClose();
       } catch (error) {
         toast.error("Error occurred while saving profile.");
-        userDataReset(data);
+        reset(data);
       }
     },
-    [props, updateUser, userDataReset]
-  );
-
-  const updateEmail = useCallback(
-    async (data: EmailForm) => {
-      const res = await fetch("/api/auth/update-email", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          id: props.user?.auth0.user_id,
-          email: data.email,
-        }),
-      });
-
-      if (!res.ok) {
-        return toast.error("Error occurred while saving email.");
-      }
-
-      toast.success("Please, check your email to verify email");
-      props.user?.auth0?.mutate();
-    },
-    [props.user?.auth0]
+    [props, updateUser, reset]
   );
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
-      <form onSubmit={handleUserDataSubmit(submitUserData)}>
+      <form onSubmit={handleSubmit(submitUserData)}>
         <DialogHeader
           title="Profile Settings"
           icon={
             <Controller
               name="imageUrl"
-              control={userDataControl}
+              control={control}
               render={() => (
                 <Illustration icon="user" />
 
@@ -150,80 +98,26 @@ export const ProfileSettingsDialog = memo(function ProfileSettingsDialog(
             <FieldInput
               className="w-full font-rubik"
               type="text"
-              {...userDataRegister("name")}
-              readOnly={userDataFormState.isSubmitting}
-              invalid={!!userDataFormState.errors.name}
+              {...register("name")}
+              readOnly={formState.isSubmitting}
+              invalid={!!formState.errors.name}
             />
 
             {/* TODO: display possible errors here */}
-            {!!userDataFormState.errors.name && (
-              <FieldError message={userDataFormState.errors.name.message} />
+            {!!formState.errors.name && (
+              <FieldError message={formState.errors.name.message} />
             )}
           </div>
 
           <Button
             className="w-full h-[56px] mt-4 font-medium"
             type="submit"
-            disabled={userDataFormState.isSubmitting}
+            disabled={formState.isSubmitting}
           >
             Save Name
           </Button>
         </div>
       </form>
-
-      <form onSubmit={handleEmailSubmit(updateEmail)}>
-        <div className="mt-6 flex flex-col gap-y-2">
-          <div className="grid gap-y-1">
-            <FieldLabel className="font-rubik" required>
-              Email
-            </FieldLabel>
-
-            <span className="text-12 text-657080">
-              This will allow you to log in using email
-            </span>
-          </div>
-
-          {props.user?.auth0?.email && (
-            <FieldInput
-              className="w-full font-rubik"
-              type="email"
-              {...emailRegister("email")}
-            />
-          )}
-
-          {/* TODO: display possible errors here */}
-          {!!emailFormState.errors.email && (
-            <FieldError message={emailFormState.errors.email.message} />
-          )}
-        </div>
-
-        {props.user?.hasura.auth0Id && !props.user?.auth0?.email_verified && (
-          <span className="text-danger text-12">
-            Email is not verified. Please, verify it before your next login.
-          </span>
-        )}
-
-        {props.user?.auth0?.email && (
-          <Button
-            disabled={emailFormState.isSubmitting || !emailFormState.isDirty}
-            className="w-full h-[56px] mt-4 font-medium"
-            type="submit"
-          >
-            Update email
-          </Button>
-        )}
-      </form>
-
-      {!props.user?.auth0?.email && (
-        <Button className="w-full h-[56px] mt-4 font-medium" type="button">
-          <Link
-            href="/api/auth/login"
-            className="w-full h-full flex justify-center items-center"
-          >
-            Connect Email
-          </Link>
-        </Button>
-      )}
     </Dialog>
   );
 });
