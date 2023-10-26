@@ -1,11 +1,18 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { generateAnalyticsJWT, generateAPIKeyJWT } from "src/backend/jwts";
+import {
+  generateAnalyticsJWT,
+  generateAPIKeyJWT,
+  generateUserJWT,
+} from "src/backend/jwts";
 import { errorUnauthenticated } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
 import { getTokenFromCookie } from "src/backend/cookies";
 import { verifyHashedSecret } from "src/backend/utils";
+import { inspect } from "util";
+import { getSession } from "@auth0/nextjs-auth0";
+import dayjs from "dayjs";
 const { publicRuntimeConfig } = getConfig();
 
 export default async function handleGraphQL(
@@ -51,6 +58,7 @@ export default async function handleGraphQL(
       query: apiKeyQuery,
       variables: { key_id: key_id },
     });
+
     if (!response.data.api_key.length) {
       return errorUnauthenticated("Invalid or inactive API key.", res, req);
     }
@@ -91,8 +99,21 @@ export default async function handleGraphQL(
   }
 
   if (!headers.get("authorization")) {
-    // Check if request is authenticated with user token (cookie)
-    const token = getTokenFromCookie(req, res);
+    // NOTE: Check if user data exists in auth0 session to create user jwt
+    // REVIEW: Is this client request case? I guess so, because we getting here "auth" cookie that we set only on dev portal side.
+    // REVIEW: Replacing it with creating token from auth0 session
+    const session = await getSession(req, res);
+    let token: string | null = null;
+
+    if (session?.user.hasura.id && session?.user.hasura.team_id) {
+      const { token: generatedToken } = await generateUserJWT(
+        session.user.hasura.id,
+        session.user.hasura.team_id,
+        dayjs().add(1, "minute").unix()
+      );
+
+      token = generatedToken;
+    }
 
     if (token) {
       headers.append("Authorization", `Bearer ${token}`);

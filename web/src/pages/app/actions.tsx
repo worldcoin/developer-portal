@@ -1,13 +1,12 @@
 import { gql } from "@apollo/client";
 import { GetServerSideProps } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { requireAuthentication } from "src/lib/require-authentication";
 import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
-import { withUserId } from "@/hocs/withUserId";
+import { getSession, withPageAuthRequired } from "@auth0/nextjs-auth0";
 
-export default withUserId(Actions);
+export default Actions;
 
 function Actions() {
   return (
@@ -23,7 +22,7 @@ function Actions() {
   );
 }
 
-const query = gql`
+const appsQuery = gql`
   query Apps($id: String!) {
     app(where: { team: { users: { id: { _eq: $id } } } }) {
       id
@@ -31,12 +30,14 @@ const query = gql`
   }
 `;
 
-export const getServerSideProps: GetServerSideProps = requireAuthentication(
-  async (_context, user_id) => {
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
+  getServerSideProps: async ({ req, res }) => {
+    const session = await getSession(req, res);
     const client = await getAPIServiceClient();
+    const user_id = session?.user.hasura.id;
 
     const apps = await client.query<{ app: Array<{ id: string }> }>({
-      query,
+      query: appsQuery,
       variables: {
         id: user_id,
       },
@@ -56,5 +57,5 @@ export const getServerSideProps: GetServerSideProps = requireAuthentication(
         user_id,
       },
     };
-  }
-);
+  },
+});

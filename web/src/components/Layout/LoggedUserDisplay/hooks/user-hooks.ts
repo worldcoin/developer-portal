@@ -7,41 +7,33 @@ import {
 
 import { useUpdateUserMutation } from "../graphql/update-user.generated";
 import { useRouter } from "next/router";
-import { GetUsers200ResponseOneOfInner } from "auth0";
-import useSWRImmutable from "swr/immutable";
+import { UserContext, useUser } from "@auth0/nextjs-auth0/client";
 
-const useFetchAuth0User = (auth0Id: string | undefined | null) => {
-  const { data: auth0User, ...rest } =
-    useSWRImmutable<GetUsers200ResponseOneOfInner>(
-      auth0Id ? "/api/auth/fetch-user" : null,
-      (url: string) =>
-        fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: auth0Id }),
-        }).then((res) => res.json())
-    );
+export const useFetchUser = () => {
+  const { user: auth0User, ...rest } = useUser() as Omit<
+    UserContext,
+    "user"
+  > & {
+    user: UserContext["user"] & {
+      hasura: {
+        id: string;
+        auth0Id: string;
+        team_id: string;
+      };
+    };
+  };
 
-  return { auth0User, ...rest };
-};
-
-export const useFetchUser = (id: string) => {
   const router = useRouter();
 
   const { data, ...other } = useFetchUserQuery({
-    variables: { id },
+    variables: { id: auth0User?.hasura?.id },
+
     onCompleted: (data) => {
       if (!data.user[0]) {
         router.push("/logout");
       }
     },
   });
-
-  const { auth0User, ...rest } = useFetchAuth0User(
-    data?.user[0]?.auth0Id ?? ""
-  );
 
   return {
     user: {

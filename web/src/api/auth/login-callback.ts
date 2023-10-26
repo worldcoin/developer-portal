@@ -1,4 +1,8 @@
-import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import {
+  getSession,
+  updateSession,
+  withApiAuthRequired,
+} from "@auth0/nextjs-auth0";
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
@@ -55,7 +59,6 @@ export const auth0Login = withApiAuthRequired(
         req
       );
     }
-    console.log({ session });
 
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
@@ -134,6 +137,16 @@ export const auth0Login = withApiAuthRequired(
         return res.redirect(307, urls.logout({ error: true }));
       }
     }
+
+    await updateSession(req, res, {
+      ...session,
+      user: {
+        ...session.user,
+        hasura: {
+          ...user,
+        },
+      },
+    });
 
     return res.redirect(307, urls.app());
   }

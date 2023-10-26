@@ -2,7 +2,6 @@ import useApps from "@/hooks/useApps";
 import { useToggle } from "@/hooks/useToggle";
 import { urls } from "@/lib/urls";
 import { IAppStore, useAppStore } from "@/stores/appStore";
-import { IUserStore, useUserStore } from "@/stores/userStore";
 import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode, useEffect, useMemo } from "react";
