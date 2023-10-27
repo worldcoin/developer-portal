@@ -8,7 +8,7 @@ export const deleteAccount = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (
       !process.env.AUTH0_CLIENT_ID ||
-      !process.env.GENERAL_SECRET_KEY ||
+      !process.env.AUTH0_CLIENT_SECRET ||
       !process.env.AUTH0_DOMAIN
     ) {
       return errorResponse(
@@ -26,7 +26,7 @@ export const deleteAccount = withApiAuthRequired(
 
     const managementClient = new ManagementClient({
       clientId: process.env.AUTH0_CLIENT_ID,
-      clientSecret: process.env.GENERAL_SECRET_KEY,
+      clientSecret: process.env.AUTH0_CLIENT_SECRET,
       domain: process.env.AUTH0_DOMAIN,
     });
 
