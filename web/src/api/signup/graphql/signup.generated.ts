@@ -4,7 +4,7 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type SetupMutationVariables = Types.Exact<{
+export type SignupMutationVariables = Types.Exact<{
   nullifier_hash: Types.Scalars["String"];
   team_name: Types.Scalars["String"];
   ironclad_id: Types.Scalars["String"];
@@ -12,7 +12,7 @@ export type SetupMutationVariables = Types.Exact<{
   name?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
-export type SetupMutation = {
+export type SignupMutation = {
   __typename?: "mutation_root";
   insert_team_one?: {
     __typename?: "team";
@@ -28,8 +28,8 @@ export type SetupMutation = {
   } | null;
 };
 
-export const SetupDocument = gql`
-  mutation Setup(
+export const SignupDocument = gql`
+  mutation Signup(
     $nullifier_hash: String!
     $team_name: String!
     $ironclad_id: String!
@@ -78,17 +78,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    Setup(
-      variables: SetupMutationVariables,
+    Signup(
+      variables: SignupMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<SetupMutation> {
+    ): Promise<SignupMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<SetupMutation>(SetupDocument, variables, {
+          client.request<SignupMutation>(SignupDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "Setup",
+        "Signup",
         "mutation"
       );
     },

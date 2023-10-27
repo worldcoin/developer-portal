@@ -16,17 +16,17 @@ import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
 import { urls } from "src/lib/urls";
 
-export type SetupResponse = { returnTo: string };
+export type SignupResponse = { returnTo: string };
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),
   ironclad_id: yup.string().strict().required(),
 });
 
-export type SetupBody = yup.InferType<typeof schema>;
+export type SignupBody = yup.InferType<typeof schema>;
 
-export const handleSetup = withApiAuthRequired(
-  async (req: NextApiRequest, res: NextApiResponse<SetupResponse>) => {
+export const handleSignup = withApiAuthRequired(
+  async (req: NextApiRequest, res: NextApiResponse<SignupResponse>) => {
     if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
       return errorNotAllowed(req.method, res, req);
     }
@@ -54,7 +54,7 @@ export const handleSetup = withApiAuthRequired(
 
     const client = await getAPIServiceGraphqlClient();
 
-    const data = await getSdk(client).Setup({
+    const data = await getSdk(client).Signup({
       name: auth0User.name,
       auth0Id: auth0User.sub,
       team_name,

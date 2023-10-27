@@ -1,4 +1,4 @@
-mutation Setup(
+mutation Signup(
   $nullifier_hash: String!
   $team_name: String!
   $ironclad_id: String!

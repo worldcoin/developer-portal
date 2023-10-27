@@ -82,7 +82,7 @@ export const auth0Login = withApiAuthRequired(
     }
 
     if (!user) {
-      return res.status(200).redirect("/setup");
+      return res.status(200).redirect("/signup");
     }
 
     if (user && !user.auth0Id) {

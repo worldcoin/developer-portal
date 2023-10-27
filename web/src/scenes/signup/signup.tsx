@@ -13,7 +13,7 @@ import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
 import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
-import { SetupBody } from "src/api/setup";
+import { SignupBody } from "src/api/signup";
 import { useToggle } from "src/hooks/useToggle";
 import { DialogHeader } from "src/components/DialogHeader";
 import { Dialog } from "src/components/Dialog";
@@ -31,7 +31,7 @@ const schema = yup.object({
 
 type SignupFormValues = yup.Asserts<typeof schema>;
 
-export function Setup(props: { hasAuth0User: boolean }) {
+export function Signup(props: { hasAuth0User: boolean }) {
   const router = useRouter();
   const deleteDialog = useToggle(false);
 
@@ -58,7 +58,7 @@ export function Setup(props: { hasAuth0User: boolean }) {
         return;
       }
 
-      const response = await fetch("/api/setup", {
+      const response = await fetch("/api/signup", {
         method: "POST",
 
         headers: {
@@ -68,7 +68,7 @@ export function Setup(props: { hasAuth0User: boolean }) {
         body: JSON.stringify({
           team_name: values.teamName,
           ironclad_id: ironCladUserId,
-        } as SetupBody),
+        } as SignupBody),
       });
 
       if (response.ok) {
@@ -98,10 +98,8 @@ export function Setup(props: { hasAuth0User: boolean }) {
     return !errors.teamName && dirtyFields.teamName && terms === true;
   }, [dirtyFields.teamName, errors.teamName, terms]);
 
-  const deleteAccount = useCallback(() => {}, []);
-
   return (
-    <Auth pageTitle="Setup" pageUrl="setup">
+    <Auth pageTitle="Signup" pageUrl="signup">
       <form
         onSubmit={handleSubmit(submit)}
         className="grid justify-items-center max-w-[544px] p-12 gap-y-8"
