@@ -7,10 +7,11 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { CredentialType, JwtConfig } from "../lib/types";
+import { CredentialType, JwtConfig, OIDCTyp } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
+import * as yup from "yup";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -205,37 +206,148 @@ interface IVerificationJWT {
   app_id: string;
   credential_type: CredentialType;
   scope: OIDCScopes[];
+  email?: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
 }
 
-/**
- * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
- * @returns
- */
-export const generateOIDCJWT = async ({
+export const generateAccessToken = async ({
+  kid,
+  app_id,
+  nullifier_hash,
+  scope,
+}: IVerificationJWT) => {
+  const payloadSchema = yup.object({
+    iss: yup
+      .string()
+      .strict()
+      .oneOf(["https://developer.worldcoin.org"])
+      .required(),
+
+    aud: yup.string().strict().required(),
+    sub: yup.string().strict().required(),
+    exp: yup.number().required(),
+    iat: yup.number().required(),
+    jti: yup.string().strict().required(),
+    scope: yup.string().strict().required(),
+  });
+
+  let payload: yup.InferType<typeof payloadSchema> | null = null;
+
+  try {
+    payload = await payloadSchema.validate({
+      iss: JWT_ISSUER,
+      sub: nullifier_hash,
+      jti: randomUUID(),
+      iat: formatOIDCDateTime(new Date()),
+      exp: formatOIDCDateTime(dayjs().add(1, "hour")),
+      aud: app_id,
+      scope: scope.join(" "),
+    });
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      throw new Error(`Invalid payload: ${error.message}`);
+    }
+
+    throw error;
+  }
+
+  if (!payload) {
+    throw new Error("Payload is null");
+  }
+
+  const header = {
+    typ: OIDCTyp.AccessToken,
+    alg: "RS256",
+    kid,
+  };
+
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+
+  throw new Error("Failed to sign JWT from KMS.");
+};
+
+export const generateIdToken = async ({
+  kid,
   app_id,
   nonce,
   nullifier_hash,
-  kid,
   credential_type,
   scope,
-}: IVerificationJWT): Promise<string> => {
-  const payload = {
-    iss: JWT_ISSUER,
-    sub: nullifier_hash,
-    jti: randomUUID(),
-    iat: formatOIDCDateTime(new Date()),
-    exp: formatOIDCDateTime(dayjs().add(1, "hour")),
-    aud: app_id,
-    scope: scope.join(" "),
-    "https://id.worldcoin.org/beta": {
-      likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
-      credential_type,
-    },
-  } as Record<string, any>;
+  email,
+  name,
+  given_name,
+  family_name,
+}: IVerificationJWT) => {
+  const payloadSchema = yup.object({
+    iss: yup
+      .string()
+      .strict()
+      .oneOf(["https://developer.worldcoin.org"])
+      .required(),
 
-  if (nonce) {
-    payload.nonce = nonce;
+    aud: yup.string().strict().required(),
+    sub: yup.string().strict().required(),
+    exp: yup.number().required(),
+    iat: yup.number().required(),
+    jti: yup.string().strict().required(),
+    nonce: yup.string().strict().required(),
+    email: yup.string().strict(),
+    name: yup.string().strict(),
+    given_name: yup.string().strict(),
+    family_name: yup.string().strict(),
+    "https://id.worldcoin.org/beta": yup
+      .object({
+        likely_human: yup.string().strict().required(),
+        credential_type: yup.string().strict().required(),
+      })
+      .required(),
+  });
+
+  let payload: yup.InferType<typeof payloadSchema> | null = null;
+
+  try {
+    payload = payloadSchema.validateSync({
+      iss: JWT_ISSUER,
+      sub: nullifier_hash,
+      jti: randomUUID(),
+      iat: formatOIDCDateTime(new Date()),
+      exp: formatOIDCDateTime(dayjs().add(1, "hour")),
+      aud: app_id,
+      nonce,
+      ...(scope.includes(OIDCScopes.Email)
+        ? { email: email ?? `${nullifier_hash}@id.worldcoin.org` }
+        : {}),
+
+      name,
+      given_name,
+      family_name,
+      "https://id.worldcoin.org/beta": {
+        likely_human:
+          credential_type === CredentialType.Orb ? "strong" : "weak",
+        credential_type,
+      },
+    });
+  } catch (error) {
+    if (error instanceof yup.ValidationError) {
+      throw new Error(`Invalid payload: ${error.message}`);
+    }
+
+    throw error;
   }
+
+  const header = {
+    typ: OIDCTyp.IdToken,
+    alg: "RS256",
+    kid,
+  };
 
   if (scope.includes(OIDCScopes.Email)) {
     payload.email = `${nullifier_hash}@id.worldcoin.org`;
@@ -247,28 +359,36 @@ export const generateOIDCJWT = async ({
     payload.family_name = "User";
   }
 
-  // Sign the JWT with a KMS managed key
   const client = await getKMSClient();
-  const header = {
-    alg: "RS256",
-    typ: "JWT",
-    kid,
-  };
 
   if (client) {
     const token = await signJWTWithKMSKey(client, header, payload);
     if (token) return token;
   }
+
   throw new Error("Failed to sign JWT from KMS.");
 };
 
 export const verifyOIDCJWT = async (
-  token: string
+  token: string,
+  validationOptions: {
+    nonceRequired: boolean;
+    issValue: string;
+    typValue: string;
+  }
 ): Promise<jose.JWTPayload> => {
-  const { kid } = jose.decodeProtectedHeader(token);
+  const { kid, typ } = jose.decodeProtectedHeader(token);
 
   if (!kid) {
     throw new Error("JWT is invalid. Does not contain a `kid` claim.");
+  }
+
+  if (!typ) {
+    throw new Error("JWT is invalid. Does not contain a `typ` claim.");
+  }
+
+  if (typ !== validationOptions?.typValue) {
+    throw new Error("JWT is invalid. `typ` claim has wrong value.");
   }
 
   const { public_jwk } = await retrieveJWK(kid);
@@ -285,5 +405,43 @@ export const verifyOIDCJWT = async (
     }
   );
 
+  if (validationOptions?.nonceRequired && !payload.nonce) {
+    throw new Error("JWT is invalid. Does not contain a `nonce` claim.");
+  }
+
+  if (!payload.aud) {
+    throw new Error("JWT is invalid. Does not contain an `aud` claim.");
+  }
+
+  if (!payload.exp) {
+    throw new Error("JWT is invalid. Does not contain an `exp` claim.");
+  }
+
+  if (!payload.iat) {
+    throw new Error("JWT is invalid. Does not contain an `iat` claim.");
+  }
+
+  if (!payload.iss) {
+    throw new Error("JWT is invalid. Does not contain an `iss` claim.");
+  }
+
+  if (payload.iss !== validationOptions?.issValue) {
+    throw new Error("JWT is invalid. `iss` claim has wrong value.");
+  }
+
   return payload;
 };
+
+export const verifyAccessToken = async (token: string) =>
+  await verifyOIDCJWT(token, {
+    nonceRequired: false,
+    issValue: "https://developer.worldcoin.org",
+    typValue: OIDCTyp.AccessToken,
+  });
+
+export const verifyIdToken = async (token: string): Promise<jose.JWTPayload> =>
+  await verifyOIDCJWT(token, {
+    nonceRequired: true,
+    issValue: JWT_ISSUER,
+    typValue: OIDCTyp.IdToken,
+  });

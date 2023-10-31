@@ -92,3 +92,8 @@ export enum Environment {
   Production = "production",
   Staging = "staging",
 }
+
+export enum OIDCTyp {
+  AccessToken = "application/token+jwt",
+  IdToken = "application/id_token+jwt",
+}

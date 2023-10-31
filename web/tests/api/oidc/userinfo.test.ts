@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import { generateOIDCJWT } from "src/backend/jwts";
+import { generateIdToken } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
 import { CredentialType } from "src/lib/types";
 import handleOIDCUserinfo from "src/pages/api/v1/oidc/userinfo";
@@ -12,7 +12,7 @@ jest.mock("src/backend/jwks", () =>
 
 describe("/api/v1/oidc/userinfo", () => {
   test("invalid jwt", async () => {
-    const jwt = await generateOIDCJWT({
+    const jwt = await generateIdToken({
       kid: "test-key",
       nonce: "1234",
       app_id: "app_1234",
