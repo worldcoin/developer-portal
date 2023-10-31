@@ -5,11 +5,11 @@ import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type CreateUserAndDeleteInviteMutationVariables = Types.Exact<{
-  email: Types.Scalars["String"];
   team_id: Types.Scalars["String"];
   nullifier: Types.Scalars["String"];
   ironclad_id: Types.Scalars["String"];
   invite_id: Types.Scalars["String"];
+  auth0Id: Types.Scalars["String"];
 }>;
 
 export type CreateUserAndDeleteInviteMutation = {
@@ -27,18 +27,18 @@ export type CreateUserAndDeleteInviteMutation = {
 
 export const CreateUserAndDeleteInviteDocument = gql`
   mutation CreateUserAndDeleteInvite(
-    $email: String!
     $team_id: String!
     $nullifier: String!
     $ironclad_id: String!
     $invite_id: String!
+    $auth0Id: String!
   ) {
     user: insert_user_one(
       object: {
-        email: $email
         team_id: $team_id
         world_id_nullifier: $nullifier
         ironclad_id: $ironclad_id
+        auth0Id: $auth0Id
       }
     ) {
       id

@@ -95,11 +95,11 @@ export const handleSignup = withApiAuthRequired(
       const { user: createdUser } = await createUserAndDeleteInviteSdk(
         client
       ).CreateUserAndDeleteInvite({
-        email: invite.email,
         team_id: invite.team.id,
         ironclad_id: ironCladUserId,
         nullifier: nullifier_hash ?? "",
         invite_id: invite.id,
+        auth0Id: auth0User.sub,
       });
 
       user = {
