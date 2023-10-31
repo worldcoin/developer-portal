@@ -26,10 +26,7 @@ import { redirect } from "next/dist/server/api-utils";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    console.log({ query: req.query });
     const session = await getSession(req, res);
-
-    console.log({ session });
 
     if (!session) {
       console.error("No session found in auth0Login callback");

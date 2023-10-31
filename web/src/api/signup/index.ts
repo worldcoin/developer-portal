@@ -67,7 +67,6 @@ export const handleSignup = withApiAuthRequired(
 
     try {
       await ironcladActivityApi.sendAcceptance(ironCladUserId);
-      console.log("IRONCLAD SUCCESS");
     } catch (error) {
       console.error(error);
 
