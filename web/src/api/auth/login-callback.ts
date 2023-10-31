@@ -20,12 +20,16 @@ import {
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
-import { Auth0User } from "src/lib/types";
+import { Auth0User, LoginErrorCode } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
+import { redirect } from "next/dist/server/api-utils";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
+    console.log({ query: req.query });
     const session = await getSession(req, res);
+
+    console.log({ session });
 
     if (!session) {
       console.error("No session found in auth0Login callback");
@@ -49,7 +53,10 @@ export const auth0Login = withApiAuthRequired(
       | undefined = null;
 
     if (isEmailUser(auth0User) && !auth0User.email_verified) {
-      return res.redirect(307, urls.logout({ error: true }));
+      return res.redirect(
+        307,
+        urls.logout({ login_error: LoginErrorCode.Generic })
+      );
     }
 
     if (isEmailUser(auth0User)) {
@@ -63,7 +70,11 @@ export const auth0Login = withApiAuthRequired(
         user = userData?.user[0];
       } catch (error) {
         console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
 
@@ -86,12 +97,19 @@ export const auth0Login = withApiAuthRequired(
         user = userData?.user[0];
       } catch (error) {
         console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
+    const invite_id = req.query.invite_id as string;
 
     if (!user) {
-      return res.status(200).redirect("/signup");
+      return res.redirect(
+        307,
+        invite_id ? urls.signup({ invite_id }) : urls.signup()
+      );
     }
 
     if (user && !user.auth0Id) {
@@ -109,7 +127,11 @@ export const auth0Login = withApiAuthRequired(
         user = userData?.update_user_by_pk;
       } catch (error) {
         console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
 
@@ -124,6 +146,12 @@ export const auth0Login = withApiAuthRequired(
       },
     });
 
-    return res.redirect(307, urls.app());
+    return res.redirect(
+      307,
+      urls.app(
+        undefined,
+        invite_id ? { login_error: LoginErrorCode.OneTeamPerPerson } : undefined
+      )
+    );
   }
 );

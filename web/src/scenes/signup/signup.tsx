@@ -4,20 +4,19 @@ import { Auth } from "src/components/Auth";
 import { Checkbox } from "src/components/Auth/Checkbox";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
-import { urls } from "src/lib/urls";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, useWatch } from "react-hook-form";
 import { FieldLabel } from "src/components/FieldLabel";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
-import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
 import { SignupBody } from "src/api/signup";
 import { useToggle } from "src/hooks/useToggle";
 import { DialogHeader } from "src/components/DialogHeader";
 import { Dialog } from "src/components/Dialog";
 import { Link } from "src/components/Link";
+import { SignupSSRProps } from "@/pages/signup";
 
 const schema = yup.object({
   teamName: yup.string().required("This field is required"),
@@ -29,35 +28,29 @@ const schema = yup.object({
   updates: yup.boolean(),
 });
 
-type SignUpFormValues = yup.Asserts<typeof schema>;
+type SignupFormValues = yup.Asserts<typeof schema>;
 
-export function SignUp(props: { hasAuth0User: boolean }) {
+type SignupProps = SignupSSRProps & {};
+
+export function Signup(props: SignupProps) {
   const router = useRouter();
   const deleteDialog = useToggle(false);
 
   const {
     register,
-    formState: { errors, dirtyFields, isSubmitting },
+    formState: { errors, dirtyFields, defaultValues, isSubmitting },
     handleSubmit,
     control,
-  } = useForm<SignUpFormValues>({
+  } = useForm<SignupFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
+    defaultValues: {
+      teamName: props.invite?.team?.name ?? "",
+    },
   });
 
   const submit = useCallback(
-    async (values: SignUpFormValues) => {
-      const ironCladUserId = crypto.randomUUID();
-
-      // NOTE: Record ToS acceptance
-      try {
-        await sendAcceptance(ironCladUserId);
-      } catch (err) {
-        console.error(err);
-        toast.error("Something went wrong. Please try again later.");
-        return;
-      }
-
+    async (values: SignupFormValues) => {
       const response = await fetch("/api/signup", {
         method: "POST",
 
@@ -67,27 +60,26 @@ export function SignUp(props: { hasAuth0User: boolean }) {
 
         body: JSON.stringify({
           team_name: values.teamName,
-          ironclad_id: ironCladUserId,
+          invite_id: props.invite?.id,
         } as SignupBody),
       });
 
-      if (response.ok) {
-        const { returnTo } = await response.json();
-        localStorage.removeItem("signup_token");
-        router.push(returnTo);
+      if (!response.ok) {
+        try {
+          const errorData = await response.json();
+          console.error(errorData);
+        } catch (error) {
+          console.error(error);
+        }
+
+        return toast.error("Something went wrong. Please try again later.");
       }
-      // FIXME: Handle errors
+
+      const { returnTo } = await response.json();
+      router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
     },
-    [router]
+    [props.invite?.id, router]
   );
-
-  useEffect(() => {
-    const signup_token = localStorage.getItem("signup_token");
-
-    if (!signup_token && !props.hasAuth0User) {
-      router.push(urls.login());
-    }
-  }, [props.hasAuth0User, router]);
 
   const terms = useWatch({
     control,
@@ -95,8 +87,20 @@ export function SignUp(props: { hasAuth0User: boolean }) {
   });
 
   const isFormValid = useMemo(() => {
-    return !errors.teamName && dirtyFields.teamName && terms === true;
-  }, [dirtyFields.teamName, errors.teamName, terms]);
+    return (
+      !errors.teamName &&
+      terms === true &&
+      (props.invite?.team
+        ? Boolean(defaultValues?.teamName)
+        : dirtyFields.teamName)
+    );
+  }, [
+    defaultValues?.teamName,
+    dirtyFields.teamName,
+    errors.teamName,
+    props.invite?.team,
+    terms,
+  ]);
 
   return (
     <Auth pageTitle="Sign Up" pageUrl="signup">
@@ -122,10 +126,10 @@ export function SignUp(props: { hasAuth0User: boolean }) {
           <div className="relative">
             <FieldInput
               register={register("teamName")}
-              className="w-full font-rubik"
+              className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="input your teams name"
               type="text"
-              disabled={isSubmitting}
+              disabled={isSubmitting || Boolean(props.invite?.team?.name)}
               required
               errors={errors.teamName}
             />

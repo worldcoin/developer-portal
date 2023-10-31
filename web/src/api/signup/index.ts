@@ -3,25 +3,37 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
-import { getSdk } from "./graphql/signup.generated";
+import { getSdk as getSignupSdk } from "./graphql/signup.generated";
+import { getSdk as getInviteByIdSdk } from "@/api/signup/graphql/getInviteById.generated";
+import { getSdk as createUserAndDeleteInviteSdk } from "@/api/signup/graphql/createUserAndDeleteInvite.generated";
+
 import {
   Session,
   getSession,
   updateSession,
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
+
 import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
 import { urls } from "src/lib/urls";
+import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 
 export type SignupResponse = { returnTo: string };
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),
-  ironclad_id: yup.string().strict().required(),
+  invite_id: yup.string().strict(),
 });
 
 export type SignupBody = yup.InferType<typeof schema>;
+
+type User = {
+  id?: string;
+  ironclad_id?: string;
+  world_id_nullifier?: string;
+  team_id?: string;
+};
 
 export const handleSignup = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse<SignupResponse>) => {
@@ -41,7 +53,7 @@ export const handleSignup = withApiAuthRequired(
       return handleError(req, res);
     }
 
-    const { team_name, ironclad_id } = parsedParams;
+    const { team_name, invite_id } = parsedParams;
 
     let nullifier_hash: string | undefined = undefined;
 
@@ -50,20 +62,72 @@ export const handleSignup = withApiAuthRequired(
       nullifier_hash = nullifier;
     }
 
+    const ironcladActivityApi = new IroncladActivityApi();
+    const ironCladUserId = crypto.randomUUID();
+
+    try {
+      await ironcladActivityApi.sendAcceptance(ironCladUserId);
+      console.log("IRONCLAD SUCCESS");
+    } catch (error) {
+      console.error(error);
+
+      return errorResponse(
+        res,
+        500,
+        "Failed to send acceptance",
+        undefined,
+        null,
+        req
+      );
+    }
+
     const client = await getAPIServiceGraphqlClient();
+    let user: User | null | undefined = null;
 
-    const data = await getSdk(client).Signup({
-      name: auth0User.name,
-      auth0Id: auth0User.sub,
-      team_name,
-      ironclad_id,
-      nullifier_hash: nullifier_hash ?? "",
-    });
+    if (invite_id) {
+      const { invite } = await getInviteByIdSdk(client).GetInviteById({
+        id: invite_id,
+      });
 
-    const team = data.insert_team_one;
-    const user = team?.users[0];
+      if (!invite || new Date(invite.expires_at) <= new Date()) {
+        return errorResponse(res, 400, "invalid_invite", undefined, null, req);
+      }
 
-    if (!team || !user) {
+      const { user: createdUser } = await createUserAndDeleteInviteSdk(
+        client
+      ).CreateUserAndDeleteInvite({
+        email: invite.email,
+        team_id: invite.team.id,
+        ironclad_id: ironCladUserId,
+        nullifier: nullifier_hash ?? "",
+        invite_id: invite.id,
+      });
+
+      user = {
+        id: createdUser?.id,
+        ironclad_id: createdUser?.ironclad_id,
+        world_id_nullifier: createdUser?.world_id_nullifier,
+        team_id: createdUser?.team_id,
+      };
+    } else {
+      const signupData = await getSignupSdk(client).Signup({
+        name: auth0User.name,
+        auth0Id: auth0User.sub,
+        team_name,
+        ironclad_id: ironCladUserId,
+        nullifier_hash: nullifier_hash ?? "",
+      });
+
+      user = {
+        id: signupData.insert_team_one?.users[0].id,
+        ironclad_id: signupData.insert_team_one?.users[0].ironclad_id,
+        world_id_nullifier:
+          signupData.insert_team_one?.users[0].world_id_nullifier,
+        team_id: signupData.insert_team_one?.id,
+      };
+    }
+
+    if (!user) {
       return errorResponse(res, 500, "Failed to signup", undefined, null, req);
     }
 
@@ -73,7 +137,6 @@ export const handleSignup = withApiAuthRequired(
         ...session.user,
         hasura: {
           ...user,
-          team_id: team.id,
         },
       },
     });

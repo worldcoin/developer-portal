@@ -2,6 +2,8 @@
  * Constants available to both backend and frontend.
  */
 
+import { LoginErrorCode } from "./types";
+
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 export const ORB_SEQUENCER_STAGING =
@@ -19,3 +21,11 @@ export const OIDC_BASE_URL = "https://id.worldcoin.org";
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
 export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
+
+export const loginErrors: Record<LoginErrorCode, string> = {
+  [LoginErrorCode.OneTeamPerPerson]:
+    "You have not been added to the team that invited you. Only one team per person is allowed at the moment.",
+
+  [LoginErrorCode.Generic]:
+    "There was a problem with your login. Please try again.",
+};

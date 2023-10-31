@@ -5,7 +5,7 @@ import { IAppStore, useAppStore } from "@/stores/appStore";
 import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode, useEffect, useMemo } from "react";
-import { Slide, ToastContainer } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import { Icon } from "../Icon";
 import { Link } from "../Link";
 import { Meta } from "../Meta";
@@ -15,6 +15,8 @@ import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
+import { LoginErrorCode } from "@/lib/types";
+import { loginErrors } from "@/lib/constants";
 
 const getAppStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -38,6 +40,18 @@ export const Layout = (props: {
 
     setCurrentAppById(router.query.app_id as string);
   }, [apps, router.query.app_id, setCurrentAppById]);
+
+  useEffect(() => {
+    const loginError = router.query.login_error as LoginErrorCode | undefined;
+
+    if (!loginError) {
+      return;
+    }
+
+    toast.warn(loginErrors[loginError], {
+      autoClose: 10000,
+    });
+  }, [router.query.login_error]);
 
   const appId = useMemo(() => {
     if (router.query.app_id) {

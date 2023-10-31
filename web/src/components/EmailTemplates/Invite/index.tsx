@@ -2,7 +2,7 @@
 import { Button } from "@/components/EmailTemplates/common/Button";
 import { Layout } from "@/components/EmailTemplates/common/Layout";
 import { Link } from "@/components/EmailTemplates/common/Link";
-import { FetchUserQuery } from "@/api/invite-team-members/graphql/fetchUser.generated";
+import { FetchUserQuery } from "@/api/_invite-team-members/graphql/fetchUser.generated";
 
 export const Invite = (props: {
   email: string;

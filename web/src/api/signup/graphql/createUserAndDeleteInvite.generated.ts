@@ -14,7 +14,14 @@ export type CreateUserAndDeleteInviteMutationVariables = Types.Exact<{
 
 export type CreateUserAndDeleteInviteMutation = {
   __typename?: "mutation_root";
-  user?: { __typename?: "user"; id: string; team_id: string } | null;
+  user?: {
+    __typename?: "user";
+    id: string;
+    team_id: string;
+    ironclad_id: string;
+    world_id_nullifier: string;
+    auth0Id?: string | null;
+  } | null;
   delete_invite_by_pk?: { __typename?: "invite"; id: string } | null;
 };
 
@@ -36,6 +43,9 @@ export const CreateUserAndDeleteInviteDocument = gql`
     ) {
       id
       team_id
+      ironclad_id
+      world_id_nullifier
+      auth0Id
     }
     delete_invite_by_pk(id: $invite_id) {
       id
