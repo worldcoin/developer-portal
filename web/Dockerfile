@@ -1,11 +1,11 @@
 # This Dockerfile is used to build the production image
 # from https://github.com/vercel/next.js/blob/474b115e6d903394d58a51eef97ffa4f2ae2ce70/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 node:18-alpine AS base
+FROM --platform=linux/amd64 node:18-alpine3.18 AS base
 RUN wget -qO /bin/pnpm "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" && chmod +x /bin/pnpm
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk upgrade
+RUN apk upgrade --no-cache
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
