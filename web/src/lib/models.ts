@@ -148,13 +148,3 @@ export interface APIKeyModel {
   name: string;
   __typename: "api_key";
 }
-
-export interface RevocationModel {
-  id: string;
-  identity_commitment: string;
-  revoked_at: DateTime;
-  created_at: DateTime;
-  updated_at?: DateTime;
-  credential_type: string; // TODO: need add constraint for status field in hasura (or use boolean)
-  __typename: "revocation";
-}
