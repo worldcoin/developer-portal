@@ -1,8 +1,6 @@
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
-import { setCookie } from "src/backend/cookies";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
-import { generateUserJWT, verifySignUpJWT } from "src/backend/jwts";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 import { getSdk } from "./graphql/signup.generated";

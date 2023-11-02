@@ -16,11 +16,9 @@ export const setCookie = (
   req: NextApiRequest | GSSRRequest,
   res: NextApiResponse | GSSRResponse,
   expires_at?: number,
-  sameSite: OptionsType["sameSite"] = "strict",
   path?: string
 ) => {
   nextSetCookie(name, JSON.stringify(value), {
-    sameSite: sameSite ?? true,
     secure: process.env.NODE_ENV === "production", // this is already ignored for `localhost` (according to spec)
     httpOnly: true, // NOTE: Auth cookie is only used in SSR for security reasons
     res,
