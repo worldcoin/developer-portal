@@ -8,7 +8,7 @@ export type SignupMutationVariables = Types.Exact<{
   nullifier_hash: Types.Scalars["String"];
   team_name: Types.Scalars["String"];
   ironclad_id: Types.Scalars["String"];
-  auth0Id?: Types.InputMaybe<Types.Scalars["String"]>;
+  auth0Id: Types.Scalars["String"];
   name?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
@@ -33,7 +33,7 @@ export const SignupDocument = gql`
     $nullifier_hash: String!
     $team_name: String!
     $ironclad_id: String!
-    $auth0Id: String
+    $auth0Id: String!
     $name: String = ""
   ) {
     insert_team_one(

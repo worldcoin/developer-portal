@@ -2,7 +2,7 @@ mutation Signup(
   $nullifier_hash: String!
   $team_name: String!
   $ironclad_id: String!
-  $auth0Id: String
+  $auth0Id: String!
   $name: String = ""
 ) {
   insert_team_one(
