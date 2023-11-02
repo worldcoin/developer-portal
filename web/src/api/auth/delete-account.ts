@@ -15,7 +15,7 @@ export const deleteAccount = withApiAuthRequired(
         res,
         500,
         "internal_server_error",
-        "Missing environment variables",
+        "Missing Auth0 environment variables",
         null,
         req
       );
