@@ -1,7 +1,0 @@
-query FetchUser($where: user_bool_exp) {
-  user(where: $where) {
-    id
-    auth0Id
-    team_id
-  }
-}

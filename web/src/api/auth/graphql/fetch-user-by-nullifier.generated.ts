@@ -4,11 +4,11 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserQueryVariables = Types.Exact<{
-  where?: Types.InputMaybe<Types.User_Bool_Exp>;
+export type FetchUserByNullifierQueryVariables = Types.Exact<{
+  world_id_nullifier: Types.Scalars["String"];
 }>;
 
-export type FetchUserQuery = {
+export type FetchUserByNullifierQuery = {
   __typename?: "query_root";
   user: Array<{
     __typename?: "user";
@@ -18,9 +18,9 @@ export type FetchUserQuery = {
   }>;
 };
 
-export const FetchUserDocument = gql`
-  query FetchUser($where: user_bool_exp) {
-    user(where: $where) {
+export const FetchUserByNullifierDocument = gql`
+  query FetchUserByNullifier($world_id_nullifier: String!) {
+    user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
       id
       auth0Id
       team_id
@@ -45,17 +45,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUser(
-      variables?: FetchUserQueryVariables,
+    FetchUserByNullifier(
+      variables: FetchUserByNullifierQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserQuery> {
+    ): Promise<FetchUserByNullifierQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserQuery>(FetchUserDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "FetchUser",
+          client.request<FetchUserByNullifierQuery>(
+            FetchUserByNullifierDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "FetchUserByNullifier",
         "query"
       );
     },

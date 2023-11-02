@@ -1,0 +1,7 @@
+query FetchUserByAuth0Id($auth0Id: String!) {
+  user(where: { auth0Id: { _eq: $auth0Id } }) {
+    id
+    auth0Id
+    team_id
+  }
+}

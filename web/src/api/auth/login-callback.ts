@@ -7,9 +7,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
 import {
-  FetchUserQuery,
-  getSdk as fetchUserSdk,
-} from "./graphql/fetch-user.generated";
+  FetchUserByNullifierQuery,
+  getSdk as FetchUserByNullifierSdk,
+} from "./graphql/fetch-user-by-nullifier.generated";
+
+import {
+  FetchUserByAuth0IdQuery,
+  getSdk as FetchUserByAuth0IdSdk,
+} from "./graphql/fetch-user-by-auth0Id.generated";
 
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
@@ -37,7 +42,11 @@ export const auth0Login = withApiAuthRequired(
 
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
-    let user: FetchUserQuery["user"][number] | null | undefined = null;
+    let user:
+      | FetchUserByAuth0IdQuery["user"][number]
+      | FetchUserByNullifierQuery["user"][number]
+      | null
+      | undefined = null;
 
     if (isEmailUser(auth0User) && !auth0User.email_verified) {
       return res.redirect(307, urls.logout({ error: true }));
@@ -45,11 +54,11 @@ export const auth0Login = withApiAuthRequired(
 
     if (isEmailUser(auth0User)) {
       try {
-        const userData = await fetchUserSdk(client).FetchUser({
-          where: {
-            auth0Id: { _eq: auth0User.sub },
-          },
-        });
+        const userData = await FetchUserByAuth0IdSdk(client).FetchUserByAuth0Id(
+          {
+            auth0Id: auth0User.sub,
+          }
+        );
 
         user = userData?.user[0];
       } catch (error) {
@@ -62,10 +71,10 @@ export const auth0Login = withApiAuthRequired(
       const nullifier = auth0User.sub.split("|")[2];
 
       try {
-        const userData = await fetchUserSdk(client).FetchUser({
-          where: {
-            world_id_nullifier: { _eq: nullifier },
-          },
+        const userData = await FetchUserByNullifierSdk(
+          client
+        ).FetchUserByNullifier({
+          world_id_nullifier: nullifier,
         });
 
         if (!userData) {
