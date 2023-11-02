@@ -28,6 +28,6 @@ export default handleAuth({
 
   onError: (_req, res, error) => {
     console.error("Auth0 error:", error);
-    res.status(error.status || 500).end(error.message);
+    res.status(error.status || 500).end("Error while authenticating");
   },
 });
