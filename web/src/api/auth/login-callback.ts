@@ -30,6 +30,8 @@ export const auth0Login = withApiAuthRequired(
     const session = await getSession(req, res);
 
     if (!session) {
+      console.error("No session found in auth0Login callback");
+
       return errorResponse(
         res,
         500,
