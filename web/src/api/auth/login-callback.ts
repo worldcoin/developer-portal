@@ -3,6 +3,7 @@ import {
   updateSession,
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
@@ -21,9 +22,6 @@ import { urls } from "src/lib/urls";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
 import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
-
-const wait = (time: number) =>
-  new Promise((resolve) => setTimeout(resolve, time));
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -97,10 +95,6 @@ export const auth0Login = withApiAuthRequired(
     }
 
     if (user && !user.auth0Id) {
-      // REVIEW
-      // FIXME: without timeout second gql request fails with "socket hang up"
-      await wait(0);
-
       // TODO: Sync user's email & name
       try {
         const userData = await addAuth0Sdk(client).AddAuth0({
