@@ -15,6 +15,7 @@ export type FetchUserQuery = {
     id: string;
     email?: string | null;
     name: string;
+    auth0Id?: string | null;
     team: { __typename?: "team"; id: string; name?: string | null };
   }>;
 };
@@ -25,6 +26,7 @@ export const FetchUserDocument = gql`
       id
       email
       name
+      auth0Id
       team {
         id
         name

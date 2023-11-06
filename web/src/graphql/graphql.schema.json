@@ -35338,6 +35338,18 @@
         "description": "columns and relationships of \"user\"",
         "fields": [
           {
+            "name": "auth0Id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -36035,6 +36047,18 @@
             "deprecationReason": null
           },
           {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -36168,6 +36192,12 @@
         "interfaces": null,
         "enumValues": [
           {
+            "name": "user_auth0Id_key",
+            "description": "unique or primary key constraint on columns \"auth0Id\"",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "user_email_key",
             "description": "unique or primary key constraint on columns \"email\"",
             "isDeprecated": false,
@@ -36188,6 +36218,18 @@
         "description": "input type for inserting data into table \"user\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "created_at",
             "description": null,
@@ -36319,6 +36361,18 @@
         "description": "aggregate max on columns",
         "fields": [
           {
+            "name": "auth0Id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -36427,6 +36481,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -36532,6 +36598,18 @@
         "name": "user_min_fields",
         "description": "aggregate min on columns",
         "fields": [
+          {
+            "name": "auth0Id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "created_at",
             "description": null,
@@ -36640,6 +36718,18 @@
         "description": "order by min() on columns of table \"user\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "created_at",
             "description": null,
@@ -36862,6 +36952,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -37022,6 +37124,12 @@
         "interfaces": null,
         "enumValues": [
           {
+            "name": "auth0Id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": "column name",
             "isDeprecated": false,
@@ -37118,6 +37226,18 @@
         "description": "input type for updating data in table \"user\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "created_at",
             "description": null,
@@ -37277,6 +37397,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "auth0Id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -37397,6 +37529,12 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
+          {
+            "name": "auth0Id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "created_at",
             "description": "column name",

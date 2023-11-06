@@ -14,7 +14,8 @@ export const setCookie = (
   value: Record<string, unknown>,
   req: NextApiRequest | GSSRRequest,
   res: NextApiResponse | GSSRResponse,
-  expires_at?: number
+  expires_at?: number,
+  path?: string
 ) => {
   nextSetCookie(name, JSON.stringify(value), {
     sameSite: true,
@@ -23,6 +24,7 @@ export const setCookie = (
     res,
     req,
     maxAge: expires_at ? (expires_at * 1000 - Date.now()) / 1000 : undefined,
+    path: path ?? "/",
   });
 };
 
@@ -54,20 +56,4 @@ export const isAuthCookieValid = async (
   }
 
   return true;
-};
-
-export const getTokenFromCookie = (
-  req: NextApiRequest | GSSRRequest,
-  res: NextApiResponse | GSSRResponse
-) => {
-  const authCookie = getCookie("auth", { req, res })?.toString();
-  return authCookie ? (JSON.parse(authCookie).token as string) : undefined;
-};
-
-export const getReturnToFromCookie = (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
-  const authCookie = getCookie("auth", { req, res })?.toString();
-  return authCookie ? (JSON.parse(authCookie).returnTo as string) : undefined;
 };

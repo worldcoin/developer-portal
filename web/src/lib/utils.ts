@@ -1,4 +1,4 @@
-import { CredentialType } from "src/lib/types";
+import { Auth0EmailUser, Auth0User, CredentialType } from "src/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
@@ -63,3 +63,6 @@ export const validateEmail = (candidate: string): boolean => {
 export const isSSR = () => typeof window === "undefined";
 
 export const uriHasJS = (uri: string) => /javascript:/.test(uri);
+
+export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
+  user.sub.startsWith("email|");

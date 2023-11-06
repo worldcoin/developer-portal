@@ -1,0 +1,30 @@
+mutation Signup(
+  $nullifier_hash: String!
+  $team_name: String!
+  $ironclad_id: String!
+  $auth0Id: String!
+  $name: String = ""
+) {
+  insert_team_one(
+    object: {
+      name: $team_name
+      users: {
+        data: {
+          ironclad_id: $ironclad_id
+          world_id_nullifier: $nullifier_hash
+          auth0Id: $auth0Id
+          name: $name
+        }
+      }
+    }
+  ) {
+    id
+    name
+    users {
+      id
+      ironclad_id
+      world_id_nullifier
+      auth0Id
+    }
+  }
+}

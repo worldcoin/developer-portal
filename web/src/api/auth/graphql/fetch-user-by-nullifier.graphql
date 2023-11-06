@@ -1,0 +1,7 @@
+query FetchUserByNullifier($world_id_nullifier: String!) {
+  user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
+    id
+    auth0Id
+    team_id
+  }
+}
