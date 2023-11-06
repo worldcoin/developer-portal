@@ -103,7 +103,6 @@ export default async function handleGraphQL(
     let token: string | null = null;
 
     if (session?.user.hasura.id && session?.user.hasura.team_id) {
-      
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
         session.user.hasura.team_id,
