@@ -5,7 +5,9 @@ RUN wget -qO /bin/pnpm "https://github.com/pnpm/pnpm/releases/latest/download/pn
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk upgrade
+# RUN apk upgrade
+# TODO: Temporary for CVE-2023-5363 (remove once it's addressed in the base image)
+RUN apk update && apk upgrade --no-cache libcrypto3 libssl3
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
