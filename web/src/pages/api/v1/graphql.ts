@@ -8,7 +8,6 @@ import {
 import { errorUnauthenticated } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import getConfig from "next/config";
-import { getTokenFromCookie } from "src/backend/cookies";
 import { verifyHashedSecret } from "src/backend/utils";
 import { inspect } from "util";
 import { getSession } from "@auth0/nextjs-auth0";
@@ -99,13 +98,12 @@ export default async function handleGraphQL(
   }
 
   if (!headers.get("authorization")) {
-    // NOTE: Check if user data exists in auth0 session to create user jwt
-    // REVIEW: Is this client request case? I guess so, because we getting here "auth" cookie that we set only on dev portal side.
-    // REVIEW: Replacing it with creating token from auth0 session
+    // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
     const session = await getSession(req, res);
     let token: string | null = null;
 
     if (session?.user.hasura.id && session?.user.hasura.team_id) {
+      
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
         session.user.hasura.team_id,

@@ -101,6 +101,8 @@ export const auth0Login = withApiAuthRequired(
       // FIXME: without timeout second gql request fails with "socket hang up"
       await wait(0);
 
+
+      // TODO: Sync user's email & name
       try {
         const userData = await addAuth0Sdk(client).AddAuth0({
           id: user.id,
@@ -118,6 +120,7 @@ export const auth0Login = withApiAuthRequired(
       }
     }
 
+    // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
     await updateSession(req, res, {
       ...session,
       user: {

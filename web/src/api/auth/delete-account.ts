@@ -11,11 +11,12 @@ export const deleteAccount = withApiAuthRequired(
       !process.env.AUTH0_CLIENT_SECRET ||
       !process.env.AUTH0_DOMAIN
     ) {
+      console.error("Missing Auth0 environment variables.");
       return errorResponse(
         res,
         500,
         "internal_server_error",
-        "Missing Auth0 environment variables",
+        "Something went wrong",
         null,
         req
       );

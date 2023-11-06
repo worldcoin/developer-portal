@@ -29,9 +29,9 @@ const schema = yup.object({
   updates: yup.boolean(),
 });
 
-type SignupFormValues = yup.Asserts<typeof schema>;
+type SignUpFormValues = yup.Asserts<typeof schema>;
 
-export function Signup(props: { hasAuth0User: boolean }) {
+export function SignUp(props: { hasAuth0User: boolean }) {
   const router = useRouter();
   const deleteDialog = useToggle(false);
 
@@ -40,16 +40,16 @@ export function Signup(props: { hasAuth0User: boolean }) {
     formState: { errors, dirtyFields, isSubmitting },
     handleSubmit,
     control,
-  } = useForm<SignupFormValues>({
+  } = useForm<SignUpFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
   });
 
   const submit = useCallback(
-    async (values: SignupFormValues) => {
+    async (values: SignUpFormValues) => {
       const ironCladUserId = crypto.randomUUID();
 
-      // NOTE: send acceptance
+      // NOTE: Record ToS acceptance
       try {
         await sendAcceptance(ironCladUserId);
       } catch (err) {
@@ -74,7 +74,7 @@ export function Signup(props: { hasAuth0User: boolean }) {
       if (response.ok) {
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
-        router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
+        router.push(returnTo);
       }
       // FIXME: Handle errors
     },
@@ -99,7 +99,7 @@ export function Signup(props: { hasAuth0User: boolean }) {
   }, [dirtyFields.teamName, errors.teamName, terms]);
 
   return (
-    <Auth pageTitle="Signup" pageUrl="signup">
+    <Auth pageTitle="Sign Up" pageUrl="signup">
       <form
         onSubmit={handleSubmit(submit)}
         className="grid justify-items-center max-w-[544px] p-12 gap-y-8"
@@ -176,7 +176,7 @@ export function Signup(props: { hasAuth0User: boolean }) {
 
       <Dialog open={deleteDialog.isOn} onClose={deleteDialog.toggleOff}>
         <DialogHeader
-          title="Are you sure you want to delete account?"
+          title="Are you sure you want to delete your account?"
           className="text-center"
         />
 

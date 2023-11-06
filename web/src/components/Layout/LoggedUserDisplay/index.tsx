@@ -57,9 +57,9 @@ export function LoggedUserDisplay(props: { className?: string }) {
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
           {user?.auth0?.email}
 
-          {!user.auth0?.email && (
+          {/* {!user.auth0?.email && (
             <span className="font-medium">Add your email</span>
-          )}
+          )} */}
         </span>
 
         <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
