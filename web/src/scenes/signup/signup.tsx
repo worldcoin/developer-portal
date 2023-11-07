@@ -28,7 +28,7 @@ const schema = yup.object({
   updates: yup.boolean(),
 });
 
-type SignupFormValues = yup.Asserts<typeof schema>;
+type SignUpFormValues = yup.Asserts<typeof schema>;
 
 type SignupProps = SignupSSRProps & {};
 
@@ -41,7 +41,7 @@ export function Signup(props: SignupProps) {
     formState: { errors, dirtyFields, defaultValues, isSubmitting },
     handleSubmit,
     control,
-  } = useForm<SignupFormValues>({
+  } = useForm<SignUpFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
@@ -50,7 +50,7 @@ export function Signup(props: SignupProps) {
   });
 
   const submit = useCallback(
-    async (values: SignupFormValues) => {
+    async (values: SignUpFormValues) => {
       const response = await fetch("/api/signup", {
         method: "POST",
 
