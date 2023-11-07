@@ -7,6 +7,8 @@ import { logger } from "src/lib/logger";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 import { validateUrl } from "src/lib/utils";
+import rateLimit from "@/lib/rate-limit";
+import { getClientIp } from "request-ip";
 
 const insertClientQuery = gql`
   mutation InsertClient($name: String = "", $team_name: String = "") {
@@ -84,6 +86,13 @@ const schema = yup.object({
     }),
 });
 
+const REQUESTS_PER_TTL_PERIOD = 2;
+
+const rateLimiter = rateLimit({
+  ttl: 60 * 60 * 1000, // 60 minutes
+  maxItems: 1000,
+});
+
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * NOTE: This endpoint is rate limited with WAF to prevent abuse
@@ -94,6 +103,17 @@ export default async function handleRegister(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  try {
+    const userIp = getClientIp(req);
+    if (!userIp) {
+      logger.error("Cannot determine ip address of user");
+      throw Error("Cannot determine ip address of user");
+    }
+    await rateLimiter.check(res, REQUESTS_PER_TTL_PERIOD, userIp);
+  } catch {
+    return res.status(429).json({ error: "Rate limit exceeded" });
+  }
+
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);
   }
