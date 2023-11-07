@@ -22,7 +22,6 @@ import { urls } from "src/lib/urls";
 import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
 import { Auth0User, LoginErrorCode } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
-import { redirect } from "next/dist/server/api-utils";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -52,7 +51,7 @@ export const auth0Login = withApiAuthRequired(
     if (isEmailUser(auth0User) && !auth0User.email_verified) {
       return res.redirect(
         307,
-        urls.logout({ login_error: LoginErrorCode.Generic })
+        urls.logout({ login_error: LoginErrorCode.EmailNotVerified })
       );
     }
 

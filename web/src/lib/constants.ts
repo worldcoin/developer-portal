@@ -28,4 +28,7 @@ export const loginErrors: Record<LoginErrorCode, string> = {
 
   [LoginErrorCode.Generic]:
     "There was a problem with your login. Please try again.",
+
+  [LoginErrorCode.EmailNotVerified]:
+    "Your email has not been verified. Please check your email for a verification link.",
 };
