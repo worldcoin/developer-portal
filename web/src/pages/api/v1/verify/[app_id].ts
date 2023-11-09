@@ -19,11 +19,7 @@ const schema = yup.object({
     .strict()
     .nonNullable()
     .defined("This attribute is required."),
-  signal: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .defined("This attribute is required."),
+  signal: yup.string().strict().default(""),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
