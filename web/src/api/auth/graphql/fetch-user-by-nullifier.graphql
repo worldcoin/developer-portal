@@ -4,5 +4,6 @@ query FetchUserByNullifier($world_id_nullifier: String!) {
     auth0Id
     team_id
     name
+    email
   }
 }

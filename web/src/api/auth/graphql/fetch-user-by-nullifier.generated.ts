@@ -16,6 +16,7 @@ export type FetchUserByNullifierQuery = {
     auth0Id?: string | null;
     team_id: string;
     name: string;
+    email?: string | null;
   }>;
 };
 
@@ -26,6 +27,7 @@ export const FetchUserByNullifierDocument = gql`
       auth0Id
       team_id
       name
+      email
     }
   }
 `;

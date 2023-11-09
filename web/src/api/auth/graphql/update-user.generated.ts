@@ -16,6 +16,7 @@ export type UpdateUserMutation = {
     id: string;
     team_id: string;
     auth0Id?: string | null;
+    email?: string | null;
     name: string;
   } | null;
 };
@@ -26,6 +27,7 @@ export const UpdateUserDocument = gql`
       id
       team_id
       auth0Id
+      email
       name
     }
   }

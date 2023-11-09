@@ -42,6 +42,7 @@ export const auth0Login = withApiAuthRequired(
 
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
+
     let user:
       | FetchEmailUserQuery["userByAuth0Id"][number]
       | FetchEmailUserQuery["userByEmail"][number]
@@ -109,13 +110,40 @@ export const auth0Login = withApiAuthRequired(
           id: user.id,
           _set: {
             auth0Id: auth0User.sub,
-            ...(user.name ? {} : { name: auth0User.name }),
-            email: auth0User.email,
           },
         });
 
         if (!userData) {
           throw new Error(`Error while adding auth0Id to user: ${user.id}`);
+        }
+
+        user = userData?.update_user_by_pk;
+      } catch (error) {
+        console.error(error);
+        return res.redirect(307, urls.logout({ error: true }));
+      }
+    }
+
+    const shouldUpdateUserName =
+      auth0User.name && (!user?.name || user?.name !== auth0User.name);
+
+    const shouldUpdateUserEmail =
+      auth0User.email && (!user?.email || user?.email !== auth0User.email);
+
+    const shouldUpdateUserData = shouldUpdateUserName || shouldUpdateUserEmail;
+
+    if (user && shouldUpdateUserData) {
+      try {
+        const userData = await updateUserSdk(client).UpdateUser({
+          id: user.id,
+          _set: {
+            ...(shouldUpdateUserName ? { name: auth0User.name } : {}),
+            ...(shouldUpdateUserEmail ? { email: auth0User.email } : {}),
+          },
+        });
+
+        if (!userData) {
+          throw new Error(`Error while updating user: ${user.id}`);
         }
 
         user = userData?.update_user_by_pk;
