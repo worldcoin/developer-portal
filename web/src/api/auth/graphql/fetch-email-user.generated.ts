@@ -4,26 +4,35 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserByAuth0IdQueryVariables = Types.Exact<{
-  auth0Id: Types.Scalars["String"];
+export type FetchEmailUserQueryVariables = Types.Exact<{
+  auth0Id?: Types.InputMaybe<Types.Scalars["String"]>;
+  email?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
-export type FetchUserByAuth0IdQuery = {
+export type FetchEmailUserQuery = {
   __typename?: "query_root";
   user: Array<{
     __typename?: "user";
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    email?: string | null;
+    name: string;
   }>;
 };
 
-export const FetchUserByAuth0IdDocument = gql`
-  query FetchUserByAuth0Id($auth0Id: String!) {
-    user(where: { auth0Id: { _eq: $auth0Id } }) {
+export const FetchEmailUserDocument = gql`
+  query FetchEmailUser($auth0Id: String, $email: String) {
+    user(
+      where: {
+        _or: [{ auth0Id: { _eq: $auth0Id } }, { email: { _eq: $email } }]
+      }
+    ) {
       id
       auth0Id
       team_id
+      email
+      name
     }
   }
 `;
@@ -45,18 +54,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUserByAuth0Id(
-      variables: FetchUserByAuth0IdQueryVariables,
+    FetchEmailUser(
+      variables?: FetchEmailUserQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserByAuth0IdQuery> {
+    ): Promise<FetchEmailUserQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserByAuth0IdQuery>(
-            FetchUserByAuth0IdDocument,
+          client.request<FetchEmailUserQuery>(
+            FetchEmailUserDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders }
           ),
-        "FetchUserByAuth0Id",
+        "FetchEmailUser",
         "query"
       );
     },

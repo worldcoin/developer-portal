@@ -1,0 +1,11 @@
+query FetchEmailUser($auth0Id: String, $email: String) {
+  user(
+    where: { _or: [{ auth0Id: { _eq: $auth0Id } }, { email: { _eq: $email } }] }
+  ) {
+    id
+    auth0Id
+    team_id
+    email
+    name
+  }
+}

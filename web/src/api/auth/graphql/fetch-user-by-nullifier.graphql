@@ -3,5 +3,6 @@ query FetchUserByNullifier($world_id_nullifier: String!) {
     id
     auth0Id
     team_id
+    name
   }
 }

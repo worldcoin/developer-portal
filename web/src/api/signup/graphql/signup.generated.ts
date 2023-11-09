@@ -22,7 +22,7 @@ export type SignupMutation = {
       __typename?: "user";
       id: string;
       ironclad_id: string;
-      world_id_nullifier: string;
+      world_id_nullifier?: string | null;
       auth0Id?: string | null;
     }>;
   } | null;

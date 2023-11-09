@@ -15,6 +15,7 @@ export type FetchUserByNullifierQuery = {
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    name: string;
   }>;
 };
 
@@ -24,6 +25,7 @@ export const FetchUserByNullifierDocument = gql`
       id
       auth0Id
       team_id
+      name
     }
   }
 `;

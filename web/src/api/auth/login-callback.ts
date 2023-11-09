@@ -13,13 +13,13 @@ import {
 } from "./graphql/fetch-user-by-nullifier.generated";
 
 import {
-  FetchUserByAuth0IdQuery,
+  FetchEmailUserQuery,
   getSdk as FetchUserByAuth0IdSdk,
-} from "./graphql/fetch-user-by-auth0Id.generated";
+} from "./graphql/fetch-email-user.generated";
 
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
-import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
+import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
 
@@ -43,7 +43,7 @@ export const auth0Login = withApiAuthRequired(
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
     let user:
-      | FetchUserByAuth0IdQuery["user"][number]
+      | FetchEmailUserQuery["user"][number]
       | FetchUserByNullifierQuery["user"][number]
       | null
       | undefined = null;
@@ -54,11 +54,10 @@ export const auth0Login = withApiAuthRequired(
 
     if (isEmailUser(auth0User)) {
       try {
-        const userData = await FetchUserByAuth0IdSdk(client).FetchUserByAuth0Id(
-          {
-            auth0Id: auth0User.sub,
-          }
-        );
+        const userData = await FetchUserByAuth0IdSdk(client).FetchEmailUser({
+          auth0Id: auth0User.sub,
+          email: auth0User.email,
+        });
 
         user = userData?.user[0];
       } catch (error) {
@@ -95,11 +94,14 @@ export const auth0Login = withApiAuthRequired(
     }
 
     if (user && !user.auth0Id) {
-      // TODO: Sync user's email & name
       try {
-        const userData = await addAuth0Sdk(client).AddAuth0({
+        const userData = await updateUserSdk(client).UpdateUser({
           id: user.id,
-          auth0Id: auth0User.sub,
+          _set: {
+            auth0Id: auth0User.sub,
+            ...(user.name ? {} : { name: auth0User.name }),
+            email: auth0User.email,
+          },
         });
 
         if (!userData) {
