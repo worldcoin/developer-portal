@@ -11,7 +11,15 @@ export type FetchEmailUserQueryVariables = Types.Exact<{
 
 export type FetchEmailUserQuery = {
   __typename?: "query_root";
-  user: Array<{
+  userByAuth0Id: Array<{
+    __typename?: "user";
+    id: string;
+    auth0Id?: string | null;
+    team_id: string;
+    email?: string | null;
+    name: string;
+  }>;
+  userByEmail: Array<{
     __typename?: "user";
     id: string;
     auth0Id?: string | null;
@@ -23,11 +31,14 @@ export type FetchEmailUserQuery = {
 
 export const FetchEmailUserDocument = gql`
   query FetchEmailUser($auth0Id: String, $email: String) {
-    user(
-      where: {
-        _or: [{ auth0Id: { _eq: $auth0Id } }, { email: { _eq: $email } }]
-      }
-    ) {
+    userByAuth0Id: user(where: { auth0Id: { _eq: $auth0Id } }) {
+      id
+      auth0Id
+      team_id
+      email
+      name
+    }
+    userByEmail: user(where: { email: { _eq: $email } }) {
       id
       auth0Id
       team_id

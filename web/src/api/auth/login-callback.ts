@@ -43,7 +43,8 @@ export const auth0Login = withApiAuthRequired(
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
     let user:
-      | FetchEmailUserQuery["user"][number]
+      | FetchEmailUserQuery["userByAuth0Id"][number]
+      | FetchEmailUserQuery["userByEmail"][number]
       | FetchUserByNullifierQuery["user"][number]
       | null
       | undefined = null;
@@ -59,7 +60,16 @@ export const auth0Login = withApiAuthRequired(
           email: auth0User.email,
         });
 
-        user = userData?.user[0];
+        if (userData.userByAuth0Id.length > 0) {
+          user = userData.userByAuth0Id[0];
+        }
+
+        if (
+          userData.userByAuth0Id.length === 0 &&
+          userData.userByEmail.length > 0
+        ) {
+          user = userData.userByEmail[0];
+        }
       } catch (error) {
         console.error(error);
         return res.redirect(307, urls.logout({ error: true }));
