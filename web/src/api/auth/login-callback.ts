@@ -125,10 +125,10 @@ export const auth0Login = withApiAuthRequired(
     }
 
     const shouldUpdateUserName =
-      auth0User.name && (!user?.name || user?.name !== auth0User.name);
+      auth0User.name && user?.name !== auth0User.name;
 
     const shouldUpdateUserEmail =
-      auth0User.email && (!user?.email || user?.email !== auth0User.email);
+      auth0User.email && user?.email !== auth0User.email;
 
     const shouldUpdateUserData = shouldUpdateUserName || shouldUpdateUserEmail;
 
