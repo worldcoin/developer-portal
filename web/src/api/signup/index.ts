@@ -58,6 +58,7 @@ export const handleSignup = withApiAuthRequired(
       team_name,
       ironclad_id,
       nullifier_hash: nullifier_hash ?? "",
+      email: auth0User.email ?? "",
     });
 
     const team = data.insert_team_one;

@@ -4,6 +4,7 @@ mutation Signup(
   $ironclad_id: String!
   $auth0Id: String!
   $name: String = ""
+  $email: String!
 ) {
   insert_team_one(
     object: {
@@ -14,6 +15,7 @@ mutation Signup(
           world_id_nullifier: $nullifier_hash
           auth0Id: $auth0Id
           name: $name
+          email: $email
         }
       }
     }

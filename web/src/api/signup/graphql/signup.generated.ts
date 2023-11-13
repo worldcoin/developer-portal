@@ -10,6 +10,7 @@ export type SignupMutationVariables = Types.Exact<{
   ironclad_id: Types.Scalars["String"];
   auth0Id: Types.Scalars["String"];
   name?: Types.InputMaybe<Types.Scalars["String"]>;
+  email: Types.Scalars["String"];
 }>;
 
 export type SignupMutation = {
@@ -35,6 +36,7 @@ export const SignupDocument = gql`
     $ironclad_id: String!
     $auth0Id: String!
     $name: String = ""
+    $email: String!
   ) {
     insert_team_one(
       object: {
@@ -45,6 +47,7 @@ export const SignupDocument = gql`
             world_id_nullifier: $nullifier_hash
             auth0Id: $auth0Id
             name: $name
+            email: $email
           }
         }
       }
