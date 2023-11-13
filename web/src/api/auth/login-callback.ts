@@ -8,9 +8,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
 import {
-  FetchUserByNullifierQuery,
+  FetchNullifierUserQuery,
   getSdk as FetchUserByNullifierSdk,
-} from "./graphql/fetch-user-by-nullifier.generated";
+} from "./graphql/fetch-nullifier-user.generated";
 
 import {
   FetchEmailUserQuery,
@@ -46,9 +46,33 @@ export const auth0Login = withApiAuthRequired(
     let user:
       | FetchEmailUserQuery["userByAuth0Id"][number]
       | FetchEmailUserQuery["userByEmail"][number]
-      | FetchUserByNullifierQuery["user"][number]
+      | FetchNullifierUserQuery["user"][number]
       | null
       | undefined = null;
+
+    if (!isEmailUser(auth0User)) {
+      const nullifier = auth0User.sub.split("|")[2];
+
+      try {
+        const userData = await FetchUserByNullifierSdk(
+          client
+        ).FetchNullifierUser({
+          world_id_nullifier: nullifier,
+          auth0Id: auth0User.sub,
+        });
+
+        if (!userData) {
+          throw new Error(
+            `Error while fetching user by nullifier: ${nullifier}`
+          );
+        }
+
+        user = userData?.user[0];
+      } catch (error) {
+        console.error(error);
+        return res.redirect(307, urls.logout({ error: true }));
+      }
+    }
 
     if (isEmailUser(auth0User) && !auth0User.email_verified) {
       return res.redirect(307, urls.logout({ error: true }));
@@ -71,29 +95,6 @@ export const auth0Login = withApiAuthRequired(
         ) {
           user = userData.userByEmail[0];
         }
-      } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
-      }
-    }
-
-    if (!isEmailUser(auth0User)) {
-      const nullifier = auth0User.sub.split("|")[2];
-
-      try {
-        const userData = await FetchUserByNullifierSdk(
-          client
-        ).FetchUserByNullifier({
-          world_id_nullifier: nullifier,
-        });
-
-        if (!userData) {
-          throw new Error(
-            `Error while fetching user by nullifier: ${nullifier}`
-          );
-        }
-
-        user = userData?.user[0];
       } catch (error) {
         console.error(error);
         return res.redirect(307, urls.logout({ error: true }));

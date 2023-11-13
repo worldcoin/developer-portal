@@ -4,11 +4,12 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserByNullifierQueryVariables = Types.Exact<{
+export type FetchNullifierUserQueryVariables = Types.Exact<{
+  auth0Id: Types.Scalars["String"];
   world_id_nullifier: Types.Scalars["String"];
 }>;
 
-export type FetchUserByNullifierQuery = {
+export type FetchNullifierUserQuery = {
   __typename?: "query_root";
   user: Array<{
     __typename?: "user";
@@ -20,9 +21,16 @@ export type FetchUserByNullifierQuery = {
   }>;
 };
 
-export const FetchUserByNullifierDocument = gql`
-  query FetchUserByNullifier($world_id_nullifier: String!) {
-    user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
+export const FetchNullifierUserDocument = gql`
+  query FetchNullifierUser($auth0Id: String!, $world_id_nullifier: String!) {
+    user(
+      where: {
+        _or: [
+          { auth0Id: { _eq: $auth0Id } }
+          { world_id_nullifier: { _eq: $world_id_nullifier } }
+        ]
+      }
+    ) {
       id
       auth0Id
       team_id
@@ -49,18 +57,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUserByNullifier(
-      variables: FetchUserByNullifierQueryVariables,
+    FetchNullifierUser(
+      variables: FetchNullifierUserQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserByNullifierQuery> {
+    ): Promise<FetchNullifierUserQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserByNullifierQuery>(
-            FetchUserByNullifierDocument,
+          client.request<FetchNullifierUserQuery>(
+            FetchNullifierUserDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders }
           ),
-        "FetchUserByNullifier",
+        "FetchNullifierUser",
         "query"
       );
     },
