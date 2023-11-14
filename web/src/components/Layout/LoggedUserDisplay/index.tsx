@@ -13,6 +13,11 @@ export function LoggedUserDisplay(props: { className?: string }) {
   // FIXME: remove when real user image is available
   const image = "";
 
+  const loggedUserName = useMemo(
+    () => user.hasura.name || user.auth0.email,
+    [user.auth0.email, user.hasura.name]
+  );
+
   if (user?.hasura.loading) {
     return null;
   }
@@ -55,11 +60,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
         </div>
 
         <span className="font-rubik text-neutral-dark text-13 leading-none self-end">
-          {user?.auth0?.email}
-
-          {/* {!user.auth0?.email && (
-            <span className="font-medium">Add your email</span>
-          )} */}
+          {loggedUserName}
         </span>
 
         <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">

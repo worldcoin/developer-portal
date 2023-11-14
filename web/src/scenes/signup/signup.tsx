@@ -18,6 +18,7 @@ import { useToggle } from "src/hooks/useToggle";
 import { DialogHeader } from "src/components/DialogHeader";
 import { Dialog } from "src/components/Dialog";
 import { Link } from "src/components/Link";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   teamName: yup.string().required("This field is required"),
@@ -34,6 +35,7 @@ type SignUpFormValues = yup.Asserts<typeof schema>;
 export function SignUp(props: { hasAuth0User: boolean }) {
   const router = useRouter();
   const deleteDialog = useToggle(false);
+  const { checkSession } = useUser();
 
   const {
     register,
@@ -72,13 +74,15 @@ export function SignUp(props: { hasAuth0User: boolean }) {
       });
 
       if (response.ok) {
+        // NOTE: We need to update session to receive setted hasura user data on the server side during the request above.
+        checkSession();
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
         router.push(returnTo);
       }
       // FIXME: Handle errors
     },
-    [router]
+    [checkSession, router]
   );
 
   useEffect(() => {
