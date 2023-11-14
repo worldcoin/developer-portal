@@ -91,3 +91,27 @@ export enum Environment {
   Production = "production",
   Staging = "staging",
 }
+
+export type Auth0EmailUser = {
+  nickname: string;
+  name: string;
+  picture: string;
+  updated_at: string;
+  sid: string;
+  sub: `email|${string}`;
+  email: string;
+  email_verified: boolean;
+};
+
+export type Auth0WorldcoinUser = {
+  nickname: string;
+  name: string;
+  picture: string;
+  updated_at: string;
+  sid: string;
+  sub: `oauth2|worldcoin|${string}`;
+  email?: never;
+  email_verified?: never;
+};
+
+export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser;

@@ -6,6 +6,7 @@ import { IBM_Plex_Mono, Rubik, Sora } from "next/font/google";
 import { NextSeo } from "next-seo";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -106,7 +107,9 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         }}
       />
 
-      <Component {...pageProps} />
+      <UserProvider>
+        <Component {...pageProps} />
+      </UserProvider>
 
       <style jsx global>{`
         :root {

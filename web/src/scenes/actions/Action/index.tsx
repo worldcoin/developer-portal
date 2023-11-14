@@ -102,6 +102,19 @@ export const Action = memo(function Action(props: {
     [updateAction]
   );
 
+  const { nullifiers } = props.action;
+
+  const uses = useMemo(() => {
+    let uses = 0;
+    for (const nullifier of nullifiers) {
+      if (!nullifier.uses) {
+        continue;
+      }
+      uses += nullifier.uses;
+    }
+    return uses;
+  }, [nullifiers]);
+
   return (
     <Disclosure as={Fragment}>
       {({ open }) => (
@@ -175,7 +188,7 @@ export const Action = memo(function Action(props: {
               </td>
 
               <td className="pr-4 text-14 text-center whitespace-nowrap">
-                {props.action.nullifiers.length}
+                {uses}
               </td>
 
               <td className="pr-2 text-right rounded-tr-lg whitespace-nowrap">
@@ -203,12 +216,14 @@ export const Action = memo(function Action(props: {
                     )}
                   </div>
 
-                  <Icon
-                    name="angle-down"
-                    className={cn("h-6 w-6 transition-transform", {
-                      "rotate-180": open,
-                    })}
-                  />
+                  <div className="flex items-center cursor-pointer">
+                    <Icon
+                      name="angle-down"
+                      className={cn("h-6 w-6 transition-transform ", {
+                        "rotate-180": open,
+                      })}
+                    />
+                  </div>
                 </div>
               </td>
             </tr>
@@ -279,7 +294,7 @@ export const Action = memo(function Action(props: {
                     </td>
 
                     <td className="text-center">
-                      <div className="font-sora text-12">#{index + 1}</div>
+                      <div className="font-sora text-12">{nullifier.uses}</div>
                     </td>
 
                     <td className="pr-6 whitespace-nowrap">

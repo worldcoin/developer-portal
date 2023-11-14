@@ -51,6 +51,24 @@ const nextConfig = {
       key.startsWith("NEXT_PUBLIC_")
     )
   ),
+
+  async redirects() {
+    return [
+      {
+        source: "/privacy-statement",
+        permanent: false,
+        destination:
+          "https://worldcoin.pactsafe.io/rjd5nsvyq.html#contract-9l-r7n2jt",
+      },
+      {
+        source: "/tos",
+        permanent: false,
+        destination:
+          "https://worldcoin.pactsafe.io/rjd5nsvyq.html#contract-b1q9midy9",
+      },
+    ];
+  },
+
   async rewrites() {
     return [
       {

@@ -101,6 +101,7 @@ export interface UserModel {
   name: string;
   team_id: string;
   world_id_nullifier: string;
+  auth0Id: string | null;
   is_subscribed: boolean;
   ironclad_id: string;
   created_at: DateTime;
