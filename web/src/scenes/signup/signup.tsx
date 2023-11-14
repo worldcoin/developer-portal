@@ -74,6 +74,7 @@ export function SignUp(props: { hasAuth0User: boolean }) {
       });
 
       if (response.ok) {
+        // NOTE: We need to update session to receive setted hasura user data on the server side during the request above.
         checkSession();
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
