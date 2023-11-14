@@ -45,7 +45,7 @@ const schema = yup.object({
     .required("This attribute is required.")
     .oneOf(Object.values(CredentialType)),
   app_id: yup.string().strict().required("This attribute is required."),
-  signal: yup.string(), // `signal` in the context of World ID; `nonce` in the context of OIDC
+  signal: yup.string().strict().required("This attribute is required."), // `signal` in the context of World ID; `nonce` in the context of OIDC
   code_challenge: yup.string(),
   code_challenge_method: yup.string(),
   scope: yup.string().strict().required("The openid scope is always required."),
@@ -180,7 +180,7 @@ export default async function handleOIDCAuthorize(
       proof,
       nullifier_hash,
       merkle_root,
-      signal: signal ?? "",
+      signal,
       external_nullifier: app.external_nullifier,
     },
     {
