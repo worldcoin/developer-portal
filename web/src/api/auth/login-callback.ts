@@ -28,16 +28,8 @@ export const auth0Login = withApiAuthRequired(
     const session = await getSession(req, res);
 
     if (!session) {
-      console.error("No session found in auth0Login callback");
-
-      return errorResponse(
-        res,
-        500,
-        "internal_server_error",
-        "Something went wrong",
-        null,
-        req
-      );
+      console.warn("No session found in auth0Login callback.");
+      return res.redirect(307, urls.logout({ error: true }));
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -50,6 +42,7 @@ export const auth0Login = withApiAuthRequired(
       | null
       | undefined = null;
 
+    // ANCHOR: User is authenticated through Sign in with Worldcoin
     if (!isEmailUser(auth0User)) {
       const nullifier = auth0User.sub.split("|")[2];
 
@@ -63,22 +56,34 @@ export const auth0Login = withApiAuthRequired(
 
         if (!userData) {
           throw new Error(
-            `Error while fetching user by nullifier: ${nullifier}`
+            "Error while fetching user for FetchUserByNullifierSdk."
           );
         }
 
-        user = userData?.user[0];
+        if (userData.user.length === 1) {
+          user = userData.user[0];
+        } else if (userData.user.length > 1) {
+          // NOTE: Edge case may occur if there's a migration error from legacy users, this will require manual handling.
+          throw new Error(
+            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`
+          );
+        }
       } catch (error) {
         console.error(error);
         return res.redirect(307, urls.logout({ error: true }));
       }
     }
 
-    if (isEmailUser(auth0User) && !auth0User.email_verified) {
-      return res.redirect(307, urls.logout({ error: true }));
-    }
+    // ANCHOR: User is authenticated through email OTP
+    else if (isEmailUser(auth0User)) {
+      // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
+      if (!auth0User.email_verified) {
+        console.error(
+          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
+        );
+        return res.redirect(307, urls.logout({ error: true }));
+      }
 
-    if (isEmailUser(auth0User)) {
       try {
         const userData = await FetchUserByAuth0IdSdk(client).FetchEmailUser({
           auth0Id: auth0User.sub,
@@ -105,39 +110,24 @@ export const auth0Login = withApiAuthRequired(
       return res.status(200).redirect("/signup");
     }
 
-    if (user && !user.auth0Id) {
-      try {
-        const userData = await updateUserSdk(client).UpdateUser({
-          id: user.id,
-          _set: {
-            auth0Id: auth0User.sub,
-          },
-        });
-
-        if (!userData) {
-          throw new Error(`Error while adding auth0Id to user: ${user.id}`);
-        }
-
-        user = userData?.update_user_by_pk;
-      } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
-      }
-    }
-
+    // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
     const shouldUpdateUserName =
       auth0User.name && user?.name !== auth0User.name;
 
     const shouldUpdateUserEmail =
       auth0User.email && user?.email !== auth0User.email;
 
-    const shouldUpdateUserData = shouldUpdateUserName || shouldUpdateUserEmail;
+    const shouldUpdateAuth0UserId = user?.auth0Id !== auth0User.sub;
+
+    const shouldUpdateUserData =
+      shouldUpdateUserName || shouldUpdateUserEmail || shouldUpdateAuth0UserId;
 
     if (user && shouldUpdateUserData) {
       try {
         const userData = await updateUserSdk(client).UpdateUser({
           id: user.id,
           _set: {
+            ...(shouldUpdateAuth0UserId ? { auth0Id: auth0User.sub } : {}),
             ...(shouldUpdateUserName ? { name: auth0User.name } : {}),
             ...(shouldUpdateUserEmail ? { email: auth0User.email } : {}),
           },
