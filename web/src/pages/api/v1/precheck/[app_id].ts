@@ -111,11 +111,12 @@ const createActionQuery = gql`
 `;
 
 const schema = yup.object().shape({
-  action: yup.string().strict().default(""),
-  nullifier_hash: yup.string().default(""),
+  action: yup.string().strict().nullable().default(""),
+  nullifier_hash: yup.string().strict().nullable().default(""),
   external_nullifier: yup
     .string()
     .strict()
+    .nullable()
     .when("action", {
       is: (action: unknown) => action === null,
       then: (s) =>
