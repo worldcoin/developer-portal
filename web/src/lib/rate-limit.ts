@@ -2,18 +2,14 @@ import type { NextApiResponse } from "next";
 import { LRUCache } from "lru-cache";
 
 type Options = {
-  maxItems?: number;
-  ttl?: number;
+  maxItems: number;
+  ttl: number;
 };
 
-// NOTE: by default set max items count in lru cache to 500 and ttl to 1 hour
-const MAX_ITEMS = 500;
-const TTL = 60 * 60 * 1000;
-
-export default function rateLimit(options?: Options) {
+export default function rateLimit(options: Options) {
   const cache = new LRUCache({
-    max: options?.maxItems || MAX_ITEMS,
-    ttl: options?.ttl || TTL,
+    max: options.maxItems,
+    ttl: options.ttl,
   });
 
   return {

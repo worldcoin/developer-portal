@@ -86,9 +86,15 @@ const schema = yup.object({
     }),
 });
 
-const REQUESTS_PER_TTL_PERIOD = 2;
+const TOTAL_REQUESTS_PER_TTL_PERIOD = 35;
+const SUCCESS_REQUESTS_PER_TTL_PERIOD = 2;
 
-const rateLimiter = rateLimit({
+const totalRequestsRateLimiter = rateLimit({
+  ttl: 60 * 60 * 1000, // 60 minutes
+  maxItems: 1000,
+});
+
+const successRequestsRateLimiter = rateLimit({
   ttl: 60 * 60 * 1000, // 60 minutes
   maxItems: 1000,
 });
@@ -103,14 +109,19 @@ export default async function handleRegister(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // ANCHOR: apply total requests rate limit
   try {
     const userIp = getClientIp(req);
     if (!userIp) {
-      logger.error("Cannot determine ip address of user");
       throw Error("Cannot determine ip address of user");
     }
-    await rateLimiter.check(res, REQUESTS_PER_TTL_PERIOD, userIp);
-  } catch {
+    await totalRequestsRateLimiter.check(
+      res,
+      TOTAL_REQUESTS_PER_TTL_PERIOD,
+      userIp
+    );
+  } catch (error) {
+    logger.error("Failed to pass total requests rate limit", { error });
     return res.status(429).json({ error: "Rate limit exceeded" });
   }
 
@@ -143,6 +154,22 @@ export default async function handleRegister(
         error_description: "One or more redirect_uri values are invalid",
       });
     }
+  }
+
+  // ANCHOR: apply success requests rate limit
+  try {
+    const userIp = getClientIp(req);
+    if (!userIp) {
+      throw Error("Cannot determine ip address of user");
+    }
+    await successRequestsRateLimiter.check(
+      res,
+      SUCCESS_REQUESTS_PER_TTL_PERIOD,
+      userIp
+    );
+  } catch (error) {
+    logger.error("Failed to pass success requests rate limit", { error });
+    return res.status(429).json({ error: "Rate limit exceeded" });
   }
 
   // Insert valid client into database
