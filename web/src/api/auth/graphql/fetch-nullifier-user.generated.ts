@@ -4,26 +4,38 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserByAuth0IdQueryVariables = Types.Exact<{
+export type FetchNullifierUserQueryVariables = Types.Exact<{
   auth0Id: Types.Scalars["String"];
+  world_id_nullifier: Types.Scalars["String"];
 }>;
 
-export type FetchUserByAuth0IdQuery = {
+export type FetchNullifierUserQuery = {
   __typename?: "query_root";
   user: Array<{
     __typename?: "user";
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    name: string;
+    email?: string | null;
   }>;
 };
 
-export const FetchUserByAuth0IdDocument = gql`
-  query FetchUserByAuth0Id($auth0Id: String!) {
-    user(where: { auth0Id: { _eq: $auth0Id } }) {
+export const FetchNullifierUserDocument = gql`
+  query FetchNullifierUser($auth0Id: String!, $world_id_nullifier: String!) {
+    user(
+      where: {
+        _or: [
+          { auth0Id: { _eq: $auth0Id } }
+          { world_id_nullifier: { _eq: $world_id_nullifier } }
+        ]
+      }
+    ) {
       id
       auth0Id
       team_id
+      name
+      email
     }
   }
 `;
@@ -45,18 +57,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUserByAuth0Id(
-      variables: FetchUserByAuth0IdQueryVariables,
+    FetchNullifierUser(
+      variables: FetchNullifierUserQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserByAuth0IdQuery> {
+    ): Promise<FetchNullifierUserQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserByAuth0IdQuery>(
-            FetchUserByAuth0IdDocument,
+          client.request<FetchNullifierUserQuery>(
+            FetchNullifierUserDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders }
           ),
-        "FetchUserByAuth0Id",
+        "FetchNullifierUser",
         "query"
       );
     },

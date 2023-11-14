@@ -8,18 +8,18 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorResponse } from "src/backend/errors";
 
 import {
-  FetchUserByNullifierQuery,
+  FetchNullifierUserQuery,
   getSdk as FetchUserByNullifierSdk,
-} from "./graphql/fetch-user-by-nullifier.generated";
+} from "./graphql/fetch-nullifier-user.generated";
 
 import {
-  FetchUserByAuth0IdQuery,
+  FetchEmailUserQuery,
   getSdk as FetchUserByAuth0IdSdk,
-} from "./graphql/fetch-user-by-auth0Id.generated";
+} from "./graphql/fetch-email-user.generated";
 
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
-import { getSdk as addAuth0Sdk } from "./graphql/add-auth0.generated";
+import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
 
@@ -28,62 +28,78 @@ export const auth0Login = withApiAuthRequired(
     const session = await getSession(req, res);
 
     if (!session) {
-      console.error("No session found in auth0Login callback");
-
-      return errorResponse(
-        res,
-        500,
-        "internal_server_error",
-        "Something went wrong",
-        null,
-        req
-      );
+      console.warn("No session found in auth0Login callback.");
+      return res.redirect(307, urls.logout({ error: true }));
     }
 
     const client = await getAPIServiceGraphqlClient();
     const auth0User = session.user as Auth0User;
+
     let user:
-      | FetchUserByAuth0IdQuery["user"][number]
-      | FetchUserByNullifierQuery["user"][number]
+      | FetchEmailUserQuery["userByAuth0Id"][number]
+      | FetchEmailUserQuery["userByEmail"][number]
+      | FetchNullifierUserQuery["user"][number]
       | null
       | undefined = null;
 
-    if (isEmailUser(auth0User) && !auth0User.email_verified) {
-      return res.redirect(307, urls.logout({ error: true }));
-    }
-
-    if (isEmailUser(auth0User)) {
-      try {
-        const userData = await FetchUserByAuth0IdSdk(client).FetchUserByAuth0Id(
-          {
-            auth0Id: auth0User.sub,
-          }
-        );
-
-        user = userData?.user[0];
-      } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
-      }
-    }
-
+    // ANCHOR: User is authenticated through Sign in with Worldcoin
     if (!isEmailUser(auth0User)) {
       const nullifier = auth0User.sub.split("|")[2];
 
       try {
         const userData = await FetchUserByNullifierSdk(
           client
-        ).FetchUserByNullifier({
+        ).FetchNullifierUser({
           world_id_nullifier: nullifier,
+          auth0Id: auth0User.sub,
         });
 
         if (!userData) {
           throw new Error(
-            `Error while fetching user by nullifier: ${nullifier}`
+            "Error while fetching user for FetchUserByNullifierSdk."
           );
         }
 
-        user = userData?.user[0];
+        if (userData.user.length === 1) {
+          user = userData.user[0];
+        } else if (userData.user.length > 1) {
+          // NOTE: Edge case may occur if there's a migration error from legacy users, this will require manual handling.
+          throw new Error(
+            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        return res.redirect(307, urls.logout({ error: true }));
+      }
+    }
+
+    // ANCHOR: User is authenticated through email OTP
+    else if (isEmailUser(auth0User)) {
+      // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
+      if (!auth0User.email_verified) {
+        console.error(
+          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
+        );
+        return res.redirect(307, urls.logout({ error: true }));
+      }
+
+      try {
+        const userData = await FetchUserByAuth0IdSdk(client).FetchEmailUser({
+          auth0Id: auth0User.sub,
+          email: auth0User.email,
+        });
+
+        if (userData.userByAuth0Id.length > 0) {
+          user = userData.userByAuth0Id[0];
+        }
+
+        if (
+          userData.userByAuth0Id.length === 0 &&
+          userData.userByEmail.length > 0
+        ) {
+          user = userData.userByEmail[0];
+        }
       } catch (error) {
         console.error(error);
         return res.redirect(307, urls.logout({ error: true }));
@@ -94,16 +110,31 @@ export const auth0Login = withApiAuthRequired(
       return res.status(200).redirect("/signup");
     }
 
-    if (user && !user.auth0Id) {
-      // TODO: Sync user's email & name
+    // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
+    const shouldUpdateUserName =
+      auth0User.name && user?.name !== auth0User.name;
+
+    const shouldUpdateUserEmail =
+      auth0User.email && user?.email !== auth0User.email;
+
+    const shouldUpdateAuth0UserId = user?.auth0Id !== auth0User.sub;
+
+    const shouldUpdateUserData =
+      shouldUpdateUserName || shouldUpdateUserEmail || shouldUpdateAuth0UserId;
+
+    if (user && shouldUpdateUserData) {
       try {
-        const userData = await addAuth0Sdk(client).AddAuth0({
+        const userData = await updateUserSdk(client).UpdateUser({
           id: user.id,
-          auth0Id: auth0User.sub,
+          _set: {
+            ...(shouldUpdateAuth0UserId ? { auth0Id: auth0User.sub } : {}),
+            ...(shouldUpdateUserName ? { name: auth0User.name } : {}),
+            ...(shouldUpdateUserEmail ? { email: auth0User.email } : {}),
+          },
         });
 
         if (!userData) {
-          throw new Error(`Error while adding auth0Id to user: ${user.id}`);
+          throw new Error(`Error while updating user: ${user.id}`);
         }
 
         user = userData?.update_user_by_pk;
