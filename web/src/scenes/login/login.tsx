@@ -1,69 +1,19 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
 import { Button } from "src/components/Button";
 import { Icon } from "src/components/Icon";
 import { Link } from "src/components/Link";
 import { Spinner } from "src/components/Spinner";
-import { urls } from "src/lib/urls";
-import { LoginRequestBody, LoginRequestResponse } from "src/pages/api/login";
 import { ILoginPageProps } from "src/pages/login";
 import Image from "next/image";
 import torShape from "public/images/tor-shape.svg";
 import cn from "classnames";
 
-const canDevLogin = Boolean(process.env.NEXT_PUBLIC_DEV_LOGIN_KEY);
-
-export function Login({ loginUrl }: ILoginPageProps) {
+export function Login({ error }: ILoginPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState(false);
-  const { asPath } = useRouter();
-
-  const id_token = useMemo(() => {
-    const params = new URLSearchParams(asPath.split("#")[1]);
-    return params.get("id_token");
-  }, [asPath]);
-
-  const doLogin = useCallback(
-    async (body: LoginRequestBody) => {
-      setLoading(true);
-      // NOTE: After this fetch user will be redirected to /register or to dashboard.
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      const payload = (await response.json()) as LoginRequestResponse;
-
-      // Invalid login response, show an error page
-      if (!response.ok && "code" in payload) {
-        return router.push(
-          `${urls.login()}?error=${payload.code ?? "login_failed"}`
-        );
-      }
-
-      // User has a signup token, redirect to signup page
-      if ("new_user" in payload && payload.new_user && payload.signup_token) {
-        localStorage.setItem("signup_token", payload.signup_token);
-        return router.push(
-          `${urls.signup()}${
-            payload.email ? `?email=${encodeURIComponent(payload.email)}` : ""
-          }`
-        );
-      }
-
-      // All other cases, redirect to the returnTo url
-      if ("new_user" in payload && !payload.new_user && payload.returnTo) {
-        return router.push(payload.returnTo);
-      }
-
-      router.push(urls.app());
-    },
-    [router]
-  );
 
   // Route user to the correct destination based on the query params
   useEffect(() => {
@@ -74,15 +24,14 @@ export function Login({ loginUrl }: ILoginPageProps) {
       if (router.query.error === "login_failed") {
         setLoginError(true);
       }
-
-      // Handle login and signup cases
-      if (!router.query.error && id_token) {
-        doLogin({
-          sign_in_with_world_id_token: id_token as string,
-        });
-      }
     }
-  }, [router, doLogin, id_token]);
+  }, [router]);
+
+  useEffect(() => {
+    if (error) {
+      setLoginError(true);
+    }
+  }, [error]);
 
   return (
     <Auth pageTitle="Login" pageUrl="login">
@@ -99,21 +48,7 @@ export function Login({ loginUrl }: ILoginPageProps) {
           </div>
 
           <div className="grid grid-flow-col items-center gap-6">
-            {canDevLogin && (
-              <Button
-                variant="danger"
-                className="py-3 px-6"
-                onClick={() => {
-                  doLogin({
-                    dev_login: process.env.NEXT_PUBLIC_DEV_LOGIN_KEY,
-                  });
-                }}
-              >
-                Dev Login
-              </Button>
-            )}
-
-            <Link href={loginUrl ?? ""} className="contents">
+            <Link href="/api/auth/login" className="contents">
               <Button
                 className="flex gap-x-1 justify-between items-center px-6 py-2.5 text-16 text-gray-500 font-semibold"
                 variant="secondary"
@@ -172,8 +107,8 @@ export function Login({ loginUrl }: ILoginPageProps) {
                   Build for the People of the World
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-12 w-full">
-                  <a
+                <div className="grid grid-cols-2 gap-x-4 mt-12">
+                  <Link
                     href="https://docs.worldcoin.org"
                     className="contents"
                     target="_blank"
@@ -185,10 +120,13 @@ export function Login({ loginUrl }: ILoginPageProps) {
                     >
                       Explore Docs <Icon name="book" className="w-6 h-6" />
                     </Button>
-                  </a>
+                  </Link>
 
-                  <Link href={loginUrl ?? ""} className="contents">
-                    <Button className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold">
+                  <Link href="/api/auth/login" className="contents">
+                    <Button
+                      type="button"
+                      className="flex flex-1 justify-between px-6 py-4 text-16 font-semibold"
+                    >
                       Log in or Sign up
                       <Icon name="arrow-right" className="w-6 h-6" />
                     </Button>

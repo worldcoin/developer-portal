@@ -100,8 +100,8 @@ export function Actions(): JSX.Element | null {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl shadow-card">
-                <div className="flex items-center gap-x-8">
+              <div className="py-4 rounded-xl shadow-card min-w-0">
+                <div className="px-4 flex items-center gap-x-8">
                   <label className="grow flex items-center gap-x-4 h-12 px-4 border border-ebecef rounded-lg">
                     <Icon name="search" className="w-6 h-6 text-d6d9dd" />
                     <input
@@ -117,7 +117,7 @@ export function Actions(): JSX.Element | null {
                     Create New Action
                   </Button>
                 </div>
-                <div>
+                <div className="px-4 overflow-x-auto">
                   <table className="w-full max-w-full">
                     <thead>
                       <tr>
@@ -131,7 +131,7 @@ export function Actions(): JSX.Element | null {
                           Verifications per person
                         </th>
                         <th className="pt-8 pb-4 whitespace-nowrap text-12 text-center border-b border-f3f4f5">
-                          Unique persons
+                          Uses
                         </th>
                         <th className="pt-8 pb-4 whitespace-nowrap border-b border-f3f4f5" />
                       </tr>

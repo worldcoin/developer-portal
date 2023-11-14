@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo } from "react";
 import { Auth } from "src/components/Auth";
 import { Checkbox } from "src/components/Auth/Checkbox";
-import { FieldText } from "src/components/Auth/FieldText";
 import { Illustration } from "src/components/Auth/Illustration";
 import { Typography } from "src/components/Auth/Typography";
 import { urls } from "src/lib/urls";
@@ -14,9 +13,13 @@ import { FieldInput } from "../actions/common/Form/FieldInput";
 import { Button } from "src/components/Button";
 import { sendAcceptance } from "src/lib/ironclad-activity-api";
 import { toast } from "react-toastify";
+import { SignupBody } from "src/api/signup";
+import { useToggle } from "src/hooks/useToggle";
+import { DialogHeader } from "src/components/DialogHeader";
+import { Dialog } from "src/components/Dialog";
+import { Link } from "src/components/Link";
 
 const schema = yup.object({
-  email: yup.string().email(),
   teamName: yup.string().required("This field is required"),
   terms: yup
     .boolean()
@@ -26,46 +29,27 @@ const schema = yup.object({
   updates: yup.boolean(),
 });
 
-type SignupFormValues = yup.Asserts<typeof schema>;
+type SignUpFormValues = yup.Asserts<typeof schema>;
 
-export function Signup() {
+export function SignUp(props: { hasAuth0User: boolean }) {
   const router = useRouter();
+  const deleteDialog = useToggle(false);
 
   const {
     register,
-    formState: { errors, dirtyFields, isSubmitting, touchedFields },
+    formState: { errors, dirtyFields, isSubmitting },
     handleSubmit,
     control,
-    reset,
-  } = useForm<SignupFormValues>({
+  } = useForm<SignUpFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
   });
 
-  useEffect(() => {
-    if (router.isReady) {
-      const email = router.query.email;
-
-      if (!email) {
-        return;
-      }
-
-      if (typeof email === "string") {
-        reset({ email });
-      }
-
-      if (Array.isArray(email)) {
-        reset({ email: email[0] });
-      }
-    }
-  }, [reset, router.isReady, router.query.email]);
-
   const submit = useCallback(
-    async (values: SignupFormValues) => {
-      const signup_token = localStorage.getItem("signup_token");
+    async (values: SignUpFormValues) => {
       const ironCladUserId = crypto.randomUUID();
 
-      // NOTE: send acceptance
+      // NOTE: Record ToS acceptance
       try {
         await sendAcceptance(ironCladUserId);
       } catch (err) {
@@ -74,8 +58,6 @@ export function Signup() {
         return;
       }
 
-      // NOTE: save form
-      // FIXME: move to axios
       const response = await fetch("/api/signup", {
         method: "POST",
 
@@ -84,17 +66,15 @@ export function Signup() {
         },
 
         body: JSON.stringify({
-          email: values.email,
           team_name: values.teamName,
-          signup_token,
           ironclad_id: ironCladUserId,
-        }),
+        } as SignupBody),
       });
 
       if (response.ok) {
         const { returnTo } = await response.json();
         localStorage.removeItem("signup_token");
-        router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
+        router.push(returnTo);
       }
       // FIXME: Handle errors
     },
@@ -103,16 +83,11 @@ export function Signup() {
 
   useEffect(() => {
     const signup_token = localStorage.getItem("signup_token");
-    if (!signup_token) {
+
+    if (!signup_token && !props.hasAuth0User) {
       router.push(urls.login());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to run this only onces
-  }, []);
-
-  const email = useWatch({
-    control,
-    name: "email",
-  });
+  }, [props.hasAuth0User, router]);
 
   const terms = useWatch({
     control,
@@ -120,17 +95,8 @@ export function Signup() {
   });
 
   const isFormValid = useMemo(() => {
-    return (
-      !errors.email &&
-      !errors.teamName &&
-      dirtyFields.teamName &&
-      terms === true
-    );
-  }, [dirtyFields.teamName, errors.email, errors.teamName, terms]);
-
-  const shouldShowEmailNote = useMemo(() => {
-    return !email && (touchedFields["email"] || dirtyFields["teamName"]);
-  }, [dirtyFields, email, touchedFields]);
+    return !errors.teamName && dirtyFields.teamName && terms === true;
+  }, [dirtyFields.teamName, errors.teamName, terms]);
 
   return (
     <Auth pageTitle="Sign Up" pageUrl="signup">
@@ -144,45 +110,8 @@ export function Signup() {
           <Typography variant="title">Nice to meet you</Typography>
 
           <Typography variant="subtitle">
-            Just a few details to create your account
+            Set up your first team here.
           </Typography>
-        </div>
-
-        <div className="grid w-full gap-y-3">
-          {shouldShowEmailNote && (
-            <div className="grid grid-cols-auto/1fr gap-x-3 items-center bg-accents-info-700/10 rounded-xl py-2.5 px-4">
-              <div className="w-1.5 h-1.5 bg-accents-info-700 rounded-full" />
-
-              <span className="text-accents-info-700 text-12">
-                To enable account recovery, add your email address
-              </span>
-            </div>
-          )}
-
-          <div className="grid gap-y-2">
-            <FieldLabel className="font-rubik">Email</FieldLabel>
-
-            <div className="relative">
-              <FieldInput
-                register={register("email")}
-                className="w-full font-rubik"
-                placeholder="enter email address"
-                type="email"
-                disabled={isSubmitting}
-                errors={errors.email}
-              />
-            </div>
-          </div>
-
-          <FieldText>
-            {errors.email?.message ? (
-              <span className="flex items-center text-12 text-danger">
-                {errors.email.message}
-              </span>
-            ) : (
-              "Only for transactional notifications, unless you want to receive updates"
-            )}
-          </FieldText>
         </div>
 
         <div className="flex flex-col w-full">
@@ -234,7 +163,43 @@ export function Signup() {
         >
           Create my account
         </Button>
+
+        <Button
+          type="button"
+          variant="plain"
+          className="h-[64px] w-full"
+          onClick={deleteDialog.toggleOn}
+        >
+          Delete my account
+        </Button>
       </form>
+
+      <Dialog open={deleteDialog.isOn} onClose={deleteDialog.toggleOff}>
+        <DialogHeader
+          title="Are you sure you want to delete your account?"
+          className="text-center"
+        />
+
+        <div className="grid grid-cols-2 gap-x-4">
+          <Button type="button" className="w-full h-[64px]" variant="danger">
+            <Link
+              href="/api/auth/delete-account"
+              className="w-full flex justify-center items-center h-full"
+            >
+              Delete
+            </Link>
+          </Button>
+
+          <Button
+            onClick={deleteDialog.toggleOff}
+            type="button"
+            className="w-full h-[64px]"
+            variant="primary"
+          >
+            Cancel
+          </Button>
+        </div>
+      </Dialog>
     </Auth>
   );
 }

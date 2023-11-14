@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -36,6 +41,7 @@
     "JWTs",
     "keccak",
     "merkle",
+    "nextjs",
     "nullifer",
     "OIDC",
     "partialize",

@@ -1,8 +1,7 @@
 import { GetServerSideProps } from "next";
-import { requireAuthentication } from "src/lib/require-authentication";
 import { App } from "src/scenes/app";
-import { withUserId } from "@/hocs/withUserId";
+import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 
-export default withUserId(App);
+export default App;
 
-export const getServerSideProps: GetServerSideProps = requireAuthentication();
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired();

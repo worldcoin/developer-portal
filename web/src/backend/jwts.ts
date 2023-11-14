@@ -89,10 +89,12 @@ export const getUserJWTPayload = (user_id: string, team_id: string) => ({
  * @param team_id
  * @returns
  */
-export const generateUserJWT = async (user_id: string, team_id: string) => {
+export const generateUserJWT = async (
+  user_id: string,
+  team_id: string,
+  expiration: number = dayjs().add(7, "day").unix()
+) => {
   const payload = getUserJWTPayload(user_id, team_id);
-
-  const expiration = dayjs().add(7, "day").unix();
   const token = await _generateJWT(payload, expiration);
 
   return { token, expiration };
