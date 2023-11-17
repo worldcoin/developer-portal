@@ -53,12 +53,18 @@ export const handleSignup = withApiAuthRequired(
     const client = await getAPIServiceGraphqlClient();
 
     const data = await getSdk(client).Signup({
-      name: auth0User.name,
-      auth0Id: auth0User.sub,
       team_name,
-      ironclad_id,
-      nullifier_hash: nullifier_hash ?? "",
-      email: (auth0User.email_verified && auth0User.sub) || "",
+
+      data: {
+        name: auth0User.name,
+        auth0Id: auth0User.sub,
+        ironclad_id,
+        ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
+
+        ...(auth0User.email_verified && auth0User.email
+          ? { email: auth0User.email }
+          : {}),
+      },
     });
 
     const team = data.insert_team_one;
