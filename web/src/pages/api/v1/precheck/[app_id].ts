@@ -112,7 +112,13 @@ const createActionQuery = gql`
 
 const schema = yup.object().shape({
   action: yup.string().strict().nullable().default(""),
-  nullifier_hash: yup.string().strict().nullable().default(""),
+
+  nullifier_hash: yup
+    .string()
+    .nullable()
+    .default("")
+    .transform((value) => (value === null ? "" : value)),
+
   external_nullifier: yup
     .string()
     .strict()
@@ -147,6 +153,7 @@ export default async function handlePrecheck(
     value: req.body,
   });
 
+
   if (!isValid) {
     return handleError(req, res);
   }
@@ -163,6 +170,7 @@ export default async function handlePrecheck(
   // ANCHOR: Fetch app from Hasura
   const appQueryResult = await client.query<AppPrecheckQueryInterface>({
     query: appPrecheckQuery,
+
     variables: {
       app_id,
       nullifier_hash,
