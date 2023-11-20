@@ -58,7 +58,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - email
         - name
       filter:
         id:
