@@ -153,7 +153,6 @@ export default async function handlePrecheck(
     value: req.body,
   });
 
-
   if (!isValid) {
     return handleError(req, res);
   }

@@ -5,6 +5,7 @@ import { urls } from "src/lib/urls";
 import { NoApps } from "src/components/NoApps";
 import { PageInfo } from "@/components/PageInfo";
 import { getSession, withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { LoginErrorCode } from "@/lib/types";
 
 export default App;
 
@@ -22,7 +23,7 @@ function App() {
   );
 }
 
-const query = gql`
+const appsQuery = gql`
   query Apps($id: String!) {
     app(where: { team: { users: { id: { _eq: $id } } } }) {
       id
@@ -30,14 +31,15 @@ const query = gql`
   }
 `;
 
-export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
-  getServerSideProps: async ({ req, res }) => {
+export const getServerSideProps = withPageAuthRequired({
+  getServerSideProps: async ({ req, res, query }) => {
     const session = await getSession(req, res);
     const client = await getAPIServiceClient();
     const user_id = session?.user.hasura.id;
+    const login_error = query.login_error as LoginErrorCode;
 
     const apps = await client.query<{ app: Array<{ id: string }> }>({
-      query,
+      query: appsQuery,
       variables: {
         id: user_id,
       },
@@ -47,7 +49,7 @@ export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
       return {
         redirect: {
           permanent: false,
-          destination: urls.app(apps.data.app[0].id),
+          destination: urls.app(apps.data.app[0].id, { login_error }),
         },
       };
     }

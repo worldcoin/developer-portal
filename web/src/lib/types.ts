@@ -115,3 +115,9 @@ export type Auth0WorldcoinUser = {
 };
 
 export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser;
+
+export enum LoginErrorCode {
+  OneTeamPerPerson = "one-team-per-person",
+  Generic = "generic",
+  EmailNotVerified = "email-not-verified",
+}

@@ -12,20 +12,23 @@ export type GetInviteByIdQuery = {
   __typename?: "query_root";
   invite?: {
     __typename?: "invite";
-    team_id: string;
     id: string;
     expires_at: any;
     email: string;
+    team: { __typename?: "team"; id: string; name?: string | null };
   } | null;
 };
 
 export const GetInviteByIdDocument = gql`
   query GetInviteById($id: String!) {
     invite: invite_by_pk(id: $id) {
-      team_id
       id
       expires_at
       email
+      team {
+        id
+        name
+      }
     }
   }
 `;
