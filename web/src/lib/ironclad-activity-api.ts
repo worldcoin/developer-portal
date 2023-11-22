@@ -1,5 +1,3 @@
-import getConfig from "next/config";
-
 type LastSignedResponse = Record<string, boolean>;
 
 type GroupDataResponse = {
@@ -15,14 +13,8 @@ export class IroncladActivityApi {
   private _groupData: GroupDataResponse | null;
 
   constructor() {
-    const { publicRuntimeConfig } = getConfig();
-
-    this._psAccessId =
-      publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_ACCESS_ID as string;
-
-    this._psGroupKey =
-      publicRuntimeConfig.NEXT_PUBLIC_IRONCLAD_GROUP_KEY as string;
-
+    this._psAccessId = process.env.IRONCLAD_ACCESS_ID as string;
+    this._psGroupKey = process.env.IRONCLAD_GROUP_KEY as string;
     this._baseUrl = "https://pactsafe.io";
     this._isLatestSigned = null;
     this._groupData = null;
@@ -30,11 +22,11 @@ export class IroncladActivityApi {
 
   private _validateVariables() {
     if (!this._psAccessId) {
-      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_ACCESS_ID env");
+      throw new Error("You should set IRONCLAD_ACCESS_ID env");
     }
 
     if (!this._psGroupKey) {
-      throw new Error("You should set NEXT_PUBLIC_IRONCLAD_GROUP_KEY env");
+      throw new Error("You should set IRONCLAD_GROUP_KEY env");
     }
   }
 
