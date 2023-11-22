@@ -4,26 +4,46 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserByNullifierQueryVariables = Types.Exact<{
-  world_id_nullifier: Types.Scalars["String"];
+export type FetchEmailUserQueryVariables = Types.Exact<{
+  auth0Id?: Types.InputMaybe<Types.Scalars["String"]>;
+  email?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
-export type FetchUserByNullifierQuery = {
+export type FetchEmailUserQuery = {
   __typename?: "query_root";
-  user: Array<{
+  userByAuth0Id: Array<{
     __typename?: "user";
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    email?: string | null;
+    name: string;
+  }>;
+  userByEmail: Array<{
+    __typename?: "user";
+    id: string;
+    auth0Id?: string | null;
+    team_id: string;
+    email?: string | null;
+    name: string;
   }>;
 };
 
-export const FetchUserByNullifierDocument = gql`
-  query FetchUserByNullifier($world_id_nullifier: String!) {
-    user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
+export const FetchEmailUserDocument = gql`
+  query FetchEmailUser($auth0Id: String, $email: String) {
+    userByAuth0Id: user(where: { auth0Id: { _eq: $auth0Id } }) {
       id
       auth0Id
       team_id
+      email
+      name
+    }
+    userByEmail: user(where: { email: { _eq: $email } }) {
+      id
+      auth0Id
+      team_id
+      email
+      name
     }
   }
 `;
@@ -45,18 +65,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUserByNullifier(
-      variables: FetchUserByNullifierQueryVariables,
+    FetchEmailUser(
+      variables?: FetchEmailUserQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserByNullifierQuery> {
+    ): Promise<FetchEmailUserQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserByNullifierQuery>(
-            FetchUserByNullifierDocument,
+          client.request<FetchEmailUserQuery>(
+            FetchEmailUserDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders }
           ),
-        "FetchUserByNullifier",
+        "FetchEmailUser",
         "query"
       );
     },

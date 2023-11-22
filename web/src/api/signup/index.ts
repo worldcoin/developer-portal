@@ -31,7 +31,7 @@ export type SignupBody = yup.InferType<typeof schema>;
 type User = {
   id?: string;
   ironclad_id?: string;
-  world_id_nullifier?: string;
+  world_id_nullifier?: string | null;
   team_id?: string;
 };
 
@@ -110,11 +110,18 @@ export const handleSignup = withApiAuthRequired(
       };
     } else {
       const signupData = await getSignupSdk(client).Signup({
-        name: auth0User.name,
-        auth0Id: auth0User.sub,
         team_name,
-        ironclad_id: ironCladUserId,
-        nullifier_hash: nullifier_hash ?? "",
+
+        data: {
+          name: auth0User.name,
+          auth0Id: auth0User.sub,
+          ironclad_id: ironCladUserId,
+          ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
+
+          ...(auth0User.email_verified && auth0User.email
+            ? { email: auth0User.email }
+            : {}),
+        },
       });
 
       user = {

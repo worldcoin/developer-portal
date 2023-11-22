@@ -5037,7 +5037,7 @@ export type User = {
   team: Team;
   team_id: Scalars["String"];
   updated_at: Scalars["timestamptz"];
-  world_id_nullifier: Scalars["String"];
+  world_id_nullifier?: Maybe<Scalars["String"]>;
 };
 
 /** aggregated selection of "user" */

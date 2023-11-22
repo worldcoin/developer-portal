@@ -5,11 +5,8 @@ import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type SignupMutationVariables = Types.Exact<{
-  nullifier_hash: Types.Scalars["String"];
   team_name: Types.Scalars["String"];
-  ironclad_id: Types.Scalars["String"];
-  auth0Id: Types.Scalars["String"];
-  name?: Types.InputMaybe<Types.Scalars["String"]>;
+  data: Array<Types.User_Insert_Input> | Types.User_Insert_Input;
 }>;
 
 export type SignupMutation = {
@@ -22,33 +19,15 @@ export type SignupMutation = {
       __typename?: "user";
       id: string;
       ironclad_id: string;
-      world_id_nullifier: string;
+      world_id_nullifier?: string | null;
       auth0Id?: string | null;
     }>;
   } | null;
 };
 
 export const SignupDocument = gql`
-  mutation Signup(
-    $nullifier_hash: String!
-    $team_name: String!
-    $ironclad_id: String!
-    $auth0Id: String!
-    $name: String = ""
-  ) {
-    insert_team_one(
-      object: {
-        name: $team_name
-        users: {
-          data: {
-            ironclad_id: $ironclad_id
-            world_id_nullifier: $nullifier_hash
-            auth0Id: $auth0Id
-            name: $name
-          }
-        }
-      }
-    ) {
+  mutation Signup($team_name: String!, $data: [user_insert_input!]!) {
+    insert_team_one(object: { name: $team_name, users: { data: $data } }) {
       id
       name
       users {

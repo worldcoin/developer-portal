@@ -51,12 +51,13 @@ update_permissions:
     permission:
       columns:
         - auth0Id
+        - email
+        - name
       filter: {}
       check: null
   - role: user
     permission:
       columns:
-        - email
         - name
       filter:
         id:

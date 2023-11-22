@@ -146,6 +146,61 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
   });
 
+  test("can fetch precheck response with external_nullifier=null", async () => {
+    // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: { ...exampleValidRequestPayload, external_nullifier: null },
+    });
+
+    const mockedResponse = { ...appPayload };
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
+
+    requestReturnFn.mockResolvedValue({
+      data: {
+        app: [mockedResponse],
+      },
+    });
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      engine: "cloud",
+      sign_in_with_world_id: false,
+      action: {
+        max_verifications: 1,
+        external_nullifier:
+          "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+      },
+    });
+  });
+
+  test("requires external_nullifier when action is not provided", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: {
+        ...exampleValidRequestPayload,
+        external_nullifier: null,
+        action: null,
+      },
+    });
+
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      attribute: "external_nullifier",
+      detail: "This attribute is required when action is not provided.",
+    });
+  });
+
   test("precheck with nullifier and below max number of verifications", async () => {
     const { req, res } = createMocks({
       method: "POST",

@@ -17,6 +17,7 @@ import { DialogHeader } from "src/components/DialogHeader";
 import { Dialog } from "src/components/Dialog";
 import { Link } from "src/components/Link";
 import { SignupSSRProps } from "@/pages/signup";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   teamName: yup.string().required("This field is required"),
@@ -35,6 +36,7 @@ type SignupProps = SignupSSRProps & {};
 export function Signup(props: SignupProps) {
   const router = useRouter();
   const deleteDialog = useToggle(false);
+  const { checkSession } = useUser();
 
   const {
     register,
@@ -74,11 +76,12 @@ export function Signup(props: SignupProps) {
 
         return toast.error("Something went wrong. Please try again later.");
       }
+      checkSession();
 
       const { returnTo } = await response.json();
       router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
     },
-    [props.invite?.id, router]
+    [checkSession, props.invite?.id, router]
   );
 
   const terms = useWatch({
