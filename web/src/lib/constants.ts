@@ -24,7 +24,7 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.OneTeamPerPerson]:
-    "You have not been added to the team that invited you. Only one team per person is allowed at the moment.",
+    "You already have a team. You can only belong to a team at the moment.",
 
   [LoginErrorCode.Generic]:
     "There was a problem with your login. Please try again.",
