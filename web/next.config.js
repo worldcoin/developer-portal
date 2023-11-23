@@ -27,6 +27,8 @@ const nextConfig = {
               "https://app.posthog.com",
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
+              "https://bridge.worldcoin.org",
+              "https://wallet-bridge.stage-crypto.worldcoin.org",
             ],
             "script-src": [
               "'self'",

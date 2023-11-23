@@ -1,4 +1,9 @@
-import { CredentialType, internal as IDKitInternal } from "@worldcoin/idkit";
+import {
+  useWorldBridgeStore,
+  CredentialType,
+  VerificationState,
+} from "@worldcoin/idkit-core";
+
 import { memo, useEffect } from "react";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 
@@ -27,39 +32,53 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
     setWCReset,
     setProofResult,
   } = useKioskStore(getKioskStoreParams);
+
   const {
+    connectorURI,
     result,
     errorCode,
     verificationState: idKitVerificationState,
-    qrData,
+    createClient,
+    pollForUpdates,
+    bridge_url,
     reset,
-  } = IDKitInternal.useAppConnection(
-    props.app_id,
-    props.action,
-    undefined,
-    [CredentialType.Orb, CredentialType.Phone],
-    props.action_description
-  );
+  } = useWorldBridgeStore();
+
+  useEffect(() => {
+    createClient(
+      props.app_id,
+      props.action,
+      undefined,
+      bridge_url,
+      [CredentialType.Orb, CredentialType.Device],
+      props.action_description
+    )
+      .then((data) => {
+        pollForUpdates();
+      })
+      .catch((error) => console.log({ error }));
+  }, [bridge_url, createClient, pollForUpdates, props.action, props.action_description, props.app_id]);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
     if (idKitVerificationState === verificationState) return;
 
     switch (idKitVerificationState) {
-      case IDKitInternal.VerificationState.AwaitingConnection:
+      case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
         break;
-      case IDKitInternal.VerificationState.AwaitingVerification:
+      case VerificationState.WaitingForApp:
         setScreen(KioskScreen.Connected);
         break;
-      case IDKitInternal.VerificationState.Failed:
+      case VerificationState.Failed:
         switch (errorCode) {
           case "connection_failed":
             setScreen(KioskScreen.ConnectionError);
             break;
-          case "already_signed":
-            setScreen(KioskScreen.AlreadyVerified);
-            break;
+          // REVIEW: We don't have this type in new version of VerificationState
+          // case "already_signed":
+          //   setScreen(KioskScreen.AlreadyVerified);
+          //   break;
           case "verification_rejected":
             setScreen(KioskScreen.VerificationRejected);
             break;
@@ -73,10 +92,10 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
   }, [verificationState, idKitVerificationState, setScreen, errorCode, setVerificationState]);
 
   useEffect(() => {
-    if (qrData) {
-      setQrData(qrData);
+    if (connectorURI) {
+      setQrData(connectorURI);
     }
-  }, [qrData, setQrData]);
+  }, [connectorURI, setQrData]);
 
   useEffect(() => {
     setWCReset(() => {

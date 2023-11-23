@@ -1,4 +1,4 @@
-import { ISuccessResult } from "@worldcoin/idkit";
+import { ISuccessResult } from "@worldcoin/idkit-core";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect } from "react";
