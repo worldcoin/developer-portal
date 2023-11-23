@@ -52,11 +52,11 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       bridge_url,
       [CredentialType.Orb, CredentialType.Device],
       props.action_description
-    )
-      .then((data) => {
-        pollForUpdates();
-      })
-      .catch((error) => console.log({ error }));
+    ).catch((error) => {
+      if (process.env.NODE_ENV === "development") {
+        console.error(error);
+      }
+    });
   }, [bridge_url, createClient, pollForUpdates, props.action, props.action_description, props.app_id]);
 
   // Change the shown screen based on current verificationState and errorCode
