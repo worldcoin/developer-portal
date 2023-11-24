@@ -45,6 +45,10 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
   } = useWorldBridgeStore();
 
   useEffect(() => {
+    if (idKitVerificationState !== VerificationState.PreparingClient) {
+      return;
+    }
+
     createClient(
       props.app_id,
       props.action,
@@ -57,7 +61,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
         console.error(error);
       }
     });
-  }, [bridge_url, createClient, pollForUpdates, props.action, props.action_description, props.app_id]);
+  }, [bridge_url, createClient, idKitVerificationState, pollForUpdates, props.action, props.action_description, props.app_id]);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
