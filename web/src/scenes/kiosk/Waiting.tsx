@@ -1,5 +1,6 @@
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import cn from "classnames";
+// @ts-ignore - temp fix, something with the idkit types
+import { QRCode } from "@worldcoin/idkit/internal";
 import { memo, useCallback, useState } from "react";
 import { Spinner } from "src/components/Spinner";
 import { IKioskStore, useKioskStore } from "src/stores/kioskStore";
@@ -39,7 +40,7 @@ export const Waiting = memo(function Waiting() {
         )}
       >
         <div className="z-10">
-          {qrData && <IDKitInternal.QRCode data={qrData} size={280} />}
+          {qrData && <QRCode data={qrData} size={320} />}
         </div>
       </div>
       <button
