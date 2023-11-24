@@ -48,7 +48,7 @@ export const urls = {
 
   logout: (params?: LogoutParams): string => {
     const searchParams = new URLSearchParams(params);
-    return `/logout?${searchParams.toString()}`;
+    return `/api/auth/logout?${searchParams.toString()}`;
   },
 
   signup: (params?: SignupParams): string => {
