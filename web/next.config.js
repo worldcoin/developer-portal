@@ -23,7 +23,6 @@ const nextConfig = {
             "style-src": "'unsafe-inline'",
             "connect-src": [
               "'self'",
-              "wss://relay.walletconnect.com",
               "https://app.posthog.com",
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
