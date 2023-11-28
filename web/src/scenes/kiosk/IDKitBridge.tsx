@@ -4,7 +4,7 @@ import {
   VerificationState,
 } from "@worldcoin/idkit-core";
 
-import { memo, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 
 interface IIDKitBridgeProps {
@@ -24,6 +24,7 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 });
 
 export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
+  const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
   const {
     setScreen,
     verificationState,
@@ -56,12 +57,29 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       bridge_url,
       [CredentialType.Orb, CredentialType.Device],
       props.action_description
-    ).catch((error) => {
-      if (process.env.NODE_ENV === "development") {
-        console.error(error);
-      }
-    });
+    )
+      .then(() => {
+        const intervalId = setInterval(() => {
+          pollForUpdates();
+        }, 2000);
+
+        setIntervalId(intervalId);
+      })
+      .catch((error) => {
+        if (process.env.NODE_ENV === "development") {
+          console.error(error);
+        }
+      });
   }, [bridge_url, createClient, idKitVerificationState, pollForUpdates, props.action, props.action_description, props.app_id]);
+
+  useEffect(() => {
+    if (
+      idKitVerificationState === VerificationState.WaitingForApp &&
+      intervalId
+    ) {
+      clearInterval(intervalId);
+    }
+  }, [idKitVerificationState, intervalId]);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
