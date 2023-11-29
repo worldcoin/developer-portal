@@ -1,11 +1,7 @@
 import dayjs from "dayjs";
 import { create } from "zustand";
 import { ActionKioskType } from "src/lib/types";
-import { useWorldBridgeStore, ISuccessResult } from "@worldcoin/idkit-core";
-
-type VerificationState = ReturnType<
-  (typeof useWorldBridgeStore)["getState"]
->["verificationState"];
+import { ISuccessResult } from "@worldcoin/idkit-core";
 
 export enum KioskScreen {
   Waiting,
@@ -27,7 +23,6 @@ interface ISuccessParams {
 export type IKioskStore = {
   kioskAction: ActionKioskType | null;
   screen: KioskScreen;
-  verificationState: VerificationState | null;
   qrData: string | null;
   resetWC: (() => void) | null; // Resets the WalletConnect session
   successParams: ISuccessParams | null; // Success result from /verify endpoint
@@ -36,7 +31,6 @@ export type IKioskStore = {
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: string) => void;
   setKioskAction: (kioskAction: ActionKioskType) => void;
-  setVerificationState: (verificationState: VerificationState) => void;
   setWCReset: (fn: () => void) => void;
   setSuccessParams: (successParams: ISuccessParams) => void;
   setProofResult: (proofResult: ISuccessResult) => void;
@@ -45,7 +39,6 @@ export type IKioskStore = {
 export const useKioskStore = create<IKioskStore>((set, get) => ({
   kioskAction: null,
   screen: KioskScreen.Waiting,
-  verificationState: null,
   qrData: null,
   resetWC: null,
   successParams: null,
@@ -61,8 +54,6 @@ export const useKioskStore = create<IKioskStore>((set, get) => ({
   },
   setQrData: (qrData) => set({ qrData }),
   setKioskAction: (kioskAction: ActionKioskType) => set({ kioskAction }),
-  setVerificationState: (verificationState: VerificationState) =>
-    set({ verificationState }),
   setWCReset: (fn: () => void) => set({ resetWC: fn }),
   setSuccessParams: (successParams: ISuccessParams) => set({ successParams }),
   setProofResult: (proofResult: ISuccessResult) => set({ proofResult }),

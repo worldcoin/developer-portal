@@ -15,8 +15,6 @@ interface IIDKitBridgeProps {
 
 const getKioskStoreParams = (store: IKioskStore) => ({
   setScreen: store.setScreen,
-  setVerificationState: store.setVerificationState,
-  verificationState: store.verificationState,
   screen: store.screen,
   setQrData: store.setQrData,
   setWCReset: store.setWCReset,
@@ -25,14 +23,8 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 
 export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
   const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
-  const {
-    setScreen,
-    verificationState,
-    setVerificationState,
-    setQrData,
-    setWCReset,
-    setProofResult,
-  } = useKioskStore(getKioskStoreParams);
+  const { setScreen, setQrData, setWCReset, setProofResult } =
+    useKioskStore(getKioskStoreParams);
 
   const {
     connectorURI,
@@ -63,7 +55,11 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
     )
       .then(() => {
         const intervalId = setInterval(() => {
-          pollForUpdates();
+          try {
+            pollForUpdates();
+          } catch (error) {
+            console.error(error);
+          }
         }, 2000);
 
         setIntervalId(intervalId);
@@ -75,46 +71,34 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       });
   }, [bridge_url, createClient, idKitVerificationState, pollForUpdates, props.action, props.action_description, props.app_id]);
 
-  useEffect(() => {
-    if (
-      idKitVerificationState === VerificationState.WaitingForApp &&
-      intervalId
-    ) {
-      clearInterval(intervalId);
-    }
-  }, [idKitVerificationState, intervalId]);
-
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    if (idKitVerificationState === verificationState) return;
-
     switch (idKitVerificationState) {
       case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
         break;
+
       case VerificationState.WaitingForApp:
         setScreen(KioskScreen.Connected);
         break;
-      case VerificationState.Failed:
-        switch (errorCode) {
-          case "connection_failed":
-            setScreen(KioskScreen.ConnectionError);
-            break;
-          // REVIEW: We don't have this type in new version of VerificationState
-          // case "already_signed":
-          //   setScreen(KioskScreen.AlreadyVerified);
-          //   break;
-          case "verification_rejected":
-            setScreen(KioskScreen.VerificationRejected);
-            break;
-          case "unexpected_response":
-          case "generic_error":
-          default:
-            setScreen(KioskScreen.VerificationError);
+
+      case VerificationState.Confirmed:
+        if (intervalId) {
+          clearInterval(intervalId);
         }
+
+        setScreen(KioskScreen.Success);
+        break;
+
+      case VerificationState.Failed:
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+
+        setScreen(KioskScreen.VerificationError);
+        break;
     }
-    setVerificationState(idKitVerificationState);
-  }, [verificationState, idKitVerificationState, setScreen, errorCode, setVerificationState]);
+  }, [idKitVerificationState, intervalId, setScreen]);
 
   useEffect(() => {
     if (connectorURI) {

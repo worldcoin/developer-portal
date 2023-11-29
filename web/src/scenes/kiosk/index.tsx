@@ -92,6 +92,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
           confirmationCode:
             response.nullifier_hash?.slice(-5).toLocaleUpperCase() ?? "",
         });
+
         setScreen(KioskScreen.Success);
       } else {
         if (response?.code === "already_verified") {

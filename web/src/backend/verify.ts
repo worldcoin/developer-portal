@@ -1,10 +1,11 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BigNumber, ethers } from "ethers";
-import { CredentialType, IInternalError } from "src/lib/types";
+import { IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
 import { logger } from "src/lib/logger";
 import { hashToField, validateABILikeEncoding } from "@/lib/hashing";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [

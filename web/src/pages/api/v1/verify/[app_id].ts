@@ -10,7 +10,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
+import { CredentialType } from "@worldcoin/idkit-core";
 import * as yup from "yup";
 
 const schema = yup.object({
