@@ -7,7 +7,7 @@ import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
-import { internal } from "@worldcoin/idkit";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -162,7 +162,7 @@ export default async function handlePrecheck(
   const nullifier_hash = parsedParams.nullifier_hash;
   const external_nullifier =
     parsedParams.external_nullifier ??
-    internal.generateExternalNullifier(app_id, action).digest;
+    generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 

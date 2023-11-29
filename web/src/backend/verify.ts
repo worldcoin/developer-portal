@@ -1,10 +1,10 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { BigNumber, ethers } from "ethers";
 import { CredentialType, IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
 import { logger } from "src/lib/logger";
+import { hashToField, validateABILikeEncoding } from "@/lib/hashing";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
@@ -247,7 +247,7 @@ export const parseProofInputs = (params: IInputParams) => {
     };
   }
 
-  if (IDKitInternal.validateABILikeEncoding(params.signal)) {
+  if (validateABILikeEncoding(params.signal)) {
     try {
       signal_hash = (
         abi.decode(["uint256"], params.signal)[0] as BigNumber
@@ -265,9 +265,7 @@ export const parseProofInputs = (params: IInputParams) => {
       };
     }
   } else {
-    signal_hash = BigNumber.from(
-      IDKitInternal.hashToField(params.signal).hash
-    ).toHexString();
+    signal_hash = BigNumber.from(hashToField(params.signal).hash).toHexString();
   }
 
   return {

@@ -155,6 +155,9 @@ dependencies:
   use-debounce:
     specifier: ^9.0.3
     version: 9.0.4(react@18.2.0)
+  viem:
+    specifier: ^1.19.9
+    version: 1.19.9(typescript@5.3.2)
   winston:
     specifier: ^3.10.0
     version: 3.11.0
@@ -4454,7 +4457,7 @@ packages:
     engines: {node: '>=12.4'}
     dependencies:
       buffer: 6.0.3
-      viem: 1.19.8(typescript@5.3.2)
+      viem: 1.19.9(typescript@5.3.2)
       zustand: 4.4.6(@types/react@18.2.38)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
@@ -10827,8 +10830,8 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
-  /viem@1.19.8(typescript@5.3.2):
-    resolution: {integrity: sha512-AgoZcLej7u4Zw/ojDsDWfonPSoz07EirrvXVndAMG78ikHf7VnRbxkFACAFg2SgNbCXmr5+ePHpgd53dMVIZ4Q==}
+  /viem@1.19.9(typescript@5.3.2):
+    resolution: {integrity: sha512-Sf9U2x4jU0S/FALqYypcspWOGene0NZyD470oUripNhE0Ta6uOE/OgE4toTDVfRxov8qw0JFinr/wPGxYE3+HQ==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
