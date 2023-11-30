@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { CredentialType } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
@@ -11,7 +12,7 @@ import {
   rawFetchInclusionProof,
 } from "src/backend/utils";
 import { logger } from "src/lib/logger";
-import { CredentialType, Environment } from "src/lib/types";
+import { Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
 const existsQuery = gql`

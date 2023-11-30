@@ -1,7 +1,8 @@
+import { CredentialType } from "@worldcoin/idkit-core";
 import { createMocks } from "node-mocks-http";
 import { generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
-import { CredentialType } from "src/lib/types";
+
 import handleOIDCUserinfo from "src/pages/api/v1/oidc/userinfo";
 
 jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));

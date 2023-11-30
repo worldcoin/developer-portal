@@ -2,8 +2,9 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
+import { CredentialType } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
+import { AppStatusType, EngineType } from "src/lib/types";
 
 type DateTime = string;
 

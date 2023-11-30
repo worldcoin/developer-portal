@@ -46,10 +46,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       props.app_id,
       props.action,
       undefined,
-      process.env.NODE_ENV === "production"
-        ? bridge_url
-        : "https://staging-bridge.worldcoin.org",
-
+      bridge_url,
       [CredentialType.Orb, CredentialType.Device],
       props.action_description
     )

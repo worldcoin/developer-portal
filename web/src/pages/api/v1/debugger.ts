@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { runCors } from "src/backend/cors";
 import { verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 const schema = yup.object({
   app_id: yup.string().strict().required("This attribute is required."),
