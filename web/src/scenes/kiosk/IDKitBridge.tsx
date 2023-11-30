@@ -51,13 +51,15 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       props.action_description
     )
       .then(() => {
-        const intervalId = setInterval(() => {
-          try {
-            pollForUpdates();
-          } catch (error) {
-            console.error(error);
-          }
-        }, 2000);
+        const intervalId = setInterval(
+          () =>
+            pollForUpdates().catch((error) => {
+              console.error(error);
+              setIntervalId(null);
+              clearInterval(intervalId);
+            }),
+          3000
+        );
 
         setIntervalId(intervalId);
       })
