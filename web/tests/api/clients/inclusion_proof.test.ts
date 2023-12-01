@@ -5,6 +5,7 @@ import {
   minedSequencerInclusionProof,
   pendingSequencerInclusionProof,
 } from "../__mocks__/sequencer.mock";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 const apiReturnFn = jest.fn();
 const backendReturnFn = jest.fn();
@@ -42,7 +43,7 @@ describe("/api/v1/clients/inclusion_proof", () => {
     const { req, res } = createMocks({
       method: "POST",
       body: {
-        credential_type: "phone",
+        credential_type: CredentialType.Device,
         identity_commitment: "0x1234567890",
         env: "staging",
       },
@@ -64,7 +65,7 @@ describe("/api/v1/clients/inclusion_proof", () => {
     const { req, res } = createMocks({
       method: "POST",
       body: {
-        credential_type: "phone",
+        credential_type: CredentialType.Device,
         identity_commitment: "0x1234567890",
         env: "staging",
       },
@@ -89,7 +90,7 @@ describe("/api/v1/clients/inclusion_proof", () => {
     const { req, res } = createMocks({
       method: "POST",
       body: {
-        credential_type: "phone",
+        credential_type: CredentialType.Device,
         identity_commitment: "0x1234567890",
         env: "staging",
       },

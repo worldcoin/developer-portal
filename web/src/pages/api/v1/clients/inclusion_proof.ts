@@ -113,7 +113,10 @@ export default async function handleInclusionProof(
   }
 
   // Commitment not found by the sequencer
-  else if (response.status === 400 && req.body.credential_type === "phone") {
+  else if (
+    response.status === 400 &&
+    req.body.credential_type === CredentialType.Device
+  ) {
     const errorBody = await response.text();
 
     logger.info(

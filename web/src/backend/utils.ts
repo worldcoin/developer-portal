@@ -11,6 +11,7 @@ import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
 import { errorForbidden, errorResponse, errorValidation } from "./errors";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
@@ -204,7 +205,7 @@ export async function checkConsumerBackendForPhoneVerification({
     );
 
     const insertResponse = await insertIdentity({
-      credential_type: "phone",
+      credential_type: CredentialType.Device,
       identity_commitment,
       env: isStaging ? "staging" : "production",
     });

@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { CredentialType } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
@@ -51,7 +52,7 @@ export default async function handleInsert(
   }
 
   const schema = yup.object({
-    credential_type: yup.string().oneOf(["phone"]).required(), // NOTE: Only phone is supported for now
+    credential_type: yup.string().oneOf([CredentialType.Device]).required(), // NOTE: Only phone is supported for now
     identity_commitment: yup.string().required(),
     env: yup.string().oneOf(Object.values(Environment)).required(),
   });
@@ -87,7 +88,7 @@ export default async function handleInsert(
 }
 
 export const insertIdentity = async (payload: {
-  credential_type: "phone";
+  credential_type: CredentialType.Device;
   identity_commitment: string;
   env: "staging" | "production";
 }): Promise<{
