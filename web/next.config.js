@@ -27,7 +27,6 @@ const nextConfig = {
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
               "https://bridge.worldcoin.org",
-              "https://staging-bridge.worldcoin.org",
             ],
             "script-src": [
               "'self'",
