@@ -1,5 +1,4 @@
 import cn from "classnames";
-// @ts-ignore - temp fix, something with the idkit types
 import { QRCode } from "@worldcoin/idkit/internal";
 import { memo, useCallback, useState } from "react";
 import { Spinner } from "src/components/Spinner";
