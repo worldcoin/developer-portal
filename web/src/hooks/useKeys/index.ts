@@ -17,6 +17,7 @@ import {
 
 import { useDeleteKeyMutation } from "./graphql/delete-key.generated";
 import { useResetApiKeyMutation } from "./graphql/reset-key.generated";
+import { logger } from "@/lib/logger";
 
 const useKeys = () => {
   const {
@@ -25,7 +26,7 @@ const useKeys = () => {
     loading,
   } = useFetchKeysQuery({
     onError: (e) => {
-      console.error(e);
+      logger.error("Failed to fetch API keys", { error: e });
       toast.error("Failed to fetch API keys");
     },
   });
@@ -130,7 +131,7 @@ const useKeys = () => {
       },
 
       onError: (e) => {
-        console.error(e);
+        logger.error("Failed to reset API key", { error: e });
         toast.error("Failed to reset API key");
       },
     });

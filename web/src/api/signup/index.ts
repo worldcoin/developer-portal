@@ -18,6 +18,7 @@ import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
 import { urls } from "src/lib/urls";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
+import { logger } from "@/lib/logger";
 
 export type SignupResponse = { returnTo: string };
 
@@ -68,7 +69,7 @@ export const handleSignup = withApiAuthRequired(
     try {
       await ironcladActivityApi.sendAcceptance(ironCladUserId);
     } catch (error) {
-      console.error(error);
+      logger.error("Failed to send acceptance", { error });
 
       return errorResponse(
         res,

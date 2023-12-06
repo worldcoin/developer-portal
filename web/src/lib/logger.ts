@@ -11,9 +11,7 @@ const httpTransportOptions = {
   ssl: true,
 };
 
-const transports: winston.LoggerOptions["transports"] = [
-  new winston.transports.Console(),
-];
+const transports: winston.LoggerOptions["transports"] = [];
 
 const errorFormatter = winston.format((info) => {
   return {
@@ -50,7 +48,7 @@ const _logger = winston.createLogger({
   level: "info",
   exitOnError: false,
   format: winston.format.combine(
-    errorFormatter(),
+    // errorFormatter(),
     winston.format.timestamp(),
     winston.format.json()
   ),
