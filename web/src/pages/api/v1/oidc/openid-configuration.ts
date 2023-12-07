@@ -6,6 +6,7 @@ import { OIDCScopes } from "../../../../backend/oidc";
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
+ * https://openid.net/specs/openid-connect-discovery-1_0.html
  * @param req
  * @param res
  */
@@ -25,7 +26,6 @@ export default async function handleOidcConfig(
     scopes_supported: Object.values(OIDCScopes),
     id_token_signing_alg_values_supported: ["RSA"],
     userinfo_endpoint: `${OIDC_BASE_URL}/userinfo`,
-    registration_endpoint: `${OIDC_BASE_URL}/register`,
     authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
     grant_types_supported: ["authorization_code", "implicit"],
     service_documentation: "https://docs.worldcoin.org/id/sign-in",
