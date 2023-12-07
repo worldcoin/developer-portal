@@ -6,6 +6,8 @@ import { validateRequestSchema } from "src/backend/utils";
 import { getSdk as getSignupSdk } from "./graphql/signup.generated";
 import { getSdk as getInviteByIdSdk } from "@/api/signup/graphql/getInviteById.generated";
 import { getSdk as createUserAndDeleteInviteSdk } from "@/api/signup/graphql/createUserAndDeleteInvite.generated";
+import requestIp from "request-ip";
+import { parse } from "next-useragent";
 
 import {
   Session,
@@ -66,7 +68,17 @@ export const handleSignup = withApiAuthRequired(
     const ironCladUserId = crypto.randomUUID();
 
     try {
-      await ironcladActivityApi.sendAcceptance(ironCladUserId);
+      const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
+      const { os } = parse(req.headers["user-agent"] ?? "");
+      await ironcladActivityApi.sendAcceptance(ironCladUserId, {
+        addr: requestIp.getClientIp(req) ?? undefined,
+        pau: `${url.origin}/signup`,
+        pad: url.host,
+        pap: url.pathname,
+        hn: url.hostname,
+        bl: req.headers["accept-language"],
+        os,
+      });
     } catch (error) {
       console.error(error);
 
