@@ -42,14 +42,13 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       return;
     }
 
-    createClient(
-      props.app_id,
-      props.action,
-      undefined,
+    createClient({
+      app_id: props.app_id,
+      action: props.action,
       bridge_url,
-      [CredentialType.Orb, CredentialType.Device],
-      props.action_description
-    )
+      credential_types: [CredentialType.Orb, CredentialType.Device],
+      action_description: props.action_description,
+    })
       .then(() => {
         const intervalId = setInterval(
           () =>
