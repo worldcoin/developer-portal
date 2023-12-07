@@ -6,10 +6,7 @@ import {
   errorValidation,
 } from "src/backend/errors";
 import { getAPIServiceClient } from "src/backend/graphql";
-import {
-  checkConsumerBackendForPhoneVerification,
-  rawFetchInclusionProof,
-} from "src/backend/utils";
+import { rawFetchInclusionProof } from "src/backend/utils";
 import { logger } from "src/lib/logger";
 import { CredentialType, Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
@@ -39,6 +36,7 @@ const EXPECTED_ERRORS: Record<string, ISimplifiedError> = {
 };
 
 /**
+ * NOTE: DEPRECATED, will be removed soon
  * Checks if the given identity commitment is in the revocation table, and if false,
  * queries an inclusion proof from the relevant signup sequencer
  * @param req
@@ -116,26 +114,9 @@ export default async function handleInclusionProof(
     const errorBody = await response.text();
 
     logger.info(
-      `Identity ${req.body.identity_commitment} is not on-chain. Checking with the consumer backend if it already has a verified phone number.`,
+      `Identity ${req.body.identity_commitment} is not on the sequencer.`,
       { req }
     );
-
-    // User may have previously verified their phone number, before the phone sequencer contract was deployed
-    // Check with the consumer backend if this is the case, and if so insert the identity commitment on-the-fly
-    const { error: onTheFlyInsertionError, insertion: onTheFlyInsertion } =
-      await checkConsumerBackendForPhoneVerification({
-        isStaging,
-        identity_commitment: req.body.identity_commitment,
-      });
-
-    if (onTheFlyInsertion) {
-      return res.status(202).json(onTheFlyInsertion);
-    }
-
-    if (onTheFlyInsertionError) {
-      const { statusCode, ...errorBody } = onTheFlyInsertionError;
-      return res.status(statusCode ?? 500).json(errorBody);
-    }
 
     // Phone was not verified, proceed as normal
     if (Object.keys(EXPECTED_ERRORS).includes(errorBody)) {

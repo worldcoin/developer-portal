@@ -4,10 +4,7 @@
 import { gql } from "@apollo/client";
 import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
-import { IInternalError, IPendingProofResponse } from "src/lib/types";
-import { getWLDAppBackendServiceClient } from "./graphql";
 import crypto from "crypto";
-import { insertIdentity } from "src/pages/api/v1/clients/insert_identity";
 import { errorForbidden, errorResponse, errorValidation } from "./errors";
 import { logger } from "src/lib/logger";
 import * as yup from "yup";
@@ -106,27 +103,6 @@ export const validateRequestSchema = async <T extends yup.Schema>({
 };
 
 /**
- * Ensures endpoint is properly authenticated using service token. For interactions between consumer backend (World App) -> Developer Portal API
- * @param req
- * @param res
- * @returns
- */
-export const protectConsumerBackendEndpoint = (
-  req: NextApiRequest,
-  res: NextApiResponse
-): boolean => {
-  if (
-    !process.env.CONSUMER_BACKEND_SECRET ||
-    req.headers.authorization?.replace("Bearer ", "") !==
-      process.env.CONSUMER_BACKEND_SECRET
-  ) {
-    errorForbidden(req, res);
-    return false;
-  }
-  return true;
-};
-
-/**
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
@@ -181,50 +157,6 @@ export const reportAPIEventToPostHog = async (
     logger.error(`Error reporting ${event} to PostHog`, { error });
   }
 };
-
-/**
- * Check the consumer backend to see if the user's phone number is verified, and if so insert it on-the-fly
- */
-export async function checkConsumerBackendForPhoneVerification({
-  isStaging,
-  identity_commitment,
-}: {
-  isStaging: boolean;
-  identity_commitment: string;
-}): Promise<{ error?: IInternalError; insertion?: IPendingProofResponse }> {
-  const client = await getWLDAppBackendServiceClient(isStaging);
-  const phoneVerifiedResponse = await client.query({
-    query: phoneVerifiedQuery,
-    variables: { identity_commitment },
-  });
-
-  if (phoneVerifiedResponse.data.user.length) {
-    logger.info(
-      `User's phone number is verified, but not on-chain. Inserting identity: ${identity_commitment}`
-    );
-
-    const insertResponse = await insertIdentity({
-      credential_type: "phone",
-      identity_commitment,
-      env: isStaging ? "staging" : "production",
-    });
-
-    if (insertResponse.status === 204) {
-      return { insertion: { proof: null, root: null, status: "new" } };
-    } else {
-      return {
-        error: {
-          statusCode: insertResponse.status,
-          ...(insertResponse.json ?? {
-            code: "server_error",
-            message: "Something went wrong. Please try again.",
-          }),
-        },
-      };
-    }
-  }
-  return {};
-}
 
 /**
  * Fetches the inclusion proof from the sequencer
