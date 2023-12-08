@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 type LastSignedResponse = Record<string, boolean>;
 
 type GroupDataResponse = {
@@ -87,7 +89,7 @@ export class IroncladActivityApi {
 
     // NOTE: response is not json here, so we are just checking if it's ok
     if (!res.ok) {
-      console.log("Error while sending acceptance", res);
+      logger.error("Error while sending acceptance", res);
       throw new Error("Error while sending acceptance");
     }
   }

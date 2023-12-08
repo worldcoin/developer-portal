@@ -15,7 +15,6 @@ import { IDKitBridge } from "./IDKitBridge";
 import { KioskError } from "./KioskError";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
-import { logger } from "@/lib/logger";
 
 type ProofResponse = {
   success: boolean;
@@ -74,7 +73,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
           }
         );
       } catch (e) {
-        logger.warn("Error verifying proof. Please check network logs.");
+        console.warn("Error verifying proof. Please check network logs.");
         try {
           if ((e as Record<string, any>).code) {
             response = {

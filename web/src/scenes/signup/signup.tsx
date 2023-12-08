@@ -18,7 +18,6 @@ import { Dialog } from "src/components/Dialog";
 import { Link } from "src/components/Link";
 import { SignupSSRProps } from "@/pages/signup";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { logger } from "@/lib/logger";
 
 const schema = yup.object({
   teamName: yup.string().required("This field is required"),
@@ -70,9 +69,9 @@ export function Signup(props: SignupProps) {
       if (!response.ok) {
         try {
           const errorData = await response.json();
-          logger.error("Signup error", { error: errorData });
+          console.error("Signup error", { error: errorData });
         } catch (error) {
-          logger.error("Signup error", { error });
+          console.error("Signup error", { error });
         }
 
         return toast.error("Something went wrong. Please try again later.");

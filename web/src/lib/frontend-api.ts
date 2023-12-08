@@ -7,7 +7,6 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { toast } from "react-toastify";
-import { logger } from "./logger";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
@@ -96,7 +95,7 @@ export const graphQLRequest = async <T>(
       handleError(e);
     }
 
-    logger.error("Failed to send GraphQL request", { error: e });
+    console.error("Failed to send GraphQL request", { error: e });
     throw e;
   }
 };
