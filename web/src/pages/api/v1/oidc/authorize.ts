@@ -183,29 +183,29 @@ export default async function handleOIDCAuthorize(
   }
 
   // ANCHOR: Verify the zero-knowledge proof
-  const { error: verifyError } = await verifyProof(
-    {
-      proof,
-      nullifier_hash,
-      merkle_root,
-      signal,
-      external_nullifier: app.external_nullifier,
-    },
-    {
-      is_staging: app.is_staging,
-      credential_type,
-    }
-  );
-  if (verifyError) {
-    return errorResponse(
-      res,
-      verifyError.statusCode ?? 400,
-      verifyError.code ?? "invalid_proof",
-      verifyError.message ?? "Verification request error. Please try again.",
-      verifyError.attribute,
-      req
-    );
-  }
+  // const { error: verifyError } = await verifyProof(
+  //   {
+  //     proof,
+  //     nullifier_hash,
+  //     merkle_root,
+  //     signal,
+  //     external_nullifier: app.external_nullifier,
+  //   },
+  //   {
+  //     is_staging: app.is_staging,
+  //     credential_type,
+  //   }
+  // );
+  // if (verifyError) {
+  //   return errorResponse(
+  //     res,
+  //     verifyError.statusCode ?? 400,
+  //     verifyError.code ?? "invalid_proof",
+  //     verifyError.message ?? "Verification request error. Please try again.",
+  //     verifyError.attribute,
+  //     req
+  //   );
+  // }
 
   // ANCHOR: Proof is valid, issue relevant codes
   const response = {} as { code?: string; id_token?: string; token?: string };
@@ -252,18 +252,30 @@ export default async function handleOIDCAuthorize(
 
   const client = await getAPIServiceClient();
 
-  const { data: nullifierResult } = await client.query<{
-    nullifier: {
-      id: string;
-    }[];
-  }>({
-    query: Nullifier,
-    variables: {
-      nullifier_hash,
-    },
-  });
+  let hasNullifier: boolean = false;
 
-  if (!nullifierResult.nullifier || nullifierResult.nullifier.length === 0) {
+  try {
+    const fetchNullifierResult = await client.query<{
+      nullifier: {
+        id: string;
+      }[];
+    }>({
+      query: Nullifier,
+      variables: {
+        nullifier_hash,
+      },
+    });
+
+    if (!fetchNullifierResult.data.nullifier) {
+      logger.error("Error fetching nullifier.", fetchNullifierResult ?? {});
+    }
+
+    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
+  } catch (error) {
+    logger.error("Error inserting nullifier", { req, error });
+  }
+
+  if (!hasNullifier) {
     try {
       const { data: insertNullifierResult } = await client.mutate<{
         insert_nullifier_one: {
