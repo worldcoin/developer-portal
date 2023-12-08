@@ -62,7 +62,7 @@ export const validateEmail = (candidate: string): boolean => {
 
 export const isSSR = () => typeof window === "undefined";
 
-export const uriHasJS = (uri: string) => /javascript:/.test(uri);
+export const uriHasJS = (uri: string) => /javascript:/i.test(uri);
 
 export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
   user.sub.startsWith("email|");
