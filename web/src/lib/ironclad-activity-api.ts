@@ -56,7 +56,18 @@ export class IroncladActivityApi {
     return this._isLatestSigned;
   }
 
-  public async sendAcceptance(signerId: string) {
+  public async sendAcceptance(
+    signerId: string,
+    data: {
+      addr?: string;
+      pau: string;
+      pad: string;
+      pap: string;
+      hn: string;
+      bl?: string;
+      os: string;
+    }
+  ) {
     this._validateVariables();
 
     if (!this._groupData) {
@@ -80,6 +91,8 @@ export class IroncladActivityApi {
         sig: signerId,
         gid: this._groupData!.group,
         vid: this._groupData!.versions.join(","),
+        ...data,
+        server_side: true,
       }),
       headers: { "Content-Type": "application/json" },
       method: "POST",
