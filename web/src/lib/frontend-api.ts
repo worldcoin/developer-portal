@@ -95,7 +95,7 @@ export const graphQLRequest = async <T>(
       handleError(e);
     }
 
-    console.error(e);
+    console.error("Failed to send GraphQL request", { error: e });
     throw e;
   }
 };
