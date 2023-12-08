@@ -183,29 +183,29 @@ export default async function handleOIDCAuthorize(
   }
 
   // ANCHOR: Verify the zero-knowledge proof
-  // const { error: verifyError } = await verifyProof(
-  //   {
-  //     proof,
-  //     nullifier_hash,
-  //     merkle_root,
-  //     signal,
-  //     external_nullifier: app.external_nullifier,
-  //   },
-  //   {
-  //     is_staging: app.is_staging,
-  //     credential_type,
-  //   }
-  // );
-  // if (verifyError) {
-  //   return errorResponse(
-  //     res,
-  //     verifyError.statusCode ?? 400,
-  //     verifyError.code ?? "invalid_proof",
-  //     verifyError.message ?? "Verification request error. Please try again.",
-  //     verifyError.attribute,
-  //     req
-  //   );
-  // }
+  const { error: verifyError } = await verifyProof(
+    {
+      proof,
+      nullifier_hash,
+      merkle_root,
+      signal,
+      external_nullifier: app.external_nullifier,
+    },
+    {
+      is_staging: app.is_staging,
+      credential_type,
+    }
+  );
+  if (verifyError) {
+    return errorResponse(
+      res,
+      verifyError.statusCode ?? 400,
+      verifyError.code ?? "invalid_proof",
+      verifyError.message ?? "Verification request error. Please try again.",
+      verifyError.attribute,
+      req
+    );
+  }
 
   // ANCHOR: Proof is valid, issue relevant codes
   const response = {} as { code?: string; id_token?: string; token?: string };
