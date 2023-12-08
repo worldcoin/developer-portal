@@ -69,9 +69,9 @@ export function Signup(props: SignupProps) {
       if (!response.ok) {
         try {
           const errorData = await response.json();
-          console.error(errorData);
+          console.error("Signup error", { error: errorData });
         } catch (error) {
-          console.error(error);
+          console.error("Signup error", { error });
         }
 
         return toast.error("Something went wrong. Please try again later.");

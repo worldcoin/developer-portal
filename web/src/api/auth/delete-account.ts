@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { Session, getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { ManagementClient } from "auth0";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -11,7 +12,7 @@ export const deleteAccount = withApiAuthRequired(
       !process.env.AUTH0_CLIENT_SECRET ||
       !process.env.AUTH0_DOMAIN
     ) {
-      console.error("Missing Auth0 environment variables.");
+      logger.error("Missing Auth0 environment variables.");
       return errorResponse(
         res,
         500,
@@ -34,7 +35,7 @@ export const deleteAccount = withApiAuthRequired(
     try {
       await managementClient.users.delete({ id });
     } catch (error) {
-      console.error(error);
+      logger.error("Error deleting account.", { error });
       return errorResponse(
         res,
         500,

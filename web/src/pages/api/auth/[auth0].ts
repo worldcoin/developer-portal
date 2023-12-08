@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { LoginErrorCode } from "@/lib/types";
 import {
   handleAuth,
@@ -36,7 +37,7 @@ export default handleAuth({
   }),
 
   onError: (_req, res, error) => {
-    console.error("Auth0 error:", error);
+    logger.error("Auth0 error:", { error });
     res.status(error.status || 500).end("Error while authenticating");
   },
 });

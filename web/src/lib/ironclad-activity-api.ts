@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 type LastSignedResponse = Record<string, boolean>;
 
 type GroupDataResponse = {
@@ -56,7 +58,18 @@ export class IroncladActivityApi {
     return this._isLatestSigned;
   }
 
-  public async sendAcceptance(signerId: string) {
+  public async sendAcceptance(
+    signerId: string,
+    data: {
+      addr?: string;
+      pau: string;
+      pad: string;
+      pap: string;
+      hn: string;
+      bl?: string;
+      os: string;
+    }
+  ) {
     this._validateVariables();
 
     if (!this._groupData) {
@@ -80,6 +93,8 @@ export class IroncladActivityApi {
         sig: signerId,
         gid: this._groupData!.group,
         vid: this._groupData!.versions.join(","),
+        ...data,
+        server_side: true,
       }),
       headers: { "Content-Type": "application/json" },
       method: "POST",
@@ -87,7 +102,7 @@ export class IroncladActivityApi {
 
     // NOTE: response is not json here, so we are just checking if it's ok
     if (!res.ok) {
-      console.log("Error while sending acceptance", res);
+      logger.error("Error while sending acceptance", res);
       throw new Error("Error while sending acceptance");
     }
   }
