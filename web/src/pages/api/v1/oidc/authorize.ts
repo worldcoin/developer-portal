@@ -35,6 +35,14 @@ const UpsertNullifier = gql`
   }
 `;
 
+const Nullifier = gql`
+  query Nullifier($nullifier_hash: String!) {
+    nullifier(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+      id
+    }
+  }
+`;
+
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup.object({
   proof: yup.string().strict().required("This attribute is required."),
@@ -244,31 +252,56 @@ export default async function handleOIDCAuthorize(
 
   const client = await getAPIServiceClient();
 
+  let hasNullifier: boolean = false;
+
   try {
-    const { data: insertNullifierResult } = await client.mutate<{
-      insert_nullifier_one: {
+    const fetchNullifierResult = await client.query<{
+      nullifier: {
         id: string;
-        nullifier_hash: string;
-      };
+      }[];
     }>({
-      mutation: UpsertNullifier,
+      query: Nullifier,
       variables: {
-        object: {
-          nullifier_hash,
-          credential_type,
-          action_id: app.action_id,
-        },
-        on_conflict: {
-          constraint: "nullifier_pkey",
-        },
+        nullifier_hash,
       },
     });
 
-    if (!insertNullifierResult?.insert_nullifier_one) {
-      logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
+    if (!fetchNullifierResult.data.nullifier) {
+      logger.error("Error fetching nullifier.", fetchNullifierResult ?? {});
     }
+
+    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
   } catch (error) {
     logger.error("Error inserting nullifier", { req, error });
+  }
+
+  if (!hasNullifier) {
+    try {
+      const { data: insertNullifierResult } = await client.mutate<{
+        insert_nullifier_one: {
+          id: string;
+          nullifier_hash: string;
+        };
+      }>({
+        mutation: UpsertNullifier,
+        variables: {
+          object: {
+            nullifier_hash,
+            credential_type,
+            action_id: app.action_id,
+          },
+          on_conflict: {
+            constraint: "nullifier_pkey",
+          },
+        },
+      });
+
+      if (!insertNullifierResult?.insert_nullifier_one) {
+        logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
+      }
+    } catch (error) {
+      logger.error("Error inserting nullifier", { req, error });
+    }
   }
 
   res.status(200).json(response);
