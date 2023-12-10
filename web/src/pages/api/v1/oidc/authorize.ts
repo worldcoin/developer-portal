@@ -36,7 +36,7 @@ const UpsertNullifier = gql`
   }
 `;
 
-// NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
+// NOTE: This endpoint should only be called from Sign in with World ID, params follow World ID conventions. Sign in with World ID handles OIDC requests.
 const schema = yup.object({
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),

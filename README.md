@@ -6,14 +6,11 @@
 
 The Worldcoin Developer Portal provides tools to interact with the [World ID Protocol](https://worldcoin.org/world-id). Along with [IDKit](https://github.com/worldcoin/idkit-js), it's the fastest way to get started with proof of personhood 🚀
 
-<!-- WORLD-ID-SHARED-README-TAG:START - Do not remove or modify this section directly -->
-<!-- The contents of this file are inserted to all World ID repositories to provide general context on World ID. -->
-
 ## <img align="left" width="28" height="28" src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-world-id.png" alt="" style="margin-right: 0; padding-right: 4px;" /> About World ID
 
 World ID is the privacy-first identity protocol that brings global proof of personhood to the internet. More on World ID in the [announcement blog post](https://worldcoin.org/blog/announcements/introducing-world-id-and-sdk).
 
-World ID lets you seamlessly integrate authentication into your app that verifies accounts belong to real persons through [Sign in with Worldcoin](https://docs.worldcoin.org/id/sign-in). For additional flexibility and cases where you need extreme privacy, [Anonymous Actions](https://docs.worldcoin.org/id/anonymous-actions) lets you verify users in a way that cannot be tracked across verifications.
+World ID lets you seamlessly integrate authentication into your app that verifies accounts belong to real persons through [Sign in with World ID](https://docs.worldcoin.org/id/sign-in). For additional flexibility and cases where you need extreme privacy, [Incognito Actions](https://docs.worldcoin.org/id/incognito-actions) lets you verify users in a way that cannot be tracked across verifications.
 
 Follow the [Quick Start](https://docs.worldcoin.org/quick-start) guide for the easiest way to get started.
 
@@ -31,8 +28,6 @@ All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guide
   </p>
 </a>
 
-<!-- WORLD-ID-SHARED-README-TAG:END -->
-
 ## 🧑‍💻 Developing Locally
 
 The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
@@ -45,7 +40,7 @@ cp .env.test .env
 ```
 
 2. Edit any environment variables for which you have real credentials.
-3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with Worldcoin. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](aws-role-sample-policy.json) for this.
+3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with World ID. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](aws-role-sample-policy.json) for this.
    1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
 ### Starting the app

@@ -34,7 +34,7 @@ export const Credentials = memo(function Credentials() {
       <div className="grid gap-y-2">
         <h3 className="font-medium">Client information</h3>
         <p className="text-neutral-secondary text-14 leading-none">
-          Use these attributes to configure Sign in with Worldcoin in your app.
+          Use these attributes to configure Sign in with World ID in your app.
         </p>
       </div>
 
@@ -58,12 +58,12 @@ export const Credentials = memo(function Credentials() {
             { text: "Reset", action: () => resetClientSecret() },
             ...(clientSecret
               ? [
-                  generateCopyButton({
-                    copyValue: clientSecret,
-                    isCopied: clientSecretCopied,
-                    setIsCopied: setClientSecretCopied,
-                  }),
-                ]
+                generateCopyButton({
+                  copyValue: clientSecret,
+                  isCopied: clientSecretCopied,
+                  setIsCopied: setClientSecretCopied,
+                }),
+              ]
               : []),
           ]}
         />

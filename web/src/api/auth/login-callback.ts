@@ -46,7 +46,7 @@ export const auth0Login = withApiAuthRequired(
       | null
       | undefined = null;
 
-    // ANCHOR: User is authenticated through Sign in with Worldcoin
+    // ANCHOR: User is authenticated through Sign in with World ID
     if (!isEmailUser(auth0User)) {
       const nullifier = auth0User.sub.split("|")[2];
 

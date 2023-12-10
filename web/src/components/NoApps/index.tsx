@@ -29,7 +29,7 @@ export const NoApps = memo(function NoApps(props: { pageInfo: ReactNode }) {
           </h2>
 
           <p className="text-14 text-gray-500 text-center">
-            Each app supports Sign in with Worldcoin as well as Anonymous
+            Each app supports Sign in with World ID as well as Incognito
             Actions for the ultimate privacy.
           </p>
         </div>
