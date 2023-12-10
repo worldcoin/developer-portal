@@ -1,14 +1,14 @@
 import {
   useWorldBridgeStore,
-  CredentialType,
   VerificationState,
+  VerificationLevel,
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 
 interface IIDKitBridgeProps {
-  app_id: string;
+  app_id: `app_${string}`;
   action: string;
   action_description: string;
 }
@@ -46,7 +46,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       app_id: props.app_id,
       action: props.action,
       bridge_url,
-      credential_types: [CredentialType.Orb, CredentialType.Device],
+      verification_level: VerificationLevel.Lite,
       action_description: props.action_description,
     })
       .then(() => {

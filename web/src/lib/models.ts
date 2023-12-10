@@ -25,7 +25,7 @@ export interface TeamMemberModel {
 }
 
 export interface AppModel {
-  id: string;
+  id: `app_${string}`;
   name: string;
   description_internal: string;
   is_staging: boolean;
@@ -49,7 +49,7 @@ export interface ActionModel {
   external_nullifier: string;
   max_verifications: number;
   max_accounts_per_user: number;
-  app_id: string;
+  app_id: `app_${string}`;
   client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
