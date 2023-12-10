@@ -10,24 +10,58 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as yup from "yup";
 
-const schema = yup.object({
-  action: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .defined("This attribute is required."),
-  signal: yup.string().strict().default(""),
-  proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup.string().strict().required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
-    .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
-});
+const schema = yup
+  .object({
+    action: yup
+      .string()
+      .strict()
+      .nonNullable()
+      .defined("This attribute is required."),
+    signal: yup.string().strict().default(""),
+    proof: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    credential_type: yup
+      .string()
+      .nullable()
+      .default("")
+      .oneOf(Object.values(CredentialType), ""),
+    verification_level: yup
+      .string()
+      .nullable()
+      .default("")
+      .oneOf(Object.values(VerificationLevel), "")
+      .transform((value) => {
+        // transforms verification_level value to credential_type equivalent
+        switch (value) {
+          case VerificationLevel.Lite:
+            return CredentialType.Device;
+          case VerificationLevel.Orb:
+            return CredentialType.Orb;
+          default:
+            return "";
+        }
+      }),
+  })
+  .test(
+    // ensure that either credential_type or verification_level was provided
+    "credential_type or verification_level",
+    "Either credential_type or verification_level must be provided.",
+    (value) => {
+      value.credential_type || value.verification_level;
+    }
+  )
+  .transformKeys((key) => {
+    // renames verification_level key to credential_type
+    if (key === "verification_level") return "credential_type";
+    else return key;
+  });
 
 export default async function handleVerify(
   req: NextApiRequest,
