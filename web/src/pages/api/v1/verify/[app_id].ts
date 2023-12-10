@@ -128,7 +128,7 @@ export default async function handleVerify(
     return errorResponse(
       res,
       error?.statusCode || 400,
-      error?.code || "unknown_error",
+      error?.code || "generic_error",
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
       req
