@@ -45,7 +45,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
       app_id: props.app_id,
       action: props.action,
       bridge_url,
-      verification_level: VerificationLevel.Lite,
+      verification_level: VerificationLevel.Device,
       action_description: props.action_description,
     })
       .then(() => {
