@@ -39,11 +39,11 @@ dependencies:
     specifier: ^8.1.0
     version: 8.1.0
   '@worldcoin/idkit':
-    specifier: 1.0.0-alpha.6
-    version: 1.0.0-alpha.6(@types/react-dom@18.2.17)(@types/react@18.2.43)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.6)(typescript@5.3.3)
+    specifier: 1.0.0-alpha.7
+    version: 1.0.0-alpha.7(@types/react-dom@18.2.17)(@types/react@18.2.43)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.6)(typescript@5.3.3)
   '@worldcoin/idkit-core':
-    specifier: 1.0.0-alpha.6
-    version: 1.0.0-alpha.6(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3)
+    specifier: 1.0.0-alpha.7
+    version: 1.0.0-alpha.7(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3)
   auth0:
     specifier: ^4.0.1
     version: 4.2.0
@@ -2882,7 +2882,7 @@ packages:
       '@motionone/easing': 10.16.3
       '@motionone/types': 10.16.3
       '@motionone/utils': 10.16.3
-      tslib: 2.4.0
+      tslib: 2.6.2
     dev: false
 
   /@motionone/dom@10.16.4:
@@ -2893,14 +2893,14 @@ packages:
       '@motionone/types': 10.16.3
       '@motionone/utils': 10.16.3
       hey-listen: 1.0.8
-      tslib: 2.4.0
+      tslib: 2.6.2
     dev: false
 
   /@motionone/easing@10.16.3:
     resolution: {integrity: sha512-HWTMZbTmZojzwEuKT/xCdvoMPXjYSyQvuVM6jmM0yoGU6BWzsmYMeB4bn38UFf618fJCNtP9XeC/zxtKWfbr0w==}
     dependencies:
       '@motionone/utils': 10.16.3
-      tslib: 2.4.0
+      tslib: 2.6.2
     dev: false
 
   /@motionone/generators@10.16.4:
@@ -2908,7 +2908,7 @@ packages:
     dependencies:
       '@motionone/types': 10.16.3
       '@motionone/utils': 10.16.3
-      tslib: 2.4.0
+      tslib: 2.6.2
     dev: false
 
   /@motionone/types@10.16.3:
@@ -2920,7 +2920,7 @@ packages:
     dependencies:
       '@motionone/types': 10.16.3
       hey-listen: 1.0.8
-      tslib: 2.4.0
+      tslib: 2.6.2
     dev: false
 
   /@next/env@13.5.6:
@@ -4454,8 +4454,8 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@worldcoin/idkit-core@1.0.0-alpha.6(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-c2xccSqG0aMU2wz5FLpFuMMmlcnPd/WMfHgEjMY7cnaVcUHVzz324LvDSPBCimmMLt0CCcul8c7zC1JY57jnWg==}
+  /@worldcoin/idkit-core@1.0.0-alpha.7(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-Meb77PsMjnxFsxrEJhYQIERxOniI99PmDEiTxGe8DLUH3O3ajhnCQMnBQ61T08mWHQ4f73kRXDJi+TDXlTXWbw==}
     engines: {node: '>=12.4'}
     dependencies:
       buffer: 6.0.3
@@ -4471,8 +4471,8 @@ packages:
       - zod
     dev: false
 
-  /@worldcoin/idkit@1.0.0-alpha.6(@types/react-dom@18.2.17)(@types/react@18.2.43)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.6)(typescript@5.3.3):
-    resolution: {integrity: sha512-2UsG82tC25wdwqTMgXqgPpD2ILcXR2to3FH9tmvwH83LngxHknC41cD3LJE1GhYNp3o+zGSidGKvbiYytvbFlA==}
+  /@worldcoin/idkit@1.0.0-alpha.7(@types/react-dom@18.2.17)(@types/react@18.2.43)(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.3.6)(typescript@5.3.3):
+    resolution: {integrity: sha512-DM3NTl05frUu5G32W6NcJpkyQ/7pbhx8sRLM7pykK4+dAP65X4Rcd1cKNEXM4rpBj01zO8jSOAfn87+6IDPusQ==}
     engines: {node: '>=12.4'}
     peerDependencies:
       react: '>18.0.0'
@@ -4483,7 +4483,7 @@ packages:
       '@radix-ui/react-dialog': 1.0.5(@types/react-dom@18.2.17)(@types/react@18.2.43)(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-toast': 1.1.5(@types/react-dom@18.2.17)(@types/react@18.2.43)(react-dom@18.2.0)(react@18.2.0)
       '@tailwindcss/forms': 0.5.7(tailwindcss@3.3.6)
-      '@worldcoin/idkit-core': 1.0.0-alpha.6(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3)
+      '@worldcoin/idkit-core': 1.0.0-alpha.7(@types/react@18.2.43)(react@18.2.0)(typescript@5.3.3)
       copy-to-clipboard: 3.3.3
       framer-motion: 7.10.3(react-dom@18.2.0)(react@18.2.0)
       posthog-js-lite: 2.4.0
