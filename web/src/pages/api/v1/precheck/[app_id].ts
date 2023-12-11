@@ -157,7 +157,7 @@ export default async function handlePrecheck(
     return handleError(req, res);
   }
 
-  const app_id = req.query.app_id as string;
+  const app_id = req.query.app_id as `app_${string}`;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
   const external_nullifier =

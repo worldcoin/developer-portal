@@ -353,7 +353,7 @@ export const verifyProof = async (
   const status = result.status === "mined" ? "on-chain" : "pending";
 
   if (!status) {
-    console.error("Unexpected response received from sequencer.", {
+    logger.error("Unexpected response received from sequencer.", {
       result,
       sequencerUrl,
     });

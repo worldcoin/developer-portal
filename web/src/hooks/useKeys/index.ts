@@ -24,8 +24,7 @@ const useKeys = () => {
     error,
     loading,
   } = useFetchKeysQuery({
-    onError: (e) => {
-      console.error(e);
+    onError: () => {
       toast.error("Failed to fetch API keys");
     },
   });
@@ -129,8 +128,7 @@ const useKeys = () => {
         }
       },
 
-      onError: (e) => {
-        console.error(e);
+      onError: () => {
         toast.error("Failed to reset API key");
       },
     });
