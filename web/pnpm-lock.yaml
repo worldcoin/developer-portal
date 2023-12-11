@@ -134,6 +134,9 @@ dependencies:
   react-useportal:
     specifier: ^1.0.16
     version: 1.0.19(react-dom@18.2.0)(react@18.2.0)
+  request-ip:
+    specifier: ^3.3.0
+    version: 3.3.0
   slugify:
     specifier: ^1.6.6
     version: 1.6.6
@@ -10581,6 +10584,10 @@ packages:
   /remove-trailing-spaces@1.0.8:
     resolution: {integrity: sha512-O3vsMYfWighyFbTd8hk8VaSj9UAGENxAtX+//ugIst2RMk5e03h6RoIS+0ylsFxY1gvmPuAY/PO4It+gPEeySA==}
     dev: true
+
+  /request-ip@3.3.0:
+    resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}
+    dev: false
 
   /require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
