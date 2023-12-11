@@ -58,12 +58,12 @@ export const Credentials = memo(function Credentials() {
             { text: "Reset", action: () => resetClientSecret() },
             ...(clientSecret
               ? [
-                generateCopyButton({
-                  copyValue: clientSecret,
-                  isCopied: clientSecretCopied,
-                  setIsCopied: setClientSecretCopied,
-                }),
-              ]
+                  generateCopyButton({
+                    copyValue: clientSecret,
+                    isCopied: clientSecretCopied,
+                    setIsCopied: setClientSecretCopied,
+                  }),
+                ]
               : []),
           ]}
         />
