@@ -1,12 +1,9 @@
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
-import { gql } from "@apollo/client";
-import { randomUUID } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import { errorForbidden, errorResponse, errorValidation } from "./errors";
-import { logger } from "src/lib/logger";
 import * as yup from "yup";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -15,14 +12,6 @@ if (!GENERAL_SECRET_KEY) {
     "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
   );
 }
-
-const phoneVerifiedQuery = gql`
-  query PhoneNumberVerified($identity_commitment: String!) {
-    user(where: { phoneIdComm: { _eq: $identity_commitment } }) {
-      publicKeyId
-    }
-  }
-`;
 
 /**
  * Ensures endpoint is properly authenticated using internal token. For interactions between Hasura -> Next.js API
@@ -124,38 +113,6 @@ export const canVerifyForAction = (
 
   // Else, can only verify if the max number of verifications has not been met
   return nullifier.uses < max_verifications_per_person;
-};
-
-export const reportAPIEventToPostHog = async (
-  event: string,
-  distinct_id: string,
-  props: Record<string, any>
-): Promise<void> => {
-  try {
-    const response = await fetch("https://app.posthog.com/capture", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        api_key: process.env.NEXT_PUBLIC_POSTHOG_API_KEY,
-        event,
-        properties: {
-          $lib: "worldcoin-server", // NOTE: This is required for PostHog to discard any IP data (or the server's address will be incorrectly attributed to the user)
-          distinct_id: distinct_id || `srv-${randomUUID()}`,
-          ...props,
-        },
-      }),
-    });
-    if (!response.ok) {
-      logger.error(
-        `Error reporting ${event} to PostHog. Non-200 response: ${response.status}`,
-        { response: await response.text() }
-      );
-    }
-  } catch (error) {
-    logger.error(`Error reporting ${event} to PostHog`, { error });
-  }
 };
 
 /**
