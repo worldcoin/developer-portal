@@ -7,13 +7,13 @@ const serviceName = process.env.NEXT_SERVER_DD_SERVICE_NAME;
 
 const httpTransportOptions = {
   host: "http-intake.logs.datadoghq.com",
-  path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=${serviceName}`,
+  path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=${serviceName}&env=${
+    process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined
+  }`,
   ssl: true,
 };
 
-const transports: winston.LoggerOptions["transports"] = [
-  new winston.transports.Console(),
-];
+const transports: winston.LoggerOptions["transports"] = [];
 
 const errorFormatter = winston.format((info) => {
   return {
@@ -50,7 +50,7 @@ const _logger = winston.createLogger({
   level: "info",
   exitOnError: false,
   format: winston.format.combine(
-    errorFormatter(),
+    // errorFormatter(),
     winston.format.timestamp(),
     winston.format.json()
   ),
