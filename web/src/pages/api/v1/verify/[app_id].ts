@@ -10,7 +10,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { AppErrorCodes, CredentialType } from "@worldcoin/idkit-core";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -128,7 +128,7 @@ export default async function handleVerify(
     return errorResponse(
       res,
       error?.statusCode || 400,
-      error?.code || "generic_error",
+      error?.code || AppErrorCodes.GenericError,
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
       req
@@ -146,7 +146,7 @@ export default async function handleVerify(
 
     if (updateResponse.data.update_nullifier.affected_rows === 0) {
       return errorValidation(
-        "max_verifications_reached",
+        AppErrorCodes.MaxVerificationsReached,
         "This person has already verified for this particular action the maximum number of times allowed.",
         null,
         res,
@@ -201,7 +201,7 @@ export default async function handleVerify(
         "constraint-violation"
       ) {
         return errorValidation(
-          "max_verifications_reached",
+          AppErrorCodes.MaxVerificationsReached,
           "This person has already verified for this particular action the maximum number of times allowed.",
           null,
           res,
