@@ -120,7 +120,7 @@ export const Layout = (props: {
 
                 <NavItem
                   icon="notepad"
-                  name="Anonymous Actions"
+                  name="Incognito Actions"
                   href={urls.appActions(appId)}
                 />
               </NavItemGroup>
