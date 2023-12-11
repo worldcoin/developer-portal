@@ -7,7 +7,7 @@ const serviceName = process.env.NEXT_SERVER_DD_SERVICE_NAME;
 
 const httpTransportOptions = {
   host: "http-intake.logs.datadoghq.com",
-  path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=${serviceName}`,
+  path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=${serviceName}&env=${process.env.NODE_ENV}`,
   ssl: true,
 };
 
