@@ -95,7 +95,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
 
         setScreen(KioskScreen.Success);
       } else {
-        if (response?.code === "already_verified") {
+        if (response?.code === "max_verifications_reached") {
           setScreen(KioskScreen.AlreadyVerified);
         } else if (response?.code === "invalid_merkle_root") {
           setScreen(KioskScreen.InvalidIdentity);
