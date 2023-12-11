@@ -22,14 +22,13 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 });
 
 export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
-  const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const { setScreen, setQrData, setWCReset, setProofResult } =
     useKioskStore(getKioskStoreParams);
 
   const {
     connectorURI,
     result,
-    errorCode,
     verificationState: idKitVerificationState,
     createClient,
     pollForUpdates,

@@ -12,7 +12,7 @@ import { Toggler } from "../../components/Toggler";
 import { Result } from "./Result";
 
 enum DebuggerMode {
-  SignIn = "Sign in with Worldcoin",
+  SignIn = "Sign in with World ID",
   Actions = "Actions",
 }
 
