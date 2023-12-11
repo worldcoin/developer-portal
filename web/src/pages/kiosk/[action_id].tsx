@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { GetServerSideProps, NextPageContext } from "next";
+import { GetServerSideProps } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
 import { ActionKioskType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
