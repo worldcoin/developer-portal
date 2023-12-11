@@ -5,7 +5,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import { errorForbidden, errorResponse, errorValidation } from "./errors";
 import * as yup from "yup";
-import { CredentialType } from "@worldcoin/idkit-core";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 if (!GENERAL_SECRET_KEY) {
