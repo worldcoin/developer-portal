@@ -8,7 +8,10 @@ import { generateExternalNullifier } from "@/lib/hashing";
 import { CredentialType } from "@worldcoin/idkit-core";
 
 const schema = yup.object({
-  app_id: yup.string().strict().required("This attribute is required."),
+  app_id: yup
+    .string<`app_${string}`>()
+    .strict()
+    .required("This attribute is required."),
   action: yup
     .string()
     .strict()
