@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { CredentialType } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
@@ -20,7 +21,7 @@ import {
 import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
 import { logger } from "src/lib/logger";
-import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
+import { OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`

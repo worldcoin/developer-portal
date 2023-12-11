@@ -10,7 +10,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
+import { AppErrorCodes, CredentialType } from "@worldcoin/idkit-core";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -90,7 +90,13 @@ export default async function handleVerify(
       action.max_verifications === 1
         ? "This person has already verified for this action."
         : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-    return errorValidation("already_verified", errorMsg, null, res, req);
+    return errorValidation(
+      "max_verifications_reached",
+      errorMsg,
+      null,
+      res,
+      req
+    );
   }
 
   if (!action.external_nullifier) {
@@ -122,7 +128,7 @@ export default async function handleVerify(
     return errorResponse(
       res,
       error?.statusCode || 400,
-      error?.code || "unknown_error",
+      error?.code || AppErrorCodes.GenericError,
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
       req
@@ -140,8 +146,8 @@ export default async function handleVerify(
 
     if (updateResponse.data.update_nullifier.affected_rows === 0) {
       return errorValidation(
-        "already_verified",
-        "This person has already verified for this action.",
+        AppErrorCodes.MaxVerificationsReached,
+        "This person has already verified for this particular action the maximum number of times allowed.",
         null,
         res,
         req
@@ -195,8 +201,8 @@ export default async function handleVerify(
         "constraint-violation"
       ) {
         return errorValidation(
-          "already_verified",
-          "This person has already verified for this action.",
+          AppErrorCodes.MaxVerificationsReached,
+          "This person has already verified for this particular action the maximum number of times allowed.",
           null,
           res,
           req

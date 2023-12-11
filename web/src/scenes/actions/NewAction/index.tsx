@@ -13,10 +13,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import slugify from "slugify";
 import { useInsertAction } from "../hooks";
 import { useAppStore } from "src/stores/appStore";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { toast } from "react-toastify";
 import { ApolloError } from "@apollo/client";
 import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 const schema = yup.object({
   name: yup.string().required("This field is required"),
@@ -82,7 +82,7 @@ export function NewAction() {
           action: values.action,
           app_id: currentApp.id,
 
-          external_nullifier: IDKitInternal.generateExternalNullifier(
+          external_nullifier: generateExternalNullifier(
             currentApp.id,
             values.action
           ).digest,

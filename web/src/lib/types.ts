@@ -10,11 +10,6 @@ export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
 };
 
-export enum CredentialType {
-  Orb = "orb",
-  Phone = "phone",
-}
-
 export enum EngineType {
   OnChain = "on-chain",
   Cloud = "cloud",

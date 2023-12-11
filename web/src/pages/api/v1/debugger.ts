@@ -1,14 +1,17 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import { runCors } from "src/backend/cors";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
+import { generateExternalNullifier } from "@/lib/hashing";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 const schema = yup.object({
-  app_id: yup.string().strict().required("This attribute is required."),
+  app_id: yup
+    .string<`app_${string}`>()
+    .strict()
+    .required("This attribute is required."),
   action: yup
     .string()
     .strict()
@@ -47,7 +50,7 @@ export default async function handler(
     return handleError(req, res);
   }
 
-  const external_nullifier = IDKitInternal.generateExternalNullifier(
+  const external_nullifier = generateExternalNullifier(
     parsedParams.app_id,
     parsedParams.action
   ).digest;

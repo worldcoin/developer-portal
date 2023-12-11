@@ -14,7 +14,7 @@ function Actions() {
       pageInfo={
         <PageInfo
           icon="notepad"
-          title="Anonymous actions for you apps"
+          title="Incognito Actions for your apps"
           text="Lets you verify someone is a real person that has never performed an action before."
         />
       }

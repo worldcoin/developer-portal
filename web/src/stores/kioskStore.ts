@@ -1,14 +1,7 @@
 import dayjs from "dayjs";
 import { create } from "zustand";
 import { ActionKioskType } from "src/lib/types";
-import type {
-  ISuccessResult,
-  internal as IDKitInternal,
-} from "@worldcoin/idkit";
-
-type VerificationState = ReturnType<
-  typeof IDKitInternal.useAppConnection
->["verificationState"];
+import { ISuccessResult } from "@worldcoin/idkit-core";
 
 export enum KioskScreen {
   Waiting,
@@ -30,16 +23,14 @@ interface ISuccessParams {
 export type IKioskStore = {
   kioskAction: ActionKioskType | null;
   screen: KioskScreen;
-  verificationState: VerificationState | null;
-  qrData: { mobile: string; default: string } | null;
+  qrData: string | null;
   resetWC: (() => void) | null; // Resets the WalletConnect session
   successParams: ISuccessParams | null; // Success result from /verify endpoint
   proofResult: ISuccessResult | null; // Proof result from IDKit
 
   setScreen: (screen: KioskScreen) => void;
-  setQrData: (qrData: { mobile: string; default: string }) => void;
+  setQrData: (qrData: string) => void;
   setKioskAction: (kioskAction: ActionKioskType) => void;
-  setVerificationState: (verificationState: VerificationState) => void;
   setWCReset: (fn: () => void) => void;
   setSuccessParams: (successParams: ISuccessParams) => void;
   setProofResult: (proofResult: ISuccessResult) => void;
@@ -48,7 +39,6 @@ export type IKioskStore = {
 export const useKioskStore = create<IKioskStore>((set, get) => ({
   kioskAction: null,
   screen: KioskScreen.Waiting,
-  verificationState: null,
   qrData: null,
   resetWC: null,
   successParams: null,
@@ -62,10 +52,8 @@ export const useKioskStore = create<IKioskStore>((set, get) => ({
     }
     set({ screen });
   },
-  setQrData: (qrData: { mobile: string; default: string }) => set({ qrData }),
+  setQrData: (qrData) => set({ qrData }),
   setKioskAction: (kioskAction: ActionKioskType) => set({ kioskAction }),
-  setVerificationState: (verificationState: VerificationState) =>
-    set({ verificationState }),
   setWCReset: (fn: () => void) => set({ resetWC: fn }),
   setSuccessParams: (successParams: ISuccessParams) => set({ successParams }),
   setProofResult: (proofResult: ISuccessResult) => set({ proofResult }),

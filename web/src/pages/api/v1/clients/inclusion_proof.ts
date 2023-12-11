@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { CredentialType } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
@@ -8,7 +9,7 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { rawFetchInclusionProof } from "src/backend/utils";
 import { logger } from "src/lib/logger";
-import { CredentialType, Environment } from "src/lib/types";
+import { Environment } from "src/lib/types";
 import { sequencerMapping } from "src/lib/utils";
 
 const existsQuery = gql`
@@ -110,7 +111,10 @@ export default async function handleInclusionProof(
   }
 
   // Commitment not found by the sequencer
-  else if (response.status === 400 && req.body.credential_type === "phone") {
+  else if (
+    response.status === 400 &&
+    req.body.credential_type === CredentialType.Device
+  ) {
     const errorBody = await response.text();
 
     logger.info(

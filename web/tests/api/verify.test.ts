@@ -177,7 +177,7 @@ describe("/api/verify [error cases]", () => {
     expect(res._getStatusCode()).toBe(400);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
-        code: "already_verified",
+        code: "max_verifications_reached",
         detail: "This person has already verified for this action.",
       })
     );
@@ -203,7 +203,7 @@ describe("/api/verify [error cases]", () => {
     expect(res._getStatusCode()).toBe(400);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
-        code: "already_verified",
+        code: "max_verifications_reached",
         detail:
           "This person has already verified for this action the maximum number of times (2).",
       })

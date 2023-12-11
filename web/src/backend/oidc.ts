@@ -1,15 +1,11 @@
 import { gql } from "@apollo/client";
 import crypto from "crypto";
 import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
-import {
-  CredentialType,
-  IInternalError,
-  OIDCFlowType,
-  OIDCResponseType,
-} from "src/lib/types";
+import { IInternalError, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
 import { logger } from "src/lib/logger";
+import { CredentialType } from "@worldcoin/idkit-core";
 
 export const OIDCResponseTypeMapping = {
   code: OIDCResponseType.Code,
