@@ -63,7 +63,7 @@ describe("/api/v1/oidc/authorize", () => {
 
     // mocks sequencer response for proof verification
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -138,7 +138,7 @@ describe("/api/v1/oidc/authorize", () => {
 
     // mocks sequencer response for proof verification
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);

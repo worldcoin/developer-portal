@@ -217,7 +217,7 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -238,7 +238,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -291,7 +291,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);

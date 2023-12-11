@@ -47,11 +47,7 @@ const Link = memo(
             href={href}
             className={className}
             target={props.target || "_blank"}
-            rel={
-              props.rel || parsedUrl?.hostname.includes("worldcoin.org")
-                ? "noopener" // If the link is in a worldcoin.org domain/subdomain, don't send `noreferrer` to properly track analytics
-                : "noopener noreferrer"
-            }
+            rel={props.rel || "noopener noreferrer"}
             ref={ref}
           >
             {props.children}
