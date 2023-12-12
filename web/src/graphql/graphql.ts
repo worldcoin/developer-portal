@@ -1583,13 +1583,13 @@ export type Auth_Code = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at: Scalars["timestamptz"];
-  credential_type: Scalars["String"];
   expires_at: Scalars["timestamptz"];
   id: Scalars["String"];
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash: Scalars["String"];
   scope?: Maybe<Scalars["jsonb"]>;
   updated_at: Scalars["timestamptz"];
+  verification_level: Scalars["String"];
 };
 
 /** columns and relationships of "auth_code" */
@@ -1633,13 +1633,13 @@ export type Auth_Code_Bool_Exp = {
   code_challenge?: InputMaybe<String_Comparison_Exp>;
   code_challenge_method?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  credential_type?: InputMaybe<String_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nonce?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   scope?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verification_level?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth_code" */
@@ -1670,13 +1670,13 @@ export type Auth_Code_Insert_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** aggregate max on columns */
@@ -1687,12 +1687,12 @@ export type Auth_Code_Max_Fields = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_level?: Maybe<Scalars["String"]>;
 };
 
 /** aggregate min on columns */
@@ -1703,12 +1703,12 @@ export type Auth_Code_Min_Fields = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_level?: Maybe<Scalars["String"]>;
 };
 
 /** response of any mutation on the table "auth_code" */
@@ -1734,13 +1734,13 @@ export type Auth_Code_Order_By = {
   code_challenge?: InputMaybe<Order_By>;
   code_challenge_method?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   scope?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verification_level?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: auth_code */
@@ -1766,8 +1766,6 @@ export enum Auth_Code_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
@@ -1779,6 +1777,8 @@ export enum Auth_Code_Select_Column {
   Scope = "scope",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationLevel = "verification_level",
 }
 
 /** input type for updating data in table "auth_code" */
@@ -1788,13 +1788,13 @@ export type Auth_Code_Set_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** Streaming cursor of the table "auth_code" */
@@ -1812,13 +1812,13 @@ export type Auth_Code_Stream_Cursor_Value_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** update columns of table "auth_code" */
@@ -1834,8 +1834,6 @@ export enum Auth_Code_Update_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
@@ -1847,6 +1845,8 @@ export enum Auth_Code_Update_Column {
   Scope = "scope",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationLevel = "verification_level",
 }
 
 export type Auth_Code_Updates = {
