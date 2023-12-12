@@ -190,8 +190,6 @@ export default async function handleVerify(
         },
       });
 
-      console.log(action.id, parsedParams.nullifier_hash);
-
       if (
         insertResponse.data.insert_nullifier_one.nullifier_hash !==
         parsedParams.nullifier_hash
@@ -213,6 +211,7 @@ export default async function handleVerify(
         max_uses: action.max_verifications,
         nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
         created_at: insertResponse.data.insert_nullifier_one.created_at,
+        verification_level,
       });
     } catch (e) {
       if (
