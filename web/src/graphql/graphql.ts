@@ -3206,7 +3206,6 @@ export type Nullifier = {
   action: Action;
   action_id: Scalars["String"];
   created_at: Scalars["timestamptz"];
-  credential_type: Scalars["String"];
   id: Scalars["String"];
   nullifier_hash: Scalars["String"];
   updated_at: Scalars["timestamptz"];
@@ -3294,7 +3293,6 @@ export type Nullifier_Bool_Exp = {
   action?: InputMaybe<Action_Bool_Exp>;
   action_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  credential_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3319,7 +3317,6 @@ export type Nullifier_Insert_Input = {
   action?: InputMaybe<Action_Obj_Rel_Insert_Input>;
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3331,7 +3328,6 @@ export type Nullifier_Max_Fields = {
   __typename?: "nullifier_max_fields";
   action_id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -3342,7 +3338,6 @@ export type Nullifier_Max_Fields = {
 export type Nullifier_Max_Order_By = {
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3354,7 +3349,6 @@ export type Nullifier_Min_Fields = {
   __typename?: "nullifier_min_fields";
   action_id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -3365,7 +3359,6 @@ export type Nullifier_Min_Fields = {
 export type Nullifier_Min_Order_By = {
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3393,7 +3386,6 @@ export type Nullifier_Order_By = {
   action?: InputMaybe<Action_Order_By>;
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3412,8 +3404,6 @@ export enum Nullifier_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   Id = "id",
   /** column name */
   NullifierHash = "nullifier_hash",
@@ -3427,7 +3417,6 @@ export enum Nullifier_Select_Column {
 export type Nullifier_Set_Input = {
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3479,7 +3468,6 @@ export type Nullifier_Stream_Cursor_Input = {
 export type Nullifier_Stream_Cursor_Value_Input = {
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3503,8 +3491,6 @@ export enum Nullifier_Update_Column {
   ActionId = "action_id",
   /** column name */
   CreatedAt = "created_at",
-  /** column name */
-  CredentialType = "credential_type",
   /** column name */
   Id = "id",
   /** column name */

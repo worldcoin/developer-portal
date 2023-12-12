@@ -52,7 +52,7 @@ const schema = yup.object({
   verification_level: yup
     .string()
     .oneOf(Object.values(VerificationLevel))
-    .required(),
+    .required("This attribute is required."),
   app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string().strict().required("This attribute is required."), // `signal` in the context of World ID; `nonce` in the context of OIDC
   code_challenge: yup.string(),

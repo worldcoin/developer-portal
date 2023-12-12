@@ -14,7 +14,6 @@ insert_permissions:
         - id
         - uses
         - nullifier_hash
-        - credential_type
 select_permissions:
   - role: analytics
     permission:
@@ -31,7 +30,6 @@ select_permissions:
         - created_at
         - id
         - nullifier_hash
-        - credential_type
       filter:
         action:
           app:
@@ -45,7 +43,6 @@ select_permissions:
         - id
         - uses
         - nullifier_hash
-        - credential_type
       filter: {}
   - role: user
     permission:
@@ -55,7 +52,6 @@ select_permissions:
         - id
         - uses
         - nullifier_hash
-        - credential_type
       filter:
         action:
           app:

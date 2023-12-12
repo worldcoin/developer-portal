@@ -187,9 +187,10 @@ export default async function handleVerify(
         variables: {
           action_id: action.id,
           nullifier_hash: parsedParams.nullifier_hash,
-          credential_type: verification_level,
         },
       });
+
+      console.log(action.id, parsedParams.nullifier_hash);
 
       if (
         insertResponse.data.insert_nullifier_one.nullifier_hash !==
@@ -233,21 +234,12 @@ export default async function handleVerify(
 }
 
 const insertNullifierQuery = gql`
-  mutation InsertNullifier(
-    $action_id: String!
-    $nullifier_hash: String!
-    $credential_type: String!
-  ) {
+  mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
     insert_nullifier_one(
-      object: {
-        action_id: $action_id
-        nullifier_hash: $nullifier_hash
-        credential_type: $credential_type
-      }
+      object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
     ) {
       created_at
       nullifier_hash
-      credential_type
     }
   }
 `;

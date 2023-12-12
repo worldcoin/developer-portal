@@ -45,8 +45,7 @@ const sampleENSActionQueryResponse = () => ({
 const nullifierInsertResponse = () => ({
   data: {
     insert_nullifier_one: {
-      nullifier_hash:
-        "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+      nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
       created_at: "2021-08-12T20:00:00.000Z",
     },
   },
@@ -98,12 +97,14 @@ describe("/api/v1/verify", () => {
 
     await handleVerify(req, res);
 
+    console.error(res._getJSONData());
+
     expect(res._getStatusCode()).toBe(200);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
         success: true,
         nullifier_hash:
-          "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+          "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
         action: "verify",
       })
     );
@@ -143,7 +144,7 @@ describe("/api/v1/verify", () => {
       expect.objectContaining({
         success: true,
         nullifier_hash:
-          "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+          "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
         action: "",
       })
     );

@@ -19,7 +19,6 @@ query Actions($app_id: String!) {
       id
       created_at
       nullifier_hash
-      credential_type
       uses
     }
   }

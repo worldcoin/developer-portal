@@ -73,7 +73,6 @@ export interface NullifierModel {
   nullifier_hash: string;
   created_at: DateTime;
   updated_at: DateTime;
-  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
