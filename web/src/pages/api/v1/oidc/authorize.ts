@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
@@ -49,10 +49,10 @@ const schema = yup.object({
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .required("This attribute is required."),
   app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string().strict().required("This attribute is required."), // `signal` in the context of World ID; `nonce` in the context of OIDC
   code_challenge: yup.string(),
@@ -99,7 +99,7 @@ export default async function handleOIDCAuthorize(
     nullifier_hash,
     merkle_root,
     signal,
-    credential_type,
+    verification_level,
     response_type,
     app_id,
     scope,
@@ -194,7 +194,7 @@ export default async function handleOIDCAuthorize(
     },
     {
       is_staging: app.is_staging,
-      credential_type,
+      verification_level,
     }
   );
   if (verifyError) {
@@ -219,7 +219,7 @@ export default async function handleOIDCAuthorize(
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
-      credential_type,
+      verification_level,
       sanitizedScopes,
       code_challenge,
       code_challenge_method,
@@ -240,7 +240,7 @@ export default async function handleOIDCAuthorize(
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
-          credential_type,
+          verification_level,
           nonce: signal,
           scope: sanitizedScopes,
           ...jwk,
@@ -288,7 +288,7 @@ export default async function handleOIDCAuthorize(
         variables: {
           object: {
             nullifier_hash,
-            credential_type,
+            verification_level,
             action_id: app.action_id,
           },
           on_conflict: {

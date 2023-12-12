@@ -4,7 +4,7 @@ import { IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
 import { logger } from "src/lib/logger";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { validateABILikeEncoding } from "@/lib/hashing";
 
@@ -36,7 +36,7 @@ export interface IInputParams {
 
 export interface IVerifyParams {
   is_staging: boolean;
-  credential_type: CredentialType;
+  verification_level: VerificationLevel;
 }
 
 interface IAppAction {
@@ -310,7 +310,7 @@ export const verifyProof = async (
   });
 
   const sequencerUrl =
-    sequencerMapping[verifyParams.credential_type]?.[
+    sequencerMapping[verifyParams.verification_level]?.[
       verifyParams.is_staging.toString()
     ];
 

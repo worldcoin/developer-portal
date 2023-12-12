@@ -102,7 +102,7 @@ describe("/api/v1/oidc/token", () => {
 
     // Insert a valid auth code
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, credential_type) VALUES ($1, $2, $3, $4, $5, $6)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, verification_level) VALUES ($1, $2, $3, $4, $5, $6)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -153,6 +153,9 @@ describe("/api/v1/oidc/token", () => {
         "https://id.worldcoin.org/beta": {
           likely_human: "strong",
           credential_type: "orb",
+        },
+        "https://id.worldcoin.org/v1": {
+          verification_level: "orb",
         },
       })
     );

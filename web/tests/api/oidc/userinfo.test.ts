@@ -1,4 +1,4 @@
-import { CredentialType } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import { createMocks } from "node-mocks-http";
 import { generateOIDCJWT } from "src/backend/jwts";
 import { OIDCScopes } from "src/backend/oidc";
@@ -19,7 +19,7 @@ describe("/api/v1/oidc/userinfo", () => {
       app_id: "app_1234",
       kms_id: "test-kms-id",
       nullifier_hash: "0x00000",
-      credential_type: CredentialType.Orb,
+      verification_level: VerificationLevel.Orb,
       scope: [OIDCScopes.OpenID, OIDCScopes.Profile],
     });
     // Ensure we're actually generating a JWT

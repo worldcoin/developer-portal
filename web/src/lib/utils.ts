@@ -5,18 +5,18 @@ import {
   PHONE_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
 } from "./constants";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 
 // Sequencer mapping
 export const sequencerMapping: Record<
-  CredentialType,
+  VerificationLevel,
   { [key: string]: string | undefined }
 > = {
-  [CredentialType.Orb]: {
+  [VerificationLevel.Orb]: {
     true: ORB_SEQUENCER_STAGING,
     false: ORB_SEQUENCER,
   },
-  [CredentialType.Device]: {
+  [VerificationLevel.Device]: {
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
   },

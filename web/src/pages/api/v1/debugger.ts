@@ -5,7 +5,7 @@ import { verifyProof } from "src/backend/verify";
 import * as yup from "yup";
 import { validateRequestSchema } from "src/backend/utils";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { CredentialType } from "@worldcoin/idkit-core";
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 
 const schema = yup.object({
   app_id: yup
@@ -26,10 +26,10 @@ const schema = yup.object({
   merkle_root: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   is_staging: yup.boolean().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .required(),
 });
 
 export default async function handler(
@@ -65,7 +65,7 @@ export default async function handler(
     },
     {
       is_staging: parsedParams.is_staging,
-      credential_type: parsedParams.credential_type,
+      verification_level: parsedParams.verification_level,
     }
   );
 

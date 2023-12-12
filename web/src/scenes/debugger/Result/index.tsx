@@ -78,6 +78,12 @@ export function Result(props: ResultProps) {
     try {
       const userInput = JSON.parse(props.response);
 
+      if (userInput.credential_type && !userInput.verification_level) {
+        // NOTE: Backwards compatibility support for CredentialType
+        userInput.verification_level = userInput.credential_type;
+        delete userInput.credential_type;
+      }
+
       const res = await fetch("/api/v1/debugger", {
         method: "POST",
         headers: {

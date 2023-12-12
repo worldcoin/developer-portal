@@ -2,7 +2,7 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
-import { CredentialType } from "@worldcoin/idkit-core";
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
 import { AppStatusType, EngineType } from "src/lib/types";
 
@@ -73,7 +73,6 @@ export interface NullifierModel {
   nullifier_hash: string;
   created_at: DateTime;
   updated_at: DateTime;
-  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
@@ -118,7 +117,7 @@ export interface AuthCodeModel {
   nullifier_hash: string;
   code_challenge: string;
   code_challenge_method: string;
-  credential_type: CredentialType;
+  verification_level: VerificationLevel;
   scope: [];
   created_at: DateTime;
   updated_at: DateTime;
