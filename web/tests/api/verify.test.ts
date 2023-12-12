@@ -3,17 +3,11 @@ import { when } from "jest-when";
 import { createMocks } from "node-mocks-http";
 import { NullifierModel } from "src/lib/models";
 import handleVerify from "src/pages/api/v1/verify/[app_id]";
+import { semaphoreProofParamsMock } from "./__mocks__/proof.mock";
 
 const validPayload = {
-  merkle_root:
-    "0x1c75ff6366690115808bd58e4c6e3342068088703dffa0a0ee07f55892bb10bd",
-  nullifier_hash:
-    "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
-  proof:
-    "0x11b4f021bd8c4d11a5ff1edda919ab825aa377c6922f7f3f5471a624e07f38250692d8414be3e25c3070f164de38069a8d069c94db31fd143eb3507d04487d4203565989a58f63d5b45f973beeb6e19d7c8de14e7f024b8881aacb4eddcd4b4716a2bcb5e732c1e362a6a243248c7b35d6aacead7bcd4c96f9aa36217ef1cbf92434db66fd35b0dac7cda875861d474867871aff8f465c0e55605f529e64c72805ce10171cf645d6ffdfa5507f51a87d9edefddca1acc5741e03bae83306ca31239dfffeaa8f91d2b6749899f377eb4f3e5db557ede16faa7e619d248cd388e814b0673c831201be0fffd84781842692ae9c4ef71c0f9dcd16f496c829055246",
-  credential_type: "orb",
+  ...semaphoreProofParamsMock,
   action: "verify",
-  signal: "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690", // using an ABI-like encoded signal
 };
 
 const sampleENSActionQueryResponse = () => ({

@@ -10,7 +10,11 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { AppErrorCodes, CredentialType } from "@worldcoin/idkit-core";
+import {
+  AppErrorCodes,
+  CredentialType,
+  VerificationLevel,
+} from "@worldcoin/idkit-core";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -23,10 +27,17 @@ const schema = yup.object({
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .when("credential_type", {
+      is: undefined,
+      then: (verification_level) =>
+        verification_level.required(
+          "`verification_level` required unless deprecated `credential_type` is used."
+        ),
+    }),
+  credential_type: yup.string().oneOf(Object.values(CredentialType)),
 });
 
 export default async function handleVerify(
@@ -110,6 +121,13 @@ export default async function handleVerify(
     );
   }
 
+  // NOTE: Backwards compatibility support for CredentialType
+  const verification_level =
+    parsedParams.verification_level ||
+    (parsedParams.credential_type === CredentialType.Orb
+      ? VerificationLevel.Orb
+      : VerificationLevel.Device);
+
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
@@ -121,7 +139,7 @@ export default async function handleVerify(
     },
     {
       is_staging: app.is_staging,
-      credential_type: parsedParams.credential_type,
+      verification_level,
     }
   );
   if (error || !success) {
@@ -169,7 +187,7 @@ export default async function handleVerify(
         variables: {
           action_id: action.id,
           nullifier_hash: parsedParams.nullifier_hash,
-          credential_type: parsedParams.credential_type,
+          credential_type: verification_level,
         },
       });
 
