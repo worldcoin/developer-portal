@@ -288,7 +288,6 @@ export default async function handleOIDCAuthorize(
         variables: {
           object: {
             nullifier_hash,
-            verification_level,
             action_id: app.action_id,
           },
           on_conflict: {
