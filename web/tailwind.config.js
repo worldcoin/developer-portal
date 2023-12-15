@@ -38,12 +38,14 @@ module.exports = {
         200: "#EBECEF",
         400: "#9BA3AE",
         500: "#657080",
+        700: "#3C424B",
         900: "#191C20",
       },
 
       blue: {
         primary: "#4940E0",
         secondary: "#EDECFC",
+        500: "#4940E0",
       },
 
       neutral: {
@@ -74,7 +76,7 @@ module.exports = {
         light: "#edecfc", // blue-secondary
       },
       success: {
-        DEFAULT: "#00c313",
+        DEFAULT: "#00B800",
         light: "#e5f9e7",
       },
       danger: {
@@ -128,6 +130,9 @@ module.exports = {
     },
 
     extend: {
+      borderRadius: {
+        10: "10px",
+      },
       boxShadow: {
         box: "0px 2px 8px rgba(0, 0, 0, 0.04), 0px 10px 32px rgba(37, 57, 129, 0.04)",
         input: "0px 10px 30px rgba(25, 28, 32, 0.1)",
@@ -135,6 +140,7 @@ module.exports = {
         icon: "0px 10px 30px rgba(73, 64, 224, 0.5)",
         card: "0px 10px 30px rgba(25, 28, 32, 0.1)",
         lg: "0px 12px 16px -4px rgba(25, 28, 32, 0.08), 0px 4px 6px -2px rgba(25, 28, 32, 0.03)",
+        "card-new": "0px 16px 32px -12px rgba(25, 28, 32, 0.10)",
       },
 
       fontFamily: {
@@ -160,6 +166,9 @@ module.exports = {
         32: "calc(32 * 1rem / 16)",
       },
 
+      lineHeight: {
+        "1px": "1px",
+      },
       gridTemplateColumns: {
         "1fr/auto": "1fr auto",
         "auto/1fr": "auto 1fr",

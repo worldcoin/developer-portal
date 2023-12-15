@@ -1,10 +1,14 @@
-import { Illustration } from "@/components/Auth/Illustration";
-import { Button } from "@/components/Button";
-import { Dialog } from "@/components/Dialog";
+import { Button } from "@/components/Button2";
+import { Dialog } from "@/components/Dialog2";
 import { memo, useCallback } from "react";
-import { TeamMember, useDeleteTeamMember } from "@/scenes/team/hooks/useTeam";
+import {
+  Team,
+  TeamMember,
+  useDeleteTeamMember,
+} from "@/scenes/team/hooks/useTeam";
 
 export interface RemoveMemberDialogProps {
+  team: Team;
   memberForRemove?: TeamMember;
   onClose: () => void;
 }
@@ -12,6 +16,8 @@ export interface RemoveMemberDialogProps {
 export const RemoveMemberDialog = memo(function RemoveMemberDialog(
   props: RemoveMemberDialogProps
 ) {
+  const { team } = props;
+
   const { memberForRemove, onClose } = props;
   const { deleteTeamMember, loading } = useDeleteTeamMember();
 
@@ -27,38 +33,24 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
       onClose={onClose}
       panelClassName="flex flex-col space-y-8"
     >
-      <div className="flex flex-col items-center space-y-6">
-        <Illustration
-          icon="warning-triangle"
-          color="danger"
-          className="w-[72px] h-[72px]"
-        />
-
-        <div className="flex flex-col space-y-2 text-center">
-          <span className="text-24 font-sora font-semibold">
-            Remove team member
-          </span>
-
-          <span className="text-14">
-            Are you sure you want to remove your team member
-            <b>&nbsp;{memberForRemove?.name}</b>? This will delete their
-            Developer Portal account.
-          </span>
-        </div>
+      <div className="leading-7 font-medium text-20 text-gray-900">
+        Remove member
       </div>
 
-      <Button
-        variant="danger"
-        className="py-4.5 px-9"
-        onClick={handleConfirm}
-        disabled={loading}
-      >
-        Delete member
-      </Button>
+      <div className="mt-2 leading-5 text-14 text-gray-500">
+        Do you really want to remove an {team.name} team member? Remember, this
+        action is permanent.
+      </div>
 
-      <Button variant="plain" onClick={onClose}>
-        Cancel
-      </Button>
+      <div className="grid grid-cols-2 items-center space-x-3 mt-7">
+        <Button variant="contained" onClick={onClose}>
+          No
+        </Button>
+
+        <Button variant="outlined" onClick={handleConfirm} disabled={loading}>
+          Yes, remove
+        </Button>
+      </div>
     </Dialog>
   );
 });

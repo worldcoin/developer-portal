@@ -1,12 +1,8 @@
-import { memo, useCallback, useEffect, useState } from "react";
-import { Dialog } from "@/components/Dialog";
-import { DialogHeader } from "@/components/DialogHeader";
-import { FieldLabel } from "@/components/FieldLabel";
-import { Button } from "@/components/Button";
+import { memo, useCallback, useState } from "react";
+import { Dialog } from "@/components/Dialog2";
+import { Button } from "@/components/Button2";
 import { EmailsInput } from "./EmailsInput";
 import { Icon } from "@/components/Icon";
-import cn from "classnames";
-import { DialogHeaderIcon } from "@/components/DialogHeaderIcon";
 import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMembers.generated";
 import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { toast } from "react-toastify";
@@ -47,46 +43,48 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
-      <DialogHeader
-        icon={<DialogHeaderIcon icon="user-add" />}
-        title="Invite New Members"
+      <div className="leading-7 font-medium text-20 text-gray-900">
+        Invite member
+      </div>
+
+      <div className="mt-2 leading-5 text-14 text-gray-500">
+        Add multiple team members by separating them with a comma.
+      </div>
+
+      <EmailsInput
+        className="mt-5"
+        placeholder="Email address"
+        disabled={loading}
+        value={emails}
+        onChange={setEmails}
       />
 
-      <div>
-        <div className="flex flex-col gap-y-2">
-          <FieldLabel required>Invite by email</FieldLabel>
-
-          <EmailsInput
-            placeholder="Email, comma separates invite"
-            disabled={loading}
-            value={emails}
-            onChange={setEmails}
-          />
-        </div>
-
+      <div className="grid grid-cols-2 items-center space-x-3 mt-7">
         <Button
-          className={cn("w-full gap-x-4 h-[56px] mt-12 font-medium", {
-            "!text-accents-success-700 !bg-accents-success-300":
-              called && !error && !loading,
-          })}
+          variant="contained"
+          color={!loading && called && !error ? "success" : undefined}
           disabled={loading}
           onClick={handleSubmit}
         >
           {loading && (
             <>
-              <Icon name="spinner" className="h-5 w-5" />
+              <Icon name="spinner2" className="h-5 w-5 animate-spin" />
               Sending
             </>
           )}
 
           {!loading && called && !error && (
             <>
-              <Icon name="check" className="h-5 w-5" />
+              <Icon name="check2" className="h-5 w-5" />
               Invite sent
             </>
           )}
 
           {((!loading && !called) || error) && "Send invite"}
+        </Button>
+
+        <Button variant="outlined" onClick={onClose}>
+          Cancel
         </Button>
       </div>
     </Dialog>

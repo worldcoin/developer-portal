@@ -1,58 +1,48 @@
 import { useToggle } from "@/hooks/useToggle";
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 import { InviteMembersDialog } from "./InviteMembersDialog";
-import { TeamMember } from "@/scenes/team/hooks/useTeam";
-import { Button } from "src/components/Button";
-import { Member } from "./Member";
+import { Team, TeamMember } from "@/scenes/team/hooks/useTeam";
+import { Icon } from "@/components/Icon";
+import { Member } from "@/scenes/team/MemberList/Member";
 
 export interface MemberListProps {
+  team: Team;
   members: TeamMember[];
 }
 
 export const MemberList = memo(function MemberList(props: MemberListProps) {
-  const { members } = props;
+  const { team, members } = props;
   const inviteDialog = useToggle();
 
-  const [keyword, setKeyword] = useState("");
-
-  const filteredMembers = useMemo(() => {
-    if (!keyword) return members;
-    return members.filter((member) => {
-      return member.name.includes(keyword) || member.email?.includes(keyword);
-    });
-  }, [keyword, members]);
-
   return (
-    <div>
+    <>
+      <div className="flex items-center gap-x-2 mt-12">
+        <div className="font-medium">Members</div>
+
+        <div className="flex items-center h-5 px-1 leading-4 text-12 text-gray-400 border border-gray-300 rounded">
+          {members?.length ?? 0}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mt-6">
+        {members?.map((member, index) => (
+          <Member key={index} team={team} member={member} index={index} />
+        ))}
+
+        <button
+          className="flex items-center gap-x-3 px-4 py-6 text-gray-900 border border-dashed border-gray-300 rounded-xl"
+          onClick={inviteDialog.toggleOn}
+        >
+          <Icon name="add" className="w-4 h-4" />
+
+          <div className="leading-6 font-medium text-14">Invite member</div>
+        </button>
+      </div>
+
       <InviteMembersDialog
         open={inviteDialog.isOn}
         onClose={inviteDialog.toggleOff}
       />
-
-      <div className="grid gap-y-4">
-        <div className="flex justify-between text-14 mt-4">
-          <div className="space-x-2">
-            <span className="font-medium">Team members</span>
-
-            <span className="bg-ebecef py-1 px-1.5 rounded-[4px]">
-              {members.length}
-            </span>
-          </div>
-
-          <Button
-            className="py-3.5 px-8 uppercase"
-            onClick={inviteDialog.toggleOn}
-          >
-            Invite new members
-          </Button>
-        </div>
-
-        <div className="grid gap-y-4">
-          {filteredMembers.map((member, key) => (
-            <Member key={key} member={member} length={members.length} />
-          ))}
-        </div>
-      </div>
-    </div>
+    </>
   );
 });

@@ -1,11 +1,5 @@
-import { toast } from "react-toastify";
+import { useFetchUserQuery } from "../graphql/fetch-user.generated";
 
-import {
-  useFetchUserQuery,
-  FetchUserDocument,
-} from "../graphql/fetch-user.generated";
-
-import { useUpdateUserMutation } from "../graphql/update-user.generated";
 import { useRouter } from "next/router";
 import { UserContext, useUser } from "@auth0/nextjs-auth0/client";
 
@@ -48,15 +42,4 @@ export const useFetchUser = () => {
       },
     },
   };
-};
-
-export const useUpdateUser = (id: string) => {
-  const [updateUser, other] = useUpdateUserMutation({
-    refetchQueries: [{ query: FetchUserDocument, variables: { id } }],
-    onCompleted: () => {
-      toast.success("Profile updated");
-    },
-  });
-
-  return { updateUser, ...other };
 };
