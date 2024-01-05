@@ -24,7 +24,7 @@ export const urls = {
     if (!params) {
       return baseUrl;
     }
-    
+
     const searchParams = new URLSearchParams(params);
     return `${baseUrl}?${searchParams.toString()}`;
   },
