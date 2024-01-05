@@ -155,7 +155,10 @@ export default async function handleVerify(
     }
   );
   if (error || !success) {
-    posthog.capture("action_verify_failed", { action_id: action.id });
+    posthog.capture("action_verify_failed", {
+      action_id: action.id,
+      error: error,
+    });
     return errorResponse(
       res,
       error?.statusCode || 400,

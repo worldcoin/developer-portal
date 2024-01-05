@@ -5116,6 +5116,8 @@ export enum User_Constraint {
   UserEmailKey = "user_email_key",
   /** unique or primary key constraint on columns "id" */
   UserPkey = "user_pkey",
+  /** unique or primary key constraint on columns "posthog_id" */
+  UserPosthogIdKey = "user_posthog_id_key",
 }
 
 /** input type for inserting data into table "user" */

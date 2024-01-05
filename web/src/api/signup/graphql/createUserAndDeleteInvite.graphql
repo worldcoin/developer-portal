@@ -2,7 +2,6 @@ mutation CreateUserAndDeleteInvite(
   $team_id: String!
   $nullifier: String!
   $ironclad_id: String!
-  $posthog_id: String!
   $invite_id: String!
   $auth0Id: String!
 ) {
@@ -11,7 +10,6 @@ mutation CreateUserAndDeleteInvite(
       team_id: $team_id
       world_id_nullifier: $nullifier
       ironclad_id: $ironclad_id
-      posthog_id: $posthog_id
       auth0Id: $auth0Id
     }
   ) {
