@@ -16,7 +16,7 @@ const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
 });
 
-export const App = memo(function App(props: { appId: string }) {
+export const App = memo(function App() {
   const { isLoading } = useApps();
   const { currentApp } = useAppStore(getStore, shallow);
 

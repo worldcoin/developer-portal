@@ -36,6 +36,7 @@ type User = {
   ironclad_id?: string;
   world_id_nullifier?: string | null;
   team_id?: string;
+  posthog_id?: string | null;
 };
 
 export const handleSignup = withApiAuthRequired(
@@ -67,6 +68,7 @@ export const handleSignup = withApiAuthRequired(
 
     const ironcladActivityApi = new IroncladActivityApi();
     const ironCladUserId = crypto.randomUUID();
+    const postHogID = crypto.randomUUID();
 
     try {
       const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
@@ -111,6 +113,7 @@ export const handleSignup = withApiAuthRequired(
         team_id: invite.team.id,
         ironclad_id: ironCladUserId,
         nullifier: nullifier_hash ?? "",
+        posthog_id: postHogID,
         invite_id: invite.id,
         auth0Id: auth0User.sub,
       });
@@ -119,6 +122,7 @@ export const handleSignup = withApiAuthRequired(
         id: createdUser?.id,
         ironclad_id: createdUser?.ironclad_id,
         world_id_nullifier: createdUser?.world_id_nullifier,
+        posthog_id: createdUser?.posthog_id,
         team_id: createdUser?.team_id,
       };
     } else {
@@ -129,6 +133,7 @@ export const handleSignup = withApiAuthRequired(
           name: auth0User.name,
           auth0Id: auth0User.sub,
           ironclad_id: ironCladUserId,
+          posthog_id: postHogID,
           ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
 
           ...(auth0User.email_verified && auth0User.email
@@ -140,8 +145,10 @@ export const handleSignup = withApiAuthRequired(
       user = {
         id: signupData.insert_team_one?.users[0].id,
         ironclad_id: signupData.insert_team_one?.users[0].ironclad_id,
+        posthog_id: signupData.insert_team_one?.users[0].ironclad_id,
         world_id_nullifier:
           signupData.insert_team_one?.users[0].world_id_nullifier,
+
         team_id: signupData.insert_team_one?.id,
       };
     }

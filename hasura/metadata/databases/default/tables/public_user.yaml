@@ -15,6 +15,7 @@ insert_permissions:
         - ironclad_id
         - is_subscribed
         - name
+        - posthog_id
         - team_id
         - world_id_nullifier
 select_permissions:
@@ -27,6 +28,7 @@ select_permissions:
         - id
         - ironclad_id
         - name
+        - posthog_id
         - team_id
         - updated_at
         - world_id_nullifier

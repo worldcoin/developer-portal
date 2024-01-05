@@ -6,6 +6,7 @@ mutation Signup($team_name: String!, $data: [user_insert_input!]!) {
       id
       ironclad_id
       world_id_nullifier
+      posthog_id
       auth0Id
     }
   }

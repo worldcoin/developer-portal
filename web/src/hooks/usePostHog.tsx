@@ -14,7 +14,8 @@ if (typeof window !== "undefined") {
   });
 }
 
-export const usePostHog = (): void => {
+// Make a graphql Query then call identify
+export const usePostHog = async (): Promise<void> => {
   const router = useRouter();
 
   useEffect((): (() => void) => {

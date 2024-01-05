@@ -8,6 +8,7 @@ export type CreateUserAndDeleteInviteMutationVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
   nullifier: Types.Scalars["String"];
   ironclad_id: Types.Scalars["String"];
+  posthog_id: Types.Scalars["String"];
   invite_id: Types.Scalars["String"];
   auth0Id: Types.Scalars["String"];
 }>;
@@ -19,6 +20,7 @@ export type CreateUserAndDeleteInviteMutation = {
     id: string;
     team_id: string;
     ironclad_id: string;
+    posthog_id?: string | null;
     world_id_nullifier?: string | null;
     auth0Id?: string | null;
   } | null;
@@ -30,6 +32,7 @@ export const CreateUserAndDeleteInviteDocument = gql`
     $team_id: String!
     $nullifier: String!
     $ironclad_id: String!
+    $posthog_id: String!
     $invite_id: String!
     $auth0Id: String!
   ) {
@@ -38,12 +41,14 @@ export const CreateUserAndDeleteInviteDocument = gql`
         team_id: $team_id
         world_id_nullifier: $nullifier
         ironclad_id: $ironclad_id
+        posthog_id: $posthog_id
         auth0Id: $auth0Id
       }
     ) {
       id
       team_id
       ironclad_id
+      posthog_id
       world_id_nullifier
       auth0Id
     }

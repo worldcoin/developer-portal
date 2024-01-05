@@ -5019,6 +5019,7 @@ export type User = {
   ironclad_id: Scalars["String"];
   is_subscribed: Scalars["Boolean"];
   name: Scalars["String"];
+  posthog_id?: Maybe<Scalars["String"]>;
   /** An object relationship */
   team: Team;
   team_id: Scalars["String"];
@@ -5100,6 +5101,7 @@ export type User_Bool_Exp = {
   ironclad_id?: InputMaybe<String_Comparison_Exp>;
   is_subscribed?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  posthog_id?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -5125,6 +5127,7 @@ export type User_Insert_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -5140,6 +5143,7 @@ export type User_Max_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -5153,6 +5157,7 @@ export type User_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -5167,6 +5172,7 @@ export type User_Min_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -5180,6 +5186,7 @@ export type User_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -5210,6 +5217,7 @@ export type User_Order_By = {
   ironclad_id?: InputMaybe<Order_By>;
   is_subscribed?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -5237,6 +5245,8 @@ export enum User_Select_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -5266,6 +5276,7 @@ export type User_Set_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5288,6 +5299,7 @@ export type User_Stream_Cursor_Value_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5309,6 +5321,8 @@ export enum User_Update_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */
