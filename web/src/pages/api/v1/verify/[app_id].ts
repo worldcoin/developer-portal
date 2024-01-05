@@ -16,7 +16,7 @@ import {
   VerificationLevel,
 } from "@worldcoin/idkit-core";
 import * as yup from "yup";
-import { captureEvent } from "@/lib/posthogClient";
+import { captureEvent } from "@/services/posthogClient";
 
 const schema = yup.object({
   action: yup
