@@ -49,6 +49,7 @@ posthog.init(publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_API_KEY!, {
   loaded: (posthog) => {
     if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
   },
+  disable_session_recording: true,
 });
 
 export default async function handleVerify(

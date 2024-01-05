@@ -11,6 +11,7 @@ if (typeof window !== "undefined") {
     loaded: (posthog) => {
       if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
     },
+    disable_session_recording: true,
   });
 }
 
