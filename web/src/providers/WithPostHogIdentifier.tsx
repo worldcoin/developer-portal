@@ -17,7 +17,7 @@ const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
     // Fetch the PostHog ID for the current user
 
     if (!isLoading) {
-      if (user) {
+      if (user && user.hasura) {
         // If the user is logged in, identify them with PostHog
         posthog.identify(user.hasura.posthog_id!, {
           email: user.email,

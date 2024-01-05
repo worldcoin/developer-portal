@@ -16,6 +16,9 @@ import {
   VerificationLevel,
 } from "@worldcoin/idkit-core";
 import * as yup from "yup";
+import posthog from "posthog-js";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 const schema = yup.object({
   action: yup
@@ -38,6 +41,14 @@ const schema = yup.object({
         ),
     }),
   credential_type: yup.string().oneOf(Object.values(CredentialType)),
+});
+
+posthog.init(publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_API_KEY!, {
+  api_host:
+    publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
+  loaded: (posthog) => {
+    if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
+  },
 });
 
 export default async function handleVerify(
@@ -143,6 +154,7 @@ export default async function handleVerify(
     }
   );
   if (error || !success) {
+    posthog.capture("action_verify_failed", { action_id: action.id });
     return errorResponse(
       res,
       error?.statusCode || 400,
@@ -203,6 +215,7 @@ export default async function handleVerify(
           req
         );
       }
+      posthog.capture("action_verify_success", { action_id: action.id });
 
       res.status(200).json({
         uses: 1,
