@@ -8,6 +8,14 @@ import React, { useEffect } from "react";
 interface WithPostHogProps {
   children: React.ReactNode;
 }
+interface HasuraUserData {
+  posthog_id: string;
+  id: string;
+  auth0Id: string;
+  team_id: string;
+  email: string;
+  name: string;
+}
 
 const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
   const { user, isLoading } = useUser();
@@ -15,11 +23,11 @@ const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
 
   useEffect(() => {
     // Fetch the PostHog ID for the current user
-
     if (!isLoading) {
       if (user && user.hasura) {
+        const userData = user.hasura as HasuraUserData;
         // If the user is logged in, identify them with PostHog
-        posthog.identify(user.hasura.posthog_id!, {
+        posthog.identify(userData.posthog_id!, {
           email: user.email,
           // You can add more user properties here if needed
         });
