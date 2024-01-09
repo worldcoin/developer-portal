@@ -1,3 +1,4 @@
+"use server";
 import { PostHog } from "posthog-node";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
@@ -7,7 +8,7 @@ interface CaptureEventParams {
   properties: object;
 }
 
-// Function to initialize PostHog
+// Only use this function in the server
 function initializePostHog(): PostHog | null {
   if (!publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_API_KEY) {
     // API Key not available
@@ -35,7 +36,7 @@ export function captureEvent({
     posthogClient.capture({
       distinctId,
       event,
-      properties,
+      properties: { ...properties, $geoip_disable: true },
     });
   }
 }
