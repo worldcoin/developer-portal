@@ -27,6 +27,7 @@ select_permissions:
         - id
         - ironclad_id
         - name
+        - posthog_id
         - team_id
         - updated_at
         - world_id_nullifier
@@ -58,7 +59,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - email
         - name
       filter:
         id:

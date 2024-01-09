@@ -1583,13 +1583,13 @@ export type Auth_Code = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at: Scalars["timestamptz"];
-  credential_type: Scalars["String"];
   expires_at: Scalars["timestamptz"];
   id: Scalars["String"];
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash: Scalars["String"];
   scope?: Maybe<Scalars["jsonb"]>;
   updated_at: Scalars["timestamptz"];
+  verification_level: Scalars["String"];
 };
 
 /** columns and relationships of "auth_code" */
@@ -1633,13 +1633,13 @@ export type Auth_Code_Bool_Exp = {
   code_challenge?: InputMaybe<String_Comparison_Exp>;
   code_challenge_method?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  credential_type?: InputMaybe<String_Comparison_Exp>;
   expires_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nonce?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   scope?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verification_level?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth_code" */
@@ -1670,13 +1670,13 @@ export type Auth_Code_Insert_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** aggregate max on columns */
@@ -1687,12 +1687,12 @@ export type Auth_Code_Max_Fields = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_level?: Maybe<Scalars["String"]>;
 };
 
 /** aggregate min on columns */
@@ -1703,12 +1703,12 @@ export type Auth_Code_Min_Fields = {
   code_challenge?: Maybe<Scalars["String"]>;
   code_challenge_method?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   expires_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_level?: Maybe<Scalars["String"]>;
 };
 
 /** response of any mutation on the table "auth_code" */
@@ -1734,13 +1734,13 @@ export type Auth_Code_Order_By = {
   code_challenge?: InputMaybe<Order_By>;
   code_challenge_method?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   expires_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   scope?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verification_level?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: auth_code */
@@ -1766,8 +1766,6 @@ export enum Auth_Code_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
@@ -1779,6 +1777,8 @@ export enum Auth_Code_Select_Column {
   Scope = "scope",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationLevel = "verification_level",
 }
 
 /** input type for updating data in table "auth_code" */
@@ -1788,13 +1788,13 @@ export type Auth_Code_Set_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** Streaming cursor of the table "auth_code" */
@@ -1812,13 +1812,13 @@ export type Auth_Code_Stream_Cursor_Value_Input = {
   code_challenge?: InputMaybe<Scalars["String"]>;
   code_challenge_method?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   expires_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_level?: InputMaybe<Scalars["String"]>;
 };
 
 /** update columns of table "auth_code" */
@@ -1834,8 +1834,6 @@ export enum Auth_Code_Update_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   ExpiresAt = "expires_at",
   /** column name */
   Id = "id",
@@ -1847,6 +1845,8 @@ export enum Auth_Code_Update_Column {
   Scope = "scope",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationLevel = "verification_level",
 }
 
 export type Auth_Code_Updates = {
@@ -3153,7 +3153,6 @@ export type Nullifier = {
   action: Action;
   action_id: Scalars["String"];
   created_at: Scalars["timestamptz"];
-  credential_type: Scalars["String"];
   id: Scalars["String"];
   nullifier_hash: Scalars["String"];
   updated_at: Scalars["timestamptz"];
@@ -3241,7 +3240,6 @@ export type Nullifier_Bool_Exp = {
   action?: InputMaybe<Action_Bool_Exp>;
   action_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  credential_type?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3266,7 +3264,6 @@ export type Nullifier_Insert_Input = {
   action?: InputMaybe<Action_Obj_Rel_Insert_Input>;
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3278,7 +3275,6 @@ export type Nullifier_Max_Fields = {
   __typename?: "nullifier_max_fields";
   action_id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -3289,7 +3285,6 @@ export type Nullifier_Max_Fields = {
 export type Nullifier_Max_Order_By = {
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3301,7 +3296,6 @@ export type Nullifier_Min_Fields = {
   __typename?: "nullifier_min_fields";
   action_id?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
-  credential_type?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -3312,7 +3306,6 @@ export type Nullifier_Min_Fields = {
 export type Nullifier_Min_Order_By = {
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3340,7 +3333,6 @@ export type Nullifier_Order_By = {
   action?: InputMaybe<Action_Order_By>;
   action_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
-  credential_type?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3359,8 +3351,6 @@ export enum Nullifier_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
-  CredentialType = "credential_type",
-  /** column name */
   Id = "id",
   /** column name */
   NullifierHash = "nullifier_hash",
@@ -3374,7 +3364,6 @@ export enum Nullifier_Select_Column {
 export type Nullifier_Set_Input = {
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3426,7 +3415,6 @@ export type Nullifier_Stream_Cursor_Input = {
 export type Nullifier_Stream_Cursor_Value_Input = {
   action_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
-  credential_type?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -3450,8 +3438,6 @@ export enum Nullifier_Update_Column {
   ActionId = "action_id",
   /** column name */
   CreatedAt = "created_at",
-  /** column name */
-  CredentialType = "credential_type",
   /** column name */
   Id = "id",
   /** column name */
@@ -4761,6 +4747,7 @@ export type User = {
   ironclad_id: Scalars["String"];
   is_subscribed: Scalars["Boolean"];
   name: Scalars["String"];
+  posthog_id?: Maybe<Scalars["String"]>;
   /** An object relationship */
   team: Team;
   team_id: Scalars["String"];
@@ -4842,6 +4829,7 @@ export type User_Bool_Exp = {
   ironclad_id?: InputMaybe<String_Comparison_Exp>;
   is_subscribed?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  posthog_id?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -4856,6 +4844,8 @@ export enum User_Constraint {
   UserEmailKey = "user_email_key",
   /** unique or primary key constraint on columns "id" */
   UserPkey = "user_pkey",
+  /** unique or primary key constraint on columns "posthog_id" */
+  UserPosthogIdKey = "user_posthog_id_key",
 }
 
 /** input type for inserting data into table "user" */
@@ -4867,6 +4857,7 @@ export type User_Insert_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -4882,6 +4873,7 @@ export type User_Max_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -4895,6 +4887,7 @@ export type User_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -4909,6 +4902,7 @@ export type User_Min_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -4922,6 +4916,7 @@ export type User_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -4952,6 +4947,7 @@ export type User_Order_By = {
   ironclad_id?: InputMaybe<Order_By>;
   is_subscribed?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -4979,6 +4975,8 @@ export enum User_Select_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -5008,6 +5006,7 @@ export type User_Set_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5030,6 +5029,7 @@ export type User_Stream_Cursor_Value_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5051,6 +5051,8 @@ export enum User_Update_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */

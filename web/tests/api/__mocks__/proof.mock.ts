@@ -5,6 +5,6 @@ export const semaphoreProofParamsMock = {
     "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
   merkle_root:
     "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7",
-  credential_type: "orb",
-  signal: "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7", // because IDKit is currently mocked, we need to pass an already encoded value
+  verification_level: "orb",
+  signal: "my_signal",
 };

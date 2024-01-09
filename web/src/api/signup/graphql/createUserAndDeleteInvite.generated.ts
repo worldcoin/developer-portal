@@ -5,37 +5,49 @@ import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type CreateUserAndDeleteInviteMutationVariables = Types.Exact<{
-  email: Types.Scalars["String"];
   team_id: Types.Scalars["String"];
   nullifier: Types.Scalars["String"];
   ironclad_id: Types.Scalars["String"];
   invite_id: Types.Scalars["String"];
+  auth0Id: Types.Scalars["String"];
 }>;
 
 export type CreateUserAndDeleteInviteMutation = {
   __typename?: "mutation_root";
-  user?: { __typename?: "user"; id: string; team_id: string } | null;
+  user?: {
+    __typename?: "user";
+    id: string;
+    team_id: string;
+    ironclad_id: string;
+    posthog_id?: string | null;
+    world_id_nullifier?: string | null;
+    auth0Id?: string | null;
+  } | null;
   delete_invite_by_pk?: { __typename?: "invite"; id: string } | null;
 };
 
 export const CreateUserAndDeleteInviteDocument = gql`
   mutation CreateUserAndDeleteInvite(
-    $email: String!
     $team_id: String!
     $nullifier: String!
     $ironclad_id: String!
     $invite_id: String!
+    $auth0Id: String!
   ) {
     user: insert_user_one(
       object: {
-        email: $email
         team_id: $team_id
         world_id_nullifier: $nullifier
         ironclad_id: $ironclad_id
+        auth0Id: $auth0Id
       }
     ) {
       id
       team_id
+      ironclad_id
+      posthog_id
+      world_id_nullifier
+      auth0Id
     }
     delete_invite_by_pk(id: $invite_id) {
       id

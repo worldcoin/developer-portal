@@ -19,17 +19,22 @@ import {
 
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { urls } from "src/lib/urls";
+import { Auth0User, LoginErrorCode } from "src/lib/types";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
-import { Auth0User } from "src/lib/types";
 import { isEmailUser } from "src/lib/utils";
+import { logger } from "@/lib/logger";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getSession(req, res);
 
     if (!session) {
-      console.warn("No session found in auth0Login callback.");
-      return res.redirect(307, urls.logout({ error: true }));
+      logger.warn("No session found in auth0Login callback.");
+
+      return res.redirect(
+        307,
+        urls.logout({ login_error: LoginErrorCode.Generic })
+      );
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -42,7 +47,7 @@ export const auth0Login = withApiAuthRequired(
       | null
       | undefined = null;
 
-    // ANCHOR: User is authenticated through Sign in with Worldcoin
+    // ANCHOR: User is authenticated through Sign in with World ID
     if (!isEmailUser(auth0User)) {
       const nullifier = auth0User.sub.split("|")[2];
 
@@ -69,8 +74,13 @@ export const auth0Login = withApiAuthRequired(
           );
         }
       } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+        logger.error(`Error while fetching user for FetchUserByNullifierSdk.`, {
+          error,
+        });
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
 
@@ -78,10 +88,14 @@ export const auth0Login = withApiAuthRequired(
     else if (isEmailUser(auth0User)) {
       // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
       if (!auth0User.email_verified) {
-        console.error(
+        logger.error(
           `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
         );
-        return res.redirect(307, urls.logout({ error: true }));
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.EmailNotVerified })
+        );
       }
 
       try {
@@ -101,13 +115,23 @@ export const auth0Login = withApiAuthRequired(
           user = userData.userByEmail[0];
         }
       } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+        logger.error("Error while fetching user for FetchUserByAuth0IdSdk.", {
+          error,
+        });
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
+    const invite_id = req.query.invite_id as string;
 
     if (!user) {
-      return res.status(200).redirect("/signup");
+      return res.redirect(
+        307,
+        invite_id ? urls.signup({ invite_id }) : urls.signup()
+      );
     }
 
     // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
@@ -139,8 +163,14 @@ export const auth0Login = withApiAuthRequired(
 
         user = userData?.update_user_by_pk;
       } catch (error) {
-        console.error(error);
-        return res.redirect(307, urls.logout({ error: true }));
+        logger.error("Error while updating user for UpdateUserSdk.", {
+          error,
+        });
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
       }
     }
 
@@ -155,6 +185,13 @@ export const auth0Login = withApiAuthRequired(
       },
     });
 
-    return res.redirect(307, urls.app());
+    // NOTE: We redirecting user here because user can have one team only for now
+    return res.redirect(
+      307,
+      urls.app(
+        undefined,
+        invite_id ? { login_error: LoginErrorCode.OneTeamPerPerson } : undefined
+      )
+    );
   }
 );

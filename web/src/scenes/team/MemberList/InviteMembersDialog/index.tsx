@@ -10,6 +10,7 @@ import { DialogHeaderIcon } from "@/components/DialogHeaderIcon";
 import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMembers.generated";
 import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { toast } from "react-toastify";
+import posthog from "posthog-js";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
@@ -27,12 +28,14 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
         }
 
         toast.success("Members invited");
+        posthog.capture("teammate_invite_success");
         reset();
         onClose();
       },
 
       onError: () => {
         toast.error("Cannot invite members, please try again");
+        posthog.capture("teammate_invite_failed", { error: error });
       },
     });
 

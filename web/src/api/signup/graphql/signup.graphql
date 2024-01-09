@@ -1,31 +1,12 @@
-mutation Signup(
-  $nullifier_hash: String!
-  $team_name: String!
-  $ironclad_id: String!
-  $auth0Id: String!
-  $name: String = ""
-  $email: String!
-) {
-  insert_team_one(
-    object: {
-      name: $team_name
-      users: {
-        data: {
-          ironclad_id: $ironclad_id
-          world_id_nullifier: $nullifier_hash
-          auth0Id: $auth0Id
-          name: $name
-          email: $email
-        }
-      }
-    }
-  ) {
+mutation Signup($team_name: String!, $data: [user_insert_input!]!) {
+  insert_team_one(object: { name: $team_name, users: { data: $data } }) {
     id
     name
     users {
       id
       ironclad_id
       world_id_nullifier
+      posthog_id
       auth0Id
     }
   }

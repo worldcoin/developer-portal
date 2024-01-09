@@ -3,6 +3,7 @@ mutation UpdateUser($id: String!, $_set: user_set_input) {
     id
     team_id
     auth0Id
+    posthog_id
     email
     name
   }

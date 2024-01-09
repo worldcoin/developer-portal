@@ -25,7 +25,7 @@ const findAuthCodeQuery = gql`
       }
     ) {
       nullifier_hash
-      credential_type
+      verification_level
       scope
       code_challenge
       code_challenge_method
@@ -142,7 +142,7 @@ export default async function handleOIDCToken(
       Pick<
         AuthCodeModel,
         | "nullifier_hash"
-        | "credential_type"
+        | "verification_level"
         | "scope"
         | "code_challenge"
         | "code_challenge_method"
@@ -219,7 +219,7 @@ export default async function handleOIDCToken(
   const token = await generateOIDCJWT({
     app_id,
     nullifier_hash: code.nullifier_hash,
-    credential_type: code.credential_type,
+    verification_level: code.verification_level,
     ...jwk,
     scope: code.scope,
   });

@@ -14,8 +14,8 @@ function SignIn() {
       pageInfo={
         <PageInfo
           icon="world-id-sign-in"
-          title="Sing in with Worldcoin"
-          text="Create your first app to use Sign in with Worldcoin."
+          title="Sign in with World ID"
+          text="Create your first app to use Sign in with World ID."
         />
       }
     />

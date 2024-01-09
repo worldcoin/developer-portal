@@ -10,8 +10,13 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
+import {
+  AppErrorCodes,
+  CredentialType,
+  VerificationLevel,
+} from "@worldcoin/idkit-core";
 import * as yup from "yup";
+import { captureEvent } from "@/services/posthogClient";
 
 const schema = yup.object({
   action: yup
@@ -19,14 +24,21 @@ const schema = yup.object({
     .strict()
     .nonNullable()
     .defined("This attribute is required."),
-  signal: yup.string().strict().default(""),
+  signal: yup.string().default(""),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .when("credential_type", {
+      is: undefined,
+      then: (verification_level) =>
+        verification_level.required(
+          "`verification_level` required unless deprecated `credential_type` is used."
+        ),
+    }),
+  credential_type: yup.string().oneOf(Object.values(CredentialType)),
 });
 
 export default async function handleVerify(
@@ -90,7 +102,13 @@ export default async function handleVerify(
       action.max_verifications === 1
         ? "This person has already verified for this action."
         : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-    return errorValidation("already_verified", errorMsg, null, res, req);
+    return errorValidation(
+      "max_verifications_reached",
+      errorMsg,
+      null,
+      res,
+      req
+    );
   }
 
   if (!action.external_nullifier) {
@@ -104,6 +122,13 @@ export default async function handleVerify(
     );
   }
 
+  // NOTE: Backwards compatibility support for CredentialType
+  const verification_level =
+    parsedParams.verification_level ||
+    (parsedParams.credential_type === CredentialType.Orb
+      ? VerificationLevel.Orb
+      : VerificationLevel.Device);
+
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
@@ -115,14 +140,22 @@ export default async function handleVerify(
     },
     {
       is_staging: app.is_staging,
-      credential_type: parsedParams.credential_type,
+      verification_level,
     }
   );
   if (error || !success) {
+    await captureEvent({
+      event: "action_verify_failed",
+      distinctId: app.id,
+      properties: {
+        action_id: action.id,
+        error: error,
+      },
+    });
     return errorResponse(
       res,
       error?.statusCode || 400,
-      error?.code || "unknown_error",
+      error?.code || AppErrorCodes.GenericError,
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
       req
@@ -140,8 +173,8 @@ export default async function handleVerify(
 
     if (updateResponse.data.update_nullifier.affected_rows === 0) {
       return errorValidation(
-        "already_verified",
-        "This person has already verified for this action.",
+        AppErrorCodes.MaxVerificationsReached,
+        "This person has already verified for this particular action the maximum number of times allowed.",
         null,
         res,
         req
@@ -163,7 +196,6 @@ export default async function handleVerify(
         variables: {
           action_id: action.id,
           nullifier_hash: parsedParams.nullifier_hash,
-          credential_type: parsedParams.credential_type,
         },
       });
 
@@ -180,7 +212,14 @@ export default async function handleVerify(
           req
         );
       }
-
+      await captureEvent({
+        event: "action_verify_success",
+        distinctId: app.id,
+        properties: {
+          action_id: action.id,
+          error: error,
+        },
+      });
       res.status(200).json({
         uses: 1,
         success: true,
@@ -188,6 +227,7 @@ export default async function handleVerify(
         max_uses: action.max_verifications,
         nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
         created_at: insertResponse.data.insert_nullifier_one.created_at,
+        verification_level,
       });
     } catch (e) {
       if (
@@ -195,8 +235,8 @@ export default async function handleVerify(
         "constraint-violation"
       ) {
         return errorValidation(
-          "already_verified",
-          "This person has already verified for this action.",
+          AppErrorCodes.MaxVerificationsReached,
+          "This person has already verified for this particular action the maximum number of times allowed.",
           null,
           res,
           req
@@ -209,21 +249,12 @@ export default async function handleVerify(
 }
 
 const insertNullifierQuery = gql`
-  mutation InsertNullifier(
-    $action_id: String!
-    $nullifier_hash: String!
-    $credential_type: String!
-  ) {
+  mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
     insert_nullifier_one(
-      object: {
-        action_id: $action_id
-        nullifier_hash: $nullifier_hash
-        credential_type: $credential_type
-      }
+      object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
     ) {
       created_at
       nullifier_hash
-      credential_type
     }
   }
 `;

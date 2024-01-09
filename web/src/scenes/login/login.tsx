@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Auth } from "src/components/Auth";
 import { Button } from "src/components/Button";
@@ -9,27 +8,19 @@ import { ILoginPageProps } from "src/pages/login";
 import Image from "next/image";
 import torShape from "public/images/tor-shape.svg";
 import cn from "classnames";
+import { loginErrors } from "@/lib/constants";
 
 export function Login({ error }: ILoginPageProps) {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [loginError, setLoginError] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Route user to the correct destination based on the query params
   useEffect(() => {
-    if (router.isReady) {
-      setLoading(false);
-
-      // Handle login error cases
-      if (router.query.error === "login_failed") {
-        setLoginError(true);
-      }
-    }
-  }, [router]);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (error) {
-      setLoginError(true);
+      setLoginError(loginErrors[error]);
     }
   }, [error]);
 
@@ -68,7 +59,7 @@ export function Login({ error }: ILoginPageProps) {
         >
           {loginError && (
             <div className="bg-danger-light px-6 py-4 mb-20 -mt-10 rounded-md text-danger font-medium">
-              There was a problem with your login. Please try again.
+              {loginError}
             </div>
           )}
 

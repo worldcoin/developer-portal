@@ -10,7 +10,7 @@ insert_permissions:
         - auth_code
         - code_challenge
         - code_challenge_method
-        - credential_type
+        - verification_level
         - expires_at
         - nonce
         - nullifier_hash
@@ -23,7 +23,7 @@ select_permissions:
         - auth_code
         - code_challenge
         - code_challenge_method
-        - credential_type
+        - verification_level
         - expires_at
         - id
         - nonce

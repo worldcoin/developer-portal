@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "src/backend/cors";
 import {
@@ -20,7 +21,7 @@ import {
 import { validateRequestSchema } from "src/backend/utils";
 import { verifyProof } from "src/backend/verify";
 import { logger } from "src/lib/logger";
-import { CredentialType, OIDCFlowType, OIDCResponseType } from "src/lib/types";
+import { OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`
@@ -35,15 +36,23 @@ const UpsertNullifier = gql`
   }
 `;
 
+const Nullifier = gql`
+  query Nullifier($nullifier_hash: String!) {
+    nullifier(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+      id
+    }
+  }
+`;
+
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup.object({
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .required("This attribute is required."),
   app_id: yup.string().strict().required("This attribute is required."),
   signal: yup.string().strict().required("This attribute is required."), // `signal` in the context of World ID; `nonce` in the context of OIDC
   code_challenge: yup.string(),
@@ -90,7 +99,7 @@ export default async function handleOIDCAuthorize(
     nullifier_hash,
     merkle_root,
     signal,
-    credential_type,
+    verification_level,
     response_type,
     app_id,
     scope,
@@ -185,7 +194,7 @@ export default async function handleOIDCAuthorize(
     },
     {
       is_staging: app.is_staging,
-      credential_type,
+      verification_level,
     }
   );
   if (verifyError) {
@@ -210,7 +219,7 @@ export default async function handleOIDCAuthorize(
     response.code = await generateOIDCCode(
       app.id,
       nullifier_hash,
-      credential_type,
+      verification_level,
       sanitizedScopes,
       code_challenge,
       code_challenge_method,
@@ -231,7 +240,7 @@ export default async function handleOIDCAuthorize(
         jwt = await generateOIDCJWT({
           app_id: app.id,
           nullifier_hash,
-          credential_type,
+          verification_level,
           nonce: signal,
           scope: sanitizedScopes,
           ...jwk,
@@ -244,31 +253,55 @@ export default async function handleOIDCAuthorize(
 
   const client = await getAPIServiceClient();
 
+  let hasNullifier: boolean = false;
+
   try {
-    const { data: insertNullifierResult } = await client.mutate<{
-      insert_nullifier_one: {
+    const fetchNullifierResult = await client.query<{
+      nullifier: {
         id: string;
-        nullifier_hash: string;
-      };
+      }[];
     }>({
-      mutation: UpsertNullifier,
+      query: Nullifier,
       variables: {
-        object: {
-          nullifier_hash,
-          credential_type,
-          action_id: app.action_id,
-        },
-        on_conflict: {
-          constraint: "nullifier_pkey",
-        },
+        nullifier_hash,
       },
     });
 
-    if (!insertNullifierResult?.insert_nullifier_one) {
-      logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
+    if (!fetchNullifierResult.data.nullifier) {
+      logger.error("Error fetching nullifier.", fetchNullifierResult ?? {});
     }
+
+    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
   } catch (error) {
     logger.error("Error inserting nullifier", { req, error });
+  }
+
+  if (!hasNullifier) {
+    try {
+      const { data: insertNullifierResult } = await client.mutate<{
+        insert_nullifier_one: {
+          id: string;
+          nullifier_hash: string;
+        };
+      }>({
+        mutation: UpsertNullifier,
+        variables: {
+          object: {
+            nullifier_hash,
+            action_id: app.action_id,
+          },
+          on_conflict: {
+            constraint: "nullifier_pkey",
+          },
+        },
+      });
+
+      if (!insertNullifierResult?.insert_nullifier_one) {
+        logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
+      }
+    } catch (error) {
+      logger.error("Error inserting nullifier", { req, error });
+    }
   }
 
   res.status(200).json(response);

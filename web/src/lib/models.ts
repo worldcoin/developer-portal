@@ -2,8 +2,9 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
+import { AppStatusType, EngineType } from "src/lib/types";
 
 type DateTime = string;
 
@@ -24,7 +25,7 @@ export interface TeamMemberModel {
 }
 
 export interface AppModel {
-  id: string;
+  id: `app_${string}`;
   name: string;
   description_internal: string;
   is_staging: boolean;
@@ -48,7 +49,7 @@ export interface ActionModel {
   external_nullifier: string;
   max_verifications: number;
   max_accounts_per_user: number;
-  app_id: string;
+  app_id: `app_${string}`;
   client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
@@ -72,7 +73,6 @@ export interface NullifierModel {
   nullifier_hash: string;
   created_at: DateTime;
   updated_at: DateTime;
-  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
@@ -117,7 +117,7 @@ export interface AuthCodeModel {
   nullifier_hash: string;
   code_challenge: string;
   code_challenge_method: string;
-  credential_type: CredentialType;
+  verification_level: VerificationLevel;
   scope: [];
   created_at: DateTime;
   updated_at: DateTime;

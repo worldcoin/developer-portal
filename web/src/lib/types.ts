@@ -10,11 +10,6 @@ export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
 };
 
-export enum CredentialType {
-  Orb = "orb",
-  Phone = "phone",
-}
-
 export enum EngineType {
   OnChain = "on-chain",
   Cloud = "cloud",
@@ -115,3 +110,9 @@ export type Auth0WorldcoinUser = {
 };
 
 export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser;
+
+export enum LoginErrorCode {
+  OneTeamPerPerson = "one-team-per-person",
+  Generic = "generic",
+  EmailNotVerified = "email-not-verified",
+}

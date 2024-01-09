@@ -3,6 +3,7 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     id
     auth0Id
     team_id
+    posthog_id
     email
     name
   }
@@ -11,6 +12,7 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     id
     auth0Id
     team_id
+    posthog_id
     email
     name
   }

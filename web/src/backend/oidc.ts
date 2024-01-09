@@ -1,15 +1,11 @@
 import { gql } from "@apollo/client";
 import crypto from "crypto";
 import { ActionModel, AppModel, RedirectModel } from "src/lib/models";
-import {
-  CredentialType,
-  IInternalError,
-  OIDCFlowType,
-  OIDCResponseType,
-} from "src/lib/types";
+import { IInternalError, OIDCFlowType, OIDCResponseType } from "src/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
 import { logger } from "src/lib/logger";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 
 export const OIDCResponseTypeMapping = {
   code: OIDCResponseType.Code,
@@ -74,7 +70,7 @@ export const insertAuthCodeQuery = gql`
     $expires_at: timestamptz!
     $nullifier_hash: String!
     $app_id: String!
-    $credential_type: String!
+    $verification_level: String!
     $scope: jsonb!
     $nonce: String
   ) {
@@ -86,7 +82,7 @@ export const insertAuthCodeQuery = gql`
         expires_at: $expires_at
         nullifier_hash: $nullifier_hash
         app_id: $app_id
-        credential_type: $credential_type
+        verification_level: $verification_level
         scope: $scope
         nonce: $nonce
       }
@@ -157,7 +153,7 @@ export const fetchOIDCApp = async (
 export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
-  credential_type: CredentialType,
+  verification_level: VerificationLevel,
   scope: OIDCScopes[],
   code_challenge?: string,
   code_challenge_method?: string,
@@ -183,7 +179,7 @@ export const generateOIDCCode = async (
       code_challenge_method,
       expires_at: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
       nullifier_hash,
-      credential_type,
+      verification_level,
       scope,
       nonce,
     },

@@ -1,8 +1,9 @@
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import cn from "classnames";
+import { QRCode } from "@worldcoin/idkit/internal";
 import { memo, useCallback, useState } from "react";
 import { Spinner } from "src/components/Spinner";
 import { IKioskStore, useKioskStore } from "src/stores/kioskStore";
+
 const getKioskStoreParams = (store: IKioskStore) => ({
   qrData: store.qrData,
 });
@@ -15,7 +16,7 @@ export const Waiting = memo(function Waiting() {
     if (!qrData) return;
 
     navigator.clipboard
-      .writeText(qrData.default)
+      .writeText(qrData)
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
@@ -38,7 +39,7 @@ export const Waiting = memo(function Waiting() {
         )}
       >
         <div className="z-10">
-          {qrData && <IDKitInternal.QRCode data={qrData.default} size={280} />}
+          {qrData && <QRCode data={qrData} size={320} />}
         </div>
       </div>
       <button

@@ -7,7 +7,7 @@ import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
-import { internal } from "@worldcoin/idkit";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -112,7 +112,13 @@ const createActionQuery = gql`
 
 const schema = yup.object().shape({
   action: yup.string().strict().nullable().default(""),
-  nullifier_hash: yup.string().strict().nullable().default(""),
+
+  nullifier_hash: yup
+    .string()
+    .nullable()
+    .default("")
+    .transform((value) => (value === null ? "" : value)),
+
   external_nullifier: yup
     .string()
     .strict()
@@ -151,18 +157,19 @@ export default async function handlePrecheck(
     return handleError(req, res);
   }
 
-  const app_id = req.query.app_id as string;
+  const app_id = req.query.app_id as `app_${string}`;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
   const external_nullifier =
     parsedParams.external_nullifier ??
-    internal.generateExternalNullifier(app_id, action).digest;
+    generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
   // ANCHOR: Fetch app from Hasura
   const appQueryResult = await client.query<AppPrecheckQueryInterface>({
     query: appPrecheckQuery,
+
     variables: {
       app_id,
       nullifier_hash,
@@ -242,8 +249,16 @@ export default async function handlePrecheck(
   const response = {
     ...app,
     actions: undefined,
-    sign_in_with_world_id: action === "",
+    sign_in_with_world_id: action === "", // DEPRECATED: will be removed in v2
+    is_sign_in: action === "",
     action: { ...actionItem, nullifiers: undefined },
+    ...(nullifier
+      ? {
+          nullifier: {
+            uses: nullifier?.uses,
+          },
+        }
+      : {}),
     can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
   };
 

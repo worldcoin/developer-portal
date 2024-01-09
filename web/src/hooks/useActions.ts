@@ -1,6 +1,6 @@
+import { generateExternalNullifier } from "@/lib/hashing";
 import { ActionModelWithNullifiers } from "@/lib/models";
 import { gql } from "@apollo/client";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { graphQLRequest } from "src/lib/frontend-api";
@@ -27,7 +27,6 @@ const actionFields = `
       id
       created_at
       nullifier_hash
-      credential_type
   }
 `;
 
@@ -160,7 +159,7 @@ const insertActionFetcher = async (_key: [string, string | undefined]) => {
   const { name, description, action, maxVerifications } =
     useActionStore.getState().newAction;
 
-  const external_nullifier = IDKitInternal.generateExternalNullifier(
+  const external_nullifier = generateExternalNullifier(
     currentApp.id,
     action
   ).digest;

@@ -16,6 +16,7 @@ export type FetchEmailUserQuery = {
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    posthog_id?: string | null;
     email?: string | null;
     name: string;
   }>;
@@ -24,6 +25,7 @@ export type FetchEmailUserQuery = {
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    posthog_id?: string | null;
     email?: string | null;
     name: string;
   }>;
@@ -35,6 +37,7 @@ export const FetchEmailUserDocument = gql`
       id
       auth0Id
       team_id
+      posthog_id
       email
       name
     }
@@ -42,6 +45,7 @@ export const FetchEmailUserDocument = gql`
       id
       auth0Id
       team_id
+      posthog_id
       email
       name
     }

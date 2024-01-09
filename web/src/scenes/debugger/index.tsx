@@ -12,7 +12,7 @@ import { Toggler } from "../../components/Toggler";
 import { Result } from "./Result";
 
 enum DebuggerMode {
-  SignIn = "Sign in with Worldcoin",
+  SignIn = "Sign in with World ID",
   Actions = "Actions",
 }
 
@@ -25,7 +25,7 @@ const exampleVR = `{
   "nullifier_hash": "0x26a12376e45f7b93fba3d5ddd7f1092eb...",
   "proof": "0x0751916cb52efab89f7045f5174638d072ea60d9e9...",
   "merkle_root": "0x0f6ee51b93a1261af6c4302c30afbbdf8af5...",
-  "credential_type": "orb"
+  "verification_level": "orb"
 }`;
 
 export function Debugger(): JSX.Element {

@@ -1,21 +1,22 @@
-import { Auth0EmailUser, Auth0User, CredentialType } from "src/lib/types";
+import { Auth0EmailUser, Auth0User } from "src/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
 } from "./constants";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 
 // Sequencer mapping
 export const sequencerMapping: Record<
-  CredentialType,
+  VerificationLevel,
   { [key: string]: string | undefined }
 > = {
-  [CredentialType.Orb]: {
+  [VerificationLevel.Orb]: {
     true: ORB_SEQUENCER_STAGING,
     false: ORB_SEQUENCER,
   },
-  [CredentialType.Phone]: {
+  [VerificationLevel.Device]: {
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
   },
