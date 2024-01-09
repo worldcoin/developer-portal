@@ -38,6 +38,7 @@ export async function captureEvent({
       event,
       properties: { ...properties, $geoip_disable: true },
     });
+    posthogClient.flush();
   }
 }
 
