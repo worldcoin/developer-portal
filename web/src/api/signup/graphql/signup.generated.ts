@@ -20,6 +20,7 @@ export type SignupMutation = {
       id: string;
       ironclad_id: string;
       world_id_nullifier?: string | null;
+      posthog_id?: string | null;
       auth0Id?: string | null;
     }>;
   } | null;
@@ -34,6 +35,7 @@ export const SignupDocument = gql`
         id
         ironclad_id
         world_id_nullifier
+        posthog_id
         auth0Id
       }
     }

@@ -36,6 +36,7 @@ type User = {
   ironclad_id?: string;
   world_id_nullifier?: string | null;
   team_id?: string;
+  posthog_id?: string | null;
 };
 
 export const handleSignup = withApiAuthRequired(
@@ -140,6 +141,7 @@ export const handleSignup = withApiAuthRequired(
       user = {
         id: signupData.insert_team_one?.users[0].id,
         ironclad_id: signupData.insert_team_one?.users[0].ironclad_id,
+        posthog_id: signupData.insert_team_one?.users[0].posthog_id,
         world_id_nullifier:
           signupData.insert_team_one?.users[0].world_id_nullifier,
         team_id: signupData.insert_team_one?.id,

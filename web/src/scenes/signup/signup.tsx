@@ -18,6 +18,7 @@ import { Dialog } from "src/components/Dialog";
 import { Link } from "src/components/Link";
 import { SignupSSRProps } from "@/pages/signup";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import posthog from "posthog-js";
 
 const schema = yup.object({
   teamName: yup.string().required("This field is required"),
@@ -70,15 +71,17 @@ export function Signup(props: SignupProps) {
         try {
           const errorData = await response.json();
           console.error("Signup error", { error: errorData });
+          posthog.capture("signup-failed", { error: errorData });
         } catch (error) {
           console.error("Signup error", { error });
+          posthog.capture("signup-failed", { error: error });
         }
-
         return toast.error("Something went wrong. Please try again later.");
       }
       checkSession();
 
       const { returnTo } = await response.json();
+      posthog.capture("signup-success");
       router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
     },
     [checkSession, props.invite?.id, router]

@@ -10,6 +10,7 @@ query FetchNullifierUser($auth0Id: String!, $world_id_nullifier: String!) {
     id
     auth0Id
     team_id
+    posthog_id
     name
     email
   }
