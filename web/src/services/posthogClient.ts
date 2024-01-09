@@ -24,11 +24,11 @@ function initializePostHog(): PostHog | null {
 // Initialize PostHog only if it hasn't been initialized yet
 let posthogClient: PostHog | null = null;
 
-export function captureEvent({
+export async function captureEvent({
   event,
   distinctId,
   properties,
-}: CaptureEventParams): void {
+}: CaptureEventParams): Promise<void> {
   if (!posthogClient) {
     posthogClient = initializePostHog();
   }

@@ -144,7 +144,7 @@ export default async function handleVerify(
     }
   );
   if (error || !success) {
-    captureEvent({
+    await captureEvent({
       event: "action_verify_failed",
       distinctId: app.id,
       properties: {
@@ -212,7 +212,7 @@ export default async function handleVerify(
           req
         );
       }
-      captureEvent({
+      await captureEvent({
         event: "action_verify_success",
         distinctId: app.id,
         properties: {
