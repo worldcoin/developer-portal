@@ -56,7 +56,7 @@ insert_permissions:
       columns:
         - category
         - description_internal
-        - developer_allow_app_store_listing
+        - is_developer_allow_app_store_listing
         - engine
         - is_archived
         - is_staging
@@ -99,9 +99,9 @@ select_permissions:
         - is_archived
         - category
         - link
-        - developer_allow_app_store_listing
-        - reviewer_app_store_approve
-        - reviewer_world_app_approve
+        - is_developer_allow_app_store_listing
+        - is_reviewer_app_store_approve
+        - is_reviewer_world_app_approve
         - app_store_display_status
         - world_app_description
       filter: {}
@@ -113,14 +113,14 @@ select_permissions:
         - category
         - created_at
         - description_internal
-        - developer_allow_app_store_listing
+        - is_developer_allow_app_store_listing
         - engine
         - id
         - is_staging
         - link
         - name
-        - reviewer_app_store_approve
-        - reviewer_world_app_approve
+        - is_reviewer_app_store_approve
+        - is_reviewer_world_app_approve
         - status
         - team_id
         - world_app_description
@@ -149,7 +149,7 @@ update_permissions:
       columns:
         - category
         - description_internal
-        - developer_allow_app_store_listing
+        - is_developer_allow_app_store_listing
         - is_archived
         - link
         - logo_url
