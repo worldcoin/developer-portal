@@ -1,4 +1,4 @@
-// server-side use only
+"use server";
 import { PostHog } from "posthog-node";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
@@ -8,7 +8,7 @@ interface CaptureEventParams {
   properties: object;
 }
 
-// Function to initialize PostHog
+// Only use this function in the server
 function initializePostHog(): PostHog | null {
   if (!publicRuntimeConfig.NEXT_PUBLIC_POSTHOG_API_KEY) {
     // API Key not available
@@ -24,11 +24,11 @@ function initializePostHog(): PostHog | null {
 // Initialize PostHog only if it hasn't been initialized yet
 let posthogClient: PostHog | null = null;
 
-export function captureEvent({
+export async function captureEvent({
   event,
   distinctId,
   properties,
-}: CaptureEventParams): void {
+}: CaptureEventParams): Promise<void> {
   if (!posthogClient) {
     posthogClient = initializePostHog();
   }
@@ -38,6 +38,7 @@ export function captureEvent({
       event,
       properties: { ...properties, $geoip_disable: true },
     });
+    posthogClient.flush();
   }
 }
 
