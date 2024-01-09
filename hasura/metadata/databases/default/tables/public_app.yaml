@@ -102,14 +102,12 @@ select_permissions:
         - is_developer_allow_app_store_listing
         - is_reviewer_app_store_approve
         - is_reviewer_world_app_approve
-        - app_store_display_status
         - world_app_description
       filter: {}
       limit: 1
   - role: user
     permission:
       columns:
-        - app_store_display_status
         - category
         - created_at
         - description_internal
