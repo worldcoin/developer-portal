@@ -54,13 +54,17 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
+        - category
         - description_internal
+        - developer_allow_app_store_listing
         - engine
         - is_archived
         - is_staging
+        - link
         - logo_url
         - name
         - status
+        - world_app_description
 select_permissions:
   - role: analytics
     permission:
@@ -83,32 +87,43 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - created_at
-        - description_internal
-        - engine
         - id
-        - is_archived
-        - is_staging
-        - name
-        - status
+        - created_at
         - team_id
+        - name
         - verified_at
-      computed_fields:
-        - is_verified
-        - verified_app_logo
+        - description_internal
+        - is_staging
+        - engine
+        - status
+        - is_archived
+        - category
+        - link
+        - developer_allow_app_store_listing
+        - reviewer_app_store_approve
+        - reviewer_world_app_approve
+        - app_store_display_status
+        - world_app_description
       filter: {}
       limit: 1
   - role: user
     permission:
       columns:
+        - app_store_display_status
+        - category
         - created_at
         - description_internal
+        - developer_allow_app_store_listing
         - engine
         - id
         - is_staging
+        - link
         - name
+        - reviewer_app_store_approve
+        - reviewer_world_app_approve
         - status
         - team_id
+        - world_app_description
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -132,11 +147,15 @@ update_permissions:
   - role: user
     permission:
       columns:
+        - category
         - description_internal
+        - developer_allow_app_store_listing
         - is_archived
+        - link
         - logo_url
         - name
         - status
+        - world_app_description
       filter:
         team:
           users:

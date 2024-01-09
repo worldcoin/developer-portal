@@ -1,0 +1,4 @@
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- alter table "public"."app" add column "reviewer_world_app_approve" bool
+--  not null default 'false';

@@ -28,6 +28,9 @@ export interface AppModel {
   id: `app_${string}`;
   name: string;
   description_internal: string;
+  category: string;
+  link: string;
+  developer_allow_app_store_listing: boolean;
   is_staging: boolean;
   logo_url: string;
   verified_app_logo?: string;

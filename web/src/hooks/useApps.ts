@@ -20,6 +20,9 @@ engine
 is_staging
 status
 description_internal
+category
+link
+developer_allow_app_store_listing
 `;
 
 const FetchAppsQuery = gql`
@@ -36,6 +39,9 @@ const UpdateAppQuery = gql`
     $name: String
     $status: String
     $description_internal: String = ""
+    $category: String = ""
+    $link: String = ""
+    $developer_allow_app_store_listing: Boolean
   ) {
     update_app_by_pk(
       pk_columns: { id: $id }
@@ -43,6 +49,9 @@ const UpdateAppQuery = gql`
         status: $status
         name: $name
         description_internal: $description_internal
+        link: $link
+        category: $category
+        developer_allow_app_store_listing: $developer_allow_app_store_listing
       }
     ) {
       ${appFields}
@@ -87,11 +96,22 @@ const updateAppFetcher = async (
       name?: AppModel["name"];
       status?: AppModel["status"];
       description_internal?: AppModel["description_internal"];
+      category?: AppModel["category"];
+      link?: AppModel["link"];
+      developer_allow_app_store_listing?: AppModel["developer_allow_app_store_listing"];
     };
   }
 ) => {
   const currentApp = useAppStore.getState().currentApp;
-  const { id, name, status, description_internal } = args.arg;
+  const {
+    id,
+    name,
+    status,
+    description_internal,
+    category,
+    link,
+    developer_allow_app_store_listing,
+  } = args.arg;
 
   if (!currentApp) {
     throw new Error("No current app");
@@ -105,9 +125,13 @@ const updateAppFetcher = async (
       id: id,
       name: name ?? currentApp.name,
       status: status ?? currentApp.status,
-
       description_internal:
         description_internal ?? currentApp.description_internal,
+      category: category ?? currentApp.category,
+      link: link ?? currentApp.link,
+      developer_allow_app_store_listing:
+        developer_allow_app_store_listing ??
+        currentApp.developer_allow_app_store_listing,
     },
   });
 
@@ -218,6 +242,34 @@ const useApps = () => {
     },
   });
 
+  const updateAppCategoryMutation = useSWRMutation("app", updateAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(data);
+      }
+    },
+  });
+
+  const updateAppLinkMutation = useSWRMutation("app", updateAppFetcher, {
+    onSuccess: (data) => {
+      if (data) {
+        setCurrentApp(data);
+      }
+    },
+  });
+
+  const updateDeveloperisAllowedOnAppStore = useSWRMutation(
+    "app",
+    updateAppFetcher,
+    {
+      onSuccess: (data) => {
+        if (data) {
+          setCurrentApp(data);
+        }
+      },
+    }
+  );
+
   const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
     onSuccess: async (data) => {
       if (data) {
@@ -267,6 +319,45 @@ const useApps = () => {
     [currentApp, updateAppDescriptionMutation]
   );
 
+  const updateAppCategory = useCallback(
+    (category: string) => {
+      if (!currentApp) {
+        return;
+      }
+      return updateAppCategoryMutation.trigger({
+        id: currentApp.id,
+        category: category,
+      });
+    },
+    [currentApp, updateAppCategoryMutation]
+  );
+
+  const updateAppLink = useCallback(
+    (link: string) => {
+      if (!currentApp) {
+        return;
+      }
+      return updateAppLinkMutation.trigger({
+        id: currentApp.id,
+        link: link,
+      });
+    },
+    [currentApp, updateAppLinkMutation]
+  );
+
+  const updateDeveloperAllowAppStoreListing = useCallback(
+    (developerAllowAppStoreListing: boolean) => {
+      if (!currentApp) {
+        return;
+      }
+      return updateDeveloperisAllowedOnAppStore.trigger({
+        id: currentApp.id,
+        developer_allow_app_store_listing: developerAllowAppStoreListing,
+      });
+    },
+    [currentApp, updateDeveloperisAllowedOnAppStore]
+  );
+
   const removeApp = useCallback(() => {
     if (!currentApp) {
       return;
@@ -312,6 +403,13 @@ const useApps = () => {
     isUpdateAppNameMutating: updateAppNameMutation.isMutating,
     updateAppDescription,
     isUpdateAppDescriptionMutating: updateAppDescriptionMutation.isMutating,
+    updateAppCategory,
+    isUpdateAppCategoryMutating: updateAppCategoryMutation.isMutating,
+    updateAppLink,
+    isUpdateAppLinkMutating: updateAppLinkMutation.isMutating,
+    updateDeveloperAllowAppStoreListing,
+    isUpdateDeveloperAllowAppStoreListingMutating:
+      updateDeveloperisAllowedOnAppStore.isMutating,
     createNewApp,
     removeApp,
     isRemoveAppMutating: removeAppMutation.isMutating,

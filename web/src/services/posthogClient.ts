@@ -1,3 +1,4 @@
+// server-side use only
 import { PostHog } from "posthog-node";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
@@ -35,7 +36,7 @@ export function captureEvent({
     posthogClient.capture({
       distinctId,
       event,
-      properties,
+      properties: { ...properties, $geoip_disable: true },
     });
   }
 }
