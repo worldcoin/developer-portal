@@ -90,9 +90,9 @@ select_permissions:
         - approved_by
         - category
         - created_at
-        - id
         - description_internal
         - engine
+        - id
         - is_archived
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
