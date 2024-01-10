@@ -1,6 +1,5 @@
 DELETE FROM "public"."nullifier";
 DELETE FROM "public"."auth_code";
-DELETE FROM "public"."revocation";
 DELETE FROM "public"."action";
 DELETE FROM "public"."app";
 DELETE FROM "public"."api_key";

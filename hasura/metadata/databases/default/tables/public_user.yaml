@@ -30,6 +30,7 @@ select_permissions:
         - id
         - ironclad_id
         - name
+        - posthog_id
         - updated_at
         - world_id_nullifier
       filter: {}

@@ -16,6 +16,7 @@ export type FetchNullifierUserQuery = {
     id: string;
     auth0Id?: string | null;
     team_id: string;
+    posthog_id?: string | null;
     name: string;
     email?: string | null;
   }>;
@@ -34,6 +35,7 @@ export const FetchNullifierUserDocument = gql`
       id
       auth0Id
       team_id
+      posthog_id
       name
       email
     }

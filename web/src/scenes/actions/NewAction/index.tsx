@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { ApolloError } from "@apollo/client";
 import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
 import { generateExternalNullifier } from "@/lib/hashing";
+import posthog from "posthog-js";
 
 const schema = yup.object({
   name: yup.string().required("This field is required"),
@@ -92,6 +93,11 @@ export function NewAction() {
         if (result instanceof Error) {
           throw result;
         }
+        posthog.capture("action_created", {
+          name: values.name,
+          app_id: currentApp.id,
+          action_id: values.action,
+        });
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===

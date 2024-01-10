@@ -8,7 +8,6 @@
 - "!include public_jwks.yaml"
 - "!include public_nullifier.yaml"
 - "!include public_redirect.yaml"
-- "!include public_revocation.yaml"
 - "!include public_role.yaml"
 - "!include public_roles.yaml"
 - "!include public_team.yaml"

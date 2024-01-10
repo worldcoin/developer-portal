@@ -11,10 +11,12 @@ if (typeof window !== "undefined") {
     loaded: (posthog) => {
       if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
     },
+    disable_session_recording: true,
   });
 }
 
-export const usePostHog = (): void => {
+// Make a graphql Query then call identify
+export const usePostHog = async (): Promise<void> => {
   const router = useRouter();
 
   useEffect((): (() => void) => {

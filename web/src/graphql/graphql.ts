@@ -2499,10 +2499,6 @@ export type Mutation_Root = {
   delete_redirect?: Maybe<Redirect_Mutation_Response>;
   /** delete single row from the table: "redirect" */
   delete_redirect_by_pk?: Maybe<Redirect>;
-  /** delete data from the table: "revocation" */
-  delete_revocation?: Maybe<Revocation_Mutation_Response>;
-  /** delete single row from the table: "revocation" */
-  delete_revocation_by_pk?: Maybe<Revocation>;
   /** delete data from the table: "team" */
   delete_team?: Maybe<Team_Mutation_Response>;
   /** delete single row from the table: "team" */
@@ -2551,10 +2547,6 @@ export type Mutation_Root = {
   insert_redirect?: Maybe<Redirect_Mutation_Response>;
   /** insert a single row into the table: "redirect" */
   insert_redirect_one?: Maybe<Redirect>;
-  /** insert data into the table: "revocation" */
-  insert_revocation?: Maybe<Revocation_Mutation_Response>;
-  /** insert a single row into the table: "revocation" */
-  insert_revocation_one?: Maybe<Revocation>;
   /** insert data into the table: "team" */
   insert_team?: Maybe<Team_Mutation_Response>;
   /** insert a single row into the table: "team" */
@@ -2631,12 +2623,6 @@ export type Mutation_Root = {
   update_redirect_by_pk?: Maybe<Redirect>;
   /** update multiples rows of table: "redirect" */
   update_redirect_many?: Maybe<Array<Maybe<Redirect_Mutation_Response>>>;
-  /** update data of the table: "revocation" */
-  update_revocation?: Maybe<Revocation_Mutation_Response>;
-  /** update single row of the table: "revocation" */
-  update_revocation_by_pk?: Maybe<Revocation>;
-  /** update multiples rows of table: "revocation" */
-  update_revocation_many?: Maybe<Array<Maybe<Revocation_Mutation_Response>>>;
   /** update data of the table: "team" */
   update_team?: Maybe<Team_Mutation_Response>;
   /** update single row of the table: "team" */
@@ -2748,16 +2734,6 @@ export type Mutation_RootDelete_RedirectArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Redirect_By_PkArgs = {
-  id: Scalars["String"];
-};
-
-/** mutation root */
-export type Mutation_RootDelete_RevocationArgs = {
-  where: Revocation_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootDelete_Revocation_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -2899,18 +2875,6 @@ export type Mutation_RootInsert_RedirectArgs = {
 export type Mutation_RootInsert_Redirect_OneArgs = {
   object: Redirect_Insert_Input;
   on_conflict?: InputMaybe<Redirect_On_Conflict>;
-};
-
-/** mutation root */
-export type Mutation_RootInsert_RevocationArgs = {
-  objects: Array<Revocation_Insert_Input>;
-  on_conflict?: InputMaybe<Revocation_On_Conflict>;
-};
-
-/** mutation root */
-export type Mutation_RootInsert_Revocation_OneArgs = {
-  object: Revocation_Insert_Input;
-  on_conflict?: InputMaybe<Revocation_On_Conflict>;
 };
 
 /** mutation root */
@@ -3146,23 +3110,6 @@ export type Mutation_RootUpdate_Redirect_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Redirect_ManyArgs = {
   updates: Array<Redirect_Updates>;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_RevocationArgs = {
-  _set?: InputMaybe<Revocation_Set_Input>;
-  where: Revocation_Bool_Exp;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_Revocation_By_PkArgs = {
-  _set?: InputMaybe<Revocation_Set_Input>;
-  pk_columns: Revocation_Pk_Columns_Input;
-};
-
-/** mutation root */
-export type Mutation_RootUpdate_Revocation_ManyArgs = {
-  updates: Array<Revocation_Updates>;
 };
 
 /** mutation root */
@@ -3638,12 +3585,6 @@ export type Query_Root = {
   redirect_aggregate: Redirect_Aggregate;
   /** fetch data from the table: "redirect" using primary key columns */
   redirect_by_pk?: Maybe<Redirect>;
-  /** fetch data from the table: "revocation" */
-  revocation: Array<Revocation>;
-  /** fetch aggregated fields from the table: "revocation" */
-  revocation_aggregate: Revocation_Aggregate;
-  /** fetch data from the table: "revocation" using primary key columns */
-  revocation_by_pk?: Maybe<Revocation>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -3873,26 +3814,6 @@ export type Query_RootRedirect_AggregateArgs = {
 };
 
 export type Query_RootRedirect_By_PkArgs = {
-  id: Scalars["String"];
-};
-
-export type Query_RootRevocationArgs = {
-  distinct_on?: InputMaybe<Array<Revocation_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
-  order_by?: InputMaybe<Array<Revocation_Order_By>>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
-export type Query_RootRevocation_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Revocation_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
-  order_by?: InputMaybe<Array<Revocation_Order_By>>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
-export type Query_RootRevocation_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -4153,165 +4074,6 @@ export type Redirect_Updates = {
   where: Redirect_Bool_Exp;
 };
 
-/** columns and relationships of "revocation" */
-export type Revocation = {
-  __typename?: "revocation";
-  credential_type: Scalars["String"];
-  id: Scalars["String"];
-  identity_commitment: Scalars["String"];
-  revoked_at: Scalars["timestamptz"];
-};
-
-/** aggregated selection of "revocation" */
-export type Revocation_Aggregate = {
-  __typename?: "revocation_aggregate";
-  aggregate?: Maybe<Revocation_Aggregate_Fields>;
-  nodes: Array<Revocation>;
-};
-
-/** aggregate fields of "revocation" */
-export type Revocation_Aggregate_Fields = {
-  __typename?: "revocation_aggregate_fields";
-  count: Scalars["Int"];
-  max?: Maybe<Revocation_Max_Fields>;
-  min?: Maybe<Revocation_Min_Fields>;
-};
-
-/** aggregate fields of "revocation" */
-export type Revocation_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Revocation_Select_Column>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
-};
-
-/** Boolean expression to filter rows from the table "revocation". All fields are combined with a logical 'AND'. */
-export type Revocation_Bool_Exp = {
-  _and?: InputMaybe<Array<Revocation_Bool_Exp>>;
-  _not?: InputMaybe<Revocation_Bool_Exp>;
-  _or?: InputMaybe<Array<Revocation_Bool_Exp>>;
-  credential_type?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<String_Comparison_Exp>;
-  identity_commitment?: InputMaybe<String_Comparison_Exp>;
-  revoked_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "revocation" */
-export enum Revocation_Constraint {
-  /** unique or primary key constraint on columns "identity_commitment" */
-  RevocationIdentityCommitmentKey = "revocation_identity_commitment_key",
-  /** unique or primary key constraint on columns "id" */
-  RevocationPkey = "revocation_pkey",
-}
-
-/** input type for inserting data into table "revocation" */
-export type Revocation_Insert_Input = {
-  credential_type?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  identity_commitment?: InputMaybe<Scalars["String"]>;
-  revoked_at?: InputMaybe<Scalars["timestamptz"]>;
-};
-
-/** aggregate max on columns */
-export type Revocation_Max_Fields = {
-  __typename?: "revocation_max_fields";
-  credential_type?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["String"]>;
-  identity_commitment?: Maybe<Scalars["String"]>;
-  revoked_at?: Maybe<Scalars["timestamptz"]>;
-};
-
-/** aggregate min on columns */
-export type Revocation_Min_Fields = {
-  __typename?: "revocation_min_fields";
-  credential_type?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["String"]>;
-  identity_commitment?: Maybe<Scalars["String"]>;
-  revoked_at?: Maybe<Scalars["timestamptz"]>;
-};
-
-/** response of any mutation on the table "revocation" */
-export type Revocation_Mutation_Response = {
-  __typename?: "revocation_mutation_response";
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars["Int"];
-  /** data from the rows affected by the mutation */
-  returning: Array<Revocation>;
-};
-
-/** on_conflict condition type for table "revocation" */
-export type Revocation_On_Conflict = {
-  constraint: Revocation_Constraint;
-  update_columns?: Array<Revocation_Update_Column>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "revocation". */
-export type Revocation_Order_By = {
-  credential_type?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  identity_commitment?: InputMaybe<Order_By>;
-  revoked_at?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: revocation */
-export type Revocation_Pk_Columns_Input = {
-  id: Scalars["String"];
-};
-
-/** select columns of table "revocation" */
-export enum Revocation_Select_Column {
-  /** column name */
-  CredentialType = "credential_type",
-  /** column name */
-  Id = "id",
-  /** column name */
-  IdentityCommitment = "identity_commitment",
-  /** column name */
-  RevokedAt = "revoked_at",
-}
-
-/** input type for updating data in table "revocation" */
-export type Revocation_Set_Input = {
-  credential_type?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  identity_commitment?: InputMaybe<Scalars["String"]>;
-  revoked_at?: InputMaybe<Scalars["timestamptz"]>;
-};
-
-/** Streaming cursor of the table "revocation" */
-export type Revocation_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Revocation_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Revocation_Stream_Cursor_Value_Input = {
-  credential_type?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  identity_commitment?: InputMaybe<Scalars["String"]>;
-  revoked_at?: InputMaybe<Scalars["timestamptz"]>;
-};
-
-/** update columns of table "revocation" */
-export enum Revocation_Update_Column {
-  /** column name */
-  CredentialType = "credential_type",
-  /** column name */
-  Id = "id",
-  /** column name */
-  IdentityCommitment = "identity_commitment",
-  /** column name */
-  RevokedAt = "revoked_at",
-}
-
-export type Revocation_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Revocation_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Revocation_Bool_Exp;
-};
-
 export type Subscription_Root = {
   __typename?: "subscription_root";
   /** fetch data from the table: "action" */
@@ -4398,14 +4160,6 @@ export type Subscription_Root = {
   redirect_by_pk?: Maybe<Redirect>;
   /** fetch data from the table in a streaming manner: "redirect" */
   redirect_stream: Array<Redirect>;
-  /** fetch data from the table: "revocation" */
-  revocation: Array<Revocation>;
-  /** fetch aggregated fields from the table: "revocation" */
-  revocation_aggregate: Revocation_Aggregate;
-  /** fetch data from the table: "revocation" using primary key columns */
-  revocation_by_pk?: Maybe<Revocation>;
-  /** fetch data from the table in a streaming manner: "revocation" */
-  revocation_stream: Array<Revocation>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -4702,32 +4456,6 @@ export type Subscription_RootRedirect_StreamArgs = {
   where?: InputMaybe<Redirect_Bool_Exp>;
 };
 
-export type Subscription_RootRevocationArgs = {
-  distinct_on?: InputMaybe<Array<Revocation_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
-  order_by?: InputMaybe<Array<Revocation_Order_By>>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
-export type Subscription_RootRevocation_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Revocation_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
-  order_by?: InputMaybe<Array<Revocation_Order_By>>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
-export type Subscription_RootRevocation_By_PkArgs = {
-  id: Scalars["String"];
-};
-
-export type Subscription_RootRevocation_StreamArgs = {
-  batch_size: Scalars["Int"];
-  cursor: Array<InputMaybe<Revocation_Stream_Cursor_Input>>;
-  where?: InputMaybe<Revocation_Bool_Exp>;
-};
-
 export type Subscription_RootTeamArgs = {
   distinct_on?: InputMaybe<Array<Team_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]>;
@@ -5019,6 +4747,7 @@ export type User = {
   ironclad_id: Scalars["String"];
   is_subscribed: Scalars["Boolean"];
   name: Scalars["String"];
+  posthog_id?: Maybe<Scalars["String"]>;
   /** An object relationship */
   team: Team;
   team_id: Scalars["String"];
@@ -5100,6 +4829,7 @@ export type User_Bool_Exp = {
   ironclad_id?: InputMaybe<String_Comparison_Exp>;
   is_subscribed?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  posthog_id?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -5114,6 +4844,8 @@ export enum User_Constraint {
   UserEmailKey = "user_email_key",
   /** unique or primary key constraint on columns "id" */
   UserPkey = "user_pkey",
+  /** unique or primary key constraint on columns "posthog_id" */
+  UserPosthogIdKey = "user_posthog_id_key",
 }
 
 /** input type for inserting data into table "user" */
@@ -5125,6 +4857,7 @@ export type User_Insert_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -5140,6 +4873,7 @@ export type User_Max_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -5153,6 +4887,7 @@ export type User_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -5167,6 +4902,7 @@ export type User_Min_Fields = {
   id?: Maybe<Scalars["String"]>;
   ironclad_id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  posthog_id?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_id_nullifier?: Maybe<Scalars["String"]>;
@@ -5180,6 +4916,7 @@ export type User_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_id_nullifier?: InputMaybe<Order_By>;
@@ -5210,6 +4947,7 @@ export type User_Order_By = {
   ironclad_id?: InputMaybe<Order_By>;
   is_subscribed?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -5237,6 +4975,8 @@ export enum User_Select_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */
@@ -5266,6 +5006,7 @@ export type User_Set_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5288,6 +5029,7 @@ export type User_Stream_Cursor_Value_Input = {
   ironclad_id?: InputMaybe<Scalars["String"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
+  posthog_id?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   world_id_nullifier?: InputMaybe<Scalars["String"]>;
@@ -5309,6 +5051,8 @@ export enum User_Update_Column {
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
+  /** column name */
+  PosthogId = "posthog_id",
   /** column name */
   TeamId = "team_id",
   /** column name */

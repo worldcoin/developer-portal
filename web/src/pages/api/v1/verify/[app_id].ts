@@ -16,6 +16,7 @@ import {
   VerificationLevel,
 } from "@worldcoin/idkit-core";
 import * as yup from "yup";
+import { captureEvent } from "@/services/posthogClient";
 
 const schema = yup.object({
   action: yup
@@ -23,7 +24,7 @@ const schema = yup.object({
     .strict()
     .nonNullable()
     .defined("This attribute is required."),
-  signal: yup.string().strict().default(""),
+  signal: yup.string().default(""),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
@@ -143,6 +144,14 @@ export default async function handleVerify(
     }
   );
   if (error || !success) {
+    await captureEvent({
+      event: "action_verify_failed",
+      distinctId: app.id,
+      properties: {
+        action_id: action.id,
+        error: error,
+      },
+    });
     return errorResponse(
       res,
       error?.statusCode || 400,
@@ -203,7 +212,14 @@ export default async function handleVerify(
           req
         );
       }
-
+      await captureEvent({
+        event: "action_verify_success",
+        distinctId: app.id,
+        properties: {
+          action_id: action.id,
+          error: error,
+        },
+      });
       res.status(200).json({
         uses: 1,
         success: true,

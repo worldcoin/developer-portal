@@ -104,6 +104,9 @@ dependencies:
   posthog-js:
     specifier: ^1.57.2
     version: 1.94.2
+  posthog-node:
+    specifier: ^3.3.0
+    version: 3.3.0
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -4856,7 +4859,7 @@ packages:
   /axios@1.6.2:
     resolution: {integrity: sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==}
     dependencies:
-      follow-redirects: 1.15.3
+      follow-redirects: 1.15.4
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -6533,8 +6536,8 @@ packages:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
     dev: false
 
-  /follow-redirects@1.15.3:
-    resolution: {integrity: sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==}
+  /follow-redirects@1.15.4:
+    resolution: {integrity: sha512-Cr4D/5wlrb0z9dgERpUL3LrmPKVDsETIJhaCMeDfuFYcqa5bldGV6wBsAN6X/vxlXQtFBMrXdXxdL8CbDTGniw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -9199,6 +9202,16 @@ packages:
       fflate: 0.4.8
     dev: false
 
+  /posthog-node@3.3.0:
+    resolution: {integrity: sha512-C6IkW1UWPWCVbLQBUwY34QJZq/zYCvjwsZejP+CUwuXU3/Vrsf3knmIVXelcjQq4oTAiLiYBAA03s143+T1Glg==}
+    engines: {node: '>=15.0.0'}
+    dependencies:
+      axios: 1.6.2
+      rusha: 0.8.14
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /pprof-format@2.0.7:
     resolution: {integrity: sha512-1qWaGAzwMpaXJP9opRa23nPnt2Egi7RMNoNBptEE/XwHbcn4fC2b/4U4bKc5arkGkIh2ZabpF2bEb+c5GNHEKA==}
     dev: false
@@ -9797,6 +9810,10 @@ packages:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
       queue-microtask: 1.2.3
+
+  /rusha@0.8.14:
+    resolution: {integrity: sha512-cLgakCUf6PedEu15t8kbsjnwIFFR2D4RfL+W3iWFJ4iac7z4B0ZI8fxy4R3J956kAI68HclCFGL8MPoUVC3qVA==}
+    dev: false
 
   /rxjs@7.8.1:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}

@@ -115,31 +115,6 @@ export const canVerifyForAction = (
   return nullifier.uses < max_verifications_per_person;
 };
 
-/**
- * Fetches the inclusion proof from the sequencer
- * @returns
- */
-export const rawFetchInclusionProof = async ({
-  sequencerUrl,
-  identityCommitment,
-}: {
-  sequencerUrl: string;
-  identityCommitment: string;
-}) => {
-  const headers = new Headers();
-  headers.append("Content-Type", "application/json");
-  const body = JSON.stringify({
-    identityCommitment,
-  });
-
-  const response = await fetch(`${sequencerUrl}/inclusionProof`, {
-    method: "POST",
-    headers,
-    body,
-  });
-  return response;
-};
-
 export const generateHashedSecret = (identifier: string) => {
   const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
   const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);

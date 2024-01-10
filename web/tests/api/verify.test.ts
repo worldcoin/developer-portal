@@ -149,6 +149,44 @@ describe("/api/v1/verify", () => {
       })
     );
   });
+
+  test("can verify without a signal", async () => {
+    // signal defaults to empty string if not provided
+
+    const noSignalPayload: Record<string, any> = { ...validPayload };
+    delete noSignalPayload.signal;
+
+    const payloads = [
+      noSignalPayload,
+      { ...validPayload, signal: undefined },
+      { ...validPayload, signal: "" },
+    ];
+
+    for (const payload of payloads) {
+      const { req, res } = createMocks({
+        method: "POST",
+        body: payload,
+        query: { app_id: "app_staging_112233445566778" },
+      });
+
+      // mocks sequencer response
+      fetchMock.mockResponseOnce(JSON.stringify({ status: "mined" }));
+
+      await handleVerify(req, res);
+
+      console.error(res._getJSONData());
+
+      expect(res._getStatusCode()).toBe(200);
+      expect(res._getJSONData()).toEqual(
+        expect.objectContaining({
+          success: true,
+          nullifier_hash:
+            "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
+          action: "verify",
+        })
+      );
+    }
+  });
 });
 
 describe("/api/verify [error cases]", () => {
