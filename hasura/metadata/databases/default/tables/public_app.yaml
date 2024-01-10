@@ -56,9 +56,9 @@ insert_permissions:
       columns:
         - category
         - description_internal
-        - is_developer_allow_listing
         - engine
         - is_archived
+        - is_developer_allow_listing
         - is_staging
         - link_to_integration
         - logo_url
@@ -87,21 +87,22 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - id
-        - created_at
-        - team_id
-        - name
-        - verified_at
-        - description_internal
-        - is_staging
-        - engine
-        - status
-        - is_archived
+        - approved_by
         - category
-        - link_to_integration
+        - created_at
+        - id
+        - description_internal
+        - engine
+        - is_archived
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
+        - is_staging
+        - link_to_integration
+        - name
+        - status
+        - team_id
+        - verified_at
         - world_app_description
       computed_fields:
         - is_verified
@@ -111,17 +112,18 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - approved_by
         - category
         - created_at
         - description_internal
-        - is_developer_allow_listing
         - engine
         - id
+        - is_developer_allow_listing
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
         - is_staging
         - link_to_integration
         - name
-        - is_reviewer_app_store_approved
-        - is_reviewer_world_app_approved
         - status
         - team_id
         - world_app_description
@@ -137,10 +139,14 @@ update_permissions:
   - role: api_key
     permission:
       columns:
+        - category
         - description_internal
         - is_archived
+        - is_developer_allow_listing
+        - link_to_integration
         - logo_url
         - name
+        - world_app_description
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -150,8 +156,8 @@ update_permissions:
       columns:
         - category
         - description_internal
-        - is_developer_allow_listing
         - is_archived
+        - is_developer_allow_listing
         - link_to_integration
         - logo_url
         - name
