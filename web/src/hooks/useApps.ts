@@ -78,6 +78,12 @@ const DeleteAppQuery = gql`
   }
 `;
 
+const descriptionSubFields = [
+  "description_overview",
+  "description_how_it_works",
+  "description_connect",
+];
+
 const fetchApps = async () => {
   const response = await graphQLRequest<{
     app: Array<AppModel>;
@@ -305,6 +311,34 @@ const useApps = () => {
     [insertNewAppMutation]
   );
 
+  const parseDescription = (currentApp: AppModel | null) => {
+    if (currentApp && currentApp.description_internal) {
+      try {
+        return JSON.parse(currentApp.description_internal);
+      } catch (error) {
+        console.error("Failed to parse description_internal:", error);
+        return {
+          description_overview: currentApp.description_internal,
+          description_how_it_works: "",
+          description_connect: "",
+        };
+      }
+    }
+    return {};
+  };
+
+  const encodeDescription = (
+    description_overview: string,
+    description_how_it_works: string = "",
+    description_connect: string = ""
+  ) => {
+    return JSON.stringify({
+      [descriptionSubFields[0]]: description_overview,
+      [descriptionSubFields[1]]: description_how_it_works,
+      [descriptionSubFields[2]]: description_connect,
+    });
+  };
+
   return {
     apps: data,
     error,
@@ -315,6 +349,8 @@ const useApps = () => {
     updateAppData,
     createNewApp,
     removeApp,
+    parseDescription,
+    encodeDescription,
     isRemoveAppMutating: removeAppMutation.isMutating,
   };
 };

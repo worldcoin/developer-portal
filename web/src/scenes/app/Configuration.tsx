@@ -63,23 +63,9 @@ type ConfigurationFormValues = yup.Asserts<typeof saveSchema>;
 type VerificationFormValues = yup.Asserts<typeof verificationSchema>;
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
-  const { updateAppData } = useApps();
-  const descriptionInternal = (() => {
-    if (currentApp && currentApp.description_internal) {
-      try {
-        return JSON.parse(currentApp.description_internal);
-      } catch (error) {
-        console.error("Failed to parse description_internal:", error);
-        return {
-          description_overview: currentApp.description_internal,
-          description_how_it_works: "",
-          description_connect: "",
-        };
-      }
-    }
-    return {};
-  })();
+  const { updateAppData, parseDescription, encodeDescription } = useApps();
 
+  const descriptionInternal = parseDescription(currentApp);
   const {
     register,
     handleSubmit,
@@ -88,7 +74,7 @@ export const Configuration = memo(function Configuration() {
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
     defaultValues: { ...currentApp, ...descriptionInternal },
-    shouldUnregister: false,
+    values: { ...currentApp, ...descriptionInternal },
   });
 
   const watchTextInputs = watch([
@@ -107,11 +93,11 @@ export const Configuration = memo(function Configuration() {
         description_connect,
         ...rest
       } = data;
-      const descriptionsJSON = JSON.stringify({
+      const descriptionsJSON = encodeDescription(
         description_overview,
-        description_how_it_works,
-        description_connect,
-      });
+        description_how_it_works ?? "",
+        description_connect ?? ""
+      );
 
       const updatedData = {
         ...rest,
@@ -120,7 +106,7 @@ export const Configuration = memo(function Configuration() {
       await updateAppData(updatedData);
       toast.success("App configuration saved");
     },
-    [updateAppData]
+    [encodeDescription, updateAppData]
   );
 
   // Verification handler
@@ -156,7 +142,7 @@ export const Configuration = memo(function Configuration() {
             type="text"
             maxChar={50}
             maxLength={50}
-            value={watchTextInputs[0]}
+            value={watchTextInputs[0] ?? ""}
             disabled={isSubmitting}
             required
             errors={errors.name}
@@ -250,13 +236,12 @@ export const Configuration = memo(function Configuration() {
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="In App Description"
           type="text"
-          value={watchTextInputs[1]}
+          value={watchTextInputs[1] ?? ""}
           maxChar={50}
           maxLength={50}
           disabled={isSubmitting}
           errors={errors.world_app_description}
         />
-
         {errors.world_app_description?.message && (
           <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
             {errors.world_app_description.message}
