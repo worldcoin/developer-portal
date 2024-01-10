@@ -17,7 +17,9 @@ interface CheckboxInterface extends InputHTMLAttributes<HTMLInputElement> {
   alternativeColor?: string;
 }
 
-export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
+export const FieldCheckbox = memo(function FieldCheckbox(
+  props: CheckboxInterface
+) {
   const {
     className,
     label,
@@ -26,7 +28,6 @@ export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
     register,
     errors,
     isDirty,
-    alternativeColor,
     ...otherProps
   } = props;
 
@@ -39,29 +40,14 @@ export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
     >
       <input
         {...register}
-        className="sr-only peer"
+        className={cn("h-6 w-6 accent-blue-primary")}
         {...otherProps}
         type="checkbox"
       />
-      <Icon
-        className={cn(
-          "block peer-checked:hidden w-6 h-6",
-          { "text-danger": errors },
-          alternativeColor ? alternativeColor : { "text-gray-400": !errors }
-        )}
-        name="checkbox"
-      />
-      <Icon
-        className={cn(
-          "hidden peer-checked:block w-6 h-6",
-          { "text-danger": errors },
-          alternativeColor ? alternativeColor : { "text-gray-400": !errors }
-        )}
-        name="checkbox-on"
-      />
+
       <span
         className={cn(
-          "min-h-[30px] grid items-center select-none text-14 leading-5 text-gray-400"
+          "min-h-[30px] grid items-center select-none text-14 leading-5 text-gray-500"
         )}
       >
         {label}

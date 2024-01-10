@@ -13,7 +13,8 @@ export const AppHeader = memo(function AppHeader() {
   const [image, setImage] = useState<string | null>(
     currentApp?.verified_app_logo ?? null
   );
-  const { toggleAppActivity } = useApps();
+  const { toggleAppActivity, parseDescription } = useApps();
+  const descriptionInternal = parseDescription(currentApp);
 
   useEffect(() => {
     if (copied) {
@@ -61,7 +62,7 @@ export const AppHeader = memo(function AppHeader() {
           {currentApp?.name}
         </h1>
         <span className="text-14 text-657080 truncate self-start">
-          {currentApp?.description_internal}
+          {descriptionInternal?.description_overview}
         </span>
       </div>
 
