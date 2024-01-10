@@ -103,6 +103,9 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - world_app_description
+      computed_fields:
+        - is_verified
+        - verified_app_logo
       filter: {}
       limit: 1
   - role: user
