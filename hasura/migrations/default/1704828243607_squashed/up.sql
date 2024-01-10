@@ -5,7 +5,7 @@ alter table "public"."app" add column "category" varchar
 alter table "public"."app" add column "link" varchar
  null;
 
-alter table "public"."app" add column "is_developer_allow_app_store_listing" bool
+alter table "public"."app" add column "is_developer_allow_listing" bool
  not null default 'false';
 
 alter table "public"."app" add column "is_reviewer_app_store_approve" bool

@@ -12,6 +12,7 @@ if (typeof window !== "undefined") {
       if (publicRuntimeConfig.NODE_ENV === "development") posthog.debug();
     },
     disable_session_recording: true,
+    autocapture: false,
   });
 }
 

@@ -1,8 +1,9 @@
-import { InputHTMLAttributes, memo, useState, useEffect } from "react";
+import { TextareaHTMLAttributes, memo } from "react";
 import cn from "classnames";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
-interface FieldInputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface FieldTextareaProps
+  extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   className?: string;
   register: UseFormRegisterReturn;
   errors?: FieldError;
@@ -11,7 +12,9 @@ interface FieldInputProps extends InputHTMLAttributes<HTMLInputElement> {
   maxChar?: number; // New prop for maximum characters
 }
 
-export const FieldInput = memo(function FieldInput(props: FieldInputProps) {
+export const FieldTextarea = memo(function FieldTextarea(
+  props: FieldTextareaProps
+) {
   const {
     className,
     register,
@@ -22,15 +25,15 @@ export const FieldInput = memo(function FieldInput(props: FieldInputProps) {
     ...otherProps
   } = props;
   // Calculate the characters left
-  const charsLeft = maxChar ? maxChar - value?.length : 0;
+  const charsLeft = maxChar ? maxChar - value.length : undefined;
 
   return (
-    <div>
-      <input
+    <div className="w-full ">
+      <textarea
         {...register}
         className={cn(
           className,
-          "flex items-center h-12 px-4 text-neutral-primary outline-0 border-2 rounded-xl focus:shadow-input focus:bg-ffffff",
+          "flex items-center h-24 p-4 text-neutral-primary outline-0 border-2 rounded-xl focus:shadow-input focus:bg-ffffff",
           {
             "placeholder-neutral-secondary bg-f3f4f5 border-f1f5f8 focus:bg-ffffff focus:border-ebecef":
               !isDirty && !errors,

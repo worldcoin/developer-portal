@@ -28,9 +28,13 @@ export interface AppModel {
   id: `app_${string}`;
   name: string;
   description_internal: string;
-  category: string;
-  link: string;
-  developer_allow_app_store_listing: boolean;
+  category: string | null;
+  link: string | null;
+  is_developer_allow_listing: boolean;
+  is_reviewer_app_store_approve: boolean;
+  is_reviewer_world_app_approve: boolean;
+  world_app_description: string | null;
+  approved_by: string | null;
   is_staging: boolean;
   logo_url: string;
   verified_app_logo?: string;

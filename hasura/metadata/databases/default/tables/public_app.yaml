@@ -56,7 +56,7 @@ insert_permissions:
       columns:
         - category
         - description_internal
-        - is_developer_allow_app_store_listing
+        - is_developer_allow_listing
         - engine
         - is_archived
         - is_staging
@@ -99,7 +99,7 @@ select_permissions:
         - is_archived
         - category
         - link
-        - is_developer_allow_app_store_listing
+        - is_developer_allow_listing
         - is_reviewer_app_store_approve
         - is_reviewer_world_app_approve
         - world_app_description
@@ -111,7 +111,7 @@ select_permissions:
         - category
         - created_at
         - description_internal
-        - is_developer_allow_app_store_listing
+        - is_developer_allow_listing
         - engine
         - id
         - is_staging
@@ -147,7 +147,7 @@ update_permissions:
       columns:
         - category
         - description_internal
-        - is_developer_allow_app_store_listing
+        - is_developer_allow_listing
         - is_archived
         - link
         - logo_url
