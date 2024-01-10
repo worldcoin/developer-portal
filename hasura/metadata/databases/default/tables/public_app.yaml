@@ -54,13 +54,17 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
+        - category
         - description_internal
+        - is_developer_allow_listing
         - engine
         - is_archived
         - is_staging
+        - link_to_integration
         - logo_url
         - name
         - status
+        - world_app_description
 select_permissions:
   - role: analytics
     permission:
@@ -83,32 +87,41 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - created_at
-        - description_internal
-        - engine
         - id
-        - is_archived
-        - is_staging
-        - name
-        - status
+        - created_at
         - team_id
+        - name
         - verified_at
-      computed_fields:
-        - is_verified
-        - verified_app_logo
+        - description_internal
+        - is_staging
+        - engine
+        - status
+        - is_archived
+        - category
+        - link_to_integration
+        - is_developer_allow_listing
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
+        - world_app_description
       filter: {}
       limit: 1
   - role: user
     permission:
       columns:
+        - category
         - created_at
         - description_internal
+        - is_developer_allow_listing
         - engine
         - id
         - is_staging
+        - link_to_integration
         - name
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
         - status
         - team_id
+        - world_app_description
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -132,11 +145,15 @@ update_permissions:
   - role: user
     permission:
       columns:
+        - category
         - description_internal
+        - is_developer_allow_listing
         - is_archived
+        - link_to_integration
         - logo_url
         - name
         - status
+        - world_app_description
       filter:
         team:
           users:
