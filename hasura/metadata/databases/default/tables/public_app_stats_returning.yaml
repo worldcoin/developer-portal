@@ -13,10 +13,5 @@ select_permissions:
         - date
         - unique_users
         - verifications
-      filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+      filter: {}
       allow_aggregations: true

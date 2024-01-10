@@ -31,12 +31,23 @@ insert_permissions:
   - role: user
     permission:
       check:
-        action:
-          app:
-            team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+        _and:
+          - action:
+              app:
+                team:
+                  roles:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+          - action:
+              app:
+                team:
+                  roles:
+                    role:
+                      _neq: MEMBER
+          - action:
+              app:
+                team_id:
+                  _eq: X-Hasura-Team-Id
       columns:
         - redirect_uri
         - action_id
@@ -70,12 +81,17 @@ select_permissions:
         - created_at
         - updated_at
       filter:
-        action:
-          app:
-            team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+        _and:
+          - action:
+              app:
+                team_id:
+                  _eq: X-Hasura-Team-Id
+          - action:
+              app:
+                team:
+                  roles:
+                    user_id:
+                      _eq: X-Hasura-User-Id
 update_permissions:
   - role: api_key
     permission:
@@ -92,12 +108,23 @@ update_permissions:
       columns:
         - redirect_uri
       filter:
-        action:
-          app:
-            team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+        _and:
+          - action:
+              app:
+                team:
+                  roles:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+          - action:
+              app:
+                team:
+                  roles:
+                    role:
+                      _neq: MEMBER
+          - action:
+              app:
+                team_id:
+                  _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key
@@ -110,9 +137,20 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        action:
-          app:
-            team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+        _and:
+          - action:
+              app:
+                team:
+                  roles:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+          - action:
+              app:
+                team:
+                  roles:
+                    role:
+                      _neq: MEMBER
+          - action:
+              app:
+                team_id:
+                  _eq: X-Hasura-Team-Id
