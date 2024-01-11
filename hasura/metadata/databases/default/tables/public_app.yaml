@@ -104,6 +104,9 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - approved_by
+      computed_fields:
+        - is_verified
+        - verified_app_logo
       filter: {}
   - role: service
     permission:
@@ -176,19 +179,36 @@ update_permissions:
         team_id:
           _eq: X-Hasura-Team-Id
       check: {}
+  - role: reviewer
+    permission:
+      columns:
+        - app_website
+        - approved_by
+        - category
+        - description_internal
+        - hero_image_url
+        - is_developer_allow_listing
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
+        - link_to_integration
+        - logo_url
+        - name
+        - showcase_img_urls
+        - source_code_url
+        - verified_at
+        - world_app_description
+      filter: {}
+      check: {}
   - role: user
     permission:
       columns:
         - app_website
         - category
         - description_internal
-        - hero_image_url
         - is_archived
         - is_developer_allow_listing
         - link_to_integration
-        - logo_url
         - name
-        - showcase_img_urls
         - source_code_url
         - status
         - world_app_description
