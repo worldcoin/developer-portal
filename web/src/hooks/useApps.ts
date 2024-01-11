@@ -11,6 +11,12 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
 
+enum DescriptionSubFields {
+  DescriptionOverview = "description_overview",
+  DescriptionHowItWorks = "description_how_it_works",
+  DescriptionConnect = "description_connect",
+}
+
 const appFields = `
 id
 verified_app_logo
@@ -20,6 +26,10 @@ engine
 is_staging
 status
 description_internal
+category
+link_to_integration
+is_developer_allow_listing
+world_app_description
 `;
 
 const FetchAppsQuery = gql`
@@ -36,6 +46,10 @@ const UpdateAppQuery = gql`
     $name: String
     $status: String
     $description_internal: String = ""
+    $category: String = ""
+    $link_to_integration: String = ""
+    $is_developer_allow_listing: Boolean
+    $world_app_description: String = ""
   ) {
     update_app_by_pk(
       pk_columns: { id: $id }
@@ -43,6 +57,10 @@ const UpdateAppQuery = gql`
         status: $status
         name: $name
         description_internal: $description_internal
+        link_to_integration: $link_to_integration
+        category: $category
+        is_developer_allow_listing: $is_developer_allow_listing
+        world_app_description: $world_app_description
       }
     ) {
       ${appFields}
@@ -87,11 +105,24 @@ const updateAppFetcher = async (
       name?: AppModel["name"];
       status?: AppModel["status"];
       description_internal?: AppModel["description_internal"];
+      category?: AppModel["category"];
+      link_to_integration?: AppModel["link_to_integration"];
+      is_developer_allow_listing?: AppModel["is_developer_allow_listing"];
+      world_app_description?: AppModel["world_app_description"];
     };
   }
 ) => {
   const currentApp = useAppStore.getState().currentApp;
-  const { id, name, status, description_internal } = args.arg;
+  const {
+    id,
+    name,
+    status,
+    description_internal,
+    category,
+    link_to_integration,
+    is_developer_allow_listing,
+    world_app_description,
+  } = args.arg;
 
   if (!currentApp) {
     throw new Error("No current app");
@@ -105,9 +136,15 @@ const updateAppFetcher = async (
       id: id,
       name: name ?? currentApp.name,
       status: status ?? currentApp.status,
-
       description_internal:
         description_internal ?? currentApp.description_internal,
+      category: category ?? currentApp.category,
+      link_to_integration:
+        link_to_integration ?? currentApp.link_to_integration,
+      is_developer_allow_listing:
+        is_developer_allow_listing ?? currentApp.is_developer_allow_listing,
+      world_app_description:
+        world_app_description ?? currentApp.world_app_description,
     },
   });
 
@@ -202,22 +239,6 @@ const useApps = () => {
     },
   });
 
-  const updateAppNameMutation = useSWRMutation("app", updateAppFetcher, {
-    onSuccess: (data) => {
-      if (data) {
-        setCurrentApp(data);
-      }
-    },
-  });
-
-  const updateAppDescriptionMutation = useSWRMutation("app", updateAppFetcher, {
-    onSuccess: (data) => {
-      if (data) {
-        setCurrentApp(data);
-      }
-    },
-  });
-
   const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
     onSuccess: async (data) => {
       if (data) {
@@ -227,6 +248,22 @@ const useApps = () => {
       }
     },
   });
+
+  const updateAppData = useCallback(
+    async (appData: Partial<AppModel>) => {
+      const currentApp = useAppStore.getState().currentApp;
+
+      if (!currentApp) {
+        throw new Error("No current app to update");
+      }
+
+      return updateApp({
+        id: currentApp.id,
+        ...appData,
+      });
+    },
+    [updateApp]
+  );
 
   const toggleAppActivity = useCallback(() => {
     if (!currentApp) {
@@ -240,32 +277,6 @@ const useApps = () => {
           : AppStatusType.Active,
     });
   }, [currentApp, updateApp]);
-
-  const updateAppName = useCallback(
-    (name: string) => {
-      if (!currentApp) {
-        return;
-      }
-      return updateAppNameMutation.trigger({
-        id: currentApp.id,
-        name,
-      });
-    },
-    [currentApp, updateAppNameMutation]
-  );
-
-  const updateAppDescription = useCallback(
-    (description: string) => {
-      if (!currentApp) {
-        return;
-      }
-      return updateAppDescriptionMutation.trigger({
-        id: currentApp.id,
-        description_internal: description,
-      });
-    },
-    [currentApp, updateAppDescriptionMutation]
-  );
 
   const removeApp = useCallback(() => {
     if (!currentApp) {
@@ -301,6 +312,34 @@ const useApps = () => {
     [insertNewAppMutation]
   );
 
+  const parseDescription = (currentApp: AppModel | null) => {
+    if (currentApp && currentApp.description_internal) {
+      try {
+        return JSON.parse(currentApp.description_internal);
+      } catch (error) {
+        console.error("Failed to parse description_internal:", error);
+        return {
+          description_overview: currentApp.description_internal,
+          description_how_it_works: "",
+          description_connect: "",
+        };
+      }
+    }
+    return {};
+  };
+
+  const encodeDescription = (
+    description_overview: string,
+    description_how_it_works: string = "",
+    description_connect: string = ""
+  ) => {
+    return JSON.stringify({
+      [DescriptionSubFields.DescriptionOverview]: description_overview,
+      [DescriptionSubFields.DescriptionHowItWorks]: description_how_it_works,
+      [DescriptionSubFields.DescriptionConnect]: description_connect,
+    });
+  };
+
   return {
     apps: data,
     error,
@@ -308,12 +347,11 @@ const useApps = () => {
     currentApp,
     toggleAppActivity,
     isToggleAppActivityMutating: toggleAppActivityMutation.isMutating,
-    updateAppName,
-    isUpdateAppNameMutating: updateAppNameMutation.isMutating,
-    updateAppDescription,
-    isUpdateAppDescriptionMutating: updateAppDescriptionMutation.isMutating,
+    updateAppData,
     createNewApp,
     removeApp,
+    parseDescription,
+    encodeDescription,
     isRemoveAppMutating: removeAppMutation.isMutating,
   };
 };

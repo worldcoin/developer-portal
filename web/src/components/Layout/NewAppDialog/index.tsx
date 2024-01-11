@@ -9,8 +9,8 @@ import { EngineType } from "src/lib/types";
 import { Illustration } from "src/components/Auth/Illustration";
 import { AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
-import { FieldTextArea } from "src/components/FieldTextArea";
 import { Switch, SwitchOption } from "./Switch";
+import { FieldTextArea } from "@/components/FieldTextArea";
 
 type FormData = Pick<
   AppModel,
@@ -25,7 +25,7 @@ export interface NewAppDialogProps {
 export const NewAppDialog = memo(function NewAppDialog(
   props: NewAppDialogProps
 ) {
-  const { createNewApp } = useApps();
+  const { createNewApp, encodeDescription } = useApps();
   const { control, register, reset, handleSubmit, formState } =
     useForm<FormData>({
       defaultValues: {
@@ -36,6 +36,7 @@ export const NewAppDialog = memo(function NewAppDialog(
     });
 
   const onSubmit = handleSubmit(async (data) => {
+    data.description_internal = encodeDescription(data.description_internal);
     await createNewApp(data);
     props.onClose();
     reset();
