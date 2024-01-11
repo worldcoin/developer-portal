@@ -139,7 +139,8 @@ const updateAppFetcher = async (
       description_internal:
         description_internal ?? currentApp.description_internal,
       category: category ?? currentApp.category,
-      link_to_integration: link_to_integration ?? currentApp.link_to_integration,
+      link_to_integration:
+        link_to_integration ?? currentApp.link_to_integration,
       is_developer_allow_listing:
         is_developer_allow_listing ?? currentApp.is_developer_allow_listing,
       world_app_description:
