@@ -50,3 +50,40 @@ alter table "public"."pending_app_metadata"
   foreign key ("app_id")
   references "public"."app"
   ("id") on update restrict on delete restrict;
+
+
+CREATE OR REPLACE FUNCTION validate_single_url(url text)
+RETURNS void as $$
+BEGIN
+  IF url IS NOT NULL AND url != '' THEN
+    IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$') THEN
+      RAISE EXCEPTION USING ERRCODE= '22000', MESSAGE= 'Invalid URL format. URLs must use HTTPS protocol.';
+    END IF;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION validate_metadata_urls()
+RETURNS TRIGGER AS $$
+DECLARE
+  url text;
+BEGIN
+  -- Validate each URL field
+  PERFORM validate_single_url(NEW.logo_img_url);
+  PERFORM validate_single_url(NEW.hero_image_url);
+  PERFORM validate_single_url(NEW.app_website);
+  PERFORM validate_single_url(NEW.source_code_url);
+  PERFORM validate_single_url(NEW.link_to_integration);
+  FOR url IN SELECT jsonb_array_elements_text(NEW.showcase_img_urls)
+  LOOP
+    PERFORM public.validate_single_url(url);
+  END LOOP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "validate_metadata_uris"
+BEFORE INSERT OR UPDATE ON "public"."pending_app_metadata"
+FOR EACH ROW
+EXECUTE FUNCTION validate_metadata_urls();
