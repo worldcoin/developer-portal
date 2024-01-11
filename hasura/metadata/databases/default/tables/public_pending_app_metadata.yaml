@@ -1,0 +1,58 @@
+table:
+  name: pending_app_metadata
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - publisher
+        - link_to_integration
+        - review_message
+        - review_status
+        - is_developer_allow_listing
+        - world_app_description
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - publisher
+        - link_to_integration
+        - review_message
+        - review_status
+        - is_developer_allow_listing
+        - world_app_description
+      filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - publisher
+        - link_to_integration
+        - review_message
+        - review_status
+        - is_developer_allow_listing
+        - world_app_description
+      filter: {}
+      check: {}

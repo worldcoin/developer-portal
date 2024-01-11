@@ -7,6 +7,7 @@
 - "!include public_invite.yaml"
 - "!include public_jwks.yaml"
 - "!include public_nullifier.yaml"
+- "!include public_pending_app_metadata.yaml"
 - "!include public_redirect.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
