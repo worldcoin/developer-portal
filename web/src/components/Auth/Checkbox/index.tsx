@@ -14,7 +14,6 @@ interface CheckboxInterface extends InputHTMLAttributes<HTMLInputElement> {
   register: UseFormRegisterReturn;
   errors?: FieldError;
   isDirty?: boolean;
-  alternativeColor?: string;
 }
 
 export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
