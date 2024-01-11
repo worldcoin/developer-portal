@@ -26,7 +26,6 @@ export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
     register,
     errors,
     isDirty,
-    alternativeColor,
     ...otherProps
   } = props;
 
@@ -47,7 +46,7 @@ export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
         className={cn(
           "block peer-checked:hidden w-6 h-6",
           { "text-danger": errors },
-          alternativeColor ? alternativeColor : { "text-gray-400": !errors }
+          { "text-gray-400": !errors }
         )}
         name="checkbox"
       />
@@ -55,7 +54,7 @@ export const Checkbox = memo(function Checkbox(props: CheckboxInterface) {
         className={cn(
           "hidden peer-checked:block w-6 h-6",
           { "text-danger": errors },
-          alternativeColor ? alternativeColor : { "text-gray-400": !errors }
+          { "text-gray-400": !errors }
         )}
         name="checkbox-on"
       />

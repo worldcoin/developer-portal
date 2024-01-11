@@ -1,10 +1,10 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { Button } from "@/components/Button";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FieldInput } from "../actions/common/Form/FieldInput";
 import { FieldLabel } from "src/components/FieldLabel";
@@ -31,12 +31,11 @@ const saveSchema = yup.object().shape({
     .required("This section is required"),
   description_how_it_works: yup.string().max(3500).notRequired(),
   description_connect: yup.string().max(3500).notRequired(),
-  link: yup
+  link_to_integration: yup
     .string()
     .notRequired()
     .url("Must be a valid URL")
     .matches(/^https:\/\/|^$/, "Link must start with https://"),
-
   world_app_description: yup
     .string()
     .max(50, "In app description cannot exceed 50 characters")
@@ -56,13 +55,12 @@ export const Configuration = memo(function Configuration() {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
     defaultValues: { ...currentApp, ...descriptionInternal },
     values: { ...currentApp, ...descriptionInternal },
   });
-
   const watchTextInputs = watch([
     "name",
     "world_app_description",
@@ -90,14 +88,19 @@ export const Configuration = memo(function Configuration() {
         description_internal: descriptionsJSON,
       };
       await updateAppData(updatedData);
-      toast.success("App configuration saved");
+      toast.success("App information saved");
     },
     [encodeDescription, updateAppData]
   );
 
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">
-      <h2 className="text-20 font-sora font-semibold">App Details</h2>
+      {Object.keys(dirtyFields).length > 0 && (
+        <div className="text-danger ">
+          Warning: You have unsaved changes to your app information!
+        </div>
+      )}
+      <h2 className="text-20 font-sora font-semibold">App Information</h2>
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
           App name
@@ -181,17 +184,17 @@ export const Configuration = memo(function Configuration() {
 
         <div className="relative">
           <FieldInput
-            register={register("link")}
+            register={register("link_to_integration")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
             type="text"
             disabled={isSubmitting}
-            errors={errors.link}
+            errors={errors.link_to_integration}
           />
 
-          {errors.link?.message && (
+          {errors.link_to_integration?.message && (
             <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
-              {errors.link.message}
+              {errors.link_to_integration.message}
             </span>
           )}
         </div>
