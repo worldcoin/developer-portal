@@ -2,6 +2,9 @@ table:
   name: pending_app_metadata
   schema: public
 object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
   - name: pending_app_metadata_team
     using:
       foreign_key_constraint_on: team_id
@@ -9,8 +12,9 @@ insert_permissions:
   - role: user
     permission:
       check: {}
+      set:
+        team_id: x-hasura-Team-Id
       columns:
-        - id
         - name
         - logo_img_url
         - showcase_img_urls
@@ -23,8 +27,9 @@ insert_permissions:
         - review_status
         - is_developer_allow_listing
         - world_app_description
-        - created_at
-        - updated_at
+        - app_website
+        - source_code_url
+        - app_id
 select_permissions:
   - role: reviewer
     permission:
@@ -42,9 +47,12 @@ select_permissions:
         - review_status
         - is_developer_allow_listing
         - world_app_description
+        - team_id
         - created_at
         - updated_at
-        - team_id
+        - app_website
+        - source_code_url
+        - app_id
       filter: {}
   - role: user
     permission:
@@ -62,9 +70,12 @@ select_permissions:
         - review_status
         - is_developer_allow_listing
         - world_app_description
+        - team_id
         - created_at
         - updated_at
-        - team_id
+        - app_website
+        - source_code_url
+        - app_id
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -79,7 +90,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - id
         - name
         - logo_img_url
         - showcase_img_urls
@@ -91,6 +101,8 @@ update_permissions:
         - is_developer_allow_listing
         - world_app_description
         - team_id
+        - app_website
+        - source_code_url
       filter:
         pending_app_metadata_team:
           users:
