@@ -57,7 +57,6 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - id
         - name
         - logo_img_url
         - showcase_img_urls
@@ -71,7 +70,6 @@ select_permissions:
         - is_developer_allow_listing
         - world_app_description
         - team_id
-        - created_at
         - updated_at
         - app_website
         - source_code_url
