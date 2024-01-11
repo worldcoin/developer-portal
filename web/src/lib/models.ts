@@ -37,6 +37,10 @@ export interface AppModel {
   approved_by: string | null;
   is_staging: boolean;
   logo_url: string;
+  showcase_img_urls: Array<string>;
+  hero_image_url: string;
+  source_code_url: string;
+  app_website: string;
   verified_app_logo?: string;
   is_verified: boolean;
   team_id: string;

@@ -19,6 +19,11 @@ computed_fields:
       function:
         name: get_app_is_verified
         schema: public
+  - name: show_details_page
+    definition:
+      function:
+        name: get_app_is_verified
+        schema: public
   - name: verified_app_logo
     definition:
       function:
@@ -54,15 +59,19 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
+        - app_website
         - category
         - description_internal
         - engine
+        - hero_image_url
         - is_archived
         - is_developer_allow_listing
         - is_staging
         - link_to_integration
         - logo_url
         - name
+        - showcase_img_urls
+        - source_code_url
         - status
         - world_app_description
 select_permissions:
@@ -99,6 +108,7 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - app_website
         - approved_by
         - category
         - created_at
@@ -112,23 +122,22 @@ select_permissions:
         - is_staging
         - link_to_integration
         - name
+        - source_code_url
         - status
         - team_id
         - verified_at
         - world_app_description
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter: {}
       limit: 1
   - role: user
     permission:
       columns:
-        - approved_by
+        - app_website
         - category
         - created_at
         - description_internal
         - engine
+        - hero_image_url
         - id
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
@@ -136,6 +145,8 @@ select_permissions:
         - is_staging
         - link_to_integration
         - name
+        - showcase_img_urls
+        - source_code_url
         - status
         - team_id
         - world_app_description
@@ -151,6 +162,7 @@ update_permissions:
   - role: api_key
     permission:
       columns:
+        - app_website
         - category
         - description_internal
         - is_archived
@@ -158,21 +170,26 @@ update_permissions:
         - link_to_integration
         - logo_url
         - name
+        - source_code_url
         - world_app_description
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
-      check: null
+      check: {}
   - role: user
     permission:
       columns:
+        - app_website
         - category
         - description_internal
+        - hero_image_url
         - is_archived
         - is_developer_allow_listing
         - link_to_integration
         - logo_url
         - name
+        - showcase_img_urls
+        - source_code_url
         - status
         - world_app_description
       filter:
@@ -180,7 +197,7 @@ update_permissions:
           users:
             id:
               _eq: X-Hasura-User-Id
-      check: null
+      check: {}
 delete_permissions:
   - role: api_key
     permission:
