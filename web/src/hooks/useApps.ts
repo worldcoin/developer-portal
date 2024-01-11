@@ -11,6 +11,12 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { shallow } from "zustand/shallow";
 
+enum DescriptionSubFields {
+  DescriptionOverview = "description_overview",
+  DescriptionHowItWorks = "description_how_it_works",
+  DescriptionConnect = "description_connect",
+}
+
 const appFields = `
 id
 verified_app_logo
@@ -77,12 +83,6 @@ const DeleteAppQuery = gql`
     }
   }
 `;
-
-const descriptionSubFields = [
-  "description_overview",
-  "description_how_it_works",
-  "description_connect",
-];
 
 const fetchApps = async () => {
   const response = await graphQLRequest<{
@@ -334,9 +334,9 @@ const useApps = () => {
     description_connect: string = ""
   ) => {
     return JSON.stringify({
-      [descriptionSubFields[0]]: description_overview,
-      [descriptionSubFields[1]]: description_how_it_works,
-      [descriptionSubFields[2]]: description_connect,
+      [DescriptionSubFields.DescriptionOverview]: description_overview,
+      [DescriptionSubFields.DescriptionHowItWorks]: description_how_it_works,
+      [DescriptionSubFields.DescriptionConnect]: description_connect,
     });
   };
 

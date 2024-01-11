@@ -61,13 +61,6 @@ export const Configuration = memo(function Configuration() {
     defaultValues: { ...currentApp, ...descriptionInternal },
     values: { ...currentApp, ...descriptionInternal },
   });
-  const watchTextInputs = watch([
-    "name",
-    "world_app_description",
-    "description_overview",
-    "description_how_it_works",
-    "description_connect",
-  ]);
 
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
@@ -111,10 +104,9 @@ export const Configuration = memo(function Configuration() {
             register={register("name")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="App Name"
-            type="text"
+            value={watch("name")}
             maxChar={50}
             maxLength={50}
-            value={watchTextInputs[0] ?? ""}
             disabled={isSubmitting}
             required
             errors={errors.name}
@@ -134,7 +126,7 @@ export const Configuration = memo(function Configuration() {
         </FieldLabel>
 
         <FieldTextArea
-          value={watchTextInputs[2] ?? ""}
+          value={watch("description_overview") ?? ""}
           maxChar={3500}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_overview")}
@@ -150,7 +142,7 @@ export const Configuration = memo(function Configuration() {
           How It Works
         </FieldLabel>
         <FieldTextArea
-          value={watchTextInputs[3] ?? ""}
+          value={watch("description_how_it_works") ?? ""}
           maxChar={3500}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_how_it_works")}
@@ -166,7 +158,7 @@ export const Configuration = memo(function Configuration() {
           How To Connect
         </FieldLabel>
         <FieldTextArea
-          value={watchTextInputs[4] ?? ""}
+          value={watch("description_connect") ?? ""}
           maxChar={3500}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_connect")}
@@ -187,7 +179,6 @@ export const Configuration = memo(function Configuration() {
             register={register("link_to_integration")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
-            type="text"
             disabled={isSubmitting}
             errors={errors.link_to_integration}
           />
@@ -207,8 +198,7 @@ export const Configuration = memo(function Configuration() {
           register={register("world_app_description")}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           placeholder="Description shown inside of World App"
-          type="text"
-          value={watchTextInputs[1] ?? ""}
+          value={watch("world_app_description") ?? ""}
           maxChar={50}
           maxLength={50}
           disabled={isSubmitting}
