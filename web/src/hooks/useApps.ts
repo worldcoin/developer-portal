@@ -54,8 +54,6 @@ const UpdateAppQuery = gql`
     $link_to_integration: String = ""
     $is_developer_allow_listing: Boolean
     $world_app_description: String = ""
-    $showcase_img_urls: jsonb = ""
-    $hero_image_url: String = ""
     $source_code_url: String = ""
     $app_website: String = ""
   ) {
@@ -69,8 +67,6 @@ const UpdateAppQuery = gql`
         category: $category
         is_developer_allow_listing: $is_developer_allow_listing
         world_app_description: $world_app_description
-        showcase_img_urls: $showcase_img_urls
-        hero_image_url: $hero_image_url
         source_code_url: $source_code_url
         app_website: $app_website
       }
@@ -121,8 +117,6 @@ const updateAppFetcher = async (
       link_to_integration?: AppModel["link_to_integration"];
       is_developer_allow_listing?: AppModel["is_developer_allow_listing"];
       world_app_description?: AppModel["world_app_description"];
-      showcase_img_urls?: AppModel["showcase_img_urls"];
-      hero_image_url?: AppModel["hero_image_url"];
       source_code_url?: AppModel["source_code_url"];
       app_website?: AppModel["app_website"];
     };
@@ -138,8 +132,6 @@ const updateAppFetcher = async (
     link_to_integration,
     is_developer_allow_listing,
     world_app_description,
-    showcase_img_urls,
-    hero_image_url,
     source_code_url,
     app_website,
   } = args.arg;
@@ -165,8 +157,6 @@ const updateAppFetcher = async (
         is_developer_allow_listing ?? currentApp.is_developer_allow_listing,
       world_app_description:
         world_app_description ?? currentApp.world_app_description,
-      showcase_img_urls: showcase_img_urls ?? currentApp.showcase_img_urls,
-      hero_image_url: hero_image_url ?? currentApp.hero_image_url,
       source_code_url: source_code_url ?? currentApp.source_code_url,
       app_website: app_website ?? currentApp.app_website,
     },
