@@ -14,7 +14,7 @@ import { FieldTextArea } from "@/components/FieldTextArea";
 
 type FormData = Pick<
   AppModel,
-  "name" | "description_internal" | "engine" | "is_staging" // | "logo_url"
+  "name" | "description" | "engine" | "is_staging" // | "logo_url"
 >;
 
 export interface NewAppDialogProps {
@@ -36,7 +36,7 @@ export const NewAppDialog = memo(function NewAppDialog(
     });
 
   const onSubmit = handleSubmit(async (data) => {
-    data.description_internal = encodeDescription(data.description_internal);
+    data.description = encodeDescription(data.description);
     await createNewApp(data);
     props.onClose();
     reset();
@@ -99,7 +99,7 @@ export const NewAppDialog = memo(function NewAppDialog(
               className="w-full font-rubik"
               placeholder="For internal reference. Visible only to you and your team."
               type="text"
-              {...register("description_internal")}
+              {...register("description")}
               readOnly={formState.isSubmitting}
             />
           </div>

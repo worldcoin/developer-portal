@@ -35,7 +35,7 @@ const actionKioskQuery = gql`
       app {
         id
         name
-        verified_app_logo
+        logo_img_url
         is_staging
         is_verified
       }

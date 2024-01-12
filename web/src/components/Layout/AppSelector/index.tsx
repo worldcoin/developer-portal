@@ -26,16 +26,16 @@ export const ButtonContent = memo(function ButtonContent(props: {
   className?: string;
 }) {
   const [image, setImage] = useState<string | null>(
-    props.app.verified_app_logo ?? ""
+    props.app.logo_img_url ?? ""
   );
 
   useEffect(() => {
-    if (!props.app.verified_app_logo) {
+    if (!props.app.logo_img_url) {
       return;
     }
 
-    setImage(props.app.verified_app_logo);
-  }, [props.app.verified_app_logo]);
+    setImage(props.app.logo_img_url);
+  }, [props.app.logo_img_url]);
 
   return (
     <div
@@ -49,7 +49,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
       <div>
         {image && (
           <Image
-            src={props.app?.verified_app_logo ?? ""}
+            src={props.app?.logo_img_url ?? ""}
             width={20}
             height={20}
             alt="app logo"

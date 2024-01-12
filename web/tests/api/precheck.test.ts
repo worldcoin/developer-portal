@@ -11,7 +11,7 @@ const appPayload = {
   is_verified: false,
   is_staging: true,
   engine: "cloud",
-  verified_app_logo: "",
+  logo_img_url: "",
   actions: [
     {
       name: "Swag Pack 2022",
@@ -65,7 +65,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       is_verified: false,
       is_staging: true,
       engine: "cloud",
-      verified_app_logo: "",
+      logo_img_url: "",
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
