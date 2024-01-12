@@ -12,7 +12,7 @@ insert_permissions:
         app:
           team:
             id:
-              _eq: x-hasura-Team-Id
+              _eq: X-Hasura-Team-Id
       columns:
         - name
         - logo_img_url
@@ -73,7 +73,7 @@ select_permissions:
         app:
           team:
             id:
-              _eq: x-hasura-Team-Id
+              _eq: X-Hasura-Team-Id
   - role: reviewer
     permission:
       columns:
@@ -156,7 +156,7 @@ update_permissions:
           - app:
               team:
                 id:
-                  _eq: x-hasura-Team-Id
+                  _eq: X-Hasura-Team-Id
       check: {}
   - role: reviewer
     permission:
