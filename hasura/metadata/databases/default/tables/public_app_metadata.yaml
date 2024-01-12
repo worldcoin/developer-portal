@@ -170,6 +170,7 @@ update_permissions:
         - app_website_url
         - source_code_url
       check: {}
+      filter: {}
   - role: reviewer
     permission:
       columns:
