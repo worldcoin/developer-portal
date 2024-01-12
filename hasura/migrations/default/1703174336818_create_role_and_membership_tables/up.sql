@@ -1,5 +1,15 @@
-CREATE TABLE "public"."roles" (
-  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('rol'),
+CREATE TABLE role (
+  value text PRIMARY KEY,
+  comment text
+);
+
+INSERT INTO role (value, comment) VALUES
+  ('OWNER', 'Owner of the team'),
+  ('ADMIN', 'Users with the privilege to manage other users'),
+  ('MEMBER', 'Member user');
+
+CREATE TABLE "public"."memberships" (
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('role'),
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "user_id" varchar(50) NOT NULL,
@@ -7,7 +17,7 @@ CREATE TABLE "public"."roles" (
   "team_id" varchar(50) NOT NULL,
   PRIMARY KEY ("id"),
   FOREIGN KEY ("user_id") REFERENCES "public"."user" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
-  FOREIGN KEY ("role") REFERENCES "public"."role" ("value") ON UPDATE RESTRICT ON DELETE CASCADE,
+  FOREIGN KEY ("role") REFERENCES "public"."role" ("value") ON UPDATE RESTRICT ON DELETE RESTRICT,
   FOREIGN KEY ("team_id") REFERENCES "public"."team" ("id") ON UPDATE RESTRICT ON DELETE CASCADE
 );
 
@@ -21,9 +31,10 @@ BEGIN
   RETURN _new;
 END;
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER "set_public_roles_updated_at"
-BEFORE UPDATE ON "public"."roles"
+
+CREATE TRIGGER "set_public_memberships_updated_at"
+BEFORE UPDATE ON "public"."memberships"
 FOR EACH ROW
 EXECUTE PROCEDURE "public"."set_current_timestamp_updated_at"();
-COMMENT ON TRIGGER "set_public_roles_updated_at" ON "public"."roles" 
+COMMENT ON TRIGGER "set_public_memberships_updated_at" ON "public"."memberships" 
 IS 'trigger to set value of column "updated_at" to current timestamp on row update';

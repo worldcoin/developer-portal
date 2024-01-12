@@ -54,7 +54,7 @@ insert_permissions:
         _and:
           - app:
               team:
-                roles:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
           - app:
@@ -145,7 +145,7 @@ select_permissions:
         _and:
           - app:
               team:
-                roles:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
           - app:
@@ -189,7 +189,7 @@ update_permissions:
         _and:
           - app:
               team:
-                roles:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
           - app:
@@ -209,12 +209,12 @@ delete_permissions:
         _and:
           - app:
               team:
-                roles:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
           - app:
               team:
-                roles:
+                memberships:
                   role:
                     _neq: MEMBER
           - app:

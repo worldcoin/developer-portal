@@ -9,12 +9,12 @@ array_relationships:
         table:
           name: app
           schema: public
-  - name: roles
+  - name: memberships
     using:
       foreign_key_constraint_on:
         column: team_id
         table:
-          name: roles
+          name: memberships
           schema: public
 insert_permissions:
   - role: service
@@ -51,10 +51,10 @@ select_permissions:
         - updated_at
       filter:
         _and:
-          - roles:
+          - memberships:
               team_id:
                 _eq: X-Hasura-Team-Id
-          - roles:
+          - memberships:
               user_id:
                 _eq: X-Hasura-User-Id
 update_permissions:
@@ -64,13 +64,13 @@ update_permissions:
         - name
       filter:
         _and:
-          - roles:
+          - memberships:
               user_id:
                 _eq: X-Hasura-User-Id
-          - roles:
+          - memberships:
               role:
                 _eq: OWNER
-          - roles:
+          - memberships:
               team_id:
                 _eq: X-Hasura-Team-Id
       check: null
@@ -79,12 +79,12 @@ delete_permissions:
     permission:
       filter:
         _and:
-          - roles:
+          - memberships:
               user_id:
                 _eq: X-Hasura-User-Id
-          - roles:
+          - memberships:
               role:
                 _eq: OWNER
-          - roles:
+          - memberships:
               team_id:
                 _eq: X-Hasura-Team-Id

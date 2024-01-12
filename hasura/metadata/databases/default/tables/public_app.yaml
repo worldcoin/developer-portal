@@ -53,11 +53,11 @@ insert_permissions:
       check:
         _and:
           - team:
-              roles:
+              memberships:
                 user_id:
                   _eq: X-Hasura-User-Id
           - team:
-              roles:
+              memberships:
                 role:
                   _neq: MEMBER
           - team_id:
@@ -125,7 +125,7 @@ select_permissions:
         - verified_app_logo
       filter:
         team:
-          roles:
+          memberships:
             user_id:
               _eq: X-Hasura-User-Id
 update_permissions:
@@ -151,11 +151,11 @@ update_permissions:
       filter:
         _and:
           - team:
-              roles:
+              memberships:
                 user_id:
                   _eq: X-Hasura-User-Id
           - team:
-              roles:
+              memberships:
                 role:
                   _neq: MEMBER
           - team_id:
@@ -172,11 +172,11 @@ delete_permissions:
       filter:
         _and:
           - team:
-              roles:
+              memberships:
                 user_id:
                   _eq: X-Hasura-User-Id
           - team:
-              roles:
+              memberships:
                 role:
                   _eq: OWNER
           - team_id:

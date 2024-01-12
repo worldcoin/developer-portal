@@ -1,13 +1,23 @@
 table:
   name: user
   schema: public
+object_relationships:
+  - name: team
+    using:
+      manual_configuration:
+        column_mapping:
+          team_id: id
+        insertion_order: null
+        remote_table:
+          name: team
+          schema: public
 array_relationships:
-  - name: roles
+  - name: memberships
     using:
       foreign_key_constraint_on:
         column: user_id
         table:
-          name: roles
+          name: memberships
           schema: public
 insert_permissions:
   - role: service
