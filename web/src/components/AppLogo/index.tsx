@@ -5,7 +5,7 @@ import styles from "./styles.module.css";
 import { AppModel } from "src/lib/models";
 
 export const AppLogo = memo(function AppLogo(props: {
-  app: Pick<AppModel, "name" | "verified_app_logo" | "is_verified">;
+  app: Pick<AppModel, "name" | "logo_img_url" | "is_verified">;
   className?: string;
   textClassName?: string;
 }) {
@@ -18,7 +18,7 @@ export const AppLogo = memo(function AppLogo(props: {
         props.className
       )}
     >
-      {!props.app.verified_app_logo && (
+      {!props.app.logo_img_url && (
         <span
           className={cn(
             "uppercase m-auto font-bold bg-gradient-to-r bg-clip-text text-transparent from-ff6848 to-primary leading-none",
@@ -33,10 +33,10 @@ export const AppLogo = memo(function AppLogo(props: {
         </span>
       )}
 
-      {props.app.verified_app_logo && (
+      {props.app.logo_img_url && (
         <div className="w-full h-full">
           <Image
-            src={props.app.verified_app_logo}
+            src={props.app.logo_img_url}
             layout="responsive"
             width={20}
             height={20}

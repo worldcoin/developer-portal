@@ -37,7 +37,7 @@ interface _App
     | "is_staging"
     | "is_verified"
     | "name"
-    | "verified_app_logo"
+    | "logo_img_url"
   > {
   actions: _Action[];
 }
@@ -63,7 +63,7 @@ const appPrecheckQuery = gql`
       is_staging
       is_verified
       name
-      verified_app_logo
+      logo_img_url
       engine
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier

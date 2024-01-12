@@ -31,7 +31,7 @@ const saveSchema = yup.object().shape({
     .required("This section is required"),
   description_how_it_works: yup.string().max(3500).notRequired(),
   description_connect: yup.string().max(3500).notRequired(),
-  link_to_integration: yup
+  integration_url: yup
     .string()
     .notRequired()
     .url("Must be a valid URL")
@@ -78,7 +78,7 @@ export const Configuration = memo(function Configuration() {
 
       const updatedData = {
         ...rest,
-        description_internal: descriptionsJSON,
+        description: descriptionsJSON,
       };
       await updateAppData(updatedData);
       toast.success("App information saved");
@@ -176,16 +176,16 @@ export const Configuration = memo(function Configuration() {
 
         <div className="relative">
           <FieldInput
-            register={register("link_to_integration")}
+            register={register("integration_url")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
             disabled={isSubmitting}
-            errors={errors.link_to_integration}
+            errors={errors.integration_url}
           />
 
-          {errors.link_to_integration?.message && (
+          {errors.integration_url?.message && (
             <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
-              {errors.link_to_integration.message}
+              {errors.integration_url.message}
             </span>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { AppModel } from "@/lib/models";
+import { AppMetadataModel, AppModel } from "@/lib/models";
 import { gql } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
@@ -19,23 +19,36 @@ enum DescriptionSubFields {
 
 const appFields = `
 id
-verified_app_logo
-name
-is_verified
 engine
 is_staging
 status
-description_internal
-category
-link_to_integration
-is_developer_allow_listing
+`;
+
+const appMetadataFields = `
+app_id
+name
+logo_img_url
+showcase_img_urls
+hero_image_url
+description
 world_app_description
+category
+is_developer_allow_listing
+integration_url
+app_website_url
+source_code_url
+verified_at
+review_message
+status
 `;
 
 const FetchAppsQuery = gql`
   query Apps {
     app(order_by: { created_at: asc }) {
       ${appFields}
+      app_metadata {
+        ${appMetadataFields}
+      }
     }
   }
 `;
@@ -43,47 +56,70 @@ const FetchAppsQuery = gql`
 const UpdateAppQuery = gql`
   mutation UpdateApp(
     $id: String = ""
+    $metadata_id: String = ""
     $name: String
-    $status: String
-    $description_internal: String = ""
-    $category: String = ""
-    $link_to_integration: String = ""
-    $is_developer_allow_listing: Boolean
+    $logo_img_url: String = ""
+    $showcase_img_urls: String[] = null
+    $hero_image_url: String = ""
+    $description: String = ""
     $world_app_description: String = ""
+    $category: String = ""
+    $is_developer_allow_listing: Boolean
+    $integration_url: String = ""
+    $app_website_url: String = ""
+    $source_code_url: String = ""
+    $status: String
   ) {
     update_app_by_pk(
       pk_columns: { id: $id }
       _set: {
         status: $status
-        name: $name
-        description_internal: $description_internal
-        link_to_integration: $link_to_integration
-        category: $category
-        is_developer_allow_listing: $is_developer_allow_listing
-        world_app_description: $world_app_description
       }
     ) {
       ${appFields}
+    }
+    update_app_metadata_by_pk(
+      pk_columns: { id: $metadata_id }
+      _set: {
+        name: $name
+        logo_img_url: $logo_img_url
+        showcase_img_urls: $showcase_img_urls
+        hero_image_url: $hero_image_url
+        description: $description
+        world_app_description: $world_app_description
+        category: $category
+        is_developer_allow_listing: $is_developer_allow_listing
+        integration_url: $integration_url
+        app_website_url: $app_website_url
+        source_code_url: $source_code_url
+      }
+    ) {
+      ${appMetadataFields}
     }
   }
 `;
 
 const InsertAppQuery = gql`
-  mutation InsertApp($object: app_insert_input!) {
-    insert_app_one(object: $object) {
+  mutation InsertApp($appObject: app_insert_input!, $appMetadataObject: app_metadata_insert_input!) {
+    insert_app_one(object: $appObject) {
       ${appFields}
+    }
+    insert_app_metadata_one(object: $appMetadataObject) {
+      ${appMetadataFields}
     }
   }
 `;
 
 const DeleteAppQuery = gql`
   mutation DeleteApp($id: String!) {
-    app: delete_app_by_pk(id: $id) {
+    delete_appmetadata(where: { app_id: { _eq: $id } }) {
+      affected_rows
+    }
+    delete_app_by_pk(id: $id) {
       id
     }
   }
 `;
-
 const fetchApps = async () => {
   const response = await graphQLRequest<{
     app: Array<AppModel>;
@@ -102,13 +138,14 @@ const updateAppFetcher = async (
   args: {
     arg: {
       id: AppModel["id"];
-      name?: AppModel["name"];
       status?: AppModel["status"];
-      description_internal?: AppModel["description_internal"];
-      category?: AppModel["category"];
-      link_to_integration?: AppModel["link_to_integration"];
-      is_developer_allow_listing?: AppModel["is_developer_allow_listing"];
-      world_app_description?: AppModel["world_app_description"];
+      app_metadata_id?: AppMetadataModel["id"];
+      name?: AppMetadataModel["name"];
+      description?: AppMetadataModel["description"];
+      category?: AppMetadataModel["category"];
+      integration_url?: AppMetadataModel["integration_url"];
+      is_developer_allow_listing?: AppMetadataModel["is_developer_allow_listing"];
+      world_app_description?: AppMetadataModel["world_app_description"];
     };
   }
 ) => {
@@ -117,9 +154,9 @@ const updateAppFetcher = async (
     id,
     name,
     status,
-    description_internal,
+    description,
     category,
-    link_to_integration,
+    integration_url,
     is_developer_allow_listing,
     world_app_description,
   } = args.arg;
@@ -136,11 +173,9 @@ const updateAppFetcher = async (
       id: id,
       name: name ?? currentApp.name,
       status: status ?? currentApp.status,
-      description_internal:
-        description_internal ?? currentApp.description_internal,
+      description: description ?? currentApp.description,
       category: category ?? currentApp.category,
-      link_to_integration:
-        link_to_integration ?? currentApp.link_to_integration,
+      integration_url: integration_url ?? currentApp.integration_url,
       is_developer_allow_listing:
         is_developer_allow_listing ?? currentApp.is_developer_allow_listing,
       world_app_description:
@@ -178,11 +213,11 @@ const deleteAppFetcher = async (
 
 type NewAppPayload = Pick<
   AppModel,
-  "name" | "description_internal" | "engine" | "is_staging"
+  "name" | "description" | "engine" | "is_staging"
 >;
 
 const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
-  const { name, description_internal, engine, is_staging } = args.arg;
+  const { name, description, engine, is_staging } = args.arg;
 
   const response = await graphQLRequest<{
     insert_app_one: AppModel;
@@ -191,7 +226,7 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
     variables: {
       object: {
         name,
-        description_internal,
+        description,
         engine,
         is_staging,
       },
@@ -313,13 +348,13 @@ const useApps = () => {
   );
 
   const parseDescription = (currentApp: AppModel | null) => {
-    if (currentApp && currentApp.description_internal) {
+    if (currentApp && currentApp.description) {
       try {
-        return JSON.parse(currentApp.description_internal);
+        return JSON.parse(currentApp.description);
       } catch (error) {
-        console.error("Failed to parse description_internal:", error);
+        console.error("Failed to parse description:", error);
         return {
-          description_overview: currentApp.description_internal,
+          description_overview: currentApp.description,
           description_how_it_works: "",
           description_connect: "",
         };
