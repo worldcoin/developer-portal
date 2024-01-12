@@ -20,6 +20,7 @@ CREATE TABLE "public"."app_metadata" (
   "status" varchar NOT NULL DEFAULT 'unverified',
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY ("app_id") REFERENCES "public"."app" ("id") ON UPDATE RESTRICT ON DELETE CASCADE,
   primary key ("id")
 );
 
@@ -40,13 +41,6 @@ FOR EACH ROW
 EXECUTE PROCEDURE "public"."set_current_timestamp_updated_at"();
 COMMENT ON TRIGGER "set_public_app_metadata_updated_at" ON "public"."app_metadata"
 IS 'trigger to set value of column "updated_at" to current timestamp on row update';
-
-
-alter table "public"."app_metadata"
-  add constraint "app_metadata_app_id_fkey"
-  foreign key ("app_id")
-  references "public"."app"
-  ("id") on update restrict on delete restrict;
 
 
 CREATE OR REPLACE FUNCTION validate_single_url(url text)

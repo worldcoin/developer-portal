@@ -53,6 +53,7 @@ select_permissions:
   - role: api_key
     permission:
       columns:
+        - id
         - app_id
         - name
         - logo_img_url
@@ -112,6 +113,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - id
         - app_id
         - name
         - logo_img_url
@@ -149,7 +151,7 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
-      filter:
+      check:
         _and:
           - status:
               _eq: unverified
@@ -157,7 +159,7 @@ update_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-      check: {}
+      filter: {}
   - role: reviewer
     permission:
       columns:
@@ -167,10 +169,10 @@ update_permissions:
         - is_reviewer_world_app_approved
         - review_message
         - status
-      filter:
+      check:
         status:
           _eq: awaiting_review
-      check: {}
+      filter: {}
   - role: user
     permission:
       columns:
@@ -185,7 +187,7 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
-      filter:
+      check:
         _and:
           - status:
               _eq: unverified
@@ -194,7 +196,7 @@ update_permissions:
                 users:
                   id:
                     _eq: X-Hasura-User-Id
-      check: {}
+      filter: {}
 delete_permissions:
   - role: reviewer
     permission:
@@ -204,15 +206,21 @@ delete_permissions:
   - role: api_key
     permission:
       filter:
-        app:
-          team:
-            id:
-              _eq: X-Hasura-Team-Id
+        _and:
+          - status:
+              _neq: verified
+          - app:
+              team:
+                id:
+                  _eq: X-Hasura-Team-Id
   - role: user
     permission:
       filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - status:
+              _neq: verified
+          - app:
+              team:
+                users:
+                  id:
+                    _eq: X-Hasura-User-Id
