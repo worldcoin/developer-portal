@@ -204,12 +204,15 @@ delete_permissions:
   - role: api_key
     permission:
       filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
+        app:
+          team:
+            id:
+              _eq: X-Hasura-Team-Id
   - role: user
     permission:
       filter:
-        team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+        app:
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
