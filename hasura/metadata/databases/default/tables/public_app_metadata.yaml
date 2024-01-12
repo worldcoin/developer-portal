@@ -106,7 +106,9 @@ select_permissions:
       columns:
         - name
         - logo_img_url
-      filter: {}
+      filter:
+        status:
+          _in: [unverified, verified]
   - role: user
     permission:
       columns:
@@ -153,9 +155,8 @@ update_permissions:
               _eq: unverified
           - app:
               team:
-                users:
-                  id:
-                    _eq: X-Hasura-User-Id
+                id:
+                  _eq: x-hasura-Team-Id
       check: {}
   - role: reviewer
     permission:
