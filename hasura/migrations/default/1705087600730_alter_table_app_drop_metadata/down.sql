@@ -12,4 +12,3 @@ alter table "public"."app" add column "description_internal" text;
 
 alter table "public"."app" alter column "name" drop not null;
 alter table "public"."app" add column "name" varchar;
-    "name": "1705087451569_alter_table_public_app_drop_column_name"
