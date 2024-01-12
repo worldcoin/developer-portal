@@ -1,0 +1,156 @@
+table:
+  name: app_metadata
+  schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - review_message
+        - status
+        - is_developer_allow_listing
+        - world_app_description
+        - app_website_url
+        - source_code_url
+        - app_id
+select_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - review_message
+        - status
+        - is_developer_allow_listing
+        - world_app_description
+        - updated_at
+        - app_website_url
+        - source_code_url
+        - app_id
+      filter:
+        app:
+          team:
+            id:
+              _eq: x-hasura-Team-Id
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - app_id
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - world_app_description
+        - category
+        - is_developer_allow_listing
+        - integration_url
+        - app_website_url
+        - source_code_url
+        - verified_at
+        - reviewed_by
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
+        - review_message
+        - status
+        - created_at
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - review_message
+        - status
+        - is_developer_allow_listing
+        - world_app_description
+        - updated_at
+        - app_website_url
+        - source_code_url
+        - app_id
+      filter:
+        app:
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
+update_permissions:
+  - role: api_key
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - is_developer_allow_listing
+        - world_app_description
+        - app_website_url
+        - source_code_url
+      filter:
+        app:
+          team:
+            id:
+              _eq: x-hasura-Team-Id
+      check: {}
+  - role: reviewer
+    permission:
+      columns:
+        - verified_at
+        - reviewed_by
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
+        - review_message
+        - status
+      filter: {}
+      check: {}
+  - role: user
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - is_developer_allow_listing
+        - world_app_description
+        - app_website_url
+        - source_code_url
+      filter:
+        app:
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
+      check: {}
+delete_permissions:
+  - role: reviewer
+    permission:
+      filter: {}
