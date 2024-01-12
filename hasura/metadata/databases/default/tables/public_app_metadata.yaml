@@ -8,7 +8,12 @@ object_relationships:
 insert_permissions:
   - role: api_key
     permission:
-      check: {}
+      check:
+        app:
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
       columns:
         - name
         - logo_img_url
@@ -17,7 +22,6 @@ insert_permissions:
         - description
         - category
         - integration_url
-        - review_message
         - status
         - is_developer_allow_listing
         - world_app_description
@@ -26,7 +30,12 @@ insert_permissions:
         - app_id
   - role: user
     permission:
-      check: {}
+      check:
+        app:
+          team:
+            users:
+              id:
+                _eq: X-Hasura-User-Id
       columns:
         - name
         - logo_img_url
@@ -35,7 +44,6 @@ insert_permissions:
         - description
         - category
         - integration_url
-        - review_message
         - status
         - is_developer_allow_listing
         - world_app_description
@@ -46,21 +54,22 @@ select_permissions:
   - role: api_key
     permission:
       columns:
+        - app_id
         - name
         - logo_img_url
         - showcase_img_urls
         - hero_image_url
         - description
-        - category
-        - integration_url
-        - review_message
-        - status
-        - is_developer_allow_listing
         - world_app_description
-        - updated_at
+        - category
+        - is_developer_allow_listing
+        - integration_url
         - app_website_url
         - source_code_url
-        - app_id
+        - verified_at
+        - review_message
+        - status
+        - updated_at
       filter:
         app:
           team:
@@ -90,44 +99,34 @@ select_permissions:
         - status
         - created_at
         - updated_at
-      filter: {}
+      filter:
+        status:
+          _eq: awaiting_review
   - role: service
     permission:
       columns:
         - name
         - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
-        - description
-        - category
-        - integration_url
-        - review_message
-        - status
-        - is_developer_allow_listing
-        - world_app_description
-        - updated_at
-        - app_website_url
-        - source_code_url
-        - app_id
       filter: {}
   - role: user
     permission:
       columns:
+        - app_id
         - name
         - logo_img_url
         - showcase_img_urls
         - hero_image_url
         - description
-        - category
-        - integration_url
-        - review_message
-        - status
-        - is_developer_allow_listing
         - world_app_description
-        - updated_at
+        - category
+        - is_developer_allow_listing
+        - integration_url
         - app_website_url
         - source_code_url
-        - app_id
+        - verified_at
+        - review_message
+        - status
+        - updated_at
       filter:
         app:
           team:
@@ -150,10 +149,14 @@ update_permissions:
         - app_website_url
         - source_code_url
       filter:
-        app:
-          team:
-            id:
-              _eq: x-hasura-Team-Id
+        _and:
+          - status:
+              _eq: unverified
+          - app:
+              team:
+                users:
+                  id:
+                    _eq: X-Hasura-User-Id
       check: {}
   - role: reviewer
     permission:
@@ -164,7 +167,9 @@ update_permissions:
         - is_reviewer_world_app_approved
         - review_message
         - status
-      filter: {}
+      filter:
+        status:
+          _eq: awaiting_review
       check: {}
   - role: user
     permission:
@@ -181,13 +186,18 @@ update_permissions:
         - app_website_url
         - source_code_url
       filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - status:
+              _eq: unverified
+          - app:
+              team:
+                users:
+                  id:
+                    _eq: X-Hasura-User-Id
       check: {}
 delete_permissions:
   - role: reviewer
     permission:
-      filter: {}
+      filter:
+        status:
+          _eq: verified
