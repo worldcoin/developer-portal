@@ -73,6 +73,25 @@ select_permissions:
         - created_at
         - updated_at
       filter: {}
+  - role: service
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - review_message
+        - status
+        - is_developer_allow_listing
+        - world_app_description
+        - updated_at
+        - app_website_url
+        - source_code_url
+        - app_id
+      check: {}
   - role: user
     permission:
       columns:
@@ -117,6 +136,21 @@ update_permissions:
           team:
             id:
               _eq: x-hasura-Team-Id
+      check: {}
+  - role: service
+    permission:
+      columns:
+        - name
+        - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
+        - description
+        - category
+        - integration_url
+        - is_developer_allow_listing
+        - world_app_description
+        - app_website_url
+        - source_code_url
       check: {}
   - role: reviewer
     permission:
