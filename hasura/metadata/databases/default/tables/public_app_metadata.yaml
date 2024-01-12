@@ -11,9 +11,8 @@ insert_permissions:
       check:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            id:
+              _eq: x-hasura-Team-Id
       columns:
         - name
         - logo_img_url
