@@ -1,5 +1,5 @@
 CREATE TABLE "public"."app_metadata" (
-  "id" varchar NOT NULL UNIQUE DEFAULT gen_random_friendly_id('update'),
+  "id" varchar NOT NULL UNIQUE DEFAULT gen_random_friendly_id('meta'),
   "app_id" varchar NOT NULL,
   "name" varchar NOT NULL,
   "logo_img_url" varchar NOT NULL DEFAULT '',
