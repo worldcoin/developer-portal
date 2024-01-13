@@ -8,7 +8,6 @@ CREATE TABLE "public"."app_metadata" (
   "description" text NOT NULL DEFAULT '',
   "world_app_description" varchar NOT NULL DEFAULT '',
   "category" varchar NOT NULL DEFAULT '',
-  "is_app_active" bool NOT NULL DEFAULT true,
   "is_developer_allow_listing" bool NOT NULL DEFAULT false,
   "integration_url" varchar NOT NULL DEFAULT '',
   "app_website_url" varchar NOT NULL DEFAULT '',

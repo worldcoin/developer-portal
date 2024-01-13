@@ -4,7 +4,7 @@
  */
 
 import { NextApiRequest } from "next";
-import { ActionModel, AppModel } from "./models";
+import { ActionModel, AppMetadataModel, AppModel } from "./models";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
@@ -13,6 +13,11 @@ export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
 export enum EngineType {
   OnChain = "on-chain",
   Cloud = "cloud",
+}
+
+export enum AppStatusType {
+  Active = "active",
+  Inactive = "inactive",
 }
 
 // Options for the `can_user_verify` attribute in the /precheck endpoint
@@ -66,10 +71,9 @@ export type ActionKioskType = Pick<
   ActionModel,
   "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
 > & {
-  app: Pick<
-    AppModel,
-    "id" | "name" | "logo_img_url" | "is_staging" | "is_verified" | "__typename"
-  >;
+  app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
+    app_metadata: Pick<AppMetadataModel, "name" | "logo_img_url" | "status">;
+  };
 };
 
 export enum Environment {

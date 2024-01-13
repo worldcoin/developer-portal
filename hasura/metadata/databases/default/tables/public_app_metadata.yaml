@@ -64,7 +64,6 @@ select_permissions:
         - integration_url
         - app_website_url
         - source_code_url
-        - is_app_active
         - status
         - verified_at
         - review_message
@@ -126,7 +125,6 @@ select_permissions:
         - world_app_description
         - category
         - is_developer_allow_listing
-        - is_app_active
         - integration_url
         - app_website_url
         - source_code_url
@@ -154,7 +152,6 @@ update_permissions:
         - category
         - integration_url
         - is_developer_allow_listing
-        - is_app_active
         - world_app_description
         - app_website_url
         - source_code_url
@@ -191,7 +188,6 @@ update_permissions:
         - category
         - integration_url
         - is_developer_allow_listing
-        - is_app_active
         - world_app_description
         - app_website_url
         - source_code_url

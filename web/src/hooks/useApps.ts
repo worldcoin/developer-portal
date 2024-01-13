@@ -1,4 +1,5 @@
 import { AppMetadataModel, AppModel } from "@/lib/models";
+import { AppStatusType } from "@/lib/types";
 import { gql } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
@@ -54,6 +55,21 @@ const FetchAppsQuery = gql`
     }
   }
 `;
+const UpdateAppStatusQuery = gql`
+  mutation UpdateApp(
+    $id: String = ""
+    $status: String = ""
+    ){
+      update_app_metadata_by_pk(
+        pk_columns: { id: $id }
+        _set: {
+          status: $status
+        }
+      ) {
+        ${appFields}
+      }
+  }
+`;
 
 const UpdateAppMetadataQuery = gql`
   mutation UpdateApp(
@@ -64,7 +80,6 @@ const UpdateAppMetadataQuery = gql`
     $hero_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""
-    $is_app_active: Boolean
     $category: String = ""
     $is_developer_allow_listing: Boolean
     $integration_url: String = ""
@@ -80,7 +95,6 @@ const UpdateAppMetadataQuery = gql`
         hero_image_url: $hero_image_url
         description: $description
         world_app_description: $world_app_description
-        is_app_active: $is_app_active
         category: $category
         is_developer_allow_listing: $is_developer_allow_listing
         integration_url: $integration_url
@@ -153,6 +167,32 @@ const handleMissingMetadata = async (appsMissingMetadata: Array<AppModel>) => {
   );
 };
 
+const updateAppStatusFetcher = async (
+  _key: string,
+  args: {
+    arg: {
+      id: AppModel["id"];
+      status: AppModel["status"];
+    };
+  }
+) => {
+  const { id, status } = args.arg;
+  const response = await graphQLRequest<{
+    update_app_status_by_pk: AppModel;
+  }>({
+    query: UpdateAppStatusQuery,
+    variables: {
+      id: id,
+      status: status,
+    },
+  });
+  if (response.data?.update_app_status_by_pk) {
+    return response.data.update_app_status_by_pk;
+  }
+
+  throw new Error("Failed to update app status");
+};
+
 const updateAppMetadataFetcher = async (
   _key: string,
   args: {
@@ -160,7 +200,6 @@ const updateAppMetadataFetcher = async (
       metadata_id: AppMetadataModel["id"];
       name?: AppMetadataModel["name"];
       logo_img_url?: AppMetadataModel["logo_img_url"];
-      is_app_active?: AppMetadataModel["is_app_active"];
       showcase_img_urls?: AppMetadataModel["showcase_img_urls"];
       hero_image_url?: AppMetadataModel["hero_image_url"];
       description?: AppMetadataModel["description"];
@@ -185,7 +224,6 @@ const updateAppMetadataFetcher = async (
     integration_url,
     is_developer_allow_listing,
     world_app_description,
-    is_app_active,
     app_website_url,
     source_code_url,
   } = args.arg;
@@ -218,7 +256,6 @@ const updateAppMetadataFetcher = async (
       description: description ?? unverifiedAppMetadata.description,
       world_app_description:
         world_app_description ?? unverifiedAppMetadata.world_app_description,
-      is_app_active: is_app_active ?? unverifiedAppMetadata.is_app_active,
       category: category ?? unverifiedAppMetadata.category,
       is_developer_allow_listing:
         is_developer_allow_listing ??
@@ -369,7 +406,7 @@ const useApps = () => {
 
   const toggleAppActivityMutation = useSWRMutation(
     "app",
-    updateAppMetadataFetcher,
+    updateAppStatusFetcher,
     {
       onSuccess: (data) => {
         if (data) {
@@ -416,14 +453,14 @@ const useApps = () => {
     if (!currentApp) {
       return;
     }
-    if (!currentApp.app_metadata.id) {
-      throw new Error("No app metadata ID");
-    }
-    return updateApp({
-      metadata_id: currentApp.app_metadata.id,
-      is_app_active: !currentApp.app_metadata?.is_app_active,
+    return toggleAppActivityMutation.trigger({
+      id: currentApp.id,
+      status:
+        currentApp.status === AppStatusType.Active
+          ? AppStatusType.Inactive
+          : AppStatusType.Active,
     });
-  }, [currentApp, updateApp]);
+  }, [currentApp, toggleAppActivityMutation]);
 
   const removeApp = useCallback(() => {
     if (!currentApp) {
@@ -459,7 +496,7 @@ const useApps = () => {
     [insertNewAppMutation]
   );
 
-  const parseDescription = (currentApp: AppMetadataModel | null) => {
+  const parseDescription = (currentApp: AppMetadataModel | undefined) => {
     if (currentApp && currentApp.description) {
       try {
         return JSON.parse(currentApp.description);
