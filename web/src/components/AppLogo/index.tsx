@@ -2,10 +2,10 @@ import React, { memo } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import { AppModel } from "src/lib/models";
+import { AppMetadataModel, AppModel } from "src/lib/models";
 
 export const AppLogo = memo(function AppLogo(props: {
-  app: Pick<AppModel, "name" | "logo_img_url" | "is_verified">;
+  app: Pick<AppMetadataModel, "name" | "logo_img_url" | "status">;
   className?: string;
   textClassName?: string;
 }) {

@@ -26,16 +26,16 @@ export const ButtonContent = memo(function ButtonContent(props: {
   className?: string;
 }) {
   const [image, setImage] = useState<string | null>(
-    props.app.logo_img_url ?? ""
+    props.app.app_metadata?.logo_img_url ?? ""
   );
 
   useEffect(() => {
-    if (!props.app.logo_img_url) {
+    if (!props.app.app_metadata?.logo_img_url) {
       return;
     }
 
-    setImage(props.app.logo_img_url);
-  }, [props.app.logo_img_url]);
+    setImage(props.app.app_metadata.logo_img_url);
+  }, [props.app.app_metadata.logo_img_url]);
 
   return (
     <div
@@ -49,7 +49,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
       <div>
         {image && (
           <Image
-            src={props.app?.logo_img_url ?? ""}
+            src={props.app?.app_metadata?.logo_img_url ?? ""}
             width={20}
             height={20}
             alt="app logo"
@@ -59,12 +59,14 @@ export const ButtonContent = memo(function ButtonContent(props: {
 
         {!image && (
           <div className="w-5 h-5 rounded-full bg-primary-light flex justify-center items-center">
-            <span className="text-primary text-12">{props.app.name[0]}</span>
+            <span className="text-primary text-12">
+              {props.app.app_metadata?.name[0] ?? "?"}
+            </span>
           </div>
         )}
       </div>
       <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto text-gray-900 transition-colors">
-        {props.app?.name}
+        {props.app?.app_metadata?.name}
       </span>
     </div>
   );
@@ -99,7 +101,9 @@ export const AppSelector = memo(function AppsSelector(props: {
     () =>
       apps
         ?.filter((app) => !isSelected(app))
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort((a, b) =>
+          a.app_metadata?.name.localeCompare(b.app_metadata?.name)
+        ),
     [apps, isSelected]
   );
 

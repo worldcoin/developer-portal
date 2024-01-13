@@ -11,10 +11,10 @@ export const AppHeader = memo(function AppHeader() {
   const [copied, setCopied] = useState(false);
 
   const [image, setImage] = useState<string | null>(
-    currentApp?.logo_img_url ?? null
+    currentApp?.app_metadata.logo_img_url ?? null
   );
   const { toggleAppActivity, parseDescription } = useApps();
-  const descriptionInternal = parseDescription(currentApp);
+  const descriptionInternal = parseDescription(currentApp?.app_metadata);
 
   useEffect(() => {
     if (copied) {
@@ -34,7 +34,7 @@ export const AppHeader = memo(function AppHeader() {
           <div>
             {image && (
               <Image
-                src={currentApp?.logo_img_url ?? ""}
+                src={currentApp?.app_metadata?.logo_img_url ?? ""}
                 alt="app logo"
                 width={44}
                 height={44}
@@ -44,12 +44,14 @@ export const AppHeader = memo(function AppHeader() {
 
             {!image && (
               <div className="w-11 h-11 rounded-full bg-primary-light flex justify-center items-center">
-                <span className="text-primary">{currentApp?.name[0]}</span>
+                <span className="text-primary">
+                  {currentApp?.app_metadata?.name[0]}
+                </span>
               </div>
             )}
           </div>
 
-          {currentApp?.is_verified && (
+          {currentApp?.verified_app_metadata && (
             <Icon
               name="badge"
               className="absolute bottom-0 right-1 h-4 w-4"
@@ -59,7 +61,7 @@ export const AppHeader = memo(function AppHeader() {
         </div>
 
         <h1 className="text-20 font-sora font-semibold self-end">
-          {currentApp?.name}
+          {currentApp?.app_metadata?.name}
         </h1>
         <span className="text-14 text-657080 truncate self-start">
           {descriptionInternal?.description_overview}
