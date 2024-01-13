@@ -15,11 +15,6 @@ export enum EngineType {
   Cloud = "cloud",
 }
 
-export enum AppStatusType {
-  Active = "active",
-  Inactive = "inactive",
-}
-
 // Options for the `can_user_verify` attribute in the /precheck endpoint
 export enum CanUserVerifyType {
   Yes = "yes",

@@ -7,16 +7,16 @@ import { Dialog } from "src/components/Dialog";
 import { useForm, Controller } from "react-hook-form";
 import { EngineType } from "src/lib/types";
 import { Illustration } from "src/components/Auth/Illustration";
-import { AppModel } from "src/lib/models";
+import { AppMetadataModel, AppModel } from "src/lib/models";
 import useApps from "src/hooks/useApps";
 import { Switch, SwitchOption } from "./Switch";
 import { FieldTextArea } from "@/components/FieldTextArea";
 
-type FormData = Pick<
-  AppModel,
-  "name" | "description" | "engine" | "is_staging" // | "logo_url"
->;
+type FormData = Pick<AppModel, "engine" | "is_staging"> & {
+  app_metadata: FormAppMetadata;
+};
 
+type FormAppMetadata = Pick<AppMetadataModel, "name" | "description">;
 export interface NewAppDialogProps {
   open: boolean;
   onClose: () => void;
@@ -36,7 +36,9 @@ export const NewAppDialog = memo(function NewAppDialog(
     });
 
   const onSubmit = handleSubmit(async (data) => {
-    data.description = encodeDescription(data.description);
+    data.app_metadata.description = encodeDescription(
+      data.app_metadata.description
+    );
     await createNewApp(data);
     props.onClose();
     reset();
@@ -45,9 +47,13 @@ export const NewAppDialog = memo(function NewAppDialog(
   const isValid = useMemo(
     () =>
       !formState.isSubmitting &&
-      !Boolean(formState.errors.name) &&
-      formState.dirtyFields.name,
-    [formState.dirtyFields.name, formState.errors.name, formState.isSubmitting]
+      !Boolean(formState.errors.app_metadata?.name) &&
+      formState.dirtyFields.app_metadata?.name,
+    [
+      formState.dirtyFields.app_metadata?.name,
+      formState.errors.app_metadata?.name,
+      formState.isSubmitting,
+    ]
   );
 
   return (
@@ -87,9 +93,9 @@ export const NewAppDialog = memo(function NewAppDialog(
               className="w-full font-rubik"
               placeholder="Visible to users"
               type="text"
-              {...register("name", { required: true })}
+              {...register("app_metadata.name", { required: true })}
               readOnly={formState.isSubmitting}
-              invalid={!!formState.errors.name}
+              invalid={!!formState.errors.app_metadata?.name}
             />
           </div>
 
@@ -99,7 +105,7 @@ export const NewAppDialog = memo(function NewAppDialog(
               className="w-full font-rubik"
               placeholder="For internal reference. Visible only to you and your team."
               type="text"
-              {...register("description")}
+              {...register("app_metadata.description")}
               readOnly={formState.isSubmitting}
             />
           </div>

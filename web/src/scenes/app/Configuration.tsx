@@ -48,7 +48,7 @@ type ConfigurationFormValues = yup.Asserts<typeof saveSchema>;
 
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
-  const { updateAppData, parseDescription, encodeDescription } = useApps();
+  const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
 
   const descriptionInternal = parseDescription(currentApp);
   const {
@@ -80,10 +80,10 @@ export const Configuration = memo(function Configuration() {
         ...rest,
         description: descriptionsJSON,
       };
-      await updateAppData(updatedData);
+      await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
-    [encodeDescription, updateAppData]
+    [encodeDescription, updateAppMetadata]
   );
 
   return (
