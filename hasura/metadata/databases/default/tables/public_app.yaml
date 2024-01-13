@@ -2,13 +2,6 @@ table:
   name: app
   schema: public
 object_relationships:
-  - name: app_metadata
-    using:
-      foreign_key_constraint_on:
-        column: app_id
-        table:
-          name: app_metadata
-          schema: public
   - name: team
     using:
       foreign_key_constraint_on: team_id

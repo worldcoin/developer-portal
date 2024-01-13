@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { graphQLRequest } from "src/lib/frontend-api";
-import { AppStatusType } from "src/lib/types";
 import { urls } from "src/lib/urls";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
@@ -46,16 +45,18 @@ const FetchAppsQuery = gql`
   query Apps {
     app(order_by: { created_at: asc }) {
       ${appFields}
-      app_metadata {
+      app_metadata(where: { status: { _neq: "verified" } }) {
+        ${appMetadataFields}
+      }
+      verified_app_metadata: app_metadata(where: { status: { _eq: "verified" } }) {
         ${appMetadataFields}
       }
     }
   }
 `;
 
-const UpdateAppQuery = gql`
+const UpdateAppMetadataQuery = gql`
   mutation UpdateApp(
-    $id: String = ""
     $metadata_id: String = ""
     $name: String
     $logo_img_url: String = ""
@@ -63,21 +64,13 @@ const UpdateAppQuery = gql`
     $hero_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""
+    $is_app_active: Boolean
     $category: String = ""
     $is_developer_allow_listing: Boolean
     $integration_url: String = ""
     $app_website_url: String = ""
     $source_code_url: String = ""
-    $status: String
   ) {
-    update_app_by_pk(
-      pk_columns: { id: $id }
-      _set: {
-        status: $status
-      }
-    ) {
-      ${appFields}
-    }
     update_app_metadata_by_pk(
       pk_columns: { id: $metadata_id }
       _set: {
@@ -87,6 +80,7 @@ const UpdateAppQuery = gql`
         hero_image_url: $hero_image_url
         description: $description
         world_app_description: $world_app_description
+        is_app_active: $is_app_active
         category: $category
         is_developer_allow_listing: $is_developer_allow_listing
         integration_url: $integration_url
@@ -100,11 +94,16 @@ const UpdateAppQuery = gql`
 `;
 
 const InsertAppQuery = gql`
-  mutation InsertApp($appObject: app_insert_input!, $appMetadataObject: app_metadata_insert_input!) {
+  mutation InsertApp($appObject: app_insert_input!) {
     insert_app_one(object: $appObject) {
       ${appFields}
     }
-    insert_app_metadata_one(object: $appMetadataObject) {
+  }
+`;
+
+const InsertAppMetadataQuery = gql`
+  mutation InsertAppMetadata($appMetadataObject: app_metadata_insert_input!) {
+    insert_app_metadata_one(object:$appMetadataObject) {
       ${appMetadataFields}
     }
   }
@@ -112,79 +111,130 @@ const InsertAppQuery = gql`
 
 const DeleteAppQuery = gql`
   mutation DeleteApp($id: String!) {
-    delete_appmetadata(where: { app_id: { _eq: $id } }) {
-      affected_rows
-    }
     delete_app_by_pk(id: $id) {
       id
     }
   }
 `;
-const fetchApps = async () => {
+const fetchApps = async (
+  attemptedToHandleMissingMetadata: boolean = false
+): Promise<Array<AppModel>> => {
   const response = await graphQLRequest<{
     app: Array<AppModel>;
   }>({
     query: FetchAppsQuery,
   });
 
-  if (response.data?.app.length) {
-    return response.data.app;
+  const apps = response.data?.app || [];
+  // Even verified apps will have an unverified row. Thus the only case this will be true is if we have an orphaned app row
+  const appsMissingMetadata = apps.filter((app) => !app.app_metadata);
+
+  // Checks for orphaned app rows and tries to add a metadata row
+  if (appsMissingMetadata.length > 0 && !attemptedToHandleMissingMetadata) {
+    await handleMissingMetadata(appsMissingMetadata);
+    return fetchApps(true);
   }
-  return [];
+
+  return apps;
 };
 
-const updateAppFetcher = async (
+const handleMissingMetadata = async (appsMissingMetadata: Array<AppModel>) => {
+  await Promise.all(
+    appsMissingMetadata.map((app) =>
+      _insertAppMetadata(app.id, {
+        name: "Unnamed App " + app.id,
+        description: "",
+      }).catch((error) => {
+        // Better to catch this here to prevent it from blocking. Can prompt user to try again on the front end
+        console.error(`Failed to create metadata for app ${app.id}:`, error);
+        return null;
+      })
+    )
+  );
+};
+
+const updateAppMetadataFetcher = async (
   _key: string,
   args: {
     arg: {
-      id: AppModel["id"];
-      status?: AppModel["status"];
-      app_metadata_id?: AppMetadataModel["id"];
+      metadata_id: AppMetadataModel["id"];
       name?: AppMetadataModel["name"];
+      logo_img_url?: AppMetadataModel["logo_img_url"];
+      is_app_active?: AppMetadataModel["is_app_active"];
+      showcase_img_urls?: AppMetadataModel["showcase_img_urls"];
+      hero_image_url?: AppMetadataModel["hero_image_url"];
       description?: AppMetadataModel["description"];
       category?: AppMetadataModel["category"];
       integration_url?: AppMetadataModel["integration_url"];
       is_developer_allow_listing?: AppMetadataModel["is_developer_allow_listing"];
       world_app_description?: AppMetadataModel["world_app_description"];
+      app_website_url?: AppMetadataModel["app_website_url"];
+      source_code_url?: AppMetadataModel["source_code_url"];
     };
   }
 ) => {
   const currentApp = useAppStore.getState().currentApp;
   const {
-    id,
+    metadata_id,
     name,
-    status,
+    logo_img_url,
+    showcase_img_urls,
+    hero_image_url,
     description,
     category,
     integration_url,
     is_developer_allow_listing,
     world_app_description,
+    is_app_active,
+    app_website_url,
+    source_code_url,
   } = args.arg;
 
   if (!currentApp) {
     throw new Error("No current app");
   }
 
+  if (!currentApp.app_metadata) {
+    throw new Error("No App Metadata Exists");
+    // Need to go insert instead
+  }
+
+  const unverifiedAppMetadata = currentApp.app_metadata;
+  if (unverifiedAppMetadata.status !== "unverified") {
+    throw new Error("You can only update unverified app metadata");
+  }
+
   const response = await graphQLRequest<{
-    update_app_by_pk: AppModel;
+    update_app_by_pk: AppMetadataModel;
   }>({
-    query: UpdateAppQuery,
+    query: UpdateAppMetadataQuery,
     variables: {
-      id: id,
-      name: name ?? currentApp.name,
-      status: status ?? currentApp.status,
-      description: description ?? currentApp.description,
-      category: category ?? currentApp.category,
-      integration_url: integration_url ?? currentApp.integration_url,
-      is_developer_allow_listing:
-        is_developer_allow_listing ?? currentApp.is_developer_allow_listing,
+      metadata_id: metadata_id,
+      name: name ?? unverifiedAppMetadata.name,
+      logo_img_url: logo_img_url ?? unverifiedAppMetadata.logo_img_url,
+      showcase_img_urls:
+        showcase_img_urls ?? unverifiedAppMetadata.showcase_img_urls,
+      hero_image_url: hero_image_url ?? unverifiedAppMetadata.hero_image_url,
+      description: description ?? unverifiedAppMetadata.description,
       world_app_description:
-        world_app_description ?? currentApp.world_app_description,
+        world_app_description ?? unverifiedAppMetadata.world_app_description,
+      is_app_active: is_app_active ?? unverifiedAppMetadata.is_app_active,
+      category: category ?? unverifiedAppMetadata.category,
+      is_developer_allow_listing:
+        is_developer_allow_listing ??
+        unverifiedAppMetadata.is_developer_allow_listing,
+      integration_url: integration_url ?? unverifiedAppMetadata.integration_url,
+      app_website_url: app_website_url ?? unverifiedAppMetadata.app_website_url,
+      source_code_url: source_code_url ?? unverifiedAppMetadata.source_code_url,
     },
   });
-
+  // Update the particular app metadata item in the array
   if (response.data?.update_app_by_pk) {
-    return response.data.update_app_by_pk;
+    const updatedApp = {
+      ...currentApp,
+      app_metadata: response.data.update_app_by_pk,
+    };
+    return updatedApp;
   }
 
   throw new Error("Failed to update app status");
@@ -211,33 +261,80 @@ const deleteAppFetcher = async (
   throw Error("Could not delete app");
 };
 
-type NewAppPayload = Pick<
-  AppModel,
-  "name" | "description" | "engine" | "is_staging"
->;
+type NewAppPayload = Pick<AppModel, "engine" | "is_staging"> & {
+  app_metadata: NewAppMetadataPayload;
+};
+type NewAppMetadataPayload = Pick<AppMetadataModel, "name" | "description">;
 
 const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
-  const { name, description, engine, is_staging } = args.arg;
-
-  const response = await graphQLRequest<{
+  const { engine, is_staging, app_metadata } = args.arg;
+  if (!app_metadata) {
+    throw new Error("No app metadata provided");
+  }
+  // First, insert the app and get the new ID
+  const appResponse = await graphQLRequest<{
     insert_app_one: AppModel;
   }>({
     query: InsertAppQuery,
     variables: {
-      object: {
-        name,
-        description,
+      appObject: {
         engine,
         is_staging,
       },
     },
   });
 
-  if (response.data?.insert_app_one) {
-    return response.data.insert_app_one;
+  const newAppId = appResponse.data?.insert_app_one.id;
+
+  if (!newAppId) {
+    throw new Error("Failed to insert new app");
+  }
+  const { name, description } = app_metadata;
+
+  const appMetadataResponse = await _insertAppMetadata(newAppId, {
+    name,
+    description,
+  });
+
+  if (
+    appMetadataResponse.data?.insert_app_metadata_one &&
+    appResponse.data?.insert_app_one
+  ) {
+    const newApp = {
+      ...appResponse.data?.insert_app_one,
+      app_metadata: appMetadataResponse.data?.insert_app_metadata_one,
+    };
+
+    return newApp;
   }
 
-  throw new Error("Failed to update app status");
+  throw new Error("Failed to insert app metadata");
+};
+
+const _insertAppMetadata = async (
+  newAppId: string,
+  appMetadata: NewAppMetadataPayload
+) => {
+  const { name, description } = appMetadata;
+
+  try {
+    const response = await graphQLRequest<{
+      insert_app_metadata_one: AppMetadataModel;
+    }>({
+      query: InsertAppMetadataQuery,
+      variables: {
+        appMetadataObject: {
+          app_id: newAppId,
+          name,
+          description,
+        },
+      },
+    });
+
+    return response;
+  } catch (error) {
+    throw new Error("Failed to insert app metadata");
+  }
 };
 
 const getStore = (store: IAppStore) => ({
@@ -258,21 +355,29 @@ const useApps = () => {
     },
   });
 
-  const { trigger: updateApp } = useSWRMutation("app", updateAppFetcher, {
-    onSuccess: (data) => {
-      if (data) {
-        setCurrentApp(data);
-      }
-    },
-  });
+  const { trigger: updateApp } = useSWRMutation(
+    "app",
+    updateAppMetadataFetcher,
+    {
+      onSuccess: (data) => {
+        if (data) {
+          setCurrentApp(data);
+        }
+      },
+    }
+  );
 
-  const toggleAppActivityMutation = useSWRMutation("app", updateAppFetcher, {
-    onSuccess: (data) => {
-      if (data) {
-        setCurrentApp(data);
-      }
-    },
-  });
+  const toggleAppActivityMutation = useSWRMutation(
+    "app",
+    updateAppMetadataFetcher,
+    {
+      onSuccess: (data) => {
+        if (data) {
+          setCurrentApp(data);
+        }
+      },
+    }
+  );
 
   const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
     onSuccess: async (data) => {
@@ -284,17 +389,24 @@ const useApps = () => {
     },
   });
 
-  const updateAppData = useCallback(
-    async (appData: Partial<AppModel>) => {
+  const updateAppMetadata = useCallback(
+    async (appMetaData: Partial<AppMetadataModel>) => {
       const currentApp = useAppStore.getState().currentApp;
 
       if (!currentApp) {
         throw new Error("No current app to update");
       }
-
+      // Should check that there's an unverified row to update. Otherwise we should insert a new row
+      if (currentApp.app_metadata?.status !== "unverified") {
+        throw new Error("No unverified app metadata to update");
+      }
+      const metadata_id = currentApp.app_metadata.id;
+      if (!metadata_id) {
+        throw new Error("No metadata ID provided");
+      }
       return updateApp({
-        id: currentApp.id,
-        ...appData,
+        ...appMetaData,
+        metadata_id: metadata_id,
       });
     },
     [updateApp]
@@ -304,12 +416,12 @@ const useApps = () => {
     if (!currentApp) {
       return;
     }
+    if (!currentApp.app_metadata.id) {
+      throw new Error("No app metadata ID");
+    }
     return updateApp({
-      id: currentApp.id,
-      status:
-        currentApp.status === AppStatusType.Active
-          ? AppStatusType.Inactive
-          : AppStatusType.Active,
+      metadata_id: currentApp.app_metadata.id,
+      is_app_active: !currentApp.app_metadata?.is_app_active,
     });
   }, [currentApp, updateApp]);
 
@@ -347,7 +459,7 @@ const useApps = () => {
     [insertNewAppMutation]
   );
 
-  const parseDescription = (currentApp: AppModel | null) => {
+  const parseDescription = (currentApp: AppMetadataModel | null) => {
     if (currentApp && currentApp.description) {
       try {
         return JSON.parse(currentApp.description);
@@ -382,7 +494,7 @@ const useApps = () => {
     currentApp,
     toggleAppActivity,
     isToggleAppActivityMutating: toggleAppActivityMutation.isMutating,
-    updateAppData,
+    updateAppMetadata,
     createNewApp,
     removeApp,
     parseDescription,

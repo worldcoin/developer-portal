@@ -4,7 +4,7 @@
 
 import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, EngineType } from "src/lib/types";
+import { EngineType } from "src/lib/types";
 
 type DateTime = string;
 
@@ -28,11 +28,12 @@ export interface AppModel {
   id: `app_${string}`;
   team_id: string;
   engine: EngineType;
-  status: AppStatusType;
   is_archived: boolean;
   created_at: DateTime;
   updated_at?: DateTime;
-  app_metadata: Array<AppMetadataModel>;
+  app_metadata: AppMetadataModel;
+  verified_app_metadata?: AppMetadataModel;
+  is_staging: boolean;
   __typename: "app";
 }
 
@@ -45,14 +46,18 @@ export interface AppMetadataModel {
   integration_url: string;
   app_website_url: string;
   source_code_url: string;
+  is_app_active: boolean;
   is_developer_allow_listing: boolean;
   is_reviewer_app_store_approved: boolean;
   is_reviewer_world_app_approved: boolean;
   world_app_description: string;
-  is_staging: boolean;
   logo_img_url: string;
   showcase_img_urls: string[] | null;
   hero_image_url: string;
+  verified_at: DateTime;
+  updated_at: DateTime;
+  review_message: string;
+  status: string;
   __typename: "app_metadata";
 }
 
