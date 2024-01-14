@@ -270,7 +270,6 @@ export const Configuration = memo(function Configuration() {
         <FieldSelect
           register={register("category")}
           label="category"
-          value=""
           options={dropDownOptions}
           errors={errors.category}
         />
