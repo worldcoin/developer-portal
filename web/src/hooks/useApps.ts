@@ -215,7 +215,7 @@ const updateAppStatusFetcher = async (
 ) => {
   const { id, status } = args.arg;
   const response = await graphQLRequest<{
-    update_app_status_by_pk: AppModel;
+    update_app_by_pk: AppModel;
   }>({
     query: UpdateAppStatusQuery,
     variables: {
@@ -223,8 +223,8 @@ const updateAppStatusFetcher = async (
       status: status,
     },
   });
-  if (response.data?.update_app_status_by_pk) {
-    return response.data.update_app_status_by_pk;
+  if (response.data?.update_app_by_pk) {
+    return response.data.update_app_by_pk;
   }
 
   throw new Error("Failed to update app status");

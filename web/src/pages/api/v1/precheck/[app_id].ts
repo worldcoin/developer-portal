@@ -1,7 +1,12 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
-import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
+import {
+  ActionModel,
+  AppMetadataModel,
+  AppModel,
+  NullifierModel,
+} from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
@@ -13,6 +18,9 @@ type _Nullifier = Pick<
   NullifierModel,
   "nullifier_hash" | "uses" | "__typename"
 >;
+
+type AppMetadataPayload = Pick<AppMetadataModel, "name" | "logo_img_url">;
+
 interface _Action
   extends Pick<
     ActionModel,
@@ -29,21 +37,22 @@ interface _Action
 }
 
 interface _App
-  extends Pick<
-    AppModel,
-    | "__typename"
-    | "id"
-    | "engine"
-    | "is_staging"
-    | "is_verified"
-    | "name"
-    | "logo_img_url"
-  > {
+  extends Pick<AppModel, "__typename" | "id" | "engine" | "is_staging"> {
+  is_verified: boolean;
+  actions: _Action[];
+  name: string;
+  verified_app_logo: string;
+}
+
+interface _AppQueryReturnInterface
+  extends Pick<AppModel, "__typename" | "id" | "engine" | "is_staging"> {
+  verified_app_metadata: AppMetadataPayload;
+  app_metadata: AppMetadataPayload;
   actions: _Action[];
 }
 
 interface AppPrecheckQueryInterface {
-  app: _App[];
+  app: _AppQueryReturnInterface[];
 }
 
 const appPrecheckQuery = gql`
@@ -61,10 +70,17 @@ const appPrecheckQuery = gql`
     ) {
       id
       is_staging
-      is_verified
-      name
-      logo_img_url
       engine
+      app_metadata(where: { status: { _neq: "verified" } }) {
+        name
+        logo_img_url
+      }
+      verified_app_metadata: app_metadata(
+        where: { status: { _eq: "verified" } }
+      ) {
+        name
+        logo_img_url
+      }
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
@@ -177,9 +193,9 @@ export default async function handlePrecheck(
     },
   });
 
-  const app = appQueryResult.data.app?.[0];
+  const rawAppValues = appQueryResult.data.app?.[0];
 
-  if (!app) {
+  if (!rawAppValues) {
     return errorResponse(
       res,
       404,
@@ -189,7 +205,20 @@ export default async function handlePrecheck(
       req
     );
   }
-
+  // Prevent breaking changes
+  const app: _App = {
+    __typename: rawAppValues.__typename,
+    id: rawAppValues.id,
+    engine: rawAppValues.engine,
+    is_staging: rawAppValues.is_staging,
+    is_verified: rawAppValues.verified_app_metadata ? true : false,
+    name:
+      rawAppValues.verified_app_metadata?.name ??
+      rawAppValues.app_metadata?.name ??
+      "",
+    verified_app_logo: rawAppValues.verified_app_metadata?.logo_img_url ?? "",
+    actions: rawAppValues.actions,
+  };
   // ANCHOR: If the action doesn't exist, create it
   if (!app.actions.length) {
     if (action === null) {
