@@ -40,10 +40,10 @@ insert_permissions:
         - showcase_img_urls
         - hero_image_url
         - description
-        - world_app_description
         - category
-        - is_developer_allow_listing
         - integration_url
+        - is_developer_allow_listing
+        - world_app_description
         - app_website_url
         - source_code_url
         - app_id
@@ -58,10 +58,10 @@ select_permissions:
         - showcase_img_urls
         - hero_image_url
         - description
-        - world_app_description
         - category
-        - is_developer_allow_listing
         - integration_url
+        - is_developer_allow_listing
+        - world_app_description
         - app_website_url
         - source_code_url
         - verified_at
@@ -158,7 +158,6 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
-      filter: {}
       check:
         _and:
           - status:
@@ -167,6 +166,7 @@ update_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
+      filter: {}
   - role: reviewer
     permission:
       columns:
@@ -205,6 +205,11 @@ update_permissions:
                   id:
                     _eq: X-Hasura-User-Id
 delete_permissions:
+  - role: reviewer
+    permission:
+      filter:
+        status:
+          _eq: verified
   - role: api_key
     permission:
       filter:
@@ -215,11 +220,6 @@ delete_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-  - role: reviewer
-    permission:
-      filter:
-        status:
-          _eq: verified
   - role: user
     permission:
       filter:

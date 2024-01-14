@@ -26,15 +26,15 @@ export interface TeamMemberModel {
 
 export interface AppModel {
   id: `app_${string}`;
+  is_staging: boolean;
   team_id: string;
   engine: EngineType;
-  is_archived: boolean;
   status: AppStatusType;
+  is_archived: boolean;
   created_at: DateTime;
   updated_at?: DateTime;
   app_metadata: AppMetadataModel;
   verified_app_metadata?: AppMetadataModel;
-  is_staging: boolean;
   __typename: "app";
 }
 

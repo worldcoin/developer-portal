@@ -67,19 +67,35 @@ export interface IPendingProofResponse {
   status: "pending" | "mined" | "new";
 }
 
-export type ActionKioskType = Pick<
+export type ActionKioskQueryType = Pick<
   ActionModel,
   "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
 > & {
   app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
-    app_metadata: Pick<AppMetadataModel, "name" | "logo_img_url" | "status">;
-    verified_app_metadata: Pick<
-      AppMetadataModel,
-      "name" | "logo_img_url" | "status"
+    app_metadata: Array<
+      Pick<AppMetadataModel, "name" | "logo_img_url" | "status">
+    >;
+    verified_app_metadata: Array<
+      Pick<AppMetadataModel, "name" | "logo_img_url" | "status">
     >;
   };
 };
 
+export type ActionKioskType = Omit<ActionKioskQueryType, "app"> & {
+  app: Omit<
+    ActionKioskQueryType["app"],
+    "app_metadata" | "verified_app_metadata"
+  > & {
+    app_metadata: Pick<
+      AppMetadataModel,
+      "name" | "logo_img_url" | "status"
+    > | null;
+    verified_app_metadata: Pick<
+      AppMetadataModel,
+      "name" | "logo_img_url" | "status"
+    > | null;
+  };
+};
 export enum Environment {
   Production = "production",
   Staging = "staging",
