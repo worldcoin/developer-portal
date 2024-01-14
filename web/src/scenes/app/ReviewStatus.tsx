@@ -6,7 +6,7 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
   const reviewMessage = currentApp?.app_metadata?.review_message;
   const status = currentApp?.app_metadata
-    .status as keyof typeof AppReviewStatus;
+    ?.status as keyof typeof AppReviewStatus;
   const [isDropdownOpen, setIsDropdownOpen] = useState(
     status === "changes_requested"
   );
