@@ -5,6 +5,7 @@ import { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
+import { AppReviewStatusHeader } from "./ReviewStatus";
 
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
@@ -134,7 +135,7 @@ export const AppHeader = memo(function AppHeader() {
           />
         </div>
       </div>
-      {currentApp?.app_metadata.status}
+      <AppReviewStatusHeader />
     </section>
   );
 });

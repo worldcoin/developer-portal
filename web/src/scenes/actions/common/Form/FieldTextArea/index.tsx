@@ -22,6 +22,7 @@ export const FieldTextArea = memo(function FieldTextArea(
     value = "",
     isDirty,
     maxChar,
+    disabled,
     ...otherProps
   } = props;
   // Calculate the characters left
@@ -31,6 +32,7 @@ export const FieldTextArea = memo(function FieldTextArea(
     <div className="w-full ">
       <textarea
         {...register}
+        disabled={disabled}
         className={cn(
           className,
           "flex items-center h-24 p-4 text-neutral-primary outline-0 border-2 rounded-xl focus:shadow-input focus:bg-ffffff",

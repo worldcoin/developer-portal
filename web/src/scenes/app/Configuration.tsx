@@ -93,6 +93,7 @@ export type ConfigurationFormSubmitValues = yup.Asserts<typeof submitSchema>;
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
+  const isEditable = currentApp?.app_metadata.status === "unverified";
 
   const description = parseDescription(currentApp?.app_metadata);
   const {
@@ -131,24 +132,40 @@ export const Configuration = memo(function Configuration() {
     [encodeDescription, updateAppMetadata]
   );
 
-  const handleSubmitForReview = async (data: ConfigurationFormValues) => {
-    try {
-      await submitSchema.validate(data, { abortEarly: false });
-      await handleSave({ ...data, status: "awaiting_review" }); // Call handleSave here
+  const handleSubmitForReview = useCallback(
+    async (data: ConfigurationFormValues) => {
+      try {
+        await submitSchema.validate(data, { abortEarly: false });
+        await handleSave({ ...data, status: "awaiting_review" });
 
-      toast.success("App submitted for review");
-    } catch (validationErrors: any) {
-      toast.error("Error submitting for review. Please check your inputs");
-      if (validationErrors.inner && Array.isArray(validationErrors.inner)) {
-        validationErrors.inner.forEach((error: yup.ValidationError) => {
-          setError(error.path as keyof ConfigurationFormValues, {
-            type: "manual",
-            message: error.message,
+        toast.success("App submitted for review");
+      } catch (validationErrors: any) {
+        toast.error("Error submitting for review. Please check your inputs");
+        if (validationErrors.inner && Array.isArray(validationErrors.inner)) {
+          validationErrors.inner.forEach((error: yup.ValidationError) => {
+            setError(error.path as keyof ConfigurationFormValues, {
+              type: "manual",
+              message: error.message,
+            });
           });
-        });
+        }
       }
-    }
-  };
+    },
+    [handleSave, setError]
+  );
+
+  const removeFromReview = useCallback(
+    async (data: ConfigurationFormValues) => {
+      try {
+        await updateAppMetadata({ status: "unverified" });
+
+        toast.success("App removed from review");
+      } catch (validationErrors: any) {
+        toast.error("Error removing from review. Please check your inputs");
+      }
+    },
+    [updateAppMetadata]
+  );
 
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">
@@ -170,7 +187,7 @@ export const Configuration = memo(function Configuration() {
             value={watch("name")}
             maxChar={50}
             maxLength={50}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isEditable}
             required
             errors={errors.name}
           />
@@ -185,31 +202,49 @@ export const Configuration = memo(function Configuration() {
       <AppDescriptionSection
         register={register}
         errors={errors}
-        isSubmitting={isSubmitting}
+        disabled={isSubmitting || !isEditable}
         watch={watch}
       />
       <AppLinksSection
         register={register}
         errors={errors}
-        isSubmitting={isSubmitting}
+        disabled={isSubmitting || !isEditable}
       />
       <AppPublicationSection
         register={register}
         errors={errors}
-        isSubmitting={isSubmitting}
+        disabled={isSubmitting || !isEditable}
       />
       <div className="flex flex-row w-full justify-end h-10">
-        <Button type="submit" variant="secondary" className="px-3 mr-5">
+        <Button
+          type="submit"
+          variant="secondary"
+          className="px-3 mr-5"
+          disabled={isSubmitting || !isEditable}
+        >
           Save Information
         </Button>
-        <Button
-          type="button"
-          variant="primary"
-          className="px-3 mr-5"
-          onClick={() => handleSubmit(handleSubmitForReview)()} // Call handleSubmit with the review handler
-        >
-          Submit for Review
-        </Button>
+        {isEditable ? (
+          <Button
+            type="button"
+            variant="primary"
+            className="px-3 mr-5"
+            disabled={isSubmitting || !isEditable}
+            onClick={() => handleSubmit(handleSubmitForReview)()} // Call handleSubmit with the review handler
+          >
+            Submit for Review
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="danger"
+            className="px-3 mr-5"
+            disabled={isSubmitting || isEditable}
+            onClick={() => handleSubmit(removeFromReview)()} // Call handleSubmit with the review handler
+          >
+            Remove from Review
+          </Button>
+        )}
       </div>
     </form>
   );

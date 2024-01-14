@@ -8,7 +8,7 @@ import { FieldCheckbox } from "./FieldCheckbox";
 interface AppPublicationSectionProps {
   register: UseFormRegister<ConfigurationFormValues>;
   errors: FieldErrors<ConfigurationFormValues>;
-  isSubmitting: boolean;
+  disabled: boolean;
 }
 
 const dropDownOptions = [
@@ -21,7 +21,7 @@ const dropDownOptions = [
 export const AppPublicationSection = memo(function AppPublicationSection(
   props: AppPublicationSectionProps
 ) {
-  const { register, errors, isSubmitting } = props;
+  const { register, errors, disabled } = props;
   return (
     <>
       <div>
@@ -33,13 +33,10 @@ export const AppPublicationSection = memo(function AppPublicationSection(
           label="category"
           options={dropDownOptions}
           errors={errors.category}
+          disabled={disabled}
         />
         {errors.category?.message && (
-<<<<<<< HEAD
           <span className="pt-2 left-0 flex items-center text-12 text-danger">
-=======
-          <span className="mt-2 flex items-center text-12 text-danger">
->>>>>>> fe72d12 (successfully change the status)
             {errors.category.message}
           </span>
         )}
@@ -50,7 +47,7 @@ export const AppPublicationSection = memo(function AppPublicationSection(
         errors={errors.is_developer_allow_listing}
         className="font-rubik"
         label="Allow app to be listed on the app store"
-        disabled={isSubmitting}
+        disabled={disabled}
       />
     </>
   );
