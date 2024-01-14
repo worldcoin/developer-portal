@@ -14,6 +14,7 @@ interface AppDescriptionSectionProps {
 
 export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
   const { register, errors, disabled, watch } = props;
+  console.log(errors);
   return (
     <>
       <h1 className="font-bold">App Description</h1>
