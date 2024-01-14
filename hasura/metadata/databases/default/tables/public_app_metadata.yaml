@@ -58,10 +58,10 @@ select_permissions:
         - showcase_img_urls
         - hero_image_url
         - description
-        - category
-        - integration_url
-        - is_developer_allow_listing
         - world_app_description
+        - category
+        - is_developer_allow_listing
+        - integration_url
         - app_website_url
         - source_code_url
         - verified_at
@@ -176,10 +176,10 @@ update_permissions:
         - is_reviewer_world_app_approved
         - review_message
         - status
-      filter: {}
       check:
         status:
           _eq: awaiting_review
+      filter: {}
   - role: user
     permission:
       columns:
@@ -194,7 +194,6 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
-      filter: {}
       check:
         _and:
           - status:
@@ -204,6 +203,7 @@ update_permissions:
                 users:
                   id:
                     _eq: X-Hasura-User-Id
+      filter: {}
 delete_permissions:
   - role: reviewer
     permission:
