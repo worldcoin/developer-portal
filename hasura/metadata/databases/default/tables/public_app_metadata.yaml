@@ -108,6 +108,7 @@ select_permissions:
       columns:
         - name
         - logo_img_url
+        - status
       filter:
         status:
           _in:
