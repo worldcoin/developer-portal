@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { GetServerSideProps } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
-import { ActionKioskType } from "@/lib/types";
+import { ActionKioskType, ActionKioskQueryType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
 
 export interface KioskProps {
@@ -54,7 +54,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const action_id = context.query.action_id;
   const client = await getAPIServiceClient();
 
-  const { data } = await client.query<{ action: ActionKioskType[] }>({
+  const { data } = await client.query<{ action: ActionKioskQueryType[] }>({
     query: actionKioskQuery,
     variables: {
       action_id,
@@ -68,14 +68,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (data?.action[0].action === "") {
     return { props: { error_code: "no_sign_in" } };
   }
-  if (data?.action[0]?.app && Array.isArray(data.action[0].app.app_metadata)) {
-    data.action[0].app.app_metadata =
-      data.action[0].app.app_metadata.length > 0
-        ? data.action[0].app.app_metadata[0]
-        : null;
-  }
+  const processedAction: ActionKioskType = {
+    ...data.action[0],
+    app: {
+      ...data.action[0].app,
+      app_metadata: data.action[0].app.app_metadata?.[0] || null,
+      verified_app_metadata:
+        data.action[0].app.verified_app_metadata?.[0] || null,
+    },
+  };
   return {
-    props: { action: data?.action[0] } as KioskProps,
+    props: { action: processedAction } as KioskProps,
   };
 };
 
