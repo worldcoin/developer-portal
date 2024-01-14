@@ -37,6 +37,11 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
           Note: You must un-submit from review to make changes
         </div>
       )}
+      {status === "unverified" && currentApp?.verified_app_metadata && (
+        <div className="text-warning">
+          Note: Any changes to verified apps will require re-review
+        </div>
+      )}
     </div>
   );
 });
