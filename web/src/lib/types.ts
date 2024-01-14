@@ -73,6 +73,10 @@ export type ActionKioskType = Pick<
 > & {
   app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
     app_metadata: Pick<AppMetadataModel, "name" | "logo_img_url" | "status">;
+    verified_app_metadata: Pick<
+      AppMetadataModel,
+      "name" | "logo_img_url" | "status"
+    >;
   };
 };
 

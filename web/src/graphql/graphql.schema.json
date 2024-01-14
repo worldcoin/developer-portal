@@ -9361,6 +9361,22 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -10174,6 +10190,18 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -10229,8 +10257,8 @@
             "deprecationReason": null
           },
           {
-            "name": "unique_app_id_unverified_status",
-            "description": "unique or primary key constraint on columns \"app_id\"",
+            "name": "app_metadata_unique_verification_status_row_key",
+            "description": "unique or primary key constraint on columns \"unique_verification_status_row\"",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -10478,6 +10506,18 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -10681,6 +10721,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": null,
             "args": [],
             "type": {
@@ -10908,6 +10960,18 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -11111,6 +11175,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": null,
             "args": [],
             "type": {
@@ -11327,6 +11403,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -11727,6 +11815,18 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -11906,6 +12006,12 @@
           },
           {
             "name": "status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -12201,6 +12307,18 @@
           },
           {
             "name": "status",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -12514,6 +12632,18 @@
             "deprecationReason": null
           },
           {
+            "name": "unique_verification_status_row",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -12666,6 +12796,12 @@
           },
           {
             "name": "status",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "unique_verification_status_row",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

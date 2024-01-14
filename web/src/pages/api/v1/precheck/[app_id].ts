@@ -205,18 +205,26 @@ export default async function handlePrecheck(
       req
     );
   }
+  const app_metadata: AppMetadataPayload | undefined = Array.isArray(
+    rawAppValues.app_metadata
+  )
+    ? rawAppValues.app_metadata[0]
+    : undefined;
+  const verified_app_metadata: AppMetadataPayload | undefined = Array.isArray(
+    rawAppValues.verified_app_metadata
+  )
+    ? rawAppValues.verified_app_metadata[0]
+    : undefined;
+
   // Prevent breaking changes
   const app: _App = {
     __typename: rawAppValues.__typename,
     id: rawAppValues.id,
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
-    is_verified: rawAppValues.verified_app_metadata ? true : false,
-    name:
-      rawAppValues.verified_app_metadata?.name ??
-      rawAppValues.app_metadata?.name ??
-      "",
-    verified_app_logo: rawAppValues.verified_app_metadata?.logo_img_url ?? "",
+    is_verified: verified_app_metadata ? true : false,
+    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    verified_app_logo: verified_app_metadata?.logo_img_url ?? "",
     actions: rawAppValues.actions,
   };
   // ANCHOR: If the action doesn't exist, create it

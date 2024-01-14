@@ -75,7 +75,10 @@ export function Debugger(): JSX.Element {
 
         <div className="space-y-8">
           <FieldGroup label="App" className="!text-14">
-            <FieldInput value={currentApp?.name ?? "Loading..."} disabled />
+            <FieldInput
+              value={currentApp?.app_metadata?.name ?? "Loading..."}
+              disabled
+            />
           </FieldGroup>
 
           <FieldGroup label="Mode" className="!text-14">
