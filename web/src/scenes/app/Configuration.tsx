@@ -33,9 +33,9 @@ const saveSchema = yup.object().shape({
   description_connect: yup.string().max(3500).optional(),
   integration_url: yup
     .string()
-    .optional()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://"),
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .optional(),
   world_app_description: yup
     .string()
     .max(50, "In app description cannot exceed 50 characters")
@@ -80,6 +80,7 @@ export const Configuration = memo(function Configuration() {
         ...rest,
         description: descriptionsJSON,
       };
+      console.log(updatedData);
       await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
