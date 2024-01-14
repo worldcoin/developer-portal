@@ -1,8 +1,77 @@
-SET check_function_bodies = false;
-INSERT INTO "public"."app" (is_archived,is_staging,name,team_id,description_internal,engine,logo_url,status,created_at,updated_at,verified_at)
-VALUES
-(false,false,'Sign In App','team_d7cde14f17eda7e0ededba7ded6b4467','This app is for Sign In with World ID','cloud','https://worldcoin.org/icons/logo-small.svg','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.992529+00:00',NULL),
-(false,true,'Multi-claim App','team_d7cde14f17eda7e0ededba7ded6b4467','This app has a multi-claim custom action','cloud','','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.995455+00:00',NULL),
-(false,false,'On-chain App','team_d7cde14f17eda7e0ededba7ded6b4467','This app is on-chain and in production','on-chain','','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.998795+00:00',NULL),
-(false,true,'Custom Action App','team_d7cde14f17eda7e0ededba7ded6b4467','This app has a one-time custom action','cloud','https://worldcoin.org/icons/logo-small.svg','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:16.00117+00:00',NULL),
-(true,true,'Archived App','team_d7cde14f17eda7e0ededba7ded6b4467','This app is inactive and archived','cloud','https://worldcoin.org/icons/logo-small.svg','inactive','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.98657+00:00',NULL);
+WITH inserted_app AS (
+    INSERT INTO "public"."app" (is_archived, is_staging, team_id, engine, status, created_at, updated_at)
+    VALUES
+    (false, false, 'team_d7cde14f17eda7e0ededba7ded6b4467', 'cloud', 'active', '2023-02-18T11:20:39.530041+00:00', '2023-03-06T23:00:15.992529+00:00'),
+    RETURNING id
+)
+INSERT INTO "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+SELECT
+    id,
+    'Sign In App',
+    'This app is for Sign In with World ID',
+    'https://worldcoin.org/icons/logo-small.svg',
+    'unverified'
+FROM inserted_app;
+
+WITH inserted_app AS (
+    INSERT INTO "public"."app" (is_archived, is_staging, team_id, engine, status, created_at, updated_at)
+    VALUES
+    (false, true, 'team_d7cde14f17eda7e0ededba7ded6b4467', 'cloud', 'active', '2023-02-18T11:20:39.530041+00:00', '2023-03-06T23:00:15.995455+00:00'),
+
+    RETURNING id
+)
+INSERT INTO "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+SELECT
+    id,
+    'Multi-claim App',
+    'This app has a multi-claim custom action',
+    '',
+    'unverified'
+FROM inserted_app;
+
+WITH inserted_app AS (
+    INSERT INTO "public"."app" (is_archived, is_staging, team_id, engine, status, created_at, updated_at)
+    VALUES
+    (false, false,'team_d7cde14f17eda7e0ededba7ded6b4467','on-chain','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.998795+00:00'),
+    RETURNING id
+)
+INSERT INTO "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+SELECT
+    id,
+    'On-chain App',
+    'This app is on-chain and in production',
+    '',
+    'unverified'
+FROM inserted_app;
+
+
+WITH inserted_app AS (
+    INSERT INTO "public"."app" (is_archived, is_staging, team_id, engine, status, created_at, updated_at)
+    VALUES
+    (false, true, 'team_d7cde14f17eda7e0ededba7ded6b4467','cloud','active','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:16.00117+00:00'),
+    RETURNING id
+)
+INSERT INTO "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+SELECT
+    id,
+    'Custom Action App',
+    'This app has a one-time custom action'
+    '',
+    'unverified'
+FROM inserted_app;
+
+WITH inserted_app AS (
+    INSERT INTO "public"."app" (is_archived, is_staging, team_id, engine, status, created_at, updated_at)
+    VALUES
+    (true, true,'team_d7cde14f17eda7e0ededba7ded6b4467', 'cloud', 'inactive','2023-02-18T11:20:39.530041+00:00','2023-03-06T23:00:15.98657+00:00');
+    RETURNING id
+)
+-- Insert into the app_metadata table using the returned id from the app table
+INSERT INTO "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+SELECT
+    id,
+    'Archived App',
+    'This app is inactive and archived',
+    'https://worldcoin.org/icons/logo-small.svg',
+    'unverified'
+FROM inserted_app;
