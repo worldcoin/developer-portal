@@ -47,7 +47,7 @@ CREATE OR REPLACE FUNCTION validate_single_url(url text)
 RETURNS void as $$
 BEGIN
   IF url IS NOT NULL AND url != '' THEN
-    IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$') THEN
+    IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&#=]*)?$') THEN
       RAISE EXCEPTION USING ERRCODE= '22000', MESSAGE= 'Invalid URL format. URLs must use HTTPS protocol.';
     END IF;
   END IF;
@@ -120,7 +120,7 @@ BEGIN
   FROM "public"."app_metadata"
   WHERE "app_id" = NEW."app_id";
 
-  IF app_id_count >= 2 THEN
+  IF app_id_count > 2 THEN
     RAISE EXCEPTION 'Each app_id can have at most two rows in the table.';
   END IF;
 
@@ -129,7 +129,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "trigger_enforce_app_id_row_limit"
-BEFORE INSERT OR UPDATE ON "public"."app_metadata"
+AFTER INSERT OR UPDATE ON "public"."app_metadata"
 FOR EACH ROW
 EXECUTE FUNCTION enforce_app_id_row_limit();
 
