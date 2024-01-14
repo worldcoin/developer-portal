@@ -60,13 +60,17 @@ export const AppHeader = memo(function AppHeader() {
             />
           )}
         </div>
-
         <h1 className="text-20 font-sora font-semibold self-end">
           {currentApp?.app_metadata?.name}
         </h1>
         <span className="text-14 text-657080 truncate self-start">
           {descriptionInternal?.description_overview}
         </span>
+        {currentApp?.verified_app_metadata && (
+          <span className="text-14 text-657080 truncate text-center pt-2">
+            <p>Verified</p>
+          </span>
+        )}
       </div>
 
       <div className="border-y border-f3f4f5 py-4 flex flex-wrap gap-y-4 justify-between">
