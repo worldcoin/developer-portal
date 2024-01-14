@@ -31,14 +31,24 @@ const saveSchema = yup.object().shape({
     .required("This section is required"),
   description_how_it_works: yup.string().max(3500).optional(),
   description_connect: yup.string().max(3500).optional(),
+  world_app_description: yup
+    .string()
+    .max(50, "In app description cannot exceed 50 characters")
+    .optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
     .matches(/^https:\/\/|^$/, "Link must start with https://")
     .optional(),
-  world_app_description: yup
+  app_website_url: yup
     .string()
-    .max(50, "In app description cannot exceed 50 characters")
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .optional(),
+  source_code_url: yup
+    .string()
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
     .optional(),
   category: yup.string().default("").optional(),
   is_developer_allow_listing: yup.boolean().default(false),
@@ -172,7 +182,7 @@ export const Configuration = memo(function Configuration() {
       </div>
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
-          App Link
+          Use Integration Link
         </FieldLabel>
 
         <div className="relative">
@@ -187,6 +197,48 @@ export const Configuration = memo(function Configuration() {
           {errors.integration_url?.message && (
             <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
               {errors.integration_url.message}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col w-full">
+        <FieldLabel required className="mb-2 font-rubik">
+          Source Code Link:
+        </FieldLabel>
+
+        <div className="relative">
+          <FieldInput
+            register={register("source_code_url")}
+            className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
+            placeholder="https://"
+            disabled={isSubmitting}
+            errors={errors.source_code_url}
+          />
+
+          {errors.source_code_url?.message && (
+            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+              {errors.source_code_url.message}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col w-full">
+        <FieldLabel required className="mb-2 font-rubik">
+          App Website Link
+        </FieldLabel>
+
+        <div className="relative">
+          <FieldInput
+            register={register("app_website_url")}
+            className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
+            placeholder="https://"
+            disabled={isSubmitting}
+            errors={errors.app_website_url}
+          />
+
+          {errors.app_website_url?.message && (
+            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+              {errors.app_website_url.message}
             </span>
           )}
         </div>
