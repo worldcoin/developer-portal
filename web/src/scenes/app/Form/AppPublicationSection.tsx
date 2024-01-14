@@ -35,7 +35,7 @@ export const AppPublicationSection = memo(function AppPublicationSection(
           errors={errors.category}
         />
         {errors.category?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="mt-2 flex items-center text-12 text-danger">
             {errors.category.message}
           </span>
         )}

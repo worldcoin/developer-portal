@@ -44,9 +44,51 @@ const saveSchema = yup.object().shape({
     .optional(),
   category: yup.string().default("").optional(),
   is_developer_allow_listing: yup.boolean().default(false),
+  status: yup.string().default("unverified"),
+});
+
+const submitSchema = yup.object().shape({
+  name: yup
+    .string()
+    .required("App name is required")
+    .max(50, "App name cannot exceed 50 characters"),
+  description_overview: yup
+    .string()
+    .max(3500)
+    .required("This section is required"),
+  description_how_it_works: yup
+    .string()
+    .max(3500)
+    .required("This section is required"),
+  description_connect: yup
+    .string()
+    .max(3500)
+    .required("This section is required"),
+  world_app_description: yup
+    .string()
+    .max(50, "In app description cannot exceed 50 characters")
+    .required("This section is required"),
+  integration_url: yup
+    .string()
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .required("This section is required"),
+  app_website_url: yup
+    .string()
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .optional(),
+  source_code_url: yup
+    .string()
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .optional(),
+  category: yup.string().default("").required("This section is required"),
+  is_developer_allow_listing: yup.boolean().default(false),
 });
 
 export type ConfigurationFormValues = yup.Asserts<typeof saveSchema>;
+export type ConfigurationFormSubmitValues = yup.Asserts<typeof submitSchema>;
 
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
@@ -57,6 +99,7 @@ export const Configuration = memo(function Configuration() {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
@@ -82,12 +125,30 @@ export const Configuration = memo(function Configuration() {
         ...rest,
         description: descriptionsJSON,
       };
-      console.log(updatedData);
       await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
     [encodeDescription, updateAppMetadata]
   );
+
+  const handleSubmitForReview = async (data: ConfigurationFormValues) => {
+    try {
+      await submitSchema.validate(data, { abortEarly: false });
+      await handleSave({ ...data, status: "awaiting_review" }); // Call handleSave here
+
+      toast.success("App submitted for review");
+    } catch (validationErrors: any) {
+      toast.error("Error submitting for review. Please check your inputs");
+      if (validationErrors.inner && Array.isArray(validationErrors.inner)) {
+        validationErrors.inner.forEach((error: yup.ValidationError) => {
+          setError(error.path as keyof ConfigurationFormValues, {
+            type: "manual",
+            message: error.message,
+          });
+        });
+      }
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">
@@ -138,8 +199,16 @@ export const Configuration = memo(function Configuration() {
         isSubmitting={isSubmitting}
       />
       <div className="flex flex-row w-full justify-end h-10">
-        <Button type="submit" variant="primary" className="px-3 mr-5">
+        <Button type="submit" variant="secondary" className="px-3 mr-5">
           Save Information
+        </Button>
+        <Button
+          type="button"
+          variant="primary"
+          className="px-3 mr-5"
+          onClick={() => handleSubmit(handleSubmitForReview)()} // Call handleSubmit with the review handler
+        >
+          Submit for Review
         </Button>
       </div>
     </form>

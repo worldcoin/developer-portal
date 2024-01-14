@@ -134,6 +134,7 @@ export const AppHeader = memo(function AppHeader() {
           />
         </div>
       </div>
+      {currentApp?.app_metadata.status}
     </section>
   );
 });
