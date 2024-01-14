@@ -324,13 +324,14 @@ const deleteAppFetcher = async (
 ) => {
   const { id } = args.arg;
   const response = await graphQLRequest<{
-    app: Pick<AppModel, "id">;
+    delete_app_by_pk: string;
   }>({
     query: DeleteAppQuery,
     variables: { id },
   });
-  if (response.data?.app) {
-    return response.data?.app;
+  console.log(response);
+  if (response.data?.delete_app_by_pk) {
+    return response.data?.delete_app_by_pk;
   }
   throw Error("Could not delete app");
 };
