@@ -29,18 +29,18 @@ const saveSchema = yup.object().shape({
     .string()
     .max(3500)
     .required("This section is required"),
-  description_how_it_works: yup.string().max(3500).notRequired(),
-  description_connect: yup.string().max(3500).notRequired(),
+  description_how_it_works: yup.string().max(3500).optional(),
+  description_connect: yup.string().max(3500).optional(),
   integration_url: yup
     .string()
-    .notRequired()
+    .optional()
     .url("Must be a valid URL")
     .matches(/^https:\/\/|^$/, "Link must start with https://"),
   world_app_description: yup
     .string()
     .max(50, "In app description cannot exceed 50 characters")
-    .notRequired(),
-  category: yup.string().default("").notRequired(),
+    .optional(),
+  category: yup.string().default("").optional(),
   is_developer_allow_listing: yup.boolean().default(false),
 });
 
@@ -50,7 +50,7 @@ export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
 
-  const descriptionInternal = parseDescription(currentApp);
+  const descriptionInternal = parseDescription(currentApp?.app_metadata);
   const {
     register,
     handleSubmit,
@@ -58,8 +58,8 @@ export const Configuration = memo(function Configuration() {
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
-    defaultValues: { ...currentApp, ...descriptionInternal },
-    values: { ...currentApp, ...descriptionInternal },
+    defaultValues: { ...currentApp?.app_metadata, ...descriptionInternal },
+    values: { ...currentApp?.app_metadata, ...descriptionInternal },
   });
 
   const handleSave = useCallback(

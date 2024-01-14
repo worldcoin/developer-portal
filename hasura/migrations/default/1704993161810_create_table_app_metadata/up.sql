@@ -17,6 +17,7 @@ CREATE TABLE "public"."app_metadata" (
   "is_reviewer_app_store_approved" bool NOT NULL DEFAULT false,
   "is_reviewer_world_app_approved" bool NOT NULL DEFAULT false,
   "review_message" text NOT NULL DEFAULT '',
+  "unique_verification_status_row" varchar NOT NULL UNIQUE,
   "status" varchar NOT NULL DEFAULT 'unverified',
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
@@ -131,3 +132,20 @@ CREATE TRIGGER "trigger_enforce_app_id_row_limit"
 BEFORE INSERT OR UPDATE ON "public"."app_metadata"
 FOR EACH ROW
 EXECUTE FUNCTION enforce_app_id_row_limit();
+
+CREATE FUNCTION set_unique_verification_status_row()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'verified' THEN
+    NEW.unique_verification_status_row := NEW.app_id || '_verified';
+  ELSE
+    NEW.unique_verification_status_row := NEW.app_id || '_unverified';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_set_unique_verification_status_row
+BEFORE INSERT OR UPDATE ON "public"."app_metadata"
+FOR EACH ROW
+EXECUTE FUNCTION set_unique_verification_status_row();

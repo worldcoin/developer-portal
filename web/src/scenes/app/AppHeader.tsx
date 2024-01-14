@@ -11,7 +11,7 @@ export const AppHeader = memo(function AppHeader() {
   const [copied, setCopied] = useState(false);
 
   const [image, setImage] = useState<string | null>(
-    currentApp?.app_metadata.logo_img_url ?? null
+    currentApp?.app_metadata?.logo_img_url ?? null
   );
   const { toggleAppActivity, parseDescription } = useApps();
   const descriptionInternal = parseDescription(currentApp?.app_metadata);

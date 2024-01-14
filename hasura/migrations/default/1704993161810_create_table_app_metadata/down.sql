@@ -1,3 +1,7 @@
+DROP TRIGGER IF EXISTS "trigger_set_upsert_constraint" ON "public"."app_metadata";
+
+DROP FUNCTION IF EXISTS "set_upsert_constraint";
+
 DROP TRIGGER IF EXISTS "trigger_enforce_app_id_row_limit" ON "public"."app_metadata";
 
 DROP FUNCTION IF EXISTS "enforce_app_id_row_limit";

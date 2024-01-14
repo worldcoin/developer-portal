@@ -35,7 +35,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
     }
 
     setImage(props.app.app_metadata.logo_img_url);
-  }, [props.app.app_metadata.logo_img_url]);
+  }, [props.app.app_metadata?.logo_img_url]);
 
   return (
     <div
