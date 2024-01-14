@@ -7,11 +7,20 @@ const requestReturnFn = jest.fn();
 type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
 const appPayload = {
   id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-  name: "The Yellow App",
-  is_verified: false,
   is_staging: true,
   engine: "cloud",
-  logo_img_url: "",
+  app_metadata: [
+    {
+      name: "The Yellow App",
+      logo_img_url: "",
+    },
+  ],
+  verified_app_metadata: [
+    {
+      name: "The Yellow App Verified",
+      logo_img_url: "verified.com",
+    },
+  ],
   actions: [
     {
       name: "Swag Pack 2022",
@@ -42,7 +51,7 @@ jest.mock(
 );
 
 describe("/api/v1/precheck/[app_id]", () => {
-  test("can fetch precheck response", async () => {
+  test("can fetch precheck response verified", async () => {
     const { req, res } = createMocks({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
@@ -61,11 +70,47 @@ describe("/api/v1/precheck/[app_id]", () => {
     const response = res._getJSONData();
     expect(response).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      name: "The Yellow App Verified",
+      is_verified: true,
+      is_staging: true,
+      engine: "cloud",
+      verified_app_logo: "verified.com",
+      sign_in_with_world_id: false,
+      can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
+      action: {
+        action: "swag_pack_2022",
+        name: "Swag Pack 2022",
+        description: "Receive our Swag Pack 2022",
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+      },
+    });
+  });
+
+  test("can fetch precheck response unverified", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: exampleValidRequestPayload,
+    });
+
+    requestReturnFn.mockResolvedValue({
+      data: {
+        app: [{ ...appPayload, verified_app_metadata: [] }],
+      },
+    });
+
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       name: "The Yellow App",
       is_verified: false,
       is_staging: true,
       engine: "cloud",
-      logo_img_url: "",
+      verified_app_logo: "",
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
