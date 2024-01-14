@@ -7,13 +7,13 @@ import { ConfigurationFormValues } from "../Configuration";
 interface AppLinksSectionProps {
   register: UseFormRegister<ConfigurationFormValues>; // Replace 'any' with the correct type for your register function
   errors: FieldErrors<ConfigurationFormValues>; // This assumes you are using react-hook-form
-  isSubmitting: boolean;
+  disabled: boolean;
 }
 
 export const AppLinksSection = memo(function AppLinksSection(
   props: AppLinksSectionProps
 ) {
-  const { register, errors, isSubmitting } = props;
+  const { register, errors, disabled } = props;
   return (
     <>
       <div className="flex flex-col w-full">
@@ -25,7 +25,7 @@ export const AppLinksSection = memo(function AppLinksSection(
             register={register("integration_url")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
-            disabled={isSubmitting}
+            disabled={disabled}
             errors={errors.integration_url}
           />
 
@@ -46,7 +46,7 @@ export const AppLinksSection = memo(function AppLinksSection(
             register={register("source_code_url")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
-            disabled={isSubmitting}
+            disabled={disabled}
             errors={errors.source_code_url}
           />
 
@@ -67,7 +67,7 @@ export const AppLinksSection = memo(function AppLinksSection(
             register={register("app_website_url")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
-            disabled={isSubmitting}
+            disabled={disabled}
             errors={errors.app_website_url}
           />
 

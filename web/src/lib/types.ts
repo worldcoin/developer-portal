@@ -15,6 +15,13 @@ export enum EngineType {
   Cloud = "cloud",
 }
 
+export enum AppReviewStatus {
+  unverified = "Unverified",
+  awaiting_review = "Awaiting Review",
+  changes_requested = "Changes Requested",
+  verified = "Verified",
+}
+
 export enum AppStatusType {
   Active = "active",
   Inactive = "inactive",

@@ -1,12 +1,5 @@
-import {
-  ChangeEvent,
-  InputHTMLAttributes,
-  memo,
-  ReactNode,
-  useCallback,
-} from "react";
+import { InputHTMLAttributes, memo, ReactNode } from "react";
 import cn from "classnames";
-import { Icon } from "src/components/Icon";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 interface CheckboxInterface extends InputHTMLAttributes<HTMLInputElement> {
@@ -40,6 +33,7 @@ export const FieldCheckbox = memo(function FieldCheckbox(
     >
       <input
         {...register}
+        disabled={disabled}
         className={cn("h-6 w-6 accent-blue-primary")}
         {...otherProps}
         type="checkbox"
