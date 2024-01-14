@@ -1,5 +1,5 @@
 WITH
-    inserted_app AS (
+    inserted_app1 AS (
         INSERT INTO
             "public"."app" (
                 is_archived,
@@ -27,13 +27,13 @@ SELECT
     id,
     'Sign In App',
     'This app is for Sign In with World ID',
-    'https://worldcoin.org/icons/logo-small.svg',
+    'logo_img.png',
     'unverified'
 FROM
-    inserted_app;
+    inserted_app1;
 
 WITH
-    inserted_app AS (
+    inserted_app2 AS (
         INSERT INTO
             "public"."app" (
                 is_archived,
@@ -64,10 +64,10 @@ SELECT
     '',
     'unverified'
 FROM
-    inserted_app;
+    inserted_app2;
 
 WITH
-    inserted_app AS (
+    inserted_app3 AS (
         INSERT INTO
             "public"."app" (
                 is_archived,
@@ -98,10 +98,10 @@ SELECT
     '',
     'unverified'
 FROM
-    inserted_app;
+    inserted_app3;
 
 WITH
-    inserted_app AS (
+    inserted_app4 AS (
         INSERT INTO
             "public"."app" (
                 is_archived,
@@ -128,13 +128,14 @@ INSERT INTO
 SELECT
     id,
     'Custom Action App',
-    'This app has a one-time custom action' '',
+    'This app has a one-time custom action',
+    '',
     'unverified'
 FROM
-    inserted_app;
+    inserted_app4;
 
 WITH
-    inserted_app AS (
+    inserted_app5 AS (
         INSERT INTO
             "public"."app" (
                 is_archived,
@@ -163,7 +164,7 @@ SELECT
     id,
     'Archived App',
     'This app is inactive and archived',
-    'https://worldcoin.org/icons/logo-small.svg',
+    'logo_img.jpg',
     'unverified'
 FROM
-    inserted_app;
+    inserted_app5;
