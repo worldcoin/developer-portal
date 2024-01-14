@@ -64,11 +64,12 @@ select_permissions:
         - integration_url
         - app_website_url
         - source_code_url
-        - status
         - verified_at
-        - review_message
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
+        - unique_verification_status_row
+        - review_message
+        - status
         - updated_at
       filter:
         app:
@@ -128,10 +129,11 @@ select_permissions:
         - integration_url
         - app_website_url
         - source_code_url
+        - verified_at
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
-        - verified_at
         - review_message
+        - unique_verification_status_row
         - status
         - updated_at
       filter:

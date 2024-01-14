@@ -13,6 +13,15 @@ array_relationships:
         table:
           name: action
           schema: public
+  - name: app_metadata
+    using:
+      manual_configuration:
+        column_mapping:
+          id: app_id
+        insertion_order: null
+        remote_table:
+          name: app_metadata
+          schema: public
 insert_permissions:
   - role: api_key
     permission:
