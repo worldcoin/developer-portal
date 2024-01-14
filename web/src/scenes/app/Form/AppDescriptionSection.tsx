@@ -16,6 +16,7 @@ export const AppDescriptionSection = memo(function AppDescriptionSection(
   props: AppDescriptionSectionProps
 ) {
   const { register, errors, disabled, watch } = props;
+  console.log(errors);
   return (
     <>
       <h1 className="font-bold">App Description</h1>
@@ -30,9 +31,10 @@ export const AppDescriptionSection = memo(function AppDescriptionSection(
           disabled={disabled}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_overview")}
+          errors={errors.description_overview}
         />
         {errors.description_overview?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 flex items-center text-12 text-danger">
             {errors.description_overview.message}
           </span>
         )}
@@ -42,14 +44,15 @@ export const AppDescriptionSection = memo(function AppDescriptionSection(
           How It Works
         </FieldLabel>
         <FieldTextArea
-          value={watch("description_how_it_works") ?? ""}
+          value={watch("description_how_it_works")}
           maxChar={3500}
           disabled={disabled}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_how_it_works")}
+          errors={errors.description_how_it_works}
         />
         {errors.description_how_it_works?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 flex items-center text-12 text-danger">
             {errors.description_how_it_works.message}
           </span>
         )}
@@ -59,14 +62,15 @@ export const AppDescriptionSection = memo(function AppDescriptionSection(
           How To Connect
         </FieldLabel>
         <FieldTextArea
-          value={watch("description_connect") ?? ""}
+          value={watch("description_connect")}
           maxChar={3500}
           disabled={disabled}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
           register={register("description_connect")}
+          errors={errors.description_connect}
         />
         {errors.description_connect?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2flex items-center text-12 text-danger">
             {errors.description_connect.message}
           </span>
         )}
@@ -86,7 +90,7 @@ export const AppDescriptionSection = memo(function AppDescriptionSection(
           errors={errors.world_app_description}
         />
         {errors.world_app_description?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 flex items-center text-12 text-danger">
             {errors.world_app_description.message}
           </span>
         )}

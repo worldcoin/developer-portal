@@ -110,6 +110,9 @@ export const Configuration = memo(function Configuration() {
 
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
+      if (!currentApp || currentApp.app_metadata.status !== "unverified") {
+        throw new Error("You must un-submit your app to edit");
+      }
       const {
         description_overview,
         description_how_it_works,
@@ -129,12 +132,15 @@ export const Configuration = memo(function Configuration() {
       await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
-    [encodeDescription, updateAppMetadata]
+    [currentApp, encodeDescription, updateAppMetadata]
   );
 
   const handleSubmitForReview = useCallback(
     async (data: ConfigurationFormValues) => {
       try {
+        if (!currentApp || currentApp.app_metadata.status !== "unverified") {
+          throw new Error("You must un-submit your app to submit again");
+        }
         await submitSchema.validate(data, { abortEarly: false });
         await handleSave({ ...data, status: "awaiting_review" });
 
@@ -151,20 +157,25 @@ export const Configuration = memo(function Configuration() {
         }
       }
     },
-    [handleSave, setError]
+    [handleSave, setError, currentApp]
   );
 
   const removeFromReview = useCallback(
-    async (data: ConfigurationFormValues) => {
+    async (_: ConfigurationFormValues) => {
       try {
+        if (
+          !currentApp ||
+          ["verified", "unverified"].includes(currentApp.app_metadata.status)
+        ) {
+          throw new Error("You cannot remove an app that is not in review");
+        }
         await updateAppMetadata({ status: "unverified" });
-
         toast.success("App removed from review");
       } catch (validationErrors: any) {
         toast.error("Error removing from review. Please check your inputs");
       }
     },
-    [updateAppMetadata]
+    [currentApp, updateAppMetadata]
   );
 
   return (
