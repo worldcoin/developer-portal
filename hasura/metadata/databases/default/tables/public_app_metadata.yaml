@@ -67,7 +67,6 @@ select_permissions:
         - verified_at
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
-        - unique_verification_status_row
         - review_message
         - status
         - updated_at
@@ -134,7 +133,6 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - unique_verification_status_row
         - status
         - updated_at
       filter:
@@ -158,6 +156,7 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
           - status:
@@ -166,7 +165,6 @@ update_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-      filter: {}
   - role: reviewer
     permission:
       columns:
@@ -176,10 +174,10 @@ update_permissions:
         - is_reviewer_world_app_approved
         - review_message
         - status
+      filter: {}
       check:
         status:
           _eq: awaiting_review
-      filter: {}
   - role: user
     permission:
       columns:
@@ -194,6 +192,7 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
           - status:
@@ -203,13 +202,7 @@ update_permissions:
                 users:
                   id:
                     _eq: X-Hasura-User-Id
-      filter: {}
 delete_permissions:
-  - role: reviewer
-    permission:
-      filter:
-        status:
-          _eq: verified
   - role: api_key
     permission:
       filter:
@@ -220,6 +213,11 @@ delete_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
+  - role: reviewer
+    permission:
+      filter:
+        status:
+          _eq: verified
   - role: user
     permission:
       filter:

@@ -37,13 +37,14 @@ const actionKioskQuery = gql`
         is_staging
         app_metadata(where: { status: { _neq: "verified" } }) {
           name
-          logo_img_url
+          status
         }
         verified_app_metadata: app_metadata(
           where: { status: { _eq: "verified" } }
         ) {
           name
           logo_img_url
+          status
         }
       }
     }
@@ -68,15 +69,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (data?.action[0].action === "") {
     return { props: { error_code: "no_sign_in" } };
   }
+  const { app_metadata, verified_app_metadata, ...app_data } =
+    data.action[0].app;
+  const app_metadata_item = verified_app_metadata?.[0] ?? app_metadata?.[0];
+
   const processedAction: ActionKioskType = {
     ...data.action[0],
     app: {
-      ...data.action[0].app,
-      app_metadata: data.action[0].app.app_metadata?.[0] || null,
-      verified_app_metadata:
-        data.action[0].app.verified_app_metadata?.[0] || null,
+      ...app_data,
+      app_metadata: app_metadata_item,
     },
   };
+
   return {
     props: { action: processedAction } as KioskProps,
   };

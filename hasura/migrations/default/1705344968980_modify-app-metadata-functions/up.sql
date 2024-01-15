@@ -49,3 +49,7 @@ CREATE TRIGGER trigger_set_unique_verification_status_row
 BEFORE INSERT OR UPDATE ON "public"."app_metadata"
 FOR EACH ROW
 EXECUTE FUNCTION set_unique_verification_status_row();
+
+DROP FUNCTION IF EXISTS get_app_is_verified (app);
+
+DROP FUNCTION IF EXISTS get_verified_app_logo (app);

@@ -29,6 +29,7 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
+        - description_internal
         - engine
         - is_archived
         - is_staging
@@ -48,6 +49,7 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
+        - description_internal
         - engine
         - is_archived
         - is_staging
@@ -72,6 +74,7 @@ select_permissions:
     permission:
       columns:
         - created_at
+        - description_internal
         - engine
         - id
         - is_archived
@@ -84,6 +87,7 @@ select_permissions:
     permission:
       columns:
         - created_at
+        - description_internal
         - engine
         - id
         - is_staging
@@ -98,6 +102,7 @@ update_permissions:
   - role: api_key
     permission:
       columns:
+        - description_internal
         - is_archived
       filter:
         team_id:
@@ -106,6 +111,7 @@ update_permissions:
   - role: user
     permission:
       columns:
+        - description_internal
         - is_archived
         - status
       filter:

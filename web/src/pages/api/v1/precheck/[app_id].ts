@@ -204,14 +204,8 @@ export default async function handlePrecheck(
       req
     );
   }
-  const app_metadata =
-    rawAppValues.app_metadata.length > 0
-      ? rawAppValues.app_metadata[0]
-      : undefined;
-  const verified_app_metadata =
-    rawAppValues.verified_app_metadata.length > 0
-      ? rawAppValues.verified_app_metadata[0]
-      : undefined;
+  const app_metadata = rawAppValues.app_metadata[0];
+  const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   // Prevent breaking changes
   const app: _App = {
     __typename: rawAppValues.__typename,

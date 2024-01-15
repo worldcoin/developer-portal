@@ -50,7 +50,7 @@ export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
 
-  const descriptionInternal = parseDescription(currentApp?.app_metadata);
+  const description = parseDescription(currentApp?.app_metadata);
   const {
     register,
     handleSubmit,
@@ -58,8 +58,8 @@ export const Configuration = memo(function Configuration() {
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
-    defaultValues: { ...currentApp?.app_metadata, ...descriptionInternal },
-    values: { ...currentApp?.app_metadata, ...descriptionInternal },
+    defaultValues: { ...currentApp?.app_metadata, ...description },
+    values: { ...currentApp?.app_metadata, ...description },
   });
 
   const handleSave = useCallback(

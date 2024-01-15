@@ -90,12 +90,9 @@ export type ActionKioskType = Omit<ActionKioskQueryType, "app"> & {
       AppMetadataModel,
       "name" | "logo_img_url" | "status"
     > | null;
-    verified_app_metadata: Pick<
-      AppMetadataModel,
-      "name" | "logo_img_url" | "status"
-    > | null;
   };
 };
+
 export enum Environment {
   Production = "production",
   Staging = "staging",

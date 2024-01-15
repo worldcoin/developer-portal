@@ -4,6 +4,7 @@ WITH
             "public"."app" (
                 is_archived,
                 is_staging,
+                name,
                 team_id,
                 engine,
                 status,
@@ -14,6 +15,7 @@ WITH
             (
                 false,
                 false,
+                'Sign In App',
                 'team_d7cde14f17eda7e0ededba7ded6b4467',
                 'cloud',
                 'active',
@@ -38,6 +40,7 @@ WITH
             "public"."app" (
                 is_archived,
                 is_staging,
+                name,
                 team_id,
                 engine,
                 status,
@@ -48,6 +51,7 @@ WITH
             (
                 false,
                 true,
+                'Multi-claim App',
                 'team_d7cde14f17eda7e0ededba7ded6b4467',
                 'cloud',
                 'active',
@@ -72,6 +76,7 @@ WITH
             "public"."app" (
                 is_archived,
                 is_staging,
+                name,
                 team_id,
                 engine,
                 status,
@@ -82,6 +87,7 @@ WITH
             (
                 false,
                 false,
+                'On-chain App',
                 'team_d7cde14f17eda7e0ededba7ded6b4467',
                 'on-chain',
                 'active',
@@ -106,6 +112,7 @@ WITH
             "public"."app" (
                 is_archived,
                 is_staging,
+                name,
                 team_id,
                 engine,
                 status,
@@ -116,6 +123,7 @@ WITH
             (
                 false,
                 true,
+                'Custom Action App',
                 'team_d7cde14f17eda7e0ededba7ded6b4467',
                 'cloud',
                 'active',
@@ -140,6 +148,7 @@ WITH
             "public"."app" (
                 is_archived,
                 is_staging,
+                name,
                 team_id,
                 engine,
                 status,
@@ -150,6 +159,7 @@ WITH
             (
                 true,
                 true,
+                'Archived App',
                 'team_d7cde14f17eda7e0ededba7ded6b4467',
                 'cloud',
                 'inactive',
