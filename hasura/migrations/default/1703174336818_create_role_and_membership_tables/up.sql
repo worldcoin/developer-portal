@@ -8,7 +8,7 @@ INSERT INTO role (value, comment) VALUES
   ('ADMIN', 'Users with the privilege to manage other users'),
   ('MEMBER', 'Member user');
 
-CREATE TABLE "public"."memberships" (
+CREATE TABLE "public"."membership" (
   "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('role'),
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
