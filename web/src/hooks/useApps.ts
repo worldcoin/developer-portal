@@ -104,7 +104,7 @@ const UpsertAppMetadataQuery = gql`
         source_code_url: $source_code_url
       }
       on_conflict: {
-        constraint: app_metadata_unique_verification_status_row_key
+        constraint: app_metadata_id_is_row_verified_key
         update_columns: [
           name
           logo_img_url
@@ -151,45 +151,17 @@ const DeleteAppQuery = gql`
     }
   }
 `;
-const fetchApps = async (
-  attemptedToHandleMissingMetadata: boolean = false
-): Promise<Array<AppModel>> => {
+const fetchApps = async (): Promise<Array<AppModel>> => {
   const response = await graphQLRequest<{
     app: Array<AppModel>;
   }>({
     query: FetchAppsQuery,
   });
 
-  const apps = response.data?.app || [];
-  // Even verified apps will have an unverified row. Thus the only case this will be true is if we have an orphaned app row
-  const appsMissingMetadata = apps.filter((app) => !app.app_metadata);
+  const unformattedApps = response.data?.app || [];
 
-  // Checks for orphaned app rows and tries to add a metadata row
-  if (appsMissingMetadata.length > 0 && !attemptedToHandleMissingMetadata) {
-    await _handleMissingMetadata(appsMissingMetadata);
-    return fetchApps(true);
-  }
-  // for each app we need to call _parseAppModel to make sure the app_metadata is not an array
-  apps.forEach((app, index, this_arr) => {
-    this_arr[index] = _parseAppModel(app);
-  });
-  console.log("apps", apps);
+  const apps = unformattedApps.map(_parseAppModel);
   return apps;
-};
-
-const _handleMissingMetadata = async (appsMissingMetadata: Array<AppModel>) => {
-  await Promise.all(
-    appsMissingMetadata.map((app) =>
-      _insertAppMetadata(app.id, {
-        name: "Unnamed App " + app.id,
-        description: "",
-      }).catch((error) => {
-        // Better to catch this here to prevent it from blocking. Can prompt user to try again on the front end
-        console.error(`Failed to create metadata for app ${app.id}:`, error);
-        return null;
-      })
-    )
-  );
 };
 
 const _parseAppModel = (appModel: AppModel): AppModel => {
@@ -329,7 +301,6 @@ const deleteAppFetcher = async (
     query: DeleteAppQuery,
     variables: { id },
   });
-  console.log(response);
   if (response.data?.delete_app_by_pk) {
     return response.data?.delete_app_by_pk;
   }
@@ -377,7 +348,6 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
       app_metadata: appMetadataResponse.data?.insert_app_metadata_one,
       verified_app_metadata: undefined,
     };
-    console.log("newApp", newApp);
     return newApp;
   }
 

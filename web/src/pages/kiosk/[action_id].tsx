@@ -71,8 +71,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
   const { app_metadata, verified_app_metadata, ...app_data } =
     data.action[0].app;
-  const app_metadata_item = verified_app_metadata?.[0] ?? app_metadata?.[0];
-
+  const app_metadata_item = verified_app_metadata?.[0] ?? {
+    ...app_metadata?.[0],
+    logo_img_url: "",
+  };
   const processedAction: ActionKioskType = {
     ...data.action[0],
     app: {

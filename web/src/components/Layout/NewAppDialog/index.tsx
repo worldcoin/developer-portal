@@ -103,7 +103,7 @@ export const NewAppDialog = memo(function NewAppDialog(
             <FieldLabel className="font-rubik">Description</FieldLabel>
             <FieldTextArea
               className="w-full font-rubik"
-              placeholder="For internal reference. Visible only to you and your team."
+              placeholder="A description of your app, visible to the public."
               type="text"
               {...register("app_metadata.description")}
               readOnly={formState.isSubmitting}

@@ -80,7 +80,6 @@ export const Configuration = memo(function Configuration() {
         ...rest,
         description: descriptionsJSON,
       };
-      console.log(updatedData);
       await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
