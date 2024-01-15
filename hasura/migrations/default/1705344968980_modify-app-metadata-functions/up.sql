@@ -32,6 +32,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS "trigger_enforce_app_id_row_limit" ON "public"."app_metadata";
+-- Change trigger to after
+CREATE TRIGGER "trigger_enforce_app_id_row_limit"
+AFTER INSERT OR UPDATE ON "public"."app_metadata"
+FOR EACH ROW
+EXECUTE FUNCTION enforce_app_id_row_limit();
 
 CREATE FUNCTION set_unique_verification_status_row()
 RETURNS TRIGGER AS $$
