@@ -34,6 +34,12 @@ select_permissions:
       filter:
         id:
           _eq: X-Hasura-Team-Id
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - name
+      filter: {}
   - role: service
     permission:
       columns:

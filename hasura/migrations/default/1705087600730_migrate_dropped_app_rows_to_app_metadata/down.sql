@@ -1,0 +1,1 @@
+DELETE FROM "public"."app_metadata";
