@@ -1,1 +1,1 @@
--- Not sure there is a down migration for this?
+DELETE FROM "public"."app_metadata";
