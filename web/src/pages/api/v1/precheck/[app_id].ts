@@ -46,8 +46,8 @@ interface _App
 
 interface _AppQueryReturnInterface
   extends Pick<AppModel, "__typename" | "id" | "engine" | "is_staging"> {
-  verified_app_metadata: AppMetadataPayload;
-  app_metadata: AppMetadataPayload;
+  verified_app_metadata: AppMetadataPayload[];
+  app_metadata: AppMetadataPayload[];
   actions: _Action[];
 }
 
@@ -73,7 +73,6 @@ const appPrecheckQuery = gql`
       engine
       app_metadata(where: { status: { _neq: "verified" } }) {
         name
-        logo_img_url
       }
       verified_app_metadata: app_metadata(
         where: { status: { _eq: "verified" } }
@@ -205,17 +204,14 @@ export default async function handlePrecheck(
       req
     );
   }
-  const app_metadata: AppMetadataPayload | undefined = Array.isArray(
-    rawAppValues.app_metadata
-  )
-    ? rawAppValues.app_metadata[0]
-    : undefined;
-  const verified_app_metadata: AppMetadataPayload | undefined = Array.isArray(
-    rawAppValues.verified_app_metadata
-  )
-    ? rawAppValues.verified_app_metadata[0]
-    : undefined;
-
+  const app_metadata =
+    rawAppValues.app_metadata.length > 0
+      ? rawAppValues.app_metadata[0]
+      : undefined;
+  const verified_app_metadata =
+    rawAppValues.verified_app_metadata.length > 0
+      ? rawAppValues.verified_app_metadata[0]
+      : undefined;
   // Prevent breaking changes
   const app: _App = {
     __typename: rawAppValues.__typename,
