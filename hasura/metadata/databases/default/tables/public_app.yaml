@@ -54,17 +54,13 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
-        - category
         - description_internal
         - engine
         - is_archived
-        - is_developer_allow_listing
         - is_staging
-        - link_to_integration
         - logo_url
         - name
         - status
-        - world_app_description
 select_permissions:
   - role: analytics
     permission:
@@ -92,30 +88,20 @@ select_permissions:
         - name
         - verified_at
         - status
-        - is_reviewer_app_store_approved
-        - is_reviewer_world_app_approved
-        - approved_by
       filter: {}
   - role: service
     permission:
       columns:
-        - approved_by
-        - category
         - created_at
         - description_internal
         - engine
         - id
         - is_archived
-        - is_developer_allow_listing
-        - is_reviewer_app_store_approved
-        - is_reviewer_world_app_approved
         - is_staging
-        - link_to_integration
         - name
         - status
         - team_id
         - verified_at
-        - world_app_description
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -124,21 +110,14 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - approved_by
-        - category
         - created_at
         - description_internal
         - engine
         - id
-        - is_developer_allow_listing
-        - is_reviewer_app_store_approved
-        - is_reviewer_world_app_approved
         - is_staging
-        - link_to_integration
         - name
         - status
         - team_id
-        - world_app_description
       computed_fields:
         - is_verified
         - verified_app_logo
@@ -151,14 +130,10 @@ update_permissions:
   - role: api_key
     permission:
       columns:
-        - category
         - description_internal
         - is_archived
-        - is_developer_allow_listing
-        - link_to_integration
         - logo_url
         - name
-        - world_app_description
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -166,15 +141,11 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - category
         - description_internal
         - is_archived
-        - is_developer_allow_listing
-        - link_to_integration
         - logo_url
         - name
         - status
-        - world_app_description
       filter:
         team:
           users:
