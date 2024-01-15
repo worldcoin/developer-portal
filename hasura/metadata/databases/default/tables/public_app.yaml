@@ -47,18 +47,9 @@ insert_permissions:
       set:
         team_id: x-hasura-Team-Id
       columns:
-<<<<<<< HEAD
-        - description_internal
         - engine
         - is_archived
         - is_staging
-        - logo_url
-        - name
-=======
-        - engine
-        - is_archived
-        - is_staging
->>>>>>> d6b5012 (squashed migration)
         - status
 select_permissions:
   - role: analytics
@@ -75,18 +66,6 @@ select_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
-<<<<<<< HEAD
-  - role: reviewer
-    permission:
-      columns:
-        - id
-        - team_id
-        - name
-        - verified_at
-        - status
-      filter: {}
-=======
->>>>>>> d6b5012 (squashed migration)
   - role: service
     permission:
       columns:
