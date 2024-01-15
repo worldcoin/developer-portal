@@ -9,7 +9,7 @@ INSERT INTO role (value, comment) VALUES
   ('MEMBER', 'Member user');
 
 CREATE TABLE "public"."membership" (
-  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('role'),
+  "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id ('memb'),
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "user_id" varchar(50) NOT NULL,
