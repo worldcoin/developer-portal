@@ -32,6 +32,7 @@ insert_permissions:
         - engine
         - is_archived
         - is_staging
+        - name
         - status
   - role: service
     permission:
@@ -50,6 +51,7 @@ insert_permissions:
         - engine
         - is_archived
         - is_staging
+        - name
         - status
 select_permissions:
   - role: analytics

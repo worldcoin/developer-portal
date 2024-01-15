@@ -354,6 +354,7 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
       appObject: {
         engine,
         is_staging,
+        name: app_metadata.name,
       },
     },
   });

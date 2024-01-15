@@ -17,7 +17,6 @@ CREATE TABLE "public"."app_metadata" (
   "is_reviewer_app_store_approved" bool NOT NULL DEFAULT false,
   "is_reviewer_world_app_approved" bool NOT NULL DEFAULT false,
   "review_message" text NOT NULL DEFAULT '',
-  "unique_verification_status_row" varchar NOT NULL UNIQUE,
   "status" varchar NOT NULL DEFAULT 'unverified',
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
@@ -43,11 +42,12 @@ EXECUTE PROCEDURE "public"."set_current_timestamp_updated_at"();
 COMMENT ON TRIGGER "set_public_app_metadata_updated_at" ON "public"."app_metadata"
 IS 'trigger to set value of column "updated_at" to current timestamp on row update';
 
+
 CREATE OR REPLACE FUNCTION validate_single_url(url text)
 RETURNS void as $$
 BEGIN
   IF url IS NOT NULL AND url != '' THEN
-    IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&#=]*)?$') THEN
+    IF NOT (url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$') THEN
       RAISE EXCEPTION USING ERRCODE= '22000', MESSAGE= 'Invalid URL format. URLs must use HTTPS protocol.';
     END IF;
   END IF;
@@ -120,7 +120,7 @@ BEGIN
   FROM "public"."app_metadata"
   WHERE "app_id" = NEW."app_id";
 
-  IF app_id_count > 2 THEN
+  IF app_id_count >= 2 THEN
     RAISE EXCEPTION 'Each app_id can have at most two rows in the table.';
   END IF;
 
@@ -129,23 +129,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "trigger_enforce_app_id_row_limit"
-AFTER INSERT OR UPDATE ON "public"."app_metadata"
-FOR EACH ROW
-EXECUTE FUNCTION enforce_app_id_row_limit();
-
-CREATE FUNCTION set_unique_verification_status_row()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.status = 'verified' THEN
-    NEW.unique_verification_status_row := NEW.app_id || '_verified';
-  ELSE
-    NEW.unique_verification_status_row := NEW.app_id || '_unverified';
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_set_unique_verification_status_row
 BEFORE INSERT OR UPDATE ON "public"."app_metadata"
 FOR EACH ROW
-EXECUTE FUNCTION set_unique_verification_status_row();
+EXECUTE FUNCTION enforce_app_id_row_limit();
