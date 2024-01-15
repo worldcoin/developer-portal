@@ -10,16 +10,9 @@ SELECT CASE
     ELSE false
   END $$ LANGUAGE sql STABLE;
 
-DROP TRIGGER IF EXISTS "trigger_set_upsert_constraint" ON "public"."app_metadata";
+DROP TRIGGER IF EXISTS "trigger_set_unique_verification_status_row" ON "public"."app_metadata";
 
-DROP FUNCTION IF EXISTS "set_upsert_constraint";
-
-DROP TRIGGER IF EXISTS "trigger_enforce_app_id_row_limit" ON "public"."app_metadata";
-
-CREATE TRIGGER "trigger_enforce_app_id_row_limit"
-BEFORE INSERT OR UPDATE ON "public"."app_metadata"
-FOR EACH ROW
-EXECUTE FUNCTION enforce_app_id_row_limit();
+DROP FUNCTION IF EXISTS "set_unique_verification_status_row";
 
 CREATE OR REPLACE FUNCTION "enforce_app_id_row_limit"()
 RETURNS TRIGGER AS $$
@@ -38,6 +31,13 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "trigger_enforce_app_id_row_limit"
+BEFORE INSERT OR UPDATE ON "public"."app_metadata"
+FOR EACH ROW
+EXECUTE FUNCTION enforce_app_id_row_limit();
+
+DROP FUNCTION IF EXISTS "validate_single_url";
 
 alter table "public"."app_metadata"
 drop column if exists "unique_verification_status_row";

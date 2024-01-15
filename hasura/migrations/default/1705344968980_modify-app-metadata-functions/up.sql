@@ -13,31 +13,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-CREATE OR REPLACE FUNCTION "enforce_app_id_row_limit"()
-RETURNS TRIGGER AS $$
-DECLARE
-  app_id_count integer;
-BEGIN
-  SELECT COUNT(*)
-  INTO app_id_count
-  FROM "public"."app_metadata"
-  WHERE "app_id" = NEW."app_id";
-
-  IF app_id_count > 2 THEN
-    RAISE EXCEPTION 'Each app_id can have at most two rows in the table.';
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
 DROP TRIGGER IF EXISTS "trigger_enforce_app_id_row_limit" ON "public"."app_metadata";
--- Change trigger to after
-CREATE TRIGGER "trigger_enforce_app_id_row_limit"
-AFTER INSERT OR UPDATE ON "public"."app_metadata"
-FOR EACH ROW
-EXECUTE FUNCTION enforce_app_id_row_limit();
+
+DROP FUNCTION IF EXISTS "enforce_app_id_row_limit";
 
 CREATE FUNCTION set_unique_verification_status_row()
 RETURNS TRIGGER AS $$
