@@ -107,11 +107,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER "validate_img_uris"
-BEFORE INSERT OR UPDATE ON "public"."app_metadata"
-FOR EACH ROW
-EXECUTE FUNCTION validate_all_img_urls_format();
-
 CREATE UNIQUE INDEX "unique_verified_app_id" ON "public"."app_metadata" (app_id)
 WHERE status = 'verified';
 

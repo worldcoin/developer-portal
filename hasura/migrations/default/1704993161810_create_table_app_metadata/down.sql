@@ -4,8 +4,6 @@ DROP FUNCTION IF EXISTS "enforce_app_id_row_limit";
 
 DROP INDEX IF EXISTS "unique_verified_app_id";
 
-DROP TRIGGER IF EXISTS "validate_img_uris" ON "public"."app_metadata";
-
 DROP FUNCTION IF EXISTS "validate_all_img_urls_format";
 
 DROP TRIGGER IF EXISTS "validate_metadata_uris" ON "public"."app_metadata";
