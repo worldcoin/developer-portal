@@ -38,12 +38,6 @@ export interface AppModel {
   __typename: "app";
 }
 
-export interface AppQueryModel
-  extends Omit<AppModel, "app_metadata" | "verified_app_metadata"> {
-  app_metadata: AppMetadataModel[];
-  verified_app_metadata?: AppMetadataModel[];
-}
-
 export interface AppMetadataModel {
   id: `meta_${string}`;
   app_id: `app_${string}`;
