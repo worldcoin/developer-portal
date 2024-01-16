@@ -1292,6 +1292,8 @@ export type App_Metadata_Bool_Exp = {
 
 /** unique or primary key constraints on table "app_metadata" */
 export enum App_Metadata_Constraint {
+  /** unique or primary key constraint on columns "app_id", "is_row_verified" */
+  AppMetadataAppIdIsRowVerifiedKey = "app_metadata_app_id_is_row_verified_key",
   /** unique or primary key constraint on columns "id" */
   AppMetadataPkey = "app_metadata_pkey",
   /** unique or primary key constraint on columns "app_id" */

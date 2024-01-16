@@ -5,6 +5,7 @@ import { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
+import { AppReviewStatusHeader } from "./ReviewStatus";
 
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
@@ -66,6 +67,11 @@ export const AppHeader = memo(function AppHeader() {
         <span className="text-14 text-657080 truncate self-start">
           {descriptionInternal?.description_overview}
         </span>
+        {currentApp?.verified_app_metadata && (
+          <span className="text-14 text-657080 truncate text-center pt-2">
+            <p>Verified</p>
+          </span>
+        )}
       </div>
 
       <div className="border-y border-f3f4f5 py-4 flex flex-wrap gap-y-4 justify-between">
@@ -134,6 +140,7 @@ export const AppHeader = memo(function AppHeader() {
           />
         </div>
       </div>
+      <AppReviewStatusHeader />
     </section>
   );
 });
