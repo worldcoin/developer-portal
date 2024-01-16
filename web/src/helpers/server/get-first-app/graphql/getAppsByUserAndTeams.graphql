@@ -1,0 +1,13 @@
+query AppsByUserAndTeam($user_id: String!, $team_id: String!) {
+  app(
+    where: {
+      team: {
+        memberships: {
+          _and: { team_id: { _eq: $team_id }, user_id: { _eq: $user_id } }
+        }
+      }
+    }
+  ) {
+    id
+  }
+}
