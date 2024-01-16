@@ -42,8 +42,8 @@ const saveSchema = yup.object().shape({
     .url("Must be a valid URL")
     .matches(/^https:\/\/|^$/, "Link must start with https://")
     .optional(),
-  category: yup.string().default("").optional(),
-  is_developer_allow_listing: yup.boolean().default(false),
+  category: yup.string().optional(),
+  is_developer_allow_listing: yup.boolean(),
   verification_status: yup.string().default("unverified"),
 });
 
@@ -83,8 +83,8 @@ const submitSchema = yup.object().shape({
     .url("Must be a valid URL")
     .matches(/^https:\/\/|^$/, "Link must start with https://")
     .optional(),
-  category: yup.string().default("").required("This section is required"),
-  is_developer_allow_listing: yup.boolean().default(false),
+  category: yup.string().required("This section is required"),
+  is_developer_allow_listing: yup.boolean(),
 });
 
 export type ConfigurationFormValues = yup.Asserts<typeof saveSchema>;
