@@ -6,8 +6,8 @@ import { ConfigurationFormValues } from "../Configuration";
 import { FieldCheckbox } from "./FieldCheckbox";
 
 interface AppPublicationSectionProps {
-  register: UseFormRegister<ConfigurationFormValues>; // Replace 'any' with the correct type for your register function
-  errors: FieldErrors<ConfigurationFormValues>; // This assumes you are using react-hook-form
+  register: UseFormRegister<ConfigurationFormValues>;
+  errors: FieldErrors<ConfigurationFormValues>;
   isSubmitting: boolean;
 }
 
