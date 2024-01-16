@@ -113,14 +113,14 @@ export const AppSelector = memo(function AppsSelector(props: {
     (id: string) => {
       const pathname = router.pathname;
 
-      if (pathname.startsWith("/teams/[team_id]/app/[app_id]")) {
-        return `/teams/${team_id}/app/${id}${pathname.replace(
-          "/teams/[team_id]/app/[app_id]",
+      if (pathname.startsWith("/team/[team_id]/app/[app_id]")) {
+        return `/team/${team_id}/app/${id}${pathname.replace(
+          "/team/[team_id]/app/[app_id]",
           ""
         )}`;
       }
 
-      return `/teams/${team_id}/app/${id}`;
+      return `/team/${team_id}/app/${id}`;
     },
     [router.pathname, team_id]
   );

@@ -1,5 +1,6 @@
 import { AppMetadataModel, AppModel } from "@/lib/models";
 import { AppStatusType } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { gql } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
@@ -348,6 +349,7 @@ const insertAppFetcher = async (
     insert_app_one: AppModel;
   }>(
     {
+      context: { headers: { team_id: team_id ?? "" } },
       query: InsertAppQuery,
       variables: {
         appObject: {
@@ -525,11 +527,11 @@ const useApps = () => {
     (data: AppModel) => {
       if (data) {
         setApps([data]);
-        // router.push(urls.app(data.id));
+        router.push(urls.app({ app_id: data.id, team_id: team_id ?? "" }));
         toast.success("App created");
       }
     },
-    [setApps]
+    [router, setApps, team_id]
   );
 
   const insertNewAppMutation = useSWRMutation(
