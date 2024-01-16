@@ -30,7 +30,7 @@ export const AppLinksSection = memo(function AppLinksSection(
           />
 
           {errors.integration_url?.message && (
-            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+            <span className="pt-2 left-0 flex items-center text-12 text-danger">
               {errors.integration_url.message}
             </span>
           )}
@@ -51,7 +51,7 @@ export const AppLinksSection = memo(function AppLinksSection(
           />
 
           {errors.source_code_url?.message && (
-            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+            <span className="pt-2 left-0 flex items-center text-12 text-danger">
               {errors.source_code_url.message}
             </span>
           )}
@@ -72,7 +72,7 @@ export const AppLinksSection = memo(function AppLinksSection(
           />
 
           {errors.app_website_url?.message && (
-            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+            <span className="pt-2 left-0 flex items-center text-12 text-danger">
               {errors.app_website_url.message}
             </span>
           )}
