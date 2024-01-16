@@ -129,13 +129,13 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
         <div className="flex justify-center">
           <Icon name="logo" className="w-[142px] h-6" />
         </div>
-
+        {/* FIXME: This will be removed later so just fixing for type check */}
         <div className="absolute top-0 bottom-0 right-0 flex items-center gap-x-4 pr-6">
           <div className="font-rubik font-medium text-14">
-            {kioskAction?.app.name}
+            {kioskAction?.app.app_metadata?.name}
           </div>
           <Icon
-            path={kioskAction?.app.verified_app_logo}
+            path={kioskAction?.app.app_metadata?.logo_img_url}
             className="w-11 h-11 rounded-full"
           />
         </div>

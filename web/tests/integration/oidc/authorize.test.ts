@@ -49,10 +49,9 @@ const validParams = (app_id: string, pkce = false) =>
 describe("/api/v1/oidc/authorize", () => {
   test("can get an auth code", async () => {
     const dbQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Sign In App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;"
     );
-    const app_id = dbQuery.rows[0].id;
-
+    const app_id = dbQuery.rows[0].app_id;
     const { req, res } = createMocks({
       method: "POST",
       headers: {
@@ -124,9 +123,9 @@ describe("/api/v1/oidc/authorize", () => {
 
   test("can get an auth code with PKCE", async () => {
     const dbQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Sign In App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;"
     );
-    const app_id = dbQuery.rows[0].id;
+    const app_id = dbQuery.rows[0].app_id;
 
     const { req, res } = createMocks({
       method: "POST",
