@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { GetServerSideProps } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
-import { ActionKioskType } from "@/lib/types";
+import { ActionKioskType, ActionKioskQueryType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
 
 export interface KioskProps {
@@ -34,10 +34,18 @@ const actionKioskQuery = gql`
       external_nullifier
       app {
         id
-        name
-        verified_app_logo
         is_staging
-        is_verified
+        app_metadata(where: { status: { _neq: "verified" } }) {
+          name
+          status
+        }
+        verified_app_metadata: app_metadata(
+          where: { status: { _eq: "verified" } }
+        ) {
+          name
+          logo_img_url
+          status
+        }
       }
     }
   }
@@ -47,7 +55,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const action_id = context.query.action_id;
   const client = await getAPIServiceClient();
 
-  const { data } = await client.query<{ action: ActionKioskType[] }>({
+  const { data } = await client.query<{ action: ActionKioskQueryType[] }>({
     query: actionKioskQuery,
     variables: {
       action_id,
@@ -61,9 +69,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (data?.action[0].action === "") {
     return { props: { error_code: "no_sign_in" } };
   }
+  const { app_metadata, verified_app_metadata, ...app_data } =
+    data.action[0].app;
+  const app_metadata_item = verified_app_metadata?.[0] ?? {
+    ...app_metadata?.[0],
+    logo_img_url: "",
+  };
+  const processedAction: ActionKioskType = {
+    ...data.action[0],
+    app: {
+      ...app_data,
+      app_metadata: app_metadata_item,
+    },
+  };
 
   return {
-    props: { action: data?.action[0] } as KioskProps,
+    props: { action: processedAction } as KioskProps,
   };
 };
 

@@ -38,9 +38,9 @@ const validParams = (app_id: string, action: string) =>
 describe("/api/v1/verify/[app_id]", () => {
   test("can verify a valid request", async () => {
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Multi-claim App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Multi-claim App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );
@@ -74,9 +74,9 @@ describe("/api/v1/verify/[app_id]", () => {
 
   test("can verify for VerificationLevel.Device", async () => {
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Multi-claim App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Multi-claim App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );
@@ -112,9 +112,9 @@ describe("/api/v1/verify/[app_id]", () => {
 
   test("legacy credential_type is still supported", async () => {
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Multi-claim App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Multi-claim App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );
@@ -153,9 +153,9 @@ describe("/api/v1/verify/[app_id]", () => {
 
   test("handles nullifier insertion", async () => {
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Custom Action App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Custom Action App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Custom Action 1' limit 1;`
     );
@@ -206,9 +206,9 @@ describe("/api/v1/verify/[app_id]", () => {
 
   test("handles race conditions", async () => {
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Multi-claim App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Multi-claim App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );
@@ -270,9 +270,9 @@ describe("/api/v1/verify/[app_id]", () => {
   test("handles race conditions with multiple insertions", async () => {
     // This test case covers the case of the nullifier record being inserted first and then being updated
     const appQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app where name = 'Multi-claim App' limit 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Multi-claim App' LIMIT 1;"
     );
-    const app_id = appQuery.rows[0].id;
+    const app_id = appQuery.rows[0].app_id;
     const actionQuery = await integrationDBExecuteQuery(
       `SELECT * FROM action where name = 'Multi-claim action' limit 1;`
     );

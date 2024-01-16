@@ -29,18 +29,18 @@ const saveSchema = yup.object().shape({
     .string()
     .max(3500)
     .required("This section is required"),
-  description_how_it_works: yup.string().max(3500).notRequired(),
-  description_connect: yup.string().max(3500).notRequired(),
-  link_to_integration: yup
+  description_how_it_works: yup.string().max(3500).optional(),
+  description_connect: yup.string().max(3500).optional(),
+  integration_url: yup
     .string()
-    .notRequired()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://"),
+    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .optional(),
   world_app_description: yup
     .string()
     .max(50, "In app description cannot exceed 50 characters")
-    .notRequired(),
-  category: yup.string().default("").notRequired(),
+    .optional(),
+  category: yup.string().default("").optional(),
   is_developer_allow_listing: yup.boolean().default(false),
 });
 
@@ -48,9 +48,9 @@ type ConfigurationFormValues = yup.Asserts<typeof saveSchema>;
 
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
-  const { updateAppData, parseDescription, encodeDescription } = useApps();
+  const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
 
-  const descriptionInternal = parseDescription(currentApp);
+  const description = parseDescription(currentApp?.app_metadata);
   const {
     register,
     handleSubmit,
@@ -58,8 +58,8 @@ export const Configuration = memo(function Configuration() {
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
-    defaultValues: { ...currentApp, ...descriptionInternal },
-    values: { ...currentApp, ...descriptionInternal },
+    defaultValues: { ...currentApp?.app_metadata, ...description },
+    values: { ...currentApp?.app_metadata, ...description },
   });
 
   const handleSave = useCallback(
@@ -78,12 +78,12 @@ export const Configuration = memo(function Configuration() {
 
       const updatedData = {
         ...rest,
-        description_internal: descriptionsJSON,
+        description: descriptionsJSON,
       };
-      await updateAppData(updatedData);
+      await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
-    [encodeDescription, updateAppData]
+    [encodeDescription, updateAppMetadata]
   );
 
   return (
@@ -176,16 +176,16 @@ export const Configuration = memo(function Configuration() {
 
         <div className="relative">
           <FieldInput
-            register={register("link_to_integration")}
+            register={register("integration_url")}
             className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
             placeholder="https://"
             disabled={isSubmitting}
-            errors={errors.link_to_integration}
+            errors={errors.integration_url}
           />
 
-          {errors.link_to_integration?.message && (
+          {errors.integration_url?.message && (
             <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
-              {errors.link_to_integration.message}
+              {errors.integration_url.message}
             </span>
           )}
         </div>

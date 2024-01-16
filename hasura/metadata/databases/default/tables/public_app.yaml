@@ -13,17 +13,15 @@ array_relationships:
         table:
           name: action
           schema: public
-computed_fields:
-  - name: is_verified
-    definition:
-      function:
-        name: get_app_is_verified
-        schema: public
-  - name: verified_app_logo
-    definition:
-      function:
-        name: get_verified_app_logo
-        schema: public
+  - name: app_metadata
+    using:
+      manual_configuration:
+        column_mapping:
+          id: app_id
+        insertion_order: null
+        remote_table:
+          name: app_metadata
+          schema: public
 insert_permissions:
   - role: api_key
     permission:
@@ -35,7 +33,6 @@ insert_permissions:
         - engine
         - is_archived
         - is_staging
-        - logo_url
         - name
         - status
   - role: service
@@ -45,8 +42,6 @@ insert_permissions:
         - engine
         - id
         - is_staging
-        - logo_url
-        - name
         - team_id
   - role: user
     permission:
@@ -58,7 +53,6 @@ insert_permissions:
         - engine
         - is_archived
         - is_staging
-        - logo_url
         - name
         - status
 select_permissions:
@@ -72,23 +66,10 @@ select_permissions:
       columns:
         - id
         - is_staging
-        - name
         - team_id
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
-  - role: reviewer
-    permission:
-      columns:
-        - id
-        - team_id
-        - name
-        - verified_at
-        - status
-      filter: {}
   - role: service
     permission:
       columns:
@@ -98,13 +79,8 @@ select_permissions:
         - id
         - is_archived
         - is_staging
-        - name
         - status
         - team_id
-        - verified_at
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter: {}
       limit: 1
   - role: user
@@ -115,12 +91,8 @@ select_permissions:
         - engine
         - id
         - is_staging
-        - name
         - status
         - team_id
-      computed_fields:
-        - is_verified
-        - verified_app_logo
       filter:
         team:
           users:
@@ -132,8 +104,6 @@ update_permissions:
       columns:
         - description_internal
         - is_archived
-        - logo_url
-        - name
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
@@ -143,8 +113,6 @@ update_permissions:
       columns:
         - description_internal
         - is_archived
-        - logo_url
-        - name
         - status
       filter:
         team:

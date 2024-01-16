@@ -21,7 +21,6 @@ insert_permissions:
         - description
         - category
         - integration_url
-        - status
         - is_developer_allow_listing
         - world_app_description
         - app_website_url
@@ -43,7 +42,6 @@ insert_permissions:
         - description
         - category
         - integration_url
-        - status
         - is_developer_allow_listing
         - world_app_description
         - app_website_url
@@ -67,8 +65,10 @@ select_permissions:
         - app_website_url
         - source_code_url
         - verified_at
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - updated_at
       filter:
         app:
@@ -96,20 +96,23 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - created_at
         - updated_at
       filter:
-        status:
+        verification_status:
           _eq: awaiting_review
   - role: service
     permission:
       columns:
         - name
         - logo_img_url
+        - verification_status
       filter:
-        status:
-          _in: [unverified, verified]
+        verification_status:
+          _in:
+            - unverified
+            - verified
   - role: user
     permission:
       columns:
@@ -127,8 +130,10 @@ select_permissions:
         - app_website_url
         - source_code_url
         - verified_at
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - updated_at
       filter:
         app:
@@ -151,15 +156,15 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-      filter: {}
   - role: reviewer
     permission:
       columns:
@@ -168,11 +173,11 @@ update_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
-      check:
-        status:
-          _eq: awaiting_review
+        - verification_status
       filter: {}
+      check:
+        verification_status:
+          _eq: awaiting_review
   - role: user
     permission:
       columns:
@@ -187,37 +192,37 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
                 users:
                   id:
                     _eq: X-Hasura-User-Id
-      filter: {}
 delete_permissions:
-  - role: reviewer
-    permission:
-      filter:
-        status:
-          _eq: verified
   - role: api_key
     permission:
       filter:
         _and:
-          - status:
+          - verification_status:
               _neq: verified
           - app:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
+  - role: reviewer
+    permission:
+      filter:
+        verification_status:
+          _eq: verified
   - role: user
     permission:
       filter:
         _and:
-          - status:
+          - verification_status:
               _neq: verified
           - app:
               team:

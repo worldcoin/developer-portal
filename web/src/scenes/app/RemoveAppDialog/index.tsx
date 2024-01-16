@@ -38,7 +38,7 @@ export const RemoveAppDialog = memo(function RemoveAppDialog(
 
           <span className="text-14">
             Are you sure you want to delete your app
-            <b>&nbsp;{currentApp?.name}</b>?
+            <b>&nbsp;{currentApp?.app_metadata?.name}</b>?
           </span>
         </div>
       </div>

@@ -26,26 +26,39 @@ export interface TeamMemberModel {
 
 export interface AppModel {
   id: `app_${string}`;
-  name: string;
-  description_internal: string;
-  category: string | null;
-  link_to_integration: string | null;
-  is_developer_allow_listing: boolean;
-  is_reviewer_app_store_approve: boolean;
-  is_reviewer_world_app_approve: boolean;
-  world_app_description: string | null;
-  approved_by: string | null;
   is_staging: boolean;
-  logo_url: string;
-  verified_app_logo?: string;
-  is_verified: boolean;
   team_id: string;
   engine: EngineType;
   status: AppStatusType;
   is_archived: boolean;
   created_at: DateTime;
   updated_at?: DateTime;
+  app_metadata: AppMetadataModel;
+  verified_app_metadata?: AppMetadataModel;
   __typename: "app";
+}
+
+export interface AppMetadataModel {
+  id: `meta_${string}`;
+  app_id: `app_${string}`;
+  name: string;
+  description: string;
+  category: string;
+  integration_url: string;
+  app_website_url: string;
+  source_code_url: string;
+  is_developer_allow_listing: boolean;
+  is_reviewer_app_store_approved: boolean;
+  is_reviewer_world_app_approved: boolean;
+  world_app_description: string;
+  logo_img_url: string;
+  showcase_img_urls: string[] | null;
+  hero_image_url: string;
+  verified_at: DateTime;
+  updated_at: DateTime;
+  review_message: string;
+  verification_status: string;
+  __typename: "app_metadata";
 }
 
 export interface ActionModel {
