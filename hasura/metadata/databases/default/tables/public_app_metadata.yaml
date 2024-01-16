@@ -68,7 +68,7 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - updated_at
       filter:
         app:
@@ -96,20 +96,20 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - created_at
         - updated_at
       filter:
-        status:
+        verification_status:
           _eq: awaiting_review
   - role: service
     permission:
       columns:
         - name
         - logo_img_url
-        - status
+        - verification_status
       filter:
-        status:
+        verification_status:
           _in:
             - unverified
             - verified
@@ -133,7 +133,7 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
         - updated_at
       filter:
         app:
@@ -159,7 +159,7 @@ update_permissions:
       filter: {}
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
@@ -173,10 +173,10 @@ update_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - review_message
-        - status
+        - verification_status
       filter: {}
       check:
-        status:
+        verification_status:
           _eq: awaiting_review
   - role: user
     permission:
@@ -195,7 +195,7 @@ update_permissions:
       filter: {}
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
@@ -207,7 +207,7 @@ delete_permissions:
     permission:
       filter:
         _and:
-          - status:
+          - verification_status:
               _neq: verified
           - app:
               team:
@@ -216,13 +216,13 @@ delete_permissions:
   - role: reviewer
     permission:
       filter:
-        status:
+        verification_status:
           _eq: verified
   - role: user
     permission:
       filter:
         _and:
-          - status:
+          - verification_status:
               _neq: verified
           - app:
               team:

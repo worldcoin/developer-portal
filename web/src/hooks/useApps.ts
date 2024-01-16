@@ -40,17 +40,17 @@ app_website_url
 source_code_url
 verified_at
 review_message
-status
+verification_status
 `;
 
 const FetchAppsQuery = gql`
   query Apps {
     app(order_by: { created_at: asc }) {
       ${appFields}
-      app_metadata(where: { status: { _neq: "verified" } }) {
+      app_metadata(where: { verification_status: { _neq: "verified" } }) {
         ${appMetadataFields}
       }
-      verified_app_metadata: app_metadata(where: { status: { _eq: "verified" } }) {
+      verified_app_metadata: app_metadata(where: { verification_status: { _eq: "verified" } }) {
         ${appMetadataFields}
       }
     }
@@ -119,7 +119,7 @@ const UpsertAppMetadataQuery = gql`
           source_code_url
         ]
         where: {
-          status: { _neq: "verified" }
+          verification_status: { _neq: "verified" }
         }
       }
     ) {

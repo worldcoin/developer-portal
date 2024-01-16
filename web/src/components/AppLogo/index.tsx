@@ -5,7 +5,10 @@ import styles from "./styles.module.css";
 import { AppMetadataModel } from "src/lib/models";
 
 export const AppLogo = memo(function AppLogo(props: {
-  appMetadata: Pick<AppMetadataModel, "name" | "logo_img_url" | "status">;
+  appMetadata: Pick<
+    AppMetadataModel,
+    "name" | "logo_img_url" | "verification_status"
+  >;
   className?: string;
   textClassName?: string;
 }) {

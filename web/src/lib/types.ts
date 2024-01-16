@@ -73,10 +73,10 @@ export type ActionKioskQueryType = Pick<
 > & {
   app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
     app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "status">
+      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
     >;
     verified_app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "status">
+      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
     >;
   };
 };
@@ -88,7 +88,7 @@ export type ActionKioskType = Omit<ActionKioskQueryType, "app"> & {
   > & {
     app_metadata: Pick<
       AppMetadataModel,
-      "name" | "logo_img_url" | "status"
+      "name" | "logo_img_url" | "verification_status"
     > | null;
   };
 };

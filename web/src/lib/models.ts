@@ -57,7 +57,7 @@ export interface AppMetadataModel {
   verified_at: DateTime;
   updated_at: DateTime;
   review_message: string;
-  status: string;
+  verification_status: string;
   __typename: "app_metadata";
 }
 
