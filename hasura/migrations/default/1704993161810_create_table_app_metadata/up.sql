@@ -42,7 +42,6 @@ EXECUTE PROCEDURE "public"."set_current_timestamp_updated_at"();
 COMMENT ON TRIGGER "set_public_app_metadata_updated_at" ON "public"."app_metadata"
 IS 'trigger to set value of column "updated_at" to current timestamp on row update';
 
-
 CREATE OR REPLACE FUNCTION validate_single_url(url text)
 RETURNS void as $$
 BEGIN
