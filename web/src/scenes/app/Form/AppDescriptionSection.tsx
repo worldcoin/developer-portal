@@ -6,15 +6,14 @@ import { FieldTextArea } from "../../actions/common/Form/FieldTextArea";
 import { ConfigurationFormValues } from "../Configuration";
 
 interface AppDescriptionSectionProps {
-  register: UseFormRegister<ConfigurationFormValues>; // Replace 'any' with the correct type for your register function
-  errors: FieldErrors<ConfigurationFormValues>; // This assumes you are using react-hook-form
+  register: UseFormRegister<ConfigurationFormValues>;
+  errors: FieldErrors<ConfigurationFormValues>;
   disabled: boolean;
   watch: UseFormWatch<ConfigurationFormValues>;
 }
 
 export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
   const { register, errors, disabled, watch } = props;
-  console.log(errors);
   return (
     <>
       <h1 className="font-bold">App Description</h1>

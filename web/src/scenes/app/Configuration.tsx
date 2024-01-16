@@ -93,7 +93,8 @@ export type ConfigurationFormSubmitValues = yup.Asserts<typeof submitSchema>;
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
-  const isEditable = currentApp?.app_metadata?.status === "unverified";
+  const isEditable =
+    currentApp?.app_metadata?.verification_status === "unverified";
 
   const description = parseDescription(currentApp?.app_metadata);
   const {
@@ -110,7 +111,10 @@ export const Configuration = memo(function Configuration() {
 
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
-      if (!currentApp || currentApp?.app_metadata?.status !== "unverified") {
+      if (
+        !currentApp ||
+        currentApp?.app_metadata?.verification_status !== "unverified"
+      ) {
         throw new Error("You must un-submit your app to edit");
       }
       const {
@@ -138,7 +142,10 @@ export const Configuration = memo(function Configuration() {
   const handleSubmitForReview = useCallback(
     async (data: ConfigurationFormValues) => {
       try {
-        if (!currentApp || currentApp.app_metadata?.status !== "unverified") {
+        if (
+          !currentApp ||
+          currentApp.app_metadata?.verification_status !== "unverified"
+        ) {
           throw new Error("You must un-submit your app to submit again");
         }
         await submitSchema.validate(data, { abortEarly: false });
@@ -165,11 +172,13 @@ export const Configuration = memo(function Configuration() {
       try {
         if (
           !currentApp ||
-          ["verified", "unverified"].includes(currentApp?.app_metadata?.status)
+          ["verified", "unverified"].includes(
+            currentApp?.app_metadata?.verification_status
+          )
         ) {
           throw new Error("You cannot remove an app that is not in review");
         }
-        await updateAppMetadata({ status: "unverified" });
+        await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
       } catch (validationErrors: any) {
         toast.error("Error removing from review. Please check your inputs");

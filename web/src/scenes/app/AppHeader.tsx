@@ -60,6 +60,7 @@ export const AppHeader = memo(function AppHeader() {
             />
           )}
         </div>
+
         <h1 className="text-20 font-sora font-semibold self-end">
           {currentApp?.app_metadata?.name}
         </h1>

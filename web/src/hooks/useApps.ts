@@ -87,7 +87,7 @@ const UpsertAppMetadataQuery = gql`
     $integration_url: String = ""
     $app_website_url: String = ""
     $source_code_url: String = ""
-    $status: String = ""
+    $verification_status: String = ""
   ) {
     insert_app_metadata_one(
       object: {
@@ -103,7 +103,7 @@ const UpsertAppMetadataQuery = gql`
         integration_url: $integration_url
         app_website_url: $app_website_url
         source_code_url: $source_code_url
-        status: $status
+        verification_status: $verification_status
       }
       on_conflict: {
         constraint: app_metadata_app_id_is_row_verified_key
@@ -119,7 +119,7 @@ const UpsertAppMetadataQuery = gql`
           integration_url
           app_website_url
           source_code_url
-          status
+          verification_status
         ]
         where: {
           verification_status: { _neq: "verified" }
@@ -221,7 +221,7 @@ const updateAppMetadataFetcher = async (
       world_app_description?: AppMetadataModel["world_app_description"];
       app_website_url?: AppMetadataModel["app_website_url"];
       source_code_url?: AppMetadataModel["source_code_url"];
-      status?: AppMetadataModel["status"];
+      verification_status?: AppMetadataModel["verification_status"];
     };
   }
 ) => {
@@ -239,7 +239,7 @@ const updateAppMetadataFetcher = async (
     world_app_description,
     app_website_url,
     source_code_url,
-    status,
+    verification_status,
   } = args.arg;
 
   if (!currentApp) {
@@ -277,7 +277,8 @@ const updateAppMetadataFetcher = async (
         app_website_url ?? unverifiedAppMetadata?.app_website_url,
       source_code_url:
         source_code_url ?? unverifiedAppMetadata?.source_code_url,
-      status: status ?? unverifiedAppMetadata?.status,
+      verification_status:
+        verification_status ?? unverifiedAppMetadata?.verification_status,
     },
   });
   // Update the particular app metadata item in the array
