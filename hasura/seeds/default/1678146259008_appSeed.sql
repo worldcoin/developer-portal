@@ -24,7 +24,13 @@ WITH
             ) RETURNING id
     )
 INSERT INTO
-    "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+    "public"."app_metadata" (
+        app_id,
+        name,
+        description,
+        logo_img_url,
+        verification_status
+    )
 SELECT
     id,
     'Sign In App',
@@ -60,7 +66,13 @@ WITH
             ) RETURNING id
     )
 INSERT INTO
-    "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+    "public"."app_metadata" (
+        app_id,
+        name,
+        description,
+        logo_img_url,
+        verification_status
+    )
 SELECT
     id,
     'Multi-claim App',
@@ -96,7 +108,13 @@ WITH
             ) RETURNING id
     )
 INSERT INTO
-    "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+    "public"."app_metadata" (
+        app_id,
+        name,
+        description,
+        logo_img_url,
+        verification_status
+    )
 SELECT
     id,
     'On-chain App',
@@ -132,7 +150,13 @@ WITH
             ) RETURNING id
     )
 INSERT INTO
-    "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+    "public"."app_metadata" (
+        app_id,
+        name,
+        description,
+        logo_img_url,
+        verification_status
+    )
 SELECT
     id,
     'Custom Action App',
@@ -169,7 +193,13 @@ WITH
     )
     -- Insert into the app_metadata table using the returned id from the app table
 INSERT INTO
-    "public"."app_metadata" (app_id, name, description, logo_img_url, status)
+    "public"."app_metadata" (
+        app_id,
+        name,
+        description,
+        logo_img_url,
+        verification_status
+    )
 SELECT
     id,
     'Archived App',

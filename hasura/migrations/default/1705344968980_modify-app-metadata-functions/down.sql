@@ -1,3 +1,5 @@
+alter table "public"."app_metadata" drop constraint "app_metadata_app_id_is_row_verified_key";
+
 CREATE OR REPLACE FUNCTION get_verified_app_logo(app_row app) RETURNS VARCHAR AS $$
 SELECT CASE
     WHEN (app_row.verified_at is not null) THEN app_row.logo_url

@@ -978,15 +978,19 @@ export type App = {
   /** An aggregate relationship */
   app_metadata_aggregate: App_Metadata_Aggregate;
   created_at: Scalars["timestamptz"];
+  description_internal: Scalars["String"];
   engine: Scalars["String"];
   id: Scalars["String"];
   is_archived: Scalars["Boolean"];
   is_staging: Scalars["Boolean"];
+  logo_url: Scalars["String"];
+  name: Scalars["String"];
   status: Scalars["String"];
   /** An object relationship */
   team: Team;
   team_id: Scalars["String"];
   updated_at: Scalars["timestamptz"];
+  verified_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** columns and relationships of "app" */
@@ -1097,14 +1101,18 @@ export type App_Bool_Exp = {
   app_metadata?: InputMaybe<App_Metadata_Bool_Exp>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description_internal?: InputMaybe<String_Comparison_Exp>;
   engine?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   is_archived?: InputMaybe<Boolean_Comparison_Exp>;
   is_staging?: InputMaybe<Boolean_Comparison_Exp>;
+  logo_url?: InputMaybe<String_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app" */
@@ -1118,35 +1126,47 @@ export type App_Insert_Input = {
   actions?: InputMaybe<Action_Arr_Rel_Insert_Input>;
   app_metadata?: InputMaybe<App_Metadata_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
+  description_internal?: InputMaybe<Scalars["String"]>;
   engine?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]>;
+  logo_url?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verified_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
 /** aggregate max on columns */
 export type App_Max_Fields = {
   __typename?: "app_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]>;
+  description_internal?: Maybe<Scalars["String"]>;
   engine?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
+  logo_url?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verified_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by max() on columns of table "app" */
 export type App_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  logo_url?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verified_at?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "app_metadata" */
@@ -1165,15 +1185,15 @@ export type App_Metadata = {
   is_developer_allow_listing: Scalars["Boolean"];
   is_reviewer_app_store_approved: Scalars["Boolean"];
   is_reviewer_world_app_approved: Scalars["Boolean"];
+  is_row_verified: Scalars["Boolean"];
   logo_img_url: Scalars["String"];
   name: Scalars["String"];
   review_message: Scalars["String"];
   reviewed_by: Scalars["String"];
   showcase_img_urls?: Maybe<Scalars["_text"]>;
   source_code_url: Scalars["String"];
-  status: Scalars["String"];
-  unique_verification_status_row: Scalars["String"];
   updated_at: Scalars["timestamptz"];
+  verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
   world_app_description: Scalars["String"];
 };
@@ -1257,15 +1277,15 @@ export type App_Metadata_Bool_Exp = {
   is_developer_allow_listing?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_app_store_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_world_app_approved?: InputMaybe<Boolean_Comparison_Exp>;
+  is_row_verified?: InputMaybe<Boolean_Comparison_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
   showcase_img_urls?: InputMaybe<_Text_Comparison_Exp>;
   source_code_url?: InputMaybe<String_Comparison_Exp>;
-  status?: InputMaybe<String_Comparison_Exp>;
-  unique_verification_status_row?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   world_app_description?: InputMaybe<String_Comparison_Exp>;
 };
@@ -1274,8 +1294,6 @@ export type App_Metadata_Bool_Exp = {
 export enum App_Metadata_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppMetadataPkey = "app_metadata_pkey",
-  /** unique or primary key constraint on columns "unique_verification_status_row" */
-  AppMetadataUniqueVerificationStatusRowKey = "app_metadata_unique_verification_status_row_key",
   /** unique or primary key constraint on columns "app_id" */
   UniqueVerifiedAppId = "unique_verified_app_id",
 }
@@ -1294,15 +1312,15 @@ export type App_Metadata_Insert_Input = {
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
+  is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
-  status?: InputMaybe<Scalars["String"]>;
-  unique_verification_status_row?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1323,9 +1341,8 @@ export type App_Metadata_Max_Fields = {
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   source_code_url?: Maybe<Scalars["String"]>;
-  status?: Maybe<Scalars["String"]>;
-  unique_verification_status_row?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
@@ -1345,9 +1362,8 @@ export type App_Metadata_Max_Order_By = {
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
-  status?: InputMaybe<Order_By>;
-  unique_verification_status_row?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1368,9 +1384,8 @@ export type App_Metadata_Min_Fields = {
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   source_code_url?: Maybe<Scalars["String"]>;
-  status?: Maybe<Scalars["String"]>;
-  unique_verification_status_row?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
@@ -1390,9 +1405,8 @@ export type App_Metadata_Min_Order_By = {
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
-  status?: InputMaybe<Order_By>;
-  unique_verification_status_row?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1427,15 +1441,15 @@ export type App_Metadata_Order_By = {
   is_developer_allow_listing?: InputMaybe<Order_By>;
   is_reviewer_app_store_approved?: InputMaybe<Order_By>;
   is_reviewer_world_app_approved?: InputMaybe<Order_By>;
+  is_row_verified?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
-  status?: InputMaybe<Order_By>;
-  unique_verification_status_row?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1470,6 +1484,8 @@ export enum App_Metadata_Select_Column {
   /** column name */
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
+  IsRowVerified = "is_row_verified",
+  /** column name */
   LogoImgUrl = "logo_img_url",
   /** column name */
   Name = "name",
@@ -1482,11 +1498,9 @@ export enum App_Metadata_Select_Column {
   /** column name */
   SourceCodeUrl = "source_code_url",
   /** column name */
-  Status = "status",
-  /** column name */
-  UniqueVerificationStatusRow = "unique_verification_status_row",
-  /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationStatus = "verification_status",
   /** column name */
   VerifiedAt = "verified_at",
   /** column name */
@@ -1501,6 +1515,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
+  /** column name */
+  IsRowVerified = "is_row_verified",
 }
 
 /** select "app_metadata_aggregate_bool_exp_bool_or_arguments_columns" columns of table "app_metadata" */
@@ -1511,6 +1527,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_A
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
+  /** column name */
+  IsRowVerified = "is_row_verified",
 }
 
 /** input type for updating data in table "app_metadata" */
@@ -1526,15 +1544,15 @@ export type App_Metadata_Set_Input = {
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
+  is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
-  status?: InputMaybe<Scalars["String"]>;
-  unique_verification_status_row?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1560,15 +1578,15 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
+  is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
-  status?: InputMaybe<Scalars["String"]>;
-  unique_verification_status_row?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1598,6 +1616,8 @@ export enum App_Metadata_Update_Column {
   /** column name */
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
+  IsRowVerified = "is_row_verified",
+  /** column name */
   LogoImgUrl = "logo_img_url",
   /** column name */
   Name = "name",
@@ -1610,11 +1630,9 @@ export enum App_Metadata_Update_Column {
   /** column name */
   SourceCodeUrl = "source_code_url",
   /** column name */
-  Status = "status",
-  /** column name */
-  UniqueVerificationStatusRow = "unique_verification_status_row",
-  /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerificationStatus = "verification_status",
   /** column name */
   VerifiedAt = "verified_at",
   /** column name */
@@ -1632,21 +1650,29 @@ export type App_Metadata_Updates = {
 export type App_Min_Fields = {
   __typename?: "app_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]>;
+  description_internal?: Maybe<Scalars["String"]>;
   engine?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
+  logo_url?: Maybe<Scalars["String"]>;
+  name?: Maybe<Scalars["String"]>;
   status?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+  verified_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by min() on columns of table "app" */
 export type App_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  logo_url?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verified_at?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "app" */
@@ -1677,14 +1703,18 @@ export type App_Order_By = {
   actions_aggregate?: InputMaybe<Action_Aggregate_Order_By>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
+  description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   is_archived?: InputMaybe<Order_By>;
   is_staging?: InputMaybe<Order_By>;
+  logo_url?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  verified_at?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: app */
@@ -1697,6 +1727,8 @@ export enum App_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  DescriptionInternal = "description_internal",
+  /** column name */
   Engine = "engine",
   /** column name */
   Id = "id",
@@ -1705,11 +1737,17 @@ export enum App_Select_Column {
   /** column name */
   IsStaging = "is_staging",
   /** column name */
+  LogoUrl = "logo_url",
+  /** column name */
+  Name = "name",
+  /** column name */
   Status = "status",
   /** column name */
   TeamId = "team_id",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerifiedAt = "verified_at",
 }
 
 /** select "app_aggregate_bool_exp_bool_and_arguments_columns" columns of table "app" */
@@ -1731,13 +1769,17 @@ export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
 /** input type for updating data in table "app" */
 export type App_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
+  description_internal?: InputMaybe<Scalars["String"]>;
   engine?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]>;
+  logo_url?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verified_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
 export type App_Stats_Args = {
@@ -1990,19 +2032,25 @@ export type App_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type App_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]>;
+  description_internal?: InputMaybe<Scalars["String"]>;
   engine?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]>;
+  logo_url?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
   status?: InputMaybe<Scalars["String"]>;
   team_id?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+  verified_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
 /** update columns of table "app" */
 export enum App_Update_Column {
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  DescriptionInternal = "description_internal",
   /** column name */
   Engine = "engine",
   /** column name */
@@ -2012,11 +2060,17 @@ export enum App_Update_Column {
   /** column name */
   IsStaging = "is_staging",
   /** column name */
+  LogoUrl = "logo_url",
+  /** column name */
+  Name = "name",
+  /** column name */
   Status = "status",
   /** column name */
   TeamId = "team_id",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  VerifiedAt = "verified_at",
 }
 
 export type App_Updates = {

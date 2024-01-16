@@ -104,7 +104,7 @@ const UpsertAppMetadataQuery = gql`
         source_code_url: $source_code_url
       }
       on_conflict: {
-        constraint: app_metadata_id_is_row_verified_key
+        constraint: app_metadata_app_id_is_row_verified_key
         update_columns: [
           name
           logo_img_url

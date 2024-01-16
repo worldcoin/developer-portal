@@ -45,3 +45,5 @@ EXECUTE FUNCTION set_is_row_verified();
 DROP FUNCTION IF EXISTS get_app_is_verified (app);
 
 DROP FUNCTION IF EXISTS get_verified_app_logo (app);
+
+alter table "public"."app_metadata" add constraint "app_metadata_app_id_is_row_verified_key" unique ("app_id", "is_row_verified");
