@@ -93,6 +93,7 @@ export function NewAction() {
         if (result instanceof Error) {
           throw result;
         }
+
         posthog.capture("action_created", {
           name: values.name,
           app_id: currentApp.id,
