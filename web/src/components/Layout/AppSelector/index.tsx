@@ -87,6 +87,8 @@ export const AppSelector = memo(function AppsSelector(props: {
   const { currentApp } = useAppStore(getStore, shallow);
   const router = useRouter();
 
+  const team_id = useMemo(() => router.query.team_id as string, [router]);
+
   const handleNewAppClick = useCallback(() => {
     selector.toggleOff();
     props.onNewAppClick();
@@ -110,12 +112,17 @@ export const AppSelector = memo(function AppsSelector(props: {
   const getHref = useCallback(
     (id: string) => {
       const pathname = router.pathname;
-      if (pathname.startsWith("/app/[app_id]")) {
-        return `/app/${id}${pathname.replace("/app/[app_id]", "")}`;
+
+      if (pathname.startsWith("/teams/[team_id]/app/[app_id]")) {
+        return `/teams/${team_id}/app/${id}${pathname.replace(
+          "/teams/[team_id]/app/[app_id]",
+          ""
+        )}`;
       }
-      return `/app/${id}`;
+
+      return `/teams/${team_id}/app/${id}`;
     },
-    [router.pathname]
+    [router.pathname, team_id]
   );
 
   return (

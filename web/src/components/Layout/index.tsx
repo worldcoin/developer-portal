@@ -41,18 +41,6 @@ export const Layout = (props: {
     setCurrentAppById(router.query.app_id as string);
   }, [apps, router.query.app_id, setCurrentAppById]);
 
-  useEffect(() => {
-    const loginError = router.query.login_error as LoginErrorCode | undefined;
-
-    if (!loginError) {
-      return;
-    }
-
-    toast.warn(loginErrors[loginError], {
-      autoClose: 10000,
-    });
-  }, [router.query.login_error]);
-
   const appId = useMemo(() => {
     if (router.query.app_id) {
       return router.query.app_id as string;
@@ -61,6 +49,11 @@ export const Layout = (props: {
       return apps[0].id;
     }
   }, [apps, router.query.app_id]);
+
+  const teamId = useMemo(
+    () => router.query.team_id as string,
+    [router.query.team_id]
+  );
 
   const signInDisabled = useMemo(
     () => currentApp?.engine === "on-chain",
@@ -98,7 +91,10 @@ export const Layout = (props: {
                 <NavItem
                   icon="apps"
                   name="App Profile"
-                  href={urls.app(appId)}
+                  href={urls.app({
+                    team_id: router.query.team_id as string,
+                    app_id: appId,
+                  })}
                 />
 
                 <NavItem
@@ -108,7 +104,10 @@ export const Layout = (props: {
                       : "world-id-sign-in"
                   }
                   name="Sign In"
-                  href={urls.appSignIn(appId)}
+                  href={urls.appSignIn({
+                    team_id: router.query.team_id as string,
+                    app_id: appId,
+                  })}
                   disabled={signInDisabled}
                   stamp={
                     <span className="text-[10px] leading-none py-0.5 px-1 rounded-[4px] bg-gray-500 text-ffffff">
@@ -121,7 +120,10 @@ export const Layout = (props: {
                 <NavItem
                   icon="notepad"
                   name="Incognito Actions"
-                  href={urls.appActions(appId)}
+                  href={urls.appActions({
+                    team_id: router.query.team_id as string,
+                    app_id: appId,
+                  })}
                 />
               </NavItemGroup>
 
@@ -134,7 +136,10 @@ export const Layout = (props: {
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
-                  href={urls.debugger(router.query.app_id as string)}
+                  href={urls.debugger({
+                    app_id: appId ?? "",
+                    team_id: teamId,
+                  })}
                 />
 
                 {/* <NavItem
@@ -147,7 +152,11 @@ export const Layout = (props: {
               <hr className="text-f3f4f5 my-4" />
 
               <NavItemGroup withoutHeading>
-                <NavItem name="My Team" icon="team" href={urls.team()} />
+                <NavItem
+                  name="My Team"
+                  icon="team"
+                  href={urls.team(router.query.team_id as string)}
+                />
                 <NavItem
                   name="Leave Feedback"
                   icon="edit-alt"
