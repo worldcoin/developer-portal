@@ -1,7 +1,7 @@
 import { Dialog } from "@/components/Dialog2";
 import { KeyboardEvent, memo, useCallback, useRef } from "react";
 import { Button } from "@/components/Button2";
-import { FieldInput } from "@/components/FieldInput";
+import { FieldInput } from "@/components/FieldInput2";
 import { Team, useUpdateTeamName } from "@/scenes/team/hooks/useTeam";
 
 export interface RemoveMemberDialogProps {
@@ -54,14 +54,15 @@ export const EditDialog = memo(function EditDialog(
         Here you can update name of your team
       </div>
 
-      <FieldInput
-        className="mt-5"
-        placeholder="Name"
-        ref={ref}
-        defaultValue={team.name ?? ""}
-        onBlur={handleBlur}
-        onKeyPress={handleKeyPress}
-      />
+      <div className="mt-5">
+        <FieldInput
+          ref={ref}
+          label="Name"
+          defaultValue={team.name ?? ""}
+          onBlur={handleBlur}
+          onKeyPress={handleKeyPress}
+        />
+      </div>
 
       <div className="grid grid-cols-2 items-center space-x-3 mt-7">
         <Button variant="contained" onClick={handleSave}>

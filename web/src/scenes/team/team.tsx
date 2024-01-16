@@ -8,6 +8,7 @@ import { KeyList } from "./KeyList";
 import { Icon } from "@/components/Icon";
 import { useToggle } from "@/hooks/useToggle";
 import { EditDialog } from "./EditDialog";
+import Link from "next/link";
 
 export const Team = memo(function Team() {
   const { data: team, loading } = useTeam();
@@ -17,6 +18,19 @@ export const Team = memo(function Team() {
 
   return (
     <Layout mainClassName="grid gap-y-8">
+      <div className="flex items-center gap-x-2">
+        <Link className="flex items-center gap-x-1" href="/">
+          <Icon name="home" className="w-3 h-3" />
+          <span className="inline-block text-12 leading-[12px]">Home</span>
+        </Link>
+
+        <Icon name="chevron-right" className="w-3 h-3 text-gray-400" />
+
+        <div className="flex items-center gap-x-1">
+          <span className="inline-block text-12 leading-[12px]">Team</span>
+        </div>
+      </div>
+
       {loading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />

@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@apollo/client':
     specifier: ^3.7.9
@@ -146,6 +142,9 @@ dependencies:
   swr:
     specifier: ^2.0.4
     version: 2.2.4(react@18.2.0)
+  tailwind-variants:
+    specifier: ^0.1.18
+    version: 0.1.18(tailwindcss@3.3.6)
   winston:
     specifier: ^3.10.0
     version: 3.11.0
@@ -10279,6 +10278,20 @@ packages:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
     dev: true
 
+  /tailwind-merge@1.14.0:
+    resolution: {integrity: sha512-3mFKyCo/MBcgyOTlrY8T7odzZFx+w+qKSMAmdFzRvqBfLlSigU6TZnlFHK0lkMwj9Bj8OYU+9yW9lmGuS0QEnQ==}
+    dev: false
+
+  /tailwind-variants@0.1.18(tailwindcss@3.3.6):
+    resolution: {integrity: sha512-yoydMYm3FbZRw7wak+E2sqwYv2Uo3YWRqVZR03DGqDGm0ytzDrEnWO/Q/GMHdhaz8adOvycKw/bwCgQFCfmfhg==}
+    engines: {node: '>=16.x', pnpm: '>=7.x'}
+    peerDependencies:
+      tailwindcss: '*'
+    dependencies:
+      tailwind-merge: 1.14.0
+      tailwindcss: 3.3.6(ts-node@10.9.2)
+    dev: false
+
   /tailwindcss@3.3.6(ts-node@10.9.2):
     resolution: {integrity: sha512-AKjF7qbbLvLaPieoKeTjG1+FyNZT6KaJMJPFeQyLfIp7l82ggH1fbHJSsYIvnbTFQOlkh+gBYpyby5GT1LIdLw==}
     engines: {node: '>=14.0.0'}
@@ -11163,3 +11176,7 @@ packages:
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

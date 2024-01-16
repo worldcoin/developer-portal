@@ -1,15 +1,13 @@
 import { Layout } from "@/components/Layout";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback } from "react";
 import { Preloader } from "@/components/Preloader";
-import { TeamMember } from "@/scenes/team/hooks/useTeam";
 import { Icon } from "@/components/Icon";
 import { useToggle } from "@/hooks/useToggle";
-import { FieldInput } from "@/components/FieldInput";
+import { FieldInput } from "@/components/FieldInput2";
 import { useUpdateUser } from "./hooks/user-hooks";
 import Link from "next/link";
 import { Button } from "@/components/Button2";
 import { Checkbox } from "@/components/Checkbox";
-import { WorldId } from "@/scenes/profile/WorldId";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -26,9 +24,7 @@ type UserDataForm = yup.InferType<typeof userDataSchema>;
 
 export const Profile = memo(function Profile() {
   const { user } = useFetchUser();
-  const [updateUser, { called, loading }] = useUpdateUser(
-    user?.hasura.id ?? ""
-  );
+  const [updateUser] = useUpdateUser(user?.hasura.id ?? "");
 
   const { control, register, reset, handleSubmit, formState } =
     useForm<UserDataForm>({
@@ -66,6 +62,19 @@ export const Profile = memo(function Profile() {
 
   return (
     <Layout mainClassName="grid gap-y-8">
+      <div className="flex items-center gap-x-2">
+        <Link className="flex items-center gap-x-1" href="/">
+          <Icon name="home" className="w-3 h-3" />
+          <span className="inline-block text-12 leading-[12px]">Home</span>
+        </Link>
+
+        <Icon name="chevron-right" className="w-3 h-3 text-gray-400" />
+
+        <div className="flex items-center gap-x-1">
+          <span className="inline-block text-12 leading-[12px]">Profile</span>
+        </div>
+      </div>
+
       {user.hasura.loading && (
         <div className="w-full h-full flex justify-center items-center">
           <Preloader className="w-20 h-20" />
@@ -92,6 +101,7 @@ export const Profile = memo(function Profile() {
               </h2>
 
               <FieldInput
+                label="Name"
                 {...register("name")}
                 readOnly={formState.isSubmitting}
                 invalid={!!formState.errors.name}
@@ -99,7 +109,7 @@ export const Profile = memo(function Profile() {
 
               <div className="relative">
                 <FieldInput
-                  className="w-full"
+                  label="Email"
                   value={user.auth0.email ?? ""}
                   readOnly
                 />
@@ -157,12 +167,13 @@ export const Profile = memo(function Profile() {
           </div>
 
           <div className="mt-12">
-            {/*<Checkbox*/}
-            {/*  label="I want to receive developer updates to mail email address"*/}
-            {/*  labelClassName="!min-h-5"*/}
-            {/*  iconClassName="!w-5 !h-5"*/}
-            {/*  checked={false}*/}
-            {/*/>*/}
+            <Checkbox
+              className="mb-6"
+              label="I want to receive developer updates to email address"
+              labelClassName="!h-auto !min-h-[24px]"
+              iconClassName="!w-5 !h-5"
+              checked={false}
+            />
 
             <div className="flex space-x-3">
               <Button variant="contained" type="submit">
