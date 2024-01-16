@@ -10,7 +10,7 @@ insert_permissions:
     permission:
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
@@ -29,12 +29,12 @@ insert_permissions:
         - app_website_url
         - source_code_url
         - app_id
-        - status
+        - verification_status
   - role: user
     permission:
       check:
         _and:
-          - status:
+          - verification_status:
               _eq: unverified
           - app:
               team:
@@ -42,19 +42,19 @@ insert_permissions:
                   id:
                     _eq: X-Hasura-User-Id
       columns:
+        - app_id
         - name
         - logo_img_url
         - showcase_img_urls
         - hero_image_url
         - description
-        - category
-        - integration_url
-        - is_developer_allow_listing
         - world_app_description
+        - category
+        - is_developer_allow_listing
+        - integration_url
         - app_website_url
         - source_code_url
-        - app_id
-        - status
+        - verification_status
 select_permissions:
   - role: api_key
     permission:
@@ -176,7 +176,9 @@ update_permissions:
       check:
         _and:
           - verification_status:
-              _in: [unverified, awaiting_review]
+              _in:
+                - unverified
+                - awaiting_review
   - role: reviewer
     permission:
       columns:
@@ -192,7 +194,9 @@ update_permissions:
       check:
         _and:
           - verification_status:
-              _in: [changes_requested, verified]
+              _in:
+                - changes_requested
+                - verified
   - role: user
     permission:
       columns:
@@ -207,6 +211,7 @@ update_permissions:
         - integration_url
         - app_website_url
         - source_code_url
+        - verification_status
       filter:
         _and:
           - verification_status:
@@ -219,7 +224,9 @@ update_permissions:
       check:
         _and:
           - verification_status:
-              _in: [unverified, awaiting_review]
+              _in:
+                - unverified
+                - awaiting_review
 delete_permissions:
   - role: api_key
     permission:

@@ -44,7 +44,7 @@ const saveSchema = yup.object().shape({
     .optional(),
   category: yup.string().default("").optional(),
   is_developer_allow_listing: yup.boolean().default(false),
-  status: yup.string().default("unverified"),
+  verification_status: yup.string().default("unverified"),
 });
 
 const submitSchema = yup.object().shape({
@@ -94,7 +94,8 @@ export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
   const isEditable =
-    currentApp?.app_metadata?.verification_status === "unverified";
+    currentApp?.app_metadata?.verification_status === "unverified" ||
+    !currentApp?.app_metadata;
 
   const description = parseDescription(currentApp?.app_metadata);
   const {
@@ -111,12 +112,6 @@ export const Configuration = memo(function Configuration() {
 
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
-      if (
-        !currentApp ||
-        currentApp?.app_metadata?.verification_status !== "unverified"
-      ) {
-        throw new Error("You must un-submit your app to edit");
-      }
       const {
         description_overview,
         description_how_it_works,
@@ -136,7 +131,7 @@ export const Configuration = memo(function Configuration() {
       await updateAppMetadata(updatedData);
       toast.success("App information saved");
     },
-    [currentApp, encodeDescription, updateAppMetadata]
+    [encodeDescription, updateAppMetadata]
   );
 
   const handleSubmitForReview = useCallback(
@@ -149,7 +144,7 @@ export const Configuration = memo(function Configuration() {
           throw new Error("You must un-submit your app to submit again");
         }
         await submitSchema.validate(data, { abortEarly: false });
-        await handleSave({ ...data, status: "awaiting_review" });
+        await handleSave({ ...data, verification_status: "awaiting_review" });
 
         toast.success("App submitted for review");
       } catch (validationErrors: any) {

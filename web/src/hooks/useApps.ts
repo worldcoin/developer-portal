@@ -252,6 +252,7 @@ const updateAppMetadataFetcher = async (
         .join(",")}}`
     : undefined;
   const unverifiedAppMetadata = currentApp.app_metadata;
+
   // Upsert in the event no metadata row exists.
   const response = await graphQLRequest<{
     insert_app_metadata_one: AppMetadataModel;
