@@ -14,7 +14,7 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
   return (
     <div className="p-4 border rounded-lg  space-y-2">
       <div className="font-bold text-lg">
-        Review Status:
+        Review Status:{" "}
         <span className="capitalize">
           {AppReviewStatus[verificationStatus]}
         </span>

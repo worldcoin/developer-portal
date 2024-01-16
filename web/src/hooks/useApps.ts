@@ -1,4 +1,4 @@
-import { AppMetadataModel, AppModel } from "@/lib/models";
+import { AppMetadataModel, AppModel, AppQueryModel } from "@/lib/models";
 import { AppStatusType } from "@/lib/types";
 import { gql } from "@apollo/client";
 import { useRouter } from "next/router";
@@ -156,7 +156,7 @@ const DeleteAppQuery = gql`
 `;
 const fetchApps = async (): Promise<Array<AppModel>> => {
   const response = await graphQLRequest<{
-    app: Array<AppModel>;
+    app: Array<AppQueryModel>;
   }>({
     query: FetchAppsQuery,
   });
@@ -167,15 +167,12 @@ const fetchApps = async (): Promise<Array<AppModel>> => {
   return apps;
 };
 
-const _parseAppModel = (appModel: AppModel): AppModel => {
+const _parseAppModel = (appModel: AppQueryModel): AppModel => {
   return {
     ...appModel,
-    app_metadata: Array.isArray(appModel.app_metadata)
-      ? appModel.app_metadata[0]
-      : undefined,
-    verified_app_metadata: Array.isArray(appModel.verified_app_metadata)
-      ? appModel.verified_app_metadata[0]
-      : undefined,
+    app_metadata:
+      appModel.app_metadata?.[0] ?? appModel.verified_app_metadata?.[0],
+    verified_app_metadata: appModel.verified_app_metadata?.[0],
   };
 };
 

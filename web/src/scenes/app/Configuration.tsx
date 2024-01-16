@@ -110,8 +110,8 @@ export const Configuration = memo(function Configuration() {
     values: { ...currentApp?.app_metadata, ...description },
   });
 
-  const handleSave = useCallback(
-    async (data: ConfigurationFormValues) => {
+  const prepareMetadataForSave = useCallback(
+    (data: ConfigurationFormValues) => {
       const {
         description_overview,
         description_how_it_works,
@@ -123,28 +123,39 @@ export const Configuration = memo(function Configuration() {
         description_how_it_works ?? "",
         description_connect ?? ""
       );
-
-      const updatedData = {
+      return {
         ...rest,
         description: descriptionsJSON,
       };
-      await updateAppMetadata(updatedData);
+    },
+    [encodeDescription]
+  );
+
+  const handleSave = useCallback(
+    async (data: ConfigurationFormValues) => {
+      const updatedData = prepareMetadataForSave(data);
+      await updateAppMetadata({
+        ...updatedData,
+        verification_status: "unverified",
+      });
+
       toast.success("App information saved");
     },
-    [encodeDescription, updateAppMetadata]
+    [prepareMetadataForSave, updateAppMetadata]
   );
 
   const handleSubmitForReview = useCallback(
     async (data: ConfigurationFormValues) => {
       try {
-        if (
-          !currentApp ||
-          currentApp.app_metadata?.verification_status !== "unverified"
-        ) {
+        if (currentApp?.app_metadata?.verification_status !== "unverified") {
           throw new Error("You must un-submit your app to submit again");
         }
         await submitSchema.validate(data, { abortEarly: false });
-        await handleSave({ ...data, verification_status: "awaiting_review" });
+        const updatedData = prepareMetadataForSave(data);
+        await updateAppMetadata({
+          ...updatedData,
+          verification_status: "awaiting_review",
+        });
 
         toast.success("App submitted for review");
       } catch (validationErrors: any) {
@@ -159,7 +170,7 @@ export const Configuration = memo(function Configuration() {
         }
       }
     },
-    [handleSave, setError, currentApp]
+    [prepareMetadataForSave, updateAppMetadata, setError, currentApp]
   );
 
   const removeFromReview = useCallback(
