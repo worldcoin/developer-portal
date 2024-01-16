@@ -31,8 +31,8 @@ insert_permissions:
       check:
         app:
           team:
-            users:
-              id:
+            memberships:
+              user_id:
                 _eq: X-Hasura-User-Id
       columns:
         - name
@@ -138,8 +138,8 @@ select_permissions:
       filter:
         app:
           team:
-            users:
-              id:
+            memberships:
+              user_id:
                 _eq: X-Hasura-User-Id
 update_permissions:
   - role: api_key
@@ -199,8 +199,8 @@ update_permissions:
               _eq: unverified
           - app:
               team:
-                users:
-                  id:
+                memberships:
+                  user_id:
                     _eq: X-Hasura-User-Id
 delete_permissions:
   - role: api_key
@@ -226,6 +226,6 @@ delete_permissions:
               _neq: verified
           - app:
               team:
-                users:
-                  id:
+                memberships:
+                  user_id:
                     _eq: X-Hasura-User-Id

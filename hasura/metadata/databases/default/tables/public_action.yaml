@@ -51,11 +51,15 @@ insert_permissions:
   - role: user
     permission:
       check:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - app:
+              team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
       columns:
         - action
         - app_id
@@ -138,11 +142,15 @@ select_permissions:
         - terms_uri
         - updated_at
       filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - app:
+              team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -178,11 +186,15 @@ update_permissions:
         - status
         - terms_uri
       filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - app:
+              team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key
@@ -194,11 +206,27 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        app:
-          team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+        _and:
+          - app:
+              team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - app:
+              team:
+                id:
+                  _eq: X-Hasura-Team-Id
+          - _or:
+              - app:
+                  team:
+                    memberships:
+                      role:
+                        _eq: OWNER
+              - app:
+                  team:
+                    memberships:
+                      role:
+                        _eq: ADMIN
 event_triggers:
   - name: generate_external_nullifier
     definition:
