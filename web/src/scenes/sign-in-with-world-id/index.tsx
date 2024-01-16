@@ -15,13 +15,14 @@ export const SignIn = memo(function SignIn() {
   const { currentApp, isLoading: appIsLoading } = useApps();
   const { actionIsLoading } = useSignInAction();
   const router = useRouter();
+  const team_id = router.query.team_id as string;
 
   useEffect(() => {
     if (currentApp?.engine === "on-chain") {
-      router.push(urls.app(currentApp.id));
+      router.push(urls.app({ app_id: currentApp?.id, team_id }));
       return;
     }
-  }, [currentApp?.engine, currentApp?.id, router]);
+  }, [currentApp?.engine, currentApp?.id, router, team_id]);
 
   return (
     <Layout title="Sign in" mainClassName="grid">
