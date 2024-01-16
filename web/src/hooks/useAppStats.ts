@@ -7,6 +7,7 @@ import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
 import utc from "dayjs/plugin/utc";
 import tz from "dayjs/plugin/timezone";
+import { useRouter } from "next/router";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -24,7 +25,7 @@ const FetchAppStatsQuery = gql`
   }
 `;
 
-const fetchAppStats = async (_key: [string, string | undefined]) => {
+const fetchAppStats = async ([_key, team_id]: [string, string | undefined]) => {
   const { currentTimeSpan } = useAppStatsStore.getState();
   const currentApp = useAppStore.getState().currentApp;
 
@@ -34,14 +35,20 @@ const fetchAppStats = async (_key: [string, string | undefined]) => {
 
   const response = await graphQLRequest<{
     app_stats: Array<AppStatsModel>;
-  }>({
-    query: FetchAppStatsQuery,
-    variables: {
-      appId: currentApp.id,
-      startsAt: dayjs().startOf(currentTimeSpan.value).tz().toISOString(),
-      timeSpan: "day",
+  }>(
+    {
+      query: FetchAppStatsQuery,
+      variables: {
+        appId: currentApp.id,
+        startsAt: dayjs().startOf(currentTimeSpan.value).tz().toISOString(),
+        timeSpan: "day",
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   if (response.data?.app_stats.length) {
     return response.data.app_stats;
@@ -62,9 +69,11 @@ const getAppStatsStore = (store: IAppStatsStore) => ({
 const useAppStats = () => {
   const { currentApp } = useAppStore(getAppStore);
   const { setStats, currentTimeSpan } = useAppStatsStore(getAppStatsStore);
+  const router = useRouter();
+  const team_id = router.query.team_id as string | undefined;
 
   const { data, error, isLoading } = useSWR<Array<AppStatsModel>>(
-    ["app_stat", currentApp?.id, currentTimeSpan],
+    ["fetchAppStats", team_id],
     fetchAppStats,
     {
       onSuccess: (data) => {
