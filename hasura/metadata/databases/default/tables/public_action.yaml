@@ -206,26 +206,18 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        _and:
-          - app:
-              team:
-                memberships:
-                  user_id:
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
                     _eq: X-Hasura-User-Id
-          - app:
-              team:
-                id:
-                  _eq: X-Hasura-Team-Id
-          - _or:
-              - app:
-                  team:
-                    memberships:
-                      role:
+                - team_id:
+                    _eq: X-Hasura-Team-Id
+                - _or:
+                    - role:
                         _eq: OWNER
-              - app:
-                  team:
-                    memberships:
-                      role:
+                    - role:
                         _eq: ADMIN
 event_triggers:
   - name: generate_external_nullifier
