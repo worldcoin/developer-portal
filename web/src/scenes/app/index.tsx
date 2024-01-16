@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
 import { IAppStore, useAppStore } from "src/stores/appStore";
@@ -11,6 +11,7 @@ import { useToggle } from "@/hooks/useToggle";
 import { RemoveAppDialog } from "@/scenes/app/RemoveAppDialog";
 import { Button } from "@/components/Button";
 import { NotFound } from "src/components/NotFound";
+import { ImageUpload } from "./ImageUpload/UploadImage";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -35,6 +36,7 @@ export const App = memo(function App() {
       {!isLoading && currentApp && (
         <div className="grid gap-y-12">
           <AppHeader />
+          <ImageUpload />
           <Configuration />
           <Stats />
           <Button
