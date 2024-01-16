@@ -193,6 +193,27 @@ export const Configuration = memo(function Configuration() {
     [currentApp, updateAppMetadata]
   );
 
+  const editVerifiedApp = useCallback(
+    async (_: ConfigurationFormValues) => {
+      try {
+        if (
+          !currentApp ||
+          currentApp?.app_metadata?.verification_status !== "verified"
+        ) {
+          throw new Error("Your app must be already verified for this action");
+        }
+        await updateAppMetadata({
+          ...currentApp?.app_metadata,
+          verification_status: "unverified",
+        });
+        toast.success("New app draft created");
+      } catch (validationErrors: any) {
+        toast.error("Error creating a new draft.");
+      }
+    },
+    [currentApp, updateAppMetadata]
+  );
+
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">
       {Object.keys(dirtyFields).length > 0 && (
@@ -259,6 +280,16 @@ export const Configuration = memo(function Configuration() {
             onClick={() => handleSubmit(handleSubmitForReview)()} // Call handleSubmit with the review handler
           >
             Submit for Review
+          </Button>
+        ) : currentApp?.app_metadata?.verification_status === "verified" ? (
+          <Button
+            type="button"
+            variant="primary"
+            className="px-3 mr-5"
+            disabled={isSubmitting || isEditable}
+            onClick={() => handleSubmit(editVerifiedApp)()} // Call handleSubmit with the review handler
+          >
+            Create New Draft
           </Button>
         ) : (
           <Button

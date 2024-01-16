@@ -23,8 +23,10 @@ export const Button = memo(function Button(props: ButtonInterface) {
           "bg-ebecef": disabled && variant === "primary",
         },
         {
-          "bg-f3f4f5 hover:bg-neutral-dark hover:text-ffffff border border-ebecef hover:border-neutral-dark transition-colors text-14 leading-none font-medium rounded-lg":
+          "bg-f3f4f5 border border-ebecef transition-colors text-14 leading-none font-medium rounded-lg":
             variant === "secondary",
+          "hover:bg-neutral-dark hover:border-neutral-dark hover:text-ffffff":
+            !disabled && variant === "secondary",
         },
         {
           "font-sora bg-danger-light hover:bg-danger/20 transition-colors text-danger text-16 leading-5 rounded-xl":

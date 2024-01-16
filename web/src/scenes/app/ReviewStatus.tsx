@@ -35,15 +35,19 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
             )}
           </div>
         )}
-      {verificationStatus !== "unverified" && (
+      {["awaiting_review", "changes_requested"].includes(
+        verificationStatus
+      ) && (
         <div className="text-warning">
           Note: You must un-submit from review to make changes
         </div>
       )}
-      {verificationStatus === "unverified" &&
+      {verificationStatus === "verified" &&
         currentApp?.verified_app_metadata && (
-          <div className="text-warning">
-            Note: Any changes to verified apps will require re-review
+          <div className="text-primary">
+            Note: Any changes to verified apps will require re-review. <br></br>
+            Your existing verified information will continue to be available to
+            users until the review is complete.
           </div>
         )}
     </div>
