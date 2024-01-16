@@ -46,21 +46,17 @@ insert_permissions:
   - role: user
     permission:
       check:
-        _and:
-          - team:
-              memberships:
-                user_id:
+        team:
+          memberships:
+            _and:
+              - user_id:
                   _eq: X-Hasura-User-Id
-          - team_id:
-              _eq: X-Hasura-Team-Id
-          - _or:
-              - team:
-                  memberships:
-                    role:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - _or:
+                  - role:
                       _eq: OWNER
-              - team:
-                  memberships:
-                    role:
+                  - role:
                       _eq: ADMIN
       set:
         team_id: x-hasura-Team-Id
@@ -110,13 +106,13 @@ select_permissions:
         - status
         - team_id
       filter:
-        _and:
-          - team:
-              memberships:
-                user_id:
+        team:
+          memberships:
+            _and:
+              - user_id:
                   _eq: X-Hasura-User-Id
-          - team_id:
-              _eq: X-Hasura-Team-Id
+              - team_id:
+                  _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -134,21 +130,17 @@ update_permissions:
         - is_archived
         - status
       filter:
-        _and:
-          - team:
-              memberships:
-                user_id:
+        team:
+          memberships:
+            _and:
+              - user_id:
                   _eq: X-Hasura-User-Id
-          - team_id:
-              _eq: X-Hasura-Team-Id
-          - _or:
-              - team:
-                  memberships:
-                    role:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - _or:
+                  - role:
                       _eq: OWNER
-              - team:
-                  memberships:
-                    role:
+                  - role:
                       _eq: ADMIN
       check: null
 delete_permissions:
@@ -160,14 +152,12 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        _and:
-          - team:
-              memberships:
-                user_id:
+        team:
+          memberships:
+            _and:
+              - user_id:
                   _eq: X-Hasura-User-Id
-          - team:
-              memberships:
-                role:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - role:
                   _eq: OWNER
-          - team_id:
-              _eq: X-Hasura-Team-Id

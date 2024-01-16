@@ -51,15 +51,14 @@ insert_permissions:
   - role: user
     permission:
       check:
-        _and:
-          - app:
-              team:
-                memberships:
-                  user_id:
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
                     _eq: X-Hasura-User-Id
-          - app:
-              team_id:
-                _eq: X-Hasura-Team-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       columns:
         - action
         - app_id
@@ -142,15 +141,14 @@ select_permissions:
         - terms_uri
         - updated_at
       filter:
-        _and:
-          - app:
-              team:
-                memberships:
-                  user_id:
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
                     _eq: X-Hasura-User-Id
-          - app:
-              team_id:
-                _eq: X-Hasura-Team-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -186,15 +184,14 @@ update_permissions:
         - status
         - terms_uri
       filter:
-        _and:
-          - app:
-              team:
-                memberships:
-                  user_id:
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
                     _eq: X-Hasura-User-Id
-          - app:
-              team_id:
-                _eq: X-Hasura-Team-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key

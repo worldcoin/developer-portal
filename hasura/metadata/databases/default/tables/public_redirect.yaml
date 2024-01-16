@@ -31,29 +31,19 @@ insert_permissions:
   - role: user
     permission:
       check:
-        _and:
-          - action:
-              app:
-                team:
-                  memberships:
-                    user_id:
+        action:
+          app:
+            team:
+              memberships:
+                _and:
+                  - user_id:
                       _eq: X-Hasura-User-Id
-          - action:
-              app:
-                team_id:
-                  _eq: X-Hasura-Team-Id
-          - _or:
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
                           _eq: OWNER
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                      - role:
                           _eq: ADMIN
       columns:
         - redirect_uri
@@ -88,17 +78,15 @@ select_permissions:
         - created_at
         - updated_at
       filter:
-        _and:
-          - action:
-              app:
-                team_id:
-                  _eq: X-Hasura-Team-Id
-          - action:
-              app:
-                team:
-                  memberships:
-                    user_id:
+        action:
+          app:
+            team:
+              memberships:
+                _and:
+                  - user_id:
                       _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -115,29 +103,19 @@ update_permissions:
       columns:
         - redirect_uri
       filter:
-        _and:
-          - action:
-              app:
-                team:
-                  memberships:
-                    user_id:
+        action:
+          app:
+            team:
+              memberships:
+                _and:
+                  - user_id:
                       _eq: X-Hasura-User-Id
-          - action:
-              app:
-                team_id:
-                  _eq: X-Hasura-Team-Id
-          - _or:
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
                           _eq: OWNER
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                      - role:
                           _eq: ADMIN
       check: null
 delete_permissions:
@@ -151,27 +129,17 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        _and:
-          - action:
-              app:
-                team:
-                  memberships:
-                    user_id:
+        action:
+          app:
+            team:
+              memberships:
+                _and:
+                  - user_id:
                       _eq: X-Hasura-User-Id
-          - action:
-              app:
-                team_id:
-                  _eq: X-Hasura-Team-Id
-          - _or:
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
                           _eq: OWNER
-              - action:
-                  app:
-                    team:
-                      memberships:
-                        role:
+                      - role:
                           _eq: ADMIN

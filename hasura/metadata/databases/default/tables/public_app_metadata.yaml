@@ -32,8 +32,16 @@ insert_permissions:
         app:
           team:
             memberships:
-              user_id:
-                _eq: X-Hasura-User-Id
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
+                - _or:
+                    - role:
+                        _eq: OWNER
+                    - role:
+                        _eq: ADMIN
       columns:
         - name
         - logo_img_url
@@ -192,7 +200,20 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
-      filter: {}
+      filter:
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
+                - _or:
+                    - role:
+                        _eq: OWNER
+                    - role:
+                        _eq: ADMIN
       check:
         _and:
           - verification_status:
@@ -200,8 +221,16 @@ update_permissions:
           - app:
               team:
                 memberships:
-                  user_id:
-                    _eq: X-Hasura-User-Id
+                  _and:
+                    - user_id:
+                        _eq: X-Hasura-User-Id
+                    - team_id:
+                        _eq: X-Hasura-Team-Id
+                    - _or:
+                        - role:
+                            _eq: OWNER
+                        - role:
+                            _eq: ADMIN
 delete_permissions:
   - role: api_key
     permission:
@@ -227,5 +256,13 @@ delete_permissions:
           - app:
               team:
                 memberships:
-                  user_id:
-                    _eq: X-Hasura-User-Id
+                  _and:
+                    - user_id:
+                        _eq: X-Hasura-User-Id
+                    - team_id:
+                        _eq: X-Hasura-Team-Id
+                    - _or:
+                        - role:
+                            _eq: OWNER
+                        - role:
+                            _eq: ADMIN
