@@ -32,7 +32,7 @@ insert_permissions:
       check:
         app:
           team:
-            membership:
+            memberships:
               user_id:
                 _eq: X-Hasura-User-Id
       columns:
@@ -109,7 +109,9 @@ select_permissions:
         - logo_img_url
       filter:
         status:
-          _in: [unverified, verified]
+          _in:
+            - unverified
+            - verified
   - role: user
     permission:
       columns:
@@ -133,7 +135,7 @@ select_permissions:
       filter:
         app:
           team:
-            membership:
+            memberships:
               user_id:
                 _eq: X-Hasura-User-Id
 update_permissions:
@@ -151,6 +153,7 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
           - status:
@@ -159,7 +162,6 @@ update_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-      filter: {}
   - role: reviewer
     permission:
       columns:
@@ -169,10 +171,10 @@ update_permissions:
         - is_reviewer_world_app_approved
         - review_message
         - status
+      filter: {}
       check:
         status:
           _eq: awaiting_review
-      filter: {}
   - role: user
     permission:
       columns:
@@ -187,22 +189,17 @@ update_permissions:
         - world_app_description
         - app_website_url
         - source_code_url
+      filter: {}
       check:
         _and:
           - status:
               _eq: unverified
           - app:
               team:
-                membership:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
-      filter: {}
 delete_permissions:
-  - role: reviewer
-    permission:
-      filter:
-        status:
-          _eq: verified
   - role: api_key
     permission:
       filter:
@@ -213,6 +210,11 @@ delete_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
+  - role: reviewer
+    permission:
+      filter:
+        status:
+          _eq: verified
   - role: user
     permission:
       filter:
@@ -221,6 +223,6 @@ delete_permissions:
               _neq: verified
           - app:
               team:
-                membership:
+                memberships:
                   user_id:
                     _eq: X-Hasura-User-Id

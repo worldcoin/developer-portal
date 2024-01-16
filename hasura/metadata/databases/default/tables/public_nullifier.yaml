@@ -61,7 +61,7 @@ select_permissions:
           - action:
               app:
                 team:
-                  membership:
+                  memberships:
                     user_id:
                       _eq: X-Hasura-User-Id
 update_permissions:

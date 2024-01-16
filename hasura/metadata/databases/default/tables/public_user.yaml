@@ -6,7 +6,7 @@ object_relationships:
     using:
       foreign_key_constraint_on: team_id
 array_relationships:
-  - name: membership
+  - name: memberships
     using:
       foreign_key_constraint_on:
         column: user_id
@@ -72,6 +72,6 @@ delete_permissions:
     permission:
       filter:
         team:
-          membership:
+          memberships:
             user_id:
               _eq: X-Hasura-User-Id
