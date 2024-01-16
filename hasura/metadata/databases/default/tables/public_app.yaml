@@ -53,14 +53,15 @@ insert_permissions:
                   _eq: X-Hasura-User-Id
           - team_id:
               _eq: X-Hasura-Team-Id
-          - team:
-              memberships:
-                role:
-                  _eq: OWNER
-          - team:
-              memberships:
-                role:
-                  _eq: ADMIN
+          - _or:
+              - team:
+                  memberships:
+                    role:
+                      _eq: OWNER
+              - team:
+                  memberships:
+                    role:
+                      _eq: ADMIN
       set:
         team_id: x-hasura-Team-Id
       columns:
@@ -137,14 +138,15 @@ update_permissions:
                   _eq: X-Hasura-User-Id
           - team_id:
               _eq: X-Hasura-Team-Id
-          - team:
-              memberships:
-                role:
-                  _eq: OWNER
-          - team:
-              memberships:
-                role:
-                  _eq: ADMIN
+          - _or:
+              - team:
+                  memberships:
+                    role:
+                      _eq: OWNER
+              - team:
+                  memberships:
+                    role:
+                      _eq: ADMIN
       check: null
 delete_permissions:
   - role: api_key

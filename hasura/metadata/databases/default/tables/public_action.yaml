@@ -216,16 +216,17 @@ delete_permissions:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
-          - app:
-              team:
-                memberships:
-                  role:
-                    _eq: OWNER
-          - app:
-              team:
-                memberships:
-                  role:
-                    _eq: ADMIN
+          - _or:
+              - app:
+                  team:
+                    memberships:
+                      role:
+                        _eq: OWNER
+              - app:
+                  team:
+                    memberships:
+                      role:
+                        _eq: ADMIN
 event_triggers:
   - name: generate_external_nullifier
     definition:

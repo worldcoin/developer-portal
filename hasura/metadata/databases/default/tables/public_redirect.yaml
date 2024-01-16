@@ -42,18 +42,19 @@ insert_permissions:
               app:
                 team_id:
                   _eq: X-Hasura-Team-Id
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: OWNER
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: ADMIN
+          - _or:
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: OWNER
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: ADMIN
       columns:
         - redirect_uri
         - action_id
@@ -125,18 +126,19 @@ update_permissions:
               app:
                 team_id:
                   _eq: X-Hasura-Team-Id
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: OWNER
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: ADMIN
+          - _or:
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: OWNER
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: ADMIN
       check: null
 delete_permissions:
   - role: api_key
@@ -160,15 +162,16 @@ delete_permissions:
               app:
                 team_id:
                   _eq: X-Hasura-Team-Id
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: OWNER
-          - action:
-              app:
-                team:
-                  memberships:
-                    role:
-                      _eq: ADMIN
+          - _or:
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: OWNER
+              - action:
+                  app:
+                    team:
+                      memberships:
+                        role:
+                          _eq: ADMIN
