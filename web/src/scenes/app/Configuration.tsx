@@ -19,14 +19,11 @@ const saveSchema = yup.object().shape({
     .max(50, "App name cannot exceed 50 characters"),
   description_overview: yup
     .string()
-    .max(3500)
+    .max(1500)
     .required("This section is required"),
-  description_how_it_works: yup.string().max(3500).optional(),
-  description_connect: yup.string().max(3500).optional(),
-  world_app_description: yup
-    .string()
-    .max(50, "In app description cannot exceed 50 characters")
-    .optional(),
+  description_how_it_works: yup.string().max(1500).optional(),
+  description_connect: yup.string().max(1500).optional(),
+  world_app_description: yup.string().max(50).optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -54,19 +51,19 @@ const submitSchema = yup.object().shape({
     .max(50, "App name cannot exceed 50 characters"),
   description_overview: yup
     .string()
-    .max(3500)
+    .max(1500)
     .required("This section is required"),
   description_how_it_works: yup
     .string()
-    .max(3500)
+    .max(1500)
     .required("This section is required"),
   description_connect: yup
     .string()
-    .max(3500)
+    .max(1500)
     .required("This section is required"),
   world_app_description: yup
     .string()
-    .max(50, "In app description cannot exceed 50 characters")
+    .max(50)
     .required("This section is required"),
   integration_url: yup
     .string()
@@ -93,6 +90,7 @@ export type ConfigurationFormSubmitValues = yup.Asserts<typeof submitSchema>;
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
+  // In the edge case that the app has no metadata we allow the user to create new metadata
   const isEditable =
     currentApp?.app_metadata?.verification_status === "unverified" ||
     !currentApp?.app_metadata;
@@ -277,7 +275,7 @@ export const Configuration = memo(function Configuration() {
             variant="primary"
             className="px-3 mr-5"
             disabled={isSubmitting || !isEditable}
-            onClick={() => handleSubmit(handleSubmitForReview)()} // Call handleSubmit with the review handler
+            onClick={() => handleSubmit(handleSubmitForReview)()}
           >
             Submit for Review
           </Button>
@@ -287,7 +285,7 @@ export const Configuration = memo(function Configuration() {
             variant="primary"
             className="px-3 mr-5"
             disabled={isSubmitting || isEditable}
-            onClick={() => handleSubmit(editVerifiedApp)()} // Call handleSubmit with the review handler
+            onClick={() => handleSubmit(editVerifiedApp)()}
           >
             Create New Draft
           </Button>
@@ -297,7 +295,7 @@ export const Configuration = memo(function Configuration() {
             variant="danger"
             className="px-3 mr-5"
             disabled={isSubmitting || isEditable}
-            onClick={() => handleSubmit(removeFromReview)()} // Call handleSubmit with the review handler
+            onClick={() => handleSubmit(removeFromReview)()}
           >
             Remove from Review
           </Button>

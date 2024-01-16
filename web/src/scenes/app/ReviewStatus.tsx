@@ -10,7 +10,32 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(
     verificationStatus === "changes_requested"
   );
+  const canShowReviewMessage =
+    reviewMessage &&
+    !["verified", "awaiting_review"].includes(verificationStatus);
 
+  const renderNote = () => {
+    if (["awaiting_review", "changes_requested"].includes(verificationStatus)) {
+      return (
+        <div className="text-warning">
+          Note: You must un-submit from review to make changes
+        </div>
+      );
+    }
+    if (
+      verificationStatus === "verified" &&
+      currentApp?.verified_app_metadata
+    ) {
+      return (
+        <div className="text-primary">
+          Note: Any changes to verified apps will require re-review. <br />
+          Your existing verified information will continue to be available to
+          users until the review is complete.
+        </div>
+      );
+    }
+    return null;
+  };
   return (
     <div className="p-4 border rounded-lg  space-y-2">
       <div className="font-bold text-lg">
@@ -19,37 +44,22 @@ export const AppReviewStatusHeader = memo(function AppReviewStatusHeader() {
           {AppReviewStatus[verificationStatus]}
         </span>
       </div>
-      {reviewMessage &&
-        !["verified", "awaiting_review"].includes(verificationStatus) && (
-          <div>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="text-sm text-primary focus:outline-none"
-            >
-              {isDropdownOpen ? "Hide Review Message" : "Show Review Message"}
-            </button>
-            {isDropdownOpen && (
-              <div className="mt-2 p-2 border-2 rounded-lg text-sm text-gray-600">
-                {reviewMessage}
-              </div>
-            )}
-          </div>
-        )}
-      {["awaiting_review", "changes_requested"].includes(
-        verificationStatus
-      ) && (
-        <div className="text-warning">
-          Note: You must un-submit from review to make changes
+      {canShowReviewMessage && (
+        <div>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-sm text-primary focus:outline-none"
+          >
+            {isDropdownOpen ? "Hide Review Message" : "Show Review Message"}
+          </button>
+          {isDropdownOpen && (
+            <div className="mt-2 p-2 border-2 rounded-lg text-sm text-gray-600">
+              {reviewMessage}
+            </div>
+          )}
         </div>
       )}
-      {verificationStatus === "verified" &&
-        currentApp?.verified_app_metadata && (
-          <div className="text-primary">
-            Note: Any changes to verified apps will require re-review. <br></br>
-            Your existing verified information will continue to be available to
-            users until the review is complete.
-          </div>
-        )}
+      {renderNote()}
     </div>
   );
 });
