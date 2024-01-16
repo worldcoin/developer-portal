@@ -8,28 +8,35 @@ export type TeamsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type TeamsQuery = {
   __typename?: "query_root";
-  teams: Array<{
+  team: Array<{
     __typename?: "team";
     id: string;
     name?: string | null;
-    members: Array<{
-      __typename?: "user";
-      id: string;
-      name: string;
-      email?: string | null;
+    memberships: Array<{
+      __typename?: "membership";
+      role: Types.Role_Enum;
+      user: {
+        __typename?: "user";
+        id: string;
+        name: string;
+        email?: string | null;
+      };
     }>;
   }>;
 };
 
 export const TeamsDocument = gql`
   query Teams {
-    teams: team(limit: 1) {
+    team {
       id
       name
-      members: users {
-        id
-        name
-        email
+      memberships {
+        user {
+          id
+          name
+          email
+        }
+        role
       }
     }
   }

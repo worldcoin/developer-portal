@@ -10,13 +10,13 @@ export type DeleteTeamMemberMutationVariables = Types.Exact<{
 
 export type DeleteTeamMemberMutation = {
   __typename?: "mutation_root";
-  member?: { __typename?: "user"; id: string } | null;
+  member?: { __typename?: "membership"; user_id: string } | null;
 };
 
 export const DeleteTeamMemberDocument = gql`
   mutation DeleteTeamMember($id: String!) {
-    member: delete_user_by_pk(id: $id) {
-      id
+    member: delete_membership_by_pk(id: $id) {
+      user_id
     }
   }
 `;

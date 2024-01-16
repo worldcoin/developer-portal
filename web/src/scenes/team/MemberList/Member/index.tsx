@@ -1,17 +1,13 @@
-import cn from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-
-import { Fragment, memo, MouseEvent as ReactMouseEvent, useState } from "react";
-import { InfoField } from "src/scenes/team/KeyList/Key/InfoField";
-import { APIKeyModel } from "src/lib/models";
-import { Button } from "src/components/Button";
-import { Switch } from "src/components/Switch";
-import useKeys from "src/hooks/useKeys";
-import { toast } from "react-toastify";
+import { memo, useMemo, useState } from "react";
 import { TeamMember } from "../../hooks/useTeam";
 import { Icon } from "src/components/Icon";
 import { RemoveMemberDialog } from "../RemoveMemberDialog";
+import { Role_Enum } from "@/graphql/graphql";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter } from "next/router";
+import { Auth0SessionUser } from "@/lib/types";
 
 dayjs.extend(relativeTime);
 
@@ -21,6 +17,20 @@ export const Member = memo(function Member(props: {
 }) {
   const { member, length } = props;
   const [memberForRemove, setMemberForRemove] = useState<TeamMember>();
+  const { user } = useUser() as Auth0SessionUser;
+  const router = useRouter();
+  const { team_id } = router.query;
+
+  const hasRemoveButton = useMemo(() => {
+    const role = user?.hasura.memberships.find(
+      (i) => i.team?.id === team_id
+    )?.role;
+
+    return (
+      (role === Role_Enum.Owner || role === Role_Enum.Admin) &&
+      member.user.id !== user?.hasura.id
+    );
+  }, [member.user.id, team_id, user?.hasura.id, user?.hasura.memberships]);
 
   return (
     <div className="flex items-center bg-ffffff rounded-xl shadow-lg p-4 gap-3">
@@ -42,11 +52,14 @@ export const Member = memo(function Member(props: {
       </div>
 
       <div className="flex-1 space-y-1">
-        <h5>{member.name}</h5>
-        <p className="text-12">{member.email}</p>
+        <div className="flex gap-x-2 items-center">
+          <h5>{member.user.name}</h5>{" "}
+          <span className="text-12 text-657080">[{member.role}]</span>
+        </div>
+        <p className="text-12">{member.user.email}</p>
       </div>
 
-      {length > 1 && (
+      {length > 1 && hasRemoveButton && (
         <button
           className="text-danger hover:opacity-75 transition-opacity"
           onClick={() => setMemberForRemove(member)}

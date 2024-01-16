@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldLabel } from "@/components/FieldLabel";
@@ -11,16 +11,27 @@ import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMe
 import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
+import { useRouter } from "next/router";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
   onClose: () => void;
 }) {
   const { onClose } = props;
+  const router = useRouter();
+
+  const team_id = useMemo(
+    () => router.query.team_id as string,
+    [router.query.team_id]
+  );
 
   const [inviteTeamMembers, { loading, called, reset, error }] =
     useInviteTeamMembersMutation({
-      refetchQueries: [{ query: TeamsDocument }],
+      context: { headers: { team_id: team_id } },
+
+      refetchQueries: [
+        { query: TeamsDocument, context: { headers: { team_id: team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (!data) {

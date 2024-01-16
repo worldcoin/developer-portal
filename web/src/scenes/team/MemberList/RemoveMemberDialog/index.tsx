@@ -17,7 +17,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
 
   const handleConfirm = useCallback(async () => {
     if (!memberForRemove) return;
-    await deleteTeamMember(memberForRemove.id);
+    await deleteTeamMember(memberForRemove.user.id);
     onClose();
   }, [deleteTeamMember, memberForRemove, onClose]);
 
@@ -41,7 +41,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
 
           <span className="text-14">
             Are you sure you want to remove your team member
-            <b>&nbsp;{memberForRemove?.name}</b>? This will delete their
+            <b>&nbsp;{memberForRemove?.user.name}</b>? This will delete their
             Developer Portal account.
           </span>
         </div>

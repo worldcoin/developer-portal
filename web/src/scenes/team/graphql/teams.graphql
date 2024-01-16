@@ -1,11 +1,14 @@
 query Teams {
-  teams: team(limit: 1) {
+  team {
     id
     name
-    members: users {
-      id
-      name
-      email
+    memberships {
+      user {
+        id
+        name
+        email
+      }
+      role
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Details } from "./Details";
 import { Header } from "./Header";
 import { MemberList } from "./MemberList";
@@ -19,11 +19,12 @@ export const Team = memo(function Team() {
           <Preloader className="w-20 h-20" />
         </div>
       )}
+
       {!loading && !isLoading && team && (
         <div className="space-y-8">
           <Header />
           <Details team={team} />
-          {team.members && <MemberList members={team.members} />}
+          {team?.memberships && <MemberList members={team.memberships} />}
           {keys && <KeyList keys={keys} />}
         </div>
       )}

@@ -27,7 +27,7 @@ export const KeyList = memo(function KeyList(props: KeyListProps) {
       <UpdateKey />
       <DeleteKey />
 
-      <div className="flex justify-between text-14 mt-4">
+      <div className="flex justify-between text-14 my-4">
         <div className="space-x-2">
           <span className="text-14 font-medium">API keys</span>
 
@@ -43,6 +43,7 @@ export const KeyList = memo(function KeyList(props: KeyListProps) {
           Create New Key
         </Button>
       </div>
+
       <div>
         <table className="w-full max-w-full">
           <thead>

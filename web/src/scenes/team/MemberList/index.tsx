@@ -11,14 +11,19 @@ export interface MemberListProps {
 
 export const MemberList = memo(function MemberList(props: MemberListProps) {
   const { members } = props;
+
   const inviteDialog = useToggle();
 
   const [keyword, setKeyword] = useState("");
 
   const filteredMembers = useMemo(() => {
     if (!keyword) return members;
+
     return members.filter((member) => {
-      return member.name.includes(keyword) || member.email?.includes(keyword);
+      return (
+        member.user.name.includes(keyword) ||
+        member.user.email?.includes(keyword)
+      );
     });
   }, [keyword, members]);
 
