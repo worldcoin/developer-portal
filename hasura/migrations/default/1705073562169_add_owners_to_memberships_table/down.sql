@@ -1,2 +1,2 @@
-DELETE FROM memberships
+DELETE FROM membership
 WHERE role = 'OWNER';

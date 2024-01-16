@@ -1,5 +1,5 @@
 table:
-  name: memberships
+  name: membership
   schema: public
 object_relationships:
   - name: team

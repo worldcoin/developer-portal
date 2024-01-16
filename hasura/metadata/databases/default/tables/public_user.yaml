@@ -4,20 +4,14 @@ table:
 object_relationships:
   - name: team
     using:
-      manual_configuration:
-        column_mapping:
-          team_id: id
-        insertion_order: null
-        remote_table:
-          name: team
-          schema: public
+      foreign_key_constraint_on: team_id
 array_relationships:
-  - name: memberships
+  - name: membership
     using:
       foreign_key_constraint_on:
         column: user_id
         table:
-          name: memberships
+          name: membership
           schema: public
 insert_permissions:
   - role: service
@@ -76,4 +70,8 @@ update_permissions:
 delete_permissions:
   - role: user
     permission:
-      filter: {}
+      filter:
+        team:
+          membership:
+            user_id:
+              _eq: X-Hasura-User-Id
