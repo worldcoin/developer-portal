@@ -316,6 +316,7 @@ const deleteAppFetcher = async (
   }
 ) => {
   const { id } = args.arg;
+
   const response = await graphQLRequest<{
     delete_app_by_pk: string;
   }>(
@@ -326,10 +327,12 @@ const deleteAppFetcher = async (
     undefined,
     { team_id: team_id ?? "" }
   );
+
   if (response.data?.delete_app_by_pk) {
     return response.data?.delete_app_by_pk;
   }
-  throw Error("Could not delete app");
+
+  toast.error("Failed to delete app");
 };
 
 type NewAppPayload = Pick<AppModel, "engine" | "is_staging"> & {
@@ -477,7 +480,7 @@ const useApps = () => {
     {
       onSuccess: async (data) => {
         if (data) {
-          await router.replace("/app");
+          await router.replace(urls.app({ team_id: team_id ?? "" }));
           toast.success("App deleted");
           setCurrentApp(null);
         }
@@ -547,7 +550,15 @@ const useApps = () => {
 
   const createNewApp = useCallback(
     async (data: NewAppPayload) => {
-      return await insertNewAppMutation.trigger(data);
+      let result: any | null = null;
+
+      try {
+        result = await insertNewAppMutation.trigger(data);
+      } catch (error) {
+        console.log(error);
+      }
+
+      return result;
     },
     [insertNewAppMutation]
   );
