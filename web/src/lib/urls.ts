@@ -18,30 +18,53 @@ export const urls = {
   home: (): "/" => "/",
 
   // ANCHOR: Apps
-  app: (app_id?: string, params?: AppParams): string => {
-    const baseUrl = app_id ? `/app/${app_id}` : "/app";
+  app: (props: {
+    app_id?: string;
+    team_id: string;
+    params?: AppParams;
+  }): string => {
+    const baseUrl = props.app_id
+      ? `${urls.team(props.team_id)}/app/${props.app_id}`
+      : `${urls.team(props.team_id)}/app`;
 
-    if (!params) {
+    if (!props.params) {
       return baseUrl;
     }
 
-    const searchParams = new URLSearchParams(params);
+    const searchParams = new URLSearchParams(props.params);
     return `${baseUrl}?${searchParams.toString()}`;
   },
 
-  appSignIn: (app_id?: string): `/app/${string}/sign-in` | "/app/sign-in" =>
-    app_id ? `/app/${app_id}/sign-in` : "/app/sign-in",
+  appSignIn: (params: {
+    app_id?: string;
+    team_id: string;
+  }): `/team/${string}/app/${string}/sign-in` | `/team/${string}/app/sign-in` =>
+    params.app_id
+      ? `/team/${params.team_id}/app/${params.app_id}/sign-in`
+      : `/team/${params.team_id}/app/sign-in`,
 
-  appActions: (app_id?: string): `/app/${string}/actions` | "/app/actions" =>
-    app_id ? `/app/${app_id}/actions` : "/app/actions",
+  appActions: (params: {
+    app_id?: string;
+    team_id: string;
+  }): `/team/${string}/app/${string}/actions` | `/team/${string}/app/actions` =>
+    params.app_id
+      ? `/team/${params.team_id}/app/${params.app_id}/actions`
+      : `/team/${params.team_id}/app/actions`,
 
   // ANCHOR: Others
-  kiosk: (action_id: string): `/kiosk/${string}` => `/kiosk/${action_id}`,
+  kiosk: (params: {
+    action_id: string;
+    team_id: string;
+  }): `/team/${string}/kiosk/${string}` =>
+    `/team/${params.team_id}/kiosk/${params.action_id}`,
 
-  debugger: (app_id: string): `/app/${string}/debugger` =>
-    `/app/${app_id}/debugger`,
+  debugger: (params: {
+    app_id: string;
+    team_id: string;
+  }): `/team/${string}/app/${string}/debugger` =>
+    `/team/${params.team_id}/app/${params.app_id}/debugger`,
 
-  team: (): "/team" => "/team",
+  team: (id?: string): string => (id ? `/team/${id}` : "/team"),
 
   // ANCHOR: Authentication & sign up
   login: (): "/login" => "/login",
