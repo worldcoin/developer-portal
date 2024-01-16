@@ -114,7 +114,7 @@ export const Configuration = memo(function Configuration() {
           />
 
           {errors.name?.message && (
-            <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+            <span className="pt-2 left-0 flex items-center text-12 text-danger">
               {errors.name.message}
             </span>
           )}

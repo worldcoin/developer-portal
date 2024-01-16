@@ -26,10 +26,11 @@ export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
           register={register("description_overview")}
           value={watch("description_overview")}
           maxChar={1500}
+          errors={errors.description_overview}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {errors.description_overview?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 left-0 flex items-center text-12 text-danger">
             {errors.description_overview.message}
           </span>
         )}
@@ -42,10 +43,11 @@ export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
           register={register("description_how_it_works")}
           value={watch("description_how_it_works")}
           maxChar={1500}
+          errors={errors.description_how_it_works}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {errors.description_how_it_works?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 left-0 flex items-center text-12 text-danger">
             {errors.description_how_it_works.message}
           </span>
         )}
@@ -58,10 +60,11 @@ export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
           register={register("description_connect")}
           value={watch("description_connect")}
           maxChar={1500}
+          errors={errors.description_connect}
           className="w-full font-rubik disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {errors.description_connect?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 left-0 flex items-center text-12 text-danger">
             {errors.description_connect.message}
           </span>
         )}
@@ -81,7 +84,7 @@ export const AppDescriptionSection = (props: AppDescriptionSectionProps) => {
           errors={errors.world_app_description}
         />
         {errors.world_app_description?.message && (
-          <span className="absolute -bottom-6 left-0 flex items-center text-12 text-danger">
+          <span className="pt-2 left-0 flex items-center text-12 text-danger">
             {errors.world_app_description.message}
           </span>
         )}
