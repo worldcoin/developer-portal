@@ -5,5 +5,5 @@ import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 export default Team;
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
-    returnTo: "/api/auth/login-callback",
+  returnTo: "/api/auth/login-callback",
 });
