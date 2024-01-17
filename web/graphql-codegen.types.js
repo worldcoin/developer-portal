@@ -64,7 +64,6 @@ module.exports = {
       ],
     },
 
-
     "src/scenes": {
       documents: "src/scenes/**/*.graphql",
       preset: "near-operation-file",
