@@ -80,8 +80,6 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
         toast.success("Image uploaded successfully");
         // Shows the user the current image in the bucket after upload
         await getImage();
-        // Update the app metadata with the new image URL
-        setValue("logo_img_url", "logo_img.png");
       } catch (error) {
         console.log(error);
       }
@@ -151,13 +149,15 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
       if (!response.ok) {
         throw new Error(json.message || "Failed to get image");
       }
+      // Checks if the image was found otherwise it won't update the metadata
       setImagePreview(json.url);
+      setValue("logo_img_url", json.url);
     } catch (error) {
       toast.error("Could not find uploaded image.");
 
       console.error("Get image error:", error);
     }
-  }, [currentApp?.id, imageType]);
+  }, [currentApp?.id, imageType, setValue]);
   const removeImage = useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
