@@ -2,7 +2,7 @@ import { Illustration } from "@/components/Auth/Illustration";
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { memo, useCallback } from "react";
-import { TeamMember, useDeleteTeamMember } from "@/scenes/team/hooks/useTeam";
+import { TeamMember, useRemoveTeamMember } from "@/scenes/team/hooks/useTeam";
 
 export interface RemoveMemberDialogProps {
   memberForRemove?: TeamMember;
@@ -13,13 +13,13 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
   props: RemoveMemberDialogProps
 ) {
   const { memberForRemove, onClose } = props;
-  const { deleteTeamMember, loading } = useDeleteTeamMember();
+  const { removeTeamMember, loading } = useRemoveTeamMember();
 
   const handleConfirm = useCallback(async () => {
     if (!memberForRemove) return;
-    await deleteTeamMember(memberForRemove.user.id);
+    await removeTeamMember(memberForRemove.id);
     onClose();
-  }, [deleteTeamMember, memberForRemove, onClose]);
+  }, [memberForRemove, onClose, removeTeamMember]);
 
   return (
     <Dialog

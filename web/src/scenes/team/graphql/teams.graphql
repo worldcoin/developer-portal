@@ -3,6 +3,7 @@ query Teams {
     id
     name
     memberships {
+      id
       user {
         id
         name

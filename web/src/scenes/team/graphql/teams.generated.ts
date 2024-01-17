@@ -14,6 +14,7 @@ export type TeamsQuery = {
     name?: string | null;
     memberships: Array<{
       __typename?: "membership";
+      id: string;
       role: Types.Role_Enum;
       user: {
         __typename?: "user";
@@ -31,6 +32,7 @@ export const TeamsDocument = gql`
       id
       name
       memberships {
+        id
         user {
           id
           name

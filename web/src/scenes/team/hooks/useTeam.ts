@@ -5,7 +5,7 @@ import {
 import { useUpdateTeamNameMutation } from "@/scenes/team/graphql/updateTeamName.generated";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
-import { useDeleteTeamMemberMutation } from "@/scenes/team/graphql/deleteTeam.generated";
+import { useRemoveTeamMemberMutation } from "@/scenes/team/graphql/removeTeamMember.generated";
 import { useRouter } from "next/router";
 
 export type Team = NonNullable<
@@ -60,11 +60,11 @@ export const useUpdateTeamName = () => {
 };
 
 // TODO: In practice we currently only support 1 user = 1 team, when we change this we need to update this query to just remove the user from the team
-export const useDeleteTeamMember = () => {
+export const useRemoveTeamMember = () => {
   const router = useRouter();
   const team_id = router.query.team_id as string | undefined;
 
-  const [mutateFunction, other] = useDeleteTeamMemberMutation({
+  const [mutateFunction, other] = useRemoveTeamMemberMutation({
     context: { headers: { team_id } },
 
     refetchQueries: [
@@ -75,19 +75,20 @@ export const useDeleteTeamMember = () => {
     },
   });
 
-  const deleteTeamMember = useCallback(
+  const removeTeamMember = useCallback(
     (id: string) => {
       return mutateFunction({
+        context: { headers: { team_id } },
         variables: {
           id,
         },
       });
     },
-    [mutateFunction]
+    [mutateFunction, team_id]
   );
 
   return {
-    deleteTeamMember,
+    removeTeamMember,
     ...other,
   };
 };
