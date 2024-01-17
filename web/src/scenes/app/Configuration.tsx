@@ -11,6 +11,7 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { AppLinksSection } from "./Form/AppLinksSection";
 import { AppDescriptionSection } from "./Form/AppDescriptionSection";
 import { AppPublicationSection } from "./Form/AppPublicationSection";
+import { AppImageUploadSection } from "./Form/AppImageUploadSection";
 
 const saveSchema = yup.object().shape({
   name: yup
@@ -24,6 +25,7 @@ const saveSchema = yup.object().shape({
   description_how_it_works: yup.string().max(1500).optional(),
   description_connect: yup.string().max(1500).optional(),
   world_app_description: yup.string().max(50).optional(),
+  logo_img_url: yup.string().optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -65,6 +67,7 @@ const submitSchema = yup.object().shape({
     .string()
     .max(50)
     .required("This section is required"),
+  logo_img_url: yup.string().required("This section is required"),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -101,6 +104,7 @@ export const Configuration = memo(function Configuration() {
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
@@ -132,6 +136,7 @@ export const Configuration = memo(function Configuration() {
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
       const updatedData = prepareMetadataForSave(data);
+      console.log(updatedData);
       await updateAppMetadata({
         ...updatedData,
         verification_status: "unverified",
@@ -220,6 +225,12 @@ export const Configuration = memo(function Configuration() {
         </div>
       )}
       <h2 className="text-20 font-sora font-semibold">App Information</h2>
+      <AppImageUploadSection
+        register={register}
+        errors={errors}
+        disabled={isSubmitting || !isEditable}
+        setValue={setValue}
+      />
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
           App name

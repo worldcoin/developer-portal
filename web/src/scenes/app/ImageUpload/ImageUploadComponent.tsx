@@ -1,24 +1,39 @@
 import { Icon } from "@/components/Icon";
-import useApps from "@/hooks/useApps";
-import { IAppStore, useAppStore } from "@/stores/appStore";
+import { useAppStore } from "@/stores/appStore";
 import Image from "next/image";
-import React, { useState, ChangeEvent, useCallback } from "react";
+import React, { useState, ChangeEvent, useCallback, memo } from "react";
+import {
+  UseFormRegisterReturn,
+  FieldError,
+  UseFormSetValue,
+} from "react-hook-form";
 import { toast } from "react-toastify";
+import { ConfigurationFormValues } from "../Configuration";
 
 type ImageUploadComponentProps = {
+  register: UseFormRegisterReturn;
+  errors?: FieldError;
+  setValue: UseFormSetValue<ConfigurationFormValues>;
   width?: number;
   height?: number;
   imageType: string;
+  disabled: boolean;
 };
-
-const ImageUploadComponent: React.FC<ImageUploadComponentProps> = ({
-  width,
-  height,
-  imageType,
-}) => {
+export const ImageUploadComponent = memo(function ImageUploadComponent(
+  props: ImageUploadComponentProps
+) {
+  const {
+    register,
+    setValue,
+    errors,
+    disabled,
+    imageType,
+    width,
+    height,
+    ...otherProps
+  } = props;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const currentApp = useAppStore((store) => store.currentApp);
-  const { updateAppMetadata } = useApps();
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -66,6 +81,7 @@ const ImageUploadComponent: React.FC<ImageUploadComponentProps> = ({
         // Shows the user the current image in the bucket after upload
         await getImage();
         // Update the app metadata with the new image URL
+        setValue("logo_img_url", "logo_img.png");
       } catch (error) {
         console.log(error);
       }
@@ -142,6 +158,15 @@ const ImageUploadComponent: React.FC<ImageUploadComponentProps> = ({
       console.error("Get image error:", error);
     }
   }, [currentApp?.id, imageType]);
+  const removeImage = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setValue("logo_img_url", "");
+      setImagePreview(null);
+    },
+    [setValue]
+  );
 
   return (
     <div className="">
@@ -150,7 +175,13 @@ const ImageUploadComponent: React.FC<ImageUploadComponentProps> = ({
         className="flex border-2 border-dashed w-32 h-32 rounded-md cursor-pointer justify-center items-center"
       >
         {imagePreview ? (
-          <>
+          <div className="relative">
+            <button
+              className="absolute top-0 right-0 cursor-pointer"
+              onClick={removeImage}
+            >
+              <Icon name="close" className="w-6 h-6 bg-danger" />
+            </button>
             <Image
               src={imagePreview}
               alt="Uploaded"
@@ -158,30 +189,21 @@ const ImageUploadComponent: React.FC<ImageUploadComponentProps> = ({
               width={width}
               height={height}
             />
-            <button>
-              <Icon
-                className="w-6 h-6 relative top-0 right-0  text-neutral-primary"
-                name="close"
-              />
-            </button>
-          </>
-        ) : (
-          <div className="text-lg text-gray-300 text-center">
-            <div className="text-4xl">+</div>
-            Upload Logo
           </div>
+        ) : (
+          <div className="text-4xl text-gray-300 text-center">+</div>
         )}
       </label>
       <input
         id="image-upload"
         type="file"
         accept=".png"
+        disabled={disabled}
+        {...otherProps}
         onChange={handleFileInput}
         style={{ display: "none" }}
       />
       {isUploading && <p>Uploading...</p>}
     </div>
   );
-};
-
-export default ImageUploadComponent;
+});

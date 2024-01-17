@@ -48,13 +48,15 @@ export const ButtonContent = memo(function ButtonContent(props: {
     >
       <div>
         {image && (
-          <Image
-            src={props.app?.app_metadata?.logo_img_url ?? ""}
-            width={20}
-            height={20}
-            alt="app logo"
-            onError={() => setImage(null)}
-          />
+          <div> TODO</div>
+          // // TODO: fix this
+          // <Image
+          //   src={props.app?.app_metadata?.logo_img_url ?? ""}
+          //   width={20}
+          //   height={20}
+          //   alt="app logo"
+          //   onError={() => setImage(null)}
+          // />
         )}
 
         {!image && (
