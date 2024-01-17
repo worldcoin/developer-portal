@@ -54,7 +54,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "s3.us-east-2.amazonaws.com",
+        hostname: "s3.us-east-2.amazonaws.com", // We need to update this with the appropriate bucket name
       },
     ],
   },
