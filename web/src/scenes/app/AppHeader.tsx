@@ -35,7 +35,8 @@ export const AppHeader = memo(function AppHeader() {
           <div>
             {image && (
               <Image
-                src={currentApp?.app_metadata?.logo_img_url ?? ""}
+                //TODO
+                src={""}
                 alt="app logo"
                 width={44}
                 height={44}
