@@ -31,13 +31,11 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - id
         - role
       filter:
-        _and:
-          - user_id:
-              _eq: X-Hasura-User-Id
-          - team_id:
-              _eq: X-Hasura-User-Id
+        team_id:
+          _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:
@@ -66,5 +64,3 @@ delete_permissions:
         _and:
           - team_id:
               _eq: X-Hasura-Team-Id
-          - role:
-              _eq: OWNER
