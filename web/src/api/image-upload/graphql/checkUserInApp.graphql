@@ -1,7 +1,0 @@
-query CheckUserInApp($team_id: String!, $app_id: String!) {
-  team(where: {id: {_eq: $team_id}}) {
-    apps(where: {id: {_eq: $app_id}}) {
-      id
-    }
-  }
-}
