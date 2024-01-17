@@ -35,16 +35,16 @@ const actionKioskQuery = gql`
       app {
         id
         is_staging
-        app_metadata(where: { status: { _neq: "verified" } }) {
+        app_metadata(where: { verification_status: { _neq: "verified" } }) {
           name
-          status
+          verification_status
         }
         verified_app_metadata: app_metadata(
-          where: { status: { _eq: "verified" } }
+          where: { verification_status: { _eq: "verified" } }
         ) {
           name
           logo_img_url
-          status
+          verification_status
         }
       }
     }
