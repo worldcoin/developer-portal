@@ -19,11 +19,20 @@ const saveSchema = yup.object().shape({
     .max(50, "App name cannot exceed 50 characters"),
   description_overview: yup
     .string()
-    .max(1500)
+    .max(1500, "Overview cannot exceed 1500 characters")
     .required("This section is required"),
-  description_how_it_works: yup.string().max(1500).optional(),
-  description_connect: yup.string().max(1500).optional(),
-  world_app_description: yup.string().max(50).optional(),
+  description_how_it_works: yup
+    .string()
+    .max(1500, "How it works cannot exceed 1500 characters")
+    .optional(),
+  description_connect: yup
+    .string()
+    .max(1500, "How to connect cannot exceed 1500 characters")
+    .optional(),
+  world_app_description: yup
+    .string()
+    .max(50, "World app description cannot exceed 50 characters")
+    .optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -51,19 +60,19 @@ const submitSchema = yup.object().shape({
     .max(50, "App name cannot exceed 50 characters"),
   description_overview: yup
     .string()
-    .max(1500)
+    .max(1500, "Overview cannot exceed 1500 characters")
     .required("This section is required"),
   description_how_it_works: yup
     .string()
-    .max(1500)
+    .max(1500, "How it works cannot exceed 1500 characters")
     .required("This section is required"),
   description_connect: yup
     .string()
-    .max(1500)
+    .max(1500, "How to connect cannot exceed 1500 characters")
     .required("This section is required"),
   world_app_description: yup
     .string()
-    .max(50)
+    .max(50, "World app description cannot exceed 50 characters")
     .required("This section is required"),
   integration_url: yup
     .string()
@@ -131,13 +140,17 @@ export const Configuration = memo(function Configuration() {
 
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
-      const updatedData = prepareMetadataForSave(data);
-      await updateAppMetadata({
-        ...updatedData,
-        verification_status: "unverified",
-      });
+      try {
+        const updatedData = prepareMetadataForSave(data);
+        await updateAppMetadata({
+          ...updatedData,
+          verification_status: "unverified",
+        });
 
-      toast.success("App information saved");
+        toast.success("App information saved");
+      } catch (errors: any) {
+        toast.error("Error saving app: " + errors.message);
+      }
     },
     [prepareMetadataForSave, updateAppMetadata]
   );
@@ -156,15 +169,17 @@ export const Configuration = memo(function Configuration() {
         });
 
         toast.success("App submitted for review");
-      } catch (validationErrors: any) {
-        toast.error("Error submitting for review. Please check your inputs");
-        if (validationErrors.inner && Array.isArray(validationErrors.inner)) {
-          validationErrors.inner.forEach((error: yup.ValidationError) => {
+      } catch (errors: any) {
+        if (errors.inner && Array.isArray(errors.inner)) {
+          errors.inner.forEach((error: yup.ValidationError) => {
             setError(error.path as keyof ConfigurationFormValues, {
               type: "manual",
               message: error.message,
             });
           });
+          toast.error("Error submitting for review. Please check your inputs");
+        } else {
+          toast.error("Error saving app: " + errors.message);
         }
       }
     },
@@ -184,8 +199,8 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
-      } catch (validationErrors: any) {
-        toast.error("Error removing from review. Please check your inputs");
+      } catch (error: any) {
+        toast.error("Error creating a new draft: ", error.message);
       }
     },
     [currentApp, updateAppMetadata]
@@ -205,8 +220,8 @@ export const Configuration = memo(function Configuration() {
           verification_status: "unverified",
         });
         toast.success("New app draft created");
-      } catch (validationErrors: any) {
-        toast.error("Error creating a new draft.");
+      } catch (error: any) {
+        toast.error("Error creating a new draft: ", error.message);
       }
     },
     [currentApp, updateAppMetadata]
