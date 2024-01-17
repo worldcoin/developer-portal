@@ -17,6 +17,7 @@ export type SignupSSRProps = {
 };
 
 export const getServerSideProps = withPageAuthRequired({
+  returnTo: "/api/auth/login-callback",
   getServerSideProps: async (context) => {
     const session = await getSession(context.req, context.res);
     const hasAuth0User = Boolean(session?.user);

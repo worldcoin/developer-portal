@@ -4,4 +4,6 @@ import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 
 export default Debugger;
 
-export const getServerSideProps: GetServerSideProps = withPageAuthRequired();
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
+    returnTo: "/api/auth/login-callback",
+});

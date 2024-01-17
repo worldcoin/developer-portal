@@ -32,6 +32,7 @@ const appsQuery = gql`
 `;
 
 export const getServerSideProps = withPageAuthRequired({
+  returnTo: "/api/auth/login-callback",
   getServerSideProps: async ({ req, res, query }) => {
     const session = await getSession(req, res);
     const client = await getAPIServiceClient();
