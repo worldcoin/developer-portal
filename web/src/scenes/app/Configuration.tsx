@@ -36,17 +36,26 @@ const saveSchema = yup.object().shape({
   integration_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    })
     .optional(),
   app_website_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    })
     .optional(),
   source_code_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    })
     .optional(),
   category: yup.string().optional(),
   is_developer_allow_listing: yup.boolean(),
@@ -77,17 +86,26 @@ const submitSchema = yup.object().shape({
   integration_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(
+      /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
+      "Link must be a valid HTTPS URL"
+    )
     .required("This section is required"),
   app_website_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    })
     .optional(),
   source_code_url: yup
     .string()
     .url("Must be a valid URL")
-    .matches(/^https:\/\/|^$/, "Link must start with https://")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    })
     .optional(),
   category: yup.string().required("This section is required"),
   is_developer_allow_listing: yup.boolean(),
@@ -149,7 +167,8 @@ export const Configuration = memo(function Configuration() {
 
         toast.success("App information saved");
       } catch (errors: any) {
-        toast.error("Error saving app: " + errors.message);
+        console.log(errors);
+        toast.error("Error saving app");
       }
     },
     [prepareMetadataForSave, updateAppMetadata]
@@ -169,17 +188,20 @@ export const Configuration = memo(function Configuration() {
         });
 
         toast.success("App submitted for review");
-      } catch (errors: any) {
-        if (errors.inner && Array.isArray(errors.inner)) {
-          errors.inner.forEach((error: yup.ValidationError) => {
+      } catch (error: any) {
+        if (error.inner && Array.isArray(error.inner)) {
+          error.inner.forEach((error: yup.ValidationError) => {
             setError(error.path as keyof ConfigurationFormValues, {
               type: "manual",
               message: error.message,
             });
           });
-          toast.error("Error submitting for review. Please check your inputs");
+          toast.error(
+            "Error submitting for review. Please review the highlighted fields"
+          );
         } else {
-          toast.error("Error saving app: " + errors.message);
+          console.error(error);
+          toast.error("Error submitting app");
         }
       }
     },
@@ -200,7 +222,8 @@ export const Configuration = memo(function Configuration() {
         await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
       } catch (error: any) {
-        toast.error("Error creating a new draft: ", error.message);
+        console.error(error.message);
+        toast.error("Error creating a new draft");
       }
     },
     [currentApp, updateAppMetadata]
@@ -221,7 +244,8 @@ export const Configuration = memo(function Configuration() {
         });
         toast.success("New app draft created");
       } catch (error: any) {
-        toast.error("Error creating a new draft: ", error.message);
+        console.error(error.message);
+        toast.error("Error creating a new draft");
       }
     },
     [currentApp, updateAppMetadata]
