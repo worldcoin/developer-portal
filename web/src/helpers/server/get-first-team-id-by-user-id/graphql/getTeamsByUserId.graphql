@@ -1,5 +1,0 @@
-query GetTeamsByUserId($user_id: String!) {
-  team(where: { memberships: { user_id: { _eq: $user_id } } }) {
-    id
-  }
-}

@@ -4,18 +4,18 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetTeamsByUserIdQueryVariables = Types.Exact<{
+export type GetTeamByUserIdQueryVariables = Types.Exact<{
   user_id: Types.Scalars["String"];
 }>;
 
-export type GetTeamsByUserIdQuery = {
+export type GetTeamByUserIdQuery = {
   __typename?: "query_root";
   team: Array<{ __typename?: "team"; id: string }>;
 };
 
-export const GetTeamsByUserIdDocument = gql`
-  query GetTeamsByUserId($user_id: String!) {
-    team(where: { memberships: { user_id: { _eq: $user_id } } }) {
+export const GetTeamByUserIdDocument = gql`
+  query GetTeamByUserId($user_id: String!) {
+    team(where: { memberships: { user_id: { _eq: $user_id } } }, limit: 1) {
       id
     }
   }
@@ -38,18 +38,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    GetTeamsByUserId(
-      variables: GetTeamsByUserIdQueryVariables,
+    GetTeamByUserId(
+      variables: GetTeamByUserIdQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<GetTeamsByUserIdQuery> {
+    ): Promise<GetTeamByUserIdQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetTeamsByUserIdQuery>(
-            GetTeamsByUserIdDocument,
+          client.request<GetTeamByUserIdQuery>(
+            GetTeamByUserIdDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders }
           ),
-        "GetTeamsByUserId",
+        "GetTeamByUserId",
         "query"
       );
     },

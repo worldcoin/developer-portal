@@ -1,11 +1,11 @@
 import { getAPIServiceGraphqlClient } from "@/backend/graphql";
-import { getSdk } from "./graphql/getTeamsByUserId.generated";
+import { getSdk } from "./graphql/getTeamByUserId.generated";
 
 export const getFirstTeamIdByUserId = async (
   user_id: string
 ): Promise<string | null> => {
   const client = await getAPIServiceGraphqlClient();
-  const teams = await getSdk(client).GetTeamsByUserId({ user_id });
+  const teams = await getSdk(client).GetTeamByUserId({ user_id });
 
   if (!teams || teams.team.length === 0) {
     return null;
