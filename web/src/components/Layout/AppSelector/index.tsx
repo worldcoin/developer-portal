@@ -19,7 +19,6 @@ import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
-import getConfig from "next/config";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -70,7 +69,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
             width={20}
             height={20}
             alt="app logo"
-            onError={() => setImage("")}
+            onError={() => setImage(null)}
           />
         )}
 

@@ -71,11 +71,6 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         disabled={disabled}
         errors={errors.logo_img_url}
       />
-      {errors.logo_img_url?.message && (
-        <span className="pt-2 left-0 flex items-center text-12 text-danger">
-          {errors.logo_img_url.message}
-        </span>
-      )}
       <FieldLabel required className="my-3 font-rubik">
         Hero Image (1600 x 1200)
       </FieldLabel>
@@ -89,11 +84,6 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         disabled={disabled}
         errors={errors.hero_image_url}
       />
-      {errors.hero_image_url?.message && (
-        <span className="pt-2 left-0 flex items-center text-12 text-danger">
-          {errors.hero_image_url.message}
-        </span>
-      )}
       <FieldLabel required className="my-3 font-rubik">
         Showcase Image (1920 x 1080)
       </FieldLabel>
