@@ -52,6 +52,11 @@ select_permissions:
                   _eq: X-Hasura-User-Id
               - team_id:
                   _eq: X-Hasura-Team-Id
+              - _or:
+                  - role:
+                      _eq: OWNER
+                  - role:
+                      _eq: ADMIN
 update_permissions:
   - role: service
     permission:
