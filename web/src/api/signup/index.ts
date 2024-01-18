@@ -140,6 +140,10 @@ export const handleSignup = withApiAuthRequired(
         !insertMembershipResult.insert_membership_one?.team_id ||
         !insertMembershipResult.insert_membership_one?.user
       ) {
+        logger.error(
+          "Failed to insert membership while creating account from invite"
+        );
+
         return errorResponse(
           res,
           500,
