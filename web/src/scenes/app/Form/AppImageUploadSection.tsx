@@ -33,7 +33,6 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
     hero_image_url: "",
     showcase_img_urls: [],
   });
-  console.log(errors);
 
   useEffect(() => {
     const fetchSignedUrls = async () => {
@@ -50,7 +49,6 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
           throw new Error(json.message || "Failed to get image");
         }
         const urls: Urls = json.urls;
-        console.log(urls);
         setSignedUrls(urls);
       } catch (error) {
         console.error("Get image error:", error);
@@ -97,7 +95,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         </span>
       )}
       <FieldLabel required className="my-3 font-rubik">
-        Showcase Images (1920 x 1080)
+        Showcase Image (1920 x 1080)
       </FieldLabel>
       <div className="">
         <ImageUploadComponent

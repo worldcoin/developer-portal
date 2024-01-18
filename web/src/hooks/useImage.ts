@@ -1,6 +1,4 @@
-// useImageUpload.ts
 import { useState, useCallback, ChangeEvent, useEffect } from "react";
-import { toast } from "react-toastify";
 import { useAppStore } from "@/stores/appStore";
 
 type ImageHookProps = {
@@ -18,16 +16,19 @@ export const useImage = (props: ImageHookProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(
     imgSrc ?? null
   );
-
+  // Track the current image preview for the upload object
   useEffect(() => {
     setImagePreview(imgSrc ?? null);
   }, [imgSrc]);
-
+  // This function fetches the image by generating a signed URL to the unverified image item
   const getImage = useCallback(async () => {
     try {
+      if (!currentApp?.id) {
+        throw new Error("Current App ID is not defined");
+      }
       const response = await fetch(
         `/api/images/get_images?app_id=${encodeURIComponent(
-          currentApp?.id!
+          currentApp?.id
         )}&image_type=${encodeURIComponent(imageType)}`,
         {
           method: "GET",
@@ -37,15 +38,12 @@ export const useImage = (props: ImageHookProps) => {
       if (!response.ok) {
         throw new Error(json.message || "Failed to get image");
       }
-      // Checks if the image was found in the s3 bucket otherwise it won't update the metadata
       setImagePreview(json.url);
     } catch (error) {
-      toast.error("Could not find uploaded image.");
-
       console.error("Get image error:", error);
     }
   }, [currentApp?.id, imageType]);
-
+  // This function is used to enforce strict dimensions for the uploaded images
   const validateImageDimensions = useCallback(
     (file: File): Promise<void> => {
       return new Promise((resolve, reject) => {
@@ -56,7 +54,6 @@ export const useImage = (props: ImageHookProps) => {
           if (img.naturalWidth === width && img.naturalHeight === height) {
             resolve();
           } else {
-            toast.error(`Image dimensions must be ${width}x${height}`);
             reject(`Image dimensions must be ${width}x${height}`);
           }
         };
@@ -69,9 +66,8 @@ export const useImage = (props: ImageHookProps) => {
     },
     [width, height]
   );
-
+  // This function is called when the user selects a file to upload, and calls get image to visually confirm the image was uploaded.
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
-    // Handle file selection
     const file = e.target.files ? e.target.files[0] : null;
     if (file && file.type === fileType) {
       setSelectedFile(file);
@@ -80,16 +76,14 @@ export const useImage = (props: ImageHookProps) => {
           await validateImageDimensions(file);
         }
         await uploadViaPresignedPost(file);
-        // Shows the user the current image in the bucket after upload
         await getImage();
       } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw new Error("Image Upload Failed");
       }
-    } else {
-      throw new Error("Invalid file type");
     }
   };
-
+  // This function generates a presigned url for image upload. We restrict based on content type
   const uploadViaPresignedPost = useCallback(
     async (file: File) => {
       try {
@@ -108,29 +102,26 @@ export const useImage = (props: ImageHookProps) => {
         if (!response.ok) {
           throw new Error(json.message || "Failed to get presigned POST data");
         }
-        // Build a form for the request body
         const formData = new FormData();
         Object.keys(json.fields).forEach((key) =>
           formData.append(key, json.fields[key])
         );
         formData.append("Content-Type", file.type);
         formData.append("file", file);
-        // Send the POST request to the presigned URL
         const uploadResponse = await fetch(json.url, {
           method: "POST",
           body: formData,
         });
         if (!uploadResponse.ok) {
-          const errorBody = await uploadResponse.text(); // or .json() if the response is in JSON format
+          const errorBody = await uploadResponse.json();
           throw new Error(
             `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
           );
         }
-      } catch (error: any) {
-        toast.error("Failed to upload image");
+      } catch (error) {
         console.error("Upload error:", error);
         setIsUploading(false);
-        throw new Error(error);
+        throw new Error("Failed to upload image");
       }
       setIsUploading(false);
     },
@@ -145,8 +136,6 @@ export const useImage = (props: ImageHookProps) => {
     },
     [setImagePreview]
   );
-
-  // ... Any other handlers or logic
 
   return {
     selectedFile,

@@ -8,6 +8,7 @@ import {
 } from "react-hook-form";
 import { ConfigurationFormValues } from "../Configuration";
 import { useImage } from "@/hooks/useImage";
+import { toast } from "react-toastify";
 
 type ImageUploadComponentProps = {
   register: UseFormRegisterReturn;
@@ -52,6 +53,7 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
         setValue(formItemName, "");
         removeImage(event);
       } catch (error) {
+        toast.error("Unable to remove image");
         console.error(error);
       }
     },
@@ -59,11 +61,13 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
   );
 
   const registerImageUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
+    async (event: ChangeEvent<HTMLInputElement>) => {
       try {
-        handleFileInput(event);
+        await handleFileInput(event);
         setValue(formItemName, dbImageValue);
+        toast.success("Image uploaded successfully");
       } catch (error) {
+        toast.error("Image upload failed");
         console.error(error);
       }
     },
@@ -104,6 +108,11 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
       </label>
 
       {isUploading && <p>Uploading...</p>}
+      {errors?.message && (
+        <span className="pt-2 left-0 flex items-center text-12 text-danger">
+          {String(errors?.message)}
+        </span>
+      )}
     </div>
   );
 });
