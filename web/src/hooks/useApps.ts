@@ -248,10 +248,6 @@ const updateAppMetadataFetcher = async (
         .join(",")}}`
     : undefined;
   const unverifiedAppMetadata = currentApp.app_metadata;
-  const logo_img_url_formatted =
-    logo_img_url || unverifiedAppMetadata?.logo_img_url
-      ? "logo_img_url.png"
-      : "";
   // Upsert in the event no metadata row exists.
   const response = await graphQLRequest<{
     insert_app_metadata_one: AppMetadataModel;
@@ -260,7 +256,7 @@ const updateAppMetadataFetcher = async (
     variables: {
       app_id: id,
       name: name ?? unverifiedAppMetadata?.name,
-      logo_img_url: logo_img_url_formatted,
+      logo_img_url: logo_img_url || unverifiedAppMetadata?.logo_img_url,
       showcase_img_urls:
         showcase_img_urls ?? unverifiedAppMetadata?.showcase_img_urls,
       hero_image_url: hero_image_url ?? unverifiedAppMetadata?.hero_image_url,

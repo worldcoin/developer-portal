@@ -1,9 +1,18 @@
 query GetUnverifiedImages($team_id: String!, $app_id: String!) {
+<<<<<<< HEAD
   app(where: { id: { _eq: $app_id }, team: { id: { _eq: $team_id } } }) {
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
+=======
+  app(where: {id: {_eq: $app_id}, team: {id: {_eq: $team_id}}}) {
+    app_metadata(where: {verification_status: {_neq: "verified"}}) {
+>>>>>>> a7295fb (images added besides showcase logic)
       logo_img_url
       showcase_img_urls
       hero_image_url
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a7295fb (images added besides showcase logic)
