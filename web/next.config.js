@@ -4,8 +4,13 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
+<<<<<<< HEAD
 const s3BucketUrl = `https://s3.${process.env.ASSETS_S3_REGION}.amazonaws.com/${process.env.ASSETS_S3_BUCKET_NAME}`;
 const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
+=======
+const s3BucketUrl = process.env.AWS_S3_BUCKET_URL;
+const cdnUrl = process.env.AWS_CDN_URL;
+>>>>>>> 1970d87 (set next config)
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
