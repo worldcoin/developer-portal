@@ -92,7 +92,7 @@ export const Layout = (props: {
                   icon="apps"
                   name="App Profile"
                   href={urls.app({
-                    team_id: router.query.team_id as string,
+                    team_id: teamId,
                     app_id: appId,
                   })}
                 />
@@ -152,11 +152,7 @@ export const Layout = (props: {
               <hr className="text-f3f4f5 my-4" />
 
               <NavItemGroup withoutHeading>
-                <NavItem
-                  name="My Team"
-                  icon="team"
-                  href={urls.team(router.query.team_id as string)}
-                />
+                <NavItem name="My Team" icon="team" href={urls.team(teamId)} />
                 <NavItem
                   name="Leave Feedback"
                   icon="edit-alt"
