@@ -19,13 +19,15 @@ import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
   selected?: boolean;
   className?: string;
 }) {
-  // TODO: Once migration is done remove this check, also we want to show the pending images in portal
+  // TODO: Once image migration is done we can remove this
   const [image, setImage] = useState<string | null>(
     props.app.app_metadata?.logo_img_url !== "logo_img.png"
       ? props.app.app_metadata?.logo_img_url
@@ -39,6 +41,16 @@ export const ButtonContent = memo(function ButtonContent(props: {
     ) {
       return;
     }
+    // TODO: We will add this once verified images are up and migrations are done
+    // if (props.app.verified_app_metadata?.logo_img_url == "logo_img.png") {
+    //   console.log("here");
+    //   setImage(
+    //     publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL
+    //       ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/logo_img.png`
+    //       : null
+    //   );
+    //   return;
+    // }
 
     setImage(props.app.app_metadata.logo_img_url);
   }, [props.app.app_metadata?.logo_img_url]);
@@ -59,7 +71,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
             width={20}
             height={20}
             alt="app logo"
-            onError={() => setImage(null)}
+            onError={() => setImage("")}
           />
         )}
 
