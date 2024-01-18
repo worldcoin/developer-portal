@@ -23,6 +23,7 @@ insert_permissions:
         - ironclad_id
         - is_subscribed
         - name
+        - team_id
         - world_id_nullifier
 select_permissions:
   - role: service
@@ -35,6 +36,7 @@ select_permissions:
         - ironclad_id
         - name
         - posthog_id
+        - team_id
         - updated_at
         - world_id_nullifier
       filter: {}
@@ -48,8 +50,9 @@ select_permissions:
         - is_subscribed
         - name
       filter:
-        id:
-          _eq: X-Hasura-User-Id
+        memberships:
+          team_id:
+            _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:
@@ -71,7 +74,5 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        team:
-          memberships:
-            user_id:
-              _eq: X-Hasura-User-Id
+        id:
+          _eq: X-Hasura-User-Id
