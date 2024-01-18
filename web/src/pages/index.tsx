@@ -22,6 +22,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const team_id = await getFirstTeamIdByUserId(user_id);
 
   if (!team_id) {
+    // NOTE: Temporary redirect to 404 page while we add support for creating teams or delete your account
     return {
       redirect: {
         destination: "/404",
