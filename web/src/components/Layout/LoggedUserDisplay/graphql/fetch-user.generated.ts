@@ -18,6 +18,7 @@ export type FetchUserQuery = {
     auth0Id?: string | null;
     memberships: Array<{
       __typename?: "membership";
+      id: string;
       role: Types.Role_Enum;
       team: { __typename?: "team"; id: string; name?: string | null };
     }>;
@@ -33,6 +34,7 @@ export const FetchUserDocument = gql`
       auth0Id
       name
       memberships {
+        id
         team {
           id
           name

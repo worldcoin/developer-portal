@@ -5,13 +5,11 @@ import { Icon } from "src/components/Icon";
 import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { useFetchUser } from "./hooks/user-hooks";
-import { useRouter } from "next/router";
+import { TeamSelector } from "./TeamSelector";
 
 export function LoggedUserDisplay(props: { className?: string }) {
   const modal = useToggle(false);
   const { user } = useFetchUser();
-  const router = useRouter();
-  const team_id = router.query.team_id as string;
 
   // FIXME: remove when real user image is available
   const image = "";
@@ -66,12 +64,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
           {loggedUserName}
         </span>
 
-        <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
-          {
-            user?.hasura.memberships?.find((i) => i.team.id === team_id)?.team
-              .name
-          }
-        </span>
+        <TeamSelector memberships={user.hasura.memberships ?? []} />
       </div>
     </Fragment>
   );

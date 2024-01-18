@@ -4,7 +4,9 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type TeamsQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type TeamsQueryVariables = Types.Exact<{
+  team_id?: Types.InputMaybe<Types.Scalars["String"]>;
+}>;
 
 export type TeamsQuery = {
   __typename?: "query_root";
@@ -27,8 +29,8 @@ export type TeamsQuery = {
 };
 
 export const TeamsDocument = gql`
-  query Teams {
-    team {
+  query Teams($team_id: String) {
+    team(where: { id: { _eq: $team_id } }) {
       id
       name
       memberships {
@@ -56,6 +58,7 @@ export const TeamsDocument = gql`
  * @example
  * const { data, loading, error } = useTeamsQuery({
  *   variables: {
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */

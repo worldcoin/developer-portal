@@ -11,7 +11,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { use, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 export const useFetchUser = () => {
   const router = useRouter();
@@ -38,19 +38,24 @@ export const useFetchUser = () => {
     fetchUser();
   }, [auth0User?.hasura?.id, fetchUser, team_id]);
 
-  return {
-    user: {
-      hasura: {
-        ...data?.user[0],
-        ...other,
-      },
+  const result = useMemo(
+    () => ({
+      user: {
+        hasura: {
+          ...data?.user[0],
+          ...other,
+        },
 
-      auth0: {
-        ...auth0User,
-        ...rest,
+        auth0: {
+          ...auth0User,
+          ...rest,
+        },
       },
-    },
-  };
+    }),
+    [auth0User, data?.user, other, rest]
+  );
+
+  return result;
 };
 
 export const useUpdateUser = (id: string) => {

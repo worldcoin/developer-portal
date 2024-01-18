@@ -1,5 +1,5 @@
-query Teams {
-  team {
+query Teams($team_id: String) {
+  team(where: { id: { _eq: $team_id } }) {
     id
     name
     memberships {

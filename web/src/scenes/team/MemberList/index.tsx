@@ -10,7 +10,7 @@ export interface MemberListProps {
 }
 
 export const MemberList = memo(function MemberList(props: MemberListProps) {
-  const { members } = props;
+  const members = useMemo(() => props.members, [props.members]);
 
   const inviteDialog = useToggle();
 

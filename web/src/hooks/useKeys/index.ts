@@ -2,7 +2,7 @@ import { toast } from "react-toastify";
 
 import {
   FetchKeysDocument,
-  useFetchKeysQuery,
+  useFetchKeysLazyQuery,
 } from "./graphql/fetch-keys.generated";
 
 import {
@@ -18,21 +18,33 @@ import {
 import { useDeleteKeyMutation } from "./graphql/delete-key.generated";
 import { useResetApiKeyMutation } from "./graphql/reset-key.generated";
 import { useRouter } from "next/router";
+import { use, useEffect, useMemo } from "react";
 
 const useKeys = () => {
   const router = useRouter();
-  const team_id = router.query.team_id as string | undefined;
 
-  const {
-    data: fetchedKeys,
-    error,
-    loading,
-  } = useFetchKeysQuery({
+  const team_id = useMemo(
+    () => router.query.team_id as string | undefined,
+    [router.query.team_id]
+  );
+
+  const [
+    fetchKeys,
+    { data: fetchedKeys, error, loading, refetch: refetchKeys },
+  ] = useFetchKeysLazyQuery({
     context: { headers: { team_id } },
     onError: () => {
       toast.error("Failed to fetch API keys");
     },
   });
+
+  useEffect(() => {
+    if (!team_id) {
+      return;
+    }
+
+    fetchKeys();
+  }, [fetchKeys, team_id]);
 
   const [insertKeyMutation] = useInsertKeyMutation({
     context: { headers: { team_id } },
@@ -170,6 +182,7 @@ const useKeys = () => {
     keys: fetchedKeys?.api_key ?? [],
     error,
     isLoading: loading,
+    refetchKeys,
     createKey,
     updateKey,
     deleteKey,
