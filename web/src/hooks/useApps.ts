@@ -244,10 +244,18 @@ const updateAppMetadataFetcher = async (
 
   const unverifiedAppMetadata = currentApp.app_metadata;
   const which_showcase_img_urls =
-    showcase_img_urls ?? unverifiedAppMetadata?.showcase_img_urls;
-  const formatted_showcase_img_urls = which_showcase_img_urls
-    ? `{${which_showcase_img_urls.map((url: string) => `"${url}"`).join(",")}}`
-    : undefined;
+    showcase_img_urls ?? unverifiedAppMetadata.showcase_img_urls;
+  const filtered_showcase_img_urls =
+    which_showcase_img_urls?.filter(
+      (url, index) => url === `showcase_img_${index + 1}.png`
+    ) || null;
+
+  const formatted_showcase_img_urls = filtered_showcase_img_urls
+    ? `{${filtered_showcase_img_urls
+        .map((url: string) => `"${url}"`)
+        .join(",")}}`
+    : null;
+
   // Upsert in the event no metadata row exists.
   const response = await graphQLRequest<{
     insert_app_metadata_one: AppMetadataModel;
