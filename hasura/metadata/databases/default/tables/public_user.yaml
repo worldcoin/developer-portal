@@ -70,3 +70,9 @@ update_permissions:
         id:
           _eq: X-Hasura-User-Id
       check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
