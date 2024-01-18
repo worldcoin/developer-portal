@@ -25,16 +25,14 @@ export const useImage = (props: ImageHookProps) => {
 
   const getImage = useCallback(async () => {
     try {
-      const response = await fetch("/api/images/get_images", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          app_id: currentApp?.id,
-          image_type: imageType,
-        }),
-      });
+      const response = await fetch(
+        `/api/images/get_images?app_id=${encodeURIComponent(
+          currentApp?.id!
+        )}&image_type=${encodeURIComponent(imageType)}`,
+        {
+          method: "GET",
+        }
+      );
       const json = await response.json();
       if (!response.ok) {
         throw new Error(json.message || "Failed to get image");

@@ -83,6 +83,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
       const objectKey = `unverified/${app_id}/`;
       const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
       const urlPromises = [];
+<<<<<<< HEAD
       const command = new GetObjectCommand({
         Bucket: bucketName,
         Key: objectKey + app.logo_img_url,
@@ -93,6 +94,19 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
           getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
             logo_img_url: url,
           }))
+=======
+      // We check for any image values that are defined in the unverified row and generate a signed URL for that image
+      if (app.logo_img_url) {
+        urlPromises.push(
+          getSignedUrl(
+            s3Client,
+            new GetObjectCommand({
+              Bucket: bucketName,
+              Key: objectKey + app.logo_img_url,
+            }),
+            { expiresIn: 7200 }
+          ).then((url) => ({ logo_img_url: url }))
+>>>>>>> 49e0e58 (change to get request)
         );
       }
 
