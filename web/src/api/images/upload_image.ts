@@ -108,5 +108,3 @@ export const handleImageUpload = withApiAuthRequired(
     }
   }
 );
-
-// ... (rest of the file remains unchanged)
