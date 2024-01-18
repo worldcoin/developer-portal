@@ -16,7 +16,6 @@ const getActionsStore = (store: IActionStore) => ({
 export const DeleteAction = memo(function DeleteAction() {
   const { isOpened, setIsOpened, actionToDelete } =
     useActionStore(getActionsStore);
-  const { user } = useUser();
 
   const { deleteAction, loading } = useDeleteAction();
 
