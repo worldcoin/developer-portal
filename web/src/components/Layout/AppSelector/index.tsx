@@ -25,12 +25,18 @@ export const ButtonContent = memo(function ButtonContent(props: {
   selected?: boolean;
   className?: string;
 }) {
+  // TODO: Once migration is done remove this check, also we want to show the pending images in portal
   const [image, setImage] = useState<string | null>(
-    props.app.app_metadata?.logo_img_url ?? ""
+    props.app.app_metadata?.logo_img_url !== "logo_img.png"
+      ? props.app.app_metadata?.logo_img_url
+      : ""
   );
 
   useEffect(() => {
-    if (!props.app.app_metadata?.logo_img_url) {
+    if (
+      !props.app.app_metadata?.logo_img_url ||
+      props.app.app_metadata?.logo_img_url === "logo_img.png"
+    ) {
       return;
     }
 
@@ -48,15 +54,13 @@ export const ButtonContent = memo(function ButtonContent(props: {
     >
       <div>
         {image && (
-          <div> TODO</div>
-          // // TODO: fix this
-          // <Image
-          //   src={props.app?.app_metadata?.logo_img_url ?? ""}
-          //   width={20}
-          //   height={20}
-          //   alt="app logo"
-          //   onError={() => setImage(null)}
-          // />
+          <Image
+            src={image}
+            width={20}
+            height={20}
+            alt="app logo"
+            onError={() => setImage(null)}
+          />
         )}
 
         {!image && (

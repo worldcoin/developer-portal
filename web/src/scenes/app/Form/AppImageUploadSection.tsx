@@ -33,6 +33,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
     hero_image_url: "",
     showcase_img_urls: [],
   });
+  console.log(errors);
 
   useEffect(() => {
     const fetchSignedUrls = async () => {
@@ -62,7 +63,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
   return (
     <div>
       <FieldLabel required className="my-3 font-rubik">
-        Logo (500 x 500 required)
+        Logo (500 x 500)
       </FieldLabel>
       <ImageUploadComponent
         register={register("logo_img_url")}
@@ -74,8 +75,13 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         disabled={disabled}
         errors={errors.logo_img_url}
       />
+      {errors.logo_img_url?.message && (
+        <span className="pt-2 left-0 flex items-center text-12 text-danger">
+          {errors.logo_img_url.message}
+        </span>
+      )}
       <FieldLabel required className="my-3 font-rubik">
-        Hero Image (1600 x 1200 required)
+        Hero Image (1600 x 1200)
       </FieldLabel>
       <ImageUploadComponent
         register={register("hero_image_url")}
@@ -87,43 +93,31 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         disabled={disabled}
         errors={errors.hero_image_url}
       />
+      {errors.hero_image_url?.message && (
+        <span className="pt-2 left-0 flex items-center text-12 text-danger">
+          {errors.hero_image_url.message}
+        </span>
+      )}
       <FieldLabel required className="my-3 font-rubik">
-        Showcase Images (1920 x 1080 required)
+        Showcase Images (1920 x 1080)
       </FieldLabel>
-      <div className="flex flex-row gap-3">
+      <div className="">
         <ImageUploadComponent
-          key={1}
-          register={register("showcase_img_urls")}
+          index={0}
+          register={register(`showcase_img_urls.${0}`)}
           imgSrc={signedUrls.showcase_img_urls[0]}
           setValue={setValue}
-          imageType="showcase_img"
+          imageType="showcase_img_1"
           width={1920}
           height={1080}
           disabled={disabled}
           errors={errors.showcase_img_urls?.[0] as FieldError | undefined}
         />
-        <ImageUploadComponent
-          key={2}
-          register={register("showcase_img_urls")}
-          imgSrc={signedUrls.showcase_img_urls[1]}
-          setValue={setValue}
-          imageType="showcase_img"
-          width={1920}
-          height={1080}
-          disabled={disabled}
-          errors={errors.showcase_img_urls?.[1] as FieldError | undefined}
-        />
-        <ImageUploadComponent
-          key={3}
-          register={register("showcase_img_urls")}
-          imgSrc={signedUrls.showcase_img_urls[2]}
-          setValue={setValue}
-          imageType="showcase_img"
-          width={1920}
-          height={1080}
-          disabled={disabled}
-          errors={errors.showcase_img_urls?.[2] as FieldError | undefined}
-        />
+        {errors.showcase_img_urls?.[0]?.message && (
+          <span className="pt-2 left-0 flex items-center text-12 text-danger">
+            {String(errors.showcase_img_urls[0].message)}
+          </span>
+        )}
       </div>
     </div>
   );

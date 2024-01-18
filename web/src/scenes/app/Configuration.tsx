@@ -71,7 +71,11 @@ const submitSchema = yup.object().shape({
     .required("This section is required"),
   logo_img_url: yup.string().required("This section is required"),
   hero_image_url: yup.string().required("This section is required"),
-  showcase_img_urls: yup.array().min(1).required("This section is required"),
+  showcase_img_urls: yup
+    .array()
+    .of(yup.string().required("This section is required"))
+    .min(1, "At least one image is required")
+    .required("This section is required"),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -140,7 +144,6 @@ export const Configuration = memo(function Configuration() {
   const handleSave = useCallback(
     async (data: ConfigurationFormValues) => {
       const updatedData = prepareMetadataForSave(data);
-      console.log(updatedData);
       await updateAppMetadata({
         ...updatedData,
         verification_status: "unverified",
@@ -229,12 +232,7 @@ export const Configuration = memo(function Configuration() {
         </div>
       )}
       <h2 className="text-20 font-sora font-semibold">App Information</h2>
-      <AppImageUploadSection
-        register={register}
-        errors={errors}
-        disabled={isSubmitting || !isEditable}
-        setValue={setValue}
-      />
+
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
           App name
@@ -274,6 +272,12 @@ export const Configuration = memo(function Configuration() {
         register={register}
         errors={errors}
         disabled={isSubmitting || !isEditable}
+      />
+      <AppImageUploadSection
+        register={register}
+        errors={errors}
+        disabled={isSubmitting || !isEditable}
+        setValue={setValue}
       />
       <div className="flex flex-row w-full justify-end h-10">
         <Button
