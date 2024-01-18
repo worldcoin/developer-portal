@@ -17,7 +17,7 @@ const schema = yup.object({
     .strict()
     .oneOf([
       "logo_img",
-      "hero_img",
+      "hero_image",
       "showcase_img_1",
       "showcase_img_2",
       "showcase_img_3",
@@ -26,7 +26,7 @@ const schema = yup.object({
 });
 
 export type ImageGetBody = yup.InferType<typeof schema>;
-
+// This endpoint takes in an appID and image and returns that particular image 
 export const handleImageGet = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse<ImageGetResponse>) => {
     if (!req.method || req.method !== "POST") {
@@ -63,7 +63,6 @@ export const handleImageGet = withApiAuthRequired(
 
     const bucketName = process.env.AWS_BUCKET_NAME;
     const objectKey = `unverified/${app_id}/${image_type}.png`;
-    console.log(objectKey);
 
     const command = new GetObjectCommand({
       Bucket: bucketName,
@@ -72,7 +71,6 @@ export const handleImageGet = withApiAuthRequired(
     const signedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 9000, // The URL will expire in 2.5 hours
     });
-    console.log(signedUrl);
 
     res.status(200).json({
       url: signedUrl,

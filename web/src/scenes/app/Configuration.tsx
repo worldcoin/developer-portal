@@ -26,6 +26,8 @@ const saveSchema = yup.object().shape({
   description_connect: yup.string().max(1500).optional(),
   world_app_description: yup.string().max(50).optional(),
   logo_img_url: yup.string().optional(),
+  hero_image_url: yup.string().optional(),
+  showcase_img_urls: yup.array().optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -68,6 +70,8 @@ const submitSchema = yup.object().shape({
     .max(50)
     .required("This section is required"),
   logo_img_url: yup.string().required("This section is required"),
+  hero_image_url: yup.string().required("This section is required"),
+  showcase_img_urls: yup.array().min(1).required("This section is required"),
   integration_url: yup
     .string()
     .url("Must be a valid URL")

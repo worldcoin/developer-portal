@@ -17,7 +17,7 @@ const schema = yup.object({
     .strict()
     .oneOf([
       "logo_img",
-      "hero_img",
+      "hero_image",
       "showcase_img_1",
       "showcase_img_2",
       "showcase_img_3",
