@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
 import { IAppStore, useAppStore } from "src/stores/appStore";
