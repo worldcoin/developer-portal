@@ -4,7 +4,8 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-
+const s3BucketUrl = process.env.AWS_S3_BUCKET_URL;
+const cdnUrl = process.env.AWS_CDN_URL;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -19,6 +20,7 @@ const nextConfig = {
               "'self'",
               "https://world-id-public.s3.amazonaws.com",
               "https://worldcoin.org",
+              ...(s3BucketUrl ? [s3BucketUrl] : []),
             ],
             "style-src": "'unsafe-inline'",
             "connect-src": [
@@ -44,7 +46,7 @@ const nextConfig = {
 
   reactStrictMode: true,
   images: {
-    domains: ["world-id-public.s3.amazonaws.com"],
+    domains: ["world-id-public.s3.amazonaws.com", ...(cdnUrl ? [cdnUrl] : [])],
   },
   publicRuntimeConfig: Object.fromEntries(
     Object.entries(process.env).filter(([key]) =>

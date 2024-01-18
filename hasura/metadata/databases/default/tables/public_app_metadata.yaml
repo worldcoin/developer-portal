@@ -116,11 +116,10 @@ select_permissions:
         - name
         - logo_img_url
         - verification_status
-      filter:
-        verification_status:
-          _in:
-            - unverified
-            - verified
+        - showcase_img_urls
+        - hero_image_url
+        - verification_status
+      filter: {}
   - role: user
     permission:
       columns:
