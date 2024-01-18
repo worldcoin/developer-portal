@@ -30,6 +30,7 @@ const nextConfig = {
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
               "https://bridge.worldcoin.org",
+              ...(s3BucketUrl ? [s3BucketUrl] : []),
             ],
             "script-src": [
               "'self'",
