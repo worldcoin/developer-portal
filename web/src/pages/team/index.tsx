@@ -13,6 +13,7 @@ export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
     const user_id = session?.user.hasura.id;
     const team_id = await getFirstTeamIdByUserId(user_id);
 
+    // TODO: update when we add support for creating teams when you don't have any
     if (!team_id) {
       return {
         redirect: {
