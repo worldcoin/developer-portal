@@ -1,4 +1,4 @@
-import { AppMetadataModel, AppModel } from "@/lib/models";
+import { AppMetadataModel, AppModel, AppQueryModel } from "@/lib/models";
 import { AppStatusType } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { gql } from "@apollo/client";
@@ -87,6 +87,7 @@ const UpsertAppMetadataQuery = gql`
     $integration_url: String = ""
     $app_website_url: String = ""
     $source_code_url: String = ""
+    $verification_status: String = ""
   ) {
     insert_app_metadata_one(
       object: {
@@ -102,6 +103,7 @@ const UpsertAppMetadataQuery = gql`
         integration_url: $integration_url
         app_website_url: $app_website_url
         source_code_url: $source_code_url
+        verification_status: $verification_status
       }
       on_conflict: {
         constraint: app_metadata_app_id_is_row_verified_key
@@ -117,6 +119,7 @@ const UpsertAppMetadataQuery = gql`
           integration_url
           app_website_url
           source_code_url
+          verification_status
         ]
         where: {
           verification_status: { _neq: "verified" }
@@ -156,7 +159,7 @@ const fetchApps = async ([_key, team_id]: [
   string | undefined
 ]): Promise<Array<AppModel>> => {
   const response = await graphQLRequest<{
-    app: Array<AppModel>;
+    app: Array<AppQueryModel>;
   }>(
     {
       query: FetchAppsQuery,
@@ -173,15 +176,12 @@ const fetchApps = async ([_key, team_id]: [
   return apps;
 };
 
-const _parseAppModel = (appModel: AppModel): AppModel => {
+const _parseAppModel = (appModel: AppQueryModel): AppModel => {
   return {
     ...appModel,
-    app_metadata: Array.isArray(appModel.app_metadata)
-      ? appModel.app_metadata[0]
-      : undefined,
-    verified_app_metadata: Array.isArray(appModel.verified_app_metadata)
-      ? appModel.verified_app_metadata[0]
-      : undefined,
+    app_metadata:
+      appModel.app_metadata?.[0] ?? appModel.verified_app_metadata?.[0],
+    verified_app_metadata: appModel.verified_app_metadata?.[0],
   };
 };
 
@@ -233,6 +233,7 @@ const updateAppMetadataFetcher = async (
       world_app_description?: AppMetadataModel["world_app_description"];
       app_website_url?: AppMetadataModel["app_website_url"];
       source_code_url?: AppMetadataModel["source_code_url"];
+      verification_status?: AppMetadataModel["verification_status"];
     };
   }
 ) => {
@@ -250,6 +251,7 @@ const updateAppMetadataFetcher = async (
     world_app_description,
     app_website_url,
     source_code_url,
+    verification_status,
   } = args.arg;
 
   if (!currentApp) {
@@ -289,6 +291,8 @@ const updateAppMetadataFetcher = async (
           app_website_url ?? unverifiedAppMetadata?.app_website_url,
         source_code_url:
           source_code_url ?? unverifiedAppMetadata?.source_code_url,
+        verification_status:
+          verification_status ?? unverifiedAppMetadata?.verification_status,
       },
     },
     undefined,
