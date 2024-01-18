@@ -176,7 +176,12 @@ export const auth0Login = withApiAuthRequired(
         );
       }
 
-      if (!invite || !invite.team_id) {
+      if (
+        !invite ||
+        !invite.team_id ||
+        new Date(invite.expires_at) <= new Date() ||
+        invite.email !== auth0User.email
+      ) {
         logger.error("Invite not found or team_id is missing.");
 
         return res.redirect(

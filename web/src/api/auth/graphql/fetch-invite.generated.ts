@@ -10,13 +10,20 @@ export type InviteQueryVariables = Types.Exact<{
 
 export type InviteQuery = {
   __typename?: "query_root";
-  invite: Array<{ __typename?: "invite"; team_id: string }>;
+  invite: Array<{
+    __typename?: "invite";
+    team_id: string;
+    email: string;
+    expires_at: any;
+  }>;
 };
 
 export const InviteDocument = gql`
   query Invite($id: String!) {
     invite(where: { id: { _eq: $id } }) {
       team_id
+      email
+      expires_at
     }
   }
 `;
