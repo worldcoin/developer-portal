@@ -38,6 +38,8 @@ export const useTeam = () => {
     }
 
     fetchTeams().then(() => {
+      // NOTE: We need to refetch the user here because when updating team info
+      // we also need to update it in the user's team selector.
       user.hasura.refetch();
       refetchKeys();
       setCurrentApp(null);
@@ -95,7 +97,6 @@ export const useUpdateTeamName = () => {
   };
 };
 
-// TODO: In practice we currently only support 1 user = 1 team, when we change this we need to update this query to just remove the user from the team
 export const useRemoveTeamMember = () => {
   const router = useRouter();
   const team_id = router.query.team_id as string | undefined;
