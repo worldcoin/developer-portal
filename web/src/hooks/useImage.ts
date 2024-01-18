@@ -1,5 +1,6 @@
 import { useState, useCallback, ChangeEvent, useEffect } from "react";
 import { useAppStore } from "@/stores/appStore";
+import { toast } from "react-toastify";
 
 type ImageHookProps = {
   width?: number;
@@ -54,6 +55,7 @@ export const useImage = (props: ImageHookProps) => {
           if (img.naturalWidth === width && img.naturalHeight === height) {
             resolve();
           } else {
+            toast.error(`Image dimensions must be ${width}x${height}`);
             reject(`Image dimensions must be ${width}x${height}`);
           }
         };
