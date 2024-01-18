@@ -38,15 +38,13 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
   useEffect(() => {
     const fetchSignedUrls = async () => {
       try {
-        const response = await fetch("/api/images/get_unverified", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            app_id: currentApp?.id,
-          }),
-        });
+        const app_id = encodeURIComponent(currentApp?.id || "");
+        const response = await fetch(
+          `/api/images/get_unverified?app_id=${app_id}`,
+          {
+            method: "GET",
+          }
+        );
         const json = await response.json();
         if (!response.ok) {
           throw new Error(json.message || "Failed to get image");
