@@ -20,7 +20,6 @@ import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
 import getConfig from "next/config";
-const { publicRuntimeConfig } = getConfig();
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
