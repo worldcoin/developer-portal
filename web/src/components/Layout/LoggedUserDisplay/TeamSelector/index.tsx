@@ -17,7 +17,7 @@ export const TeamSelector = memo(function TeamSelector(props: {
     return props.memberships.find((m) => m.team.id === team_id)?.team;
   }, [props.memberships, team_id]);
 
-  const membershiplist = useMemo(() => {
+  const membershipList = useMemo(() => {
     return props.memberships.filter((m) => m.team.id !== team_id);
   }, [props.memberships, team_id]);
 
@@ -45,7 +45,7 @@ export const TeamSelector = memo(function TeamSelector(props: {
                 dir={"top"}
               >
                 <Menu.Items className="relative grid gap-y-1 my-1 px-2" static>
-                  {membershiplist.map((membership) => (
+                  {membershipList.map((membership) => (
                     <Menu.Item
                       key={membership.id}
                       as={Link}
