@@ -2,7 +2,7 @@ import { Illustration } from "@/components/Auth/Illustration";
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { memo, useCallback } from "react";
-import { TeamMember, useDeleteTeamMember } from "@/scenes/team/hooks/useTeam";
+import { TeamMember, useRemoveTeamMember } from "@/scenes/team/hooks/useTeam";
 
 export interface RemoveMemberDialogProps {
   memberForRemove?: TeamMember;
@@ -13,13 +13,13 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
   props: RemoveMemberDialogProps
 ) {
   const { memberForRemove, onClose } = props;
-  const { deleteTeamMember, loading } = useDeleteTeamMember();
+  const { removeTeamMember, loading } = useRemoveTeamMember();
 
   const handleConfirm = useCallback(async () => {
     if (!memberForRemove) return;
-    await deleteTeamMember(memberForRemove.id);
+    await removeTeamMember(memberForRemove.id);
     onClose();
-  }, [deleteTeamMember, memberForRemove, onClose]);
+  }, [memberForRemove, onClose, removeTeamMember]);
 
   return (
     <Dialog
@@ -41,8 +41,7 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
 
           <span className="text-14">
             Are you sure you want to remove your team member
-            <b>&nbsp;{memberForRemove?.name}</b>? This will delete their
-            Developer Portal account.
+            <b>&nbsp;{memberForRemove?.user.name}</b>?
           </span>
         </div>
       </div>

@@ -35,16 +35,16 @@ const actionKioskQuery = gql`
       app {
         id
         is_staging
-        app_metadata(where: { status: { _neq: "verified" } }) {
+        app_metadata(where: { verification_status: { _neq: "verified" } }) {
           name
-          status
+          verification_status
         }
         verified_app_metadata: app_metadata(
-          where: { status: { _eq: "verified" } }
+          where: { verification_status: { _eq: "verified" } }
         ) {
           name
           logo_img_url
-          status
+          verification_status
         }
       }
     }
@@ -54,8 +54,10 @@ const actionKioskQuery = gql`
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const action_id = context.query.action_id;
   const client = await getAPIServiceClient();
+  const team_id = context.query.team_id as string;
 
   const { data } = await client.query<{ action: ActionKioskQueryType[] }>({
+    context: { headers: { team_id } },
     query: actionKioskQuery,
     variables: {
       action_id,

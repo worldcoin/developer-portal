@@ -1,0 +1,5 @@
+mutation InsertUser($user_data: user_insert_input!) {
+  insert_user_one(object: $user_data) {
+    id
+  }
+}

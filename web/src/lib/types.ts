@@ -5,6 +5,8 @@
 
 import { NextApiRequest } from "next";
 import { ActionModel, AppMetadataModel, AppModel } from "./models";
+import { Membership } from "@/graphql/graphql";
+import { UserContext } from "@auth0/nextjs-auth0/client";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
@@ -127,3 +129,18 @@ export enum LoginErrorCode {
   Generic = "generic",
   EmailNotVerified = "email-not-verified",
 }
+
+export type Auth0SessionUser = Omit<UserContext, "user"> & {
+  user?: UserContext["user"] & {
+    hasura: {
+      auth0Id: string;
+      email?: string;
+      id: string;
+      memberships: Array<
+        Pick<Membership, "role"> & Partial<Pick<Membership, "team">>
+      >;
+      name: string;
+      posthog_id?: string;
+    };
+  };
+};
