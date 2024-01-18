@@ -207,6 +207,10 @@ export default async function handlePrecheck(
   const app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   // Prevent breaking changes
+  const logo_img_url =
+    verified_app_metadata?.logo_img_url === "logo_img.png"
+      ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${rawAppValues.id}/logo_img.png`
+      : verified_app_metadata?.logo_img_url ?? "";
   const app: _App = {
     __typename: rawAppValues.__typename,
     id: rawAppValues.id,
@@ -214,7 +218,7 @@ export default async function handlePrecheck(
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
     name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
-    verified_app_logo: verified_app_metadata?.logo_img_url ?? "",
+    verified_app_logo: logo_img_url,
     actions: rawAppValues.actions,
   };
   // ANCHOR: If the action doesn't exist, create it
