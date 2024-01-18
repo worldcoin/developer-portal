@@ -86,7 +86,7 @@ export const handleImageUpload = withApiAuthRequired(
         Key: objectKey,
         Expires: 600, // URL expires in 10 minutes
         Conditions: [
-          ["content-length-range", 0, 250000], // 250kb max file size
+          ["content-length-range", 0, 250000], // 250 kb max file size
           ["eq", "$Content-Type", contentType],
         ],
       });
