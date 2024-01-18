@@ -18,7 +18,7 @@ type ImageUploadComponentProps = {
   imageType: string;
   imgSrc?: string;
   disabled: boolean;
-  key?: number;
+  index?: number;
 };
 export const ImageUploadComponent = memo(function ImageUploadComponent(
   props: ImageUploadComponentProps
@@ -32,9 +32,11 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     imgSrc,
     width,
     height,
-    key,
+    index,
     ...otherProps
   } = props;
+  const dbImageValue = `${imageType}.png`;
+
   const { isUploading, imagePreview, removeImage, handleFileInput } = useImage({
     width,
     height,
@@ -43,8 +45,6 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     fileType: "image/png",
   });
   const formItemName = register.name as keyof ConfigurationFormValues;
-  const dbImageValue = key ? `${imageType}_${key}.png` : `${imageType}.png`;
-
   const registerRemoveImage = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
@@ -55,7 +55,7 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
         console.error(error);
       }
     },
-    [setValue, formItemName, removeImage]
+    [formItemName, removeImage, setValue]
   );
 
   const registerImageUpload = useCallback(
@@ -67,17 +67,18 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
         console.error(error);
       }
     },
-    [handleFileInput, setValue, formItemName, dbImageValue]
+    [handleFileInput, formItemName, setValue, dbImageValue]
   );
 
   return (
-    <div className={`${disabled ?? "opacity-30"}`}>
+    <div>
       <label className="flex border-2 border-dashed w-32 h-32 rounded-md cursor-pointer justify-center items-center">
         {imagePreview ? (
           <div className="relative">
             <button
-              className="absolute top-0 right-0 cursor-pointer"
+              className="absolute top-0 right-0 cursor-pointer disabled:hidden"
               onClick={registerRemoveImage}
+              disabled={disabled}
             >
               <Icon name="close" className="w-6 h-6 bg-danger" />
             </button>

@@ -57,7 +57,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
         .status(403)
         .json({ message: "User does not have access to this app." });
     }
-    // TODO: Check if we need to decode showcase image
+
     const app = appInfo[0].app_metadata[0];
     const s3Client = new S3Client({
       region: process.env.AWS_REGION,
@@ -73,7 +73,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
             Bucket: bucketName,
             Key: objectKey + app.logo_img_url,
           }),
-          { expiresIn: 3600 }
+          { expiresIn: 7200 }
         ).then((url) => ({ logo_img_url: url }))
       );
     }
@@ -86,7 +86,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
             Bucket: bucketName,
             Key: objectKey + app.hero_image_url,
           }),
-          { expiresIn: 3600 }
+          { expiresIn: 7200 }
         ).then((url) => ({ hero_image_url: url }))
       );
     }
@@ -99,7 +99,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
             Bucket: bucketName,
             Key: key,
           }),
-          { expiresIn: 3600 }
+          { expiresIn: 7200 }
         )
       );
       const showcaseUrls = await Promise.all(showcaseUrlPromises);

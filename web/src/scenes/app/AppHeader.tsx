@@ -12,7 +12,9 @@ export const AppHeader = memo(function AppHeader() {
   const [copied, setCopied] = useState(false);
 
   const [image, setImage] = useState<string | null>(
-    currentApp?.app_metadata?.logo_img_url ?? null
+    currentApp?.app_metadata?.logo_img_url !== "logo_img.png"
+      ? currentApp?.app_metadata?.logo_img_url ?? ""
+      : ""
   );
   const { toggleAppActivity, parseDescription } = useApps();
   const descriptionInternal = parseDescription(currentApp?.app_metadata);
@@ -35,8 +37,7 @@ export const AppHeader = memo(function AppHeader() {
           <div>
             {image && (
               <Image
-                //TODO
-                src={""}
+                src={image}
                 alt="app logo"
                 width={44}
                 height={44}
