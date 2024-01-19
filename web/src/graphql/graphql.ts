@@ -54,6 +54,12 @@ export type InviteTeamMembersOutput = {
   emails?: Maybe<Array<Scalars["String"]>>;
 };
 
+export type PresignedPost = {
+  __typename?: "PresignedPost";
+  stringifiedFields: Scalars["String"];
+  url: Scalars["String"];
+};
+
 export type ResetApiOutput = {
   __typename?: "ResetAPIOutput";
   api_key: Scalars["String"];
@@ -4509,6 +4515,8 @@ export type Query_Root = {
   team_aggregate: Team_Aggregate;
   /** fetch data from the table: "team" using primary key columns */
   team_by_pk?: Maybe<Team>;
+  /** Generates a Signed URL to upload images */
+  upload_image?: Maybe<PresignedPost>;
   /** fetch data from the table: "user" */
   user: Array<User>;
   /** fetch aggregated fields from the table: "user" */
@@ -4813,6 +4821,13 @@ export type Query_RootTeam_AggregateArgs = {
 
 export type Query_RootTeam_By_PkArgs = {
   id: Scalars["String"];
+};
+
+export type Query_RootUpload_ImageArgs = {
+  app_id: Scalars["String"];
+  content_type_ending: Scalars["String"];
+  image_type: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 export type Query_RootUserArgs = {
