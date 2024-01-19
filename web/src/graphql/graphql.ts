@@ -36,6 +36,12 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]>>;
 };
 
+export type FormField = {
+  __typename?: "FormField";
+  key: Scalars["String"];
+  value: Scalars["String"];
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["Int"]>;
@@ -56,7 +62,11 @@ export type InviteTeamMembersOutput = {
 
 export type PresignedPost = {
   __typename?: "PresignedPost";
+<<<<<<< HEAD
   stringifiedFields: Scalars["String"];
+=======
+  fields: Array<FormField>;
+>>>>>>> 0a3ad9b (commit to have a backtrack)
   url: Scalars["String"];
 };
 
@@ -3164,6 +3174,8 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  /** Generates a Signed URL to upload images */
+  upload_image?: Maybe<PresignedPost>;
 };
 
 /** mutation root */
@@ -3712,6 +3724,14 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpload_ImageArgs = {
+  app_id: Scalars["String"];
+  content_type_ending: Scalars["String"];
+  image_type: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** columns and relationships of "nullifier" */
