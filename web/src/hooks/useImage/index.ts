@@ -11,10 +11,9 @@ type ImageHookProps = {
   imgSrc?: string;
   fileType?: string;
 };
-type PostFields = { [key: string]: any };
 
-const UploadImageMutation = gql`
-  query UploadImage(
+const UploadImageQuery = gql`
+  query TEST(
     $app_id: String!
     $team_id: String!
     $image_type: String!
@@ -27,10 +26,7 @@ const UploadImageMutation = gql`
       content_type_ending: $content_type_ending
     ) {
       url
-      fields {
-        key
-        value
-      }
+      stringifiedFields
     }
   }
 `;
@@ -42,6 +38,7 @@ export const useImage = (props: ImageHookProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(
     imgSrc ?? null
   );
+  const [fileTypeEnding, setFileTypeEnding] = useState<string | null>(null);
   // Track the current image preview for the upload object
   useEffect(() => {
     setImagePreview(imgSrc ?? null);
@@ -62,7 +59,7 @@ export const useImage = (props: ImageHookProps) => {
       );
       const json = await response.json();
       if (!response.ok) {
-        throw new Error(json.message || "Failed to get image");
+        throw new Error(json || "Failed to get image");
       }
       setImagePreview(json.url);
     } catch (error) {
@@ -96,13 +93,14 @@ export const useImage = (props: ImageHookProps) => {
   // This function is called when the user selects a file to upload, and calls get image to visually confirm the image was uploaded.
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
-    if (file && file.type === fileType) {
+    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       setSelectedFile(file);
       try {
         if (width && height) {
           await validateImageDimensions(file);
         }
         await uploadViaPresignedPost(file);
+        setFileTypeEnding(file.type.split("/")[1]);
         await getImage();
       } catch (error) {
         console.error(error);
@@ -121,37 +119,39 @@ export const useImage = (props: ImageHookProps) => {
         const response = await graphQLRequest<{
           upload_image: {
             url: string;
-            fields: PostFields[];
+            stringifiedFields: any;
           };
         }>({
-          mutation: UploadImageMutation,
+          query: UploadImageQuery,
           variables: {
             app_id: currentApp.id,
-            team_id: "test",
+            team_id: "team_090c6a074386968f41836f776ede5ff0",
             image_type: imageType,
-            content_type_ending: fileType,
+            content_type_ending: file.type.split("/")[1],
           },
         });
         if (!response.data?.upload_image?.url) {
           throw new Error("Failed to get presigned URL");
         }
-        const { url, fields } = response.data.upload_image;
-        console.log("Presigned URL:", url);
-        console.log("Fields:", fields);
-        // const formData = new FormData();
-        // Object.keys(fields).forEach((k) => formData.append(k, fields[k]));
-        // formData.append("Content-Type", file.type);
-        // formData.append("file", file);
-        // const uploadResponse = await fetch(url, {
-        //   method: "POST",
-        //   body: formData,
-        // });
-        // if (!uploadResponse.ok) {
-        //   const errorBody = await uploadResponse.json();
-        //   throw new Error(
-        //     `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
-        //   );
-        // }
+        const { url, stringifiedFields } = response.data.upload_image;
+        const fields = JSON.parse(stringifiedFields);
+        console.log("Fields:", JSON.parse(stringifiedFields));
+        const formData = new FormData();
+        Object.entries(fields).forEach(([key, value]) =>
+          formData.append(key, value as string)
+        );
+        formData.append("Content-Type", file.type);
+        formData.append("file", file);
+        const uploadResponse = await fetch(url, {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadResponse.ok) {
+          const errorBody = await uploadResponse.json();
+          throw new Error(
+            `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
+          );
+        }
       } catch (error) {
         console.error("Upload error:", error);
         setIsUploading(false);
@@ -178,5 +178,6 @@ export const useImage = (props: ImageHookProps) => {
     setImagePreview,
     handleFileInput,
     removeImage,
+    fileTypeEnding,
   };
 };
