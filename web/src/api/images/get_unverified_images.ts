@@ -19,6 +19,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
     hero_image_url?: string;
     showcase_img_urls?: string[];
   };
+  success?: boolean;
   message?: string;
 };
 
@@ -69,17 +70,17 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
       }
 
       const app = appInfo[0].app_metadata[0];
-      if (!process.env.AWS_REGION) {
+      if (!process.env.ASSETS_S3_REGION) {
         throw new Error("AWS Region must be set.");
       }
       const s3Client = new S3Client({
-        region: process.env.AWS_REGION,
+        region: process.env.ASSETS_S3_REGION,
       });
-      if (!process.env.AWS_BUCKET_NAME) {
+      if (!process.env.ASSETS_S3_BUCKET_NAME) {
         throw new Error("AWS Bucket Name must be set.");
       }
       const objectKey = `unverified/${app_id}/`;
-      const bucketName = process.env.AWS_BUCKET_NAME;
+      const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
       const urlPromises = [];
       const command = new GetObjectCommand({
         Bucket: bucketName,
@@ -130,7 +131,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
       );
       res.status(200).json({
         urls: formattedSignedUrl,
-        message: "Success",
+        success: true,
       });
     } catch (error) {
       logger.error("Error getting images.", { error });

@@ -17,6 +17,7 @@ import {
 import { logger } from "@/lib/logger";
 
 export type DeleteAllImagesResponse = {
+  success?: boolean;
   message?: string;
 };
 
@@ -68,16 +69,16 @@ export const handleDeleteAllImages = withApiAuthRequired(
       }
 
       const app = appInfo[0].app_metadata[0];
-      if (!process.env.AWS_REGION) {
+      if (!process.env.ASSETS_S3_REGION) {
         throw new Error("AWS Region must be set.");
       }
       const s3Client = new S3Client({
-        region: process.env.AWS_REGION,
+        region: process.env.ASSETS_S3_REGION,
       });
-      if (!process.env.AWS_BUCKET_NAME) {
+      if (!process.env.ASSETS_S3_BUCKET_NAME) {
         throw new Error("AWS Bucket Name must be set.");
       }
-      const bucketName = process.env.AWS_BUCKET_NAME;
+      const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
       const objectPrefix = `unverified/${app_id}/`;
 
       const listObjectsResponse = await s3Client.send(
@@ -103,7 +104,7 @@ export const handleDeleteAllImages = withApiAuthRequired(
         await Promise.all(deletePromises);
       }
       res.status(200).json({
-        message: "Success",
+        success: true,
       });
     } catch (error) {
       logger.error("Error deleting images.", { error });

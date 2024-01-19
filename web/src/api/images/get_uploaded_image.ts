@@ -13,7 +13,11 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
 
-export type ImageGetResponse = { url?: string; message?: string };
+export type ImageGetResponse = {
+  url?: string;
+  success?: boolean;
+  message?: string;
+};
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
@@ -38,13 +42,14 @@ export const handleImageGet = withApiAuthRequired(
       if (!req.method || req.method !== "GET") {
         return errorNotAllowed(req.method, res, req);
       }
-      const { app_id, image_type } = req.query;
 
       const { isValid, parsedParams, handleError } =
         await validateRequestSchema({
-          value: { app_id, image_type },
+          value: req.query,
           schema,
         });
+
+      const { app_id, image_type } = req.query;
 
       if (!isValid || !parsedParams) {
         return handleError(req, res);
@@ -67,16 +72,16 @@ export const handleImageGet = withApiAuthRequired(
           code: "no_access",
         });
       }
-      if (!process.env.AWS_REGION) {
+      if (!process.env.ASSETS_S3_REGION) {
         throw new Error("AWS Region must be set.");
       }
       const s3Client = new S3Client({
-        region: process.env.AWS_REGION,
+        region: process.env.ASSETS_S3_REGION,
       });
-      if (!process.env.AWS_BUCKET_NAME) {
+      if (!process.env.ASSETS_S3_BUCKET_NAME) {
         throw new Error("AWS Bucket Name must be set.");
       }
-      const bucketName = process.env.AWS_BUCKET_NAME;
+      const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
       const objectKey = `unverified/${app_id}/${image_type}.png`;
 
       const command = new GetObjectCommand({
@@ -84,12 +89,12 @@ export const handleImageGet = withApiAuthRequired(
         Key: objectKey,
       });
       const signedUrl = await getSignedUrl(s3Client, command, {
-        expiresIn: 7200, // The URL will expire in 2 hours
+        expiresIn: 900, // The URL will expire in 15 minutes
       });
 
       res.status(200).json({
         url: signedUrl,
-        message: "Success",
+        success: true,
       });
     } catch (error) {
       logger.error("Error getting uploaded image.", { error });
