@@ -115,7 +115,7 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
             s3Client,
             new GetObjectCommand({
               Bucket: bucketName,
-              Key: key,
+              Key: objectKey + key,
             }),
             { expiresIn: 7200 }
           )

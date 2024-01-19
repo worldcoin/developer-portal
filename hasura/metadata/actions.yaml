@@ -37,6 +37,10 @@ actions:
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: api_key
+      - role: user
+    comment: Generates a Signed URL to upload images
 custom_types:
   enums: []
   input_objects:
