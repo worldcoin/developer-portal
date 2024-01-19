@@ -20,7 +20,6 @@ export type ImageGetAllUnverifiedImagesResponse = {
     showcase_img_urls?: string[];
   };
   success?: boolean;
-  message?: string;
 };
 
 const schema = yup.object({
