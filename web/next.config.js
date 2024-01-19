@@ -4,7 +4,7 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-const s3BucketUrl = process.env.AWS_S3_BUCKET_URL;
+const s3BucketUrl = `https://s3.amazonaws.com/${process.env.ASSETS_S3_BUCKET_NAME}`;
 const cdnUrl = process.env.ASSETS_CDN_URL;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
