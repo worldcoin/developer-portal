@@ -99,11 +99,6 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
           disabled={disabled}
           errors={errors.showcase_img_urls?.[0] as FieldError | undefined}
         />
-        {errors.showcase_img_urls?.[0]?.message && (
-          <span className="pt-2 left-0 flex items-center text-12 text-danger">
-            {String(errors.showcase_img_urls[0].message)}
-          </span>
-        )}
       </div>
     </div>
   );

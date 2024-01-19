@@ -87,7 +87,7 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
               <Icon name="close" className="w-6 h-6 bg-danger" />
             </button>
             <Image
-              src={imgSrc ?? imagePreview}
+              src={imagePreview ?? imgSrc}
               alt="Uploaded"
               className="rounded-lg w-32 h-32 object-contain"
               width={width}
