@@ -16,7 +16,6 @@ import { logger } from "@/lib/logger";
 export type ImageUploadResponse = {
   url?: string;
   success?: boolean;
-  message?: string;
 };
 
 const schema = yup.object({
