@@ -46,7 +46,7 @@ type InviteTeamMembersOutput {
 
 type PresignedPost {
   url: String!
-  fields: [FormField!]!
+  stringifiedFields: String!
 }
 
 type FormField {
