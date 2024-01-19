@@ -166,49 +166,6 @@
         "possibleTypes": null
       },
       {
-        "kind": "OBJECT",
-        "name": "FormField",
-        "description": null,
-        "fields": [
-          {
-            "name": "key",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "value",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "inputFields": null,
-        "interfaces": [],
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
         "kind": "SCALAR",
         "name": "Int",
         "description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
@@ -391,16 +348,21 @@
         "fields": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "stringifiedFields",
 =======
             "name": "fields",
 >>>>>>> 0a3ad9b (commit to have a backtrack)
+=======
+            "name": "stringifiedFields",
+>>>>>>> 2d66c9c (working upload endpoint with upload)
             "description": null,
             "args": [],
             "type": {
               "kind": "NON_NULL",
               "name": null,
               "ofType": {
+<<<<<<< HEAD
 <<<<<<< HEAD
                 "kind": "SCALAR",
                 "name": "String",
@@ -418,6 +380,11 @@
                   }
                 }
 >>>>>>> 0a3ad9b (commit to have a backtrack)
+=======
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+>>>>>>> 2d66c9c (working upload endpoint with upload)
               }
             },
             "isDeprecated": false,
@@ -25648,83 +25615,6 @@
                 "name": "user_mutation_response",
                 "ofType": null
               }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "upload_image",
-            "description": "Generates a Signed URL to upload images",
-            "args": [
-              {
-                "name": "app_id",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "content_type_ending",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "image_type",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "team_id",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "OBJECT",
-              "name": "PresignedPost",
-              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null

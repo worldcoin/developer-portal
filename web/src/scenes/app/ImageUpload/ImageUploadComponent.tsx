@@ -36,14 +36,18 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     index,
     ...otherProps
   } = props;
-  const dbImageValue = `${imageType}.png`;
 
-  const { isUploading, imagePreview, removeImage, handleFileInput } = useImage({
+  const {
+    isUploading,
+    imagePreview,
+    removeImage,
+    handleFileInput,
+    fileTypeEnding,
+  } = useImage({
     width,
     height,
     imageType,
     imgSrc,
-    fileType: "image/png",
   });
   const formItemName = register.name as keyof ConfigurationFormValues;
   const registerRemoveImage = useCallback(
@@ -64,14 +68,14 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     async (event: ChangeEvent<HTMLInputElement>) => {
       try {
         await handleFileInput(event);
-        setValue(formItemName, dbImageValue);
+        setValue(formItemName, `${imageType}.${fileTypeEnding}`);
         toast.success("Image uploaded successfully");
       } catch (error) {
         toast.error("Image upload failed");
         console.error(error);
       }
     },
-    [handleFileInput, formItemName, setValue, dbImageValue]
+    [handleFileInput, setValue, formItemName, imageType, fileTypeEnding]
   );
 
   return (
@@ -99,7 +103,7 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
         )}
         <input
           type="file"
-          accept=".png"
+          accept=".png,.jpg,.jpeg"
           disabled={disabled}
           {...otherProps}
           onChange={registerImageUpload}
