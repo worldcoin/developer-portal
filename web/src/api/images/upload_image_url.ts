@@ -40,11 +40,10 @@ export const handleImageUpload = async (
       return;
     }
 
-    if (req.method !== "POST") {
+    if (req.method !== "GET") {
       return errorNotAllowed(req.method, res, req);
     }
     const session = (await getSession(req, res)) as Session;
-    const auth0Team = session?.user.hasura.team_id;
 
     if (req.body.action?.name !== "upload_image") {
       return errorHasuraQuery({
@@ -74,8 +73,12 @@ export const handleImageUpload = async (
     ).CheckUserInApp({
       team_id: team_id,
       app_id: app_id,
+      user_id: session.user.hasura.id,
     });
-    if (!userTeam[0].apps.some((app) => app.id === app_id)) {
+    if (
+      !userTeam[0].apps.some((app) => app.id === app_id) ||
+      userTeam[0].users.length === 0
+    ) {
       return errorHasuraQuery({
         res,
         req,

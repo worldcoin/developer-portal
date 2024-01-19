@@ -7,6 +7,7 @@ import gql from "graphql-tag";
 export type CheckUserInAppQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
   app_id: Types.Scalars["String"];
+  user_id: Types.Scalars["String"];
 }>;
 
 export type CheckUserInAppQuery = {
@@ -14,13 +15,17 @@ export type CheckUserInAppQuery = {
   team: Array<{
     __typename?: "team";
     apps: Array<{ __typename?: "app"; id: string }>;
+    users: Array<{ __typename?: "user"; id: string }>;
   }>;
 };
 
 export const CheckUserInAppDocument = gql`
-  query CheckUserInApp($team_id: String!, $app_id: String!) {
+  query CheckUserInApp($team_id: String!, $app_id: String!, $user_id: String!) {
     team(where: { id: { _eq: $team_id } }) {
       apps(where: { id: { _eq: $app_id } }) {
+        id
+      }
+      users(where: { id: { _eq: $user_id } }) {
         id
       }
     }
