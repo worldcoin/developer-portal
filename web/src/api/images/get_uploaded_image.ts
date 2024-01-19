@@ -20,6 +20,7 @@ export type ImageGetResponse = {
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
+  team_id: yup.string().strict().required(),
   image_type: yup
     .string()
     .strict()
@@ -31,6 +32,7 @@ const schema = yup.object({
       "showcase_img_3",
     ])
     .required(),
+  content_type_ending: yup.string().strict().oneOf(["png", "jpg"]).required(),
 });
 
 export type ImageGetBody = yup.InferType<typeof schema>;
@@ -48,7 +50,7 @@ export const handleImageGet = withApiAuthRequired(
           schema,
         });
 
-      const { app_id, image_type } = req.query;
+      const { app_id, image_type, content_type_ending, team_id } = req.query;
 
       if (!isValid || !parsedParams) {
         return handleError(req, res);
@@ -81,7 +83,7 @@ export const handleImageGet = withApiAuthRequired(
         throw new Error("AWS Bucket Name must be set.");
       }
       const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-      const objectKey = `unverified/${app_id}/${image_type}.png`;
+      const objectKey = `unverified/${app_id}/${image_type}.${content_type_ending}`;
 
       const command = new GetObjectCommand({
         Bucket: bucketName,

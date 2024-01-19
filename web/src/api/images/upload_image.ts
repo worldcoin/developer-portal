@@ -20,6 +20,7 @@ export type ImageUploadResponse = {
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
+  team_id: yup.string().strict().required(),
   image_type: yup
     .string()
     .strict()
@@ -31,6 +32,7 @@ const schema = yup.object({
       "showcase_img_3",
     ])
     .required(),
+  content_type_ending: yup.string().strict().oneOf(["png", "jpg"]).required(),
 });
 
 export type ImageUploadBody = yup.InferType<typeof schema>;
@@ -41,7 +43,6 @@ export const handleImageUpload = withApiAuthRequired(
       if (!req.method || req.method !== "POST") {
         return errorNotAllowed(req.method, res, req);
       }
-
       const session = (await getSession(req, res)) as Session;
       const auth0Team = session?.user.hasura.team_id;
 
@@ -54,7 +55,8 @@ export const handleImageUpload = withApiAuthRequired(
       if (!isValid || !parsedParams) {
         return handleError(req, res);
       }
-      const { app_id, image_type } = parsedParams;
+      // TODO: Use param team_id 
+      const { app_id, image_type, content_type_ending, team_id } = parsedParams;
 
       const client = await getAPIServiceGraphqlClient();
 
@@ -82,8 +84,11 @@ export const handleImageUpload = withApiAuthRequired(
         throw new Error("AWS Bucket Name must be set.");
       }
       const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-      const objectKey = `unverified/${app_id}/${image_type}.png`;
-      const contentType = "image/png";
+      const objectKey = `unverified/${app_id}/${image_type}.${content_type_ending}`;
+      const contentType =
+        content_type_ending === "jpg" // jpg needs to use jpeg for mime type
+          ? "image/jpeg"
+          : `image/${content_type_ending}`;
       const signedUrl = await createPresignedPost(s3Client, {
         Bucket: bucketName,
         Key: objectKey,

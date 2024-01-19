@@ -24,6 +24,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
+  team_id: yup.string().strict().required(),
 });
 
 export type ImageGetAllUnverifiedImagesBody = yup.InferType<typeof schema>;
@@ -37,17 +38,18 @@ export const handleGetAllUnverifiedImages = withApiAuthRequired(
       if (!req.method || req.method !== "GET") {
         return errorNotAllowed(req.method, res, req);
       }
-      const { app_id } = req.query;
 
       const { isValid, parsedParams, handleError } =
         await validateRequestSchema({
-          value: { app_id },
+          value: req.query,
           schema,
         });
 
       if (!isValid || !parsedParams) {
         return handleError(req, res);
       }
+      const { app_id, team_id } = req.query;
+
       const session = (await getSession(req, res)) as Session;
       const auth0Team = session?.user.hasura.team_id;
 

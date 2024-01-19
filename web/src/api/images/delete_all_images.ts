@@ -23,6 +23,7 @@ export type DeleteAllImagesResponse = {
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
+  team_id: yup.string().strict().required(),
 });
 
 export type DeleteAllImagesBody = yup.InferType<typeof schema>;
