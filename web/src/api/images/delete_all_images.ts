@@ -25,7 +25,7 @@ const schema = yup.object({
 });
 
 export type DeleteAllImagesBody = yup.InferType<typeof schema>;
-// This endpoint takes in an App ID and returns all available unverified images for that app.
+// This endpoint takes in an App ID and deletes all the images in the folder. Used if the user deletes the app.
 export const handleDeleteAllImages = withApiAuthRequired(
   async (
     req: NextApiRequest,
@@ -79,9 +79,7 @@ export const handleDeleteAllImages = withApiAuthRequired(
       }
       const bucketName = process.env.AWS_BUCKET_NAME;
       const objectPrefix = `unverified/${app_id}/`;
-      console.log(app_id);
 
-      // List all objects in the folder
       const listObjectsResponse = await s3Client.send(
         new ListObjectsCommand({
           Bucket: bucketName,
@@ -89,12 +87,10 @@ export const handleDeleteAllImages = withApiAuthRequired(
         })
       );
 
-      // Extract the object keys
       const objectKeys = listObjectsResponse.Contents?.map(
         (object) => object.Key
       );
 
-      // Delete each object individually
       if (objectKeys && objectKeys.length > 0) {
         const deletePromises = objectKeys.map((key) =>
           s3Client.send(
@@ -110,12 +106,12 @@ export const handleDeleteAllImages = withApiAuthRequired(
         message: "Success",
       });
     } catch (error) {
-      logger.error("Error getting images.", { error });
+      logger.error("Error deleting images.", { error });
       return errorResponse(
         res,
         500,
         "internal_server_error",
-        "Unable to get images",
+        "Unable to delete images",
         null,
         req
       );
