@@ -30,11 +30,21 @@ actions:
       - role: api_key
       - role: user
     comment: Reset the client secret for a Sign in with World ID application
+  - name: upload_image
+    definition:
+      kind: ""
+      handler: '{{NEXT_API_URL}}/images/upload_image'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
 custom_types:
   enums: []
-  input_objects: []
+  input_objects:
+    - name: UploadImageInput
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
     - name: InviteTeamMembersOutput
+    - name: PresignedPost
+    - name: FormField
   scalars: []

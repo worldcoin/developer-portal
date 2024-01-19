@@ -16,6 +16,22 @@ type Mutation {
   ): ResetClientOutput
 }
 
+type Query {
+  upload_image(
+    app_id: String!
+    team_id: String!
+    image_type: String!
+    content_type_ending: String!
+  ): PresignedPost
+}
+
+input UploadImageInput {
+  app_id: String!
+  team_id: String!
+  image_type: String!
+  content_type_ending: String!
+}
+
 type ResetClientOutput {
   client_secret: String!
 }
@@ -26,5 +42,15 @@ type ResetAPIOutput {
 
 type InviteTeamMembersOutput {
   emails: [String!]
+}
+
+type PresignedPost {
+  url: String!
+  fields: [FormField!]!
+}
+
+type FormField {
+  key: String!
+  value: String!
 }
 

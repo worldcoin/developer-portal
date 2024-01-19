@@ -1,22 +1,13 @@
-import {
-  errorHasuraQuery,
-  errorNotAllowed,
-  errorResponse,
-} from "src/backend/errors";
+import { errorHasuraQuery, errorNotAllowed } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
-import { validateRequestSchema } from "src/backend/utils";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
 import { Session, getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { logger } from "@/lib/logger";
-
-export type ImageUploadResponse = {
-  url?: string;
-  success?: boolean;
-};
+import { protectInternalEndpoint } from "@/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
@@ -35,30 +26,46 @@ const schema = yup.object({
   content_type_ending: yup.string().strict().oneOf(["png", "jpg"]).required(),
 });
 
-export type ImageUploadBody = yup.InferType<typeof schema>;
-// This endpoint takes an AppID and checks the user is on the team. If so it returns a signed URL to upload an image to S3.
+/**
+ * Returns a signed url to upload to the predefined path in S3
+ * @param req
+ * @param res
+ */
 export const handleImageUpload = withApiAuthRequired(
-  async (req: NextApiRequest, res: NextApiResponse<ImageUploadResponse>) => {
+  async (req: NextApiRequest, res: NextApiResponse) => {
     try {
-      if (!req.method || req.method !== "POST") {
+      if (!protectInternalEndpoint(req, res)) {
+        return;
+      }
+
+      if (req.method !== "POST") {
         return errorNotAllowed(req.method, res, req);
       }
       const session = (await getSession(req, res)) as Session;
       const auth0Team = session?.user.hasura.team_id;
 
-      const { isValid, parsedParams, handleError } =
-        await validateRequestSchema({
-          value: req.body,
-          schema,
+      if (req.body.action?.name !== "upload_image") {
+        return errorHasuraQuery({
+          res,
+          req,
+          detail: "Invalid action.",
+          code: "invalid_action",
         });
-
-      if (!isValid || !parsedParams) {
-        return handleError(req, res);
       }
-      // TODO: Use param team_id 
-      const { app_id, image_type, content_type_ending, team_id } = parsedParams;
+      const validatedInput = await schema.validate(req.body.input);
+      const { app_id, image_type, content_type_ending, team_id } =
+        validatedInput;
 
       const client = await getAPIServiceGraphqlClient();
+
+      if (req.body.session_variables["x-hasura-role"] === "admin") {
+        return errorHasuraQuery({
+          res,
+          req,
+          detail: "Admin is not allowed to run this query.",
+          code: "admin_not_allowed",
+        });
+      }
 
       const { team: userTeam } = await checkUserInAppDocumentSDK(
         client
@@ -105,14 +112,12 @@ export const handleImageUpload = withApiAuthRequired(
       });
     } catch (error) {
       logger.error("Error uploading image.", { error });
-      return errorResponse(
+      return errorHasuraQuery({
         res,
-        500,
-        "internal_server_error",
-        "Unable to upload image",
-        null,
-        req
-      );
+        req,
+        detail: "Unable to upload image",
+        code: "internal_server_error",
+      });
     }
   }
 );
