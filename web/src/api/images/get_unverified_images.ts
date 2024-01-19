@@ -24,7 +24,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
-  team_id: yup.string().strict().required(),
+  team_id: yup.string().strict().optional(),
 });
 
 export type ImageGetAllUnverifiedImagesBody = yup.InferType<typeof schema>;

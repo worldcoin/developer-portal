@@ -38,8 +38,9 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
     const fetchSignedUrls = async () => {
       try {
         const app_id = encodeURIComponent(currentApp?.id || "");
+        const team_id = encodeURIComponent(currentApp?.team_id || "");
         const response = await fetch(
-          `/api/images/get_unverified?app_id=${app_id}`,
+          `/api/images/get_unverified?app_id=${app_id}&team_id=${team_id}`,
           {
             method: "GET",
           }

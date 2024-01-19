@@ -1,6 +1,8 @@
 import { useState, useCallback, ChangeEvent, useEffect } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { toast } from "react-toastify";
+import gql from "graphql-tag";
+import { graphQLRequest } from "@/lib/frontend-api";
 
 type ImageHookProps = {
   width?: number;
@@ -9,6 +11,29 @@ type ImageHookProps = {
   imgSrc?: string;
   fileType?: string;
 };
+type PostFields = { [key: string]: any };
+
+const UploadImageMutation = gql`
+  query UploadImage(
+    $app_id: String!
+    $team_id: String!
+    $image_type: String!
+    $content_type_ending: String!
+  ) {
+    upload_image(
+      app_id: $app_id
+      team_id: $team_id
+      image_type: $image_type
+      content_type_ending: $content_type_ending
+    ) {
+      url
+      fields {
+        key
+        value
+      }
+    }
+  }
+`;
 export const useImage = (props: ImageHookProps) => {
   const { width, height, imageType, imgSrc, fileType } = props;
   const currentApp = useAppStore((store) => store.currentApp);
@@ -90,36 +115,43 @@ export const useImage = (props: ImageHookProps) => {
     async (file: File) => {
       try {
         setIsUploading(true);
-        const response = await fetch("/api/images/upload_image", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            app_id: currentApp?.id,
+        if (!currentApp?.id) {
+          throw new Error("Current App ID is not defined");
+        }
+        const response = await graphQLRequest<{
+          upload_image: {
+            url: string;
+            fields: PostFields[];
+          };
+        }>({
+          mutation: UploadImageMutation,
+          variables: {
+            app_id: currentApp.id,
+            team_id: "test",
             image_type: imageType,
-          }),
+            content_type_ending: fileType,
+          },
         });
-        const json = await response.json();
-        if (!response.ok) {
-          throw new Error(json.message || "Failed to get presigned POST data");
+        if (!response.data?.upload_image?.url) {
+          throw new Error("Failed to get presigned URL");
         }
-        const formData = new FormData();
-        Object.keys(json.fields).forEach((key) =>
-          formData.append(key, json.fields[key])
-        );
-        formData.append("Content-Type", file.type);
-        formData.append("file", file);
-        const uploadResponse = await fetch(json.url, {
-          method: "POST",
-          body: formData,
-        });
-        if (!uploadResponse.ok) {
-          const errorBody = await uploadResponse.json();
-          throw new Error(
-            `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
-          );
-        }
+        const { url, fields } = response.data.upload_image;
+        console.log("Presigned URL:", url);
+        console.log("Fields:", fields);
+        // const formData = new FormData();
+        // Object.keys(fields).forEach((k) => formData.append(k, fields[k]));
+        // formData.append("Content-Type", file.type);
+        // formData.append("file", file);
+        // const uploadResponse = await fetch(url, {
+        //   method: "POST",
+        //   body: formData,
+        // });
+        // if (!uploadResponse.ok) {
+        //   const errorBody = await uploadResponse.json();
+        //   throw new Error(
+        //     `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
+        //   );
+        // }
       } catch (error) {
         console.error("Upload error:", error);
         setIsUploading(false);
