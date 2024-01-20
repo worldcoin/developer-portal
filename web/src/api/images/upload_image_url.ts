@@ -11,7 +11,6 @@ import { protectInternalEndpoint } from "@/backend/utils";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
-  team_id: yup.string().strict().required(),
   image_type: yup
     .string()
     .strict()
@@ -43,9 +42,9 @@ export const handleImageUpload = async (
     if (req.method !== "GET") {
       return errorNotAllowed(req.method, res, req);
     }
+    const body = JSON.parse(req.body);
     const session = (await getSession(req, res)) as Session;
-
-    if (req.body.action?.name !== "upload_image") {
+    if (body?.action.name !== "upload_image") {
       return errorHasuraQuery({
         res,
         req,
@@ -53,13 +52,12 @@ export const handleImageUpload = async (
         code: "invalid_action",
       });
     }
-    console.log(req.body.input);
-    const validatedInput = await schema.validate(req.body.input);
-    const { app_id, image_type, content_type_ending, team_id } = validatedInput;
+    const validatedInput = await schema.validate(req.query);
+    const { app_id, image_type, content_type_ending } = validatedInput;
 
     const client = await getAPIServiceGraphqlClient();
 
-    if (req.body.session_variables["x-hasura-role"] === "admin") {
+    if (body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
         res,
         req,
@@ -67,13 +65,12 @@ export const handleImageUpload = async (
         code: "admin_not_allowed",
       });
     }
-
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client
     ).CheckUserInApp({
-      team_id: team_id,
+      team_id: body.session_variables["x-hasura-team-id"],
       app_id: app_id,
-      user_id: session.user.hasura.id,
+      user_id: body.session_variables["x-hasura-user-id"],
     });
     if (
       !userTeam[0].apps.some((app) => app.id === app_id) ||
@@ -109,7 +106,6 @@ export const handleImageUpload = async (
         ["eq", "$Content-Type", contentType],
       ],
     });
-    console.log("done");
     const { url, fields } = signedUrl;
     res.status(200).json({
       url,
