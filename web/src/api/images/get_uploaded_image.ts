@@ -28,7 +28,6 @@ const schema = yup.object({
   content_type_ending: yup.string().strict().oneOf(["png", "jpeg"]).required(),
 });
 
-export type ImageGetBody = yup.InferType<typeof schema>;
 // This endpoint takes in an appID and image and returns that particular image
 export const handleImageGet = async (
   req: NextApiRequest,
