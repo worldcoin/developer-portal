@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect } from "react";
 
 import { ImageUploadComponent } from "../ImageUpload/ImageUploadComponent";
 import { ConfigurationFormValues } from "../Configuration";
@@ -18,11 +18,6 @@ interface AppImageUploadSectionProps {
   errors: FieldErrors<ConfigurationFormValues>;
   disabled: boolean;
 }
-type Urls = {
-  logo_img_url: string;
-  hero_image_url: string;
-  showcase_img_urls: string[];
-};
 
 export const AppImageUploadSection = memo(function AppImageUploadSection(
   props: AppImageUploadSectionProps
@@ -32,7 +27,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
   const { unverifiedImages, getAllUnverifiedImages } = useImage({});
   useEffect(() => {
     getAllUnverifiedImages();
-  }, [currentApp, getAllUnverifiedImages]);
+  }, [currentApp?.id, getAllUnverifiedImages]);
 
   return (
     <div>
