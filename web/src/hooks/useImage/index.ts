@@ -15,13 +15,11 @@ type ImageHookProps = {
 const UploadImageQuery = gql`
   query TEST(
     $app_id: String!
-    $team_id: String!
     $image_type: String!
     $content_type_ending: String!
   ) {
     upload_image(
       app_id: $app_id
-      team_id: $team_id
       image_type: $image_type
       content_type_ending: $content_type_ending
     ) {
@@ -125,7 +123,6 @@ export const useImage = (props: ImageHookProps) => {
           query: UploadImageQuery,
           variables: {
             app_id: currentApp.id,
-            team_id: "team_090c6a074386968f41836f776ede5ff0",
             image_type: imageType,
             content_type_ending: file.type.split("/")[1],
           },

@@ -347,44 +347,16 @@
         "description": null,
         "fields": [
           {
-<<<<<<< HEAD
-<<<<<<< HEAD
             "name": "stringifiedFields",
-=======
-            "name": "fields",
->>>>>>> 0a3ad9b (commit to have a backtrack)
-=======
-            "name": "stringifiedFields",
->>>>>>> 2d66c9c (working upload endpoint with upload)
             "description": null,
             "args": [],
             "type": {
               "kind": "NON_NULL",
               "name": null,
               "ofType": {
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
-=======
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "FormField",
-                    "ofType": null
-                  }
-                }
->>>>>>> 0a3ad9b (commit to have a backtrack)
-=======
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
->>>>>>> 2d66c9c (working upload endpoint with upload)
               }
             },
             "isDeprecated": false,

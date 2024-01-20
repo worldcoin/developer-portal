@@ -56,7 +56,7 @@ export type InviteTeamMembersOutput = {
 
 export type PresignedPost = {
   __typename?: "PresignedPost";
-  fields: Array<FormField>;
+  stringifiedFields: Scalars["String"];
   url: Scalars["String"];
 };
 
