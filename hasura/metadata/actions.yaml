@@ -6,7 +6,7 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/get_unverified'
+      handler: '{{NEXT_API_URL}}/get_unverified_images'
       request_transform:
         method: GET
         query_params:
