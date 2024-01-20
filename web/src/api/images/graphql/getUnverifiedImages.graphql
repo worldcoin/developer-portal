@@ -1,5 +1,14 @@
-query GetUnverifiedImages($team_id: String!, $app_id: String!, $user_id: String!) {
-  app(where: { id: { _eq: $app_id }, team: { id: { _eq: $team_id }, users: { id: { _eq: $user_id } } } }) {
+query GetUnverifiedImages(
+  $team_id: String!
+  $app_id: String!
+  $user_id: String!
+) {
+  app(
+    where: {
+      id: { _eq: $app_id }
+      team: { id: { _eq: $team_id }, users: { id: { _eq: $user_id } } }
+    }
+  ) {
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       logo_img_url
       showcase_img_urls
