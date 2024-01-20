@@ -61,7 +61,7 @@ export const handleImageUpload = async (
         code: "admin_not_allowed",
       });
     }
-    const userId = req.body.session_variables["x-hasura-user-id"];
+    const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
         res,
@@ -71,7 +71,7 @@ export const handleImageUpload = async (
       });
     }
 
-    const teamId = req.body.session_variables["x-hasura-team-id"];
+    const teamId = body.session_variables["x-hasura-team-id"];
     if (!teamId) {
       return errorHasuraQuery({
         res,

@@ -53,7 +53,6 @@ export const handleGetAllUnverifiedImages = async (
         code: "required",
       });
     }
-
     if (body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
         res,
@@ -62,7 +61,7 @@ export const handleGetAllUnverifiedImages = async (
         code: "admin_not_allowed",
       });
     }
-    const userId = req.body.session_variables["x-hasura-user-id"];
+    const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
         res,
@@ -72,7 +71,7 @@ export const handleGetAllUnverifiedImages = async (
       });
     }
 
-    const teamId = req.body.session_variables["x-hasura-team-id"];
+    const teamId = body.session_variables["x-hasura-team-id"];
     if (!teamId) {
       return errorHasuraQuery({
         res,
@@ -89,7 +88,6 @@ export const handleGetAllUnverifiedImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
-
     if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
       return errorHasuraQuery({
         res,
