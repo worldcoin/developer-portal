@@ -13,11 +13,9 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
 
 export type ImageGetAllUnverifiedImagesResponse = {
-  urls?: {
-    logo_img_url?: string;
-    hero_image_url?: string;
-    showcase_img_urls?: string[];
-  };
+  logo_img_url?: string;
+  hero_image_url?: string;
+  showcase_img_urls?: string[];
 };
 
 const schema = yup.object({
@@ -136,8 +134,7 @@ export const handleGetAllUnverifiedImages = async (
       {}
     );
     res.status(200).json({
-      urls: formattedSignedUrl,
-      success: true,
+      ...formattedSignedUrl,
     });
   } catch (error) {
     logger.error("Error getting images.", { error });

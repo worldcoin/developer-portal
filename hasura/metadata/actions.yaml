@@ -103,4 +103,5 @@ custom_types:
     - name: ImageGetAllUnverifiedImagesResponse
     - name: ImageGetAllUnverifiedImagesOutput
     - name: PresignedPostOutput
+    - name: DeleteImageOutput
   scalars: []

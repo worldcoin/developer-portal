@@ -16,7 +16,6 @@ import { logger } from "@/lib/logger";
 
 export type DeleteAllImagesResponse = {
   success?: boolean;
-  message?: string;
 };
 
 const schema = yup.object({
