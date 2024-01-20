@@ -68,11 +68,6 @@ type PresignedPost {
   stringifiedFields: String!
 }
 
-type FormField {
-  key: String!
-  value: String!
-}
-
 type GetUploadedImageOutput {
   url: String!
 }
