@@ -43,7 +43,6 @@ export const handleImageUpload = async (
       return errorNotAllowed(req.method, res, req);
     }
     const body = JSON.parse(req.body);
-    const session = (await getSession(req, res)) as Session;
     if (body?.action.name !== "upload_image") {
       return errorHasuraQuery({
         res,
