@@ -132,7 +132,8 @@ export const useImage = (props: ImageHookProps) => {
         }
         setImagePreview(imageUrl);
         if (setValue && formItemName) {
-          setValue(formItemName!, `${imageType}.${fileType}`);
+          const saveFileType = fileType === "jpeg" ? "jpg" : fileType;
+          setValue(formItemName!, `${imageType}.${saveFileType}`);
         } else {
           throw new Error("setValue or formItemName is not defined");
         }

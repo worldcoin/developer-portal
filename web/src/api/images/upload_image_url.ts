@@ -9,21 +9,11 @@ import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { logger } from "@/lib/logger";
 import { protectInternalEndpoint } from "@/backend/utils";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  image_type: yup
-    .string()
-    .strict()
-    .oneOf([
-      "logo_img",
-      "hero_image",
-      "showcase_img_1",
-      "showcase_img_2",
-      "showcase_img_3",
-    ])
-    .required(),
-  content_type_ending: yup.string().strict().oneOf(["png", "jpeg"]).required(),
-});
+type RequestQueryParams = {
+  app_id: string;
+  image_type: string;
+  content_type_ending: string;
+};
 
 /**
  * Returns a signed url to upload to the predefined path in S3
@@ -51,9 +41,16 @@ export const handleImageUpload = async (
         code: "invalid_action",
       });
     }
-    const validatedInput = await schema.validate(req.query);
-    const { app_id, image_type, content_type_ending } = validatedInput;
-
+    const { app_id, image_type, content_type_ending } =
+      req.query as RequestQueryParams;
+    if (!app_id || !image_type || !content_type_ending) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "app_id, image_type, and content_type_ending must be set.",
+        code: "required",
+      });
+    }
     const client = await getAPIServiceGraphqlClient();
 
     if (body.session_variables["x-hasura-role"] === "admin") {
@@ -64,12 +61,31 @@ export const handleImageUpload = async (
         code: "admin_not_allowed",
       });
     }
+    const userId = req.body.session_variables["x-hasura-user-id"];
+    if (!userId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "userId must be set.",
+        code: "required",
+      });
+    }
+
+    const teamId = req.body.session_variables["x-hasura-team-id"];
+    if (!teamId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "teamId must be set.",
+        code: "required",
+      });
+    }
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client
     ).CheckUserInApp({
-      team_id: body.session_variables["x-hasura-team-id"],
+      team_id: teamId,
       app_id: app_id,
-      user_id: body.session_variables["x-hasura-user-id"],
+      user_id: userId,
     });
     if (
       !userTeam[0].apps.some((app) => app.id === app_id) ||
@@ -92,6 +108,7 @@ export const handleImageUpload = async (
       throw new Error("AWS Bucket Name must be set.");
     }
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
+    // Standardize JPEG to jpg
     const objectKey = `unverified/${app_id}/${image_type}.${
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;

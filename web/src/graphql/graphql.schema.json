@@ -156,6 +156,29 @@
         "possibleTypes": null
       },
       {
+        "kind": "OBJECT",
+        "name": "DeleteImageOutput",
+        "description": null,
+        "fields": [
+          {
+            "name": "success",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "SCALAR",
         "name": "Float",
         "description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
@@ -22440,7 +22463,7 @@
             "deprecationReason": null
           },
           {
-            "name": "delete_unverified_action",
+            "name": "delete_unverified_images",
             "description": null,
             "args": [
               {
@@ -22462,7 +22485,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "ImageGetAllUnverifiedImagesOutput",
+              "name": "DeleteImageOutput",
               "ofType": null
             },
             "isDeprecated": false,
