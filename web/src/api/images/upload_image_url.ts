@@ -41,17 +41,6 @@ export const handleImageUpload = async (
         code: "invalid_action",
       });
     }
-    const { app_id, image_type, content_type_ending } =
-      req.query as RequestQueryParams;
-    if (!app_id || !image_type || !content_type_ending) {
-      return errorHasuraQuery({
-        res,
-        req,
-        detail: "app_id, image_type, and content_type_ending must be set.",
-        code: "required",
-      });
-    }
-    const client = await getAPIServiceGraphqlClient();
 
     if (body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
@@ -80,6 +69,19 @@ export const handleImageUpload = async (
         code: "required",
       });
     }
+
+    const { app_id, image_type, content_type_ending } =
+      req.query as RequestQueryParams;
+    if (!app_id || !image_type || !content_type_ending) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "app_id, image_type, and content_type_ending must be set.",
+        code: "required",
+      });
+    }
+    const client = await getAPIServiceGraphqlClient();
+
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client
     ).CheckUserInApp({

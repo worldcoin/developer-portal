@@ -44,15 +44,7 @@ export const handleGetAllUnverifiedImages = async (
         code: "invalid_action",
       });
     }
-    const app_id = req.query.app_id;
-    if (!app_id) {
-      return errorHasuraQuery({
-        res,
-        req,
-        detail: "app_id must be set.",
-        code: "required",
-      });
-    }
+
     if (body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
         res,
@@ -77,6 +69,16 @@ export const handleGetAllUnverifiedImages = async (
         res,
         req,
         detail: "teamId must be set.",
+        code: "required",
+      });
+    }
+
+    const app_id = req.query.app_id;
+    if (!app_id) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "app_id must be set.",
         code: "required",
       });
     }
