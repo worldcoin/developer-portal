@@ -1,16 +1,16 @@
-import { errorHasuraQuery, errorResponse } from "src/backend/errors";
-import { NextApiRequest, NextApiResponse } from "next";
-import * as yup from "yup";
 import {
-  protectInternalEndpoint,
-  validateRequestSchema,
-} from "src/backend/utils";
+  errorHasuraQuery,
+  errorNotAllowed,
+  errorResponse,
+} from "src/backend/errors";
+import { NextApiRequest, NextApiResponse } from "next";
+import { protectInternalEndpoint } from "src/backend/utils";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { getSdk as getUnverifiedImagesSDK } from "@/api/images/graphql/getUnverifiedImages.generated";
 import {
   S3Client,
   ListObjectsCommand,
-  DeleteObjectCommand,
+  PutObjectTaggingCommand,
 } from "@aws-sdk/client-s3";
 import { logger } from "@/lib/logger";
 
@@ -18,11 +18,11 @@ export type DeleteAllImagesResponse = {
   success?: boolean;
 };
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-});
-
-// This endpoint takes in an App ID and deletes all the images in the folder. Used if the user deletes the app.
+/**
+ * TODO: Triggered when user deletes an app. Sets all unverified images to expire in 3 days.
+ * @param req
+ * @param res
+ */
 export const handleDeleteAllImages = async (
   req: NextApiRequest,
   res: NextApiResponse
@@ -32,22 +32,63 @@ export const handleDeleteAllImages = async (
       return;
     }
 
-    const { isValid, parsedParams, handleError } = await validateRequestSchema({
-      value: req.body,
-      schema,
-    });
-
-    if (!isValid || !parsedParams) {
-      return handleError(req, res);
+    if (req.method !== "POST") {
+      return errorNotAllowed(req.method!, res, req);
     }
-    const { app_id } = parsedParams;
 
+    if (req.body.action?.name !== "delete_unverified_images") {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Invalid action.",
+        code: "invalid_action",
+      });
+    }
+
+    if (req.body.session_variables["x-hasura-role"] === "admin") {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Admin is not allowed to run this query.",
+        code: "admin_not_allowed",
+      });
+    }
+
+    const userId = req.body.session_variables["x-hasura-user-id"];
+    if (!userId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "userId must be set.",
+        code: "required",
+      });
+    }
+
+    const teamId = req.body.session_variables["x-hasura-team-id"];
+    if (!teamId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "teamId must be set.",
+        code: "required",
+      });
+    }
+    const app_id = req.body.input.app_id;
+    if (!app_id) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "app_id must be set.",
+        code: "required",
+      });
+    }
     const client = await getAPIServiceGraphqlClient();
     const { app: appInfo } = await getUnverifiedImagesSDK(
       client
     ).GetUnverifiedImages({
-      team_id: req.body.session_variables["x-hasura-team-id"],
+      team_id: teamId,
       app_id: app_id as string,
+      user_id: userId,
     });
 
     if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
@@ -59,7 +100,6 @@ export const handleDeleteAllImages = async (
       });
     }
 
-    const app = appInfo[0].app_metadata[0];
     if (!process.env.ASSETS_S3_REGION) {
       throw new Error("AWS Region must be set.");
     }
@@ -84,15 +124,23 @@ export const handleDeleteAllImages = async (
     );
 
     if (objectKeys && objectKeys.length > 0) {
-      const deletePromises = objectKeys.map((key) =>
+      const expirePromises = objectKeys.map((key) =>
         s3Client.send(
-          new DeleteObjectCommand({
+          new PutObjectTaggingCommand({
             Bucket: bucketName,
             Key: key,
+            Tagging: {
+              TagSet: [
+                {
+                  Key: "ExpireAfter",
+                  Value: "3Days",
+                },
+              ],
+            },
           })
         )
       );
-      await Promise.all(deletePromises);
+      await Promise.all(expirePromises);
     }
     res.status(200).json({
       success: true,

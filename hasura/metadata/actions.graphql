@@ -1,5 +1,5 @@
 type Mutation {
-  delete_unverified_action(
+  delete_unverified_images(
     app_id: String!
   ): DeleteImageOutput
 }

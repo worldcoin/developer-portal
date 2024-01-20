@@ -7,6 +7,7 @@ import gql from "graphql-tag";
 export type GetUnverifiedImagesQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
   app_id: Types.Scalars["String"];
+  user_id: Types.Scalars["String"];
 }>;
 
 export type GetUnverifiedImagesQuery = {
@@ -23,8 +24,17 @@ export type GetUnverifiedImagesQuery = {
 };
 
 export const GetUnverifiedImagesDocument = gql`
-  query GetUnverifiedImages($team_id: String!, $app_id: String!) {
-    app(where: { id: { _eq: $app_id }, team: { id: { _eq: $team_id } } }) {
+  query GetUnverifiedImages(
+    $team_id: String!
+    $app_id: String!
+    $user_id: String!
+  ) {
+    app(
+      where: {
+        id: { _eq: $app_id }
+        team: { id: { _eq: $team_id }, users: { id: { _eq: $user_id } } }
+      }
+    ) {
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         logo_img_url
         showcase_img_urls

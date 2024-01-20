@@ -18,12 +18,11 @@ export type ImageGetAllUnverifiedImagesResponse = {
   showcase_img_urls?: string[];
 };
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-});
-
-export type ImageGetAllUnverifiedImagesBody = yup.InferType<typeof schema>;
-// This endpoint takes in an App ID and returns all available unverified images for that app.
+/**
+ * Used when an app is loaded to show all unverified images
+ * @param req
+ * @param res
+ */
 export const handleGetAllUnverifiedImages = async (
   req: NextApiRequest,
   res: NextApiResponse
@@ -37,7 +36,7 @@ export const handleGetAllUnverifiedImages = async (
       return errorNotAllowed(req.method, res, req);
     }
     const body = JSON.parse(req.body);
-    if (body?.action.name !== "upload_image") {
+    if (body?.action.name !== "get_all_unverified_images") {
       return errorHasuraQuery({
         res,
         req,
@@ -45,9 +44,15 @@ export const handleGetAllUnverifiedImages = async (
         code: "invalid_action",
       });
     }
-    const validatedInput = await schema.validate(req.query);
-    const { app_id } = validatedInput;
-
+    const app_id = req.query.app_id;
+    if (!app_id) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "app_id must be set.",
+        code: "required",
+      });
+    }
     if (body.session_variables["x-hasura-role"] === "admin") {
       return errorHasuraQuery({
         res,
@@ -56,14 +61,33 @@ export const handleGetAllUnverifiedImages = async (
         code: "admin_not_allowed",
       });
     }
+    const userId = body.session_variables["x-hasura-user-id"];
+    if (!userId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "userId must be set.",
+        code: "required",
+      });
+    }
+
+    const teamId = body.session_variables["x-hasura-team-id"];
+    if (!teamId) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "teamId must be set.",
+        code: "required",
+      });
+    }
     const client = await getAPIServiceGraphqlClient();
     const { app: appInfo } = await getUnverifiedImagesSDK(
       client
     ).GetUnverifiedImages({
-      team_id: body.session_variables["x-hasura-team-id"],
+      team_id: teamId,
       app_id: app_id as string,
+      user_id: userId,
     });
-
     if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
       return errorHasuraQuery({
         res,
