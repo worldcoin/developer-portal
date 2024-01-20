@@ -1,8 +1,11 @@
 actions:
-  - name: delete_unverified_action
+  - name: delete_unverified_images
     definition:
       kind: synchronous
       handler: '{{NEXT_API_URL}}/images/delete_images'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
   - name: get_all_unverified_images
     definition:
       kind: ""
