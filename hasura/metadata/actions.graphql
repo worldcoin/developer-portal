@@ -1,4 +1,24 @@
 type Mutation {
+  delete_unverified_action(
+    app_id: String!
+  ): ImageGetAllUnverifiedImagesOutput
+}
+
+type Query {
+  get_all_unverified_images(
+    app_id: String!
+  ): ImageGetAllUnverifiedImagesOutput
+}
+
+type Query {
+  get_uploaded_image(
+    app_id: String!
+    image_type: String!
+    content_type_ending: String!
+  ): GetUploadedImageOutput
+}
+
+type Mutation {
   invite_team_members(
     emails: [String!]
   ): InviteTeamMembersOutput
@@ -21,7 +41,7 @@ type Query {
     app_id: String!
     image_type: String!
     content_type_ending: String!
-  ): PresignedPost
+  ): PresignedPostOutput
 }
 
 input UploadImageInput {
@@ -51,5 +71,28 @@ type PresignedPost {
 type FormField {
   key: String!
   value: String!
+}
+
+type GetUploadedImageOutput {
+  url: String!
+}
+
+type ImageUrls {
+  logo_img_url: String
+  hero_image_url: String
+  showcase_img_urls: [String]
+}
+
+type ImageGetAllUnverifiedImagesResponse {
+  urls: ImageUrls
+}
+
+type ImageGetAllUnverifiedImagesOutput {
+  urls: ImageUrls
+}
+
+type PresignedPostOutput {
+  url: String!
+  stringifiedFields: String!
 }
 

@@ -1,4 +1,39 @@
 actions:
+  - name: delete_unverified_action
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/images/delete_images'
+  - name: get_all_unverified_images
+    definition:
+      kind: ""
+      handler: '{{NEXT_API_URL}}/get_unverified'
+      request_transform:
+        method: GET
+        query_params:
+          app_id: '{{$body.input.app_id}}'
+        request_headers:
+          add_headers: {}
+          remove_headers:
+            - content-type
+        template_engine: Kriti
+        version: 2
+  - name: get_uploaded_image
+    definition:
+      kind: ""
+      handler: '{{NEXT_API_URL}}/images/get_image'
+      request_transform:
+        method: GET
+        query_params:
+          app_id: '{{$body.input.app_id}}'
+          content_type_ending: '{{$body.input.content_type_ending}}'
+          image_type: '{{$body.input.image_type}}'
+        request_headers:
+          add_headers: {}
+          remove_headers:
+            - content-type
+        template_engine: Kriti
+        version: 2
+    comment: Gets the uploaded image to display
   - name: invite_team_members
     definition:
       kind: synchronous
@@ -63,4 +98,9 @@ custom_types:
     - name: InviteTeamMembersOutput
     - name: PresignedPost
     - name: FormField
+    - name: GetUploadedImageOutput
+    - name: ImageUrls
+    - name: ImageGetAllUnverifiedImagesResponse
+    - name: ImageGetAllUnverifiedImagesOutput
+    - name: PresignedPostOutput
   scalars: []
