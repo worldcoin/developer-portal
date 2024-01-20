@@ -90,7 +90,6 @@ export const handleGetAllUnverifiedImages = async (
         code: "not_found",
       });
     }
-    console.log(app_id);
 
     const app = appInfo[0].app_metadata[0];
     if (!process.env.ASSETS_S3_REGION) {
