@@ -1,7 +1,7 @@
 type Mutation {
   delete_unverified_action(
     app_id: String!
-  ): ImageGetAllUnverifiedImagesOutput
+  ): DeleteImageOutput
 }
 
 type Query {
@@ -88,11 +88,17 @@ type ImageGetAllUnverifiedImagesResponse {
 }
 
 type ImageGetAllUnverifiedImagesOutput {
-  urls: ImageUrls
+  logo_img_url: String
+  hero_image_url: String
+  showcase_img_urls: [String]
 }
 
 type PresignedPostOutput {
   url: String!
   stringifiedFields: String!
+}
+
+type DeleteImageOutput {
+  success: Boolean
 }
 
