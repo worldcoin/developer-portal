@@ -6,7 +6,10 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/get_unverified_images'
+      handler: '{{NEXT_API_URL}}/images/get_unverified_images'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
@@ -17,10 +20,16 @@ actions:
             - content-type
         template_engine: Kriti
         version: 2
+    permissions:
+      - role: user
+      - role: api_key
   - name: get_uploaded_image
     definition:
       kind: ""
       handler: '{{NEXT_API_URL}}/images/get_image'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
@@ -33,6 +42,9 @@ actions:
             - content-type
         template_engine: Kriti
         version: 2
+    permissions:
+      - role: api_key
+      - role: user
     comment: Gets the uploaded image to display
   - name: invite_team_members
     definition:

@@ -22,7 +22,6 @@ const schema = yup.object({
   app_id: yup.string().strict().required(),
 });
 
-export type ImageGetAllUnverifiedImagesBody = yup.InferType<typeof schema>;
 // This endpoint takes in an App ID and returns all available unverified images for that app.
 export const handleGetAllUnverifiedImages = async (
   req: NextApiRequest,
@@ -37,7 +36,7 @@ export const handleGetAllUnverifiedImages = async (
       return errorNotAllowed(req.method, res, req);
     }
     const body = JSON.parse(req.body);
-    if (body?.action.name !== "upload_image") {
+    if (body?.action.name !== "get_all_unverified_images") {
       return errorHasuraQuery({
         res,
         req,

@@ -10,6 +10,7 @@ import {
 } from "react-hook-form";
 import { FieldLabel } from "@/components/FieldLabel";
 import { useAppStore } from "@/stores/appStore";
+import { useImage } from "@/hooks/useImage";
 
 interface AppImageUploadSectionProps {
   register: UseFormRegister<ConfigurationFormValues>;
@@ -27,36 +28,12 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
   props: AppImageUploadSectionProps
 ) {
   const { register, setValue, errors, disabled } = props;
-  const currentApp = useAppStore((store) => store.currentApp);
-  const [signedUrls, setSignedUrls] = useState<Urls>({
-    logo_img_url: "",
-    hero_image_url: "",
-    showcase_img_urls: [],
-  });
-
+  const { currentApp } = useAppStore();
+  const { unverifiedImages, getAllUnverifiedImages } = useImage({});
   useEffect(() => {
-    const fetchSignedUrls = async () => {
-      try {
-        const app_id = encodeURIComponent(currentApp?.id || "");
-        const team_id = encodeURIComponent(currentApp?.team_id || "");
-        const response = await fetch(
-          `/api/images/get_unverified?app_id=${app_id}&team_id=${team_id}`,
-          {
-            method: "GET",
-          }
-        );
-        const json = await response.json();
-        if (!response.ok) {
-          throw new Error(json.message || "Failed to get image");
-        }
-        const urls: Urls = json.urls;
-        setSignedUrls(urls);
-      } catch (error) {
-        console.error("Get image error:", error);
-      }
-    };
-    fetchSignedUrls();
-  }, [currentApp]);
+    getAllUnverifiedImages();
+  }, [currentApp, getAllUnverifiedImages]);
+
   return (
     <div>
       <FieldLabel required className="my-3 font-rubik">
@@ -65,7 +42,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
       <ImageUploadComponent
         register={register("logo_img_url")}
         setValue={setValue}
-        imgSrc={signedUrls.logo_img_url}
+        imgSrc={unverifiedImages.logo_img_url}
         imageType="logo_img"
         width={500}
         height={500}
@@ -77,7 +54,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
       </FieldLabel>
       <ImageUploadComponent
         register={register("hero_image_url")}
-        imgSrc={signedUrls.hero_image_url}
+        imgSrc={unverifiedImages.hero_image_url}
         setValue={setValue}
         imageType="hero_image"
         width={1600}
@@ -92,7 +69,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
         <ImageUploadComponent
           index={0}
           register={register(`showcase_img_urls.${0}`)}
-          imgSrc={signedUrls.showcase_img_urls[0]}
+          imgSrc={unverifiedImages.showcase_img_urls?.[0]}
           setValue={setValue}
           imageType="showcase_img_1"
           width={1920}

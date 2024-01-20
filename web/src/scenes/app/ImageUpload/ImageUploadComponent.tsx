@@ -7,8 +7,8 @@ import {
   UseFormSetValue,
 } from "react-hook-form";
 import { ConfigurationFormValues } from "../Configuration";
-import { useImage } from "@/hooks/useImage";
 import { toast } from "react-toastify";
+import { useImage } from "@/hooks/useImage";
 
 type ImageUploadComponentProps = {
   register: UseFormRegisterReturn;
@@ -37,19 +37,15 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     ...otherProps
   } = props;
 
-  const {
-    isUploading,
-    imagePreview,
-    removeImage,
-    handleFileInput,
-    fileTypeEnding,
-  } = useImage({
+  const formItemName = register.name as keyof ConfigurationFormValues;
+  const { isUploading, imagePreview, removeImage, handleFileInput } = useImage({
     width,
     height,
     imageType,
     imgSrc,
+    setValue,
+    formItemName,
   });
-  const formItemName = register.name as keyof ConfigurationFormValues;
   const registerRemoveImage = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
@@ -68,14 +64,13 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     async (event: ChangeEvent<HTMLInputElement>) => {
       try {
         await handleFileInput(event);
-        setValue(formItemName, `${imageType}.${fileTypeEnding}`);
         toast.success("Image uploaded successfully");
       } catch (error) {
         toast.error("Image upload failed");
         console.error(error);
       }
     },
-    [handleFileInput, setValue, formItemName, imageType, fileTypeEnding]
+    [handleFileInput]
   );
 
   return (

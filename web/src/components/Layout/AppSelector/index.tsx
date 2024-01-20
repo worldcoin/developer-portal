@@ -27,15 +27,15 @@ export const ButtonContent = memo(function ButtonContent(props: {
 }) {
   // TODO: Once image migration is done we can remove this
   const [image, setImage] = useState<string | null>(
-    props.app.app_metadata?.logo_img_url !== "logo_img.png"
-      ? props.app.app_metadata?.logo_img_url
-      : ""
+    props.app.app_metadata?.logo_img_url.startsWith("logo_img")
+      ? ""
+      : props.app.app_metadata?.logo_img_url
   );
 
   useEffect(() => {
     if (
       !props.app.app_metadata?.logo_img_url ||
-      props.app.app_metadata?.logo_img_url === "logo_img.png"
+      props.app.app_metadata?.logo_img_url.startsWith("logo_img")
     ) {
       return;
     }
