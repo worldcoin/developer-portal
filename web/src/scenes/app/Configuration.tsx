@@ -11,6 +11,7 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { AppLinksSection } from "./Form/AppLinksSection";
 import { AppDescriptionSection } from "./Form/AppDescriptionSection";
 import { AppPublicationSection } from "./Form/AppPublicationSection";
+import { AppImageUploadSection } from "./Form/AppImageUploadSection";
 
 const saveSchema = yup.object().shape({
   name: yup
@@ -83,6 +84,13 @@ const submitSchema = yup.object().shape({
     .string()
     .max(50, "World app description cannot exceed 50 characters")
     .required("This section is required"),
+  logo_img_url: yup.string().required("This section is required"),
+  hero_image_url: yup.string().required("This section is required"),
+  showcase_img_urls: yup
+    .array()
+    .of(yup.string().required("This section is required"))
+    .min(1, "At least one image is required")
+    .required("This section is required"),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -128,6 +136,7 @@ export const Configuration = memo(function Configuration() {
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
@@ -221,9 +230,15 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
+<<<<<<< HEAD
       } catch (error: any) {
         console.error(error.message);
         toast.error("Error creating a new draft");
+=======
+      } catch (validationErrors: any) {
+        console.error(validationErrors);
+        toast.error("Error removing from review.");
+>>>>>>> 55f8ad1 (frontend)
       }
     },
     [currentApp, updateAppMetadata]
@@ -259,6 +274,7 @@ export const Configuration = memo(function Configuration() {
         </div>
       )}
       <h2 className="text-20 font-sora font-semibold">App Information</h2>
+
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
           App name
@@ -298,6 +314,12 @@ export const Configuration = memo(function Configuration() {
         register={register}
         errors={errors}
         disabled={isSubmitting || !isEditable}
+      />
+      <AppImageUploadSection
+        register={register}
+        errors={errors}
+        disabled={isSubmitting || !isEditable}
+        setValue={setValue}
       />
       <div className="flex flex-row w-full justify-end h-10">
         <Button

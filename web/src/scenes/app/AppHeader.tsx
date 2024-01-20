@@ -10,9 +10,11 @@ import { AppReviewStatusHeader } from "./ReviewStatus";
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
   const [copied, setCopied] = useState(false);
-
+  // TODO once migration is done
   const [image, setImage] = useState<string | null>(
-    currentApp?.app_metadata?.logo_img_url ?? null
+    currentApp?.app_metadata?.logo_img_url.startsWith("logo_img")
+      ? ""
+      : currentApp?.app_metadata?.logo_img_url ?? ""
   );
   const { toggleAppActivity, parseDescription } = useApps();
   const descriptionInternal = parseDescription(currentApp?.app_metadata);
@@ -35,7 +37,7 @@ export const AppHeader = memo(function AppHeader() {
           <div>
             {image && (
               <Image
-                src={currentApp?.app_metadata?.logo_img_url ?? ""}
+                src={image}
                 alt="app logo"
                 width={44}
                 height={44}

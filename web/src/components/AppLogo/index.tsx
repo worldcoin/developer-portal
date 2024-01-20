@@ -35,7 +35,7 @@ export const AppLogo = memo(function AppLogo(props: {
             .join("")}
         </span>
       )}
-
+      {/* This component is currently not used */}
       {props.appMetadata.logo_img_url && (
         <div className="w-full h-full">
           <Image

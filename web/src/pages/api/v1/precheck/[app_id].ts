@@ -211,6 +211,11 @@ export default async function handlePrecheck(
     ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${rawAppValues.id}/${verified_app_metadata?.logo_img_url}`
     : "";
   // Prevent breaking changes
+  const logo_img_url = verified_app_metadata?.logo_img_url.startsWith(
+    "logo_img"
+  )
+    ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${rawAppValues.id}/${verified_app_metadata?.logo_img_url}`
+    : verified_app_metadata?.logo_img_url ?? "";
   const app: _App = {
     __typename: rawAppValues.__typename,
     id: rawAppValues.id,
