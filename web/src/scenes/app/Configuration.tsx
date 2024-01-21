@@ -34,6 +34,9 @@ const saveSchema = yup.object().shape({
     .string()
     .max(50, "World app description cannot exceed 50 characters")
     .optional(),
+  logo_img_url: yup.string().optional(),
+  hero_image_url: yup.string().optional(),
+  showcase_img_urls: yup.array().optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
