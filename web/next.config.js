@@ -49,7 +49,11 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
-    domains: ["world-id-public.s3.amazonaws.com", ...(cdnUrl ? [cdnUrl] : [])],
+    domains: [
+      "world-id-public.s3.amazonaws.com",
+      ...(cdnUrl ? [cdnUrl] : []),
+      `s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+    ],
   },
   publicRuntimeConfig: Object.fromEntries(
     Object.entries(process.env).filter(([key]) =>
