@@ -3,9 +3,9 @@ import { useAppStore } from "@/stores/appStore";
 import { toast } from "react-toastify";
 import { UseFormSetValue } from "react-hook-form";
 import { ConfigurationFormValues } from "@/scenes/app/Configuration";
-import { useUploadImageLazyQuery } from "./graphql/upload-image.generated";
-import { useGetUploadedImageQueryLazyQuery } from "./graphql/get-uploadedImage.generated";
 import { useGetAllUnverifiedImagesQueryLazyQuery } from "./graphql/getAllUnverifiedImages.generated";
+import { useUploadImageLazyQuery } from "./graphql/uploadImage.generated";
+import { useGetUploadedImageQueryLazyQuery } from "./graphql/getUploadedImage.generated";
 
 type ImageHookProps = {
   width?: number;
