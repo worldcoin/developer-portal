@@ -71,7 +71,6 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     },
     [handleFileInput]
   );
-
   return (
     <div>
       <label className="flex border-2 border-dashed w-32 h-32 rounded-md cursor-pointer justify-center items-center">

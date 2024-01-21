@@ -1,17 +1,25 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import { AppMetadataModel } from "src/lib/models";
 
+{
+  /* This component is currently not used */
+}
 export const AppLogo = memo(function AppLogo(props: {
   appMetadata: Pick<
     AppMetadataModel,
     "name" | "logo_img_url" | "verification_status"
   >;
+  app_id: string;
   className?: string;
   textClassName?: string;
 }) {
+  const image = props.appMetadata.logo_img_url
+    ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+    : "";
+
   return (
     <div
       className={cn(
@@ -21,7 +29,7 @@ export const AppLogo = memo(function AppLogo(props: {
         props.className
       )}
     >
-      {!props.appMetadata.logo_img_url && (
+      {!image && (
         <span
           className={cn(
             "uppercase m-auto font-bold bg-gradient-to-r bg-clip-text text-transparent from-ff6848 to-primary leading-none",
@@ -35,11 +43,10 @@ export const AppLogo = memo(function AppLogo(props: {
             .join("")}
         </span>
       )}
-      {/* This component is currently not used */}
-      {props.appMetadata.logo_img_url && (
+      {image && (
         <div className="w-full h-full">
           <Image
-            src={props.appMetadata.logo_img_url}
+            src={image}
             layout="responsive"
             width={20}
             height={20}

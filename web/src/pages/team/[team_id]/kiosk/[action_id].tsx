@@ -81,7 +81,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     logo_img_url: "",
   };
   // TODO: Replace this once the image migration is done with the CDN url
-  if (app_metadata_item.logo_img_url.startsWith("logo_img")) {
+  if (app_metadata_item.logo_img_url !== "") {
     app_metadata_item.logo_img_url =
       publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL
         ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${app_data.id}/${app_metadata_item.logo_img_url}`

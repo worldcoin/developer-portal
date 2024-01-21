@@ -28,7 +28,7 @@ export const AppImageUploadSection = memo(function AppImageUploadSection(
   useEffect(() => {
     getAllUnverifiedImages();
   }, [currentApp?.id, getAllUnverifiedImages]);
-
+  console.log(unverifiedImages);
   return (
     <div>
       <FieldLabel required className="my-3 font-rubik">

@@ -48,6 +48,9 @@ export const useImage = (props: ImageHookProps) => {
       if (!currentApp?.id) {
         throw new Error("Current App ID is not defined");
       }
+      if (currentApp?.app_metadata.verification_status === "verified") {
+        return;
+      }
       const response = await getAllUnverifiedImagesQuery({
         variables: {
           app_id: currentApp.id,
@@ -65,7 +68,11 @@ export const useImage = (props: ImageHookProps) => {
     } catch (error) {
       console.error("Get image error:", error);
     }
-  }, [currentApp?.id, getAllUnverifiedImagesQuery]);
+  }, [
+    currentApp?.app_metadata.verification_status,
+    currentApp?.id,
+    getAllUnverifiedImagesQuery,
+  ]);
 
   const [getUploadedImageQuery] = useGetUploadedImageQueryLazyQuery();
   // This function fetches the image by generating a signed URL to the unverified image item

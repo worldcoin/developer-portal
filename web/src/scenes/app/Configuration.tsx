@@ -252,6 +252,16 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({
           ...currentApp?.app_metadata,
+          logo_img_url: `logo_img.${_getImageEndpoint(
+            currentApp?.app_metadata?.logo_img_url
+          )}`,
+          hero_image_url: `hero_image.${_getImageEndpoint(
+            currentApp?.app_metadata?.hero_image_url
+          )}`,
+          showcase_img_urls: currentApp?.app_metadata?.showcase_img_urls?.map(
+            (img, index) =>
+              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
+          ),
           verification_status: "unverified",
         });
         toast.success("New app draft created");
@@ -262,6 +272,14 @@ export const Configuration = memo(function Configuration() {
     },
     [currentApp, updateAppMetadata]
   );
+  const _getImageEndpoint = (imageType: string) => {
+    const fileType = imageType.split(".").pop();
+    if (fileType === "png" || fileType === "jpg") {
+      return fileType;
+    } else {
+      throw new Error("Unsupported image file type");
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">

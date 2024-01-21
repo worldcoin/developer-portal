@@ -27,31 +27,24 @@ export const ButtonContent = memo(function ButtonContent(props: {
 }) {
   // TODO: Once image migration is done we can remove this
   const [image, setImage] = useState<string | null>(
-    props.app.app_metadata?.logo_img_url.startsWith("logo_img")
-      ? ""
-      : props.app.app_metadata?.logo_img_url
+    props.app?.verified_app_metadata?.logo_img_url
+      ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/${props.app?.verified_app_metadata?.logo_img_url}`
+      : ""
   );
 
   useEffect(() => {
-    if (
-      !props.app.app_metadata?.logo_img_url ||
-      props.app.app_metadata?.logo_img_url.startsWith("logo_img")
-    ) {
+    if (!props.app.verified_app_metadata?.logo_img_url) {
       return;
     }
     // TODO: We will add this once verified images are up and migrations are done
-    // if (props.app.verified_app_metadata?.logo_img_url == "logo_img.png") {
-    //   console.log("here");
-    //   setImage(
-    //     publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL
-    //       ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/logo_img.png`
-    //       : null
-    //   );
-    //   return;
-    // }
-
-    setImage(props.app.app_metadata.logo_img_url);
-  }, [props.app.app_metadata?.logo_img_url]);
+    setImage(
+      `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/${props.app.verified_app_metadata?.logo_img_url}`
+    );
+  }, [
+    props.app.app_metadata.logo_img_url,
+    props.app.id,
+    props.app.verified_app_metadata?.logo_img_url,
+  ]);
 
   return (
     <div
