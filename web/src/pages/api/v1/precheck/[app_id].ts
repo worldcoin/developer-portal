@@ -206,7 +206,7 @@ export default async function handlePrecheck(
   }
   const app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
-  const logo_img_url = verified_app_metadata.logo_img_url
+  const logo_img_url = verified_app_metadata?.logo_img_url
     ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${rawAppValues.id}/${verified_app_metadata?.logo_img_url}`
     : "";
   const app: _App = {
