@@ -176,7 +176,7 @@ export const Configuration = memo(function Configuration() {
 
         toast.success("App information saved");
       } catch (errors: any) {
-        console.log(errors);
+        console.error(errors);
         toast.error("Error saving app");
       }
     },
