@@ -230,15 +230,9 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
-<<<<<<< HEAD
-      } catch (error: any) {
-        console.error(error.message);
-        toast.error("Error creating a new draft");
-=======
       } catch (validationErrors: any) {
         console.error(validationErrors);
         toast.error("Error removing from review.");
->>>>>>> 55f8ad1 (frontend)
       }
     },
     [currentApp, updateAppMetadata]

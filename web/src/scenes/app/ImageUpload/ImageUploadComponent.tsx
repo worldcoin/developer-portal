@@ -64,7 +64,6 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     async (event: ChangeEvent<HTMLInputElement>) => {
       try {
         await handleFileInput(event);
-        toast.success("Image uploaded successfully");
       } catch (error) {
         toast.error("Image upload failed");
         console.error(error);

@@ -179,6 +179,7 @@ export const useImage = (props: ImageHookProps) => {
         }
         await uploadViaPresignedPost(file);
         await getImage(fileTypeEnding);
+        toast.success("Image uploaded successfully");
       } catch (error) {
         console.error(error);
         throw new Error("Image Upload Failed");
