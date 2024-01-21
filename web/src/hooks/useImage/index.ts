@@ -6,6 +6,9 @@ import { ConfigurationFormValues } from "@/scenes/app/Configuration";
 import { useGetAllUnverifiedImagesQueryLazyQuery } from "./graphql/getAllUnverifiedImages.generated";
 import { useUploadImageLazyQuery } from "./graphql/uploadImage.generated";
 import { useGetUploadedImageQueryLazyQuery } from "./graphql/getUploadedImage.generated";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 type ImageHookProps = {
   width?: number;
@@ -48,7 +51,17 @@ export const useImage = (props: ImageHookProps) => {
       if (!currentApp?.id) {
         throw new Error("Current App ID is not defined");
       }
+      // If the app just got verified and has no edit row.
       if (currentApp?.app_metadata.verification_status === "verified") {
+        setUnverifiedImages({
+          logo_img_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp.verified_app_metadata?.logo_img_url}`,
+          hero_image_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp.verified_app_metadata?.hero_image_url}`,
+          showcase_img_urls:
+            currentApp.verified_app_metadata?.showcase_img_urls?.map(
+              (url) =>
+                `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${url}`
+            ) ?? undefined,
+        });
         return;
       }
       const response = await getAllUnverifiedImagesQuery({

@@ -1,8 +1,11 @@
-import React, { memo, useState } from "react";
+import React, { memo } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import { AppMetadataModel } from "src/lib/models";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 {
   /* This component is currently not used */
@@ -17,7 +20,7 @@ export const AppLogo = memo(function AppLogo(props: {
   textClassName?: string;
 }) {
   const image = props.appMetadata.logo_img_url
-    ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+    ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
     : "";
 
   return (

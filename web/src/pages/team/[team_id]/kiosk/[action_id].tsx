@@ -80,12 +80,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     ...app_metadata?.[0],
     logo_img_url: "",
   };
-  // TODO: Replace this once the image migration is done with the CDN url
   if (app_metadata_item.logo_img_url !== "") {
-    app_metadata_item.logo_img_url =
-      publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL
-        ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${app_data.id}/${app_metadata_item.logo_img_url}`
-        : "";
+    app_metadata_item.logo_img_url = `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${app_data.id}/${app_metadata_item.logo_img_url}`;
   }
   const processedAction: ActionKioskType = {
     ...data.action[0],

@@ -6,6 +6,8 @@ import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { AppReviewStatusHeader } from "./ReviewStatus";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
@@ -13,7 +15,7 @@ export const AppHeader = memo(function AppHeader() {
   // TODO once migration is done
   const [image, setImage] = useState<string | null>(
     currentApp?.verified_app_metadata?.logo_img_url
-      ? `${process.env.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
       : ""
   );
   const { toggleAppActivity, parseDescription } = useApps();
