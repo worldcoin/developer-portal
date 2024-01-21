@@ -1,10 +1,11 @@
 import { useState, useCallback, ChangeEvent, useEffect } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { toast } from "react-toastify";
-import gql from "graphql-tag";
-import { graphQLRequest } from "@/lib/frontend-api";
 import { UseFormSetValue } from "react-hook-form";
 import { ConfigurationFormValues } from "@/scenes/app/Configuration";
+import { useUploadImageLazyQuery } from "./graphql/upload-image.generated";
+import { useGetUploadedImageQueryLazyQuery } from "./graphql/get-uploadedImage.generated";
+import { useGetAllUnverifiedImagesQueryLazyQuery } from "./graphql/getAllUnverifiedImages.generated";
 
 type ImageHookProps = {
   width?: number;
@@ -19,51 +20,8 @@ type ImageHookProps = {
 type UnverifiedImages = {
   logo_img_url: string | undefined;
   hero_image_url: string | undefined;
-  showcase_img_urls: string[] | undefined;
+  showcase_img_urls: string[] | undefined | null;
 };
-
-const UploadImageQuery = gql`
-  query UploadImageQuery(
-    $app_id: String!
-    $image_type: String!
-    $content_type_ending: String!
-  ) {
-    upload_image(
-      app_id: $app_id
-      image_type: $image_type
-      content_type_ending: $content_type_ending
-    ) {
-      url
-      stringifiedFields
-    }
-  }
-`;
-
-const getUploadedImageQuery = gql`
-  query GetUploadedImageQuery(
-    $app_id: String!
-    $image_type: String!
-    $content_type_ending: String!
-  ) {
-    get_uploaded_image(
-      app_id: $app_id
-      image_type: $image_type
-      content_type_ending: $content_type_ending
-    ) {
-      url
-    }
-  }
-`;
-
-const getAllUnverifiedImagesQuery = gql`
-  query GetAllUnverifiedImagesQuery($app_id: String!) {
-    get_all_unverified_images(app_id: $app_id) {
-      logo_img_url
-      hero_image_url
-      showcase_img_urls
-    }
-  }
-`;
 
 export const useImage = (props: ImageHookProps) => {
   const { width, height, imageType, imgSrc, formItemName, setValue } = props;
@@ -83,15 +41,14 @@ export const useImage = (props: ImageHookProps) => {
     setImagePreview(imgSrc ?? null);
   }, [imgSrc]);
 
+  const [getAllUnverifiedImagesQuery] =
+    useGetAllUnverifiedImagesQueryLazyQuery();
   const getAllUnverifiedImages = useCallback(async () => {
     try {
       if (!currentApp?.id) {
         throw new Error("Current App ID is not defined");
       }
-      const response = await graphQLRequest<{
-        get_all_unverified_images: UnverifiedImages;
-      }>({
-        query: getAllUnverifiedImagesQuery,
+      const response = await getAllUnverifiedImagesQuery({
         variables: {
           app_id: currentApp.id,
         },
@@ -100,11 +57,17 @@ export const useImage = (props: ImageHookProps) => {
       if (!images) {
         throw new Error("Failed to get unverified images");
       }
-      setUnverifiedImages(images);
+      setUnverifiedImages({
+        logo_img_url: images.logo_img_url ?? undefined,
+        hero_image_url: images.hero_image_url ?? undefined,
+        showcase_img_urls: images.showcase_img_urls ?? undefined,
+      });
     } catch (error) {
       console.error("Get image error:", error);
     }
-  }, [currentApp?.id]);
+  }, [currentApp?.id, getAllUnverifiedImagesQuery]);
+
+  const [getUploadedImageQuery] = useGetUploadedImageQueryLazyQuery();
   // This function fetches the image by generating a signed URL to the unverified image item
   const getImage = useCallback(
     async (fileType: string) => {
@@ -112,21 +75,17 @@ export const useImage = (props: ImageHookProps) => {
         if (!currentApp?.id) {
           throw new Error("Current App ID is not defined");
         }
-
-        const response = await graphQLRequest<{
-          get_uploaded_image: {
-            url: string;
-          };
-        }>({
-          query: getUploadedImageQuery,
+        if (!imageType) {
+          throw new Error("Image type is not defined");
+        }
+        const response = await getUploadedImageQuery({
           variables: {
             app_id: currentApp.id,
             image_type: imageType,
             content_type_ending: fileType,
           },
         });
-
-        const imageUrl = response.data?.get_uploaded_image.url;
+        const imageUrl = response.data?.get_uploaded_image?.url;
         if (!imageUrl) {
           throw new Error("Failed to get presigned URL");
         }
@@ -141,7 +100,7 @@ export const useImage = (props: ImageHookProps) => {
         console.error("Get image error:", error);
       }
     },
-    [currentApp?.id, formItemName, imageType, setValue]
+    [currentApp?.id, formItemName, getUploadedImageQuery, imageType, setValue]
   );
   // This function is used to enforce strict dimensions for the uploaded images
   const validateImageDimensions = useCallback(
@@ -186,6 +145,7 @@ export const useImage = (props: ImageHookProps) => {
       }
     }
   };
+  const [uploadImageQuery] = useUploadImageLazyQuery();
   // This function generates a presigned url for image upload. We restrict based on content type
   const uploadViaPresignedPost = useCallback(
     async (file: File) => {
@@ -194,13 +154,10 @@ export const useImage = (props: ImageHookProps) => {
         if (!currentApp?.id) {
           throw new Error("Current App ID is not defined");
         }
-        const response = await graphQLRequest<{
-          upload_image: {
-            url: string;
-            stringifiedFields: any;
-          };
-        }>({
-          query: UploadImageQuery,
+        if (!imageType) {
+          throw new Error("Image type is not defined");
+        }
+        const response = await uploadImageQuery({
           variables: {
             app_id: currentApp.id,
             image_type: imageType,
@@ -235,7 +192,7 @@ export const useImage = (props: ImageHookProps) => {
       }
       setIsUploading(false);
     },
-    [currentApp?.id, imageType]
+    [currentApp?.id, imageType, uploadImageQuery]
   );
 
   const removeImage = useCallback(
