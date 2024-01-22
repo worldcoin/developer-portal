@@ -71,11 +71,11 @@ const appPrecheckQuery = gql`
       id
       is_staging
       engine
-      app_metadata(where: { status: { _neq: "verified" } }) {
+      app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
       }
       verified_app_metadata: app_metadata(
-        where: { status: { _eq: "verified" } }
+        where: { verification_status: { _eq: "verified" } }
       ) {
         name
         logo_img_url
