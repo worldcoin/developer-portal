@@ -126,6 +126,8 @@ export const handleSignup = withApiAuthRequired(
         nullifier: nullifier_hash ?? "",
         invite_id: invite.id,
         auth0Id: auth0User.sub,
+        name: auth0User.name ?? "",
+        email: auth0User.email,
       });
 
       insertMembershipResult = await getInsertMembershipSdk(
