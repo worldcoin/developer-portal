@@ -1,0 +1,26 @@
+mutation CreateUserAndDeleteInvite(
+  $team_id: String!
+  $nullifier: String!
+  $ironclad_id: String!
+  $invite_id: String!
+  $auth0Id: String!
+) {
+  user: insert_user_one(
+    object: {
+      team_id: $team_id
+      world_id_nullifier: $nullifier
+      ironclad_id: $ironclad_id
+      auth0Id: $auth0Id
+    }
+  ) {
+    id
+    team_id
+    ironclad_id
+    posthog_id
+    world_id_nullifier
+    auth0Id
+  }
+  delete_invite_by_pk(id: $invite_id) {
+    id
+  }
+}
