@@ -5,7 +5,7 @@
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
 const s3BucketUrl = `https://s3.${process.env.ASSETS_S3_REGION}.amazonaws.com/${process.env.ASSETS_S3_BUCKET_NAME}`;
-const cdnUrl = process.env.ASSETS_CDN_URL;
+const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -49,10 +49,19 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
-    domains: [
-      "world-id-public.s3.amazonaws.com",
-      ...(cdnUrl ? [cdnUrl] : []),
-      `s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "world-id-public.s3.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: cdnHostName,
+      },
+      {
+        protocol: "https",
+        hostname: `s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+      },
     ],
   },
   publicRuntimeConfig: Object.fromEntries(
