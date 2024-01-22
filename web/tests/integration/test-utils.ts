@@ -56,19 +56,18 @@ export const setClientSecret = async (app_id: string) => {
   return { client_secret };
 };
 
-export const getAPIUserClient = async (): Promise<
-  ApolloClient<NormalizedCacheObject>
-> => {
+export const getAPIUserClient = async (params?: {
+  user_id?: string;
+  team_id: string;
+}): Promise<ApolloClient<NormalizedCacheObject>> => {
+  const user_id = params?.user_id ?? "usr_a78f59e547fa5bd3d76bc1a1817c6d89";
+  const team_id = params?.team_id ?? "team_d7cde14f17eda7e0ededba7ded6b4467"; // cspell: disable-line
+
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,
       authorization: `Bearer ${
-        (
-          await generateUserJWT(
-            "usr_a78f59e547fa5bd3d76bc1a1817c6d89",
-            "team_d7cde14f17eda7e0ededba7ded6b4467" // cspell: disable-line
-          )
-        ).token
+        (await generateUserJWT(user_id, team_id)).token
       }`,
     },
   }));
