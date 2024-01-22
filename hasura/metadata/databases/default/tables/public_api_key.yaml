@@ -70,16 +70,15 @@ update_permissions:
         - is_active
         - name
       filter:
-        _and:
-          - team:
-              memberships:
-                user_id:
+        team:
+          memberships:
+            _and:
+              - user_id:
                   _eq: X-Hasura-User-Id
-          - team_id:
-              _eq: X-Hasura-Team-Id
-          - team:
-              memberships:
-                role:
+              - team:
+                  id:
+                    _eq: X-Hasura-Team-Id
+              - role:
                   _eq: OWNER
       check: null
 delete_permissions:
