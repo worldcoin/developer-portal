@@ -46,24 +46,7 @@ update_permissions:
         - role
       filter: {}
       check: null
-  - role: user
-    permission:
-      columns:
-        - role
-      filter:
-        _and:
-          - team_id:
-              _eq: X-Hasura-Team-Id
-          - role:
-              _eq: OWNER
-      check: null
 delete_permissions:
   - role: service
     permission:
       filter: {}
-  - role: user
-    permission:
-      filter:
-        _and:
-          - team_id:
-              _eq: X-Hasura-Team-Id
