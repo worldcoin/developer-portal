@@ -1,5 +1,2 @@
-import { ReactNode } from "react";
-
-export default function Layout(props: { children: ReactNode }) {
-  return <div>{props.children}</div>;
-}
+import { OnboardingLayout } from "@/scenes/Onboarding/layout";
+export default OnboardingLayout;

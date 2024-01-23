@@ -1,3 +1,2 @@
-export default function Page() {
-  return <div>Page</div>;
-}
+import { ActionIdDangerPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page";
+export default ActionIdDangerPage;

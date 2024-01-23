@@ -1,3 +1,2 @@
-export default function Page() {
-  return <div>Page</div>;
-}
+import { LoginPage } from "@/scenes/Onboarding/Login/page";
+export default LoginPage;

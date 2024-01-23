@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function Page() {
+export const RootPage = () => {
   return redirect("/login");
-}
+};

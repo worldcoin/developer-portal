@@ -1,3 +1,2 @@
-export default function Page() {
-  return <div>Page</div>;
-}
+import { SignInWithWorldIdPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/SignInWithWorldId/page";
+export default SignInWithWorldIdPage;

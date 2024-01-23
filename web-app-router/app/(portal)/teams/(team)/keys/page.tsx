@@ -1,3 +1,2 @@
-export default function Page() {
-  return <div>Page</div>;
-}
+import { TeamKeysPage } from "@/scenes/Portal/Teams/Team/Keys/page";
+export default TeamKeysPage;

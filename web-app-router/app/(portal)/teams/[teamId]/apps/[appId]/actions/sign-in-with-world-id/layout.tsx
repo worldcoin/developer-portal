@@ -1,5 +1,2 @@
-import { ReactNode } from "react";
-
-export default function Layout(props: { children: ReactNode }) {
-  return <div>{props.children}</div>;
-}
+import { SignInWithWorldIdLayout } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/SignInWithWorldId/layout";
+export default SignInWithWorldIdLayout;
