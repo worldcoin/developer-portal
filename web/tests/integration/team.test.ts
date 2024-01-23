@@ -7,9 +7,6 @@ import {
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 import { gql } from "@apollo/client";
 import { Role_Enum } from "@/graphql/graphql";
-import getConfig from "next/config";
-import { generateAPIKeyJWT } from "@/backend/jwts";
-const { publicRuntimeConfig } = getConfig();
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
