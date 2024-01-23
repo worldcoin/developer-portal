@@ -179,11 +179,18 @@ export const auth0Login = withApiAuthRequired(
       if (
         !invite ||
         !invite.team_id ||
-        new Date(invite.expires_at) <= new Date() ||
-        invite.email !== auth0User.email
+        new Date(invite.expires_at) <= new Date()
       ) {
         logger.error("Invite not found or team_id is missing.");
 
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      if (invite.email !== auth0User.email) {
+        logger.error("Invite email does not match logged in email");
         return res.redirect(
           307,
           urls.logout({ login_error: LoginErrorCode.Generic })
@@ -232,7 +239,7 @@ export const auth0Login = withApiAuthRequired(
         });
 
         if (!deleteInviteResult.delete_invite_by_pk) {
-          throw new Error(
+          logger.error(
             `Error while deleting invite: ${invite_id}, invite not found.`
           );
         }

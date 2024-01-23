@@ -24,7 +24,7 @@ export const useFetchUser = () => {
 
     onCompleted: (data) => {
       if (!data.user[0]) {
-        toast.error("Something went wrong. Please try again.");
+        toast.error("404: User data not found.");
         router.push(urls.logout());
       }
     },
