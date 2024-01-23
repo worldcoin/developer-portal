@@ -1,0 +1,8 @@
+mutation CreateInvites($objects: [invite_insert_input!]!) {
+  invites: insert_invite(objects: $objects) {
+    returning {
+      id
+      email
+    }
+  }
+}
