@@ -59,7 +59,7 @@ describe("/api/v1/oidc/authorize", () => {
       },
       body: validParams(app_id),
     });
-    console.log(validParams(app_id));
+
     // mocks sequencer response for proof verification
     fetchMock
       .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)

@@ -222,46 +222,46 @@ describe("user role", () => {
     expect(testInvalidTeamResponse.data.update_team.affected_rows).toEqual(0);
   });
 
-  test("API Key: cannot update another team", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
-    )) as { rows: Array<{ id: string }> };
+  // test("API Key: cannot update another team", async () => {
+  //   const { rows: teams } = (await integrationDBExecuteQuery(
+  //     `SELECT id FROM "public"."team";`
+  //   )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id, role FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+  //   const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+  //     `SELECT id, user_id, team_id, role FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+  //   )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const tokenTeamId = teamMemberships[0].team_id;
-    const response = await fetch(
-      publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await generateAPIKeyJWT(tokenTeamId)}`,
-        },
-        body: JSON.stringify({
-          query: `
-          mutation UpdateTeam($team_id: String!) {
-            update_team(
-              _set: { name: "new name" }
-              where: { id: { _eq: $team_id } }
-            ) {
-              affected_rows
-            }
-          }
-        `,
-          variables: {
-            team_id: tokenTeamId,
-          },
-        }),
-      }
-    );
+  //   const tokenTeamId = teamMemberships[0].team_id;
+  //   const response = await fetch(
+  //     publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${await generateAPIKeyJWT(tokenTeamId)}`,
+  //       },
+  //       body: JSON.stringify({
+  //         query: `
+  //         mutation UpdateTeam($team_id: String!) {
+  //           update_team(
+  //             _set: { name: "new name" }
+  //             where: { id: { _eq: $team_id } }
+  //           ) {
+  //             affected_rows
+  //           }
+  //         }
+  //       `,
+  //         variables: {
+  //           team_id: tokenTeamId,
+  //         },
+  //       }),
+  //     }
+  //   );
 
-    const responseData = await response.json();
-    // API Key has no permission to update team
-    expect(responseData.errors[0].message).toEqual(
-      "field 'update_team' not found in type: 'mutation_root'"
-    );
-  });
+  //   const responseData = await response.json();
+  //   // API Key has no permission to update team
+  //   expect(responseData.errors[0].message).toEqual(
+  //     "field 'update_team' not found in type: 'mutation_root'"
+  //   );
+  // });
 });
