@@ -38,52 +38,52 @@ describe("user role", () => {
       }
     `;
 
-    const ownerUserFromTeam1 = teamMemberships.find(
+    const ownerUserFromTeam0 = teamMemberships.find(
       (membership) =>
         membership.team_id === teams[0].id &&
         membership.role === Role_Enum.Owner
     );
 
-    const userFromTeam2 = teamMemberships.find(
+    const userFromTeam1 = teamMemberships.find(
       (membership) => membership.team_id === teams[1].id
     );
 
-    const anotherUserFromTeam1 = teamMemberships.find(
+    const anotherUserFromTeam0 = teamMemberships.find(
       (membership) =>
         membership.team_id === teams[0].id &&
-        membership.user_id !== ownerUserFromTeam1?.user_id
+        membership.user_id !== ownerUserFromTeam0?.user_id
     );
 
     const client = await getAPIUserClient({
       team_id: teams[0].id,
-      user_id: ownerUserFromTeam1?.user_id,
+      user_id: ownerUserFromTeam0?.user_id,
     });
 
     const response = await client.mutate({
       mutation,
       variables: {
-        id: userFromTeam2?.user_id,
+        id: userFromTeam1?.user_id,
         name: "new name",
       },
     });
 
     expect(response.data.update_user_by_pk).toEqual(null);
     const { rows: userFromTeam2AfterUpdate } = (await integrationDBExecuteQuery(
-      `SELECT name FROM "public"."user" WHERE id = '${userFromTeam2?.user_id}'`
+      `SELECT name FROM "public"."user" WHERE id = '${userFromTeam1?.user_id}'`
     )) as { rows: Array<{ name: string }> };
     expect(userFromTeam2AfterUpdate[0].name).not.toBe("new name");
 
     const response2 = await client.mutate({
       mutation,
       variables: {
-        id: anotherUserFromTeam1?.user_id,
+        id: anotherUserFromTeam0?.user_id,
         name: "new name",
       },
     });
     expect(response2.data.update_user_by_pk).toEqual(null);
     const { rows: anotherUserFromTeam1AfterUpdate } =
       (await integrationDBExecuteQuery(
-        `SELECT name FROM "public"."user" WHERE id = '${anotherUserFromTeam1?.user_id}'`
+        `SELECT name FROM "public"."user" WHERE id = '${anotherUserFromTeam0?.user_id}'`
       )) as { rows: Array<{ name: string }> };
     expect(anotherUserFromTeam1AfterUpdate[0].name).not.toBe("new name");
   });

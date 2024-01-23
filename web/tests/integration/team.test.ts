@@ -4,7 +4,7 @@ import {
   integrationDBTearDown,
   integrationDBExecuteQuery,
 } from "./setup";
-import { getAPIUserClient } from "./test-utils";
+import { getAPIClient, getAPIUserClient } from "./test-utils";
 import { gql } from "@apollo/client";
 import { Role_Enum } from "@/graphql/graphql";
 import getConfig from "next/config";
@@ -110,6 +110,13 @@ describe("user role", () => {
       expect(response.data.team.length).toEqual(1);
       expect(response.data.team[0].id).toEqual(team.id);
     }
+  });
+
+  test("cannot select another team with an invalid team_id", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team"`
+    )) as { rows: Array<{ id: string }> };
+
     // Test using an team that the user is not a member of
     const { rows: testInvalidTeamMemberships } =
       (await integrationDBExecuteQuery(
@@ -122,46 +129,15 @@ describe("user role", () => {
     });
 
     const query = gql`
-      query ListTeams {
-        team (where: {id: {_eq: "${teams[0].id}"}}) {
-          id
-        }
-      }
-    `;
+       query ListTeams {
+         team (where: {id: {_eq: "${teams[0].id}"}}) {
+           id
+         }
+       }
+     `;
 
     const response = await testInvalidClient.query({ query });
     expect(response.data.team.length).toEqual(0);
-  });
-
-  test("API Key: cannot select another team", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
-    )) as { rows: Array<{ id: string }> };
-
-    for (const team of teams) {
-      const response = await fetch(
-        publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${await generateAPIKeyJWT(team.id)}`,
-          },
-          body: JSON.stringify({
-            query: `
-            query ListTeams {
-              team {
-                id
-              }
-            }
-          `,
-          }),
-        }
-      );
-      const responseData = await response.json();
-      expect(responseData.data.team.length).toEqual(1);
-      expect(responseData.data.team[0].id).toEqual(team.id);
-    }
   });
 
   test("cannot update another team", async () => {
@@ -201,18 +177,32 @@ describe("user role", () => {
     });
 
     expect(response.data.update_team.affected_rows).toEqual(0);
+  });
+  test("cannot update another team with an invalid team_id", async () => {
     // Test using an team that the user is not a member of
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team";`
+    )) as { rows: Array<{ id: string }> };
 
-    const { rows: testInvalidTeamMemberships } =
-      (await integrationDBExecuteQuery(
-        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' limit 1;`
-      )) as { rows: Array<{ id: string; user_id: string }> };
+    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const testInvalidClient = await getAPIUserClient({
-      team_id: teams[0].id,
-      user_id: testInvalidTeamMemberships[0].user_id,
+      team_id: teams[1].id,
+      user_id: teamMemberships[0].user_id,
     });
 
+    const query = gql`
+      mutation UpdateTeam($team_id: String!) {
+        update_team(
+          _set: { name: "new name" }
+          where: { id: { _eq: $team_id } }
+        ) {
+          affected_rows
+        }
+      }
+    `;
     const testInvalidTeamResponse = await testInvalidClient.mutate({
       mutation: query,
       variables: {
@@ -222,3 +212,30 @@ describe("user role", () => {
     expect(testInvalidTeamResponse.data.update_team.affected_rows).toEqual(0);
   });
 });
+
+describe("api_key role", () => {
+  test("API Key: cannot select another team", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team"`
+    )) as { rows: Array<{ id: string }> };
+
+    for (const team of teams) {
+      const client = await getAPIClient({
+        team_id: team.id,
+      });
+      const query = gql`
+        query ListTeams {
+          team {
+            id
+          }
+        }
+      `;
+
+      const response = await client.query({ query });
+      expect(response.data.team.length).toEqual(1);
+      expect(response.data.team[0].id).toEqual(team.id);
+    }
+  });
+});
+
+// TODO: Add test cases using the /v1/graphql route

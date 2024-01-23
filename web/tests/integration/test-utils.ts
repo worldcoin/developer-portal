@@ -8,7 +8,7 @@ import {
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
 import { getAPIServiceClient } from "src/backend/graphql";
-import { generateUserJWT } from "src/backend/jwts";
+import { generateAPIKeyJWT, generateUserJWT } from "src/backend/jwts";
 import { integrationDBExecuteQuery } from "./setup";
 import { generateHashedSecret } from "src/backend/utils";
 
@@ -69,6 +69,29 @@ export const getAPIUserClient = async (params?: {
       authorization: `Bearer ${
         (await generateUserJWT(user_id, team_id)).token
       }`,
+    },
+  }));
+
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      query: {
+        fetchPolicy: "no-cache",
+      },
+    },
+  });
+};
+
+export const getAPIClient = async (params?: {
+  team_id: string;
+}): Promise<ApolloClient<NormalizedCacheObject>> => {
+  const team_id = params?.team_id ?? "team_d7cde14f17eda7e0ededba7ded6b4467"; // cspell: disable-line
+
+  const authLink = setContext(async (_, { headers }) => ({
+    headers: {
+      ...headers,
+      authorization: `Bearer ${await generateAPIKeyJWT(team_id)}`,
     },
   }));
 
