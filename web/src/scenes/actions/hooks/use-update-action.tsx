@@ -8,13 +8,21 @@ import {
 } from "../graphql/update-action.generated";
 
 import { toast } from "react-toastify";
+import { useRouter } from "next/router";
 
 export const useUpdateAction = () => {
   const currentApp = useAppStore.getState().currentApp;
+  const router = useRouter();
+  const team_id = router.query.team_id as string;
 
   const [updateActionQuery, other] = useUpdateActionMutation({
+    context: { headers: { team_id } },
     refetchQueries: [
-      { query: ActionsDocument, variables: { app_id: currentApp?.id ?? "" } },
+      {
+        query: ActionsDocument,
+        variables: { app_id: currentApp?.id ?? "" },
+        context: { headers: { team_id } },
+      },
     ],
     onCompleted: (query) => {
       toast.success(

@@ -14,11 +14,15 @@ export type FetchNullifierUserQuery = {
   user: Array<{
     __typename?: "user";
     id: string;
-    auth0Id?: string | null;
-    team_id: string;
-    posthog_id?: string | null;
-    name: string;
     email?: string | null;
+    name: string;
+    auth0Id?: string | null;
+    posthog_id?: string | null;
+    memberships: Array<{
+      __typename?: "membership";
+      role: Types.Role_Enum;
+      team: { __typename?: "team"; id: string; name?: string | null };
+    }>;
   }>;
 };
 
@@ -33,11 +37,18 @@ export const FetchNullifierUserDocument = gql`
       }
     ) {
       id
+      email
+      name
       auth0Id
-      team_id
       posthog_id
       name
-      email
+      memberships {
+        team {
+          id
+          name
+        }
+        role
+      }
     }
   }
 `;

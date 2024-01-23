@@ -1,11 +1,11 @@
 import { AppMetadataModel, AppModel, AppQueryModel } from "@/lib/models";
 import { AppStatusType } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { gql } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { graphQLRequest } from "src/lib/frontend-api";
-import { urls } from "src/lib/urls";
 import { IAppStore, useAppStore } from "src/stores/appStore";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
@@ -154,12 +154,21 @@ const DeleteAppQuery = gql`
     }
   }
 `;
-const fetchApps = async (): Promise<Array<AppModel>> => {
+const fetchApps = async ([_key, team_id]: [
+  string,
+  string | undefined
+]): Promise<Array<AppModel>> => {
   const response = await graphQLRequest<{
     app: Array<AppQueryModel>;
-  }>({
-    query: FetchAppsQuery,
-  });
+  }>(
+    {
+      query: FetchAppsQuery,
+    },
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   const unformattedApps = response.data?.app || [];
 
@@ -177,7 +186,7 @@ const _parseAppModel = (appModel: AppQueryModel): AppModel => {
 };
 
 const updateAppStatusFetcher = async (
-  _key: string,
+  [_key, team_id]: [string, string | undefined],
   args: {
     arg: {
       id: AppModel["id"];
@@ -188,13 +197,19 @@ const updateAppStatusFetcher = async (
   const { id, status } = args.arg;
   const response = await graphQLRequest<{
     update_app_by_pk: AppModel;
-  }>({
-    query: UpdateAppStatusQuery,
-    variables: {
-      id: id,
-      status: status,
+  }>(
+    {
+      query: UpdateAppStatusQuery,
+      variables: {
+        id: id,
+        status: status,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
   if (response.data?.update_app_by_pk) {
     return response.data.update_app_by_pk;
   }
@@ -203,7 +218,7 @@ const updateAppStatusFetcher = async (
 };
 
 const updateAppMetadataFetcher = async (
-  _key: string,
+  [_key, team_id]: [string, string | undefined],
   args: {
     arg: {
       id: AppModel["id"];
@@ -253,32 +268,38 @@ const updateAppMetadataFetcher = async (
   // Upsert in the event no metadata row exists.
   const response = await graphQLRequest<{
     insert_app_metadata_one: AppMetadataModel;
-  }>({
-    query: UpsertAppMetadataQuery,
-    variables: {
-      app_id: id,
-      name: name ?? unverifiedAppMetadata?.name,
-      logo_img_url: logo_img_url ?? unverifiedAppMetadata?.logo_img_url,
-      showcase_img_urls:
-        showcase_img_urls ?? unverifiedAppMetadata?.showcase_img_urls,
-      hero_image_url: hero_image_url ?? unverifiedAppMetadata?.hero_image_url,
-      description: description ?? unverifiedAppMetadata?.description,
-      world_app_description:
-        world_app_description ?? unverifiedAppMetadata?.world_app_description,
-      category: category ?? unverifiedAppMetadata?.category,
-      is_developer_allow_listing:
-        is_developer_allow_listing ??
-        unverifiedAppMetadata?.is_developer_allow_listing,
-      integration_url:
-        integration_url ?? unverifiedAppMetadata?.integration_url,
-      app_website_url:
-        app_website_url ?? unverifiedAppMetadata?.app_website_url,
-      source_code_url:
-        source_code_url ?? unverifiedAppMetadata?.source_code_url,
-      verification_status:
-        verification_status ?? unverifiedAppMetadata?.verification_status,
+  }>(
+    {
+      query: UpsertAppMetadataQuery,
+      variables: {
+        app_id: id,
+        name: name ?? unverifiedAppMetadata?.name,
+        logo_img_url: logo_img_url ?? unverifiedAppMetadata?.logo_img_url,
+        showcase_img_urls:
+          showcase_img_urls ?? unverifiedAppMetadata?.showcase_img_urls,
+        hero_image_url: hero_image_url ?? unverifiedAppMetadata?.hero_image_url,
+        description: description ?? unverifiedAppMetadata?.description,
+        world_app_description:
+          world_app_description ?? unverifiedAppMetadata?.world_app_description,
+        category: category ?? unverifiedAppMetadata?.category,
+        is_developer_allow_listing:
+          is_developer_allow_listing ??
+          unverifiedAppMetadata?.is_developer_allow_listing,
+        integration_url:
+          integration_url ?? unverifiedAppMetadata?.integration_url,
+        app_website_url:
+          app_website_url ?? unverifiedAppMetadata?.app_website_url,
+        source_code_url:
+          source_code_url ?? unverifiedAppMetadata?.source_code_url,
+        verification_status:
+          verification_status ?? unverifiedAppMetadata?.verification_status,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
   // Update the particular app metadata item in the array
   if (response.data?.insert_app_metadata_one) {
     const updatedApp = {
@@ -291,7 +312,7 @@ const updateAppMetadataFetcher = async (
 };
 
 const deleteAppFetcher = async (
-  _key: string,
+  [_key, team_id]: [string, string | undefined],
   args: {
     arg: {
       id: AppModel["id"];
@@ -299,16 +320,23 @@ const deleteAppFetcher = async (
   }
 ) => {
   const { id } = args.arg;
+
   const response = await graphQLRequest<{
     delete_app_by_pk: string;
-  }>({
-    query: DeleteAppQuery,
-    variables: { id },
-  });
+  }>(
+    {
+      query: DeleteAppQuery,
+      variables: { id },
+    },
+    undefined,
+    { team_id: team_id ?? "" }
+  );
+
   if (response.data?.delete_app_by_pk) {
     return response.data?.delete_app_by_pk;
   }
-  throw Error("Could not delete app");
+
+  toast.error("Failed to delete app");
 };
 
 type NewAppPayload = Pick<AppModel, "engine" | "is_staging"> & {
@@ -316,32 +344,44 @@ type NewAppPayload = Pick<AppModel, "engine" | "is_staging"> & {
 };
 type NewAppMetadataPayload = Pick<AppMetadataModel, "name" | "description">;
 
-const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
+const insertAppFetcher = async (
+  [_key, team_id]: [string, string | undefined],
+  args: { arg: NewAppPayload }
+) => {
   const { engine, is_staging, app_metadata } = args.arg;
   if (!app_metadata) {
     throw new Error("No app metadata provided");
   }
   const appResponse = await graphQLRequest<{
     insert_app_one: AppModel;
-  }>({
-    query: InsertAppQuery,
-    variables: {
-      appObject: {
-        engine,
-        is_staging,
-        name: app_metadata.name,
+  }>(
+    {
+      context: { headers: { team_id: team_id ?? "" } },
+      query: InsertAppQuery,
+      variables: {
+        appObject: {
+          engine,
+          is_staging,
+          name: app_metadata.name,
+        },
       },
     },
-  });
+    undefined,
+    { team_id: team_id ?? "" }
+  );
   const newAppId = appResponse.data?.insert_app_one.id;
   if (!newAppId) {
     throw new Error("Failed to insert new app");
   }
   const { name, description } = app_metadata;
-  const appMetadataResponse = await _insertAppMetadata(newAppId, {
-    name,
-    description,
-  });
+  const appMetadataResponse = await _insertAppMetadata(
+    newAppId,
+    {
+      name,
+      description,
+    },
+    team_id
+  );
 
   if (
     appMetadataResponse.data?.insert_app_metadata_one &&
@@ -360,23 +400,30 @@ const insertAppFetcher = async (_key: string, args: { arg: NewAppPayload }) => {
 
 const _insertAppMetadata = async (
   newAppId: string,
-  appMetadata: NewAppMetadataPayload
+  appMetadata: NewAppMetadataPayload,
+  team_id: string | undefined
 ) => {
   const { name, description } = appMetadata;
 
   try {
     const response = await graphQLRequest<{
       insert_app_metadata_one: AppMetadataModel;
-    }>({
-      query: InsertAppMetadataQuery,
-      variables: {
-        appMetadataObject: {
-          app_id: newAppId,
-          name,
-          description,
+    }>(
+      {
+        query: InsertAppMetadataQuery,
+        variables: {
+          appMetadataObject: {
+            app_id: newAppId,
+            name,
+            description,
+          },
         },
       },
-    });
+      undefined,
+      {
+        team_id: team_id ?? "",
+      }
+    );
 
     return response;
   } catch (error) {
@@ -393,17 +440,22 @@ const getStore = (store: IAppStore) => ({
 const useApps = () => {
   const { currentApp, setApps, setCurrentApp } = useAppStore(getStore, shallow);
   const router = useRouter();
+  const team_id = router.query.team_id as string | undefined;
 
-  const { data, error, isLoading } = useSWR<Array<AppModel>>("app", fetchApps, {
-    onSuccess: (data) => {
-      if (data.length) {
-        setApps(data);
-      }
-    },
-  });
+  const { data, error, isLoading } = useSWR<Array<AppModel>>(
+    ["app", team_id],
+    fetchApps,
+    {
+      onSuccess: (data) => {
+        if (data.length) {
+          setApps(data);
+        }
+      },
+    }
+  );
 
   const { trigger: updateApp } = useSWRMutation(
-    "app",
+    ["updateAppMetadata", team_id],
     updateAppMetadataFetcher,
     {
       onSuccess: (data) => {
@@ -415,7 +467,7 @@ const useApps = () => {
   );
 
   const toggleAppActivityMutation = useSWRMutation(
-    "app",
+    ["toggleAppActivity", team_id],
     updateAppStatusFetcher,
     {
       onSuccess: (data) => {
@@ -426,15 +478,19 @@ const useApps = () => {
     }
   );
 
-  const removeAppMutation = useSWRMutation("app", deleteAppFetcher, {
-    onSuccess: async (data) => {
-      if (data) {
-        await router.replace("/app");
-        toast.success("App deleted");
-        setCurrentApp(null);
-      }
-    },
-  });
+  const removeAppMutation = useSWRMutation(
+    ["deletaAppFetcher", team_id],
+    deleteAppFetcher,
+    {
+      onSuccess: async (data) => {
+        if (data) {
+          await router.replace(urls.app({ team_id: team_id ?? "" }));
+          toast.success("App deleted");
+          setCurrentApp(null);
+        }
+      },
+    }
+  );
 
   const updateAppMetadata = useCallback(
     async (appMetaData: Partial<AppMetadataModel>) => {
@@ -478,23 +534,35 @@ const useApps = () => {
     (data: AppModel) => {
       if (data) {
         setApps([data]);
-        router.push(urls.app(data.id));
+        router.push(urls.app({ app_id: data.id, team_id: team_id ?? "" }));
         toast.success("App created");
       }
     },
-    [router, setApps]
+    [router, setApps, team_id]
   );
 
-  const insertNewAppMutation = useSWRMutation("app", insertAppFetcher, {
-    onSuccess: onInsertSuccess,
-    onError: () => {
-      toast.error("Failed to create new app");
-    },
-  });
+  const insertNewAppMutation = useSWRMutation(
+    ["insertAppFetcher", team_id],
+    insertAppFetcher,
+    {
+      onSuccess: onInsertSuccess,
+      onError: () => {
+        toast.error("Failed to create new app");
+      },
+    }
+  );
 
   const createNewApp = useCallback(
     async (data: NewAppPayload) => {
-      return await insertNewAppMutation.trigger(data);
+      let result: any | null = null;
+
+      try {
+        result = await insertNewAppMutation.trigger(data);
+      } catch (error) {
+        console.log(error);
+      }
+
+      return result;
     },
     [insertNewAppMutation]
   );

@@ -4,40 +4,19 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type SignupMutationVariables = Types.Exact<{
-  team_name: Types.Scalars["String"];
-  data: Array<Types.User_Insert_Input> | Types.User_Insert_Input;
+export type InsertUserMutationVariables = Types.Exact<{
+  user_data: Types.User_Insert_Input;
 }>;
 
-export type SignupMutation = {
+export type InsertUserMutation = {
   __typename?: "mutation_root";
-  insert_team_one?: {
-    __typename?: "team";
-    id: string;
-    name?: string | null;
-    users: Array<{
-      __typename?: "user";
-      id: string;
-      ironclad_id: string;
-      world_id_nullifier?: string | null;
-      posthog_id?: string | null;
-      auth0Id?: string | null;
-    }>;
-  } | null;
+  insert_user_one?: { __typename?: "user"; id: string } | null;
 };
 
-export const SignupDocument = gql`
-  mutation Signup($team_name: String!, $data: [user_insert_input!]!) {
-    insert_team_one(object: { name: $team_name, users: { data: $data } }) {
+export const InsertUserDocument = gql`
+  mutation InsertUser($user_data: user_insert_input!) {
+    insert_user_one(object: $user_data) {
       id
-      name
-      users {
-        id
-        ironclad_id
-        world_id_nullifier
-        posthog_id
-        auth0Id
-      }
     }
   }
 `;
@@ -59,17 +38,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    Signup(
-      variables: SignupMutationVariables,
+    InsertUser(
+      variables: InsertUserMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<SignupMutation> {
+    ): Promise<InsertUserMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<SignupMutation>(SignupDocument, variables, {
+          client.request<InsertUserMutation>(InsertUserDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "Signup",
+        "InsertUser",
         "mutation"
       );
     },

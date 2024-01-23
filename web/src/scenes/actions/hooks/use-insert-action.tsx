@@ -7,11 +7,16 @@ import {
 
 import { ActionsDocument } from "../graphql/actions.generated";
 import { useAppStore } from "src/stores/appStore";
+import { useRouter } from "next/router";
 
 export const useInsertAction = () => {
   const currentApp = useAppStore.getState().currentApp;
+  const router = useRouter();
+  const team_id = router.query.team_id as string;
 
-  const [insertActionQuery, other] = useInsertActionMutation();
+  const [insertActionQuery, other] = useInsertActionMutation({
+    context: { headers: { team_id } },
+  });
 
   const insertAction = useCallback(
     async (object: InsertActionMutationVariables) => {
@@ -26,6 +31,7 @@ export const useInsertAction = () => {
             {
               query: ActionsDocument,
               variables: { app_id: currentApp?.id ?? "" },
+              context: { headers: { team_id } },
             },
           ],
         });
@@ -35,7 +41,7 @@ export const useInsertAction = () => {
 
       return result;
     },
-    [currentApp?.id, insertActionQuery, other]
+    [currentApp?.id, insertActionQuery, other, team_id]
   );
 
   const result = useMemo(

@@ -56,9 +56,12 @@ select_permissions:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:

@@ -23,6 +23,7 @@ import { ActionsQuery } from "../graphql/actions.generated";
 import { useUpdateAction } from "../hooks";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { ActionValue } from "../common/ActionValue";
+import { useRouter } from "next/router";
 
 dayjs.extend(relativeTime);
 
@@ -54,6 +55,7 @@ const getActionsStore = (store: IActionStore) => ({
 export const Action = memo(function Action(props: {
   action: ActionsQuery["action"][number];
 }) {
+  const router = useRouter();
   const { updateAction } = useUpdateAction();
   const { setActionToUpdate, setActionToDelete, setIsDeleteActionModalOpened } =
     useActionStore(getActionsStore);
@@ -207,7 +209,10 @@ export const Action = memo(function Action(props: {
                     {props.action.kiosk_enabled && (
                       <Link
                         className="flex items-center gap-x-1 h-8 px-2 font-sora font-semibold text-14 bg-ffffff border border-ebecef rounded-lg hover:opacity-70 transition-opacity"
-                        href={urls.kiosk(props.action.id)}
+                        href={urls.kiosk({
+                          action_id: props.action.id,
+                          team_id: router.query.team_id as string,
+                        })}
                         target="_blank"
                       >
                         Open Kiosk

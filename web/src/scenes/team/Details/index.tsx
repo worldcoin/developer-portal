@@ -1,44 +1,60 @@
 import { FieldGroup } from "@/components/FieldGroup";
 import { FieldInput } from "@/components/FieldInput";
-import { KeyboardEvent, memo, useCallback, useRef } from "react";
+import { KeyboardEvent, memo, useCallback, useEffect, useMemo } from "react";
 import { Team, useUpdateTeamName } from "@/scenes/team/hooks/useTeam";
+import { useForm } from "react-hook-form";
 
 export interface DetailsProps {
   team: Team;
 }
 
+type FormData = {
+  teamName: string;
+};
+
 export const Details = memo(function Details(props: DetailsProps) {
-  const { team } = props;
+  const team = useMemo(() => props.team, [props.team]);
   const { updateTeamName } = useUpdateTeamName();
 
-  const ref = useRef<HTMLInputElement | null>(null);
+  const { register, handleSubmit, formState, reset } = useForm<FormData>({
+    defaultValues: {
+      teamName: team.name ?? "",
+    },
+    mode: "onChange",
+  });
 
-  const handleSave = useCallback(() => {
-    const newName = ref.current?.value;
-    if (newName && newName !== team.name) {
-      updateTeamName(team.id, newName);
-    }
-  }, [team, updateTeamName]);
+  useEffect(() => {
+    reset({
+      teamName: team.name ?? "",
+    });
+  }, [reset, team.name]);
 
-  const handleBlur = useCallback(() => {
-    handleSave();
-  }, [handleSave]);
+  const submit = useCallback(
+    (values: FormData) => {
+      if (!formState.isDirty) {
+        return;
+      }
+
+      updateTeamName(team.id, values.teamName);
+      reset(values);
+    },
+    [formState.isDirty, reset, team.id, updateTeamName]
+  );
 
   const handleKeyPress = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        handleSave();
+        handleSubmit(submit)();
       }
     },
-    [handleSave]
+    [handleSubmit, submit]
   );
 
   return (
     <FieldGroup label="Team name">
       <FieldInput
-        ref={ref}
-        defaultValue={team.name ?? ""}
-        onBlur={handleBlur}
+        {...register("teamName")}
+        onBlur={handleSubmit(submit)}
         onKeyPress={handleKeyPress}
       />
     </FieldGroup>

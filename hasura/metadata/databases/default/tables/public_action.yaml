@@ -53,9 +53,12 @@ insert_permissions:
       check:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       columns:
         - action
         - app_id
@@ -140,9 +143,12 @@ select_permissions:
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -180,9 +186,12 @@ update_permissions:
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key
@@ -196,9 +205,17 @@ delete_permissions:
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
+                - _or:
+                    - role:
+                        _eq: OWNER
+                    - role:
+                        _eq: ADMIN
 event_triggers:
   - name: generate_external_nullifier
     definition:
