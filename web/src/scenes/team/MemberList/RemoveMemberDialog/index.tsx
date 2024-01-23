@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { memo, useCallback } from "react";
 import { TeamMember, useRemoveTeamMember } from "@/scenes/team/hooks/useTeam";
+import { toast } from "react-toastify";
 
 export interface RemoveMemberDialogProps {
   memberForRemove?: TeamMember;
@@ -17,7 +18,13 @@ export const RemoveMemberDialog = memo(function RemoveMemberDialog(
 
   const handleConfirm = useCallback(async () => {
     if (!memberForRemove) return;
-    await removeTeamMember(memberForRemove.id);
+
+    try {
+      await removeTeamMember(memberForRemove.id);
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+
     onClose();
   }, [memberForRemove, onClose, removeTeamMember]);
 
