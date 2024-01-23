@@ -1,4 +1,3 @@
-import { getAPIServiceClient } from "src/backend/graphql";
 import {
   integrationDBSetup,
   integrationDBTearDown,
@@ -7,7 +6,6 @@ import {
 import { getAPIUserClient } from "./test-utils";
 import { gql } from "@apollo/client";
 import { Role_Enum } from "@/graphql/graphql";
-import { inspect } from "util";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);

@@ -69,47 +69,6 @@ describe("user role", () => {
     expect(response.data.app.length).toEqual(0);
   });
 
-  test("API Key: cannot select another team's apps", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
-    )) as { rows: Array<{ id: string }> };
-
-    for (const team of teams) {
-      const { rows: teamApps } = (await integrationDBExecuteQuery(
-        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`
-      )) as { rows: Array<{ id: string }> };
-
-      const apiKey = await generateAPIKeyJWT(team.id);
-      const response = await fetch(
-        publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            query: `
-            query ListApps {
-              app {
-                id
-                team_id
-              }
-            }
-          `,
-          }),
-        }
-      );
-      const responseData = await response.json();
-      expect(responseData.data.app.length).toEqual(teamApps.length);
-
-      responseData.data.app.forEach((app: { id: string; team_id: string }) => {
-        expect(app.team_id).toEqual(team.id);
-        expect(teamApps.map((app) => app.id)).toContain(app.id);
-      });
-    }
-  });
-
   // NOTE: making any update mutation to the apps in the team that are different from the token team
   test("cannot update another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
@@ -167,45 +126,6 @@ describe("user role", () => {
     expect(testInvalidResponse.data.update_app.affected_rows).toEqual(0);
   });
 
-  test("API Key: cannot update another team apps", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
-    )) as { rows: Array<{ id: string }> };
-
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const tokenTeamId = teamMemberships[0].team_id;
-
-    const apiKey = await generateAPIKeyJWT(tokenTeamId);
-    const response = await fetch(
-      publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          query: `
-          mutation UpdateApp($team_id: String!) {
-            update_app(_set: {is_archived: true}, where: {team_id: {_eq: $team_id}}) {
-              affected_rows
-            }
-          }
-          `,
-          variables: {
-            team_id: teams.find((t) => t.id !== tokenTeamId)?.id,
-          },
-        }),
-      }
-    );
-    const responseData = await response.json();
-
-    expect(responseData.data.update_app.affected_rows).toEqual(0);
-  });
-
   test("cannot delete another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team";`
@@ -260,7 +180,87 @@ describe("user role", () => {
     });
     expect(testInvalidResponse.data.delete_app.affected_rows).toEqual(0);
   });
+});
 
+describe("api_key role", () => {
+  test("API Key: cannot select another team's apps", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team"`
+    )) as { rows: Array<{ id: string }> };
+
+    for (const team of teams) {
+      const { rows: teamApps } = (await integrationDBExecuteQuery(
+        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`
+      )) as { rows: Array<{ id: string }> };
+
+      const apiKey = await generateAPIKeyJWT(team.id);
+      const response = await fetch(
+        publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            query: `
+            query ListApps {
+              app {
+                id
+                team_id
+              }
+            }
+          `,
+          }),
+        }
+      );
+      const responseData = await response.json();
+      expect(responseData.data.app.length).toEqual(teamApps.length);
+
+      responseData.data.app.forEach((app: { id: string; team_id: string }) => {
+        expect(app.team_id).toEqual(team.id);
+        expect(teamApps.map((app) => app.id)).toContain(app.id);
+      });
+    }
+  });
+  test("API Key: cannot update another team apps", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team";`
+    )) as { rows: Array<{ id: string }> };
+
+    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+
+    const tokenTeamId = teamMemberships[0].team_id;
+
+    const apiKey = await generateAPIKeyJWT(tokenTeamId);
+    const response = await fetch(
+      publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          query: `
+          mutation UpdateApp($team_id: String!) {
+            update_app(_set: {is_archived: true}, where: {team_id: {_eq: $team_id}}) {
+              affected_rows
+            }
+          }
+          `,
+          variables: {
+            team_id: teams.find((t) => t.id !== tokenTeamId)?.id,
+          },
+        }),
+      }
+    );
+    const responseData = await response.json();
+
+    expect(responseData.data.update_app.affected_rows).toEqual(0);
+  });
   test("API Key: cannot delete another team's apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team";`
