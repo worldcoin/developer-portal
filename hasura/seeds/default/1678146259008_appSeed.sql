@@ -210,8 +210,7 @@ SELECT
 FROM
     inserted_app5;
 
-
--- team_d7cde14f17eda7e0ededba7ded6b4468
+-- team_2222214f17eda7e0ededba7ded6b4222
 WITH
     inserted_app6 AS (
         INSERT INTO
@@ -230,7 +229,7 @@ WITH
                 false,
                 false,
                 'Sign In App_T2',
-                'team_d7cde14f17eda7e0ededba7ded6b4468',
+                'team_2222214f17eda7e0ededba7ded6b4222',
                 'cloud',
                 'active',
                 '2023-02-18T11:20:39.530041+00:00',
@@ -272,7 +271,7 @@ WITH
                 false,
                 true,
                 'Multi-claim App_T2',
-                'team_d7cde14f17eda7e0ededba7ded6b4468',
+                'team_2222214f17eda7e0ededba7ded6b4222',
                 'cloud',
                 'active',
                 '2023-02-18T11:20:39.530041+00:00',
@@ -314,7 +313,7 @@ WITH
                 false,
                 false,
                 'On-chain App_T2',
-                'team_d7cde14f17eda7e0ededba7ded6b4468',
+                'team_2222214f17eda7e0ededba7ded6b4222',
                 'on-chain',
                 'active',
                 '2023-02-18T11:20:39.530041+00:00',
@@ -356,7 +355,7 @@ WITH
                 false,
                 true,
                 'Custom Action App_T2',
-                'team_d7cde14f17eda7e0ededba7ded6b4468',
+                'team_2222214f17eda7e0ededba7ded6b4222',
                 'cloud',
                 'active',
                 '2023-02-18T11:20:39.530041+00:00',
@@ -398,7 +397,7 @@ WITH
                 true,
                 true,
                 'Archived App_T2',
-                'team_d7cde14f17eda7e0ededba7ded6b4468',
+                'team_2222214f17eda7e0ededba7ded6b4222',
                 'cloud',
                 'inactive',
                 '2023-02-18T11:20:39.530041+00:00',

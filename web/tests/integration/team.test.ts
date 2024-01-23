@@ -7,6 +7,9 @@ import {
 import { getAPIUserClient } from "./test-utils";
 import { gql } from "@apollo/client";
 import { Role_Enum } from "@/graphql/graphql";
+import getConfig from "next/config";
+import { generateAPIKeyJWT } from "@/backend/jwts";
+const { publicRuntimeConfig } = getConfig();
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -67,10 +70,15 @@ describe("user role", () => {
         // NOTE: revert update changes
         await integrationDBExecuteQuery(
           // update team hasura postgresql query
-          `UPDATE "public"."team" SET "name" = 'new name' WHERE "id" = '${team_id}' RETURNING "name";`
+          `UPDATE "public"."team" SET "name" = '${nameBeforeUpdate}' WHERE "id" = '${team_id}' RETURNING "name";`
         );
       } else {
         expect(response.data?.update_team?.affected_rows).toEqual(0);
+        // Additional SQL query to confirm the team name has not changed
+        const { rows: unchangedTeam } = (await integrationDBExecuteQuery(
+          `SELECT name FROM "public"."team" WHERE "id" = '${team_id}'`
+        )) as { rows: Array<{ name: string }> };
+        expect(unchangedTeam[0].name).toEqual(nameBeforeUpdate);
       }
     }
   });
@@ -101,6 +109,58 @@ describe("user role", () => {
       const response = await client.query({ query });
       expect(response.data.team.length).toEqual(1);
       expect(response.data.team[0].id).toEqual(team.id);
+    }
+    // Test using an team that the user is not a member of
+    const { rows: testInvalidTeamMemberships } =
+      (await integrationDBExecuteQuery(
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' limit 1;`
+      )) as { rows: Array<{ id: string; user_id: string }> };
+
+    const testInvalidClient = await getAPIUserClient({
+      team_id: teams[0].id,
+      user_id: testInvalidTeamMemberships[0].user_id,
+    });
+
+    const query = gql`
+      query ListTeams {
+        team (where: {id: {_eq: "${teams[0].id}"}}) {
+          id
+        }
+      }
+    `;
+
+    const response = await testInvalidClient.query({ query });
+    expect(response.data.team.length).toEqual(0);
+  });
+
+  test("API Key: cannot select another team", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team"`
+    )) as { rows: Array<{ id: string }> };
+
+    for (const team of teams) {
+      const response = await fetch(
+        publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await generateAPIKeyJWT(team.id)}`,
+          },
+          body: JSON.stringify({
+            query: `
+            query ListTeams {
+              team {
+                id
+              }
+            }
+          `,
+          }),
+        }
+      );
+      const responseData = await response.json();
+      expect(responseData.data.team.length).toEqual(1);
+      expect(responseData.data.team[0].id).toEqual(team.id);
     }
   });
 
@@ -141,5 +201,67 @@ describe("user role", () => {
     });
 
     expect(response.data.update_team.affected_rows).toEqual(0);
+    // Test using an team that the user is not a member of
+
+    const { rows: testInvalidTeamMemberships } =
+      (await integrationDBExecuteQuery(
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' limit 1;`
+      )) as { rows: Array<{ id: string; user_id: string }> };
+
+    const testInvalidClient = await getAPIUserClient({
+      team_id: teams[0].id,
+      user_id: testInvalidTeamMemberships[0].user_id,
+    });
+
+    const testInvalidTeamResponse = await testInvalidClient.mutate({
+      mutation: query,
+      variables: {
+        team_id: teams[0].id,
+      },
+    });
+    expect(testInvalidTeamResponse.data.update_team.affected_rows).toEqual(0);
+  });
+
+  test("API Key: cannot update another team", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team";`
+    )) as { rows: Array<{ id: string }> };
+
+    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id, role FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+
+    const tokenTeamId = teamMemberships[0].team_id;
+    const response = await fetch(
+      publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await generateAPIKeyJWT(tokenTeamId)}`,
+        },
+        body: JSON.stringify({
+          query: `
+          mutation UpdateTeam($team_id: String!) {
+            update_team(
+              _set: { name: "new name" }
+              where: { id: { _eq: $team_id } }
+            ) {
+              affected_rows
+            }
+          }
+        `,
+          variables: {
+            team_id: tokenTeamId,
+          },
+        }),
+      }
+    );
+
+    const responseData = await response.json();
+    // API Key has no permission to update team
+    expect(responseData.errors[0].message).toEqual(
+      "field 'update_team' not found in type: 'mutation_root'"
+    );
   });
 });
