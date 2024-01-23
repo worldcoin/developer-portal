@@ -59,14 +59,15 @@ export const Member = memo(function Member(props: {
         <p className="text-12">{member.user.email}</p>
       </div>
 
-      {length > 1 && hasRemoveButton && (
+      {/* FIXME: uncomment when we have solution about deleting users */}
+      {/* {length > 1 && hasRemoveButton && (
         <button
           className="text-danger hover:opacity-75 transition-opacity"
           onClick={() => setMemberForRemove(member)}
         >
           Remove
         </button>
-      )}
+      )} */}
     </div>
   );
 });
