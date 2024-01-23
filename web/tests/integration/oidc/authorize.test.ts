@@ -126,7 +126,6 @@ describe("/api/v1/oidc/authorize", () => {
       "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;"
     );
     const app_id = dbQuery.rows[0].app_id;
-
     const { req, res } = createMocks({
       method: "POST",
       headers: {
