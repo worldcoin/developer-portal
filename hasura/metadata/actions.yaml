@@ -2,21 +2,24 @@ actions:
   - name: delete_unverified_images
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/images/delete_images"
+      handler: '{{NEXT_API_URL}}/images/delete_images'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+      - role: api_key
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: "{{NEXT_API_URL}}/images/get_unverified_images"
+      handler: '{{NEXT_API_URL}}/images/get_unverified_images'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: "{{$body.input.app_id}}"
+          app_id: '{{$body.input.app_id}}'
         request_headers:
           add_headers: {}
           remove_headers:
@@ -29,16 +32,16 @@ actions:
   - name: get_uploaded_image
     definition:
       kind: ""
-      handler: "{{NEXT_API_URL}}/images/get_image"
+      handler: '{{NEXT_API_URL}}/images/_get_image'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: "{{$body.input.app_id}}"
-          content_type_ending: "{{$body.input.content_type_ending}}"
-          image_type: "{{$body.input.image_type}}"
+          app_id: '{{$body.input.app_id}}'
+          content_type_ending: '{{$body.input.content_type_ending}}'
+          image_type: '{{$body.input.image_type}}'
         request_headers:
           add_headers: {}
           remove_headers:
@@ -52,7 +55,7 @@ actions:
   - name: invite_team_members
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_invite_team_members"
+      handler: '{{NEXT_API_URL}}/_invite_team_members'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -62,7 +65,7 @@ actions:
   - name: reset_api_key
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-api-key"
+      handler: '{{NEXT_API_URL}}/_reset-api-key'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -72,7 +75,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/_reset-client-secret"
+      handler: '{{NEXT_API_URL}}/_reset-client-secret'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -83,16 +86,16 @@ actions:
   - name: upload_image
     definition:
       kind: ""
-      handler: "{{NEXT_API_URL}}/images/upload_image"
+      handler: '{{NEXT_API_URL}}/images/upload_image'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: "{{$body.input.app_id}}"
-          content_type_ending: "{{$body.input.content_type_ending}}"
-          image_type: "{{$body.input.image_type}}"
+          app_id: '{{$body.input.app_id}}'
+          content_type_ending: '{{$body.input.content_type_ending}}'
+          image_type: '{{$body.input.image_type}}'
         request_headers:
           add_headers: {}
           remove_headers:

@@ -46,15 +46,6 @@ export const handleImageGet = async (
       });
     }
 
-    if (body.session_variables["x-hasura-role"] === "admin") {
-      return errorHasuraQuery({
-        res,
-        req,
-        detail: "Admin is not allowed to run this query.",
-        code: "admin_not_allowed",
-      });
-    }
-
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
@@ -93,14 +84,11 @@ export const handleImageGet = async (
       app_id: app_id,
       user_id: userId,
     });
-    if (
-      !userTeam[0].apps.some((app) => app.id === app_id) ||
-      userTeam[0].users.length === 0
-    ) {
+    if (!userTeam[0].id) {
       return errorHasuraQuery({
         res,
         req,
-        detail: "User does not have access to this app.",
+        detail: "App not found.",
         code: "no_access",
       });
     }

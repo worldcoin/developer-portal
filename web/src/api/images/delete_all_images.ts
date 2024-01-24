@@ -45,15 +45,6 @@ export const handleDeleteAllImages = async (
       });
     }
 
-    if (req.body.session_variables["x-hasura-role"] === "admin") {
-      return errorHasuraQuery({
-        res,
-        req,
-        detail: "Admin is not allowed to run this query.",
-        code: "admin_not_allowed",
-      });
-    }
-
     const userId = req.body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
@@ -95,7 +86,7 @@ export const handleDeleteAllImages = async (
       return errorHasuraQuery({
         res,
         req,
-        detail: "User does not have access to this app.",
+        detail: "App not found.",
         code: "no_access",
       });
     }
@@ -132,8 +123,8 @@ export const handleDeleteAllImages = async (
             Tagging: {
               TagSet: [
                 {
-                  Key: "ExpireAfter",
-                  Value: "3Days",
+                  Key: "expired",
+                  Value: "true",
                 },
               ],
             },

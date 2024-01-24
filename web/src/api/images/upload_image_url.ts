@@ -42,14 +42,6 @@ export const handleImageUpload = async (
       });
     }
 
-    if (body.session_variables["x-hasura-role"] === "admin") {
-      return errorHasuraQuery({
-        res,
-        req,
-        detail: "Admin is not allowed to run this query.",
-        code: "admin_not_allowed",
-      });
-    }
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
@@ -80,6 +72,15 @@ export const handleImageUpload = async (
         code: "required",
       });
     }
+    // Check that content_type_ending is png or jpeg
+    if (!["png", "jpeg"].includes(content_type_ending)) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Content Type is invalid",
+        code: "invalid_input",
+      });
+    }
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
@@ -89,14 +90,11 @@ export const handleImageUpload = async (
       app_id: app_id,
       user_id: userId,
     });
-    if (
-      !userTeam[0].apps.some((app) => app.id === app_id) ||
-      userTeam[0].users.length === 0
-    ) {
+    if (!userTeam[0].id) {
       return errorHasuraQuery({
         res,
         req,
-        detail: "User does not have access to this app.",
+        detail: "App not found.",
         code: "no_access",
       });
     }
