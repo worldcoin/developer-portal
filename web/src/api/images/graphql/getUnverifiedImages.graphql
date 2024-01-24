@@ -17,5 +17,11 @@ query GetUnverifiedImages(
       showcase_img_urls
       hero_image_url
     }
+    team {
+      memberships {
+        id
+        role
+      }
+    }
   }
 }

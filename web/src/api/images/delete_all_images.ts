@@ -81,8 +81,12 @@ export const handleDeleteAllImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
-
-    if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
+    // There should only be one app with the matching app_id and team_id
+    if (
+      appInfo.length === 0 ||
+      appInfo[0].app_metadata.length === 0 ||
+      appInfo[0].team.memberships[0].role === "MEMBER"
+    ) {
       return errorHasuraQuery({
         res,
         req,

@@ -62,6 +62,12 @@ const nextConfig = {
         protocol: "https",
         hostname: "s3.us-east-2.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "s3.us-east-2.amazonaws.com",
+        port: "",
+        pathname: `${process.env.ASSETS_S3_BUCKET_NAME}/unverified/**`,
+      },
     ],
   },
   publicRuntimeConfig: Object.fromEntries(

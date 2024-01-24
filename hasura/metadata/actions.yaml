@@ -2,7 +2,7 @@ actions:
   - name: delete_unverified_images
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/images/delete_images"
+      handler: "{{NEXT_API_URL}}/images/_delete_images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -86,7 +86,7 @@ actions:
   - name: upload_image
     definition:
       kind: ""
-      handler: "{{NEXT_API_URL}}/images/upload_image"
+      handler: "{{NEXT_API_URL}}/images/_upload_image"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
