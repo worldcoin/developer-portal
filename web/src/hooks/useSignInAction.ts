@@ -295,24 +295,30 @@ const resetClientSecretFetcher = async ([_key, team_id]: [
     return null;
   }
 
-  const response = await graphQLRequest<{
-    reset_client_secret: { client_secret: string };
-  }>(
-    {
-      query: ResetClientSecretMutation,
-      variables: { app_id: currentApp.id },
-    },
-    undefined,
-    {
-      team_id: team_id ?? "",
-    }
-  );
+  let response;
+
+  try {
+    response = await graphQLRequest<{
+      reset_client_secret: { client_secret: string };
+    }>(
+      {
+        query: ResetClientSecretMutation,
+        variables: { app_id: currentApp.id },
+      },
+      undefined,
+      {
+        team_id: team_id ?? "",
+      }
+    );
+  } catch {
+    return null;
+  }
 
   if (response.data?.reset_client_secret.client_secret) {
     return response.data.reset_client_secret.client_secret;
   }
 
-  throw new Error("Failed to reset client secret");
+  return null;
 };
 
 const getAppStore = (store: IAppStore) => ({
