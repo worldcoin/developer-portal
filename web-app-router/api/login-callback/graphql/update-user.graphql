@@ -1,0 +1,10 @@
+mutation UpdateUser($id: String!, $_set: user_set_input) {
+  update_user_by_pk(pk_columns: { id: $id }, _set: $_set) {
+    id
+    team_id
+    auth0Id
+    posthog_id
+    email
+    name
+  }
+}
