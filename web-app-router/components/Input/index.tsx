@@ -1,30 +1,31 @@
 "use client";
 import clsx from "clsx";
 import { FloatingLabel } from "flowbite-react";
-import { ComponentProps, memo } from "react";
+import { ComponentProps, InputHTMLAttributes, memo } from "react";
 import { Icon } from "../Icon";
+import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
-type InputProps = ComponentProps<"input"> & {
-  type?: ComponentProps<"input">["type"];
-  disabled?: boolean;
-  helperText?: string;
+interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
+  register: UseFormRegisterReturn;
+  currentValue?: string;
+  errors?: FieldError;
+  isDirty?: boolean;
   label: string;
-  className?: string;
   placeholder?: string;
-  required?: boolean;
-  canCopy?: boolean;
-};
+  helperText?: string;
+  className?: string;
+}
 
-export const Input = memo(function Input(props: InputProps) {
+export const Input = memo(function Input(props: InputInterface) {
   const {
+    register,
     helperText,
     label,
     placeholder,
     className,
     required,
     disabled,
-    canCopy,
-    onChange,
+    errors,
     ...restProps
   } = props;
 
@@ -35,8 +36,7 @@ export const Input = memo(function Input(props: InputProps) {
           md: clsx(
             "border-1 peer block w-full appearance-none rounded-lg border-gray-200 bg-transparent px-4 py-4 text-sm placeholder:text-gray-400",
             "focus:border-blue-500 focus:text-gray-700 focus:outline-none focus:ring-0",
-            "disabled:bg-gray-50 disabled:text-gray-300",
-            { "pr-10": canCopy }
+            "disabled:bg-gray-50 disabled:text-gray-300"
             // Adjust right padding when canCopy is true
           ),
         },
@@ -69,16 +69,18 @@ export const Input = memo(function Input(props: InputProps) {
     <div className={clsx(className, "relative")}>
       <FloatingLabel
         label={label}
+        {...register}
+        {...restProps}
         theme={customTheme}
         variant="outlined"
-        onChange={onChange}
         sizing="md"
         helperText={helperText}
         placeholder={placeholder}
         disabled={disabled}
         required={true}
+        aria-invalid={errors ? "true" : "false"}
       ></FloatingLabel>
-      {canCopy && (
+      {/* {canCopy && (
         <button
           type="button"
           disabled={disabled}
@@ -93,7 +95,7 @@ export const Input = memo(function Input(props: InputProps) {
             )}
           />
         </button>
-      )}
+      )} */}
     </div>
   );
 });

@@ -138,14 +138,12 @@ export const JoinPage = () => {
         label="Signal"
         className="w-[500px]"
         placeholder="my_signal"
-        canCopy
         disabled
       />
       <Input
         label="Signal"
         className="w-[500px]"
         placeholder="my_signal"
-        canCopy
         helperText="The number of verifications the same person can do for this action"
       />
     </div>
