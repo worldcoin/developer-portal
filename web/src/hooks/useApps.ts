@@ -196,6 +196,9 @@ const updateAppStatusFetcher = async (
 ) => {
   const { id, status } = args.arg;
   const currentApp = useAppStore.getState().currentApp;
+  if (!currentApp) {
+    throw new Error("No current app");
+  }
   const response = await graphQLRequest<{
     update_app_by_pk: AppModel;
   }>(
