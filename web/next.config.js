@@ -60,10 +60,6 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "s3.us-east-2.amazonaws.com",
-      },
-      {
-        protocol: "https",
         hostname: `s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
         pathname: `/${process.env.ASSETS_S3_BUCKET_NAME}/unverified/**`,
       },
