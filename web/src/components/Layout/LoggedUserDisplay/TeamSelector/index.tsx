@@ -51,13 +51,13 @@ export const TeamSelector = memo(function TeamSelector(props: {
                       key={membership.id}
                       as={Link}
                       href={urls.app({ team_id: membership.team.id })}
-                      className={cn({
+                      className={cn("truncate", {
                         "text-gray-900": membership.team.id === team_id,
                         "text-gray-500 hover:text-gray-900":
                           membership.team.id !== team_id,
                       })}
                     >
-                      <span className={cn("text-[13px]")}>
+                      <span className={cn("text-[13px] max-w-full")}>
                         {membership.team.name}
                       </span>
                     </Menu.Item>
@@ -66,7 +66,11 @@ export const TeamSelector = memo(function TeamSelector(props: {
               </AnimateHeight>
 
               <Menu.Button className="flex items-center text-[13px] justify-between w-full h-[28px] px-2 outline-none">
-                {currentTeam && <span>{currentTeam.name}</span>}
+                {currentTeam && (
+                  <span className="max-w-[130px] truncate">
+                    {currentTeam.name}
+                  </span>
+                )}
 
                 {!currentTeam && (
                   <span className="text-gray-900 font-sora">Select team</span>
