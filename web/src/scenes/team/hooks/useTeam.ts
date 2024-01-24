@@ -3,7 +3,10 @@ import {
   TeamsDocument,
   useTeamsLazyQuery,
 } from "@/scenes/team/graphql/teams.generated";
-import { useUpdateTeamNameMutation } from "@/scenes/team/graphql/updateTeamName.generated";
+import {
+  UpdateTeamNameMutation,
+  useUpdateTeamNameMutation,
+} from "@/scenes/team/graphql/updateTeamName.generated";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useRemoveTeamMemberMutation } from "@/scenes/team/graphql/removeTeamMember.generated";
@@ -74,18 +77,20 @@ export const useUpdateTeamName = () => {
         context: { headers: { team_id } },
       },
     ],
-    onCompleted: () => {
-      toast.success("Team updated");
-    },
   });
 
   const updateTeamName = useCallback(
-    (id: string, name: string) => {
+    (params: {
+      id: string;
+      name: string;
+      onCompleted?: (data: UpdateTeamNameMutation) => void;
+    }) => {
       return mutateFunction({
         variables: {
-          id,
-          name,
+          id: params.id,
+          name: params.name,
         },
+        onCompleted: params.onCompleted,
       });
     },
     [mutateFunction]
