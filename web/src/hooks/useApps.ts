@@ -488,6 +488,9 @@ const useApps = () => {
           setCurrentApp(data);
         }
       },
+      onError: () => {
+        toast.error("Failed to toggle app activity");
+      },
     }
   );
 
