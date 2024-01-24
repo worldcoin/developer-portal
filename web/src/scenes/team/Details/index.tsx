@@ -3,6 +3,7 @@ import { FieldInput } from "@/components/FieldInput";
 import { KeyboardEvent, memo, useCallback, useEffect, useMemo } from "react";
 import { Team, useUpdateTeamName } from "@/scenes/team/hooks/useTeam";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 export interface DetailsProps {
   team: Team;
@@ -30,15 +31,27 @@ export const Details = memo(function Details(props: DetailsProps) {
   }, [reset, team.name]);
 
   const submit = useCallback(
-    (values: FormData) => {
+    async (values: FormData) => {
       if (!formState.isDirty) {
         return;
       }
 
-      updateTeamName(team.id, values.teamName);
-      reset(values);
+      await updateTeamName({
+        id: team.id,
+        name: values.teamName,
+
+        onCompleted: (data) => {
+          if (!data.team) {
+            toast.error("Team members can't update team name");
+            return reset({ teamName: team.name ?? "" });
+          }
+
+          toast.success("Team name updated");
+          reset(values);
+        },
+      });
     },
-    [formState.isDirty, reset, team.id, updateTeamName]
+    [formState.isDirty, reset, team.id, team.name, updateTeamName]
   );
 
   const handleKeyPress = useCallback(
