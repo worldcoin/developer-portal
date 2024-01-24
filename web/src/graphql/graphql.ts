@@ -50,7 +50,7 @@ export type ImageGetAllUnverifiedImagesOutput = {
   __typename?: "ImageGetAllUnverifiedImagesOutput";
   hero_image_url?: Maybe<Scalars["String"]>;
   logo_img_url?: Maybe<Scalars["String"]>;
-  showcase_img_urls?: Maybe<Array<Maybe<Scalars["String"]>>>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
