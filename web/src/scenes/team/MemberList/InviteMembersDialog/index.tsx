@@ -12,6 +12,7 @@ import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { useRouter } from "next/router";
+import { useTeam } from "../../hooks/useTeam";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
@@ -19,6 +20,7 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
 }) {
   const { onClose } = props;
   const router = useRouter();
+  const team = useTeam();
 
   const team_id = useMemo(
     () => router.query.team_id as string,
@@ -53,8 +55,22 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   const [emails, setEmails] = useState<string[]>([]);
 
   const handleSubmit = useCallback(async () => {
+    const membersInTheTeam = emails.filter((email) =>
+      team.data?.memberships.some(
+        (membership) => membership.user?.email === email
+      )
+    );
+
+    if (membersInTheTeam.length > 0) {
+      toast.error(
+        `These members are already in the team: ${membersInTheTeam.join(", ")}`
+      );
+
+      return;
+    }
+
     await inviteTeamMembers({ variables: { emails } });
-  }, [inviteTeamMembers, emails]);
+  }, [emails, inviteTeamMembers, team.data?.memberships]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
