@@ -68,6 +68,9 @@ dependencies:
   request-ip:
     specifier: ^3.3.0
     version: 3.3.0
+  server-only:
+    specifier: ^0.0.1
+    version: 0.0.1
   winston:
     specifier: ^3.11.0
     version: 3.11.0
