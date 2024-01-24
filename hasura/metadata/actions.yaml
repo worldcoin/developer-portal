@@ -12,7 +12,11 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
+<<<<<<< HEAD
       handler: "{{NEXT_API_URL}}/images/_get_unverified_images"
+=======
+      handler: '{{NEXT_API_URL}}/images/_get_unverified_images'
+>>>>>>> 35a9376 (rebase onto teams and roles)
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET

@@ -1,4 +1,4 @@
-import { useState, useCallback, ChangeEvent, useEffect } from "react";
+import { useState, useCallback, ChangeEvent, useEffect, useMemo } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { toast } from "react-toastify";
 import { UseFormSetValue } from "react-hook-form";
@@ -7,6 +7,7 @@ import { useGetAllUnverifiedImagesQueryLazyQuery } from "./graphql/getAllUnverif
 import { useUploadImageLazyQuery } from "./graphql/uploadImage.generated";
 import { useGetUploadedImageQueryLazyQuery } from "./graphql/getUploadedImage.generated";
 import getConfig from "next/config";
+import { useRouter } from "next/router";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -39,6 +40,11 @@ export const useImage = (props: ImageHookProps) => {
     hero_image_url: undefined,
     showcase_img_urls: undefined,
   });
+  const router = useRouter();
+  const team_id = useMemo(
+    () => router.query.team_id as string | undefined,
+    [router.query.team_id]
+  );
   // Track the current image preview for the upload object
   useEffect(() => {
     setImagePreview(imgSrc ?? null);
@@ -65,6 +71,7 @@ export const useImage = (props: ImageHookProps) => {
         return;
       }
       const response = await getAllUnverifiedImagesQuery({
+        context: { headers: { team_id } },
         variables: {
           app_id: currentApp.id,
         },
@@ -84,7 +91,11 @@ export const useImage = (props: ImageHookProps) => {
   }, [
     currentApp?.app_metadata.verification_status,
     currentApp?.id,
+    currentApp?.verified_app_metadata?.hero_image_url,
+    currentApp?.verified_app_metadata?.logo_img_url,
+    currentApp?.verified_app_metadata?.showcase_img_urls,
     getAllUnverifiedImagesQuery,
+    team_id,
   ]);
 
   const [getUploadedImageQuery] = useGetUploadedImageQueryLazyQuery();
@@ -104,6 +115,7 @@ export const useImage = (props: ImageHookProps) => {
             image_type: imageType,
             content_type_ending: fileType,
           },
+          context: { headers: { team_id } },
         });
         const imageUrl = response.data?.get_uploaded_image?.url;
         if (!imageUrl) {
@@ -120,7 +132,14 @@ export const useImage = (props: ImageHookProps) => {
         console.error("Get image error:", error);
       }
     },
-    [currentApp?.id, formItemName, getUploadedImageQuery, imageType, setValue]
+    [
+      currentApp?.id,
+      formItemName,
+      getUploadedImageQuery,
+      imageType,
+      setValue,
+      team_id,
+    ]
   );
   // This function is used to enforce strict dimensions for the uploaded images
   const validateImageDimensions = useCallback(
@@ -178,6 +197,7 @@ export const useImage = (props: ImageHookProps) => {
           throw new Error("Image type is not defined");
         }
         const response = await uploadImageQuery({
+          context: { headers: { team_id } },
           variables: {
             app_id: currentApp.id,
             image_type: imageType,
@@ -212,7 +232,7 @@ export const useImage = (props: ImageHookProps) => {
       }
       setIsUploading(false);
     },
-    [currentApp?.id, imageType, uploadImageQuery]
+    [currentApp?.id, imageType, team_id, uploadImageQuery]
   );
 
   const removeImage = useCallback(
