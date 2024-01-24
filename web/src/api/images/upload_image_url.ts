@@ -1,9 +1,7 @@
 import { errorHasuraQuery, errorNotAllowed } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
-import * as yup from "yup";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
-import { Session, getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { logger } from "@/lib/logger";
@@ -90,7 +88,7 @@ export const handleImageUpload = async (
       app_id: app_id,
       user_id: userId,
     });
-    if (!userTeam[0].id) {
+    if (!userTeam[0].id && userTeam[0].memberships[0].role !== "MEMBER") {
       return errorHasuraQuery({
         res,
         req,

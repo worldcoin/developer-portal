@@ -3,9 +3,13 @@ query CheckUserInApp($team_id: String!, $app_id: String!, $user_id: String!) {
     where: {
       id: { _eq: $team_id }
       apps: { id: { _eq: $app_id } }
-      users: { id: { _eq: $user_id } }
+      memberships: { id: { _eq: $user_id } }
     }
   ) {
     id
+    memberships {
+      id
+      role
+    }
   }
 }

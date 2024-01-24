@@ -12,7 +12,15 @@ export type CheckUserInAppQueryVariables = Types.Exact<{
 
 export type CheckUserInAppQuery = {
   __typename?: "query_root";
-  team: Array<{ __typename?: "team"; id: string }>;
+  team: Array<{
+    __typename?: "team";
+    id: string;
+    memberships: Array<{
+      __typename?: "membership";
+      id: string;
+      role: Types.Role_Enum;
+    }>;
+  }>;
 };
 
 export const CheckUserInAppDocument = gql`
@@ -21,10 +29,14 @@ export const CheckUserInAppDocument = gql`
       where: {
         id: { _eq: $team_id }
         apps: { id: { _eq: $app_id } }
-        users: { id: { _eq: $user_id } }
+        memberships: { id: { _eq: $user_id } }
       }
     ) {
       id
+      memberships {
+        id
+        role
+      }
     }
   }
 `;
