@@ -29,7 +29,7 @@ export const CheckUserInAppDocument = gql`
       where: {
         id: { _eq: $team_id }
         apps: { id: { _eq: $app_id } }
-        memberships: { id: { _eq: $user_id } }
+        memberships: { user_id: { _eq: $user_id } }
       }
     ) {
       id

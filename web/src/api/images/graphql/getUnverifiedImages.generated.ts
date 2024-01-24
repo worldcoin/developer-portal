@@ -32,7 +32,10 @@ export const GetUnverifiedImagesDocument = gql`
     app(
       where: {
         id: { _eq: $app_id }
-        team: { id: { _eq: $team_id }, users: { id: { _eq: $user_id } } }
+        team: {
+          id: { _eq: $team_id }
+          memberships: { user_id: { _eq: $user_id } }
+        }
       }
     ) {
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
