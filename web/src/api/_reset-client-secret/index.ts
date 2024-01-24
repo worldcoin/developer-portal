@@ -66,7 +66,7 @@ export const handleSecretReset = async (
     return errorHasuraQuery({
       res,
       req,
-      detail: "User is not an admin or owner of this team.",
+      detail: "Invalid User",
       code: "invalid_role",
     });
   }
@@ -114,7 +114,7 @@ export const handleSecretReset = async (
     query,
     variables: {
       app_id,
-      team_id: req.body.session_variables["x-hasura-team-id"] ?? "",
+      team_id,
     },
   });
 
