@@ -60,7 +60,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: s3BucketUrl,
+        hostname: "s3.us-east-2.amazonaws.com",
       },
     ],
   },
