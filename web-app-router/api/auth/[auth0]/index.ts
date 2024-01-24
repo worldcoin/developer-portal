@@ -24,6 +24,7 @@ export const auth0 = handleAuth({
 
   callback: handleCallback,
   "login-callback": loginCallback,
+  // TODO: Add delete account handler
 
   logout: handleLogout({
     returnTo: "/login",
