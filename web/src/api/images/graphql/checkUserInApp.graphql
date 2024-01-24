@@ -8,7 +8,7 @@ query CheckUserInApp($team_id: String!, $app_id: String!, $user_id: String!) {
   ) {
     id
     memberships {
-      id
+      user_id
       role
     }
   }

@@ -19,7 +19,7 @@ query GetUnverifiedImages(
     }
     team {
       memberships {
-        id
+        user_id
         role
       }
     }

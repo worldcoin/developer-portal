@@ -82,7 +82,6 @@ export const handleGetAllUnverifiedImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
-
     // All roles can view the unverified images awaiting review.
     if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
       return errorHasuraQuery({

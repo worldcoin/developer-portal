@@ -81,12 +81,16 @@ export const handleDeleteAllImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
+    const userMembership = appInfo[0].team.memberships.find(
+      (membership) => membership.user_id === userId
+    );
     // There should only be one app with the matching app_id and team_id
     // Only Owner is allowed to delete
     if (
       appInfo.length === 0 ||
       appInfo[0].app_metadata.length === 0 ||
-      appInfo[0].team.memberships[0].role !== "OWNER"
+      !userMembership ||
+      userMembership.role !== "OWNER"
     ) {
       return errorHasuraQuery({
         res,
@@ -96,9 +100,6 @@ export const handleDeleteAllImages = async (
       });
     }
 
-    if (!process.env.ASSETS_S3_REGION) {
-      throw new Error("AWS Region must be set.");
-    }
     const s3Client = new S3Client({
       region: process.env.ASSETS_S3_REGION,
     });

@@ -17,7 +17,7 @@ export type CheckUserInAppQuery = {
     id: string;
     memberships: Array<{
       __typename?: "membership";
-      id: string;
+      user_id: string;
       role: Types.Role_Enum;
     }>;
   }>;
@@ -34,7 +34,7 @@ export const CheckUserInAppDocument = gql`
     ) {
       id
       memberships {
-        id
+        user_id
         role
       }
     }

@@ -24,7 +24,7 @@ export type GetUnverifiedImagesQuery = {
       __typename?: "team";
       memberships: Array<{
         __typename?: "membership";
-        id: string;
+        user_id: string;
         role: Types.Role_Enum;
       }>;
     };
@@ -53,7 +53,7 @@ export const GetUnverifiedImagesDocument = gql`
       }
       team {
         memberships {
-          id
+          user_id
           role
         }
       }
