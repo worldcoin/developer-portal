@@ -135,6 +135,10 @@ export const AppHeader = memo(function AppHeader() {
           </div>
 
           <Switch
+            // If the app just got verified and has no draft yet, use should make a draft
+            disabled={
+              currentApp?.app_metadata?.verification_status === "verified"
+            }
             checked={currentApp?.status === "active"}
             toggle={toggleAppActivity}
           />
