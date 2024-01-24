@@ -88,6 +88,7 @@ export const handleImageUpload = async (
       app_id: app_id,
       user_id: userId,
     });
+    // Admins and Owners allowed to upload images
     if (!userTeam[0].id || userTeam[0].memberships[0].role === "MEMBER") {
       return errorHasuraQuery({
         res,

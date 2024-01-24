@@ -82,10 +82,11 @@ export const handleDeleteAllImages = async (
       user_id: userId,
     });
     // There should only be one app with the matching app_id and team_id
+    // Only Owner is allowed to delete
     if (
       appInfo.length === 0 ||
       appInfo[0].app_metadata.length === 0 ||
-      appInfo[0].team.memberships[0].role === "MEMBER"
+      appInfo[0].team.memberships[0].role !== "OWNER"
     ) {
       return errorHasuraQuery({
         res,
