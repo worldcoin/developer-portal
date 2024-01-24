@@ -1,7 +1,19 @@
-import { Dispatch, memo, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  memo,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+
 import { IAppStore, useAppStore } from "@/stores/appStore";
 import { Credential } from "./Credential";
 import useSignInAction from "src/hooks/useSignInAction";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { useRouter } from "next/router";
+import { Role_Enum } from "@/graphql/graphql";
 
 const getStoreParams = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -12,6 +24,19 @@ export const Credentials = memo(function Credentials() {
   const { clientSecret, resetClientSecret } = useSignInAction();
   const [appIdCopied, setAppIdCopied] = useState(false);
   const [clientSecretCopied, setClientSecretCopied] = useState(false);
+  const { user } = useUser() as Auth0SessionUser;
+  const router = useRouter();
+  const team_id = router.query.team_id as string;
+
+  const showClientSecretSection = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === team_id
+    );
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [team_id, user?.hasura.memberships]);
 
   const generateCopyButton = useCallback(
     (values: {
@@ -51,22 +76,24 @@ export const Credentials = memo(function Credentials() {
           ]}
         />
 
-        <Credential
-          name="CLIENT SECRET"
-          value={clientSecret ?? ""}
-          buttons={[
-            { text: "Reset", action: () => resetClientSecret() },
-            ...(clientSecret
-              ? [
-                  generateCopyButton({
-                    copyValue: clientSecret,
-                    isCopied: clientSecretCopied,
-                    setIsCopied: setClientSecretCopied,
-                  }),
-                ]
-              : []),
-          ]}
-        />
+        {showClientSecretSection && (
+          <Credential
+            name="CLIENT SECRET"
+            value={clientSecret ?? ""}
+            buttons={[
+              { text: "Reset", action: () => resetClientSecret() },
+              ...(clientSecret
+                ? [
+                    generateCopyButton({
+                      copyValue: clientSecret,
+                      isCopied: clientSecretCopied,
+                      setIsCopied: setClientSecretCopied,
+                    }),
+                  ]
+                : []),
+            ]}
+          />
+        )}
       </div>
     </section>
   );
