@@ -12,7 +12,6 @@ const { publicRuntimeConfig } = getConfig();
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
   const [copied, setCopied] = useState(false);
-  // TODO once migration is done
   const [image, setImage] = useState<string | null>(
     currentApp?.verified_app_metadata?.logo_img_url
       ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`

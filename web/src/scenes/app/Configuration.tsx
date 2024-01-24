@@ -233,8 +233,8 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({ verification_status: "unverified" });
         toast.success("App removed from review");
-      } catch (validationErrors: any) {
-        console.error(validationErrors);
+      } catch (error: any) {
+        console.error(error.message);
         toast.error("Error removing from review.");
       }
     },
@@ -272,6 +272,7 @@ export const Configuration = memo(function Configuration() {
     },
     [currentApp, updateAppMetadata]
   );
+  // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
   const _getImageEndpoint = (imageType: string) => {
     const fileType = imageType.split(".").pop();
     if (fileType === "png" || fileType === "jpg") {
@@ -289,7 +290,6 @@ export const Configuration = memo(function Configuration() {
         </div>
       )}
       <h2 className="text-20 font-sora font-semibold">App Information</h2>
-
       <div className="flex flex-col w-full">
         <FieldLabel required className="mb-2 font-rubik">
           App name

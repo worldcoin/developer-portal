@@ -78,7 +78,7 @@ const UpsertAppMetadataQuery = gql`
     $app_id: String!
     $name: String
     $logo_img_url: String = ""
-    $showcase_img_urls: _text
+    $showcase_img_urls: _text = null
     $hero_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""

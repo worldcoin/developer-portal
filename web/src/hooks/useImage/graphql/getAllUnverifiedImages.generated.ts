@@ -14,7 +14,7 @@ export type GetAllUnverifiedImagesQueryQuery = {
     __typename?: "ImageGetAllUnverifiedImagesOutput";
     logo_img_url?: string | null;
     hero_image_url?: string | null;
-    showcase_img_urls?: Array<string> | null;
+    showcase_img_urls?: Array<string | null> | null;
   } | null;
 };
 

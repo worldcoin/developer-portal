@@ -80,6 +80,7 @@ export const handleImageUpload = async (
       });
     }
     const client = await getAPIServiceGraphqlClient();
+
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client
     ).CheckUserInApp({
