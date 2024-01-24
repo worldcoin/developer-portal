@@ -41,8 +41,8 @@ export const ButtonContent = memo(function ButtonContent(props: {
       `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/${props.app.verified_app_metadata?.logo_img_url}`
     );
   }, [
-    props.app.app_metadata.logo_img_url,
-    props.app.id,
+    props.app.app_metadata?.logo_img_url,
+    props.app?.id,
     props.app.verified_app_metadata?.logo_img_url,
   ]);
 

@@ -89,7 +89,7 @@ export const useImage = (props: ImageHookProps) => {
       console.error("Get image error:", error);
     }
   }, [
-    currentApp?.app_metadata.verification_status,
+    currentApp?.app_metadata?.verification_status,
     currentApp?.id,
     currentApp?.verified_app_metadata?.hero_image_url,
     currentApp?.verified_app_metadata?.logo_img_url,
