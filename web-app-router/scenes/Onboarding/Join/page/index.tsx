@@ -1,5 +1,6 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SuccessIcon } from "@/components/Icons";
+import { Input } from "@/components/Input";
 
 export const JoinPage = () => {
   return (
@@ -97,6 +98,26 @@ export const JoinPage = () => {
           Danger: Loading
         </DecoratedButton>
       </div>
+      <Input
+        label="Signal"
+        className="w-[500px]"
+        placeholder="my_signal"
+        required
+      />
+      <Input
+        label="Signal"
+        className="w-[500px]"
+        placeholder="my_signal"
+        canCopy
+        disabled
+      />
+      <Input
+        label="Signal"
+        className="w-[500px]"
+        placeholder="my_signal"
+        canCopy
+        helperText="The number of verifications the same person can do for this action"
+      />
     </div>
   );
 };
