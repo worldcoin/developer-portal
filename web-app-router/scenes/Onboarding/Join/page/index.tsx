@@ -1,4 +1,5 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SuccessIcon } from "@/components/Icons";
 
 export const JoinPage = () => {
   return (
@@ -8,7 +9,7 @@ export const JoinPage = () => {
           type="button"
           className="w-72"
           variant="primary"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
         >
           Primary
@@ -17,7 +18,7 @@ export const JoinPage = () => {
           type="button"
           variant="primary"
           className="w-72"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
           disabled
         >
@@ -29,7 +30,7 @@ export const JoinPage = () => {
           loading
           className="w-72"
           showArrowRight
-          icon="success"
+          icon={<SuccessIcon />}
         >
           Primary: Loading
         </DecoratedButton>
@@ -39,7 +40,7 @@ export const JoinPage = () => {
           type="button"
           className="w-72"
           variant="secondary"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
         >
           Secondary
@@ -48,7 +49,7 @@ export const JoinPage = () => {
           type="button"
           variant="secondary"
           className="w-72"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
           disabled
         >
@@ -60,7 +61,7 @@ export const JoinPage = () => {
           loading
           className="w-72"
           showArrowRight
-          icon="success"
+          icon={<SuccessIcon />}
         >
           Secondary: Loading
         </DecoratedButton>
@@ -70,7 +71,7 @@ export const JoinPage = () => {
           type="button"
           className="w-72"
           variant="danger"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
         >
           Danger
@@ -79,7 +80,7 @@ export const JoinPage = () => {
           type="button"
           variant="danger"
           className="w-72"
-          icon="success"
+          icon={<SuccessIcon />}
           showArrowRight
           disabled
         >
@@ -91,7 +92,7 @@ export const JoinPage = () => {
           loading
           className="w-72"
           showArrowRight
-          icon="success"
+          icon={<SuccessIcon />}
         >
           Danger: Loading
         </DecoratedButton>

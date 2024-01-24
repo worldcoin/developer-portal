@@ -1,10 +1,10 @@
 import { Button, CommonButtonProps } from "@/components/Button";
 import { memo } from "react";
-import { Icon, IconType } from "@/components/Icon";
 import clsx from "clsx";
+import { ArrowRightIcon } from "../Icons";
 
 type DecoratedButtonProps = CommonButtonProps & {
-  icon?: IconType;
+  icon?: React.ReactElement;
   showArrowRight?: boolean;
   disabled?: boolean;
   loading?: boolean;
@@ -24,6 +24,7 @@ export const DecoratedButton = memo(function DecoratedButton(
     variant = "primary",
     ...restProps
   } = props;
+
   const buttonStyles = {
     primary: {
       normal:
@@ -45,25 +46,24 @@ export const DecoratedButton = memo(function DecoratedButton(
       loading: "border-error-300 text-error-400 pointer-events-none",
     },
   };
+
   return (
     <Button
       disabled={disabled}
       className={clsx(
         className,
-        "px-6 py-2.5 rounded-xl border font-medium ",
-        !disabled && !loading && buttonStyles[variant].normal,
-        !disabled && !loading && buttonStyles[variant].hover,
+        "px-6 py-2.5 rounded-xl border font-medium  ",
+        { [buttonStyles[variant].normal]: !disabled && !loading },
+        { [buttonStyles[variant].hover]: !disabled && !loading },
         disabled && buttonStyles[variant].disabled,
         loading && buttonStyles[variant].loading
       )}
       {...restProps}
     >
       <div className="gap-2 flex items-center justify-center ">
-        {icon && <Icon className={clsx("w-6 h-6")} name={icon} />}
+        {icon}
         {props.children}
-        {showArrowRight && (
-          <Icon name="arrow-right" className={clsx("w-6 h-6")} />
-        )}
+        {showArrowRight && <ArrowRightIcon className="w-6 h-6" />}
       </div>
     </Button>
   );

@@ -16,8 +16,8 @@ export type CommonButtonProps =
 export const Button = memo(function Button(props: CommonButtonProps) {
   if (props.href) {
     const { href, ...restProps } = props;
-    const href_parsed = !props.disabled ? href : "";
-    return <Link {...restProps} href={href_parsed} />;
+    const hrefParsed = !props.disabled ? href : "";
+    return <Link {...restProps} href={hrefParsed} />;
   }
 
   if (props.type) {
