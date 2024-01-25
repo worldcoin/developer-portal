@@ -35,7 +35,11 @@ const config: Config = {
           200: "#FFE5E2",
           300: "#FFCBC5",
           400: "#FF897C",
+          500: "#FF4732",
           600: "#DB2824",
+        },
+        blue: {
+          500: "#4940E0",
         },
         fontFamily: {
           // They are using GT America Mono, but it's not free
@@ -43,6 +47,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("flowbite/plugin")],
 };
 export default config;
