@@ -183,6 +183,7 @@ export const JoinPage = () => {
             required
             errors={errors.test}
             label="Test"
+            disabled
             className="w-[500px]"
             placeholder="my_signal"
           />

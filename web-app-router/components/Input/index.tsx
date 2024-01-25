@@ -33,7 +33,7 @@ export const Input = memo(function Input(props: InputInterface) {
     disabled,
     ...restProps
   } = props;
-  const { ...restRegister } = register;
+
   const customTheme = {
     input: {
       default: {
@@ -97,18 +97,19 @@ export const Input = memo(function Input(props: InputInterface) {
       default: "mt-2 text-xs text-gray-500 ",
     },
   };
+
   return (
     <div className={clsx(className, "relative")}>
       {addOn && addOnPosition === "left" && (
         <div className="absolute inset-y-0 left-4 top-[-22px]  flex pr-3.5">
           {addOn}
         </div>
-      )}{" "}
+      )}
       <FloatingLabel
         label={label}
         theme={customTheme}
         {...restProps}
-        {...restRegister}
+        {...register}
         variant="outlined"
         sizing="md"
         helperText={helperText}
