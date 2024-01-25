@@ -67,7 +67,7 @@ export const Input = memo(function Input(props: InputInterface) {
   );
 
   return (
-    <div className={clsx("inline-block")}>
+    <div className={"inline-grid"}>
       <fieldset
         className={twMerge(
           clsx("grid grid-cols-[auto_1fr_auto] group pb-2", parentClassNames),
@@ -93,7 +93,14 @@ export const Input = memo(function Input(props: InputInterface) {
           {label} {required && <span className="text-system-error-500">*</span>}
         </legend>
       </fieldset>
-      {helperText && <p className="mt-2 text-xs text-grey-500">{helperText}</p>}
+      <div className={clsx("flex flex-col w-full px-2")}>
+        {helperText && (
+          <p className="mt-2 text-xs text-grey-500">{helperText}</p>
+        )}
+        {errors?.message && (
+          <p className="mt-2 text-xs text-system-error-500">{errors.message}</p>
+        )}
+      </div>
     </div>
   );
 });
