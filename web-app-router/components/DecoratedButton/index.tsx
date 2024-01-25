@@ -28,7 +28,7 @@ export const DecoratedButton = memo(function DecoratedButton(
   const buttonStyles = {
     primary: {
       normal:
-        "bg-gray-900 text-white border-white border-opacity-10 bg-gradient-to-b from-white/15 to-transparent inset-0 shadow-button",
+        "bg-gray-900 text-white bg-gradient-to-b border-gray-900 from-white/15 to-transparent shadow-button",
       hover: "hover:bg-gradient-to-b hover:from-white/20 hover:to-transparent ",
       disabled: "bg-gray-100 text-gray-300 pointer-events-none",
       loading: "bg-gray-100 text-gray-400 pointer-events-none",
@@ -52,7 +52,7 @@ export const DecoratedButton = memo(function DecoratedButton(
       disabled={disabled}
       className={clsx(
         className,
-        "px-6 py-2.5 rounded-xl border font-medium  ",
+        "px-6 py-2.5 rounded-xl border font-medium relative",
         { [buttonStyles[variant].normal]: !disabled && !loading },
         { [buttonStyles[variant].hover]: !disabled && !loading },
         disabled && buttonStyles[variant].disabled,
@@ -60,7 +60,12 @@ export const DecoratedButton = memo(function DecoratedButton(
       )}
       {...restProps}
     >
-      <div className="gap-2 flex items-center justify-center ">
+      <div
+        className={clsx("gap-2 flex items-center justify-center", {
+          "before:absolute before:inset-0 before:rounded-[11px] before:shadow-[0_0_0_1px_rgba(255,255,255,.1)_inset]":
+            variant === "primary",
+        })}
+      >
         {icon}
         {props.children}
         {showArrowRight && <ArrowRightIcon className="w-6 h-6" />}
