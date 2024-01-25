@@ -33,23 +33,23 @@ export const Input = memo(function Input(props: InputInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "border-[1px] text-gray-700 rounded-lg bg-gray-0 px-2 text-sm",
+    "border-[1px] text-grey-700 rounded-lg bg-grey-0 px-2 text-sm",
     {
-      "border-gray-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-gray-700 ":
+      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
-      "border-error-500 text-error-500 focus-within:border-error-500":
+      "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
         errors && !disabled,
     },
     {
-      "hover:text-gray-700": !disabled,
-      "bg-gray-50 text-gray-300": disabled,
+      "hover:text-grey-700": !disabled,
+      "bg-grey-50 text-grey-300 border-grey-200": disabled,
     }
   );
   const inputClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
     {
-      "placeholder:text-gray-400": !errors,
-      "group-hover:placeholder:text-gray-700 group-hover:focus:placeholder:text-gray-400 ":
+      "placeholder:text-grey-400": !errors,
+      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
     }
   );
@@ -57,9 +57,11 @@ export const Input = memo(function Input(props: InputInterface) {
   const labelClassNames = clsx(
     "text-sm ml-2 px-[1px] peer-focus:text-blue-500",
     {
-      "text-gray-400 peer-focus:text-blue-500 group-hover:text-gray-700":
+      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
         !errors && !disabled,
-      "text-error-500 peer-focus:text-error-500": errors && !disabled,
+      "text-system-error-500 peer-focus:text-system-error-500":
+        errors && !disabled,
+      "text-grey-400": disabled,
     }
   );
 
@@ -88,10 +90,10 @@ export const Input = memo(function Input(props: InputInterface) {
           {addOn && addOnPosition === "right" && addOn}
         </div>
         <legend className={labelClassNames}>
-          {label} {required && <span className="text-error-500">*</span>}
+          {label} {required && <span className="text-system-error-500">*</span>}
         </legend>
       </fieldset>
-      {helperText && <p className="mt-2 text-xs text-gray-500">{helperText}</p>}
+      {helperText && <p className="mt-2 text-xs text-grey-500">{helperText}</p>}
     </div>
   );
 });
