@@ -10,6 +10,8 @@ export type CreateUserAndDeleteInviteMutationVariables = Types.Exact<{
   ironclad_id: Types.Scalars["String"];
   invite_id: Types.Scalars["String"];
   auth0Id: Types.Scalars["String"];
+  name?: Types.InputMaybe<Types.Scalars["String"]>;
+  email?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
 export type CreateUserAndDeleteInviteMutation = {
@@ -22,6 +24,8 @@ export type CreateUserAndDeleteInviteMutation = {
     posthog_id?: string | null;
     world_id_nullifier?: string | null;
     auth0Id?: string | null;
+    name: string;
+    email?: string | null;
   } | null;
   delete_invite_by_pk?: { __typename?: "invite"; id: string } | null;
 };
@@ -33,6 +37,8 @@ export const CreateUserAndDeleteInviteDocument = gql`
     $ironclad_id: String!
     $invite_id: String!
     $auth0Id: String!
+    $name: String
+    $email: String
   ) {
     user: insert_user_one(
       object: {
@@ -40,6 +46,8 @@ export const CreateUserAndDeleteInviteDocument = gql`
         world_id_nullifier: $nullifier
         ironclad_id: $ironclad_id
         auth0Id: $auth0Id
+        name: $name
+        email: $email
       }
     ) {
       id
@@ -48,6 +56,8 @@ export const CreateUserAndDeleteInviteDocument = gql`
       posthog_id
       world_id_nullifier
       auth0Id
+      name
+      email
     }
     delete_invite_by_pk(id: $invite_id) {
       id

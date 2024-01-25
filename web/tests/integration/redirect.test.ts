@@ -5,13 +5,14 @@ import {
   integrationDBTearDown,
 } from "./setup";
 import { getAPIUserClient } from "./test-utils";
+import { getAPIServiceClient } from "@/backend/graphql";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 
 describe("redirect model", () => {
   test("allows valid URLs", async () => {
-    const client = await getAPIUserClient();
+    const client = await getAPIServiceClient();
     const { rows } = await integrationDBExecuteQuery(
       'SELECT id FROM "public"."action" LIMIT 1;'
     );

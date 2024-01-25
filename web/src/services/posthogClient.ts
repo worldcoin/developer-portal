@@ -1,4 +1,4 @@
-"use server";
+// Use in Server side only
 import { PostHog } from "posthog-node";
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();

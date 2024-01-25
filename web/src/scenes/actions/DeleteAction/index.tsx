@@ -5,6 +5,7 @@ import { DialogHeader } from "@/components/DialogHeader";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { Button } from "src/components/Button";
 import { useDeleteAction } from "../hooks/use-delete-action";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const getActionsStore = (store: IActionStore) => ({
   isOpened: store.isDeleteActionModalOpened,

@@ -8,7 +8,16 @@ object_relationships:
 insert_permissions:
   - role: user
     permission:
-      check: {}
+      check:
+        team:
+          memberships:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - role:
+                  _eq: OWNER
       set:
         team_id: x-hasura-Team-Id
       columns:
@@ -37,9 +46,17 @@ select_permissions:
         - updated_at
       filter:
         team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+          memberships:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - _or:
+                  - role:
+                      _eq: OWNER
+                  - role:
+                      _eq: ADMIN
 update_permissions:
   - role: service
     permission:
@@ -54,18 +71,29 @@ update_permissions:
         - name
       filter:
         team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+          memberships:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - team:
+                  id:
+                    _eq: X-Hasura-Team-Id
+              - role:
+                  _eq: OWNER
       check: null
 delete_permissions:
   - role: user
     permission:
       filter:
         team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+          memberships:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - role:
+                  _eq: OWNER
 event_triggers:
   - name: generate_api_key
     definition:
