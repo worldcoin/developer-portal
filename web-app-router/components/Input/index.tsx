@@ -1,7 +1,8 @@
 "use client";
 import clsx from "clsx";
-import { InputHTMLAttributes, memo, useState } from "react";
+import { InputHTMLAttributes, memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
+import { twMerge } from "tailwind-merge";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   register: UseFormRegisterReturn;
@@ -68,10 +69,9 @@ export const Input = memo(function Input(props: InputInterface) {
   return (
     <div className={clsx("inline-block")}>
       <fieldset
-        className={clsx(
-          "grid grid-cols-[auto_1fr_auto] group pb-2",
-          parentClassNames,
-          className
+        className={twMerge(
+          clsx("grid grid-cols-[auto_1fr_auto] group pb-2", parentClassNames),
+          typeof className === "string" ? className : undefined
         )}
       >
         <div className="flex items-center">
