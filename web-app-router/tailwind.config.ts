@@ -6,7 +6,6 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./scenes/**/*.{js,ts,jsx,tsx,mdx}",
-    "node_modules/flowbite-react/lib/esm/**/*.js",
   ],
 
   theme: {
@@ -52,6 +51,12 @@ const config: Config = {
             500: "#00B800",
           },
         },
+
+        gridTemplateColumns: {
+          "1fr/auto": "1fr auto",
+          "auto/1fr": "auto 1fr",
+          "auto/1fr/auto": "auto 1fr auto",
+        },
       },
 
       fontFamily: {
@@ -59,7 +64,6 @@ const config: Config = {
       },
     },
   },
-
   plugins: [],
 };
 

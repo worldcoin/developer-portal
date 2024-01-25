@@ -1,7 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { FloatingLabel } from "flowbite-react";
-import { InputHTMLAttributes, memo } from "react";
+import { InputHTMLAttributes, memo, useState } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
@@ -17,7 +16,7 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   addOnPosition?: "left" | "right";
   className?: string;
 }
-// It's easier to pass in disabled and required as props instead of through register. This doesn't recognize yup required anyways
+
 export const Input = memo(function Input(props: InputInterface) {
   const {
     register,
@@ -33,96 +32,66 @@ export const Input = memo(function Input(props: InputInterface) {
     ...restProps
   } = props;
 
-  const customTheme = {
-    input: {
-      default: {
-        outlined: {
-          md: clsx(
-            "border-1 peer block w-full appearance-none rounded-lg border-gray-200 bg-transparent px-4 py-4 text-sm placeholder:text-gray-400",
-            "focus:border-blue-500 focus:text-gray-700 focus:outline-none focus:ring-0",
-            { "bg-gray-50 disabled:text-gray-300": disabled },
-            {
-              "hover:border-gray-700 peer-hover:text-gray-700": !disabled,
-            },
-            { "pl-12": addOnPosition === "left" },
-            { "pr-12": addOnPosition === "right" }
-          ),
-        },
-      },
-      error: {
-        outlined: {
-          md: clsx(
-            "border-1 text-error-500 peer block w-full appearance-none rounded-lg border-error-500 bg-transparent px-4 py-4 text-sm placeholder:text-error-500",
-            "focus:border-error-500 focus:text-gray-700 focus:outline-none focus:ring-0",
-            "disabled:bg-gray-50 disabled:text-gray-300"
-          ),
-        },
-      },
+  const parentClassNames = clsx(
+    "border-[1px] text-gray-700 rounded-lg bg-gray-0 px-2 text-sm",
+    {
+      "border-gray-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-gray-700 ":
+        !errors && !disabled,
+      "border-error-500 text-error-500 focus-within:border-error-500":
+        errors && !disabled,
     },
-    label: {
-      default: {
-        outlined: {
-          md: clsx(
-            "absolute left-4 top-2 z-10 origin-[0] -translate-y-4 scale-75 transition-transform bg-white px-1 text-sm duration-300 scale-75 -translate-y-4",
-            "text-gray-400 peer-focus:text-blue-500",
-            {
-              "after:content-['*'] after:text-error-500 after:pl-1 ": required,
-            },
-            {
-              "before:content-[''] before:absolute before:inset-0 before:bg-white before:z-[-1] before:rounded-lg before:w-full before:h-full after:content-[''] after:absolute after:inset-x-0 after:bottom-0 after:bg-gray-50 after:z-[-1] after:rounded-b-lg after:w-full after:h-1/2 bg-transparent":
-                disabled,
-            }
-          ),
-        },
-      },
-      error: {
-        outlined: {
-          md: clsx(
-            "absolute left-4 top-2 z-10 origin-[0] -translate-y-4 scale-75 transition-transform bg-white px-1 text-sm duration-300 scale-75 -translate-y-4",
-            "text-error-500 peer-focus:text-error-500",
-            {
-              "after:content-['*'] after:text-error-500 after:pl-1": required,
-            },
-            disabled && [
-              "before:content-[''] before:absolute before:inset-0 before:bg-white before:z-[-1] before:rounded-lg before:w-full before:h-full",
-              "after:content-[''] after:absolute after:inset-x-0 after:bottom-0 after:bg-gray-50 after:z-[-1] after:rounded-b-lg after:w-full after:h-1/2",
-              "bg-transparent",
-            ]
-          ),
-        },
-      },
-    },
-    helperText: {
-      default: "mt-2 text-xs text-gray-500 ",
-    },
-  };
+    {
+      "hover:text-gray-700": !disabled,
+      "bg-gray-50 text-gray-300": disabled,
+    }
+  );
+  const inputClassNames = clsx(
+    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
+    {
+      "placeholder:text-gray-400": !errors,
+      "group-hover:placeholder:text-gray-700 group-hover:focus:placeholder:text-gray-400 ":
+        !disabled,
+    }
+  );
+
+  const labelClassNames = clsx(
+    "text-sm ml-2 px-[1px] peer-focus:text-blue-500",
+    {
+      "text-gray-400 peer-focus:text-blue-500 group-hover:text-gray-700":
+        !errors && !disabled,
+      "text-error-500 peer-focus:text-error-500": errors && !disabled,
+    }
+  );
 
   return (
-    <div className={clsx(className, "relative")}>
-      {addOn && addOnPosition === "left" && (
-        <div className="absolute inset-y-0 left-4 top-[-22px]  flex pr-3.5">
-          {addOn}
+    <div className={clsx("inline-block")}>
+      <fieldset
+        className={clsx(
+          "grid grid-cols-[auto_1fr_auto] group pb-2",
+          parentClassNames,
+          className
+        )}
+      >
+        <div className="flex items-center">
+          {addOn && addOnPosition === "left" && addOn}
         </div>
-      )}
-      <FloatingLabel
-        label={label}
-        theme={customTheme}
-        {...restProps}
-        {...register}
-        variant="outlined"
-        sizing="md"
-        helperText={helperText}
-        placeholder={placeholder}
-        disabled={disabled}
-        required={required}
-        color={errors ? "error" : "default"}
-        aria-invalid={errors ? "true" : "false"}
-      />
-      {addOn && addOnPosition === "right" && (
-        <div className="absolute inset-y-0 right-0 top-[-22px] flex pr-3.5">
-          {addOn}
+        <input
+          {...register}
+          {...restProps}
+          className={clsx(inputClassNames)}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          aria-invalid={errors ? "true" : "false"}
+        />
+        <div className="flex items-center">
+          {addOn && addOnPosition === "right" && addOn}
         </div>
-      )}
+        <legend className={labelClassNames}>
+          {label} {required && <span className="text-error-500">*</span>}
+        </legend>
+      </fieldset>
+      {helperText && <p className="mt-2 text-xs text-gray-500">{helperText}</p>}
     </div>
   );
 });

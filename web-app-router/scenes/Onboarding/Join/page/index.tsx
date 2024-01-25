@@ -167,7 +167,7 @@ export const JoinPage = () => {
       <div className="flex p-2 w-full ">
         <form
           onSubmit={handleSubmit(handleSave)}
-          className="flex flex-col items-center w-full gap-2"
+          className="flex flex-col items-center w-full gap-4"
         >
           <h1>Test Form</h1>
           <Input
@@ -176,22 +176,32 @@ export const JoinPage = () => {
             required
             label="Name"
             className="w-[500px]"
+            addOnPosition="left"
+            addOn={
+              <button
+                type="button"
+                className="w-16 bg-red-500 px-2 ml-1 py-2 rounded-lg"
+              >
+                Test
+              </button>
+            }
             placeholder="my_signal"
           />
           <Input
             register={register("test")}
             required
             errors={errors.test}
-            label="Test"
-            disabled
+            label="Ronald"
             className="w-[500px]"
             placeholder="my_signal"
+            helperText="The number of verifications the same person can do for this action"
           />
           <Input
             register={register("test2")}
-            label="Test2"
+            label="ALPHABET"
             errors={errors.test2}
-            addOnPosition="right"
+            addOnPosition="left"
+            disabled
             addOn={
               <button type="button">
                 <SuccessIcon />
@@ -201,9 +211,9 @@ export const JoinPage = () => {
             placeholder="my_signal"
             helperText="The number of verifications the same person can do for this action"
           />
-          {errors.name?.message && (
+          {errors.test2?.message && (
             <span className="pt-2 left-0 flex items-center text-12 text-error-500">
-              {errors.name.message}
+              {errors.test2.message}
             </span>
           )}
           <DecoratedButton
