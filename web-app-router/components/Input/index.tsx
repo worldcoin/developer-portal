@@ -1,8 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { FloatingLabel } from "flowbite-react";
-import { ComponentProps, InputHTMLAttributes, memo } from "react";
-import { Icon } from "../Icon";
+import { InputHTMLAttributes, memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {

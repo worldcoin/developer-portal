@@ -47,6 +47,9 @@ dependencies:
   ethers:
     specifier: ^5.7.2
     version: 5.7.2
+  flowbite:
+    specifier: ^2.2.1
+    version: 2.2.1
   flowbite-react:
     specifier: ^0.7.2
     version: 0.7.2(@types/react@18.2.48)(esbuild@0.19.12)(next@14.1.0)(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.4.1)
