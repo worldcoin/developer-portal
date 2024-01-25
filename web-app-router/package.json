@@ -30,7 +30,6 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
     "ethers": "^5.7.2",
-    "flowbite": "^2.2.1",
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",

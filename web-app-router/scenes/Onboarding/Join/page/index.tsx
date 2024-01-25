@@ -66,7 +66,7 @@ export const JoinPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col p-10 items-center justify-center gap-2 h-screen">
+    <div className="flex flex-col items-center justify-center gap-2 h-screen mt-20">
       <CircleIconContainer variant={variant}>
         <AlertIcon />
       </CircleIconContainer>
