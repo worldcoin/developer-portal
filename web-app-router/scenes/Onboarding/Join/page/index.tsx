@@ -162,7 +162,7 @@ export const JoinPage = () => {
             register={register("test2")}
             label="Test2"
             errors={errors.test2}
-            addOnPosition="left"
+            addOnPosition="right"
             addOn={
               <button type="button">
                 <SuccessIcon />

@@ -100,7 +100,7 @@ export const Input = memo(function Input(props: InputInterface) {
   return (
     <div className={clsx(className, "relative")}>
       {addOn && addOnPosition === "left" && (
-        <div className="absolute inset-y-0 left-4 top-0 flex pr-3.5">
+        <div className="absolute inset-y-0 left-4 top-[-22px]  flex pr-3.5">
           {addOn}
         </div>
       )}{" "}
@@ -118,7 +118,11 @@ export const Input = memo(function Input(props: InputInterface) {
         color={errors ? "error" : "default"}
         aria-invalid={errors ? "true" : "false"}
       />
-      {addOn && addOnPosition === "right" && addOn}
+      {addOn && addOnPosition === "right" && (
+        <div className="absolute inset-y-0 right-0 top-[-22px] flex pr-3.5">
+          {addOn}
+        </div>
+      )}
     </div>
   );
 });
