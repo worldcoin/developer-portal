@@ -5,10 +5,10 @@ import {
   CircleIconContainerProps,
 } from "@/components/CircleIconContainer";
 
-import { AlertIcon } from "@/components/icons/AlertIcon";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { useEffect, useState } from "react";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { SuccessIcon } from "@/components/icons/SuccessIcon";
+import { SuccessIcon } from "@/components/Icons/SuccessIcon";
 
 export const JoinPage = () => {
   const [variant, setVariant] =

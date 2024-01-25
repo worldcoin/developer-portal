@@ -1,7 +1,7 @@
 import { Button, CommonButtonProps } from "@/components/Button";
 import { memo } from "react";
 import clsx from "clsx";
-import { ArrowRightIcon } from "@/components/icons/ArrowRightIcon";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 
 type DecoratedButtonProps = CommonButtonProps & {
   icon?: React.ReactElement;
