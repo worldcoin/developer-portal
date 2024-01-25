@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@apollo/client':
     specifier: 3.9.0-rc.1
@@ -28,6 +32,9 @@ dependencies:
   auth0:
     specifier: ^4.2.0
     version: 4.2.0
+  clsx:
+    specifier: ^2.1.0
+    version: 2.1.0
   cors:
     specifier: ^2.8.5
     version: 2.8.5
@@ -3884,6 +3891,11 @@ packages:
     engines: {node: '>=0.8'}
     dev: true
 
+  /clsx@2.1.0:
+    resolution: {integrity: sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==}
+    engines: {node: '>=6'}
+    dev: false
+
   /color-convert@1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
     dependencies:
@@ -7525,7 +7537,3 @@ packages:
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
