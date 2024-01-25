@@ -167,7 +167,8 @@ export const JoinPage = () => {
       <div className="flex p-2 w-full items-center justify-center ">
         <form
           onSubmit={handleSubmit(handleSave)}
-          className="flex flex-col items-center w-40 gap-4"
+          className="flex flex-col items-center w-full gap-4"
+          noValidate
         >
           <h1>Test Form</h1>
           <Input

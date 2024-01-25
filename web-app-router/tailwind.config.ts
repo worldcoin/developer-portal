@@ -1,5 +1,11 @@
 import type { Config } from "tailwindcss";
 
+const gridTemplates = {
+  "1fr/auto": "1fr auto",
+  "auto/1fr": "auto 1fr",
+  "auto/1fr/auto": "auto 1fr auto",
+};
+
 const config: Config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -54,13 +60,10 @@ const config: Config = {
             500: "#00B800",
           },
         },
-
-        gridTemplateColumns: {
-          "1fr/auto": "1fr auto",
-          "auto/1fr": "auto 1fr",
-          "auto/1fr/auto": "auto 1fr auto",
-        },
       },
+
+      gridTemplateColumns: gridTemplates,
+      gridTemplateRows: gridTemplates,
 
       fontFamily: {
         // They are using GT America Mono, but it's not free
