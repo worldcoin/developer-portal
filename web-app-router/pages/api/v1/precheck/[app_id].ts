@@ -1,6 +1,11 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { canVerifyForAction, validateRequestSchema } from "@/legacy/backend/utils";
+
+import {
+  canVerifyForAction,
+  validateRequestSchema,
+} from "@/legacy/backend/utils";
+
 import {
   ActionModel,
   AppMetadataModel,

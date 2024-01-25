@@ -10,18 +10,25 @@ export type UpdateUserMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'mutation_root', update_user_by_pk?: { __typename?: 'user', id: string, team_id: string, auth0Id?: string | null, posthog_id?: string | null, email?: string | null, name: string } | null };
+export type UpdateUserMutation = { __typename?: 'mutation_root', update_user_by_pk?: { __typename?: 'user', id: string, email?: string | null, name: string, auth0Id?: string | null, posthog_id?: string | null, memberships: Array<{ __typename?: 'membership', role: Types.Role_Enum, team: { __typename?: 'team', id: string, name?: string | null } }> } | null };
 
 
 export const UpdateUserDocument = gql`
     mutation UpdateUser($id: String!, $_set: user_set_input) {
   update_user_by_pk(pk_columns: {id: $id}, _set: $_set) {
     id
-    team_id
-    auth0Id
-    posthog_id
     email
     name
+    auth0Id
+    posthog_id
+    name
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
 }
     `;

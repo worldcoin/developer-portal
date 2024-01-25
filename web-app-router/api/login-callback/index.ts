@@ -1,9 +1,11 @@
 import { getAPIServiceGraphqlClient } from "@/backend/graphql";
+
 import {
   getSession,
   updateSession,
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
+
 import { NextRequest, NextResponse } from "next/server";
 
 import {
@@ -16,12 +18,27 @@ import {
   getSdk as FetchUserByAuth0IdSdk,
 } from "./graphql/fetch-email-user.generated";
 
-import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
+import {
+  getSdk as FetchInviteSdk,
+  InviteQuery,
+} from "./graphql/fetch-invite.generated";
 
+import {
+  getSdk as InsertMembershipSdk,
+  InsertMembershipMutation,
+} from "./graphql/insert-membership.generated";
+
+import {
+  getSdk as DeleteInviteSdk,
+  DeleteInviteMutation,
+} from "./graphql/delete-invite.generated";
+
+import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { Auth0User } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { isEmailUser } from "@/lib/utils";
 import { urls } from "@/lib/urls";
+import { Role_Enum } from "@/graphql/graphql";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const res = new NextResponse();
@@ -134,6 +151,89 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     );
   }
 
+  let invite: InviteQuery["invite"][number] | null = null;
+
+  if (invite_id) {
+    try {
+      const fetchInviteResult = await FetchInviteSdk(client).Invite({
+        id: invite_id,
+      });
+
+      if (!fetchInviteResult) {
+        throw new Error(`Error while fetching invite: ${invite_id}`);
+      }
+
+      if (fetchInviteResult.invite.length > 0) {
+        invite = fetchInviteResult.invite[0];
+      }
+    } catch (error) {
+      logger.error("Error while fetching invite for FetchInviteSdk.", {
+        error,
+      });
+
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+    }
+
+    if (
+      !invite ||
+      !invite.team_id ||
+      new Date(invite.expires_at) <= new Date()
+    ) {
+      logger.error("Invite not found or team_id is missing.");
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+    }
+
+    if (invite.email !== auth0User.email) {
+      logger.error("Invite email does not match logged in email");
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+    }
+
+    let membership: InsertMembershipMutation["insert_membership_one"] | null =
+      null;
+
+    try {
+      const insertMembershipResult = await InsertMembershipSdk(
+        client
+      ).InsertMembership({
+        team_id: invite.team_id,
+        user_id: user.id,
+        role: Role_Enum.Member,
+      });
+
+      membership = insertMembershipResult.insert_membership_one;
+    } catch (error) {
+      logger.error(
+        "Error while inserting membership for InsertMembershipSdk.",
+        {
+          error,
+        }
+      );
+
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+    }
+
+    if (!membership) {
+      logger.error("Membership not found after inserting.");
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+    }
+
+    try {
+      const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
+        invite_id,
+      });
+
+      if (!deleteInviteResult.delete_invite_by_pk) {
+        logger.error(
+          `Error while deleting invite: ${invite_id}, invite not found.`
+        );
+      }
+    } catch (error) {
+      logger.error("Error while deleting invite for DeleteInviteSdk.", {
+        error,
+      });
+    }
+  }
+
   // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
   const shouldUpdateUserName = auth0User.name && user?.name !== auth0User.name;
 
@@ -184,5 +284,6 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     },
   });
 
+  // TODO: update url when we have pages
   return NextResponse.redirect(new URL("/teams", req.url), 307);
 });

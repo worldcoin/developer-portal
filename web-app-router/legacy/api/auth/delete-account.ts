@@ -1,4 +1,4 @@
-import { logger } from "@/legacy/lib/logger";
+import { logger } from "@/lib/logger";
 import { Session, getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { ManagementClient } from "auth0";
 import { NextApiRequest, NextApiResponse } from "next";

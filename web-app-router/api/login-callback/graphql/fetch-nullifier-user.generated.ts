@@ -10,7 +10,7 @@ export type FetchNullifierUserQueryVariables = Types.Exact<{
 }>;
 
 
-export type FetchNullifierUserQuery = { __typename?: 'query_root', user: Array<{ __typename?: 'user', id: string, auth0Id?: string | null, team_id: string, posthog_id?: string | null, name: string, email?: string | null }> };
+export type FetchNullifierUserQuery = { __typename?: 'query_root', user: Array<{ __typename?: 'user', id: string, email?: string | null, name: string, auth0Id?: string | null, posthog_id?: string | null, memberships: Array<{ __typename?: 'membership', role: Types.Role_Enum, team: { __typename?: 'team', id: string, name?: string | null } }> }> };
 
 
 export const FetchNullifierUserDocument = gql`
@@ -19,11 +19,18 @@ export const FetchNullifierUserDocument = gql`
     where: {_or: [{auth0Id: {_eq: $auth0Id}}, {world_id_nullifier: {_eq: $world_id_nullifier}}]}
   ) {
     id
+    email
+    name
     auth0Id
-    team_id
     posthog_id
     name
-    email
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
 }
     `;

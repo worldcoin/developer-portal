@@ -16,12 +16,28 @@ import {
   getSdk as FetchUserByAuth0IdSdk,
 } from "./graphql/fetch-email-user.generated";
 
+import {
+  getSdk as FetchInviteSdk,
+  InviteQuery,
+} from "./graphql/fetch-invite.generated";
+
+import {
+  getSdk as InsertMembershipSdk,
+  InsertMembershipMutation,
+} from "./graphql/insert-membership.generated";
+
+import {
+  getSdk as DeleteInviteSdk,
+  DeleteInviteMutation,
+} from "./graphql/delete-invite.generated";
+
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { urls } from "@/legacy/lib/urls";
 import { Auth0User, LoginErrorCode } from "@/legacy/lib/types";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { isEmailUser } from "@/legacy/lib/utils";
-import { logger } from "@/legacy/lib/logger";
+import { logger } from "@/lib/logger";
+import { Role_Enum } from "@/graphql/graphql";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -76,6 +92,7 @@ export const auth0Login = withApiAuthRequired(
         logger.error(`Error while fetching user for FetchUserByNullifierSdk.`, {
           error,
         });
+
         return res.redirect(
           307,
           urls.logout({ login_error: LoginErrorCode.Generic })
@@ -124,6 +141,7 @@ export const auth0Login = withApiAuthRequired(
         );
       }
     }
+
     const invite_id = req.query.invite_id as string;
 
     if (!user) {
@@ -131,6 +149,105 @@ export const auth0Login = withApiAuthRequired(
         307,
         invite_id ? urls.signup({ invite_id }) : urls.signup()
       );
+    }
+    let invite: InviteQuery["invite"][number] | null = null;
+
+    if (invite_id) {
+      try {
+        const fetchInviteResult = await FetchInviteSdk(client).Invite({
+          id: invite_id,
+        });
+
+        if (!fetchInviteResult) {
+          throw new Error(`Error while fetching invite: ${invite_id}`);
+        }
+
+        if (fetchInviteResult.invite.length > 0) {
+          invite = fetchInviteResult.invite[0];
+        }
+      } catch (error) {
+        logger.error("Error while fetching invite for FetchInviteSdk.", {
+          error,
+        });
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      if (
+        !invite ||
+        !invite.team_id ||
+        new Date(invite.expires_at) <= new Date()
+      ) {
+        logger.error("Invite not found or team_id is missing.");
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      if (invite.email !== auth0User.email) {
+        logger.error("Invite email does not match logged in email");
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      let membership: InsertMembershipMutation["insert_membership_one"] | null =
+        null;
+
+      try {
+        const insertMembershipResult = await InsertMembershipSdk(
+          client
+        ).InsertMembership({
+          team_id: invite.team_id,
+          user_id: user.id,
+          role: Role_Enum.Member,
+        });
+
+        membership = insertMembershipResult.insert_membership_one;
+      } catch (error) {
+        logger.error(
+          "Error while inserting membership for InsertMembershipSdk.",
+          {
+            error,
+          }
+        );
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      if (!membership) {
+        logger.error("Membership not found after inserting.");
+
+        return res.redirect(
+          307,
+          urls.logout({ login_error: LoginErrorCode.Generic })
+        );
+      }
+
+      try {
+        const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
+          invite_id,
+        });
+
+        if (!deleteInviteResult.delete_invite_by_pk) {
+          logger.error(
+            `Error while deleting invite: ${invite_id}, invite not found.`
+          );
+        }
+      } catch (error) {
+        logger.error("Error while deleting invite for DeleteInviteSdk.", {
+          error,
+        });
+      }
     }
 
     // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
@@ -187,10 +304,9 @@ export const auth0Login = withApiAuthRequired(
     // NOTE: We redirecting user here because user can have one team only for now
     return res.redirect(
       307,
-      urls.app(
-        undefined,
-        invite_id ? { login_error: LoginErrorCode.OneTeamPerPerson } : undefined
-      )
+      urls.app({
+        team_id: invite ? invite.team_id : user?.memberships[0].team.id ?? "",
+      })
     );
   }
 );

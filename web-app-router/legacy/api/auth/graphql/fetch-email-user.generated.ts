@@ -10,26 +10,40 @@ export type FetchEmailUserQueryVariables = Types.Exact<{
 }>;
 
 
-export type FetchEmailUserQuery = { __typename?: 'query_root', userByAuth0Id: Array<{ __typename?: 'user', id: string, auth0Id?: string | null, team_id: string, posthog_id?: string | null, email?: string | null, name: string }>, userByEmail: Array<{ __typename?: 'user', id: string, auth0Id?: string | null, team_id: string, posthog_id?: string | null, email?: string | null, name: string }> };
+export type FetchEmailUserQuery = { __typename?: 'query_root', userByAuth0Id: Array<{ __typename?: 'user', id: string, email?: string | null, name: string, auth0Id?: string | null, posthog_id?: string | null, memberships: Array<{ __typename?: 'membership', role: Types.Role_Enum, team: { __typename?: 'team', id: string, name?: string | null } }> }>, userByEmail: Array<{ __typename?: 'user', id: string, email?: string | null, name: string, auth0Id?: string | null, posthog_id?: string | null, memberships: Array<{ __typename?: 'membership', role: Types.Role_Enum, team: { __typename?: 'team', id: string, name?: string | null } }> }> };
 
 
 export const FetchEmailUserDocument = gql`
     query FetchEmailUser($auth0Id: String, $email: String) {
   userByAuth0Id: user(where: {auth0Id: {_eq: $auth0Id}}) {
     id
-    auth0Id
-    team_id
-    posthog_id
     email
     name
+    auth0Id
+    posthog_id
+    name
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
   userByEmail: user(where: {email: {_eq: $email}}) {
     id
-    auth0Id
-    team_id
-    posthog_id
     email
     name
+    auth0Id
+    posthog_id
+    name
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
 }
     `;

@@ -8,7 +8,12 @@ import {
 } from "@/legacy/backend/errors";
 
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { canVerifyForAction, validateRequestSchema } from "@/legacy/backend/utils";
+
+import {
+  canVerifyForAction,
+  validateRequestSchema,
+} from "@/legacy/backend/utils";
+
 import { fetchActionForProof, verifyProof } from "@/legacy/backend/verify";
 import {
   AppErrorCodes,
