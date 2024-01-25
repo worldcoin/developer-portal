@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { DialogHeader } from "@/components/DialogHeader";
 import { FieldLabel } from "@/components/FieldLabel";
@@ -11,16 +11,29 @@ import { useInviteTeamMembersMutation } from "@/scenes/team/graphql/inviteTeamMe
 import { TeamsDocument } from "@/scenes/team/graphql/teams.generated";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
+import { useRouter } from "next/router";
+import { useTeam } from "../../hooks/useTeam";
 
 export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   open: boolean;
   onClose: () => void;
 }) {
   const { onClose } = props;
+  const router = useRouter();
+  const team = useTeam();
+
+  const team_id = useMemo(
+    () => router.query.team_id as string,
+    [router.query.team_id]
+  );
 
   const [inviteTeamMembers, { loading, called, reset, error }] =
     useInviteTeamMembersMutation({
-      refetchQueries: [{ query: TeamsDocument }],
+      context: { headers: { team_id: team_id } },
+
+      refetchQueries: [
+        { query: TeamsDocument, context: { headers: { team_id: team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (!data) {
@@ -42,8 +55,22 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
   const [emails, setEmails] = useState<string[]>([]);
 
   const handleSubmit = useCallback(async () => {
+    const membersInTheTeam = emails.filter((email) =>
+      team.data?.memberships.some(
+        (membership) => membership.user?.email === email
+      )
+    );
+
+    if (membersInTheTeam.length > 0) {
+      toast.error(
+        `These members are already in the team: ${membersInTheTeam.join(", ")}`
+      );
+
+      return;
+    }
+
     await inviteTeamMembers({ variables: { emails } });
-  }, [inviteTeamMembers, emails]);
+  }, [emails, inviteTeamMembers, team.data?.memberships]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>

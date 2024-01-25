@@ -34,9 +34,17 @@ insert_permissions:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
+                          _eq: OWNER
+                      - role:
+                          _eq: ADMIN
       columns:
         - redirect_uri
         - action_id
@@ -73,9 +81,12 @@ select_permissions:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -95,9 +106,17 @@ update_permissions:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
+                          _eq: OWNER
+                      - role:
+                          _eq: ADMIN
       check: null
 delete_permissions:
   - role: api_key
@@ -113,6 +132,14 @@ delete_permissions:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - _or:
+                      - role:
+                          _eq: OWNER
+                      - role:
+                          _eq: ADMIN

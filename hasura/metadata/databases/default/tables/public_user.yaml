@@ -5,6 +5,14 @@ object_relationships:
   - name: team
     using:
       foreign_key_constraint_on: team_id
+array_relationships:
+  - name: memberships
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: membership
+          schema: public
 insert_permissions:
   - role: service
     permission:
@@ -41,12 +49,10 @@ select_permissions:
         - id
         - is_subscribed
         - name
-        - team_id
       filter:
-        team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+        memberships:
+          team_id:
+            _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:
@@ -68,7 +74,5 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        team:
-          users:
-            id:
-              _eq: X-Hasura-User-Id
+        id:
+          _eq: X-Hasura-User-Id

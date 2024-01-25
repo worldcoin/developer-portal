@@ -5,6 +5,7 @@ import { Icon } from "src/components/Icon";
 import { ProfileSettingsDialog } from "./ProfileSettingsDialog";
 import { useToggle } from "src/hooks/useToggle";
 import { useFetchUser } from "./hooks/user-hooks";
+import { TeamSelector } from "./TeamSelector";
 
 export function LoggedUserDisplay(props: { className?: string }) {
   const modal = useToggle(false);
@@ -63,9 +64,7 @@ export function LoggedUserDisplay(props: { className?: string }) {
           {loggedUserName}
         </span>
 
-        <span className="font-rubik text-neutral-secondary text-13 self-start leading-none">
-          {user?.hasura.team?.name}
-        </span>
+        <TeamSelector memberships={user.hasura.memberships ?? []} />
       </div>
     </Fragment>
   );

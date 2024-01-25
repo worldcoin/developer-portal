@@ -1,27 +1,29 @@
 SET
   check_function_bodies = false;
 
-WITH multi_claim_app AS (
-  SELECT
-    app.id
-  FROM
-    "public"."app"
-    JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
-  WHERE
-    app_metadata.name = 'Multi-claim App'
-  LIMIT
-    1
-), custom_action_app AS (
-  SELECT
-    app.id
-  FROM
-    "public"."app"
-    JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
-  WHERE
-    app_metadata.name = 'Custom Action App'
-  LIMIT
-    1
-)
+WITH
+  multi_claim_app AS (
+    SELECT
+      app.id
+    FROM
+      "public"."app"
+      JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
+    WHERE
+      app_metadata.name = 'Multi-claim App'
+    LIMIT
+      1
+  ),
+  custom_action_app AS (
+    SELECT
+      app.id
+    FROM
+      "public"."app"
+      JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
+    WHERE
+      app_metadata.name = 'Custom Action App'
+    LIMIT
+      1
+  )
 INSERT INTO
   "public"."action" (
     id,
@@ -105,16 +107,16 @@ VALUES
   );
 
 -- set external_nullifier for the sign in action
-UPDATE
-  "public"."action"
+UPDATE "public"."action"
 SET
   "external_nullifier" = '0x00bbb658813151e0abcf6f4968304c807baff10f42bd163d86faa33edbbb73e1'
 WHERE
-  id IN (
+  app_id IN (
     SELECT
-      id
+      app.id
     FROM
-      "public"."action"
-    limit
-      1
+      "public"."app"
+      JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
+    WHERE
+      app_metadata.name = 'Sign In App'
   );

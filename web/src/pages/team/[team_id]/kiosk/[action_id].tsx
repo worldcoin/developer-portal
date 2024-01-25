@@ -54,8 +54,10 @@ const actionKioskQuery = gql`
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const action_id = context.query.action_id;
   const client = await getAPIServiceClient();
+  const team_id = context.query.team_id as string;
 
   const { data } = await client.query<{ action: ActionKioskQueryType[] }>({
+    context: { headers: { team_id } },
     query: actionKioskQuery,
     variables: {
       action_id,

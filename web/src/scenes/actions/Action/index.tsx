@@ -23,6 +23,10 @@ import { ActionsQuery } from "../graphql/actions.generated";
 import { useUpdateAction } from "../hooks";
 import { IActionStore, useActionStore } from "src/stores/actionStore";
 import { ActionValue } from "../common/ActionValue";
+import { useRouter } from "next/router";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
 
 dayjs.extend(relativeTime);
 
@@ -54,9 +58,24 @@ const getActionsStore = (store: IActionStore) => ({
 export const Action = memo(function Action(props: {
   action: ActionsQuery["action"][number];
 }) {
+  const router = useRouter();
   const { updateAction } = useUpdateAction();
   const { setActionToUpdate, setActionToDelete, setIsDeleteActionModalOpened } =
     useActionStore(getActionsStore);
+
+  const { user } = useUser() as Auth0SessionUser;
+  const team_id = useMemo(() => router.query.team_id as string, [router.query]);
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (membership) => membership.team?.id === team_id
+    );
+
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [team_id, user?.hasura.memberships]);
 
   const getTimeFromNow = (timestamp: string) => {
     const result = dayjs(timestamp).fromNow().split(" ");
@@ -207,7 +226,10 @@ export const Action = memo(function Action(props: {
                     {props.action.kiosk_enabled && (
                       <Link
                         className="flex items-center gap-x-1 h-8 px-2 font-sora font-semibold text-14 bg-ffffff border border-ebecef rounded-lg hover:opacity-70 transition-opacity"
-                        href={urls.kiosk(props.action.id)}
+                        href={urls.kiosk({
+                          action_id: props.action.id,
+                          team_id: router.query.team_id as string,
+                        })}
                         target="_blank"
                       >
                         Open Kiosk
@@ -309,16 +331,18 @@ export const Action = memo(function Action(props: {
             <tr className="rounded-b-lg">
               <td colSpan={5} className="px-6">
                 <div className="flex justify-between pt-4 pb-6 border-t border-f3f4f5">
-                  <Button
-                    variant="plain"
-                    className="!text-14 hover:opacity-70 transition-opacity"
-                    onClick={() => {
-                      setActionToDelete(props.action);
-                      setIsDeleteActionModalOpened(true);
-                    }}
-                  >
-                    Delete action
-                  </Button>
+                  {isEnoughPermissions && (
+                    <Button
+                      variant="plain"
+                      className="!text-14 hover:opacity-70 transition-opacity"
+                      onClick={() => {
+                        setActionToDelete(props.action);
+                        setIsDeleteActionModalOpened(true);
+                      }}
+                    >
+                      Delete action
+                    </Button>
+                  )}
 
                   {props.action.kiosk_enabled && (
                     <Button

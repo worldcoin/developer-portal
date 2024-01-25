@@ -6,7 +6,7 @@ import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 import {
   IKioskServerErrorCodes,
   KIOSK_SERVER_ERROR_CODES,
-} from "src/pages/kiosk/[action_id]";
+} from "@/pages/team/[team_id]/kiosk/[action_id]";
 
 const getKioskStoreParams = (store: IKioskStore) => ({
   setScreen: store.setScreen,

@@ -1,19 +1,33 @@
 query FetchEmailUser($auth0Id: String, $email: String) {
   userByAuth0Id: user(where: { auth0Id: { _eq: $auth0Id } }) {
     id
-    auth0Id
-    team_id
-    posthog_id
     email
     name
+    auth0Id
+    posthog_id
+    name
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
 
   userByEmail: user(where: { email: { _eq: $email } }) {
     id
-    auth0Id
-    team_id
-    posthog_id
     email
     name
+    auth0Id
+    posthog_id
+    name
+    memberships {
+      team {
+        id
+        name
+      }
+      role
+    }
   }
 }
