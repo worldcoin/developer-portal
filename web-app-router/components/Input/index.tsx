@@ -56,7 +56,7 @@ export const Input = memo(function Input(props: InputInterface) {
   );
 
   const labelClassNames = clsx(
-    "text-sm ml-2 px-[1px] peer-focus:text-blue-500",
+    "text-sm ml-2 px-[2px] peer-focus:text-blue-500",
     {
       "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
         !errors && !disabled,
@@ -70,13 +70,14 @@ export const Input = memo(function Input(props: InputInterface) {
     <div className={clsx("inline-block")}>
       <fieldset
         className={twMerge(
-          clsx("grid grid-cols-[auto_1fr_auto] group pb-2", parentClassNames),
+          clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),
           typeof className === "string" ? className : undefined
         )}
       >
         <div className="flex items-center">
           {addOn && addOnPosition === "left" && addOn}
         </div>
+
         <input
           {...register}
           {...restProps}
@@ -86,13 +87,16 @@ export const Input = memo(function Input(props: InputInterface) {
           required={required}
           aria-invalid={errors ? "true" : "false"}
         />
+
         <div className="flex items-center">
           {addOn && addOnPosition === "right" && addOn}
         </div>
+
         <legend className={labelClassNames}>
           {label} {required && <span className="text-system-error-500">*</span>}
         </legend>
       </fieldset>
+
       {helperText && <p className="mt-2 text-xs text-grey-500">{helperText}</p>}
     </div>
   );
