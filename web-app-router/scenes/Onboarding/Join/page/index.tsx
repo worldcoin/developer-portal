@@ -1,9 +1,39 @@
+"use client";
+
+import {
+  CircleIconContainer,
+  CircleIconContainerProps,
+} from "@/components/CircleIconContainer";
+
+import { AlertIcon } from "@/components/icons/AlertIcon";
+import { useEffect, useState } from "react";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { SuccessIcon } from "@/components/Icons";
+import { SuccessIcon } from "@/components/icons/SuccessIcon";
 
 export const JoinPage = () => {
+  const [variant, setVariant] =
+    useState<CircleIconContainerProps["variant"]>("success");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVariant((prev) => {
+        if (prev === "success") return "error";
+        if (prev === "error") return "info";
+        if (prev === "info") return "muted";
+        if (prev === "muted") return "success";
+        return "success";
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex flex-col p-10 items-center justify-center gap-2 h-screen">
+      <CircleIconContainer variant={variant}>
+        <AlertIcon />
+      </CircleIconContainer>
+
       <div className="flex flex-row gap-1">
         <DecoratedButton
           type="button"

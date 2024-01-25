@@ -1,7 +1,7 @@
 import { Button, CommonButtonProps } from "@/components/Button";
 import { memo } from "react";
 import clsx from "clsx";
-import { ArrowRightIcon } from "../Icons";
+import { ArrowRightIcon } from "@/components/icons/ArrowRightIcon";
 
 type DecoratedButtonProps = CommonButtonProps & {
   icon?: React.ReactElement;
@@ -28,22 +28,26 @@ export const DecoratedButton = memo(function DecoratedButton(
   const buttonStyles = {
     primary: {
       normal:
-        "bg-gray-900 text-white bg-gradient-to-b border-gray-900 from-white/15 to-transparent shadow-button",
+        "bg-grey-900 text-white bg-gradient-to-b border-grey-900 from-white/15 to-transparent shadow-button",
       hover: "hover:bg-gradient-to-b hover:from-white/20 hover:to-transparent ",
-      disabled: "bg-gray-100 text-gray-300 pointer-events-none",
-      loading: "bg-gray-100 text-gray-400 pointer-events-none",
+      disabled: "bg-grey-100 text-grey-300 pointer-events-none",
+      loading: "bg-grey-100 text-grey-400 pointer-events-none",
     },
     secondary: {
-      normal: "bg-gray-0 text-gray-700 border-gray-200 shadow-button",
-      hover: "hover:bg-gray-100 hover:text-gray-900 ",
-      disabled: "bg-gray-0 text-gray-300 border-gray-100 pointer-events-none",
-      loading: "bg-gray-0 text-gray-400 border-gray-200 pointer-events-none",
+      normal: "bg-grey-0 text-grey-700 border-grey-200 shadow-button",
+      hover: "hover:bg-grey-100 hover:text-grey-900 ",
+      disabled: "bg-grey-0 text-grey-300 border-grey-100 pointer-events-none",
+      loading: "bg-grey-0 text-grey-400 border-grey-200 pointer-events-none",
     },
     danger: {
-      normal: "bg-gray-0 text-error-600 border-error-400 inset-0",
-      hover: "hover:bg-error-50 ",
-      disabled: "border-error-200 text-error-300 pointer-events-none",
-      loading: "border-error-300 text-error-400 pointer-events-none",
+      normal: "bg-grey-0 text-system-error-600 border-system-error-400 inset-0",
+      hover: "hover:bg-system-error-50 ",
+
+      disabled:
+        "border-system-error-200 text-system-error-300 pointer-events-none",
+
+      loading:
+        "border-system-error-300 tex-systemt-error-400 pointer-events-none",
     },
   };
 

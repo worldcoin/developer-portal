@@ -7,6 +7,7 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./scenes/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+
   theme: {
     extend: {
       backgroundImage: {
@@ -14,11 +15,17 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+
+      borderRadius: {
+        20: "1.25em",
+      },
+
       boxShadow: {
         button: "0px 1px 2px 0px #191C200F",
       },
+
       colors: {
-        gray: {
+        grey: {
           0: "#FFFFFF",
           50: "#F9FAFB",
           100: "#F3F4F5",
@@ -29,19 +36,30 @@ const config: Config = {
           700: "#3C424B",
           900: "#191C20",
         },
-        error: {
-          50: "#FFF5F3",
-          200: "#FFE5E2",
-          300: "#FFCBC5",
-          400: "#FF897C",
-          600: "#DB2824",
+
+        system: {
+          error: {
+            50: "#FFF5F3",
+            200: "#FFE5E2",
+            300: "#FFCBC5",
+            400: "#FF897C",
+            500: "#ff4732",
+            600: "#DB2824",
+          },
+
+          success: {
+            500: "#00B800",
+          },
         },
-        fontFamily: {
-          // They are using GT America Mono, but it's not free
-        },
+      },
+
+      fontFamily: {
+        // They are using GT America Mono, but it's not free
       },
     },
   },
+
   plugins: [],
 };
+
 export default config;
