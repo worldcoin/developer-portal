@@ -8,6 +8,7 @@ import { useUploadImageLazyQuery } from "./graphql/uploadImage.generated";
 import { useGetUploadedImageQueryLazyQuery } from "./graphql/getUploadedImage.generated";
 import getConfig from "next/config";
 import { useRouter } from "next/router";
+import { getCDNImageUrl } from "@/lib/utils";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -58,14 +59,22 @@ export const useImage = (props: ImageHookProps) => {
         throw new Error("Current App ID is not defined");
       }
       // If the app just got verified and has no edit row.
-      if (currentApp?.app_metadata.verification_status === "verified") {
+      if (
+        currentApp?.app_metadata.verification_status === "verified" &&
+        currentApp?.verified_app_metadata
+      ) {
         setUnverifiedImages({
-          logo_img_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${currentApp.verified_app_metadata?.logo_img_url}`,
-          hero_image_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${currentApp.verified_app_metadata?.hero_image_url}`,
+          logo_img_url: getCDNImageUrl(
+            currentApp.id,
+            currentApp.verified_app_metadata?.logo_img_url
+          ),
+          hero_image_url: getCDNImageUrl(
+            currentApp.id,
+            currentApp.verified_app_metadata?.hero_image_url
+          ),
           showcase_img_urls:
-            currentApp.verified_app_metadata?.showcase_img_urls?.map(
-              (url) =>
-                `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${url}`
+            currentApp.verified_app_metadata?.showcase_img_urls?.map((url) =>
+              getCDNImageUrl(currentApp.id, url)
             ) ?? undefined,
         });
         return;

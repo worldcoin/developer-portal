@@ -3,9 +3,7 @@ import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import { AppMetadataModel } from "src/lib/models";
-import getConfig from "next/config";
-
-const { publicRuntimeConfig } = getConfig();
+import { getCDNImageUrl } from "@/lib/utils";
 
 {
   /* This component is currently not used */
@@ -21,16 +19,14 @@ export const AppLogo = memo(function AppLogo(props: {
 }) {
   const [image, setImage] = useState<string | null>(
     props.appMetadata.logo_img_url
-      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${props.app_id}/${props.appMetadata.logo_img_url}`
+      ? getCDNImageUrl(props.app_id, props.appMetadata.logo_img_url)
       : ""
   );
   useEffect(() => {
     if (!props.appMetadata?.logo_img_url) {
       return;
     }
-    setImage(
-      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${props.app_id}/${props.appMetadata.logo_img_url}`
-    );
+    setImage(getCDNImageUrl(props.app_id, props.appMetadata.logo_img_url));
   }, [props.appMetadata?.logo_img_url, props?.app_id]);
 
   return (
