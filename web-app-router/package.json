@@ -21,6 +21,7 @@
     "@auth0/nextjs-auth0": "^3.5.0",
     "@aws-sdk/client-kms": "^3.496.0",
     "@ethersproject/abi": "^5.7.0",
+    "@floating-ui/react": "^0.26.7",
     "@headlessui/react": "^1.7.18",
     "@hookform/resolvers": "^3.3.4",
     "@sendgrid/mail": "^8.1.0",
