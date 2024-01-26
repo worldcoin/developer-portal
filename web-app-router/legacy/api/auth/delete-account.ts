@@ -19,7 +19,7 @@ export const deleteAccount = withApiAuthRequired(
         "internal_server_error",
         "Something went wrong",
         null,
-        req
+        req,
       );
     }
 
@@ -42,10 +42,10 @@ export const deleteAccount = withApiAuthRequired(
         "internal_server_error",
         "Failed to delete account",
         null,
-        req
+        req,
       );
     }
 
     return res.redirect(307, urls.logout());
-  }
+  },
 );

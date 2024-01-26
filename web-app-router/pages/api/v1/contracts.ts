@@ -10,7 +10,7 @@ import { errorNotAllowed } from "@/legacy/backend/errors";
  */
 export default async function handleContracts(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);

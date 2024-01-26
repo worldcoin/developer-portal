@@ -52,7 +52,7 @@ const _logger = winston.createLogger({
   format: winston.format.combine(
     // errorFormatter(),
     winston.format.timestamp(),
-    winston.format.json()
+    winston.format.json(),
   ),
   transports,
 });
@@ -70,7 +70,7 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
 
   const query = req.url?.includes("?")
     ? Object.fromEntries(
-        new URLSearchParams(req.url?.replace(/^.*\?/, "")).entries()
+        new URLSearchParams(req.url?.replace(/^.*\?/, "")).entries(),
       )
     : {};
 
@@ -118,7 +118,7 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
 async function loggerWrapper(
   handler: "error" | "warn" | "info" | "debug",
   msg: string,
-  data?: Record<string, any>
+  data?: Record<string, any>,
 ) {
   if (data && data.req) {
     data.request = await requestFormatter(data.req);

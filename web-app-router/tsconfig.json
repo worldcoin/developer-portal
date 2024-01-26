@@ -15,15 +15,15 @@
     "incremental": true,
     "plugins": [
       {
-        "name": "next"
-      }
+        "name": "next",
+      },
     ],
     "baseUrl": "./",
     "paths": {
       "@/*": ["./*"],
-      "graphql-request/*": ["./node_modules/graphql-request/*"]
-    }
+      "graphql-request/*": ["./node_modules/graphql-request/*"],
+    },
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "./legacy/**/*.generated.ts"]
+  "exclude": ["node_modules", ".next", "./legacy/**/*.generated.ts"],
 }

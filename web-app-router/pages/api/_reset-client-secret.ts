@@ -14,7 +14,7 @@ import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
  */
 export default async function handleSecretReset(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;

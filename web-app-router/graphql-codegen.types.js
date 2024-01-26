@@ -44,8 +44,8 @@ module.exports = {
       ],
     },
 
-    "app": {
-      documents: [ "app/**/*.graphql", "app/**/*.gql" ],
+    app: {
+      documents: ["app/**/*.graphql", "app/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",

@@ -1,6 +1,9 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { canVerifyForAction, validateRequestSchema } from "@/legacy/backend/utils";
+import {
+  canVerifyForAction,
+  validateRequestSchema,
+} from "@/legacy/backend/utils";
 import {
   ActionModel,
   AppMetadataModel,
@@ -156,7 +159,7 @@ const schema = yup.object().shape({
  */
 export default async function handlePrecheck(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   await runCors(req, res);
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
@@ -201,7 +204,7 @@ export default async function handlePrecheck(
       "not_found",
       "We couldn't find an app with this ID. Action may be inactive.",
       null,
-      req
+      req,
     );
   }
   const app_metadata = rawAppValues.app_metadata[0];
@@ -226,7 +229,7 @@ export default async function handlePrecheck(
         "required",
         "This attribute is required for new actions.",
         "action",
-        req
+        req,
       );
     }
 
@@ -252,7 +255,7 @@ export default async function handlePrecheck(
           "external_nullifier_mismatch",
           "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
           "external_nullifier",
-          req
+          req,
         );
       }
     }
@@ -267,7 +270,7 @@ export default async function handlePrecheck(
       "action_inactive",
       "This action is inactive.",
       "status",
-      req
+      req,
     );
   }
 
@@ -302,7 +305,7 @@ export default async function handlePrecheck(
     if (nullifier_hash && response.action) {
       response.can_user_verify = canVerifyForAction(
         nullifier,
-        response.action.max_verifications
+        response.action.max_verifications,
       )
         ? CanUserVerifyType.Yes
         : CanUserVerifyType.No;

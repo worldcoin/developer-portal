@@ -11,7 +11,7 @@ import { logger } from "@/legacy/lib/logger";
  */
 export default async function handleDeleteJWKS(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;

@@ -13,7 +13,7 @@ import { generateExternalNullifier } from "@/legacy/lib/hashing";
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -31,7 +31,7 @@ export default async function handler(
 
   const external_nullifier = generateExternalNullifier(
     action.app_id,
-    action.action
+    action.action,
   ).digest;
 
   const mutation = gql`

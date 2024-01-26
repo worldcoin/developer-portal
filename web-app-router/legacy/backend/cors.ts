@@ -16,8 +16,8 @@ function runMiddleware(
   fn: (
     req: NextApiRequest,
     res: NextApiResponse,
-    next: (err: any) => void
-  ) => void
+    next: (err: any) => void,
+  ) => void,
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {
@@ -32,5 +32,5 @@ function runMiddleware(
 
 export const runCors = (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ): Promise<any> => runMiddleware(req, res, cors);

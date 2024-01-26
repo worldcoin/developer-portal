@@ -58,7 +58,7 @@ const schema = yup.object({
 
 export default async function handleOIDCToken(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method === "OPTIONS" || req.body.code_verifier) {
     await runCors(req, res);
@@ -71,7 +71,7 @@ export default async function handleOIDCToken(
       "invalid_request",
       "Method not allowed.",
       null,
-      req
+      req,
     );
   }
 
@@ -82,7 +82,7 @@ export default async function handleOIDCToken(
       "invalid_request",
       "Invalid content type. Only application/x-www-form-urlencoded is supported.",
       null,
-      req
+      req,
     );
   }
 
@@ -94,7 +94,7 @@ export default async function handleOIDCToken(
     const { client_id, client_secret } = req.body;
     if (client_id && client_secret) {
       authToken = `Basic ${Buffer.from(
-        `${client_id}:${client_secret}`
+        `${client_id}:${client_secret}`,
       ).toString("base64")}`;
     }
   }
@@ -106,7 +106,7 @@ export default async function handleOIDCToken(
       "unauthorized_client",
       "Please provide your app authentication credentials.",
       null,
-      req
+      req,
     );
   }
 
@@ -120,7 +120,7 @@ export default async function handleOIDCToken(
       "unauthorized_client",
       "Invalid authentication credentials",
       null,
-      req
+      req,
     );
   }
 
@@ -166,7 +166,7 @@ export default async function handleOIDCToken(
       "invalid_grant",
       "Invalid authorization code.",
       null,
-      req
+      req,
     );
   }
 
@@ -178,7 +178,7 @@ export default async function handleOIDCToken(
         "invalid_request",
         "Missing code verifier.",
         "code_verifier",
-        req
+        req,
       );
     }
 
@@ -199,7 +199,7 @@ export default async function handleOIDCToken(
         "invalid_request",
         "Invalid code verifier.",
         "code_verifier",
-        req
+        req,
       );
     }
   } else {
@@ -210,7 +210,7 @@ export default async function handleOIDCToken(
         "invalid_request",
         "Code verifier was not expected.",
         "code_verifier",
-        req
+        req,
       );
     }
   }

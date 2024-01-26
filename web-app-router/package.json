@@ -12,6 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc",
+    "format": "prettier -w ./",
+    "format:check": "prettier --check ./",
     "generate:graphql-schema": "graphql-codegen --config graphql-codegen.schema.js",
     "generate:graphql-types": "graphql-codegen --config graphql-codegen.types.js"
   },
