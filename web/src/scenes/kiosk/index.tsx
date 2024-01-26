@@ -39,7 +39,6 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 
 export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
   const router = useRouter();
-
   const {
     kioskAction,
     screen,
@@ -135,13 +134,15 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
           <div className="font-rubik font-medium text-14">
             {kioskAction?.app.app_metadata?.name}
           </div>
-          <Image
-            src={kioskAction?.app.app_metadata?.logo_img_url ?? ""}
-            alt="logo"
-            width={200}
-            height={200}
-            className="w-11 h-11 rounded-full"
-          />
+          {kioskAction?.app.app_metadata?.logo_img_url && (
+            <Image
+              src={kioskAction?.app.app_metadata?.logo_img_url ?? ""}
+              alt="logo"
+              width={200}
+              height={200}
+              className="w-11 h-11 rounded-full"
+            />
+          )}
         </div>
       </header>
 

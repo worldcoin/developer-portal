@@ -49,6 +49,7 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
   const registerRemoveImage = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
+      event.stopPropagation(); // Add this line to stop event propagation
       try {
         setValue(formItemName, "");
         removeImage(event);
@@ -75,9 +76,14 @@ export const ImageUploadComponent = memo(function ImageUploadComponent(
     <div>
       <label className="flex border-2 border-dashed w-32 h-32 rounded-md cursor-pointer justify-center items-center">
         {imagePreview ? (
-          <div className="relative">
+          <div
+            className="relative"
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+          >
             <button
-              className="absolute top-0 right-0 cursor-pointer disabled:hidden"
+              className="absolute top-0 right-0 cursor-pointer bg-red-500 disabled:hidden"
               onClick={registerRemoveImage}
               disabled={disabled}
             >

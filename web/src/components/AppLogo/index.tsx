@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
@@ -19,9 +19,19 @@ export const AppLogo = memo(function AppLogo(props: {
   className?: string;
   textClassName?: string;
 }) {
-  const image = props.appMetadata.logo_img_url
-    ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
-    : "";
+  const [image, setImage] = useState<string | null>(
+    props.appMetadata.logo_img_url
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+      : ""
+  );
+  useEffect(() => {
+    if (!props.appMetadata?.logo_img_url) {
+      return;
+    }
+    setImage(
+      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+    );
+  }, [props.appMetadata?.logo_img_url, props?.app_id]);
 
   return (
     <div
@@ -50,6 +60,7 @@ export const AppLogo = memo(function AppLogo(props: {
         <div className="w-full h-full">
           <Image
             src={image}
+            onError={() => setImage(null)}
             layout="responsive"
             width={20}
             height={20}
