@@ -1,7 +1,7 @@
-export const AppIdSettingsPage = () => {
+export const ActionIdSettingsPage = () => {
   return (
     <div>
-      <h1>AppIdSettings</h1>
+      <h1>ActionIdSettings</h1>
     </div>
   );
 };
