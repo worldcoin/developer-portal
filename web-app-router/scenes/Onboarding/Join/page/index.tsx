@@ -1,5 +1,4 @@
 "use client";
-
 import {
   CircleIconContainer,
   CircleIconContainerProps,
@@ -14,6 +13,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useCallback } from "react";
+import { Radio } from "@/components/Radio";
 
 const testSchema = yup.object().shape({
   name: yup
@@ -28,6 +28,7 @@ const testSchema = yup.object().shape({
     .string()
     .max(1500, "How it works cannot exceed 1500 characters")
     .optional(),
+  radio: yup.string().optional(),
 });
 
 export type TestFormValues = yup.Asserts<typeof testSchema>;
@@ -66,11 +67,10 @@ export const JoinPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2 h-screen mt-20">
+    <div className="flex flex-col items-center justify-center gap-2 h-screen mt-10">
       <CircleIconContainer variant={variant}>
         <AlertIcon />
       </CircleIconContainer>
-
       <div className="flex flex-row gap-1">
         <DecoratedButton
           type="button"
@@ -164,10 +164,10 @@ export const JoinPage = () => {
           Danger: Loading
         </DecoratedButton>
       </div>
-      <div className="flex p-2 w-full items-center justify-center ">
+      <div className="flex p-2 w-full items-center justify-center">
         <form
           onSubmit={handleSubmit(handleSave)}
-          className="flex flex-col items-center w-full gap-4"
+          className="flex flex-col items-center  gap-4  w-[500px]"
           noValidate
         >
           <h1>Test Form</h1>
@@ -217,6 +217,28 @@ export const JoinPage = () => {
               {errors.test2.message}
             </span>
           )}
+          <Radio
+            label="Option 1"
+            value="option1"
+            className="w-32"
+            register={register("radio")}
+            errors={errors.radio}
+          />
+          <Radio
+            label="Option 2"
+            register={register("radio")}
+            value="option2"
+            errors={errors.radio}
+            className="w-32 "
+          />
+          <Radio
+            label="Option 3"
+            register={register("radio")}
+            value="option3"
+            errors={errors.radio}
+            className="w-32 "
+            disabled
+          />
           <DecoratedButton
             type="submit"
             className="w-72"
