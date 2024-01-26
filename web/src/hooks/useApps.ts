@@ -547,14 +547,22 @@ const useApps = () => {
   }, [currentApp, removeAppMutation]);
 
   const onInsertSuccess = useCallback(
-    (data: AppModel) => {
-      if (data) {
-        setApps([data]);
-        router.push(urls.app({ app_id: data.id, team_id: team_id ?? "" }));
+    async (insertedApp: AppModel) => {
+      if (insertedApp) {
+        if (!data) {
+          return await mutate([insertedApp]);
+        }
+
+        await mutate([...data, insertedApp]);
+
+        router.push(
+          urls.app({ app_id: insertedApp.id, team_id: team_id ?? "" })
+        );
+
         toast.success("App created");
       }
     },
-    [router, setApps, team_id]
+    [data, mutate, router, team_id]
   );
 
   const insertNewAppMutation = useSWRMutation(
@@ -574,14 +582,14 @@ const useApps = () => {
 
       try {
         result = await insertNewAppMutation.trigger(data);
-        mutate();
+        // await mutate();
       } catch (error) {
         console.log(error);
       }
 
       return result;
     },
-    [insertNewAppMutation, mutate]
+    [insertNewAppMutation]
   );
 
   const parseDescription = (currentApp: AppMetadataModel | undefined) => {
