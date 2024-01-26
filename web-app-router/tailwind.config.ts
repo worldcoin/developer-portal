@@ -23,11 +23,13 @@ const config: Config = {
       },
 
       borderRadius: {
+        12: "0.75rem",
         20: "1.25em",
       },
 
       boxShadow: {
         button: "0px 1px 2px 0px #191C200F",
+        lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
       },
 
       colors: {
