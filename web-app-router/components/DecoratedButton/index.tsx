@@ -47,7 +47,7 @@ export const DecoratedButton = memo(function DecoratedButton(
         "border-system-error-200 text-system-error-300 pointer-events-none",
 
       loading:
-        "border-system-error-300 tex-systemt-error-400 pointer-events-none",
+        "border-system-error-300 text-system-error-400 pointer-events-none",
     },
   };
 
