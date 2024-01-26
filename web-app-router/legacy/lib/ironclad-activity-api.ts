@@ -37,7 +37,7 @@ export class IroncladActivityApi {
       this._validateVariables();
 
       const res = await fetch(
-        `${this._baseUrl}/latest?sid=${this._psAccessId}&sig=${signerId}&gkey=${this._psGroupKey}`
+        `${this._baseUrl}/latest?sid=${this._psAccessId}&sig=${signerId}&gkey=${this._psGroupKey}`,
       );
 
       if (!res.ok) {
@@ -51,7 +51,7 @@ export class IroncladActivityApi {
       }
 
       this._isLatestSigned = Object.values(latestSigned).every(
-        (isLatest) => isLatest
+        (isLatest) => isLatest,
       );
     }
 
@@ -68,13 +68,13 @@ export class IroncladActivityApi {
       hn: string;
       bl?: string;
       os: string;
-    }
+    },
   ) {
     this._validateVariables();
 
     if (!this._groupData) {
       const res = await fetch(
-        `${this._baseUrl}/load/json?sid=${this._psAccessId}&gkey=${this._psGroupKey}`
+        `${this._baseUrl}/load/json?sid=${this._psAccessId}&gkey=${this._psGroupKey}`,
       );
 
       if (!res.ok) {

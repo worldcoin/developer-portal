@@ -7,7 +7,7 @@ export function errorResponse(
   code: string,
   detail: string = "Something went wrong",
   attribute: string | null = null,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   if (statusCode >= 500) {
     logger.error(detail, { req, error: { statusCode, code, attribute } });
@@ -21,7 +21,7 @@ export function errorResponse(
 export function errorNotAllowed(
   method: string = "",
   res: NextApiResponse,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   return errorResponse(
     res,
@@ -29,7 +29,7 @@ export function errorNotAllowed(
     "method_not_allowed",
     `HTTP method '${method}' is not allowed for this endpoint.`,
     null,
-    req
+    req,
   );
 }
 
@@ -44,7 +44,7 @@ type OIDCErrorParam =
 export function errorUnauthenticated(
   detail: string = "Invalid credentials.",
   res: NextApiResponse,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   return errorResponse(res, 401, "unauthenticated", detail, null, req);
 }
@@ -52,7 +52,7 @@ export function errorUnauthenticated(
 export function errorForbidden(
   req: NextApiRequest,
   res: NextApiResponse,
-  detail: string = "You do not have permission to perform this action."
+  detail: string = "You do not have permission to perform this action.",
 ): void {
   return errorResponse(res, 403, "permission_denied", detail, null, req);
 }
@@ -60,7 +60,7 @@ export function errorForbidden(
 export function errorRequiredAttribute(
   attribute: string = "",
   res: NextApiResponse,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   return errorResponse(
     res,
@@ -68,7 +68,7 @@ export function errorRequiredAttribute(
     "required",
     "This attribute is required.",
     attribute,
-    req
+    req,
   );
 }
 
@@ -77,7 +77,7 @@ export function errorValidation(
   detail: string = "This attribute is invalid.",
   attribute: string | null,
   res: NextApiResponse,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   return errorResponse(res, 400, code, detail, attribute, req);
 }
@@ -88,7 +88,7 @@ export function errorOIDCResponse(
   code: OIDCErrorParam,
   detail: string = "Something went wrong",
   attribute: string | null = null,
-  req: NextApiRequest
+  req: NextApiRequest,
 ): void {
   if (statusCode >= 500) {
     logger.error(`OIDC Error ${detail}`, {

@@ -11,7 +11,7 @@ import { errorNotAllowed } from "@/legacy/backend/errors";
  */
 export default async function handleJWKs(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   await runCors(req, res);
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {

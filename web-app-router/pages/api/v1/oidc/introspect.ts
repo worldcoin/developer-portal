@@ -16,7 +16,7 @@ const schema = yup.object({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);
@@ -28,7 +28,7 @@ export default async function handler(
       "Invalid content type. Only application/x-www-form-urlencoded is supported.",
       null,
       res,
-      req
+      req,
     );
   }
 
@@ -50,7 +50,7 @@ export default async function handler(
     return errorUnauthenticated(
       "Please provide your app authentication credentials.",
       res,
-      req
+      req,
     );
   }
 
@@ -61,7 +61,7 @@ export default async function handler(
     return errorUnauthenticated(
       "Invalid authentication credentials.",
       res,
-      req
+      req,
     );
   }
 
@@ -81,7 +81,7 @@ export default async function handler(
       "invalid_token",
       "Token is invalid or expired.",
       "token",
-      req
+      req,
     );
   }
 }

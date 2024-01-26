@@ -1,26 +1,30 @@
-'use client'
-import { Select, SelectButton, SelectOption, SelectOptions } from '@/components/Select'
-import { useState } from 'react'
+"use client";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
+import { useState } from "react";
 //import { CheckIcon } from '@/components/icons'
 
 type Team = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 const TEAMS = [
-  { id: '1', name: 'Team 1' },
-  { id: '2', name: 'Team 2' },
-  { id: '3', name: 'Team 3' },
-  { id: '4', name: 'Team 4' },
-  { id: '5', name: 'Team 5' },
-  { id: '6', name: 'Team 6' },
-  { id: '7', name: 'Team 7' },
-]
+  { id: "1", name: "Team 1" },
+  { id: "2", name: "Team 2" },
+  { id: "3", name: "Team 3" },
+  { id: "4", name: "Team 4" },
+  { id: "5", name: "Team 5" },
+  { id: "6", name: "Team 6" },
+  { id: "7", name: "Team 7" },
+];
 
 export const TeamSelector = () => {
-
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   return (
     <Select
@@ -29,7 +33,7 @@ export const TeamSelector = () => {
       by={(a: Team | null, b: Team | null) => a?.id === b?.id}
     >
       <SelectButton>
-        {selectedTeam?.name ?? 'Select team'}
+        {selectedTeam?.name ?? "Select team"}
         {/* OR */}
         {/*{({ value }: { value: Team }) => (*/}
         {/*  <div>{value?.name ?? 'Select team'}</div>*/}
@@ -37,7 +41,7 @@ export const TeamSelector = () => {
       </SelectButton>
 
       <SelectOptions>
-        {TEAMS.map(team => (
+        {TEAMS.map((team) => (
           <SelectOption key={team.id} value={team}>
             {({ selected }) => (
               <div className="grid grid-cols-1fr/auto">
@@ -52,5 +56,5 @@ export const TeamSelector = () => {
         ))}
       </SelectOptions>
     </Select>
-  )
-}
+  );
+};

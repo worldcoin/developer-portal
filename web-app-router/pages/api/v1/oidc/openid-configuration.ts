@@ -12,7 +12,7 @@ import { OIDCScopes } from "@/legacy/backend/oidc";
  */
 export default async function handleOidcConfig(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);

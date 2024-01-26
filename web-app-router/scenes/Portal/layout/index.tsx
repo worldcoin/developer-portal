@@ -1,5 +1,5 @@
-import { ReactNode } from 'react'
-import { TeamSelector } from '@/scenes/Portal/layout/TeamSelector'
+import { ReactNode } from "react";
+import { TeamSelector } from "@/scenes/Portal/layout/TeamSelector";
 
 export const PortalLayout = (props: { children: ReactNode }) => {
   return (
@@ -10,5 +10,5 @@ export const PortalLayout = (props: { children: ReactNode }) => {
 
       <div>{props.children}</div>
     </div>
-  )
-}
+  );
+};

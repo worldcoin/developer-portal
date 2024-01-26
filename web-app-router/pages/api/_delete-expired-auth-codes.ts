@@ -12,7 +12,7 @@ import { logger } from "@/legacy/lib/logger";
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -43,7 +43,7 @@ export default async function handler(
   });
 
   logger.info(
-    `Deleted ${response.data?.delete_auth_code.affected_rows} expired auth codes.`
+    `Deleted ${response.data?.delete_auth_code.affected_rows} expired auth codes.`,
   );
 
   res.status(204).end();
