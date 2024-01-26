@@ -8,10 +8,11 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">
-        <Tabs className="max-w-[1180px] m-auto">
+        <Tabs className="max-w-[1180px] m-auto font-gta">
           <Tab
             className="py-4"
             href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+            segment={null}
           >
             Overview
           </Tab>
@@ -19,6 +20,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
           <Tab
             className="py-4"
             href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
+            segment={"store-info"}
           >
             Store info
           </Tab>
@@ -26,6 +28,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
           <Tab
             className="py-4"
             href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
+            segment={"gallery"}
           >
             Gallery
           </Tab>
@@ -33,6 +36,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
           <Tab
             className="py-4"
             href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
+            segment={"links"}
           >
             Links
           </Tab>
@@ -40,6 +44,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
           <Tab
             className="py-4"
             href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
+            segment={"danger"}
           >
             Danger zone
           </Tab>

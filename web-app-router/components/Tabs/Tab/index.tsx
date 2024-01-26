@@ -1,9 +1,7 @@
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, useMemo } from "react";
 import { tv } from "tailwind-variants";
-import { twMerge } from "tailwind-merge";
 import Link, { LinkProps } from "next/link";
-import { usePathname } from "next/navigation";
-import clsx from "clsx";
+import { useSelectedLayoutSegment, useSearchParams } from "next/navigation";
 
 const tab = tv({
   base: "block px-1 py-3 leading-4",
@@ -28,12 +26,17 @@ const tab = tv({
 type TabProps = HTMLAttributes<HTMLAnchorElement> &
   LinkProps & {
     underlined?: boolean;
+    segment: string | null;
   };
 
 export const Tab = (props: TabProps) => {
   const { className, children, underlined, ...otherProps } = props;
-  const pathname = usePathname();
-  const active = pathname === props.href;
+  const selectedLayoutSegment = useSelectedLayoutSegment();
+
+  const active = useMemo(
+    () => props.segment === selectedLayoutSegment,
+    [props.segment, selectedLayoutSegment]
+  );
 
   return (
     <Link className={tab({ active, underlined, className })} {...otherProps}>
