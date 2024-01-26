@@ -582,7 +582,6 @@ const useApps = () => {
 
       try {
         result = await insertNewAppMutation.trigger(data);
-        // await mutate();
       } catch (error) {
         console.log(error);
       }
