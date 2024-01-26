@@ -455,7 +455,7 @@ const useApps = () => {
   const router = useRouter();
   const team_id = router.query.team_id as string | undefined;
 
-  const { data, error, isLoading } = useSWR<Array<AppModel>>(
+  const { data, error, isLoading, mutate } = useSWR<Array<AppModel>>(
     ["app", team_id],
     fetchApps,
     {
@@ -574,13 +574,14 @@ const useApps = () => {
 
       try {
         result = await insertNewAppMutation.trigger(data);
+        mutate();
       } catch (error) {
         console.log(error);
       }
 
       return result;
     },
-    [insertNewAppMutation]
+    [insertNewAppMutation, mutate]
   );
 
   const parseDescription = (currentApp: AppMetadataModel | undefined) => {
