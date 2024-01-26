@@ -150,7 +150,12 @@ export const useImage = (props: ImageHookProps) => {
         img.onload = () => {
           URL.revokeObjectURL(url); // Clean up the URL object
           if (img.naturalWidth === width && img.naturalHeight === height) {
-            resolve();
+            if (file.size <= 250 * 1024) {
+              resolve();
+            } else {
+              toast.error(`Image size must be under 250KB`);
+              reject(`Image size must be under 250KB`);
+            }
           } else {
             toast.error(`Image dimensions must be ${width}x${height}`);
             reject(`Image dimensions must be ${width}x${height}`);
