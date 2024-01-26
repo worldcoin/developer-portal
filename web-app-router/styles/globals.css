@@ -1,3 +1,133 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* GT America */
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-Th.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-ThIt.woff2") format("woff2");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-ULt.woff2") format("woff2");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-ULtIt.woff2") format("woff2");
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-Lt.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-LtIt.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-Rg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-RgIt.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GT-America-Md.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-MdIt.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-Bd.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-BdIt.woff2") format("woff2");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-Bl.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GT America";
+  src: url("/fonts/GTAmerica/GTAmerica-BlIt.woff2") format("woff2");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* TWK Lausanne */
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("/fonts/TWKLausanne/TWKLausanne-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("/fonts/TWKLausanne/TWKLausanne-550.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

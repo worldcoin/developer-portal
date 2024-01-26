@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 const gridTemplates = {
   "1fr/auto": "1fr auto",
@@ -67,7 +68,8 @@ const config: Config = {
       gridTemplateRows: gridTemplates,
 
       fontFamily: {
-        // They are using GT America Mono, but it's not free
+        gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
+        twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
       },
     },
   },
