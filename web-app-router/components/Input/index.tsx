@@ -67,7 +67,7 @@ export const Input = memo(function Input(props: InputInterface) {
   );
 
   return (
-    <div className={"inline-grid"}>
+    <div className={"inline-grid font-gta"}>
       <fieldset
         className={twMerge(
           clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),

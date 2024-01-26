@@ -47,7 +47,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
       />
       <span
         className={clsx(
-          "min-h-[30px] grid items-center select-none text-14 leading-5",
+          "min-h-[30px] grid items-center select-none text-14 leading-5 font-gta",
           { "text-grey-300": disabled },
           { "text-grey-500": !disabled },
           {
