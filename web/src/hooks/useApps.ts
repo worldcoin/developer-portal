@@ -231,7 +231,7 @@ const updateAppMetadataFetcher = async (
       id: AppModel["id"];
       name?: AppMetadataModel["name"];
       logo_img_url?: AppMetadataModel["logo_img_url"];
-      showcase_img_urls_unformatted?: AppMetadataModel["showcase_img_urls"];
+      showcase_img_urls?: AppMetadataModel["showcase_img_urls"];
       hero_image_url?: AppMetadataModel["hero_image_url"];
       description?: AppMetadataModel["description"];
       category?: AppMetadataModel["category"];
@@ -249,7 +249,7 @@ const updateAppMetadataFetcher = async (
     id,
     name,
     logo_img_url,
-    showcase_img_urls_unformatted,
+    showcase_img_urls,
     hero_image_url,
     description,
     category,
@@ -265,12 +265,19 @@ const updateAppMetadataFetcher = async (
     throw new Error("No current app");
   }
 
-  const showcase_img_urls = showcase_img_urls_unformatted
-    ? `{${showcase_img_urls_unformatted
+  const unverifiedAppMetadata = currentApp.app_metadata;
+  const which_showcase_img_urls =
+    showcase_img_urls ?? unverifiedAppMetadata.showcase_img_urls;
+  const filtered_showcase_img_urls =
+    which_showcase_img_urls?.filter(
+      (url, index) => url === `showcase_img_${index + 1}.png`
+    ) || null;
+
+  const formatted_showcase_img_urls = filtered_showcase_img_urls
+    ? `{${filtered_showcase_img_urls
         .map((url: string) => `"${url}"`)
         .join(",")}}`
-    : undefined;
-  const unverifiedAppMetadata = currentApp.app_metadata;
+    : null;
 
   // Upsert in the event no metadata row exists.
   const response = await graphQLRequest<{
@@ -282,8 +289,7 @@ const updateAppMetadataFetcher = async (
         app_id: id,
         name: name ?? unverifiedAppMetadata?.name,
         logo_img_url: logo_img_url ?? unverifiedAppMetadata?.logo_img_url,
-        showcase_img_urls:
-          showcase_img_urls ?? unverifiedAppMetadata?.showcase_img_urls,
+        showcase_img_urls: formatted_showcase_img_urls,
         hero_image_url: hero_image_url ?? unverifiedAppMetadata?.hero_image_url,
         description: description ?? unverifiedAppMetadata?.description,
         world_app_description:
@@ -481,6 +487,9 @@ const useApps = () => {
         if (data) {
           setCurrentApp(data);
         }
+      },
+      onError: () => {
+        toast.error("Failed to toggle app activity");
       },
     }
   );

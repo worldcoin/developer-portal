@@ -1,17 +1,38 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import { AppMetadataModel } from "src/lib/models";
+import getConfig from "next/config";
 
+const { publicRuntimeConfig } = getConfig();
+
+{
+  /* This component is currently not used */
+}
 export const AppLogo = memo(function AppLogo(props: {
   appMetadata: Pick<
     AppMetadataModel,
     "name" | "logo_img_url" | "verification_status"
   >;
+  app_id: string;
   className?: string;
   textClassName?: string;
 }) {
+  const [image, setImage] = useState<string | null>(
+    props.appMetadata.logo_img_url
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+      : ""
+  );
+  useEffect(() => {
+    if (!props.appMetadata?.logo_img_url) {
+      return;
+    }
+    setImage(
+      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+    );
+  }, [props.appMetadata?.logo_img_url, props?.app_id]);
+
   return (
     <div
       className={cn(
@@ -21,7 +42,7 @@ export const AppLogo = memo(function AppLogo(props: {
         props.className
       )}
     >
-      {!props.appMetadata.logo_img_url && (
+      {!image && (
         <span
           className={cn(
             "uppercase m-auto font-bold bg-gradient-to-r bg-clip-text text-transparent from-ff6848 to-primary leading-none",
@@ -35,11 +56,11 @@ export const AppLogo = memo(function AppLogo(props: {
             .join("")}
         </span>
       )}
-
-      {props.appMetadata.logo_img_url && (
+      {image && (
         <div className="w-full h-full">
           <Image
-            src={props.appMetadata.logo_img_url}
+            src={image}
+            onError={() => setImage(null)}
             layout="responsive"
             width={20}
             height={20}

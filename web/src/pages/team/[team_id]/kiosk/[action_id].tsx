@@ -3,6 +3,9 @@ import { GetServerSideProps } from "next";
 import { getAPIServiceClient } from "@/backend/graphql";
 import { ActionKioskType, ActionKioskQueryType } from "@/lib/types";
 import { Kiosk } from "@/scenes/kiosk";
+import getConfig from "next/config";
+
+const { publicRuntimeConfig } = getConfig();
 
 export interface KioskProps {
   action: ActionKioskType | null;
@@ -77,6 +80,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     ...app_metadata?.[0],
     logo_img_url: "",
   };
+  if (app_metadata_item.logo_img_url !== "") {
+    app_metadata_item.logo_img_url = `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${app_data.id}/${app_metadata_item.logo_img_url}`;
+  }
   const processedAction: ActionKioskType = {
     ...data.action[0],
     app: {
