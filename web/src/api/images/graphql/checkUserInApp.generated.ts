@@ -23,7 +23,7 @@ export const CheckUserInAppDocument = gql`
         apps: { id: { _eq: $app_id } }
         memberships: {
           user_id: { _eq: $user_id }
-          role: { _in: ["admin", "owner"] }
+          role: { _in: [ADMIN, OWNER] }
         }
       }
     ) {

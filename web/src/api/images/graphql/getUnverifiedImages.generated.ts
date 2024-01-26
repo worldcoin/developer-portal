@@ -20,6 +20,14 @@ export type GetUnverifiedImagesQuery = {
       showcase_img_urls?: any | null;
       hero_image_url: string;
     }>;
+    team: {
+      __typename?: "team";
+      memberships: Array<{
+        __typename?: "membership";
+        user_id: string;
+        role: Types.Role_Enum;
+      }>;
+    };
   }>;
 };
 
@@ -34,7 +42,7 @@ export const GetUnverifiedImagesDocument = gql`
         id: { _eq: $app_id }
         team: {
           id: { _eq: $team_id }
-          memberships: { user_id: { _eq: $user_id }, role: { _eq: "OWNER" } }
+          memberships: { user_id: { _eq: $user_id } }
         }
       }
     ) {
@@ -42,6 +50,12 @@ export const GetUnverifiedImagesDocument = gql`
         logo_img_url
         showcase_img_urls
         hero_image_url
+      }
+      team {
+        memberships {
+          user_id
+          role
+        }
       }
     }
   }
