@@ -15,7 +15,7 @@ type RadioProps = {
 };
 
 export const Radio: React.FC<RadioProps> = memo(function Radio(
-  props: RadioProps,
+  props: RadioProps
 ) {
   const { register, label, disabled, value, className, errors } = props;
 
@@ -41,19 +41,19 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
           },
           "checked:bg-gradient-to-b checked:bg-grey-900 checked:from-white/15 checked:to-transparent",
           "after:content-[''] after:absolute after:top-0 after:left-0 after:bottom-0 after:right-0 after:m-auto", // Positioning the pseudo-element
-          "after:checked:w-1.5 after:checked:h-1.5 after:rounded-full checked:after:bg-white",
+          "after:checked:w-1.5 after:checked:h-1.5 after:rounded-full checked:after:bg-white"
         )}
         disabled={disabled}
       />
       <span
         className={clsx(
-          "min-h-[30px] grid items-center select-none text-14 leading-5",
+          "min-h-[30px] grid items-center select-none text-14 leading-5 font-gta",
           { "text-grey-300": disabled },
           { "text-grey-500": !disabled },
           {
             "hover:text-grey-700 hover:peer-checked:text-grey-500":
               !disabled && !errors,
-          },
+          }
         )}
       >
         {label}
