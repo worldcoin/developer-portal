@@ -4,7 +4,6 @@ import {
   errorResponse,
 } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
-import * as yup from "yup";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { getSdk as getUnverifiedImagesSDK } from "@/api/images/graphql/getUnverifiedImages.generated";
@@ -88,7 +87,7 @@ export const handleGetAllUnverifiedImages = async (
         res,
         req,
         detail: "App not found",
-        code: "no_access",
+        code: "not_found",
       });
     }
 

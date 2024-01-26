@@ -88,20 +88,14 @@ export const handleImageUpload = async (
       app_id: app_id,
       user_id: userId,
     });
-    const userMembership = userTeam[0].memberships.find(
-      (membership) => membership.user_id === userId
-    );
+
     // Admins and Owners allowed to upload images
-    if (
-      userTeam.length === 0 ||
-      !userMembership ||
-      userMembership.role === "MEMBER"
-    ) {
+    if (userTeam.length === 0) {
       return errorHasuraQuery({
         res,
         req,
         detail: "App not found.",
-        code: "no_access",
+        code: "not_found",
       });
     }
     if (!process.env.ASSETS_S3_REGION) {

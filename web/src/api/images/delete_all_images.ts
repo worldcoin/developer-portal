@@ -81,22 +81,15 @@ export const handleDeleteAllImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
-    const userMembership = appInfo[0].team.memberships.find(
-      (membership) => membership.user_id === userId
-    );
+
     // There should only be one app with the matching app_id and team_id
     // Only Owner is allowed to delete
-    if (
-      appInfo.length === 0 ||
-      appInfo[0].app_metadata.length === 0 ||
-      !userMembership ||
-      userMembership.role !== "OWNER"
-    ) {
+    if (appInfo.length === 0 || appInfo[0]?.app_metadata.length === 0) {
       return errorHasuraQuery({
         res,
         req,
         detail: "App not found.",
-        code: "no_access",
+        code: "not_found",
       });
     }
 

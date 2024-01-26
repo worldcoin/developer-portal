@@ -4,7 +4,6 @@ import {
   errorResponse,
 } from "src/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
-import * as yup from "yup";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { getAPIServiceGraphqlClient } from "src/backend/graphql";
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
@@ -84,20 +83,14 @@ export const handleImageGet = async (
       app_id: app_id,
       user_id: userId,
     });
-    const userMembership = userTeam[0].memberships.find(
-      (membership) => membership.user_id === userId
-    );
+
     // Admin and Owner allowed to view uploaded images. Not relevant for Member.
-    if (
-      userTeam.length === 0 ||
-      !userMembership ||
-      userMembership.role === "MEMBER"
-    ) {
+    if (userTeam.length === 0) {
       return errorHasuraQuery({
         res,
         req,
         detail: "App not found.",
-        code: "no_access",
+        code: "not_found",
       });
     }
     if (!process.env.ASSETS_S3_REGION) {
