@@ -18,7 +18,7 @@ export const AppHeader = memo(function AppHeader() {
   const [copied, setCopied] = useState(false);
   const [image, setImage] = useState<string | null>(
     currentApp?.verified_app_metadata?.logo_img_url
-      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
       : ""
   );
   const { toggleAppActivity, parseDescription } = useApps();

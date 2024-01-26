@@ -60,12 +60,12 @@ export const useImage = (props: ImageHookProps) => {
       // If the app just got verified and has no edit row.
       if (currentApp?.app_metadata.verification_status === "verified") {
         setUnverifiedImages({
-          logo_img_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp.verified_app_metadata?.logo_img_url}`,
-          hero_image_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp.verified_app_metadata?.hero_image_url}`,
+          logo_img_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${currentApp.verified_app_metadata?.logo_img_url}`,
+          hero_image_url: `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${currentApp.verified_app_metadata?.hero_image_url}`,
           showcase_img_urls:
             currentApp.verified_app_metadata?.showcase_img_urls?.map(
               (url) =>
-                `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${url}`
+                `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${currentApp.id}/${url}`
             ) ?? undefined,
         });
         return;

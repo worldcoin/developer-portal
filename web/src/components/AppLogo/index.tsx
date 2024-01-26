@@ -21,7 +21,7 @@ export const AppLogo = memo(function AppLogo(props: {
 }) {
   const [image, setImage] = useState<string | null>(
     props.appMetadata.logo_img_url
-      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${props.app_id}/${props.appMetadata.logo_img_url}`
       : ""
   );
   useEffect(() => {
@@ -29,7 +29,7 @@ export const AppLogo = memo(function AppLogo(props: {
       return;
     }
     setImage(
-      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app_id}/${props.appMetadata.logo_img_url}`
+      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${props.app_id}/${props.appMetadata.logo_img_url}`
     );
   }, [props.appMetadata?.logo_img_url, props?.app_id]);
 
