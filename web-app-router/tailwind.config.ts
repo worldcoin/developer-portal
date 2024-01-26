@@ -1,5 +1,11 @@
 import type { Config } from "tailwindcss";
 
+const gridTemplates = {
+  "1fr/auto": "1fr auto",
+  "auto/1fr": "auto 1fr",
+  "auto/1fr/auto": "auto 1fr auto",
+};
+
 const config: Config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -25,9 +31,13 @@ const config: Config = {
       },
 
       colors: {
+        blue: {
+          500: "#4940E0",
+        },
         grey: {
           0: "#FFFFFF",
           50: "#F9FAFB",
+          70: "#F5F5F7",
           100: "#F3F4F5",
           200: "#EBECEF",
           300: "#D6D9DD",
@@ -53,12 +63,14 @@ const config: Config = {
         },
       },
 
+      gridTemplateColumns: gridTemplates,
+      gridTemplateRows: gridTemplates,
+
       fontFamily: {
         // They are using GT America Mono, but it's not free
       },
     },
   },
-
   plugins: [],
 };
 
