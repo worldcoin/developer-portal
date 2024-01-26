@@ -1,21 +1,42 @@
 import { Icon } from "src/components/Icon";
 import { Switch } from "src/components/Switch";
 import Image from "next/image";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { AppReviewStatusHeader } from "./ReviewStatus";
+import getConfig from "next/config";
+import { useRouter } from "next/router";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
+const { publicRuntimeConfig } = getConfig();
 
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
   const [copied, setCopied] = useState(false);
-
   const [image, setImage] = useState<string | null>(
-    currentApp?.app_metadata?.logo_img_url ?? null
+    currentApp?.verified_app_metadata?.logo_img_url
+      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
+      : ""
   );
   const { toggleAppActivity, parseDescription } = useApps();
   const descriptionInternal = parseDescription(currentApp?.app_metadata);
+  const router = useRouter();
+  const { user } = useUser() as Auth0SessionUser;
+  const team_id = router.query.team_id as string;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === team_id
+    );
+
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [team_id, user?.hasura.memberships]);
 
   useEffect(() => {
     if (copied) {
@@ -35,7 +56,7 @@ export const AppHeader = memo(function AppHeader() {
           <div>
             {image && (
               <Image
-                src={currentApp?.app_metadata?.logo_img_url ?? ""}
+                src={image}
                 alt="app logo"
                 width={44}
                 height={44}
@@ -133,11 +154,12 @@ export const AppHeader = memo(function AppHeader() {
               {currentApp?.status}
             </span>
           </div>
-
-          <Switch
-            checked={currentApp?.status === "active"}
-            toggle={toggleAppActivity}
-          />
+          {isEnoughPermissions && (
+            <Switch
+              checked={currentApp?.status === "active"}
+              toggle={toggleAppActivity}
+            />
+          )}
         </div>
       </div>
       <AppReviewStatusHeader />

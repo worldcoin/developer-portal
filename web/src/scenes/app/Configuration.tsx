@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { Button } from "@/components/Button";
@@ -11,6 +11,11 @@ import { FieldLabel } from "src/components/FieldLabel";
 import { AppLinksSection } from "./Form/AppLinksSection";
 import { AppDescriptionSection } from "./Form/AppDescriptionSection";
 import { AppPublicationSection } from "./Form/AppPublicationSection";
+import { AppImageUploadSection } from "./Form/AppImageUploadSection";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
+import { useRouter } from "next/router";
 
 const saveSchema = yup.object().shape({
   name: yup
@@ -33,6 +38,9 @@ const saveSchema = yup.object().shape({
     .string()
     .max(50, "World app description cannot exceed 50 characters")
     .optional(),
+  logo_img_url: yup.string().optional(),
+  hero_image_url: yup.string().optional(),
+  showcase_img_urls: yup.array().optional(),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -83,6 +91,13 @@ const submitSchema = yup.object().shape({
     .string()
     .max(50, "World app description cannot exceed 50 characters")
     .required("This section is required"),
+  logo_img_url: yup.string().required("This section is required"),
+  hero_image_url: yup.string().required("This section is required"),
+  showcase_img_urls: yup
+    .array()
+    .of(yup.string().required("This section is required"))
+    .min(1, "At least one image is required")
+    .required("This section is required"),
   integration_url: yup
     .string()
     .url("Must be a valid URL")
@@ -117,6 +132,21 @@ export type ConfigurationFormSubmitValues = yup.Asserts<typeof submitSchema>;
 export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
+  const router = useRouter();
+  const { user } = useUser() as Auth0SessionUser;
+  const team_id = router.query.team_id as string;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === team_id
+    );
+
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [team_id, user?.hasura.memberships]);
+
   // In the edge case that the app has no metadata we allow the user to create new metadata
   const isEditable =
     currentApp?.app_metadata?.verification_status === "unverified" ||
@@ -128,6 +158,7 @@ export const Configuration = memo(function Configuration() {
     handleSubmit,
     watch,
     setError,
+    setValue,
     formState: { errors, isSubmitting, dirtyFields },
   } = useForm<ConfigurationFormValues>({
     resolver: yupResolver(saveSchema),
@@ -167,7 +198,7 @@ export const Configuration = memo(function Configuration() {
 
         toast.success("App information saved");
       } catch (errors: any) {
-        console.log(errors);
+        console.error(errors);
         toast.error("Error saving app");
       }
     },
@@ -223,7 +254,7 @@ export const Configuration = memo(function Configuration() {
         toast.success("App removed from review");
       } catch (error: any) {
         console.error(error.message);
-        toast.error("Error creating a new draft");
+        toast.error("Error removing from review.");
       }
     },
     [currentApp, updateAppMetadata]
@@ -240,6 +271,16 @@ export const Configuration = memo(function Configuration() {
         }
         await updateAppMetadata({
           ...currentApp?.app_metadata,
+          logo_img_url: `logo_img.${_getImageEndpoint(
+            currentApp?.app_metadata?.logo_img_url
+          )}`,
+          hero_image_url: `hero_image.${_getImageEndpoint(
+            currentApp?.app_metadata?.hero_image_url
+          )}`,
+          showcase_img_urls: currentApp?.app_metadata?.showcase_img_urls?.map(
+            (img, index) =>
+              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
+          ),
           verification_status: "unverified",
         });
         toast.success("New app draft created");
@@ -250,6 +291,15 @@ export const Configuration = memo(function Configuration() {
     },
     [currentApp, updateAppMetadata]
   );
+  // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
+  const _getImageEndpoint = (imageType: string) => {
+    const fileType = imageType.split(".").pop();
+    if (fileType === "png" || fileType === "jpg") {
+      return fileType;
+    } else {
+      throw new Error("Unsupported image file type");
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit(handleSave)} className="grid gap-y-8">
@@ -271,7 +321,7 @@ export const Configuration = memo(function Configuration() {
             value={watch("name")}
             maxChar={50}
             maxLength={50}
-            disabled={isSubmitting || !isEditable}
+            disabled={isSubmitting || !isEditable || !isEnoughPermissions}
             required
             errors={errors.name}
           />
@@ -286,60 +336,68 @@ export const Configuration = memo(function Configuration() {
       <AppDescriptionSection
         register={register}
         errors={errors}
-        disabled={isSubmitting || !isEditable}
+        disabled={isSubmitting || !isEditable || !isEnoughPermissions}
         watch={watch}
       />
       <AppLinksSection
         register={register}
         errors={errors}
-        disabled={isSubmitting || !isEditable}
+        disabled={isSubmitting || !isEditable || !isEnoughPermissions}
       />
       <AppPublicationSection
         register={register}
         errors={errors}
-        disabled={isSubmitting || !isEditable}
+        disabled={isSubmitting || !isEditable || !isEnoughPermissions}
       />
-      <div className="flex flex-row w-full justify-end h-10">
-        <Button
-          type="submit"
-          variant="secondary"
-          className="px-3 mr-5"
-          disabled={isSubmitting || !isEditable}
-        >
-          Save Information
-        </Button>
-        {isEditable ? (
+      <AppImageUploadSection
+        register={register}
+        errors={errors}
+        disabled={isSubmitting || !isEditable || !isEnoughPermissions}
+        setValue={setValue}
+      />
+      {isEnoughPermissions && (
+        <div className="flex flex-row w-full justify-end h-10">
           <Button
-            type="button"
-            variant="primary"
+            type="submit"
+            variant="secondary"
             className="px-3 mr-5"
             disabled={isSubmitting || !isEditable}
-            onClick={() => handleSubmit(handleSubmitForReview)()}
           >
-            Submit for Review
+            Save Information
           </Button>
-        ) : currentApp?.app_metadata?.verification_status === "verified" ? (
-          <Button
-            type="button"
-            variant="primary"
-            className="px-3 mr-5"
-            disabled={isSubmitting || isEditable}
-            onClick={() => handleSubmit(editVerifiedApp)()}
-          >
-            Create New Draft
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="danger"
-            className="px-3 mr-5"
-            disabled={isSubmitting || isEditable}
-            onClick={() => handleSubmit(removeFromReview)()}
-          >
-            Remove from Review
-          </Button>
-        )}
-      </div>
+          {isEditable ? (
+            <Button
+              type="button"
+              variant="primary"
+              className="px-3 mr-5"
+              disabled={isSubmitting || !isEditable}
+              onClick={() => handleSubmit(handleSubmitForReview)()}
+            >
+              Submit for Review
+            </Button>
+          ) : currentApp?.app_metadata?.verification_status === "verified" ? (
+            <Button
+              type="button"
+              variant="primary"
+              className="px-3 mr-5"
+              disabled={isSubmitting || isEditable}
+              onClick={() => handleSubmit(editVerifiedApp)()}
+            >
+              Create New Draft
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="danger"
+              className="px-3 mr-5"
+              disabled={isSubmitting || isEditable}
+              onClick={() => handleSubmit(removeFromReview)()}
+            >
+              Remove from Review
+            </Button>
+          )}
+        </div>
+      )}
     </form>
   );
 });
