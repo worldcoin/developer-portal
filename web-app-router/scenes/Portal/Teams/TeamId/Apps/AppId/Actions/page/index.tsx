@@ -3,10 +3,16 @@ import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 
+type ActionsPageProps = {
+  searchParams: Record<string, string> | null | undefined;
+};
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = () => {
+export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
+  const createAction = searchParams?.createAction;
+
   return (
-    <div className="w-full h-full min-h-[100dvh] flex flex-col items-center mt-24">
+    <div className="w-full h-full flex flex-col items-center pt-24">
+      {createAction && <div>Modal</div>}
       <div className="grid gap-y-4 place-items-center max-w-[600px]">
         <div className="relative">
           <LogoLinesIcon className="z-0" />
@@ -33,7 +39,7 @@ export const ActionsPage = () => {
           </div>
           <DecoratedButton
             variant="primary"
-            type="button"
+            href="?createAction=true"
             className="text-sm px-5 py-1 rounded-[.7rem]"
           >
             Create
