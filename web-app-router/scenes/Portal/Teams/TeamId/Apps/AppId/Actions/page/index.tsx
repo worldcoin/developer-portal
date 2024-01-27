@@ -7,11 +7,15 @@ import { CreateActionModal } from "./CreateActionModal";
 import clsx from "clsx";
 
 type ActionsPageProps = {
+  params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
 };
 
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
+export const ActionsPage = async ({
+  params,
+  searchParams,
+}: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const listActions = true; //  Temp will replace with a fetch in later component
   if (createAction) {
@@ -82,3 +86,10 @@ export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
     );
   }
 };
+
+export const getAction = cache(async (appId: string) => {
+  const { data, loading: isActionsLoading } = useActionsQuery({
+    variables: { app_id: appId ?? "" },
+  });
+  return data;
+});
