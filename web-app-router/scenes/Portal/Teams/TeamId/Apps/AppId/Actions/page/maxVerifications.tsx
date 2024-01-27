@@ -22,11 +22,21 @@ const VerificationOptions = [
 export const MaxVerificationsSelector = (props: {
   value: number;
   onChange: (value: number) => void;
+  className?: string;
+  showCustomInput?: boolean;
   errors?: FieldError;
   label: string;
   helperText?: string;
 }) => {
-  const { value, onChange, errors, label, helperText } = props;
+  const {
+    value,
+    onChange,
+    errors,
+    label,
+    helperText,
+    showCustomInput,
+    className,
+  } = props;
   const [input, setInput] = useState("");
 
   const parentClassNames = clsx(
@@ -86,7 +96,8 @@ export const MaxVerificationsSelector = (props: {
             className={clsx(
               "text-left",
               selectorClassNames,
-              "w-[548px] grid grid-cols-1fr/auto "
+              "grid grid-cols-1fr/auto",
+              className
             )}
           >
             {VerificationOptions[value] ?? value.toString()}
@@ -105,26 +116,28 @@ export const MaxVerificationsSelector = (props: {
                 </div>
               </SelectOption>
             ))}
-            <SelectOption key={"text-input"} value={input}>
-              <input
-                className={clsx(
-                  "w-full h-11 px-1 text-sm border border-grey-200 rounded-lg placeholder:text-neutral-secondary"
-                )}
-                type="number"
-                value={input}
-                min={4}
-                placeholder="Custom Verification Limit"
-                onChange={(e) => {
-                  setInput(e.target.value);
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    submitInput();
-                  }
-                }}
-              />
-            </SelectOption>
+            {showCustomInput && (
+              <SelectOption key={"text-input"} value={input}>
+                <input
+                  className={clsx(
+                    "w-full h-11 px-1 text-sm border border-grey-200 rounded-lg placeholder:text-neutral-secondary"
+                  )}
+                  type="number"
+                  value={input}
+                  min={4}
+                  placeholder="Custom Verification Limit"
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      submitInput();
+                    }
+                  }}
+                />
+              </SelectOption>
+            )}
           </SelectOptions>
           <legend className={labelClassNames}>{label} </legend>
         </fieldset>

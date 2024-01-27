@@ -72,6 +72,10 @@ const config: Config = {
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
       },
+
+      width: {
+        inputLarge: "34rem",
+      },
     },
   },
   plugins: [],

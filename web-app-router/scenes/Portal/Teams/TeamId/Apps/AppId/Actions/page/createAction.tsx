@@ -112,7 +112,7 @@ export const CreateActionModal = () => {
   );
 
   return (
-    <div className="fixed inset-0 w-full bg-white flex justify-center items-center  py-10">
+    <div className="fixed inset-0 w-full bg-white flex justify-center py-10 overflow-auto ">
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
         <div className="grid grid-cols-[auto_auto_1fr] gap-3 w-full items-center">
           <Link href={pathname}>
@@ -125,10 +125,10 @@ export const CreateActionModal = () => {
           <UserHelpNav />
         </div>
       </div>
-      <div className="w-full max-w-[550px] flex items-center justify-center">
+      <div className="w-screen p-10 overflow-auto grid items-center justify-center min-h-full">
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid w-[550px] grid-cols-1 gap-6 min-h-[500px]"
+          className="grid grid-cols-1 gap-6"
         >
           <h1 className="text-2xl font-[550] mb-2">
             Create an incognito action
@@ -139,7 +139,7 @@ export const CreateActionModal = () => {
             label="Name"
             placeholder="Anonymous Vote #12"
             required
-            className="w-[550px]"
+            className="w-inputLarge"
           />
           <Input
             register={register("description")}
@@ -148,7 +148,7 @@ export const CreateActionModal = () => {
             placeholder="Cast your vote on proposal #102"
             helperText="Tell your users what the action is about. Shown in the World App."
             required
-            className="w-[550px]"
+            className="w-inputLarge"
           />
           <Input
             register={register("action")}
@@ -157,7 +157,7 @@ export const CreateActionModal = () => {
             helperText="This is the value you will use in IDKit and any API calls."
             placeholder="A short description of your action"
             required
-            className="w-[550px]"
+            className="w-inputLarge"
           />
           <Controller
             name="maxVerifications"
@@ -168,6 +168,8 @@ export const CreateActionModal = () => {
                   value={field.value}
                   onChange={field.onChange}
                   errors={errors.maxVerifications}
+                  showCustomInput
+                  className="w-inputLarge" // border is 2px
                   label="Max verifications per user"
                   helperText="The number of verifications the same person can do for this action"
                 />
