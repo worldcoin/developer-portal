@@ -9,7 +9,6 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  isDirty?: boolean;
   label: string;
   placeholder?: string;
   helperText?: string;

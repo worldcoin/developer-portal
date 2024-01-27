@@ -1,3 +1,4 @@
+@import "react-toastify/dist/ReactToastify.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,3 +38,18 @@
   font-weight: 500;
   font-style: normal;
 }
+
+
+/* Begin Toastify overrides */
+
+:root {
+  --toastify-color-success: #4940e0;
+  --toastify-icon-color-success: #4940e0;
+}
+
+/*
+.Toastify__toast {
+  @apply rounded-lg font-rubik;
+}
+*/
+/* End Toastify overrides */

@@ -65,6 +65,27 @@ module.exports = {
         withMutationFn: true,
       },
     },
+    scenes: {
+      documents: ["scenes/**/*.graphql", "app/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-react-apollo",
+      ],
+      config: {
+        withMutationFn: true,
+      },
+    },
   },
 
   hooks: {
