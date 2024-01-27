@@ -17,6 +17,7 @@ import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
 import { MaxVerificationsSelector } from "./maxVerifications";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -110,7 +111,10 @@ export const CreateActionModal = () => {
     },
     [appId, insertActionQuery, pathname, router, setError]
   );
-
+  const copyAction = useCallback(() => {
+    navigator.clipboard.writeText(watch("action"));
+    toast.success("Copied to clipboard");
+  }, [watch]);
   return (
     <div className="fixed inset-0 w-full bg-white flex justify-center py-10 overflow-auto ">
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
@@ -157,6 +161,12 @@ export const CreateActionModal = () => {
             helperText="This is the value you will use in IDKit and any API calls."
             placeholder="A short description of your action"
             required
+            addOnPosition="right"
+            addOn={
+              <button className="px-1" type="button" onClick={copyAction}>
+                <CopyIcon />
+              </button>
+            }
             className="w-inputLarge"
           />
           <Controller
