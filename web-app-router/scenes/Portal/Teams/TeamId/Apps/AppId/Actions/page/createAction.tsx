@@ -114,7 +114,7 @@ export const CreateActionModal = () => {
   );
 
   return (
-    <div className="fixed inset-0 w-full h-screen bg-white flex justify-center items-center min-h-[800px] overflow-y-scroll">
+    <div className="fixed inset-0 w-full bg-white flex justify-center items-center  py-10">
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
         <div className="grid grid-cols-[auto_auto_1fr] gap-3 w-full items-center">
           <Link href={pathname}>
@@ -127,10 +127,10 @@ export const CreateActionModal = () => {
           <UserHelpNav />
         </div>
       </div>
-      <div className="h-full w-full flex items-center justify-center">
+      <div className="w-full max-w-[550px] flex items-center justify-center">
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid w-[550px] grid-cols-1 gap-6"
+          className="grid w-[550px] grid-cols-1 gap-6 min-h-[500px]  "
         >
           <h1 className="text-2xl font-[550] mb-2">
             Create an incognito action
@@ -161,7 +161,6 @@ export const CreateActionModal = () => {
             required
             className="w-[550px]"
           />
-          {/* // TODO */}
           <Controller
             name="maxVerifications"
             control={control}
@@ -182,7 +181,7 @@ export const CreateActionModal = () => {
             <DecoratedButton
               variant="primary"
               type="submit"
-              disabled={true}
+              disabled={!isValid}
               className="px-10 py-3"
             >
               Create Action

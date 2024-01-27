@@ -32,7 +32,8 @@ export const MaxVerificationsSelector = (props: {
   const parentClassNames = clsx(
     "border-[1px] text-grey-700 rounded-lg bg-grey-0  text-sm hover:text-grey-700",
     {
-      "border-grey-200 hover:border-grey-700 ": !errors,
+      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
+        !errors,
       "border-system-error-500 text-system-error-500 ": errors,
     }
   );
@@ -59,7 +60,9 @@ export const MaxVerificationsSelector = (props: {
     },
     [onChange]
   );
+
   const submitInput = useCallback(() => {
+    console.log("submitInput", input);
     handleSelect(Number(input));
     setInput("");
   }, [handleSelect, input]);
@@ -70,7 +73,7 @@ export const MaxVerificationsSelector = (props: {
       onChange={handleSelect}
       by={(a: number | null, b: number | null) => a === b}
     >
-      <div className={"inline-grid font-gta"}>
+      <div className={"inline-grid font-gta "}>
         <fieldset
           className={twMerge(
             clsx(
@@ -86,20 +89,42 @@ export const MaxVerificationsSelector = (props: {
               "w-[548px] grid grid-cols-1fr/auto "
             )}
           >
-            {VerificationOptions[value] ?? "Choose max verifications"}
+            {VerificationOptions[value] ?? value.toString()}
             <CaretIcon className="ml-2  text-grey-400 group-hover:text-grey-700" />
           </SelectButton>
 
-          <SelectOptions className={clsx("mt-3 h-full text-sm")}>
+          <SelectOptions
+            className={clsx(
+              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-32"
+            )}
+          >
             {VerificationOptions.map((option, index) => (
               <SelectOption key={index} value={index}>
-                {({ selected }) => (
-                  <div className="grid grid-cols-1fr/auto">
-                    {VerificationOptions[index]}
-                  </div>
-                )}
+                <div className="grid grid-cols-1fr/auto">
+                  {VerificationOptions[index]}
+                </div>
               </SelectOption>
             ))}
+            <SelectOption key={"text-input"} value={input}>
+              <input
+                className={clsx(
+                  "w-full h-11 px-1 text-sm border border-grey-200 rounded-lg placeholder:text-neutral-secondary"
+                )}
+                type="number"
+                value={input}
+                min={4}
+                placeholder="Custom Verification Limit"
+                onChange={(e) => {
+                  setInput(e.target.value);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    submitInput();
+                  }
+                }}
+              />
+            </SelectOption>
           </SelectOptions>
           <legend className={labelClassNames}>{label} </legend>
         </fieldset>
