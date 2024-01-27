@@ -2,9 +2,9 @@ export const CaretIcon = (props: { className?: string }) => {
   const { className } = props;
   return (
     <svg
-      className={`stroke-current ${className}`}
       width="20"
       height="20"
+      className={`stroke-current ${className}`}
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
