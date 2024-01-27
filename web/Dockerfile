@@ -17,6 +17,10 @@ RUN pnpm install --frozen-lockfile
 FROM base AS runner
 
 # Temporary env vars required for building
+ARG ASSETS_S3_BUCKET_NAME=""
+ARG ASSETS_S3_REGION=""
+ENV ASSETS_S3_BUCKET_NAME=${ASSETS_S3_BUCKET_NAME}
+ENV ASSETS_S3_REGION=${ASSETS_S3_REGION}
 ENV GENERAL_SECRET_KEY unsafe_test_key
 ENV HASURA_GRAPHQL_JWT_SECRET '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
 ENV JWT_ISSUER invalid.localhost
