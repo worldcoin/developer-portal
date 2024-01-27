@@ -16,9 +16,7 @@ import { useInsertActionMutation } from "../graphql/insert-action.generated";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
-import { VerificationSelect } from "@/components/VerificationSelect";
 import { MaxVerificationsSelector } from "./maxVerifications";
-import { TeamSelector } from "@/scenes/Portal/layout/TeamSelector";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -39,7 +37,7 @@ export const CreateActionModal = () => {
   const {
     control,
     register,
-    formState: { errors, dirtyFields, isValid },
+    formState: { errors, isValid },
     handleSubmit,
     setValue,
     setError,
@@ -92,7 +90,7 @@ export const CreateActionModal = () => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
-        router.back();
+        router.push(pathname);
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===
@@ -110,7 +108,7 @@ export const CreateActionModal = () => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, router, setError]
+    [appId, insertActionQuery, pathname, router, setError]
   );
 
   return (
@@ -130,7 +128,7 @@ export const CreateActionModal = () => {
       <div className="w-full max-w-[550px] flex items-center justify-center">
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid w-[550px] grid-cols-1 gap-6 min-h-[500px]  "
+          className="grid w-[550px] grid-cols-1 gap-6 min-h-[500px]"
         >
           <h1 className="text-2xl font-[550] mb-2">
             Create an incognito action
