@@ -4,15 +4,32 @@ import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./createAction";
 import { ListActions } from "./ListActions";
+import {
+  useActionsLazyQuery,
+  useActionsQuery,
+} from "../graphql/actions.generated";
+import { cache } from "react";
 
 type ActionsPageProps = {
+  params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
 };
 
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
+export const ActionsPage = async ({
+  params,
+  searchParams,
+}: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
+  const appId = params?.appId;
+  console.log(appId);
+
   const alpha = true;
+  // const action = await getAction(
+  //   "app_staging_68306aab1aaf0ac802bc4cc0d3002184"
+  // );
+  // console.log(action);
+
   if (createAction) {
     return <CreateActionModal />;
   } else {
@@ -63,3 +80,10 @@ export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
     }
   }
 };
+
+export const getAction = cache(async (appId: string) => {
+  const { data, loading: isActionsLoading } = useActionsQuery({
+    variables: { app_id: appId ?? "" },
+  });
+  return data;
+});
