@@ -3,12 +3,14 @@ import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./createAction";
-import { ListActions } from "./ListActions";
+import { ListActions } from "./ActionsList/ListActions";
 import {
   useActionsLazyQuery,
   useActionsQuery,
 } from "../graphql/actions.generated";
 import { cache } from "react";
+import { getClient } from "@/lib/client";
+import gql from "graphql-tag";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -22,21 +24,18 @@ export const ActionsPage = async ({
 }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId;
-  console.log(appId);
 
   const alpha = true;
-  // const action = await getAction(
-  //   "app_staging_68306aab1aaf0ac802bc4cc0d3002184"
-  // );
-  // console.log(action);
+
+  const data = await getAction(appId ?? "");
 
   if (createAction) {
     return <CreateActionModal />;
   } else {
-    if (alpha) {
+    if (data?.action && data?.action?.length > 0) {
       return (
         <div className="w-full h-full flex flex-col justify-center items-center pt-24">
-          <ListActions />
+          <ListActions actions={data.action} />
         </div>
       );
     } else {
@@ -81,9 +80,40 @@ export const ActionsPage = async ({
   }
 };
 
-export const getAction = cache(async (appId: string) => {
-  const { data, loading: isActionsLoading } = useActionsQuery({
-    variables: { app_id: appId ?? "" },
-  });
-  return data;
+const getAction = cache(async (appId: string) => {
+  const actionsQuery = gql`
+    query Actions($app_id: String!) {
+      action(
+        order_by: { created_at: asc }
+        where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
+      ) {
+        id
+        app_id
+        action
+        created_at
+        creation_mode
+        description
+        external_nullifier
+        kiosk_enabled
+        name
+        max_accounts_per_user
+        max_verifications
+        updated_at
+        nullifiers {
+          id
+          created_at
+          nullifier_hash
+          uses
+        }
+      }
+    }
+  `;
+  if (appId !== "") {
+    const client = getClient();
+    const { data } = await client.query({
+      query: actionsQuery,
+      variables: { app_id: appId },
+    });
+    return data;
+  }
 });
