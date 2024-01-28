@@ -41,6 +41,7 @@ export const ActionsList = (props: { actions: any }) => {
     let filteredActions = actions;
 
     if (actionsSearch) {
+      setCurrentPage(1);
       const fieldsToSearch = ["name", "description", "action"] as const;
       filteredActions = filteredActions.filter((action: any) => {
         return fieldsToSearch.some((field) => {
@@ -93,6 +94,7 @@ export const ActionsList = (props: { actions: any }) => {
             rowsPerPageOptions={rowsPerPageOptions}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
+            currentPage={currentPage}
           />
         </div>
       </div>
