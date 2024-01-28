@@ -83,27 +83,20 @@ export const MaxVerificationsSelector = (props: {
       onChange={handleSelect}
       by={(a: number | null, b: number | null) => a === b}
     >
-      <div className={"inline-grid font-gta "}>
+      <div className={clsx("inline-grid font-gta", className)}>
         <fieldset
-          className={twMerge(
-            clsx(
-              "grid grid-cols-auto/1fr/auto group pb-2 w-full",
-              parentClassNames
-            )
-          )}
+          className={twMerge(clsx(parentClassNames, "grid group pb-2 w-full "))}
         >
           <SelectButton
             className={clsx(
-              "text-left",
+              "text-left ",
               selectorClassNames,
-              "grid grid-cols-1fr/auto",
-              className
+              "grid grid-cols-1fr/auto w-full h-full"
             )}
           >
             {VerificationOptions[value] ?? value.toString()}
             <CaretIcon className="ml-2  text-grey-400 group-hover:text-grey-700" />
           </SelectButton>
-
           <SelectOptions
             className={clsx(
               "mt-3 text-sm focus:ring-0 focus:outline-none max-h-32"

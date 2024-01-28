@@ -4,7 +4,7 @@ import { useActionQuery } from "../graphql/get-single-action.generated";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import Link from "next/link";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { VerifiedTable } from "./VerifiedTable.tsx/VerifiedTable.tsx";
+import { VerifiedTable } from "./VerifiedTable/VerifiedTable.tsx";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;

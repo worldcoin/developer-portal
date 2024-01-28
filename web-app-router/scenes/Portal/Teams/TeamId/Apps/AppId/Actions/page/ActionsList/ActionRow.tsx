@@ -30,7 +30,7 @@ export const ActionRow = (props: { action: any; key: number }) => {
       </div>
       <div>
         <div className="text-grey-900 text-sm">{action.name}</div>
-        <div className="text-grey-500 text-xs flex items-center justify-center gap-x-2 ">
+        <div className="text-grey-500 text-xs flex items-center gap-x-2 ">
           {action.action}
           <button
             className="opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-300"

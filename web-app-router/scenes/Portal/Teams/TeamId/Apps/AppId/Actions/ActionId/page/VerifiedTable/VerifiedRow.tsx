@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { NullifierItem } from "./VerifiedTable.tsx";
+import { NullifierItem } from "./VerifiedTable.tsx.jsx";
 
 export const VerifiedRow = (props: {
   nullifier: NullifierItem;
