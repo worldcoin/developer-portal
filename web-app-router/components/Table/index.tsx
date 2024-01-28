@@ -45,9 +45,9 @@ export const TableComponent: React.FC<TableProps> = ({
   const pageCount = Math.ceil(totalResults / rowsPerPage);
 
   return (
-    <div className="overflow-x-auto w-full">
+    <div className="w-full h-full">
       <table className="min-w-full divide-y divide-gray-100">
-        <thead className="">
+        <thead className="h-full sticky top-0 bg-white">
           <tr>
             {headers.map((header, index) => (
               <th
@@ -60,7 +60,7 @@ export const TableComponent: React.FC<TableProps> = ({
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-100">
+        <tbody className="bg-white divide-y divide-gray-100 overflow-y-scroll">
           {rows.map((row, rowIndex) => (
             <tr
               key={rowIndex}
@@ -76,15 +76,26 @@ export const TableComponent: React.FC<TableProps> = ({
         </tbody>
       </table>
 
-      <div className="grid grid-cols-3  text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-gray-100">
+      <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-gray-100">
         <div className="text-grey-400">{totalResults} results</div>
         <div className="flex items-center justify-center gap-x-4">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 hover:border-grey-700 hover:text-border-grey-700 cursor-pointer"
+            className={clsx(
+              "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
+              {
+                "disabled:opacity-50 cursor-not-allowed": currentPage === 1,
+                "hover:border-grey-700 hover:text-border-grey-700":
+                  currentPage !== 1,
+              }
+            )}
           >
-            <CaretIcon className="rotate-90 text-grey-400 h-4 w-4 group-hover:text-grey-700" />
+            <CaretIcon
+              className={clsx("rotate-90 text-grey-400 h-4 w-4", {
+                "group-hover:text-grey-700": currentPage !== 1,
+              })}
+            />
           </button>
           <div className="w-8 h-8 text-center border flex items-center justify-center rounded-lg border-grey-200 text-grey-900">
             {currentPage}
@@ -92,9 +103,21 @@ export const TableComponent: React.FC<TableProps> = ({
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === pageCount}
-            className="w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 hover:border-grey-700 hover:text-border-grey-700 cursor-pointer"
+            className={clsx(
+              "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
+              {
+                "disabled:opacity-50 cursor-not-allowed":
+                  currentPage === pageCount,
+                "hover:border-grey-700 hover:text-border-grey-700":
+                  currentPage < pageCount,
+              }
+            )}
           >
-            <CaretIcon className="-rotate-90 text-grey-400 h-4 w-4 group-hover:text-grey-700" />
+            <CaretIcon
+              className={clsx("-rotate-90 text-grey-400 h-4 w-4", {
+                "group-hover:text-grey-700": currentPage !== 1,
+              })}
+            />
           </button>
         </div>
         <div className="flex w-full justify-end">
