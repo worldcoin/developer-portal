@@ -2,7 +2,7 @@
 import { TableComponent } from "@/components/Table";
 import { useState } from "react";
 
-// Example of how to use this component
+// TODO: Example of how to use this component
 export const ListActions = () => {
   const headers = [
     <span key={0}>Name</span>,
@@ -57,6 +57,7 @@ export const ListActions = () => {
         rowsPerPageOptions={rowsPerPageOptions}
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
+        currentPage={1}
       />
     </div>
   );

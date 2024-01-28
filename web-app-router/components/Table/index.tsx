@@ -16,6 +16,7 @@ type TableProps = {
   initialRowsPerPage?: number;
   onPageChange: (page: number) => void;
   onRowsPerPageChange: (rowsPerPage: number) => void;
+  currentPage: number;
 };
 
 export const TableComponent: React.FC<TableProps> = ({
@@ -26,18 +27,16 @@ export const TableComponent: React.FC<TableProps> = ({
   initialRowsPerPage = rowsPerPageOptions[0],
   onPageChange,
   onRowsPerPageChange,
+  currentPage,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage);
 
   const handleRowsPerPageChange = (newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
     onRowsPerPageChange(newRowsPerPage);
-    setCurrentPage(1); // Reset to first page
   };
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
     onPageChange(newPage);
   };
 
