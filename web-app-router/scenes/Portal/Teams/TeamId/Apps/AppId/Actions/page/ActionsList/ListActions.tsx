@@ -81,9 +81,9 @@ export const ListActions = (props: { actions: any }) => {
         <div className="flex w-full justify-between items-center">
           <Input
             register={register("actionSearch")}
-            label="Search"
+            label=""
             placeholder="Search actions by name"
-            className="w-inputLarge"
+            className="w-inputLarge pt-2"
           />
           <DecoratedButton className="h-12" href="?createAction=true">
             New action
