@@ -53,11 +53,11 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   }, [nullifiers, currentPage, rowsPerPage]);
 
   return (
-    <div className="flex items-center justify-center w-full p-10 max-h-full">
-      <div className="max-w-[1180px] w-full grid gap-y-5">
+    <div className="flex items-center justify-center w-full px-10 max-h-full">
+      <div className="max-w-[500px] w-full grid gap-y-8">
         <div className="flex justify-start items-center gap-x-2">
           <h1 className="text-lg text-grey-900 font-[550]">Verified humans</h1>
-          <p className="bg-grey-100 w-8 py-1  text-center rounded-xl text-xs">
+          <p className="bg-grey-100 w-8 py-1 text-center rounded-xl text-xs">
             {nullifiers.length}
           </p>
         </div>

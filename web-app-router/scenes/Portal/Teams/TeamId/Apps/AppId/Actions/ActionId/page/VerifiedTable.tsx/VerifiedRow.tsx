@@ -15,13 +15,16 @@ export const VerifiedRow = (props: {
       key={`nullifier_${key}_1`}
       className="flex flex-row items-center gap-x-4 px-2 group"
     >
-      <div className="uppercase rounded-full flex items-center justify-center h-12 w-12 bg-blue-100 text-blue-500 text-base font-[500]"></div>
-      <div>{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</div>{" "}
+      {/* // TODO: Images for each human? */}
+      <div className="Capitalize rounded-full flex items-center justify-center h-12 w-12 bg-blue-100 text-blue-500 text-base font-[500]">
+        0x
+      </div>
+      <div className="text-grey-900 text-base">{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</div>
     </div>,
-    <div key={`nullifier_${key}_2`} className="text-grey-900 w-12">
+    <div key={`nullifier_${key}_2`} className="text-grey-500 w-12 text-sm">
       {nullifier.uses}
     </div>,
-    <div key={`nullifier_${key}_3`} className="">
+    <div key={`nullifier_${key}_3`} className="text-sm text-grey-500">
       {timeAgo}
     </div>,
   ];
