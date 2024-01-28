@@ -34,9 +34,13 @@ export const TableComponent: React.FC<TableProps> = ({
   const handleRowsPerPageChange = (newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
 <<<<<<< HEAD
+<<<<<<< HEAD
     onRowsPerPageChange(newRowsPerPage);
 =======
     onRowsPerPageChange?.(newRowsPerPage);
+=======
+    onRowsPerPageChange(newRowsPerPage);
+>>>>>>> c77bbe6 (clean up table)
     setCurrentPage(1); // Reset to first page
 >>>>>>> 1963a17 (update to table component to make sticky)
   };
@@ -47,7 +51,6 @@ export const TableComponent: React.FC<TableProps> = ({
 
   // Calculate the number of pages
   const pageCount = Math.ceil(totalResults / rowsPerPage);
-  console.log(totalResults);
   return (
     <div className="w-full h-full">
       <table className="min-w-full divide-y divide-gray-100">
