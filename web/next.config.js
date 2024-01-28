@@ -4,7 +4,6 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-console.log(process.env.NODE_ENV);
 // NOTE: WE must update this before a production deployment
 // const s3BucketUrl = `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
 // const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
