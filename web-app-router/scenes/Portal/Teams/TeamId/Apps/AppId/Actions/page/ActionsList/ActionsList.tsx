@@ -58,7 +58,32 @@ export const ActionsList = () => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
-  const setRowsToDisplay = useMemo(() => {
+  const actionsSearch = useWatch({
+    control,
+    name: "actionSearch",
+  });
+
+  const actionsToRender = useMemo(() => {
+    if (!actions) {
+      return [];
+    }
+
+    let filteredActions = actions;
+
+    if (actionsSearch) {
+      setCurrentPage(1);
+      const fieldsToSearch = ["name", "description", "action"] as const;
+      filteredActions = filteredActions.filter((action: any) => {
+        return fieldsToSearch.some((field) => {
+          return action[field]
+            ?.toLowerCase()
+            .includes(actionsSearch.toLowerCase());
+        });
+      });
+    }
+
+    setTotalResultsCount(filteredActions.length);
+
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return rows.slice(startIndex, endIndex);
@@ -73,8 +98,9 @@ export const ActionsList = () => {
             currentPage={currentPage}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={rowsPerPageOptions}
-            handlePageChange={handlePageChange}
-            handleRowsPerPageChange={handleRowsPerPageChange}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            currentPage={currentPage}
           />
         }
       >
