@@ -3,11 +3,11 @@ import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./createAction";
-import { TeamSelector } from "@/scenes/Portal/layout/TeamSelector";
 
 type ActionsPageProps = {
   searchParams: Record<string, string> | null | undefined;
 };
+
 // TODO: Ad TWK Lausanne font
 export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
