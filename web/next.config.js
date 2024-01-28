@@ -4,8 +4,15 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
-const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
+console.log(process.env.NODE_ENV);
+// NOTE: WE must update this before a production deployment
+// const s3BucketUrl = `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+// const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
+
+// Temporary hard coded for staging
+const s3BucketUrl = `developer-portal-assets-worldidassetsbucketc058846-lzpwkl4owe2n.s3.us-east-1.amazonaws.com`;
+const cdnHostName = "staging.world-id-assets.com";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -21,7 +28,7 @@ const nextConfig = {
               "blob:", // Used to enforce image width and height
               "https://world-id-public.s3.amazonaws.com",
               "https://worldcoin.org",
-              ...(s3BucketUrl ? [s3BucketUrl] : []),
+              ...(s3BucketUrl ? [`https://${s3BucketUrl}`] : []),
             ],
             "style-src": "'unsafe-inline'",
             "connect-src": [
@@ -30,7 +37,7 @@ const nextConfig = {
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
               "https://bridge.worldcoin.org",
-              ...(s3BucketUrl ? [s3BucketUrl] : []),
+              ...(s3BucketUrl ? [`https://${s3BucketUrl}`] : []),
             ],
             "script-src": [
               "'self'",
@@ -60,7 +67,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+        hostname: s3BucketUrl,
         pathname: `/unverified/**`,
       },
     ],
