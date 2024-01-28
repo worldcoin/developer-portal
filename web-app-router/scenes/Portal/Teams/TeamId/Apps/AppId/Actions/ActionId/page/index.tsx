@@ -46,7 +46,7 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
           </div>
           <hr className="my-5 w-full text-grey-200 border-dashed" />
           <div className="w-full grid-cols-2 grid items-start">
-            <div className="bg-green-50 h-50 w-50">Tracker</div>
+            <div className="bg-green-50 h-50 w-50">Action Stats: TODO</div>
             <VerifiedTable nullifiers={action.nullifiers} />
           </div>
         </div>
