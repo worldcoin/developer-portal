@@ -23,7 +23,7 @@ export const ActionRow = (props: { action: any; key: number }) => {
   return [
     <div
       key={`${key}_1`}
-      className="flex flex-row items-center gap-x-4 px-2 group"
+      className="flex flex-row items-center gap-x-4 px-2 group py-4"
     >
       <div className="uppercase rounded-full flex items-center justify-center h-12 w-12 bg-blue-100 text-blue-500 text-base font-[500]">
         {action.name[0]}

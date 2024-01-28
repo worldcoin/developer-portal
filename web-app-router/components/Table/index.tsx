@@ -66,7 +66,7 @@ export const TableComponent: React.FC<TableProps> = ({
               className="hover:bg-grey-25 text-grey-500 text-xs"
             >
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="py-4 whitespace-nowrap ">
+                <td key={cellIndex} className="whitespace-nowrap ">
                   {cell}
                 </td>
               ))}
