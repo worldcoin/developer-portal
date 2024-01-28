@@ -62,6 +62,7 @@ export const Input = memo(function Input(props: InputInterface) {
       "text-system-error-500 peer-focus:text-system-error-500":
         errors && !disabled,
       "text-grey-400": disabled,
+      "px-0": label === "",
     }
   );
 
