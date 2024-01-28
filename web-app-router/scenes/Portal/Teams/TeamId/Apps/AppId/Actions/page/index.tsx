@@ -13,6 +13,9 @@ import {
 } from "../graphql/actions.generated";
 import { cache } from "react";
 import gql from "graphql-tag";
+import { CreateActionModal } from "./CreateAction/createAction";
+import { ActionsList } from "./ActionsList/ActionsList";
+import { useActionsQuery } from "../graphql/actions.generated";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -35,7 +38,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
     return <CreateActionModal refetchActions={refetch} />;
   } else {
     if (data?.action && data?.action?.length > 0) {
-      return <ListActions actions={data.action} />;
+      return <ActionsList actions={data.action} />;
     } else {
       return (
         <div className="w-full h-full flex flex-col items-center pt-24">
