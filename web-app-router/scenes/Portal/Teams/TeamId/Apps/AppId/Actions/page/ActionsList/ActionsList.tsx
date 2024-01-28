@@ -5,25 +5,18 @@ import { ActionRow } from "./ActionRow";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useForm, useWatch } from "react-hook-form";
 import { Input } from "@/components/Input";
+import { SearchIcon } from "@/components/Icons/SearchIcon";
 
 // Example of how to use this component
-export const ListActions = (props: { actions: any }) => {
+export const ActionsList = (props: { actions: any }) => {
   const { actions } = props;
   const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
-  const totalResults = actions.length;
   const rowsPerPageOptions = [10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalResultsCount, setTotalResultsCount] = useState(actions.length);
   const { register, control } = useForm<{ actionSearch: string }>({
     mode: "onChange",
-  });
-
-  const paginatedActions = actions.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
-  const rows = paginatedActions.map((action: any, index: number) => {
-    return ActionRow({ action: action, key: index });
   });
 
   const handlePageChange = (newPage: number) => {
@@ -58,6 +51,8 @@ export const ListActions = (props: { actions: any }) => {
       });
     }
 
+    setTotalResultsCount(filteredActions.length);
+
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const paginatedActions = filteredActions.slice(startIndex, endIndex);
@@ -67,25 +62,26 @@ export const ListActions = (props: { actions: any }) => {
     });
   }, [actions, actionsSearch, currentPage, rowsPerPage]);
 
-  // TODO: Add a search bar
   return (
-    <div className="flex items-center justify-center w-full p-10 ">
-      <div className="max-w-[1180px] w-full grid gap-2">
+    <div className="flex items-center justify-center w-full p-10 max-h-full">
+      <div className="max-w-[1180px] w-full grid gap-y-5">
         <div className="grid gap-2 text-grey-900 font-[550]">
           <h1 className="text-2xl">Incognito Actions</h1>
-          <p className="text-grey-500 text-base font-[400] ">
+          <p className="text-grey-500 text-base font-light ">
             Allow users to verify that they are a unique person without
             revealing their identity
           </p>
         </div>
-        <div className="flex w-full justify-between items-center">
+        <div className="flex w-full justify-between items-center mt-5">
           <Input
             register={register("actionSearch")}
             label=""
             placeholder="Search actions by name"
-            className="w-inputLarge pt-2"
+            className="w-inputLarge pt-2 text-base"
+            addOn={<SearchIcon className="mx-2 text-grey-400" />}
+            addOnPosition="left"
           />
-          <DecoratedButton className="h-12" href="?createAction=true">
+          <DecoratedButton className="h-12 w-36" href="?createAction=true">
             New action
           </DecoratedButton>
         </div>
@@ -93,7 +89,7 @@ export const ListActions = (props: { actions: any }) => {
           <TableComponent
             headers={headers}
             rows={actionsToRender}
-            totalResults={actionsToRender?.length ?? 0}
+            totalResults={totalResultsCount}
             rowsPerPageOptions={rowsPerPageOptions}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}

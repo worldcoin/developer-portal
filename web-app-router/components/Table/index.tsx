@@ -47,7 +47,7 @@ export const TableComponent: React.FC<TableProps> = ({
 
   // Calculate the number of pages
   const pageCount = Math.ceil(totalResults / rowsPerPage);
-
+  console.log(totalResults);
   return (
     <div className="w-full h-full">
       <table className="min-w-full divide-y divide-gray-100">
