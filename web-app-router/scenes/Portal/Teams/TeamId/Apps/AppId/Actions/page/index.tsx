@@ -2,7 +2,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
-import { CreateActionModal } from "./createAction";
+import { CreateActionModal } from "./CreateAction/createAction";
 import { ListActions } from "./ActionsList/ListActions";
 import {
   useActionsLazyQuery,
@@ -34,7 +34,7 @@ export const ActionsPage = async ({
   } else {
     if (data?.action && data?.action?.length > 0) {
       return (
-        <div className="w-full h-full flex flex-col justify-center items-center pt-24">
+        <div className="flex items-center justify-center w-full p-10">
           <ListActions actions={data.action} />
         </div>
       );

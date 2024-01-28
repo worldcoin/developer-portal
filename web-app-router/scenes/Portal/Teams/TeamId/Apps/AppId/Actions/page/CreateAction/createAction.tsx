@@ -12,7 +12,7 @@ import { useCallback, useEffect } from "react";
 import slugify from "slugify";
 import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
-import { useInsertActionMutation } from "../graphql/insert-action.generated";
+import { useInsertActionMutation } from "../../graphql/insert-action.generated";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";

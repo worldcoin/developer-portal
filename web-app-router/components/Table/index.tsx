@@ -33,7 +33,12 @@ export const TableComponent: React.FC<TableProps> = ({
 
   const handleRowsPerPageChange = (newRowsPerPage: number) => {
     setRowsPerPage(newRowsPerPage);
+<<<<<<< HEAD
     onRowsPerPageChange(newRowsPerPage);
+=======
+    onRowsPerPageChange?.(newRowsPerPage);
+    setCurrentPage(1); // Reset to first page
+>>>>>>> 1963a17 (update to table component to make sticky)
   };
 
   const handlePageChange = (newPage: number) => {
@@ -74,7 +79,6 @@ export const TableComponent: React.FC<TableProps> = ({
           ))}
         </tbody>
       </table>
-
       <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-gray-100">
         <div className="text-grey-400">{totalResults} results</div>
         <div className="flex items-center justify-center gap-x-4">
