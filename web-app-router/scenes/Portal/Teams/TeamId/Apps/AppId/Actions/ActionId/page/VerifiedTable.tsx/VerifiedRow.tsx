@@ -19,7 +19,7 @@ export const VerifiedRow = (props: {
       <div className="Capitalize rounded-full flex items-center justify-center h-12 w-12 bg-blue-100 text-blue-500 text-base font-[500]">
         0x
       </div>
-      <div className="text-grey-900 text-base">{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</div>
+      <div className="text-grey-900 text-sm">{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</div>
     </div>,
     <div key={`nullifier_${key}_2`} className="text-grey-500 w-12 text-sm">
       {nullifier.uses}
