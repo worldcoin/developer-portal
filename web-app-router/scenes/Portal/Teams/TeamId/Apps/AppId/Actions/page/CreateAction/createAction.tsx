@@ -18,6 +18,8 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
 import { MaxVerificationsSelector } from "./maxVerifications";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { ApolloQueryResult } from "@apollo/client";
+import { ActionsQuery } from "../../graphql/actions.generated";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -30,7 +32,12 @@ const createActionSchema = yup.object({
 });
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
-export const CreateActionModal = () => {
+type CreateActionModalProps = {
+  refetchActions: () => Promise<ApolloQueryResult<ActionsQuery>>;
+};
+
+export const CreateActionModal = (props: CreateActionModalProps) => {
+  const { refetchActions } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
   const appId = params?.appId as `app_${string}`;
@@ -50,7 +57,7 @@ export const CreateActionModal = () => {
       maxVerifications: 1,
     },
   });
-  const [insertActionQuery] = useInsertActionMutation({});
+  const [insertActionQuery, { loading }] = useInsertActionMutation({});
   const router = useRouter();
 
   useEffect(() => {
@@ -91,6 +98,7 @@ export const CreateActionModal = () => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
+        refetchActions();
         router.push(pathname);
       } catch (error) {
         if (
@@ -109,7 +117,7 @@ export const CreateActionModal = () => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, router, setError]
+    [appId, insertActionQuery, pathname, refetchActions, router, setError]
   );
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(watch("action"));
@@ -191,7 +199,7 @@ export const CreateActionModal = () => {
             <DecoratedButton
               variant="primary"
               type="submit"
-              disabled={!isValid}
+              disabled={!isValid || loading}
               className="px-10 py-3"
             >
               Create Action

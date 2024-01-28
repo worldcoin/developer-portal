@@ -1,3 +1,4 @@
+"use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
@@ -9,7 +10,6 @@ import {
   useActionsQuery,
 } from "../graphql/actions.generated";
 import { cache } from "react";
-import { getClient } from "@/lib/client";
 import gql from "graphql-tag";
 
 type ActionsPageProps = {
@@ -18,26 +18,21 @@ type ActionsPageProps = {
 };
 
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = async ({
-  params,
-  searchParams,
-}: ActionsPageProps) => {
+export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId;
 
-  const alpha = true;
+  const { data, loading, refetch } = useActionsQuery({
+    variables: { app_id: appId ?? "" },
+  });
 
-  const data = await getAction(appId ?? "");
-
-  if (createAction) {
-    return <CreateActionModal />;
+  if (loading) {
+    return <div></div>;
+  } else if (createAction) {
+    return <CreateActionModal refetchActions={refetch} />;
   } else {
     if (data?.action && data?.action?.length > 0) {
-      return (
-        <div className="flex items-center justify-center w-full p-10">
-          <ListActions actions={data.action} />
-        </div>
-      );
+      return <ListActions actions={data.action} />;
     } else {
       return (
         <div className="w-full h-full flex flex-col items-center pt-24">
@@ -80,40 +75,42 @@ export const ActionsPage = async ({
   }
 };
 
-const getAction = cache(async (appId: string) => {
-  const actionsQuery = gql`
-    query Actions($app_id: String!) {
-      action(
-        order_by: { created_at: asc }
-        where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
-      ) {
-        id
-        app_id
-        action
-        created_at
-        creation_mode
-        description
-        external_nullifier
-        kiosk_enabled
-        name
-        max_accounts_per_user
-        max_verifications
-        updated_at
-        nullifiers {
-          id
-          created_at
-          nullifier_hash
-          uses
-        }
-      }
-    }
-  `;
-  if (appId !== "") {
-    const client = getClient();
-    const { data } = await client.query({
-      query: actionsQuery,
-      variables: { app_id: appId },
-    });
-    return data;
-  }
-});
+// TODO: Don't think caching makes sense here since we don't know if another user has created a new action
+// const getAction = cache(async (appId: string) => {
+//   const actionsQuery = gql`
+//     query Actions($app_id: String!) {
+//       action(
+//         order_by: { created_at: asc }
+//         where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
+//       ) {
+//         id
+//         app_id
+//         action
+//         created_at
+//         creation_mode
+//         description
+//         external_nullifier
+//         kiosk_enabled
+//         name
+//         max_accounts_per_user
+//         max_verifications
+//         updated_at
+//         nullifiers {
+//           id
+//           created_at
+//           nullifier_hash
+//           uses
+//         }
+//       }
+//     }
+//   `;
+//   if (appId !== "") {
+//     const client = getClient();
+//     const { data } = await client.query({
+//       query: actionsQuery,
+//       variables: { app_id: appId },
+//     });
+//     console.log(data);
+//     return data;
+//   }
+// });
