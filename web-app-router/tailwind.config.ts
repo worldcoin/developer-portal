@@ -74,7 +74,7 @@ const config: Config = {
       },
 
       width: {
-        inputLarge: "34rem",
+        136: "34rem",
       },
     },
   },

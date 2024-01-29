@@ -2,7 +2,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
-import { CreateActionModal } from "./createAction";
+import { CreateActionModal } from "./CreateActionModal";
 
 type ActionsPageProps = {
   searchParams: Record<string, string> | null | undefined;

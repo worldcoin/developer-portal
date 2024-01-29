@@ -12,12 +12,12 @@ import { useCallback, useEffect } from "react";
 import slugify from "slugify";
 import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
-import { useInsertActionMutation } from "../graphql/insert-action.generated";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
-import { MaxVerificationsSelector } from "./maxVerifications";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { useInsertActionMutation } from "./graphql/insert-action.generated";
+import { MaxVerificationsSelector } from "../MaxVerificationsSelector";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -50,6 +50,7 @@ export const CreateActionModal = () => {
       maxVerifications: 1,
     },
   });
+
   const [insertActionQuery] = useInsertActionMutation({});
   const router = useRouter();
 
@@ -101,6 +102,7 @@ export const CreateActionModal = () => {
             type: "custom",
             message: "This action already exists.",
           });
+
           return toast.error(
             "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
@@ -111,10 +113,12 @@ export const CreateActionModal = () => {
     },
     [appId, insertActionQuery, pathname, router, setError]
   );
+
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(watch("action"));
     toast.success("Copied to clipboard");
   }, [watch]);
+
   return (
     <div className="fixed inset-0 w-full bg-white flex justify-center py-10 overflow-auto ">
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
@@ -143,7 +147,7 @@ export const CreateActionModal = () => {
             label="Name"
             placeholder="Anonymous Vote #12"
             required
-            className="w-inputLarge"
+            className="w-136"
           />
           <Input
             register={register("description")}
@@ -152,7 +156,7 @@ export const CreateActionModal = () => {
             placeholder="Cast your vote on proposal #102"
             helperText="Tell your users what the action is about. Shown in the World App."
             required
-            className="w-inputLarge"
+            className="w-136"
           />
           <Input
             register={register("action")}
@@ -167,7 +171,7 @@ export const CreateActionModal = () => {
                 <CopyIcon />
               </button>
             }
-            className="w-inputLarge"
+            className="w-136"
           />
           <Controller
             name="maxVerifications"
@@ -179,7 +183,7 @@ export const CreateActionModal = () => {
                   onChange={field.onChange}
                   errors={errors.maxVerifications}
                   showCustomInput
-                  className="w-inputLarge" // border is 2px
+                  className="w-136" // border is 2px
                   label="Max verifications per user"
                   helperText="The number of verifications the same person can do for this action"
                 />
