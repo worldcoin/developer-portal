@@ -2,6 +2,7 @@ import { Button, CommonButtonProps } from "@/components/Button";
 import { memo } from "react";
 import clsx from "clsx";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
+import { twMerge } from "tailwind-merge";
 
 type DecoratedButtonProps = CommonButtonProps & {
   icon?: React.ReactElement;
@@ -54,13 +55,15 @@ export const DecoratedButton = memo(function DecoratedButton(
   return (
     <Button
       disabled={disabled}
-      className={clsx(
-        className,
-        "px-6 py-2.5 rounded-xl border font-medium relative font-gta",
-        { [buttonStyles[variant].normal]: !disabled && !loading },
-        { [buttonStyles[variant].hover]: !disabled && !loading },
-        disabled && buttonStyles[variant].disabled,
-        loading && buttonStyles[variant].loading
+      className={twMerge(
+        clsx(
+          "px-6 py-2.5 rounded-xl border font-medium relative font-gta leading-[1.5]",
+          className,
+          { [buttonStyles[variant].normal]: !disabled && !loading },
+          { [buttonStyles[variant].hover]: !disabled && !loading },
+          disabled && buttonStyles[variant].disabled,
+          loading && buttonStyles[variant].loading
+        )
       )}
       {...restProps}
     >
