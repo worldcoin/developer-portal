@@ -50,6 +50,36 @@ const config: Config = {
           900: "#191C20",
         },
 
+        additional: {
+          blue: {
+            100: "#E4F2FE",
+            500: "#4292F4",
+          },
+          purple: {
+            100: "#F7F1FF",
+            500: "#9D50FF",
+          },
+          green: {
+            100: "#EBFAEC",
+            500: "#00C313",
+          },
+          sea: {
+            100: "#EBFAF9",
+            500: "#00C3B6",
+          },
+          yellow: {
+            100: "#FFFBEB",
+            500: "#FFC700",
+          },
+          orange: {
+            100: "#FFF3F0",
+            500: "#FF6848",
+          },
+          pink: {
+            100: "#FFF1F7",
+            500: "#FF5096",
+          },
+        },
         system: {
           error: {
             50: "#FFF5F3",
@@ -71,6 +101,25 @@ const config: Config = {
 
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
+      },
+      fontWeight: {
+        500: "500",
+        550: "550",
+      },
+      fontSize: {
+        0: "0",
+        6: "calc(6 * 1rem / 16)",
+        11: "calc(11 * 1rem / 16)",
+        12: "calc(12 * 1rem / 16)",
+        13: "calc(13 * 1rem / 16)",
+        14: "calc(14 * 1rem / 16)",
+        16: "calc(16 * 1rem / 16)",
+        18: "calc(18 * 1rem / 16)",
+        20: "calc(20 * 1rem / 16)",
+        24: "calc(24 * 1rem / 16)",
+        26: "calc(26 * 1rem / 16)",
+        30: "calc(30 * 1rem / 16)",
+        32: "calc(32 * 1rem / 16)",
       },
     },
   },
