@@ -11,11 +11,15 @@ export const LoginPage = () => (
       </LayersIconFrame>
 
       <div className="grid gap-y-3">
-        <Typography as="h1" variant={TYPOGRAPHY.H6}>
+        <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
           World ID is now generally available
         </Typography>
 
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+        <Typography
+          as="p"
+          variant={TYPOGRAPHY.R3}
+          className="text-grey-500 text-center"
+        >
           The Worldcoin Protocol will enable a new class of applications built
           on top of prof of personhood
         </Typography>
@@ -23,13 +27,13 @@ export const LoginPage = () => (
 
       <div className="grid gap-y-4">
         {/* TODO: update url */}
-        <DecoratedButton href="/create-team" className="py-3">
+        <DecoratedButton href="/create-team" className="py-4">
           Create an account
         </DecoratedButton>
 
         <DecoratedButton
           variant="secondary"
-          className="py-3"
+          className="py-4"
           href="https://docs.worldcoin.org"
         >
           Explore Docs
