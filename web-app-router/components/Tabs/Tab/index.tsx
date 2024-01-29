@@ -35,7 +35,7 @@ export const Tab = (props: TabProps) => {
 
   const active = useMemo(
     () => props.segment === selectedLayoutSegment,
-    [props.segment, selectedLayoutSegment],
+    [props.segment, selectedLayoutSegment]
   );
 
   return (

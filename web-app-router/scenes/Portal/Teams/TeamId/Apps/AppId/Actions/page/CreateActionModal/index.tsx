@@ -12,11 +12,11 @@ import { useCallback, useEffect } from "react";
 import slugify from "slugify";
 import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
-import { useInsertActionMutation } from "../../graphql/insert-action.generated";
+import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
-import { MaxVerificationsSelector } from "./maxVerifications";
+import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { ApolloQueryResult } from "@apollo/client";
 import { ActionsQuery } from "../../graphql/actions.generated";
@@ -110,14 +110,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             message: "This action already exists.",
           });
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, refetchActions, router, setError],
+    [appId, insertActionQuery, pathname, refetchActions, router, setError]
   );
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(watch("action"));

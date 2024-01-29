@@ -3,7 +3,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
-import { CreateActionModal } from "./CreateAction/createAction";
+import { CreateActionModal } from "./CreateActionModal";
 import { ActionsList } from "./ActionsList/ActionsList";
 import { useActionsQuery } from "../graphql/actions.generated";
 
