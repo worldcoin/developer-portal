@@ -9,7 +9,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useUpdateActionMutation } from "../../../graphql/update-action.generated";
 import { MaxVerificationsSelector } from "../../../page/CreateAction/maxVerifications";
-import { Action } from "@/graphql/graphql";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -20,6 +19,7 @@ const updateActionSchema = yup.object({
     .typeError("Max verifications must be a number")
     .required("This field is required"),
 });
+
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
 type UpdateActionProps = {
@@ -51,6 +51,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       maxVerifications: action.max_verifications,
     },
   });
+
   const [updateActionQuery, { loading }] = useUpdateActionMutation({});
 
   const submit = useCallback(

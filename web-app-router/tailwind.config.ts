@@ -76,6 +76,10 @@ const config: Config = {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
       },
 
+      strokeWidth: {
+        "3": "3",
+      },
+
       width: {
         inputLarge: "34rem",
       },

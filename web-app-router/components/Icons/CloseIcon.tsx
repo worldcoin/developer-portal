@@ -12,7 +12,7 @@ export const CloseIcon = (props: { className?: string }) => {
     >
       <path
         d="M12.6663 3.33374L3.33301 12.6671M3.33301 3.33374L12.6663 12.6671"
-        stroke="#191C20"
+        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
