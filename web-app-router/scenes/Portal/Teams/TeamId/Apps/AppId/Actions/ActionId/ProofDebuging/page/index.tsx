@@ -56,8 +56,8 @@ const messages = {
 
   MISSING_ATTR: (attr: string) => (
     <>
-      Your <b>Verification Response</b> is invalid, missing required{" "}
-      <b>{attr}</b> attribute
+      Invalid <b>Verification Response</b>, missing required <b>{attr}</b>{" "}
+      attribute
     </>
   ),
 
@@ -124,16 +124,15 @@ export const ActionIdProofDebugingPage = ({
         body: JSON.stringify({
           ...verification,
           app_id: appID,
-          action: actionID,
+          action: action?.action,
           signal: formData.signal,
           is_staging: data?.action[0]?.app?.is_staging,
         }),
       });
 
       const response = await res.json();
-
       // NOTE: missing attr in response
-      if (response.code === "required") {
+      if (response.code === "invalid") {
         setStatus(Status.ERROR);
         setMessage(messages.MISSING_ATTR(response.attribute));
         return;
@@ -269,6 +268,7 @@ export const ActionIdProofDebugingPage = ({
                   <p
                     className={clsx("text-grey-400 text-sm", {
                       "text-system-error-600": status === Status.ERROR,
+                      "text-system-success-600": status === Status.SUCCESS,
                     })}
                   >
                     {message}
