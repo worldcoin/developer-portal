@@ -32,18 +32,18 @@ export const JoinPage = () => {
         </div>
 
         {/* FIXME: add href when auth0 PR will be merged */}
-        <DecoratedButton href="#" className="mt-2">
+        <DecoratedButton href="#" className="mt-2 py-3">
           Join team
         </DecoratedButton>
 
         <p className="text-xs leading-[1.3] font-gta text-grey-500 text-center">
           By signing up, you are creating Developer Portal account and agree to
           Worldcoin`s{" "}
-          <Link className="underline" href="#">
+          <Link className="underline text-grey-900" href="#">
             User terms
           </Link>{" "}
           and{" "}
-          <Link className="underline" href="#">
+          <Link className="underline text-grey-900" href="#">
             Privacy notice
           </Link>
         </p>
