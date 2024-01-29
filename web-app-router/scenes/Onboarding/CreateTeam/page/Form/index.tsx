@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
 const schema = yup.object({
-  teamName: yup.string().required("Please, enter team name"),
+  teamName: yup.string().required("Please enter a team name"),
 
   termsAndConditions: yup
     .boolean()
