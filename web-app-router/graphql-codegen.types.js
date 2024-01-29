@@ -44,8 +44,30 @@ module.exports = {
       ],
     },
 
-    app: {
-      documents: ["app/**/*.graphql", "app/**/*.gql"],
+    "scenes/server": {
+      documents: ["scenes/**/server/**/*.graphql", "scenes/**/server/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
+      config: {
+        withMutationFn: true,
+      },
+    },
+
+    "scenes/client": {
+      documents: ["scenes/**/client/**/*.graphql", "scenes/**/client/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -65,8 +87,9 @@ module.exports = {
         withMutationFn: true,
       },
     },
-    scenes: {
-      documents: ["scenes/**/*.graphql", "app/**/*.gql"],
+
+    app: {
+      documents: ["app/**/*.graphql", "app/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",

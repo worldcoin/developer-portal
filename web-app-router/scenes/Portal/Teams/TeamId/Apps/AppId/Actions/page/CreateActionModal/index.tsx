@@ -17,7 +17,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
-import { MaxVerificationsSelector } from "../MaxVerificationsSelector";
+import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import clsx from "clsx";
 
 const createActionSchema = yup.object({
@@ -31,7 +31,11 @@ const createActionSchema = yup.object({
 });
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
-export const CreateActionModal = (props: { className?: string }) => {
+type CreateActionModalProps = {
+  className?: string;
+};
+
+export const CreateActionModal = (props: CreateActionModalProps) => {
   const { className } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
@@ -52,8 +56,7 @@ export const CreateActionModal = (props: { className?: string }) => {
       maxVerifications: 1,
     },
   });
-
-  const [insertActionQuery] = useInsertActionMutation({});
+  const [insertActionQuery, { loading }] = useInsertActionMutation({});
   const router = useRouter();
 
   useEffect(() => {
@@ -94,7 +97,13 @@ export const CreateActionModal = (props: { className?: string }) => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
-        router.push(pathname);
+        const urlWithoutQueryParams = // Use this so we can refetch the actions without caching
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          window.location.pathname;
+
+        window.location.href = urlWithoutQueryParams;
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===
@@ -202,7 +211,7 @@ export const CreateActionModal = (props: { className?: string }) => {
             <DecoratedButton
               variant="primary"
               type="submit"
-              disabled={!isValid}
+              disabled={!isValid || loading}
               className="px-10 py-3"
             >
               Create Action

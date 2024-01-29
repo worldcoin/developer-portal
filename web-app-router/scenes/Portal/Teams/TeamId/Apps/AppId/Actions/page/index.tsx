@@ -1,38 +1,47 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
-import { ActionsList } from "./ActionsList/ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
+import { getSdk as GetActionsSdk } from "./graphql/server/actions.generated";
+import { ActionsList } from "./ActionsList";
 import clsx from "clsx";
+import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
+import { getAPIServiceGraphqlClient } from "@/lib/graphql";
 
 type ActionsPageProps = {
+  params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
 };
 
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
+export const ActionsPage = async ({
+  params,
+  searchParams,
+}: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
-  const listActions = true; //  Temp will replace with a fetch in later component
-  if (createAction) {
-    return <CreateActionModal />;
-  } else {
-    return (
-      <div className="w-full h-full flex flex-col items-center pt-24">
-        <CreateActionModal className={clsx({ hidden: !createAction })} />
-        <div
-          className={clsx(
-            "w-full h-full flex flex-col justify-center items-center pt-24",
-            {
-              hidden: !listActions || createAction,
-            }
-          )}
-        >
-          <ActionsList />
-        </div>
+  const appId = params?.appId as `app_${string}`;
+  const client = await getAPIServiceGraphqlClient();
+
+  const data = await GetActionsSdk(client).Actions({
+    app_id: appId,
+  });
+
+  const showList = data?.action && data?.action?.length > 0;
+  return (
+    <div className="w-full h-full">
+      <ActionsList
+        actions={data.action}
+        className={clsx({ hidden: !showList && !createAction })}
+      />
+      <CreateActionModal className={clsx({ hidden: !createAction })} />
+      <div
+        className={clsx("flex flex-col items-center pt-24", {
+          hidden: !createAction && showList,
+        })}
+      >
         <div
           className={clsx("grid gap-y-4 place-items-center max-w-[600px]", {
-            hidden: listActions || createAction,
+            hidden: !createAction && !showList,
           })}
         >
           <div className="relative">
@@ -68,6 +77,6 @@ export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 };
