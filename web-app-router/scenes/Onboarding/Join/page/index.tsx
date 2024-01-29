@@ -26,7 +26,7 @@ export const JoinPage = () => {
             variant={TYPOGRAPHY.R3}
             className="text-grey-500 text-center"
           >
-            To join team you need to create account on Worldcoin Developer
+            To join this team you need to create account on Worldcoin Developer
             Portal
           </Typography>
         </div>
