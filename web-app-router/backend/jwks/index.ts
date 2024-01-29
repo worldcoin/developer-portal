@@ -131,7 +131,7 @@ export const fetchActiveJWK = async () => {
 
   try {
     const data = await fetchActiveJWKsByExpirationSdk(
-      apiClient
+      apiClient,
     ).FetchActiveJWKsByExpiration({
       expires_at: new Date().toISOString(),
     });

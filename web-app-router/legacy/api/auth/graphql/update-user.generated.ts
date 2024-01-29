@@ -49,23 +49,23 @@ export const UpdateUserDocument = gql`
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
-  operationType?: string
+  operationType?: string,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
-  _operationType
+  _operationType,
 ) => action();
 
 export function getSdk(
   client: GraphQLClient,
-  withWrapper: SdkFunctionWrapper = defaultWrapper
+  withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
     UpdateUser(
       variables: UpdateUserMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders
+      requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<UpdateUserMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -74,7 +74,7 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "UpdateUser",
-        "mutation"
+        "mutation",
       );
     },
   };

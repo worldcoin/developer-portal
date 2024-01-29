@@ -42,7 +42,7 @@ const schema = yup.object({
       is: undefined,
       then: (verification_level) =>
         verification_level.required(
-          "`verification_level` required unless deprecated `credential_type` is used."
+          "`verification_level` required unless deprecated `credential_type` is used.",
         ),
     }),
   credential_type: yup.string().oneOf(Object.values(CredentialType)),
@@ -50,7 +50,7 @@ const schema = yup.object({
 
 export default async function handleVerify(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   // NOTE: Lack of CORS headers, because this endpoint should not be called from the frontend (security reasons)
   if (!req.method || !["POST"].includes(req.method)) {
@@ -75,7 +75,7 @@ export default async function handleVerify(
     client,
     req.query.app_id?.toString(),
     parsedParams.nullifier_hash,
-    parsedParams.action
+    parsedParams.action,
   );
 
   if (data.error || !data.app) {
@@ -85,7 +85,7 @@ export default async function handleVerify(
       data.error?.code || "unknown_error",
       data.error?.message || "There was an error verifying this proof.",
       data.error?.attribute || null,
-      req
+      req,
     );
   }
 
@@ -99,7 +99,7 @@ export default async function handleVerify(
       "action_inactive",
       "This action is inactive.",
       "status",
-      req
+      req,
     );
   }
 
@@ -114,7 +114,7 @@ export default async function handleVerify(
       errorMsg,
       null,
       res,
-      req
+      req,
     );
   }
 
@@ -125,7 +125,7 @@ export default async function handleVerify(
       "verification_error",
       "This action does not have a valid external nullifier set.",
       null,
-      req
+      req,
     );
   }
 
@@ -148,7 +148,7 @@ export default async function handleVerify(
     {
       is_staging: app.is_staging,
       verification_level,
-    }
+    },
   );
   if (error || !success) {
     await captureEvent({
@@ -165,7 +165,7 @@ export default async function handleVerify(
       error?.code || AppErrorCodes.GenericError,
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
-      req
+      req,
     );
   }
 
@@ -184,7 +184,7 @@ export default async function handleVerify(
         "This person has already verified for this particular action the maximum number of times allowed.",
         null,
         res,
-        req
+        req,
       );
     }
 
@@ -216,7 +216,7 @@ export default async function handleVerify(
           "verification_error",
           "There was an error inserting the nullifier. Please try again.",
           null,
-          req
+          req,
         );
       }
       await captureEvent({
@@ -246,7 +246,7 @@ export default async function handleVerify(
           "This person has already verified for this particular action the maximum number of times allowed.",
           null,
           res,
-          req
+          req,
         );
       }
 

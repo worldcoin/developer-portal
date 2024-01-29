@@ -22,7 +22,7 @@ import { Role_Enum } from "@/graphql/graphql";
  */
 export const handleSecretReset = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) => {
   if (!protectInternalEndpoint(req, res)) {
     return;

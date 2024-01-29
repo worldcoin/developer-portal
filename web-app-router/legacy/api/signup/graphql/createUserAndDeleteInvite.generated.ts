@@ -68,33 +68,33 @@ export const CreateUserAndDeleteInviteDocument = gql`
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
-  operationType?: string
+  operationType?: string,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
-  _operationType
+  _operationType,
 ) => action();
 
 export function getSdk(
   client: GraphQLClient,
-  withWrapper: SdkFunctionWrapper = defaultWrapper
+  withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
     CreateUserAndDeleteInvite(
       variables: CreateUserAndDeleteInviteMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders
+      requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<CreateUserAndDeleteInviteMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
           client.request<CreateUserAndDeleteInviteMutation>(
             CreateUserAndDeleteInviteDocument,
             variables,
-            { ...requestHeaders, ...wrappedRequestHeaders }
+            { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "CreateUserAndDeleteInvite",
-        "mutation"
+        "mutation",
       );
     },
   };

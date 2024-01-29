@@ -90,7 +90,7 @@ export const handleInvite = async (
 
     const alreadyExistingEmails = emails.filter((email: string) => {
       return memberships?.membership?.some(
-        (membership) => membership.user.email === email
+        (membership) => membership.user.email === email,
       );
     });
 

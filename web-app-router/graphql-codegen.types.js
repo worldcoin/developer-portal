@@ -44,7 +44,7 @@ module.exports = {
       ],
     },
 
-    "backend": {
+    backend: {
       documents: ["backend/**/*.graphql", "backend/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
@@ -64,7 +64,7 @@ module.exports = {
       ],
     },
 
-    "api": {
+    api: {
       documents: ["api/**/*.graphql", "api/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
@@ -84,8 +84,8 @@ module.exports = {
       ],
     },
 
-    "app": {
-      documents: [ "app/**/*.graphql", "app/**/*.gql" ],
+    app: {
+      documents: ["app/**/*.graphql", "app/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",

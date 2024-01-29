@@ -48,7 +48,7 @@ export const auth0Login = withApiAuthRequired(
 
       return res.redirect(
         307,
-        urls.logout({ login_error: LoginErrorCode.Generic })
+        urls.logout({ login_error: LoginErrorCode.Generic }),
       );
     }
 
@@ -68,7 +68,7 @@ export const auth0Login = withApiAuthRequired(
 
       try {
         const userData = await FetchUserByNullifierSdk(
-          client
+          client,
         ).FetchNullifierUser({
           world_id_nullifier: nullifier,
           auth0Id: auth0User.sub,
@@ -76,7 +76,7 @@ export const auth0Login = withApiAuthRequired(
 
         if (!userData) {
           throw new Error(
-            "Error while fetching user for FetchUserByNullifierSdk."
+            "Error while fetching user for FetchUserByNullifierSdk.",
           );
         }
 
@@ -85,7 +85,7 @@ export const auth0Login = withApiAuthRequired(
         } else if (userData.user.length > 1) {
           // NOTE: Edge case may occur if there's a migration error from legacy users, this will require manual handling.
           throw new Error(
-            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`
+            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`,
           );
         }
       } catch (error) {
@@ -95,7 +95,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
     }
@@ -105,12 +105,12 @@ export const auth0Login = withApiAuthRequired(
       // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
       if (!auth0User.email_verified) {
         logger.error(
-          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
+          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`,
         );
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.EmailNotVerified })
+          urls.logout({ login_error: LoginErrorCode.EmailNotVerified }),
         );
       }
 
@@ -137,7 +137,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
     }
@@ -147,7 +147,7 @@ export const auth0Login = withApiAuthRequired(
     if (!user) {
       return res.redirect(
         307,
-        invite_id ? urls.signup({ invite_id }) : urls.signup()
+        invite_id ? urls.signup({ invite_id }) : urls.signup(),
       );
     }
     let invite: InviteQuery["invite"][number] | null = null;
@@ -172,7 +172,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
 
@@ -185,7 +185,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
 
@@ -193,7 +193,7 @@ export const auth0Login = withApiAuthRequired(
         logger.error("Invite email does not match logged in email");
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
 
@@ -202,7 +202,7 @@ export const auth0Login = withApiAuthRequired(
 
       try {
         const insertMembershipResult = await InsertMembershipSdk(
-          client
+          client,
         ).InsertMembership({
           team_id: invite.team_id,
           user_id: user.id,
@@ -215,12 +215,12 @@ export const auth0Login = withApiAuthRequired(
           "Error while inserting membership for InsertMembershipSdk.",
           {
             error,
-          }
+          },
         );
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
 
@@ -229,7 +229,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
 
@@ -240,7 +240,7 @@ export const auth0Login = withApiAuthRequired(
 
         if (!deleteInviteResult.delete_invite_by_pk) {
           logger.error(
-            `Error while deleting invite: ${invite_id}, invite not found.`
+            `Error while deleting invite: ${invite_id}, invite not found.`,
           );
         }
       } catch (error) {
@@ -285,7 +285,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic })
+          urls.logout({ login_error: LoginErrorCode.Generic }),
         );
       }
     }
@@ -306,7 +306,7 @@ export const auth0Login = withApiAuthRequired(
       307,
       urls.app({
         team_id: invite ? invite.team_id : user?.memberships[0].team.id ?? "",
-      })
+      }),
     );
-  }
+  },
 );
