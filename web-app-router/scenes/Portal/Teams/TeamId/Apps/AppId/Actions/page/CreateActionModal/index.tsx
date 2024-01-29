@@ -19,8 +19,6 @@ import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import clsx from "clsx";
-import { ApolloQueryResult } from "@apollo/client";
-import { ActionsQuery } from "../../graphql/server/actions.generated";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -94,13 +92,20 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         if (result instanceof Error) {
           throw result;
         }
+
         // TODO: Turn on Posthog
         // posthog.capture("action_created", {
         //   name: values.name,
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
-        router.push(pathname);
+        const urlWithoutQueryParams =
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          window.location.pathname;
+
+        window.location.href = urlWithoutQueryParams;
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===

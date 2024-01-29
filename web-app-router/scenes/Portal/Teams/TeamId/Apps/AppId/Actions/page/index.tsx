@@ -25,6 +25,7 @@ export const ActionsPage = async ({
   const data = await GetActionsSdk(client).Actions({
     app_id: appId,
   });
+
   const showList = data?.action && data?.action?.length > 0;
   return (
     <div className="w-full h-full">
