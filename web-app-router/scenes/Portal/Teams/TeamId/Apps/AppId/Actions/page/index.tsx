@@ -4,7 +4,7 @@ import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./CreateActionModal";
-import { ActionsList } from "./ActionsList/ActionsList";
+import { ActionsList } from "./ActionsList";
 import { useActionsQuery } from "../graphql/actions.generated";
 
 type ActionsPageProps = {

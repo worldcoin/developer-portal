@@ -1,6 +1,6 @@
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { toast } from "react-toastify";
-import { DetailsMenu } from "./DetailsMenu";
+import { DetailsMenu } from "../DetailsMenu";
 import { usePathname } from "next/navigation";
 
 export const ActionRow = (props: { action: any; key: number }) => {
