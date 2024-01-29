@@ -7,7 +7,8 @@ const isDev = process.env.NODE_ENV !== "production";
 const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
 
 const cdnURLObject = new URL(
-  process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL || "world-id-assets.com"
+  process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
+    "https://world-id-assets.com"
 );
 
 /** @type {import('next').NextConfig} */
