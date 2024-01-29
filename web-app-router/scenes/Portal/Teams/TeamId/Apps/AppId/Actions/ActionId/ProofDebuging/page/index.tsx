@@ -15,6 +15,7 @@ import { useCallback, useState } from "react";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import clsx from "clsx";
+import JSON5 from "json5";
 
 const testProofSchema = yup.object({
   signal: yup.string().optional(),
@@ -84,10 +85,11 @@ export const ActionIdProofDebugingPage = ({
   const [status, setStatus] = useState<Status>(Status.IDLE);
   const [message, setMessage] = useState<JSX.Element | string>(messages.IDLE);
 
-  const { register, handleSubmit, watch } = useForm<TestProofFormValues>({
-    resolver: yupResolver(testProofSchema),
-    mode: "onChange",
-  });
+  const { register, handleSubmit, watch, setValue } =
+    useForm<TestProofFormValues>({
+      resolver: yupResolver(testProofSchema),
+      mode: "onChange",
+    });
 
   const { data, loading } = useDebuggerQuery({
     variables: { action_id: actionID ?? "" },
@@ -95,7 +97,8 @@ export const ActionIdProofDebugingPage = ({
 
   const submit = async (formData: TestProofFormValues) => {
     try {
-      const verification = JSON.parse(formData.verification_response ?? "");
+      const verification = JSON5.parse(formData.verification_response ?? "");
+      console.log(verification);
       const res = await fetch("/api/v1/debugger", {
         method: "POST",
         headers: {
@@ -142,7 +145,10 @@ export const ActionIdProofDebugingPage = ({
     }
   };
 
-  const formatCode = useCallback(async (data: TestProofFormValues) => {}, []);
+  const formatCode = useCallback(async (data: TestProofFormValues) => {
+    const json = JSON5.parse(data.verification_response ?? "");
+    setValue("verification_response", JSON5.stringify(json, null, 1));
+  }, []);
 
   const action = data?.action[0];
 
@@ -189,7 +195,7 @@ export const ActionIdProofDebugingPage = ({
                 />
                 <TextArea
                   register={register("verification_response")}
-                  helperText="Enter the signal as passed to IDKit"
+                  helperText="These are the parameters you get from the JS widget"
                   label="Verification response"
                   placeholder={exampleVR}
                   className="h-[200px]"
