@@ -15,16 +15,16 @@ import { usePathname } from "next/navigation";
 // TODO: Example of how to use this component
 export const ActionsList = (props: { actions: any; className: string }) => {
   const { actions, className } = props;
-  const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const pathName = usePathname() ?? "";
-
   const [totalResultsCount, setTotalResultsCount] = useState(actions.length);
+  const rowsPerPageOptions = [10, 20]; // Rows per page options
+  const pathName = usePathname() ?? "";
+  const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
+
   const { register, control } = useForm<{ actionSearch: string }>({
     mode: "onChange",
   });
-  const rowsPerPageOptions = [10, 20]; // Rows per page options
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -34,10 +34,12 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
+
   const actionsSearch = useWatch({
     control,
     name: "actionSearch",
   });
+
   const actionsToRender = useMemo(() => {
     if (!actions) {
       return [];
@@ -48,6 +50,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     if (actionsSearch) {
       setCurrentPage(1);
       const fieldsToSearch = ["name", "description", "action"] as const;
+
       filteredActions = filteredActions.filter((action: any) => {
         return fieldsToSearch.some((field) => {
           return action[field]
@@ -58,7 +61,6 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     }
 
     setTotalResultsCount(filteredActions.length);
-
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     const paginatedActions = filteredActions.slice(startIndex, endIndex);

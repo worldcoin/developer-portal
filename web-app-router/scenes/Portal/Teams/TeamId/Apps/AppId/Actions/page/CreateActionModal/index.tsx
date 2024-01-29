@@ -99,7 +99,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
-        const urlWithoutQueryParams =
+        const urlWithoutQueryParams = // Use this so we can refetch the actions without caching
           window.location.protocol +
           "//" +
           window.location.host +
