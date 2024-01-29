@@ -115,7 +115,6 @@ export const ActionIdProofDebugingPage = ({
   const submit = async (formData: TestProofFormValues) => {
     try {
       const verification = JSON5.parse(formData.verification_response ?? "");
-      console.log(verification);
       const res = await fetch("/api/v1/debugger", {
         method: "POST",
         headers: {
