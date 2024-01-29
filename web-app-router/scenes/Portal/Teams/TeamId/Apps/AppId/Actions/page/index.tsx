@@ -13,7 +13,7 @@ type ActionsPageProps = {
 // TODO: Ad TWK Lausanne font
 export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
-  const listActions = false; //  Temp will replace with a fetch in later component
+  const listActions = true; //  Temp will replace with a fetch in later component
   if (createAction) {
     return <CreateActionModal />;
   } else {
