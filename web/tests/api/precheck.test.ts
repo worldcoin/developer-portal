@@ -75,7 +75,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       is_staging: true,
       engine: "cloud",
       verified_app_logo:
-        "https://cdn.test.com/verified/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
+        "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
