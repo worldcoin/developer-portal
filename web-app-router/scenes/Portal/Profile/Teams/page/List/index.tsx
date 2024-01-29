@@ -1,12 +1,14 @@
 "use client";
 import Image from "next/image";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
+
 import {
   Dropdown,
   DropdownButton,
   DropdownItems,
   DropdownItem,
 } from "@/components/Dropdown";
+
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { LogoutIcon } from "@/components/Icons/LogoutIcon";
 import { DeleteTeamDialog } from "@/scenes/Portal/Profile/Teams/page/DeleteTeamDialog";
@@ -16,6 +18,7 @@ import { ExchangeIcon } from "@/components/Icons/ExchangeIcon";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
 import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const List = () => {
   const [teamForEdit, setTeamForEdit] = useState<any>(null);
@@ -26,21 +29,35 @@ export const List = () => {
     <>
       <div className="grid grid-cols-[1fr_1fr_auto]">
         <div className="contents leading-4 text-12 text-grey-400">
-          <div className="py-3 border-b border-grey-100">Member</div>
+          <Typography
+            variant={TYPOGRAPHY.R5}
+            className="py-3 border-b border-grey-100"
+          >
+            Member
+          </Typography>
 
-          <div className="py-3 border-b border-grey-100">Role</div>
+          <Typography
+            variant={TYPOGRAPHY.R5}
+            className="py-3 border-b border-grey-100"
+          >
+            Role
+          </Typography>
+
           <div className="py-3 border-b border-grey-100" />
         </div>
 
         <div className="contents">
-          <div className="flex items-center gap-x-4 px-2 py-4 leading-6 text-16 border-b border-grey-100">
+          <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
             <Image className="w-12 h-12" alt="" src="" />
-            A11 Team
+            <Typography variant={TYPOGRAPHY.R3}>A11 Team</Typography>
           </div>
 
-          <div className="flex items-center px-2 py-4 leading-5 text-14 text-grey-500 border-b border-grey-100">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="flex items-center px-2 py-4 leading-5 text-14 text-grey-500 border-b border-grey-100"
+          >
             Owner
-          </div>
+          </Typography>
 
           <div className="flex items-center px-2 py-4 border-b border-grey-100">
             <Dropdown>
@@ -52,21 +69,24 @@ export const List = () => {
                 <DropdownItem onClick={() => setTeamForEdit({})}>
                   <div className="flex items-center gap-x-2">
                     <EditIcon className="w-4 h-4 text-grey-400" />
-                    Edit team
+                    <Typography variant={TYPOGRAPHY.R4}>Edit team</Typography>
                   </div>
                 </DropdownItem>
 
                 <DropdownItem onClick={() => setTeamForTransfer({})}>
                   <div className="flex items-center gap-x-2">
                     <ExchangeIcon className="w-4 h-4 text-grey-400" />
-                    Transfer ownership
+
+                    <Typography variant={TYPOGRAPHY.R4}>
+                      Transfer ownership
+                    </Typography>
                   </div>
                 </DropdownItem>
 
                 <DropdownItem onClick={() => setTeamForDelete({})}>
                   <div className="flex items-center gap-x-2 text-system-error-600">
                     <LogoutIcon className="w-4 h-4" />
-                    Delete team
+                    <Typography variant={TYPOGRAPHY.R4}>Delete team</Typography>
                   </div>
                 </DropdownItem>
               </DropdownItems>
