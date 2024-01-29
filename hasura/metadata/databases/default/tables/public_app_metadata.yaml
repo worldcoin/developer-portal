@@ -123,6 +123,8 @@ select_permissions:
       columns:
         - name
         - logo_img_url
+        - showcase_img_urls
+        - hero_image_url
         - verification_status
       filter: {}
   - role: user

@@ -13,7 +13,7 @@ import { logger } from "@/legacy/lib/logger";
  */
 export default async function handleENS(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -25,7 +25,7 @@ export default async function handleENS(
 
   const provider = new ethers.providers.AlchemyProvider(
     "homestead",
-    process.env.ALCHEMY_API_KEY
+    process.env.ALCHEMY_API_KEY,
   );
 
   const addresses = [
@@ -49,7 +49,7 @@ export default async function handleENS(
       const addressKey = address.replaceAll(/\W/g, "");
       updateStatements.params.push(`$${addressKey}: String!`);
       updateStatements.objects.push(
-        `{ key: "${address}", value: $${addressKey} }`
+        `{ key: "${address}", value: $${addressKey} }`,
       );
       updateStatements.variables[addressKey] = resolvedAddress;
     } else {

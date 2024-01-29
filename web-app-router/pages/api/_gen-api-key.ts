@@ -26,7 +26,7 @@ const updateAPIKeyQuery = gql`
  */
 export default async function handleAPIKey(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;

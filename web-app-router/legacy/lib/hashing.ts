@@ -14,7 +14,7 @@ export const validateABILikeEncoding = (value: string): boolean => {
 
 export const generateExternalNullifier = (
   app_id: IDKitConfig["app_id"],
-  action: IDKitConfig["action"]
+  action: IDKitConfig["action"],
 ): HashFunctionOutput => {
   if (!action) return packAndEncode([["uint256", hashToField(app_id).hash]]);
   if (typeof action === "string") action = solidityEncode(["string"], [action]);
@@ -23,7 +23,7 @@ export const generateExternalNullifier = (
     ["uint256", hashToField(app_id).hash],
     ...action.types.map(
       (type, index) =>
-        [type, (action as AbiEncodedValue).values[index]] as [string, unknown]
+        [type, (action as AbiEncodedValue).values[index]] as [string, unknown],
     ),
   ]);
 };

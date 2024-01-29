@@ -13,7 +13,7 @@ import {
 
 export const handleInvite = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
@@ -163,7 +163,7 @@ export const handleInvite = async (
             team: fetchUserRes.user[0].team.name ?? "their team",
             inviteLink: link,
           },
-        })
+        }),
       );
     }
 

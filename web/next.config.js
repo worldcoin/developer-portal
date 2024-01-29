@@ -4,7 +4,8 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-
+const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -17,8 +18,10 @@ const nextConfig = {
             mergeDefaultDirectives: true,
             "img-src": [
               "'self'",
+              "blob:", // Used to enforce image width and height
               "https://world-id-public.s3.amazonaws.com",
               "https://worldcoin.org",
+              ...(s3BucketUrl ? [s3BucketUrl] : []),
             ],
             "style-src": "'unsafe-inline'",
             "connect-src": [
@@ -27,6 +30,7 @@ const nextConfig = {
               "https://cookie-cdn.cookiepro.com",
               "https://pactsafe.io",
               "https://bridge.worldcoin.org",
+              ...(s3BucketUrl ? [s3BucketUrl] : []),
             ],
             "script-src": [
               "'self'",
@@ -44,7 +48,22 @@ const nextConfig = {
 
   reactStrictMode: true,
   images: {
-    domains: ["world-id-public.s3.amazonaws.com"],
+    // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "world-id-public.s3.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: cdnHostName,
+      },
+      {
+        protocol: "https",
+        hostname: `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+        pathname: `/unverified/**`,
+      },
+    ],
   },
   publicRuntimeConfig: Object.fromEntries(
     Object.entries(process.env).filter(([key]) =>

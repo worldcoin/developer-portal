@@ -10,7 +10,6 @@ import {
 import { errorUnauthenticated } from "@/legacy/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { verifyHashedSecret } from "@/legacy/backend/utils";
-import { inspect } from "util";
 import { getSession } from "@auth0/nextjs-auth0";
 import dayjs from "dayjs";
 

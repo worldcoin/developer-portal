@@ -19,6 +19,7 @@ import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
+import { getCDNImageUrl } from "@/lib/utils";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -26,16 +27,29 @@ export const ButtonContent = memo(function ButtonContent(props: {
   className?: string;
 }) {
   const [image, setImage] = useState<string | null>(
-    props.app.app_metadata?.logo_img_url ?? ""
+    props.app?.verified_app_metadata?.logo_img_url
+      ? getCDNImageUrl(
+          props.app.id,
+          props.app.verified_app_metadata?.logo_img_url
+        )
+      : ""
   );
 
   useEffect(() => {
-    if (!props.app.app_metadata?.logo_img_url) {
+    if (!props.app.verified_app_metadata?.logo_img_url) {
       return;
     }
-
-    setImage(props.app.app_metadata.logo_img_url);
-  }, [props.app.app_metadata?.logo_img_url]);
+    setImage(
+      getCDNImageUrl(
+        props.app.id,
+        props.app.verified_app_metadata?.logo_img_url
+      )
+    );
+  }, [
+    props.app.app_metadata?.logo_img_url,
+    props.app?.id,
+    props.app.verified_app_metadata?.logo_img_url,
+  ]);
 
   return (
     <div
@@ -49,7 +63,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
       <div>
         {image && (
           <Image
-            src={props.app?.app_metadata?.logo_img_url ?? ""}
+            src={image}
             width={20}
             height={20}
             alt="app logo"

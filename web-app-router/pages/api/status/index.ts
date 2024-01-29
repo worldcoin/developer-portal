@@ -31,7 +31,7 @@ type StatusResponse = Pick<GetMonitorsResponse, "stat"> | Error;
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<StatusResponse>
+  res: NextApiResponse<StatusResponse>,
 ) {
   const API_KEY = process.env.UPTIME_ROBOT_API_KEY;
   const _BASE_URL = "https://api.uptimerobot.com/v2/";

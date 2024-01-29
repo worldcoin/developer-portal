@@ -15,11 +15,13 @@ import {
 } from "@/legacy/backend/utils";
 
 import { fetchActionForProof, verifyProof } from "@/legacy/backend/verify";
+
 import {
   AppErrorCodes,
   CredentialType,
   VerificationLevel,
 } from "@worldcoin/idkit-core";
+
 import * as yup from "yup";
 import { captureEvent } from "@/legacy/services/posthogClient";
 

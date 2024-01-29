@@ -47,7 +47,7 @@ export const DecoratedButton = memo(function DecoratedButton(
         "border-system-error-200 text-system-error-300 pointer-events-none",
 
       loading:
-        "border-system-error-300 tex-systemt-error-400 pointer-events-none",
+        "border-system-error-300 text-system-error-400 pointer-events-none",
     },
   };
 
@@ -56,7 +56,7 @@ export const DecoratedButton = memo(function DecoratedButton(
       disabled={disabled}
       className={clsx(
         className,
-        "px-6 py-2.5 rounded-xl border font-medium relative",
+        "px-6 py-2.5 rounded-xl border font-medium relative font-gta",
         { [buttonStyles[variant].normal]: !disabled && !loading },
         { [buttonStyles[variant].hover]: !disabled && !loading },
         disabled && buttonStyles[variant].disabled,

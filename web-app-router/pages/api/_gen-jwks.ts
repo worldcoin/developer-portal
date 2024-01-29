@@ -10,7 +10,7 @@ import { errorNotAllowed } from "@/legacy/backend/errors";
  */
 export default async function handleGenJWKS(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;

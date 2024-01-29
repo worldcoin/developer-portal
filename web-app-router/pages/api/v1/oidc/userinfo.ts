@@ -6,7 +6,7 @@ import { errorResponse } from "@/legacy/backend/errors";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   await runCors(req, res);
 
@@ -47,7 +47,7 @@ export default async function handler(
       "invalid_token",
       "Token is invalid or expired.",
       "token",
-      req
+      req,
     );
   }
 }

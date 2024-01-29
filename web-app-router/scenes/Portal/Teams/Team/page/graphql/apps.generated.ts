@@ -35,18 +35,18 @@ export const AppsDocument = gql`
  * });
  */
 export function useAppsQuery(
-  baseOptions?: Apollo.QueryHookOptions<AppsQuery, AppsQueryVariables>
+  baseOptions?: Apollo.QueryHookOptions<AppsQuery, AppsQueryVariables>,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<AppsQuery, AppsQueryVariables>(AppsDocument, options);
 }
 export function useAppsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<AppsQuery, AppsQueryVariables>
+  baseOptions?: Apollo.LazyQueryHookOptions<AppsQuery, AppsQueryVariables>,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useLazyQuery<AppsQuery, AppsQueryVariables>(
     AppsDocument,
-    options
+    options,
   );
 }
 export type AppsQueryHookResult = ReturnType<typeof useAppsQuery>;

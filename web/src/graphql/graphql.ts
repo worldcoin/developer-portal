@@ -36,6 +36,23 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]>>;
 };
 
+export type DeleteImageOutput = {
+  __typename?: "DeleteImageOutput";
+  success?: Maybe<Scalars["Boolean"]>;
+};
+
+export type GetUploadedImageOutput = {
+  __typename?: "GetUploadedImageOutput";
+  url: Scalars["String"];
+};
+
+export type ImageGetAllUnverifiedImagesOutput = {
+  __typename?: "ImageGetAllUnverifiedImagesOutput";
+  hero_image_url?: Maybe<Scalars["String"]>;
+  logo_img_url?: Maybe<Scalars["String"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["Int"]>;
@@ -52,6 +69,12 @@ export type Int_Comparison_Exp = {
 export type InviteTeamMembersOutput = {
   __typename?: "InviteTeamMembersOutput";
   emails?: Maybe<Array<Scalars["String"]>>;
+};
+
+export type PresignedPostOutput = {
+  __typename?: "PresignedPostOutput";
+  stringifiedFields: Scalars["String"];
+  url: Scalars["String"];
 };
 
 export type ResetApiOutput = {
@@ -3254,6 +3277,7 @@ export type Mutation_Root = {
   delete_team?: Maybe<Team_Mutation_Response>;
   /** delete single row from the table: "team" */
   delete_team_by_pk?: Maybe<Team>;
+  delete_unverified_images?: Maybe<DeleteImageOutput>;
   /** delete data from the table: "user" */
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
@@ -3558,6 +3582,11 @@ export type Mutation_RootDelete_TeamArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Team_By_PkArgs = {
   id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Unverified_ImagesArgs = {
+  app_id: Scalars["String"];
 };
 
 /** mutation root */
@@ -4467,6 +4496,9 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
+  get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
+  /** Gets the uploaded image to display */
+  get_uploaded_image?: Maybe<GetUploadedImageOutput>;
   /** fetch data from the table: "invite" */
   invite: Array<Invite>;
   /** fetch aggregated fields from the table: "invite" */
@@ -4509,6 +4541,8 @@ export type Query_Root = {
   team_aggregate: Team_Aggregate;
   /** fetch data from the table: "team" using primary key columns */
   team_by_pk?: Maybe<Team>;
+  /** Generates a Signed URL to upload images */
+  upload_image?: Maybe<PresignedPostOutput>;
   /** fetch data from the table: "user" */
   user: Array<User>;
   /** fetch aggregated fields from the table: "user" */
@@ -4675,6 +4709,16 @@ export type Query_RootCache_By_PkArgs = {
   id: Scalars["String"];
 };
 
+export type Query_RootGet_All_Unverified_ImagesArgs = {
+  app_id: Scalars["String"];
+};
+
+export type Query_RootGet_Uploaded_ImageArgs = {
+  app_id: Scalars["String"];
+  content_type_ending: Scalars["String"];
+  image_type: Scalars["String"];
+};
+
 export type Query_RootInviteArgs = {
   distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]>;
@@ -4813,6 +4857,12 @@ export type Query_RootTeam_AggregateArgs = {
 
 export type Query_RootTeam_By_PkArgs = {
   id: Scalars["String"];
+};
+
+export type Query_RootUpload_ImageArgs = {
+  app_id: Scalars["String"];
+  content_type_ending: Scalars["String"];
+  image_type: Scalars["String"];
 };
 
 export type Query_RootUserArgs = {
