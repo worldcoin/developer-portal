@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { MaxVerificationsSelector } from "../MaxVerificationsSelector";
+import clsx from "clsx";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -30,7 +31,8 @@ const createActionSchema = yup.object({
 });
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
-export const CreateActionModal = () => {
+export const CreateActionModal = (props: { className?: string }) => {
+  const { className } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
   const appId = params?.appId as `app_${string}`;
@@ -104,14 +106,14 @@ export const CreateActionModal = () => {
           });
 
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, router, setError],
+    [appId, insertActionQuery, pathname, router, setError]
   );
 
   const copyAction = useCallback(() => {
@@ -120,13 +122,18 @@ export const CreateActionModal = () => {
   }, [watch]);
 
   return (
-    <div className="fixed inset-0 w-full bg-white flex justify-center py-10 overflow-auto ">
+    <div
+      className={clsx(
+        "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
+        className
+      )}
+    >
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
         <div className="grid grid-cols-[auto_auto_1fr] gap-3 w-full items-center">
           <Link href={pathname}>
             <CloseIcon />
           </Link>
-          <div className="border-r-[1px] border-gray-200 h-full"></div>
+          <div className="border-r-[1px] border-grey-200 h-full"></div>
           <p className="font-[500] text-sm">Create an incognito action</p>
         </div>
         <div className="flex justify-end ">
