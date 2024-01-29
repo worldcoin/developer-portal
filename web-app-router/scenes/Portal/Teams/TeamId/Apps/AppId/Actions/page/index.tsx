@@ -2,11 +2,11 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./CreateActionModal";
-import { getSdk as GetActionsSdk } from "../graphql/server/actions.generated";
+import { getSdk as GetActionsSdk } from "./graphql/server/actions.generated";
 import { ActionsList } from "./ActionsList";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import clsx from "clsx";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
+import { getAPIServiceGraphqlClient } from "@/lib/graphql";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
