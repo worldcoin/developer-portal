@@ -1,32 +1,50 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertActionMutationVariables = Types.Exact<{
-  name: Types.Scalars['String'];
-  description?: Types.InputMaybe<Types.Scalars['String']>;
-  action?: Types.InputMaybe<Types.Scalars['String']>;
-  app_id: Types.Scalars['String'];
-  external_nullifier: Types.Scalars['String'];
-  max_verifications?: Types.InputMaybe<Types.Scalars['Int']>;
+  name: Types.Scalars["String"];
+  description?: Types.InputMaybe<Types.Scalars["String"]>;
+  action?: Types.InputMaybe<Types.Scalars["String"]>;
+  app_id: Types.Scalars["String"];
+  external_nullifier: Types.Scalars["String"];
+  max_verifications?: Types.InputMaybe<Types.Scalars["Int"]>;
 }>;
 
-
-export type InsertActionMutation = { __typename?: 'mutation_root', insert_action_one?: { __typename?: 'action', id: string } | null };
-
+export type InsertActionMutation = {
+  __typename?: "mutation_root";
+  insert_action_one?: { __typename?: "action"; id: string } | null;
+};
 
 export const InsertActionDocument = gql`
-    mutation InsertAction($name: String!, $description: String = "", $action: String = "", $app_id: String!, $external_nullifier: String!, $max_verifications: Int = 1) {
-  insert_action_one(
-    object: {action: $action, app_id: $app_id, name: $name, description: $description, external_nullifier: $external_nullifier, max_verifications: $max_verifications}
+  mutation InsertAction(
+    $name: String!
+    $description: String = ""
+    $action: String = ""
+    $app_id: String!
+    $external_nullifier: String!
+    $max_verifications: Int = 1
   ) {
-    id
+    insert_action_one(
+      object: {
+        action: $action
+        app_id: $app_id
+        name: $name
+        description: $description
+        external_nullifier: $external_nullifier
+        max_verifications: $max_verifications
+      }
+    ) {
+      id
+    }
   }
-}
-    `;
-export type InsertActionMutationFn = Apollo.MutationFunction<InsertActionMutation, InsertActionMutationVariables>;
+`;
+export type InsertActionMutationFn = Apollo.MutationFunction<
+  InsertActionMutation,
+  InsertActionMutationVariables
+>;
 
 /**
  * __useInsertActionMutation__
@@ -50,10 +68,24 @@ export type InsertActionMutationFn = Apollo.MutationFunction<InsertActionMutatio
  *   },
  * });
  */
-export function useInsertActionMutation(baseOptions?: Apollo.MutationHookOptions<InsertActionMutation, InsertActionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertActionMutation, InsertActionMutationVariables>(InsertActionDocument, options);
-      }
-export type InsertActionMutationHookResult = ReturnType<typeof useInsertActionMutation>;
-export type InsertActionMutationResult = Apollo.MutationResult<InsertActionMutation>;
-export type InsertActionMutationOptions = Apollo.BaseMutationOptions<InsertActionMutation, InsertActionMutationVariables>;
+export function useInsertActionMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertActionMutation,
+    InsertActionMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertActionMutation,
+    InsertActionMutationVariables
+  >(InsertActionDocument, options);
+}
+export type InsertActionMutationHookResult = ReturnType<
+  typeof useInsertActionMutation
+>;
+export type InsertActionMutationResult =
+  Apollo.MutationResult<InsertActionMutation>;
+export type InsertActionMutationOptions = Apollo.BaseMutationOptions<
+  InsertActionMutation,
+  InsertActionMutationVariables
+>;

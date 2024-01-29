@@ -48,7 +48,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     return paginatedNullifiers.map(
       (nullifier: NullifierItem, index: number) => {
         return VerifiedRow({ nullifier: nullifier, key: index });
-      }
+      },
     );
   }, [nullifiers, currentPage, rowsPerPage]);
 

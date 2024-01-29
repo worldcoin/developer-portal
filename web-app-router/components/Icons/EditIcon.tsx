@@ -9,7 +9,7 @@ export const EditIcon = (props: { className?: string }) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clip-path="url(#clip0_1421_28300)">
+      <g clipPath="url(#clip0_1421_28300)">
         <path
           fillRule="evenodd"
           clipRule="evenodd"
