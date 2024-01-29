@@ -32,7 +32,6 @@ const createActionSchema = yup.object({
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
 type CreateActionModalProps = {
-  // refetchActions: () => Promise<ApolloQueryResult<ActionsQuery>>;
   className?: string;
 };
 
@@ -92,7 +91,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         if (result instanceof Error) {
           throw result;
         }
-
         // TODO: Turn on Posthog
         // posthog.capture("action_created", {
         //   name: values.name,

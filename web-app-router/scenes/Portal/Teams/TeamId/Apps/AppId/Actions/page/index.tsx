@@ -20,8 +20,8 @@ export const ActionsPage = async ({
 }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
-
   const client = await getAPIServiceGraphqlClient();
+
   const data = await GetActionsSdk(client).Actions({
     app_id: appId,
   });
