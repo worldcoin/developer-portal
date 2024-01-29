@@ -7,6 +7,7 @@ import {
   SelectOptions,
 } from "@/components/Select";
 import clsx from "clsx";
+import { Button } from "../Button";
 
 type TableProps = {
   headers: (React.ReactNode | null | undefined)[];
@@ -45,21 +46,21 @@ export const TableComponent: React.FC<TableProps> = ({
 
   return (
     <div className="w-full h-full">
-      <table className="min-w-full divide-y divide-gray-100">
+      <table className="min-w-full divide-y divide-grey-100">
         <thead className="h-full sticky top-0 bg-white">
           <tr>
             {headers.map((header, index) => (
               <th
                 key={index}
                 scope="col"
-                className="py-3 text-left text-xs font-[400] text-gray-400 "
+                className="py-3 text-left text-xs font-[400] text-grey-400 "
               >
                 {header === null || header === undefined ? null : header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-100 overflow-y-scroll">
+        <tbody className="bg-white divide-y divide-grey-100 overflow-y-scroll">
           {rows.map((row, rowIndex) => (
             <tr
               key={rowIndex}
@@ -75,10 +76,11 @@ export const TableComponent: React.FC<TableProps> = ({
         </tbody>
       </table>
 
-      <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-gray-100">
+      <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-grey-100">
         <div className="text-grey-400">{totalResults} results</div>
         <div className="flex items-center justify-center gap-x-4">
-          <button
+          <Button
+            type="button"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className={clsx(
@@ -95,11 +97,12 @@ export const TableComponent: React.FC<TableProps> = ({
                 "group-hover:text-grey-700": currentPage !== 1,
               })}
             />
-          </button>
+          </Button>
           <div className="w-8 h-8 text-center border flex items-center justify-center rounded-lg border-grey-200 text-grey-900">
             {currentPage}
           </div>
-          <button
+          <Button
+            type="button"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === pageCount}
             className={clsx(
@@ -117,7 +120,7 @@ export const TableComponent: React.FC<TableProps> = ({
                 "group-hover:text-grey-700": currentPage !== 1,
               })}
             />
-          </button>
+          </Button>
         </div>
         <div className="flex w-full justify-end">
           <PaginationSelect

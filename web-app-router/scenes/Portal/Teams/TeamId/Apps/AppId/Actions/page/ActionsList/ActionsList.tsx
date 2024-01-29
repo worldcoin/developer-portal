@@ -1,9 +1,10 @@
 "use client";
+import { Button } from "@/components/Button";
 import { TableComponent } from "@/components/Table";
 import { useState } from "react";
 
 // TODO: Example of how to use this component
-export const ListActions = () => {
+export const ActionsList = () => {
   const headers = [
     <span key={0}>Name</span>,
     <span key={0}>Uses</span>,
@@ -19,9 +20,9 @@ export const ListActions = () => {
       </div>,
       <span key={1}>30</span>,
       <span key={1}>New York</span>,
-      <button key={1} className="rotate-90">
+      <Button type="button" key={1} className="rotate-90">
         ...
-      </button>,
+      </Button>,
     ],
     [
       <div key={2}>
@@ -30,9 +31,9 @@ export const ListActions = () => {
       </div>,
       <span key={2}>25</span>,
       <span key={2}>London</span>,
-      <button key={2} className="rotate-90">
+      <Button type="button" key={2} className="rotate-90">
         ...
-      </button>,
+      </Button>,
     ],
     // ... more rows
   ];

@@ -2,8 +2,8 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
-import { CreateActionModal } from "./createAction";
-import { ListActions } from "./ListActions";
+import { ActionsList } from "./ActionsList/ActionsList";
+import { CreateActionModal } from "./CreateActionModal";
 
 type ActionsPageProps = {
   searchParams: Record<string, string> | null | undefined;
@@ -19,7 +19,7 @@ export const ActionsPage = ({ searchParams }: ActionsPageProps) => {
     if (alpha) {
       return (
         <div className="w-full h-full flex flex-col justify-center items-center pt-24">
-          <ListActions />
+          <ActionsList />
         </div>
       );
     } else {

@@ -126,7 +126,7 @@ export const CreateActionModal = () => {
           <Link href={pathname}>
             <CloseIcon />
           </Link>
-          <div className="border-r-[1px] border-gray-200 h-full"></div>
+          <div className="border-r-[1px] border-grey-200 h-full"></div>
           <p className="font-[500] text-sm">Create an incognito action</p>
         </div>
         <div className="flex justify-end ">
