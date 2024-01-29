@@ -1,3 +1,4 @@
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Icon } from "@/scenes/Portal/Profile/layout/UserInfo/Icon";
 import { ColorName } from "@/scenes/Portal/Profile/types";
 
@@ -13,9 +14,11 @@ export const UserInfo = (props: UserInfoProps) => {
       <Icon color={props.color} name={props.name} />
 
       <div className="grid gap-y-2">
-        <div className="leading-8 font-550 text-24">{props.name}</div>
+        <Typography variant={TYPOGRAPHY.H6}>{props.name}</Typography>
 
-        <div className="leading-5 text-14 text-grey-500">{props.email}</div>
+        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+          {props.email}
+        </Typography>
       </div>
     </div>
   );
