@@ -19,8 +19,7 @@ import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
-import getConfig from "next/config";
-const { publicRuntimeConfig } = getConfig();
+import { getCDNImageUrl } from "@/lib/utils";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -29,7 +28,10 @@ export const ButtonContent = memo(function ButtonContent(props: {
 }) {
   const [image, setImage] = useState<string | null>(
     props.app?.verified_app_metadata?.logo_img_url
-      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/${props.app?.verified_app_metadata?.logo_img_url}`
+      ? getCDNImageUrl(
+          props.app.id,
+          props.app.verified_app_metadata?.logo_img_url
+        )
       : ""
   );
 
@@ -38,7 +40,10 @@ export const ButtonContent = memo(function ButtonContent(props: {
       return;
     }
     setImage(
-      `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${props.app.id}/${props.app.verified_app_metadata?.logo_img_url}`
+      getCDNImageUrl(
+        props.app.id,
+        props.app.verified_app_metadata?.logo_img_url
+      )
     );
   }, [
     props.app.app_metadata?.logo_img_url,

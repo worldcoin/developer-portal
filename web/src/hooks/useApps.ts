@@ -455,7 +455,7 @@ const useApps = () => {
   const router = useRouter();
   const team_id = router.query.team_id as string | undefined;
 
-  const { data, error, isLoading } = useSWR<Array<AppModel>>(
+  const { data, error, isLoading, mutate } = useSWR<Array<AppModel>>(
     ["app", team_id],
     fetchApps,
     {
@@ -547,14 +547,22 @@ const useApps = () => {
   }, [currentApp, removeAppMutation]);
 
   const onInsertSuccess = useCallback(
-    (data: AppModel) => {
-      if (data) {
-        setApps([data]);
-        router.push(urls.app({ app_id: data.id, team_id: team_id ?? "" }));
+    async (insertedApp: AppModel) => {
+      if (insertedApp) {
+        if (!data) {
+          return await mutate([insertedApp]);
+        }
+
+        await mutate([...data, insertedApp]);
+
+        router.push(
+          urls.app({ app_id: insertedApp.id, team_id: team_id ?? "" })
+        );
+
         toast.success("App created");
       }
     },
-    [router, setApps, team_id]
+    [data, mutate, router, team_id]
   );
 
   const insertNewAppMutation = useSWRMutation(

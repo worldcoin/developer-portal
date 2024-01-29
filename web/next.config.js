@@ -4,7 +4,7 @@
 // @ts-ignore
 const nextSafe = require("next-safe");
 const isDev = process.env.NODE_ENV !== "production";
-const s3BucketUrl = `https://s3.${process.env.ASSETS_S3_REGION}.amazonaws.com/${process.env.ASSETS_S3_BUCKET_NAME}`;
+const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
 const cdnHostName = process.env.ASSETS_CDN_URL || "world-id-assets.com";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -60,8 +60,8 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: `s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
-        pathname: `/${process.env.ASSETS_S3_BUCKET_NAME}/unverified/**`,
+        hostname: `${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`,
+        pathname: `/unverified/**`,
       },
     ],
   },
