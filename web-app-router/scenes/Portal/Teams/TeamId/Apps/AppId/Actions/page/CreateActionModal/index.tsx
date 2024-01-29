@@ -104,14 +104,14 @@ export const CreateActionModal = () => {
           });
 
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier."
+            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, router, setError]
+    [appId, insertActionQuery, pathname, router, setError],
   );
 
   const copyAction = useCallback(() => {
