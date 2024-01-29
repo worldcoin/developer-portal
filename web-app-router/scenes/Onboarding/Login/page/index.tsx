@@ -1,28 +1,29 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
+import { LayersIconFrame } from "@/components/LayersIconFrame";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const LoginPage = () => (
   <div className="w-full h-full flex items-center justify-center">
     <div className="grid gap-y-10 max-w-[360px]">
-      <div className="justify-self-center relative w-[120px] h-[120px] flex justify-center items-center">
-        <div className="absolute inset-0 border opacity-[0.16] border-[#D9E1F6] rounded-[24px] p-2.5 shadow-[0px_4px_8px_0px_#D9E1F6]" />
-        <div className="absolute inset-2.5 border border-[#D9E1F6] opacity-[0.16] rounded-20 p-2.5 shadow-[0px_4px_8px_0px_#D9E1F6]" />
+      <LayersIconFrame>
         <WorldcoinBlueprintIcon />
-      </div>
+      </LayersIconFrame>
 
       <div className="grid gap-y-3">
-        <h1 className="text-2xl text-center font-medium font-twk">
+        <Typography as="h1" variant={TYPOGRAPHY.H6}>
           World ID is now generally available
-        </h1>
+        </Typography>
 
-        <p className="font-gta text-grey-400">
+        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
           The Worldcoin Protocol will enable a new class of applications built
           on top of prof of personhood
-        </p>
+        </Typography>
       </div>
 
       <div className="grid gap-y-4">
-        <DecoratedButton href="#" className="py-3">
+        {/* TODO: update url */}
+        <DecoratedButton href="/create-team" className="py-3">
           Create an account
         </DecoratedButton>
 
