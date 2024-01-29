@@ -12,14 +12,13 @@ import { useCallback, useEffect } from "react";
 import slugify from "slugify";
 import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
-import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useRouter } from "next/navigation";
-import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { ApolloQueryResult } from "@apollo/client";
-import { ActionsQuery } from "../graphql/server/actions.generated";
+import { useInsertActionMutation } from "./graphql/insert-action.generated";
+import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
+import clsx from "clsx";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -33,11 +32,11 @@ const createActionSchema = yup.object({
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
 type CreateActionModalProps = {
-  refetchActions: () => Promise<ApolloQueryResult<ActionsQuery>>;
+  className?: string;
 };
 
 export const CreateActionModal = (props: CreateActionModalProps) => {
-  const { refetchActions } = props;
+  const { className } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
   const appId = params?.appId as `app_${string}`;
@@ -98,8 +97,13 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
-        refetchActions();
-        router.push(pathname);
+        const urlWithoutQueryParams = // Use this so we can refetch the actions without caching
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          window.location.pathname;
+
+        window.location.href = urlWithoutQueryParams;
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===
@@ -109,6 +113,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             type: "custom",
             message: "This action already exists.",
           });
+
           return toast.error(
             "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
@@ -117,20 +122,27 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, refetchActions, router, setError]
+    [appId, insertActionQuery, pathname, router, setError]
   );
+
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(watch("action"));
     toast.success("Copied to clipboard");
   }, [watch]);
+
   return (
-    <div className="fixed inset-0 w-full bg-white flex justify-center py-10 overflow-auto ">
+    <div
+      className={clsx(
+        "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
+        className
+      )}
+    >
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
         <div className="grid grid-cols-[auto_auto_1fr] gap-3 w-full items-center">
           <Link href={pathname}>
             <CloseIcon />
           </Link>
-          <div className="border-r-[1px] border-gray-200 h-full"></div>
+          <div className="border-r-[1px] border-grey-200 h-full"></div>
           <p className="font-[500] text-sm">Create an incognito action</p>
         </div>
         <div className="flex justify-end ">
@@ -151,7 +163,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             label="Name"
             placeholder="Anonymous Vote #12"
             required
-            className="w-inputLarge"
+            className="w-136"
           />
           <Input
             register={register("description")}
@@ -160,7 +172,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             placeholder="Cast your vote on proposal #102"
             helperText="Tell your users what the action is about. Shown in the World App."
             required
-            className="w-inputLarge"
+            className="w-136"
           />
           <Input
             register={register("action")}
@@ -175,7 +187,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                 <CopyIcon />
               </button>
             }
-            className="w-inputLarge"
+            className="w-136"
           />
           <Controller
             name="maxVerifications"
@@ -187,7 +199,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   onChange={field.onChange}
                   errors={errors.maxVerifications}
                   showCustomInput
-                  className="w-inputLarge" // border is 2px
+                  className="w-136" // border is 2px
                   label="Max verifications per user"
                   helperText="The number of verifications the same person can do for this action"
                 />
