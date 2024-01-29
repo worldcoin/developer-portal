@@ -5,7 +5,7 @@ import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./CreateActionModal";
 import { ActionsList } from "./ActionsList";
-import { useActionsQuery } from "../graphql/actions.generated";
+import { useActionsQuery } from "./graphql/server/actions.generated";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
