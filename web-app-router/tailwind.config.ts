@@ -63,6 +63,7 @@ const config: Config = {
           },
 
           success: {
+            50: "#E9F8E9",
             500: "#00B800",
           },
         },
@@ -76,7 +77,7 @@ const config: Config = {
       },
 
       width: {
-        136: "34rem",
+        inputLarge: "34rem",
       },
     },
   },

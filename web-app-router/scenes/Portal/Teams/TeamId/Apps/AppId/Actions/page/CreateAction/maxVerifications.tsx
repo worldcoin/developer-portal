@@ -45,7 +45,7 @@ export const MaxVerificationsSelector = (props: {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors,
       "border-system-error-500 text-system-error-500 ": errors,
-    },
+    }
   );
   const selectorClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent py-1.5 h-full",
@@ -53,7 +53,7 @@ export const MaxVerificationsSelector = (props: {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400 ":
         true,
-    },
+    }
   );
   const labelClassNames = clsx(
     "text-sm ml-2 px-[2px] peer-focus:text-blue-500",
@@ -61,14 +61,14 @@ export const MaxVerificationsSelector = (props: {
       "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
         !errors,
       "text-system-error-500 peer-focus:text-system-error-500": errors,
-    },
+    }
   );
 
   const handleSelect = useCallback(
     (newValue: number) => {
       onChange(newValue);
     },
-    [onChange],
+    [onChange]
   );
 
   const submitInput = useCallback(() => {
@@ -88,8 +88,8 @@ export const MaxVerificationsSelector = (props: {
           className={twMerge(
             clsx(
               "grid grid-cols-auto/1fr/auto group pb-2 w-full",
-              parentClassNames,
-            ),
+              parentClassNames
+            )
           )}
         >
           <SelectButton
@@ -97,7 +97,7 @@ export const MaxVerificationsSelector = (props: {
               "text-left",
               selectorClassNames,
               "grid grid-cols-1fr/auto",
-              className,
+              className
             )}
           >
             {VerificationOptions[value] ?? value.toString()}
@@ -106,7 +106,7 @@ export const MaxVerificationsSelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-32",
+              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-32"
             )}
           >
             {VerificationOptions.map((option, index) => (
@@ -120,7 +120,7 @@ export const MaxVerificationsSelector = (props: {
               <SelectOption key={"text-input"} value={input}>
                 <input
                   className={clsx(
-                    "w-full h-11 px-1 text-sm border border-grey-200 rounded-lg placeholder:text-neutral-secondary",
+                    "w-full h-11 px-1 text-sm border border-grey-200 rounded-lg placeholder:text-neutral-secondary"
                   )}
                   type="number"
                   value={input}
