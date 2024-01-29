@@ -13,9 +13,9 @@ export const CheckIcon = (props: { className?: string }) => {
           id="Vector 6663"
           d="M2.30078 10.2L6.15078 14.05L17.7008 1.95001"
           stroke="currentColor"
-          stroke-width="3.75"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="3.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </g>
     </svg>
