@@ -6,19 +6,21 @@ import cn from "classnames";
 import { useAppStore } from "src/stores/appStore";
 import useApps from "src/hooks/useApps";
 import { AppReviewStatusHeader } from "./ReviewStatus";
-import getConfig from "next/config";
 import { useRouter } from "next/router";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
-const { publicRuntimeConfig } = getConfig();
+import { getCDNImageUrl } from "@/lib/utils";
 
 export const AppHeader = memo(function AppHeader() {
   const currentApp = useAppStore((store) => store.currentApp);
   const [copied, setCopied] = useState(false);
   const [image, setImage] = useState<string | null>(
     currentApp?.verified_app_metadata?.logo_img_url
-      ? `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/verified/${currentApp.id}/${currentApp?.verified_app_metadata?.logo_img_url}`
+      ? getCDNImageUrl(
+          currentApp.id,
+          currentApp.verified_app_metadata?.logo_img_url
+        )
       : ""
   );
   const { toggleAppActivity, parseDescription } = useApps();

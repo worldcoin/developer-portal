@@ -34,9 +34,17 @@ const config: Config = {
       },
 
       colors: {
+        additional: {
+          pink: {
+            100: "#FFF1F7",
+            500: "#FF5096",
+          },
+        },
+
         blue: {
           500: "#4940E0",
         },
+
         grey: {
           0: "#FFFFFF",
           50: "#F9FAFB",
