@@ -11,7 +11,7 @@ import { TextArea } from "@/components/TextArea";
 import { useDebuggerQuery } from "../../../graphql/debugger.generated";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { WorldcoinIcon } from "@/components/Icons/WorldCoinIcon";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import clsx from "clsx";
@@ -19,7 +19,7 @@ import JSON5 from "json5";
 
 const testProofSchema = yup.object({
   signal: yup.string().optional(),
-  verification_response: yup.string().optional(),
+  verification_response: yup.string().required("This field is required"),
 });
 
 type ActionIdSettingsPageProps = {
@@ -85,11 +85,28 @@ export const ActionIdProofDebugingPage = ({
   const [status, setStatus] = useState<Status>(Status.IDLE);
   const [message, setMessage] = useState<JSX.Element | string>(messages.IDLE);
 
-  const { register, handleSubmit, watch, setValue } =
-    useForm<TestProofFormValues>({
-      resolver: yupResolver(testProofSchema),
-      mode: "onChange",
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    formState: { errors, isDirty, isValid },
+  } = useForm<TestProofFormValues>({
+    resolver: yupResolver(testProofSchema),
+    mode: "onChange",
+  });
+
+  const signal = watch("signal");
+  const verificationResponse = watch("verification_response");
+
+  // Effect to reset status and message when 'signal' or 'verification_response' changes
+  useEffect(() => {
+    if (isDirty) {
+      setStatus(Status.IDLE);
+      setMessage(messages.IDLE);
+    }
+  }, [signal, verificationResponse, isDirty]);
 
   const { data, loading } = useDebuggerQuery({
     variables: { action_id: actionID ?? "" },
@@ -145,10 +162,20 @@ export const ActionIdProofDebugingPage = ({
     }
   };
 
-  const formatCode = useCallback(async (data: TestProofFormValues) => {
-    const json = JSON5.parse(data.verification_response ?? "");
-    setValue("verification_response", JSON5.stringify(json, null, 1));
-  }, []);
+  const formatCode = useCallback(
+    async (data: TestProofFormValues) => {
+      try {
+        const json = JSON5.parse(data.verification_response ?? "");
+        setValue("verification_response", JSON5.stringify(json, null, 2));
+      } catch (e) {
+        setError("verification_response", {
+          type: "manual",
+          message: "Unable to auto format the response",
+        });
+      }
+    },
+    [setValue, setError]
+  );
 
   const action = data?.action[0];
 
@@ -197,15 +224,16 @@ export const ActionIdProofDebugingPage = ({
                   register={register("verification_response")}
                   helperText="These are the parameters you get from the JS widget"
                   label="Verification response"
+                  errors={errors?.verification_response}
                   placeholder={exampleVR}
                   className="h-[200px]"
                 />
                 <DecoratedButton
                   type="button"
-                  className="w-36 text-sm"
+                  className="w-44 text-sm"
                   onClick={() => handleSubmit(formatCode)()}
                 >
-                  Format Code
+                  Format Response
                 </DecoratedButton>
               </div>
             </div>
@@ -238,12 +266,18 @@ export const ActionIdProofDebugingPage = ({
                   )}
                 </CircleIconContainer>
                 <div className="flex flex-col items-center gap-y-5 mt-8">
-                  <p className="text-grey-400 text-sm">{message}</p>
+                  <p
+                    className={clsx("text-grey-400 text-sm", {
+                      "text-system-error-600": status === Status.ERROR,
+                    })}
+                  >
+                    {message}
+                  </p>
                   <DecoratedButton
                     type="submit"
                     variant="secondary"
                     className="w-60 text-grey-700"
-                    disabled
+                    disabled={!isDirty || !isValid}
                   >
                     Validate Proof
                   </DecoratedButton>
