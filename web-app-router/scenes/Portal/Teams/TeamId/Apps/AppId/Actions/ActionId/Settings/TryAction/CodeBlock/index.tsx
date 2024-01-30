@@ -10,7 +10,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier } = props;
 
   const verifyProofCodeString =
-    "// Note: API Call requires CORS to be enabled\n" +
+    "// Note: Verify Proof must be called server side\n" +
     "const verifyProof = async (proof, action) => {\n" +
     "    console.log('proof', proof);\n" +
     "    const response = await fetch(\n" +
@@ -40,6 +40,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
       <CodeDisplayComponent
         buttonText="Usage"
         panelText={
+          `"use client" // (Next.JS only - IDKitWidget must be run on client)\n` +
           "import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'\n\n" +
           "<IDKitWidget\n" +
           `    app_id="${appId}"\n` +
@@ -53,7 +54,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
         }
       />
       <CodeDisplayComponent
-        buttonText="Verify Proof"
+        buttonText="Verify Proof (Backend)"
         panelText={verifyProofCodeString}
       />
     </div>
