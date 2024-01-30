@@ -11,7 +11,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
 
   const verifyProofCodeString =
     "// Note: Verify Proof must be called server side\n" +
-    "const verifyProof = async (proof, action) => {\n" +
+    "const verifyProof = async (proof) => {\n" +
     "    console.log('proof', proof);\n" +
     "    const response = await fetch(\n" +
     `   'https://developer.worldcoin.org/api/v1/verify/${appId}',\n` +
