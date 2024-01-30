@@ -1,6 +1,6 @@
 "use client";
 import { Table } from "@/components/Table";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { VerifiedRow } from "./VerifiedRow";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
@@ -20,42 +20,52 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(nullifiers.length);
-  const logos = [
-    "alien.png",
-    "bear.png",
-    "cow.png",
-    "dinosaur.png",
-    "dog.png",
-    "dragon.png",
-    "exploding_owl.png",
-    "exploding_unicorn.png",
-    "fox.png",
-    "ghost.png",
-    "giraffe.png",
-    "koala.png",
-    "lion.png",
-    "love_skull.png",
-    "monkey.png",
-    "mouse.png",
-    "mybskull.png",
-    "octopus.png",
-    "owl.png",
-    "panda.png",
-    "pig.png",
-    "rabbit.png",
-    "rooster.png",
-    "shark.png",
-    "skull.png",
-    "sleeping_cow.png",
-    "tiger.png",
-    "unicorn.png",
-    "wolf.png",
-  ];
+
+  const logos = useMemo(
+    () => [
+      "alien.png",
+      "bear.png",
+      "cow.png",
+      "dinosaur.png",
+      "dog.png",
+      "dragon.png",
+      "exploding_owl.png",
+      "exploding_unicorn.png",
+      "fox.png",
+      "ghost.png",
+      "giraffe.png",
+      "koala.png",
+      "lion.png",
+      "love_skull.png",
+      "monkey.png",
+      "mouse.png",
+      "mybskull.png",
+      "octopus.png",
+      "owl.png",
+      "panda.png",
+      "pig.png",
+      "rabbit.png",
+      "rooster.png",
+      "shark.png",
+      "skull.png",
+      "sleeping_cow.png",
+      "tiger.png",
+      "unicorn.png",
+      "wolf.png",
+    ],
+    []
+  );
+
   const headers = [
     <span key={0}>Human</span>,
     <span key={1}>Uses</span>,
     <span key={2}>Time</span>,
   ];
+
+  // Update total results count when nullifiers change
+  useEffect(() => {
+    setTotalResultsCount(nullifiers.length);
+  }, [nullifiers]);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -71,7 +81,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
       const hashValue = parseInt(hash.slice(0, 10), 16);
       return logos[hashValue % logos.length];
     },
-    [logos],
+    [logos]
   );
 
   const actionsToRender = useMemo(() => {
@@ -80,8 +90,6 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     }
 
     let filteredNullifiers = nullifiers;
-
-    setTotalResultsCount(filteredNullifiers.length);
 
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -94,7 +102,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
           key: index,
           logo: _selectImage(nullifier.nullifier_hash),
         });
-      },
+      }
     );
   }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
 
