@@ -71,7 +71,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
       const hashValue = parseInt(hash.slice(0, 10), 16);
       return logos[hashValue % logos.length];
     },
-    [logos]
+    [logos],
   );
 
   const actionsToRender = useMemo(() => {
@@ -94,7 +94,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
           key: index,
           logo: _selectImage(nullifier.nullifier_hash),
         });
-      }
+      },
     );
   }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
 
