@@ -4,7 +4,7 @@
 
 import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, EngineType } from "@/legacy/lib/types";
+import { AppStatusType, EngineType } from "@/lib/types";
 
 type DateTime = string;
 

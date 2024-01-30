@@ -1,15 +1,17 @@
 import React from "react";
 import { CodeDisplayComponent } from "./CodeDisplays";
+import { EngineType } from "@/lib/types";
 
 type CodeBlockProps = {
   appId: string;
   action_identifier: string;
+  engine?: EngineType;
 };
 
 export const CodeBlock = (props: CodeBlockProps) => {
-  const { appId, action_identifier } = props;
+  const { appId, action_identifier, engine } = props;
 
-  const verifyProofCodeString =
+  const verifyProofCloudCodeString =
     "// Note: Proof must be verified server side\n" +
     "// For an end to end example see: https://github.com/worldcoin/world-id-cloud-template \n" +
     "const verifyProof = async (proof) => {\n" +
@@ -35,6 +37,35 @@ export const CodeBlock = (props: CodeBlockProps) => {
     `    return new Error("Proof did not verify")\n` +
     "  };";
 
+  const verifyProofOnChainCodeString =
+    "// TODO: Constructor...\n\n" +
+    "function _exampleVerifyAndExecute(\n" +
+    "    address signal,\n" +
+    "    uint256 root,\n" +
+    "    uint256 nullifierHash,\n" +
+    "    uint256[8] calldata proof\n" +
+    ") public {\n" +
+    "    // Check Uniqueness\n" +
+    "    if (nullifierHashes[nullifierHash]) revert InvalidNullifier();\n" +
+    "\n" +
+    "    // Verify User has a valid World ID\n" +
+    "    worldId.verifyProof(\n" +
+    "        root,\n" +
+    '        groupId, // set to "1" in the constructor\n' +
+    "        abi.encodePacked(signal).hashToField(),\n" +
+    "        nullifierHash,\n" +
+    "        externalNullifierHash,\n" +
+    "        proof\n" +
+    "    );\n" +
+    "\n" +
+    "    nullifierHashes[nullifierHash] = true;\n" +
+    "\n" +
+    "    // Finally, execute your logic here, knowing the user is verified\n" +
+    "}\n\n" +
+    "Note: This is just an example. Full implementation requires \n" +
+    "deploying a smart contract and making a transaction\n" +
+    "\nSee an end to end example:\n" +
+    "https://github.com/worldcoin/world-id-onchain-template";
   return (
     <div className="w-full max-w-full grid gap-y-5">
       <CodeDisplayComponent
@@ -59,8 +90,12 @@ export const CodeBlock = (props: CodeBlockProps) => {
         }
       />
       <CodeDisplayComponent
-        buttonText="Verify Proof (Backend)"
-        panelText={verifyProofCodeString}
+        buttonText={`Verify Proof (${engine === EngineType.OnChain ? "On Chain" : "Cloud"})`}
+        panelText={
+          engine === EngineType.OnChain
+            ? verifyProofOnChainCodeString
+            : verifyProofCloudCodeString
+        }
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
+import { Auth0EmailUser, Auth0User } from "@/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
@@ -56,8 +56,8 @@ export const validateUrl = (candidate: string): boolean => {
 export const validateEmail = (candidate: string): boolean => {
   return Boolean(
     candidate.match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    ),
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    )
   );
 };
 

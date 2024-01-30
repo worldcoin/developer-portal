@@ -7,6 +7,7 @@ import { MiniKiosk } from "./MiniKiosk";
 import { useState } from "react";
 import clsx from "clsx";
 import { CodeBlock } from "./CodeBlock";
+import { EngineType } from "@/lib/types";
 
 type TryActionProps = {
   action: {
@@ -14,7 +15,7 @@ type TryActionProps = {
     description: string;
     action: string;
     app_id: string;
-    app: { is_staging: boolean };
+    app: { is_staging: boolean; engine: EngineType };
   };
 };
 
@@ -61,7 +62,11 @@ export const TryAction = (props: TryActionProps) => {
       </div>
       <div className="h-full w-full ">
         {showCode ? (
-          <CodeBlock appId={action.app_id} action_identifier={action.action} />
+          <CodeBlock
+            appId={action.app_id}
+            action_identifier={action.action}
+            engine={action.app.engine}
+          />
         ) : (
           <MiniKiosk action={action} />
         )}

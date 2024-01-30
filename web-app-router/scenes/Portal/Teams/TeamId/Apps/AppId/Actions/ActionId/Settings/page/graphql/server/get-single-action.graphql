@@ -20,6 +20,7 @@ query Action($action_id: String!) {
     }
     app {
       is_staging
+      engine
     }
   }
 }

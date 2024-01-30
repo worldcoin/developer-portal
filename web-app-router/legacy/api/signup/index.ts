@@ -16,7 +16,7 @@ import {
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
 
-import { Auth0User } from "@/legacy/lib/types";
+import { Auth0User } from "@/lib/types";
 import { isEmailUser } from "@/legacy/lib/utils";
 import { urls } from "@/legacy/lib/urls";
 import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
@@ -90,7 +90,7 @@ export const handleSignup = withApiAuthRequired(
         "Failed to send acceptance",
         undefined,
         null,
-        req,
+        req
       );
     }
 
@@ -107,7 +107,7 @@ export const handleSignup = withApiAuthRequired(
       }
 
       const { user: createdUser } = await createUserAndDeleteInviteSdk(
-        client,
+        client
       ).CreateUserAndDeleteInvite({
         team_id: invite.team.id,
         ironclad_id: ironCladUserId,
@@ -165,5 +165,5 @@ export const handleSignup = withApiAuthRequired(
     res.status(200).json({
       returnTo: urls.app(),
     });
-  },
+  }
 );
