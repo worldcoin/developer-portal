@@ -1,6 +1,6 @@
 "use client";
 import { Table } from "@/components/Table";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { VerifiedRow } from "./VerifiedRow";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
@@ -66,10 +66,14 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
-  const _selectImage = (hash: string) => {
-    const hashValue = parseInt(hash.slice(0, 10), 16);
-    return logos[hashValue % logos.length];
-  };
+  const _selectImage = useCallback(
+    (hash: string) => {
+      const hashValue = parseInt(hash.slice(0, 10), 16);
+      return logos[hashValue % logos.length];
+    },
+    [logos]
+  );
+
   const actionsToRender = useMemo(() => {
     if (!nullifiers) {
       return [];
@@ -92,7 +96,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
         });
       }
     );
-  }, [nullifiers, currentPage, rowsPerPage]);
+  }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
 
   return (
     <div className="flex items-center justify-end w-full">
