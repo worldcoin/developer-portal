@@ -28,8 +28,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable",
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules", ".next", "./legacy/**/*.generated.ts"],
 }
