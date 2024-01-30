@@ -5,8 +5,10 @@ type CodeBlockProps = {
   appId: string;
   action_identifier: string;
 };
+
 export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier } = props;
+
   const verifyProofCodeString =
     "// Note: API Call requires CORS to be enabled\n" +
     "const verifyProof = async (proof, action) => {\n" +
@@ -28,6 +30,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
     "\n" +
     "    return false;\n" +
     "  };";
+
   return (
     <div className="w-full max-w-full grid gap-y-5">
       <CodeDisplayComponent

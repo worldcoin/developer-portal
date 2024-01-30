@@ -11,6 +11,7 @@ export const Waiting = memo(function Waiting(props: {
 }) {
   const [copied, setCopied] = useState(false);
   const { qrData, showSimulator } = props;
+
   const handleCopy = useCallback(() => {
     if (!qrData) return;
 

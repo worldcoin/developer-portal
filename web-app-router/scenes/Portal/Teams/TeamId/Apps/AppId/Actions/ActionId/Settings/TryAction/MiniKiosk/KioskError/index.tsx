@@ -10,14 +10,14 @@ export const KioskError = memo(function KioskError(props: {
   title: string;
   reset?: () => void;
 }) {
-  const { reset } = props;
-  const details = useMemo(() => {
-    if (props.description) {
-      return props.description;
-    }
+  const { reset, buttonText, description, title } = props;
 
+  const details = useMemo(() => {
+    if (description) {
+      return description;
+    }
     return "Something went wrong. Please try again.";
-  }, [props.description]);
+  }, [description]);
 
   return (
     <div className="grid text-center justify-items-center gap-y-6">
@@ -27,11 +27,11 @@ export const KioskError = memo(function KioskError(props: {
             <CloseIcon className="h-4 w-4 text-system-error-500" />
           </CircleIconContainer>
         </div>
-        <h2 className="text-grey-700 text-2xl font-semibold">{props.title}</h2>
+        <h2 className="text-grey-700 text-2xl font-semibold">{title}</h2>
         <p className="text-grey-700">{details}</p>
       </div>
 
-      {props.buttonText && (
+      {buttonText && (
         <DecoratedButton
           type="button"
           variant="secondary"
@@ -39,7 +39,7 @@ export const KioskError = memo(function KioskError(props: {
           color="primary"
           onClick={reset}
         >
-          {props.buttonText}
+          {buttonText}
         </DecoratedButton>
       )}
     </div>

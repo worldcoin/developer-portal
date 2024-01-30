@@ -13,6 +13,7 @@ type CodeDisplayComponentProps = {
   buttonText: string;
   panelText: string;
 };
+
 export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
   const { buttonText, panelText } = props;
   const copyAction = useCallback(() => {
