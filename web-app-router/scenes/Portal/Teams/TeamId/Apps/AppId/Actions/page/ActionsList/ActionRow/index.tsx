@@ -26,7 +26,7 @@ export const ActionRow = (props: {
   return [
     <div
       key={`${key}_1`}
-      className="flex flex-row items-center gap-x-4 px-2 group w-[500px] "
+      className="flex flex-row items-center gap-x-4 px-2 py-4 group w-[500px] "
     >
       <div className="uppercase rounded-full flex items-center justify-center h-12 w-12 bg-blue-100 text-blue-500 text-base font-[500]">
         {action.name[0]}

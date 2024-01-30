@@ -1,7 +1,10 @@
 "use client";
-import { TableComponent } from "@/components/Table";
+import { Table } from "@/components/Table";
 import { useMemo, useState } from "react";
 import { VerifiedRow } from "./VerifiedRow";
+import { Footer } from "@/components/Table/Footer";
+import { Header } from "@/components/Table/Header";
+import { Body } from "@/components/Table/Body";
 
 export type NullifierItem = {
   id: string;
@@ -22,6 +25,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(nullifiers.length);
+  const logos = ["bear.png", "owl.png"];
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -32,6 +36,10 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
+  const _selectImage = (hash: string) => {
+    const hashValue = parseInt(hash.slice(0, 10), 16);
+    return logos[hashValue % 2];
+  };
   const actionsToRender = useMemo(() => {
     if (!nullifiers) {
       return [];
@@ -47,8 +55,12 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
 
     return paginatedNullifiers.map(
       (nullifier: NullifierItem, index: number) => {
-        return VerifiedRow({ nullifier: nullifier, key: index });
-      },
+        return VerifiedRow({
+          nullifier: nullifier,
+          key: index,
+          logo: _selectImage(nullifier.nullifier_hash),
+        });
+      }
     );
   }, [nullifiers, currentPage, rowsPerPage]);
 
@@ -61,16 +73,22 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
             {nullifiers.length}
           </p>
         </div>
-        <div className="w-full max-h-[400px] overflow-auto">
-          <TableComponent
-            headers={headers}
-            rows={actionsToRender}
-            totalResults={totalResultsCount}
-            rowsPerPageOptions={rowsPerPageOptions}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            currentPage={currentPage}
-          />
+        <div className="w-full max-h-[380px] overflow-auto no-scrollbar">
+          <Table
+            footer={
+              <Footer
+                totalResults={totalResultsCount}
+                currentPage={currentPage}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={rowsPerPageOptions}
+                handlePageChange={handlePageChange}
+                handleRowsPerPageChange={handleRowsPerPageChange}
+              />
+            }
+          >
+            <Header headers={headers} />
+            <Body rows={actionsToRender} />
+          </Table>
         </div>
       </div>
     </div>

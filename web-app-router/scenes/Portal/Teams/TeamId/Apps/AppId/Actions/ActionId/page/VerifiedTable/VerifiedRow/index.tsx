@@ -1,11 +1,14 @@
 import { formatDistanceToNow } from "date-fns";
-import { NullifierItem } from "./VerifiedTable.tsx";
+import { NullifierItem } from "../index";
+
+import Image from "next/image";
 
 export const VerifiedRow = (props: {
   nullifier: NullifierItem;
   key: number;
+  logo: string;
 }) => {
-  const { nullifier, key } = props;
+  const { nullifier, key, logo } = props;
   const timeAgo = formatDistanceToNow(new Date(nullifier.updated_at), {
     addSuffix: true,
   });
@@ -13,12 +16,10 @@ export const VerifiedRow = (props: {
   return [
     <div
       key={`nullifier_${key}_1`}
-      className="flex flex-row items-center gap-x-4 px-2 group py-3"
+      className="flex flex-row items-center gap-x-3 px-2 group py-3"
     >
       {/* // TODO: Images for each human? */}
-      <div className="Capitalize rounded-full flex items-center justify-center h-10 w-10 bg-blue-100 text-blue-500 text-base font-[500]">
-        0x
-      </div>
+      <Image src={`/avatars/${logo}`} alt="user" width={40} height={40} />
       <div className="text-grey-900 text-sm">{`${nullifier.nullifier_hash.slice(0, 10)}...${nullifier.nullifier_hash.slice(-8)}`}</div>
     </div>,
     <div key={`nullifier_${key}_2`} className="text-grey-500 w-12 text-sm ">
