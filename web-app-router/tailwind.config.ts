@@ -56,6 +56,7 @@ const config: Config = {
         system: {
           error: {
             50: "#FFF5F3",
+            100: "#FFF2F0",
             200: "#FFE5E2",
             300: "#FFCBC5",
             400: "#FF897C",
