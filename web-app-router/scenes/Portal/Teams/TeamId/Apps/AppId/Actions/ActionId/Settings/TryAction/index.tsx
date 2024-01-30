@@ -7,7 +7,6 @@ import { MiniKiosk } from "./MiniKiosk";
 import { useState } from "react";
 import clsx from "clsx";
 import { CodeBlock } from "./CodeBlock";
-import { EngineType } from "@/lib/types";
 
 type TryActionProps = {
   action: {
@@ -15,7 +14,7 @@ type TryActionProps = {
     description: string;
     action: string;
     app_id: string;
-    app: { is_staging: boolean; engine: EngineType };
+    app: { is_staging: boolean; engine: string };
   };
 };
 
@@ -33,7 +32,7 @@ export const TryAction = (props: TryActionProps) => {
             onClick={() => setShowCode(false)}
             className={clsx(
               "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
-              { "border border-grey-200": !showCode },
+              { "border border-grey-200": !showCode }
             )}
           >
             <QRIcon
@@ -48,7 +47,7 @@ export const TryAction = (props: TryActionProps) => {
             onClick={() => setShowCode(true)}
             className={clsx(
               "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
-              { "border border-grey-200": showCode },
+              { "border border-grey-200": showCode }
             )}
           >
             <CodeIcon

@@ -5,7 +5,7 @@ import { EngineType } from "@/lib/types";
 type CodeBlockProps = {
   appId: string;
   action_identifier: string;
-  engine?: EngineType;
+  engine?: string;
 };
 
 export const CodeBlock = (props: CodeBlockProps) => {

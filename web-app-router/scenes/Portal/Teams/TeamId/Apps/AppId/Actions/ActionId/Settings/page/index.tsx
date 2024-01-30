@@ -1,11 +1,11 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
-import Link from "next/link";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { getSdk as GetActionSdk } from "./graphql/server/get-single-action.generated";
 import { UpdateActionForm } from "../UpdateAction";
 import { TryAction } from "../TryAction";
 import { getAPIServiceGraphqlClient } from "@/lib/graphql";
+import { Link } from "@/components/Link";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
