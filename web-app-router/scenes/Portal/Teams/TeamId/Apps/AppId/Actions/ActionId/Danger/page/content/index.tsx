@@ -15,28 +15,25 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
   const { action } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
-  const returnPath = pathname?.split("/").slice(0, 6).join("/") ?? "";
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
     useDeleteActionMutation({});
 
   const deleteAction = useCallback(async () => {
     try {
-      await revalidatePath(returnPath, "page");
-      router.replace(".."); // TODO: Need to refetch action list to update, waiting till we decide on state
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
       });
       if (result instanceof Error) {
         throw result;
       }
+      router.replace(`..?deleteAction=${action.action}`); // TODO: Need to refetch action list to update, waiting till we decide on state
     } catch (error) {
       console.error(error);
       return toast.error("Unable to delete action");
     }
     toast.success(`${action?.name} was deleted.`);
-  }, [action.id, action?.name, deleteActionQuery, returnPath, router]);
+  }, [action?.action, action.id, action?.name, deleteActionQuery, router]);
 
   return (
     <div>
