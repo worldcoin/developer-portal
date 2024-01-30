@@ -43,6 +43,7 @@ export interface IInputParams {
 export interface IVerifyParams {
   is_staging: boolean;
   verification_level: VerificationLevel;
+  max_age?: number;
 }
 
 interface IAppAction {

@@ -42,7 +42,7 @@ const schema = yup.object({
   max_age: yup
     .number()
     .integer()
-    .min(180, "Maximum root age cannot be less than 180 seconds (3 minutes).")
+    .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
     .max(
       604800,
       "Maximum root age cannot be more than 604800 seconds (7 days)."

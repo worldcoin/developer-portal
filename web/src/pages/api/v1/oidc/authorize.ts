@@ -195,7 +195,7 @@ export default async function handleOIDCAuthorize(
     {
       is_staging: app.is_staging,
       verification_level,
-      max_age: 900, // require that root be less than 15 minutes old
+      max_age: 3900, // require that root be less than 65 minutes old
     }
   );
   if (verifyError) {
