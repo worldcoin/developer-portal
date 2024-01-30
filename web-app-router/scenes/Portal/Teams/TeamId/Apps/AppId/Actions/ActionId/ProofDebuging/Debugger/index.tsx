@@ -100,7 +100,6 @@ export const Debugger = (props: DebuggerProps) => {
   const signal = watch("signal");
   const verificationResponse = watch("verification_response");
 
-  // Effect to reset status and message when 'signal' or 'verification_response' changes
   useEffect(() => {
     if (isDirty) {
       setStatus(Status.IDLE);
