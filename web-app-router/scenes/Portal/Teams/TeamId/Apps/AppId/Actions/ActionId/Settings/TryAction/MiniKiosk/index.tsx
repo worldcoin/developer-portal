@@ -43,6 +43,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
   const [qrData, setQrData] = useState<string | null>(null);
   const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
+  const [connectionTimeout, setConnectionTimeout] = useState<boolean>(true);
   const { reset } = useWorldBridgeStore();
   const { action } = props;
   const appId = action.app_id as `app_${string}`;
@@ -52,7 +53,8 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     reset();
     setQrData(null);
     setProofResult(null);
-  }, [setScreen, setQrData, setProofResult]);
+    setConnectionTimeout(true);
+  }, [setScreen, setQrData, setProofResult, setConnectionTimeout]);
 
   useEffect(() => {
     if (!action) {
@@ -63,6 +65,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
       let response;
+      setConnectionTimeout(false);
       try {
         response = await restAPIRequest<ProofResponse>(`/verify/${appId}`, {
           method: "POST",
@@ -131,6 +134,8 @@ export const MiniKiosk = (props: MiniKioskProps) => {
             setScreen={setScreen}
             setQrData={setQrData}
             setProofResult={setProofResult}
+            resetKiosk={resetKiosk}
+            connectionTimeout={connectionTimeout}
           />
         )}
 

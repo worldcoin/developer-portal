@@ -5,20 +5,28 @@ import {
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";
-import { KioskScreen } from ".";
+import { KioskScreen } from "..";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
   action: string;
   action_description: string;
+  connectionTimeout: boolean;
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: string) => void;
   setProofResult: (result: any) => void;
+  resetKiosk: () => void;
 }
 
 export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
-  const { setScreen, setQrData, setProofResult } = props;
+  const {
+    connectionTimeout,
+    setScreen,
+    setQrData,
+    setProofResult,
+    resetKiosk,
+  } = props;
   const {
     connectorURI,
     result,
@@ -44,7 +52,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         const intervalId = setInterval(
           () =>
             pollForUpdates().catch((error) => {
-              console.error(error);
               setIntervalId(null);
               clearInterval(intervalId);
             }),
@@ -91,8 +98,12 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         if (intervalId) {
           clearInterval(intervalId);
         }
-
-        setScreen(KioskScreen.VerificationError);
+        // Prevent connection failure
+        if (connectionTimeout) {
+          resetKiosk();
+        } else {
+          setScreen(KioskScreen.VerificationError);
+        }
         break;
     }
   }, [idKitVerificationState, intervalId, setScreen]);

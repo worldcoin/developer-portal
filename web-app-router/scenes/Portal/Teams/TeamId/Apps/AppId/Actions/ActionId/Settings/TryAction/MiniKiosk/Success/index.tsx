@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
 import { memo, useCallback } from "react";
-import { KioskScreen } from ".";
+import { KioskScreen } from "..";
 import { Button } from "@/components/Button";
 import clsx from "clsx";
 import { DecoratedButton } from "@/components/DecoratedButton";

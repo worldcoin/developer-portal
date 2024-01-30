@@ -1,5 +1,5 @@
 import { Fragment, memo, useCallback, useState } from "react";
-import { KioskScreen } from ".";
+import { KioskScreen } from "..";
 import { Button } from "@/components/Button";
 import clsx from "clsx";
 import { DecoratedButton } from "@/components/DecoratedButton";
