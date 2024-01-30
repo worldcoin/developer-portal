@@ -20,37 +20,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(nullifiers.length);
-  const logos = [
-    "alien.png",
-    "bear.png",
-    "cow.png",
-    "dinosaur.png",
-    "dog.png",
-    "dragon.png",
-    "exploding_owl.png",
-    "exploding_unicorn.png",
-    "fox.png",
-    "ghost.png",
-    "giraffe.png",
-    "koala.png",
-    "lion.png",
-    "love_skull.png",
-    "monkey.png",
-    "mouse.png",
-    "mybskull.png",
-    "octopus.png",
-    "owl.png",
-    "panda.png",
-    "pig.png",
-    "rabbit.png",
-    "rooster.png",
-    "shark.png",
-    "skull.png",
-    "sleeping_cow.png",
-    "tiger.png",
-    "unicorn.png",
-    "wolf.png",
-  ];
+  const logos = ["bear.png", "owl.png"];
   const headers = [
     <span key={0}>Human</span>,
     <span key={1}>Uses</span>,
@@ -68,7 +38,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
 
   const _selectImage = (hash: string) => {
     const hashValue = parseInt(hash.slice(0, 10), 16);
-    return logos[hashValue % logos.length];
+    return logos[hashValue % 2];
   };
   const actionsToRender = useMemo(() => {
     if (!nullifiers) {

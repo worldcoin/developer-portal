@@ -21,7 +21,7 @@ import {
 import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
-import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`
@@ -70,7 +70,7 @@ const schema = yup.object({
  */
 export default async function handleOIDCAuthorize(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (
     req.method === "OPTIONS" ||
@@ -109,7 +109,7 @@ export default async function handleOIDCAuthorize(
   } = parsedParams;
 
   const response_types = decodeURIComponent(
-    (response_type as string | string[]).toString(),
+    (response_type as string | string[]).toString()
   ).split(" ");
 
   for (const response_type of response_types) {
@@ -119,7 +119,7 @@ export default async function handleOIDCAuthorize(
         `Invalid response type: ${response_type}.`,
         "response_type",
         res,
-        req,
+        req
       );
     }
   }
@@ -130,18 +130,18 @@ export default async function handleOIDCAuthorize(
       `Invalid code_challenge_method: ${code_challenge_method}.`,
       "code_challenge_method",
       res,
-      req,
+      req
     );
   }
 
   const scopes = decodeURIComponent(
-    (scope as string | string[])?.toString(),
+    (scope as string | string[])?.toString()
   ).split(" ") as OIDCScopes[];
   const sanitizedScopes: OIDCScopes[] = scopes.length
     ? [
         ...new Set(
           // NOTE: Invalid scopes are ignored per spec (3.1.2.1)
-          scopes.filter((scope) => Object.values(OIDCScopes).includes(scope)),
+          scopes.filter((scope) => Object.values(OIDCScopes).includes(scope))
         ),
       ]
     : [];
@@ -152,14 +152,14 @@ export default async function handleOIDCAuthorize(
       `The ${OIDCScopes.OpenID} scope is always required.`,
       "scope",
       res,
-      req,
+      req
     );
   }
 
   // ANCHOR: Check the app is valid and fetch information
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    redirect_uri,
+    redirect_uri
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -168,7 +168,7 @@ export default async function handleOIDCAuthorize(
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
       fetchAppError?.attribute ?? "app_id",
-      req,
+      req
     );
   }
 
@@ -179,7 +179,7 @@ export default async function handleOIDCAuthorize(
       "Invalid redirect URI.",
       "redirect_uri",
       res,
-      req,
+      req
     );
   }
 
@@ -195,7 +195,7 @@ export default async function handleOIDCAuthorize(
     {
       is_staging: app.is_staging,
       verification_level,
-    },
+    }
   );
   if (verifyError) {
     return errorResponse(
@@ -204,7 +204,7 @@ export default async function handleOIDCAuthorize(
       verifyError.code ?? "invalid_proof",
       verifyError.message ?? "Verification request error. Please try again.",
       verifyError.attribute,
-      req,
+      req
     );
   }
 
@@ -223,7 +223,7 @@ export default async function handleOIDCAuthorize(
       sanitizedScopes,
       code_challenge,
       code_challenge_method,
-      shouldStoreSignal ? signal : null,
+      shouldStoreSignal ? signal : null
     );
   }
 

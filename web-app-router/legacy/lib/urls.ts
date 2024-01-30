@@ -1,6 +1,6 @@
 // URLs for frontend pages
 
-import { LoginErrorCode } from "./types";
+import { LoginErrorCode } from "../../lib/types";
 
 type LoginError = {
   login_error: LoginErrorCode;

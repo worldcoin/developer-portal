@@ -1,0 +1,26 @@
+query Action($action_id: String!) {
+  action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
+    id
+    app_id
+    action
+    created_at
+    creation_mode
+    description
+    external_nullifier
+    kiosk_enabled
+    name
+    max_accounts_per_user
+    max_verifications
+    updated_at
+    nullifiers {
+      id
+      updated_at
+      nullifier_hash
+      uses
+    }
+    app {
+      is_staging
+      engine
+    }
+  }
+}

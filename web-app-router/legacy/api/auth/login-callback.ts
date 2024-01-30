@@ -18,7 +18,7 @@ import {
 
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { urls } from "@/legacy/lib/urls";
-import { Auth0User, LoginErrorCode } from "@/legacy/lib/types";
+import { Auth0User, LoginErrorCode } from "@/lib/types";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { isEmailUser } from "@/legacy/lib/utils";
 import { logger } from "@/legacy/lib/logger";
@@ -32,7 +32,7 @@ export const auth0Login = withApiAuthRequired(
 
       return res.redirect(
         307,
-        urls.logout({ login_error: LoginErrorCode.Generic }),
+        urls.logout({ login_error: LoginErrorCode.Generic })
       );
     }
 
@@ -52,7 +52,7 @@ export const auth0Login = withApiAuthRequired(
 
       try {
         const userData = await FetchUserByNullifierSdk(
-          client,
+          client
         ).FetchNullifierUser({
           world_id_nullifier: nullifier,
           auth0Id: auth0User.sub,
@@ -60,7 +60,7 @@ export const auth0Login = withApiAuthRequired(
 
         if (!userData) {
           throw new Error(
-            "Error while fetching user for FetchUserByNullifierSdk.",
+            "Error while fetching user for FetchUserByNullifierSdk."
           );
         }
 
@@ -69,7 +69,7 @@ export const auth0Login = withApiAuthRequired(
         } else if (userData.user.length > 1) {
           // NOTE: Edge case may occur if there's a migration error from legacy users, this will require manual handling.
           throw new Error(
-            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`,
+            `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`
           );
         }
       } catch (error) {
@@ -78,7 +78,7 @@ export const auth0Login = withApiAuthRequired(
         });
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic }),
+          urls.logout({ login_error: LoginErrorCode.Generic })
         );
       }
     }
@@ -88,12 +88,12 @@ export const auth0Login = withApiAuthRequired(
       // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
       if (!auth0User.email_verified) {
         logger.error(
-          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`,
+          `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
         );
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.EmailNotVerified }),
+          urls.logout({ login_error: LoginErrorCode.EmailNotVerified })
         );
       }
 
@@ -120,7 +120,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic }),
+          urls.logout({ login_error: LoginErrorCode.Generic })
         );
       }
     }
@@ -129,7 +129,7 @@ export const auth0Login = withApiAuthRequired(
     if (!user) {
       return res.redirect(
         307,
-        invite_id ? urls.signup({ invite_id }) : urls.signup(),
+        invite_id ? urls.signup({ invite_id }) : urls.signup()
       );
     }
 
@@ -168,7 +168,7 @@ export const auth0Login = withApiAuthRequired(
 
         return res.redirect(
           307,
-          urls.logout({ login_error: LoginErrorCode.Generic }),
+          urls.logout({ login_error: LoginErrorCode.Generic })
         );
       }
     }
@@ -189,10 +189,8 @@ export const auth0Login = withApiAuthRequired(
       307,
       urls.app(
         undefined,
-        invite_id
-          ? { login_error: LoginErrorCode.OneTeamPerPerson }
-          : undefined,
-      ),
+        invite_id ? { login_error: LoginErrorCode.OneTeamPerPerson } : undefined
+      )
     );
-  },
+  }
 );
