@@ -33,7 +33,7 @@ export const TryAction = (props: TryActionProps) => {
             onClick={() => setShowCode(false)}
             className={clsx(
               "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
-              { "border border-grey-200": !showCode }
+              { "border border-grey-200": !showCode },
             )}
           >
             <QRIcon
@@ -48,7 +48,7 @@ export const TryAction = (props: TryActionProps) => {
             onClick={() => setShowCode(true)}
             className={clsx(
               "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
-              { "border border-grey-200": showCode }
+              { "border border-grey-200": showCode },
             )}
           >
             <CodeIcon

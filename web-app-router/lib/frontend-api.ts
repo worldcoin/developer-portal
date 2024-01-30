@@ -5,7 +5,7 @@ interface RequestOptions extends RequestInit {
 
 export const restAPIRequest = async <T>(
   path: string,
-  requestOptions?: RequestOptions
+  requestOptions?: RequestOptions,
 ): Promise<T> => {
   let response = null;
   const { json, headers, customErrorHandling, ...restOfRequestOptions } =

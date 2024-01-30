@@ -55,7 +55,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
               setIntervalId(null);
               clearInterval(intervalId);
             }),
-          3000
+          3000,
         );
 
         setIntervalId(intervalId);

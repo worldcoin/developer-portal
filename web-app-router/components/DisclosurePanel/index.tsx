@@ -13,7 +13,7 @@ export const DisclosurePanel = (props: {
         "bg-grey-50 border-grey-100 w-full flex rounded-b-xl",
         { "border-b border-r border-l": isOpen },
         { "rounded-xl border": !isOpen },
-        props.className
+        props.className,
       )}
     >
       {props.children}

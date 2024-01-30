@@ -60,7 +60,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
           key: index,
           logo: _selectImage(nullifier.nullifier_hash),
         });
-      }
+      },
     );
   }, [nullifiers, currentPage, rowsPerPage]);
 

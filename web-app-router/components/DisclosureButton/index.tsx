@@ -13,7 +13,7 @@ export const DisclosureButton = (props: {
         "bg-grey-50  border-grey-100 w-full flex ",
         { "rounded-t-xl border-t border-r border-l": isOpen },
         { "rounded-xl border hover:bg-grey-100": !isOpen },
-        props.className
+        props.className,
       )}
     >
       {props.children}

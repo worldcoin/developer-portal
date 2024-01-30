@@ -16,7 +16,7 @@ export const PreTag = memo(function PreTag(props: {
         { "bg-neutral-muted/20 border-primary": props.theme === "neutral" },
         { "bg-danger/5 border-danger": props.theme === "error" },
         { "bg-success/5 border-success": props.theme === "success" },
-        props.className
+        props.className,
       )}
     >
       {!props.loading && props.children}

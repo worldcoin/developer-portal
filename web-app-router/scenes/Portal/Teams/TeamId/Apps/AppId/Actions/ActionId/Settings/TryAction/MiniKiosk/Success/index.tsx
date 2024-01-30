@@ -14,7 +14,7 @@ export const Success = memo(function Success(props: {
   const { setScreen } = props;
   const handleRestart = useCallback(
     () => setScreen(KioskScreen.Waiting),
-    [setScreen]
+    [setScreen],
   );
 
   return (

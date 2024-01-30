@@ -96,7 +96,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         }
       }
     },
-    [setScreen]
+    [setScreen],
   );
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
             screen === KioskScreen.InvalidRequest ||
             screen === KioskScreen.InvalidIdentity ||
             screen === KioskScreen.AlreadyVerified,
-        }
+        },
       )}
     >
       <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center">
