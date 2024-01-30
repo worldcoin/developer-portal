@@ -7,6 +7,27 @@ type CodeBlockProps = {
 };
 export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier } = props;
+  const verifyProofCodeString =
+    "// Note: API Call requires CORS to be enabled\n" +
+    "const verifyProof = async (proof: any, action: string) => {\n" +
+    "    console.log('proof', proof);\n" +
+    "    const response = await fetch(\n" +
+    `   'https://developer.worldcoin.org/api/v1/verify/${appId}',\n` +
+    "      {\n" +
+    "        method: 'POST',\n" +
+    "        headers: {\n" +
+    "          'Content-Type': 'application/json',\n" +
+    "        },\n" +
+    `        body: JSON.stringify({ ...proof, action: ${action_identifier}}),\n` +
+    "      }\n" +
+    "    );\n" +
+    "    if (response.ok) {\n" +
+    "      const { verified } = await response.json();\n" +
+    "      return verified;\n" +
+    "    }\n" +
+    "\n" +
+    "    return false;\n" +
+    "  };";
   return (
     <div className="w-full max-w-full grid gap-y-5">
       <DisclosureComponent
@@ -16,17 +37,21 @@ export const CodeBlock = (props: CodeBlockProps) => {
       <DisclosureComponent
         buttonText="Usage"
         panelText={
-          "import { IDKitWidget } from '@worldcoin/idkit'\n\n" +
+          "import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'\n\n" +
           "<IDKitWidget\n" +
           `    app_id="${appId}"\n` +
           `    action="${action_identifier}"\n` +
-          "    onSuccess={onSuccess}\n" +
-          "    handleVerify={handleVerify}\n" +
+          `    onSuccess={() => console.log("Success")}\n` +
+          `    handleVerify={verifyProof} // Make sure to copy the callback below\n` +
           "    verification_level={VerificationLevel.Device}\n" +
           ">\n" +
           "    {({ open }) => <button onClick={open}>Verify with World ID</button>}\n" +
           "</IDKitWidget>"
         }
+      />
+      <DisclosureComponent
+        buttonText="Verify Proof"
+        panelText={verifyProofCodeString}
       />
     </div>
   );

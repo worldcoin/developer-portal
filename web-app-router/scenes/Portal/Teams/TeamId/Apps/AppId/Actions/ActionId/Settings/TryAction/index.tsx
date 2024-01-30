@@ -59,7 +59,7 @@ export const TryAction = (props: TryActionProps) => {
           </Button>
         </div>
       </div>
-      <div className="h-full ">
+      <div className="h-full w-full ">
         {showCode ? (
           <CodeBlock appId={action.app_id} action_identifier={action.action} />
         ) : (

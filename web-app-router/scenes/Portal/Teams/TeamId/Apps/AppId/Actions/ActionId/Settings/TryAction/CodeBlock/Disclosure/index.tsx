@@ -1,9 +1,13 @@
 import { Disclosure } from "@headlessui/react";
-import React from "react";
+import React, { useCallback } from "react";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { MinusIcon } from "@/components/Icons/MinusIcon";
 import { DisclosureButton } from "@/components/DisclosureButton";
 import { DisclosurePanel } from "@/components/DisclosurePanel";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { Button } from "@/components/Button";
+import { toast } from "react-toastify";
+import { CodeBlock } from "@/components/CodeBlock";
 
 type DisclosureProps = {
   buttonText: string;
@@ -11,10 +15,14 @@ type DisclosureProps = {
 };
 export const DisclosureComponent = (props: DisclosureProps) => {
   const { buttonText, panelText } = props;
+  const copyAction = useCallback(() => {
+    navigator.clipboard.writeText(panelText);
+    toast.success("Copied to clipboard");
+  }, [panelText]);
 
   return (
-    <div className="w-full max-w-full">
-      <Disclosure>
+    <div className="w-full">
+      <Disclosure as="div">
         {({ open }) => (
           <>
             <DisclosureButton isOpen={open}>
@@ -28,10 +36,25 @@ export const DisclosureComponent = (props: DisclosureProps) => {
               </div>
             </DisclosureButton>
             <DisclosurePanel
-              className="text-gray-500 w-full px-8 "
+              className="text-gray-500 px-8 pb-4 max-w-full"
               isOpen={open}
             >
-              <div>{panelText}</div>
+              <div className="w-full relative ">
+                <CodeBlock
+                  code={panelText}
+                  language="javascript"
+                  theme={"neutral"}
+                  className="text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={copyAction}
+                  className="absolute bottom-2 right-3 z-10 flex justify-end gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                  <p className="text-xs ">Copy</p>
+                </Button>
+              </div>
             </DisclosurePanel>
           </>
         )}
