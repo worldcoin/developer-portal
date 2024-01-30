@@ -44,7 +44,7 @@ export const DisclosureComponent = (props: DisclosureProps) => {
                   code={panelText}
                   language="javascript"
                   theme={"neutral"}
-                  className="text-sm"
+                  className="text-xs text-grey-700"
                 />
                 <Button
                   type="button"

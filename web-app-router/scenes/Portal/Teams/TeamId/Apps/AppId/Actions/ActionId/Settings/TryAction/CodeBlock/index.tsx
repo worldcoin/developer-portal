@@ -9,7 +9,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier } = props;
   const verifyProofCodeString =
     "// Note: API Call requires CORS to be enabled\n" +
-    "const verifyProof = async (proof: any, action: string) => {\n" +
+    "const verifyProof = async (proof, action) => {\n" +
     "    console.log('proof', proof);\n" +
     "    const response = await fetch(\n" +
     `   'https://developer.worldcoin.org/api/v1/verify/${appId}',\n` +
@@ -43,7 +43,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
           `    action="${action_identifier}"\n` +
           `    onSuccess={() => console.log("Success")}\n` +
           `    handleVerify={verifyProof} // Make sure to copy the callback below\n` +
-          "    verification_level={VerificationLevel.Device}\n" +
+          "    verification_level={VerificationLevel.Device} // Choose between Orb or Device\n" +
           ">\n" +
           "    {({ open }) => <button onClick={open}>Verify with World ID</button>}\n" +
           "</IDKitWidget>"
