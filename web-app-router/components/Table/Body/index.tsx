@@ -10,7 +10,7 @@ export const Body: React.FC<BodyProps> = ({ rows }) => {
       {rows.map((row, rowIndex) => (
         <tr key={rowIndex} className="hover:bg-grey-25 text-grey-500 text-xs">
           {row.map((cell, cellIndex) => (
-            <td key={cellIndex} className="py-4 whitespace-nowrap">
+            <td key={cellIndex} className="whitespace-nowrap">
               {cell}
             </td>
           ))}
