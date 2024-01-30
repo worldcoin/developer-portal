@@ -9,11 +9,11 @@ import { Button } from "@/components/Button";
 import { toast } from "react-toastify";
 import { CodeBlock } from "@/components/CodeBlock";
 
-type DisclosureProps = {
+type CodeDisplayComponentProps = {
   buttonText: string;
   panelText: string;
 };
-export const DisclosureComponent = (props: DisclosureProps) => {
+export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
   const { buttonText, panelText } = props;
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(panelText);

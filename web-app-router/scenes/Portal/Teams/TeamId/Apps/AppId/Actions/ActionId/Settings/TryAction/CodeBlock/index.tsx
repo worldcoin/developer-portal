@@ -1,5 +1,5 @@
 import React from "react";
-import { DisclosureComponent } from "./Disclosure";
+import { CodeDisplayComponent } from "./CodeDisplays";
 
 type CodeBlockProps = {
   appId: string;
@@ -30,11 +30,11 @@ export const CodeBlock = (props: CodeBlockProps) => {
     "  };";
   return (
     <div className="w-full max-w-full grid gap-y-5">
-      <DisclosureComponent
+      <CodeDisplayComponent
         buttonText="Install ID Kit"
         panelText="npm install @worldcoin/idkit"
       />
-      <DisclosureComponent
+      <CodeDisplayComponent
         buttonText="Usage"
         panelText={
           "import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'\n\n" +
@@ -49,7 +49,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
           "</IDKitWidget>"
         }
       />
-      <DisclosureComponent
+      <CodeDisplayComponent
         buttonText="Verify Proof"
         panelText={verifyProofCodeString}
       />
