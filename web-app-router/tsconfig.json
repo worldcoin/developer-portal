@@ -24,6 +24,6 @@
       "graphql-request/*": ["./node_modules/graphql-request/*"],
     },
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", ".next", "./legacy/**/*.generated.ts"],
 }
