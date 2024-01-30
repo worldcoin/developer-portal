@@ -9,7 +9,7 @@ export type ActionQueryVariables = Types.Exact<{
 }>;
 
 
-export type ActionQuery = { __typename?: 'query_root', action: Array<{ __typename?: 'action', id: string, app_id: string, action: string, created_at: any, creation_mode: string, description: string, external_nullifier: string, kiosk_enabled: boolean, name: string, max_accounts_per_user: number, max_verifications: number, updated_at: any, nullifiers: Array<{ __typename?: 'nullifier', id: string, updated_at: any, nullifier_hash: string, uses?: number | null }> }> };
+export type ActionQuery = { __typename?: 'query_root', action: Array<{ __typename?: 'action', id: string, app_id: string, action: string, created_at: any, creation_mode: string, description: string, external_nullifier: string, kiosk_enabled: boolean, name: string, max_accounts_per_user: number, max_verifications: number, updated_at: any, nullifiers: Array<{ __typename?: 'nullifier', id: string, updated_at: any, nullifier_hash: string, uses?: number | null }>, app: { __typename?: 'app', is_staging: boolean } }> };
 
 
 export const ActionDocument = gql`
@@ -32,6 +32,9 @@ export const ActionDocument = gql`
       updated_at
       nullifier_hash
       uses
+    }
+    app {
+      is_staging
     }
   }
 }

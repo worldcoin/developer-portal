@@ -1,20 +1,7 @@
-import { toast } from "react-toastify";
-
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
   customErrorHandling?: boolean;
 }
-
-const handleError = async (response: unknown): Promise<void> => {
-  let detail = "";
-
-  try {
-    // @ts-ignore
-    detail = response?.detail;
-  } catch {}
-
-  toast.error(detail || "Something went wrong. Please try again.");
-};
 
 export const restAPIRequest = async <T>(
   path: string,
@@ -32,7 +19,7 @@ export const restAPIRequest = async <T>(
     });
   } catch (e) {
     if (!customErrorHandling) {
-      await handleError(e);
+      console.warn(e);
     }
     throw e;
   }
@@ -41,7 +28,7 @@ export const restAPIRequest = async <T>(
 
   if (!response?.ok) {
     if (!customErrorHandling) {
-      await handleError(jsonResponse);
+      console.warn(jsonResponse);
     }
     throw jsonResponse || response;
   }

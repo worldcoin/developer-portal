@@ -31,6 +31,7 @@ const config: Config = {
       boxShadow: {
         button: "0px 1px 2px 0px #191C200F",
         lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
+        qrCode: "0px 16px 20px -8px #E6E9EEA3",
       },
 
       colors: {

@@ -18,5 +18,8 @@ query Action($action_id: String!) {
       nullifier_hash
       uses
     }
+    app {
+      is_staging
+    }
   }
 }

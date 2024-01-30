@@ -1,5 +1,4 @@
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
-import dayjs from "dayjs";
 import { memo, useCallback, useEffect, useState } from "react";
 import { Connected } from "./Connected";
 import { IDKitBridge } from "./IDKitBridge";
@@ -31,12 +30,22 @@ export enum KioskScreen {
   InvalidRequest,
 }
 
-export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
+type MiniKioskProps = {
+  action: {
+    name: string;
+    description: string;
+    action: string;
+    app_id: string;
+    app: { is_staging: boolean };
+  };
+};
+export const MiniKiosk = (props: MiniKioskProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
   const [qrData, setQrData] = useState<string | null>(null);
   const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
-
   const { reset } = useWorldBridgeStore();
+  const { action } = props;
+  const appId = action.app_id as `app_${string}`;
 
   const resetKiosk = useCallback(() => {
     setScreen(KioskScreen.Waiting);
@@ -55,13 +64,10 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
     async (result: ISuccessResult) => {
       let response;
       try {
-        response = await restAPIRequest<ProofResponse>(
-          `/verify/${action?.app_id}`,
-          {
-            method: "POST",
-            json: { action: action?.action, signal: "", ...result },
-          }
-        );
+        response = await restAPIRequest<ProofResponse>(`/verify/${appId}`, {
+          method: "POST",
+          json: { action: action?.action, signal: "", ...result },
+        });
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {
@@ -93,6 +99,7 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
   useEffect(() => {
     if (proofResult) {
       verifyProof(proofResult);
+      setProofResult(null);
     }
   }, [proofResult, verifyProof]);
 
@@ -112,13 +119,13 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
       )}
     >
       <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center">
-        {(!action || error_code) && (
+        {!action && (
           <KioskError title="This request is invalid." reset={resetKiosk} />
         )}
 
         {action && (
           <IDKitBridge
-            app_id={action.app_id}
+            app_id={appId}
             action={action.action}
             action_description={action.description}
             setScreen={setScreen}
@@ -127,7 +134,9 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
           />
         )}
 
-        {screen === KioskScreen.Waiting && <Waiting qrData={qrData} />}
+        {screen === KioskScreen.Waiting && (
+          <Waiting qrData={qrData} showSimulator={action.app.is_staging} />
+        )}
         {screen === KioskScreen.Connected && <Connected reset={resetKiosk} />}
         {screen === KioskScreen.Success && <Success setScreen={setScreen} />}
 
@@ -178,4 +187,4 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: any) {
       </div>
     </div>
   );
-});
+};

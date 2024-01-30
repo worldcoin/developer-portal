@@ -3,10 +3,19 @@
 import { Button } from "@/components/Button";
 import { CodeIcon } from "@/components/Icons/CodeIcon";
 import { QRIcon } from "@/components/Icons/QRIcon";
-import { Kiosk } from "./TryCode";
-import { Action } from "@/graphql/graphql";
+import { MiniKiosk } from "./MiniKiosk";
 
-export const TryAction = (props: { action: Action }) => {
+type TryActionProps = {
+  action: {
+    name: string;
+    description: string;
+    action: string;
+    app_id: string;
+    app: { is_staging: boolean };
+  };
+};
+
+export const TryAction = (props: TryActionProps) => {
   const { action } = props;
   return (
     <div className="w-full h-full gap-y-5 grid grid-rows-auto/1fr items-start">
@@ -28,7 +37,7 @@ export const TryAction = (props: { action: Action }) => {
         </div>
       </div>
       <div className="h-full ">
-        <Kiosk action={action} />
+        <MiniKiosk action={action} />
       </div>
     </div>
   );
