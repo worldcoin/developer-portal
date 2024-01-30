@@ -7,6 +7,7 @@ import {
   DescribeKeyCommand,
   GetPublicKeyCommand,
   KMSClient,
+  KeySpec,
   ScheduleKeyDeletionCommand,
   SignCommand,
 } from "@aws-sdk/client-kms";
@@ -30,14 +31,14 @@ export const getKMSClient = async () => {
 
 export const createKMSKey = async (
   client: KMSClient,
-  alg: string
+  alg: KeySpec
 ): Promise<CreateKeyResult> => {
   try {
     const { KeyMetadata } = await client.send(
       new CreateKeyCommand({
         KeySpec: alg,
         KeyUsage: "SIGN_VERIFY",
-        Description: `Developer Portal JWK for Sign in with Worldcoin. Created: ${new Date().toISOString()}`,
+        Description: `Developer Portal JWK for Sign in with World ID. Created: ${new Date().toISOString()}`,
         Tags: [{ TagKey: "app", TagValue: "developer-portal" }],
       })
     );

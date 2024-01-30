@@ -1,4 +1,5 @@
 import cn from "classnames";
+import posthog from "posthog-js";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "src/components/Button";
 import { Icon, IconType } from "src/components/Icon";
@@ -78,6 +79,12 @@ export function Result(props: ResultProps) {
     try {
       const userInput = JSON.parse(props.response);
 
+      if (userInput.credential_type && !userInput.verification_level) {
+        // NOTE: Backwards compatibility support for CredentialType
+        userInput.verification_level = userInput.credential_type;
+        delete userInput.credential_type;
+      }
+
       const res = await fetch("/api/v1/debugger", {
         method: "POST",
         headers: {
@@ -105,6 +112,7 @@ export function Result(props: ResultProps) {
       if (res.status !== 200) {
         setStatus(Status.ERROR);
         setMessage(messages.NOT_VERIFIED);
+        posthog.capture("debugger-verify-failed");
         return;
       }
 
@@ -112,8 +120,10 @@ export function Result(props: ResultProps) {
       setStatus(Status.SUCCESS);
       if (data.status === "on-chain") {
         setMessage(messages.SUCCESS_ONCHAIN);
+        posthog.capture("debugger-verify-success", { environment: "on-chain" });
       } else {
         setMessage(messages.SUCCESS_PENDING);
+        posthog.capture("debugger-verify-success", { environment: "cloud" });
       }
     } catch (err) {
       setStatus(Status.ERROR);

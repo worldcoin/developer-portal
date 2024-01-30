@@ -1,10 +1,10 @@
-import { ISuccessResult } from "@worldcoin/idkit";
+import { ISuccessResult } from "@worldcoin/idkit-core";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { memo, useCallback, useEffect } from "react";
 import { Icon } from "src/components/Icon";
 import { restAPIRequest } from "src/lib/frontend-api";
-import { KioskProps } from "src/pages/kiosk/[action_id]";
+import { KioskProps } from "@/pages/team/[team_id]/kiosk/[action_id]";
 import {
   IKioskStore,
   KioskScreen,
@@ -15,6 +15,7 @@ import { IDKitBridge } from "./IDKitBridge";
 import { KioskError } from "./KioskError";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
+import Image from "next/image";
 
 type ProofResponse = {
   success: boolean;
@@ -38,7 +39,6 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 
 export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
   const router = useRouter();
-
   const {
     kioskAction,
     screen,
@@ -92,9 +92,10 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
           confirmationCode:
             response.nullifier_hash?.slice(-5).toLocaleUpperCase() ?? "",
         });
+
         setScreen(KioskScreen.Success);
       } else {
-        if (response?.code === "already_verified") {
+        if (response?.code === "max_verifications_reached") {
           setScreen(KioskScreen.AlreadyVerified);
         } else if (response?.code === "invalid_merkle_root") {
           setScreen(KioskScreen.InvalidIdentity);
@@ -128,15 +129,20 @@ export const Kiosk = memo(function Kiosk({ action, error_code }: KioskProps) {
         <div className="flex justify-center">
           <Icon name="logo" className="w-[142px] h-6" />
         </div>
-
+        {/* FIXME: This will be removed later so just fixing for type check */}
         <div className="absolute top-0 bottom-0 right-0 flex items-center gap-x-4 pr-6">
           <div className="font-rubik font-medium text-14">
-            {kioskAction?.app.name}
+            {kioskAction?.app.app_metadata?.name}
           </div>
-          <Icon
-            path={kioskAction?.app.verified_app_logo}
-            className="w-11 h-11 rounded-full"
-          />
+          {kioskAction?.app.app_metadata?.logo_img_url && (
+            <Image
+              src={kioskAction?.app.app_metadata?.logo_img_url ?? ""}
+              alt="logo"
+              width={200}
+              height={200}
+              className="w-11 h-11 rounded-full"
+            />
+          )}
         </div>
       </header>
 

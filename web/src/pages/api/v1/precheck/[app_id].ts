@@ -1,14 +1,27 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
-import { ActionModel, AppModel, NullifierModel } from "src/lib/models";
+import {
+  ActionModel,
+  AppMetadataModel,
+  AppModel,
+  NullifierModel,
+} from "src/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "src/lib/types";
 import { runCors } from "src/backend/cors";
 import { errorNotAllowed, errorResponse } from "src/backend/errors";
 import * as yup from "yup";
+import { generateExternalNullifier } from "@/lib/hashing";
+import { getCDNImageUrl } from "@/lib/utils";
 
-type _Nullifier = Pick<NullifierModel, "nullifier_hash" | "__typename">;
+type _Nullifier = Pick<
+  NullifierModel,
+  "nullifier_hash" | "uses" | "__typename"
+>;
+
+type AppMetadataPayload = Pick<AppMetadataModel, "name" | "logo_img_url">;
+
 interface _Action
   extends Pick<
     ActionModel,
@@ -21,25 +34,26 @@ interface _Action
     | "status"
     | "__typename"
   > {
-  nullifiers: _Nullifier[];
+  nullifiers: [_Nullifier] | [];
 }
 
 interface _App
-  extends Pick<
-    AppModel,
-    | "__typename"
-    | "id"
-    | "engine"
-    | "is_staging"
-    | "is_verified"
-    | "name"
-    | "verified_app_logo"
-  > {
+  extends Pick<AppModel, "__typename" | "id" | "engine" | "is_staging"> {
+  is_verified: boolean;
+  actions: _Action[];
+  name: string;
+  verified_app_logo: string;
+}
+
+interface _AppQueryReturnInterface
+  extends Pick<AppModel, "__typename" | "id" | "engine" | "is_staging"> {
+  verified_app_metadata: AppMetadataPayload[];
+  app_metadata: AppMetadataPayload[];
   actions: _Action[];
 }
 
 interface AppPrecheckQueryInterface {
-  app: _App[];
+  app: _AppQueryReturnInterface[];
 }
 
 const appPrecheckQuery = gql`
@@ -57,10 +71,16 @@ const appPrecheckQuery = gql`
     ) {
       id
       is_staging
-      is_verified
-      name
-      verified_app_logo
       engine
+      app_metadata(where: { verification_status: { _neq: "verified" } }) {
+        name
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+      ) {
+        name
+        logo_img_url
+      }
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
         name
@@ -69,7 +89,10 @@ const appPrecheckQuery = gql`
         max_verifications
         max_accounts_per_user
         status
+        privacy_policy_uri
+        terms_uri
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+          uses
           nullifier_hash
         }
       }
@@ -103,13 +126,24 @@ const createActionQuery = gql`
   }
 `;
 
-const schema = yup.object({
-  action: yup.string().strict(),
-  nullifier_hash: yup.string().default(""),
+const schema = yup.object().shape({
+  action: yup.string().strict().nullable().default(""),
+
+  nullifier_hash: yup
+    .string()
+    .nullable()
+    .default("")
+    .transform((value) => (value === null ? "" : value)),
+
   external_nullifier: yup
     .string()
     .strict()
-    .required("This attribute is required."),
+    .nullable()
+    .when("action", {
+      is: (action: unknown) => action === null,
+      then: (s) =>
+        s.required("This attribute is required when action is not provided."),
+    }),
 });
 
 /**
@@ -139,26 +173,29 @@ export default async function handlePrecheck(
     return handleError(req, res);
   }
 
-  const app_id = req.query.app_id as string;
-  const action = parsedParams.action ?? null;
+  const app_id = req.query.app_id as `app_${string}`;
+  const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier = parsedParams.external_nullifier;
+  const external_nullifier =
+    parsedParams.external_nullifier ??
+    generateExternalNullifier(app_id, action).digest;
 
   const client = await getAPIServiceClient();
 
   // ANCHOR: Fetch app from Hasura
   const appQueryResult = await client.query<AppPrecheckQueryInterface>({
     query: appPrecheckQuery,
+
     variables: {
       app_id,
-      external_nullifier,
       nullifier_hash,
+      external_nullifier,
     },
   });
 
-  const app = appQueryResult.data.app?.[0];
+  const rawAppValues = appQueryResult.data.app?.[0];
 
-  if (!app) {
+  if (!rawAppValues) {
     return errorResponse(
       res,
       404,
@@ -168,7 +205,23 @@ export default async function handlePrecheck(
       req
     );
   }
-
+  const app_metadata = rawAppValues.app_metadata[0];
+  const verified_app_metadata = rawAppValues.verified_app_metadata[0];
+  // If a image is present it should store it's relative path and extension ie logo.png
+  const logo_img_url = verified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
+    : "";
+  // Prevent breaking changes
+  const app: _App = {
+    __typename: rawAppValues.__typename,
+    id: rawAppValues.id,
+    engine: rawAppValues.engine,
+    is_staging: rawAppValues.is_staging,
+    is_verified: verified_app_metadata ? true : false,
+    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    verified_app_logo: logo_img_url,
+    actions: rawAppValues.actions,
+  };
   // ANCHOR: If the action doesn't exist, create it
   if (!app.actions.length) {
     if (action === null) {
@@ -187,8 +240,8 @@ export default async function handlePrecheck(
         mutation: createActionQuery,
         variables: {
           app_id,
-          external_nullifier,
           action,
+          external_nullifier,
         },
         errorPolicy: "none",
       });
@@ -223,15 +276,22 @@ export default async function handlePrecheck(
     );
   }
 
-  const nullifiers = actionItem.nullifiers;
+  const nullifier = actionItem.nullifiers?.[0];
 
   const response = {
     ...app,
-    logo_url: "",
-    sign_in_with_world_id: action === "",
-    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
-    action: { ...actionItem, nullifiers: undefined },
     actions: undefined,
+    sign_in_with_world_id: action === "", // DEPRECATED: will be removed in v2
+    is_sign_in: action === "",
+    action: { ...actionItem, nullifiers: undefined },
+    ...(nullifier
+      ? {
+          nullifier: {
+            uses: nullifier?.uses,
+          },
+        }
+      : {}),
+    can_user_verify: CanUserVerifyType.Undetermined, // Provides mobile app information on whether to allow the user to verify. By default we cannot determine if the user can verify unless conditions are met.
   };
 
   if (app.engine === EngineType.OnChain) {
@@ -246,7 +306,7 @@ export default async function handlePrecheck(
     // ANCHOR: If a nullifier hash is provided, determine if the user can verify
     if (nullifier_hash && response.action) {
       response.can_user_verify = canVerifyForAction(
-        nullifiers,
+        nullifier,
         response.action.max_verifications
       )
         ? CanUserVerifyType.Yes

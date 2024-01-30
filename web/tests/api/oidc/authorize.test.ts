@@ -77,7 +77,7 @@ beforeEach(() => {
           object: {
             nullifier_hash: expect.any(String),
             merkle_root: expect.any(String),
-            credential_type: expect.any(String),
+            verification_level: expect.any(String),
             action_id: expect.any(String),
           },
         },
@@ -115,7 +115,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "proof",
       "nullifier_hash",
       "merkle_root",
-      "credential_type",
+      "verification_level",
       "app_id",
       "response_type",
       "redirect_uri",
@@ -217,7 +217,7 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -238,7 +238,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -269,6 +269,9 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
         likely_human: "strong",
         credential_type: "orb",
       },
+      "https://id.worldcoin.org/v1": {
+        verification_level: "orb",
+      },
       nonce: semaphoreProofParamsMock.signal,
     });
 
@@ -291,7 +294,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     });
 
     fetchMock
-      .mockIf(/crypto.worldcoin.org/)
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
       .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     await handleOIDCAuthorize(req, res);
@@ -324,6 +327,9 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       "https://id.worldcoin.org/beta": {
         likely_human: "strong",
         credential_type: "orb",
+      },
+      "https://id.worldcoin.org/v1": {
+        verification_level: "orb",
       },
       nonce: semaphoreProofParamsMock.signal,
     });

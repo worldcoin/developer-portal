@@ -2,7 +2,7 @@ import { toast } from "react-toastify";
 
 import {
   FetchKeysDocument,
-  useFetchKeysQuery,
+  useFetchKeysLazyQuery,
 } from "./graphql/fetch-keys.generated";
 
 import {
@@ -17,28 +17,50 @@ import {
 
 import { useDeleteKeyMutation } from "./graphql/delete-key.generated";
 import { useResetApiKeyMutation } from "./graphql/reset-key.generated";
+import { useRouter } from "next/router";
+import { use, useEffect, useMemo } from "react";
 
 const useKeys = () => {
-  const {
-    data: fetchedKeys,
-    error,
-    loading,
-  } = useFetchKeysQuery({
-    onError: (e) => {
-      console.error(e);
+  const router = useRouter();
+
+  const team_id = useMemo(
+    () => router.query.team_id as string | undefined,
+    [router.query.team_id]
+  );
+
+  const [
+    fetchKeys,
+    { data: fetchedKeys, error, loading, refetch: refetchKeys },
+  ] = useFetchKeysLazyQuery({
+    context: { headers: { team_id } },
+    onError: () => {
       toast.error("Failed to fetch API keys");
     },
   });
 
-  const [insertKeyMutation] = useInsertKeyMutation();
+  useEffect(() => {
+    if (!team_id) {
+      return;
+    }
+
+    fetchKeys();
+  }, [fetchKeys, team_id]);
+
+  const [insertKeyMutation] = useInsertKeyMutation({
+    context: { headers: { team_id } },
+  });
 
   const createKey = async (object: InsertKeyMutationVariables["object"]) => {
     const { data: insertedKey, errors } = await insertKeyMutation({
+      context: { headers: { team_id } },
+
       variables: {
         object,
       },
 
-      refetchQueries: [{ query: FetchKeysDocument }],
+      refetchQueries: [
+        { query: FetchKeysDocument, context: { headers: { team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (data?.insert_api_key_one) {
@@ -58,12 +80,17 @@ const useKeys = () => {
     return insertedKey?.insert_api_key_one;
   };
 
-  const [updateKeyMutation] = useUpdateKeyMutation();
+  const [updateKeyMutation] = useUpdateKeyMutation({
+    context: { headers: { team_id } },
+  });
 
   const updateKey = async (variables: UpdateKeyMutationVariables) => {
     const { data: updatedKey, errors } = await updateKeyMutation({
+      context: { headers: { team_id } },
       variables,
-      refetchQueries: [{ query: FetchKeysDocument }],
+      refetchQueries: [
+        { query: FetchKeysDocument, context: { headers: { team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (data?.update_api_key_by_pk) {
@@ -83,15 +110,20 @@ const useKeys = () => {
     return updatedKey?.update_api_key_by_pk;
   };
 
-  const [deleteKeyMutation] = useDeleteKeyMutation();
+  const [deleteKeyMutation] = useDeleteKeyMutation({
+    context: { headers: { team_id } },
+  });
 
   const deleteKey = async (id: string) => {
     const { data: deletedKey, errors } = await deleteKeyMutation({
+      context: { headers: { team_id } },
       variables: {
         id,
       },
 
-      refetchQueries: [{ query: FetchKeysDocument }],
+      refetchQueries: [
+        { query: FetchKeysDocument, context: { headers: { team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (data?.delete_api_key_by_pk) {
@@ -111,12 +143,17 @@ const useKeys = () => {
     return deletedKey?.delete_api_key_by_pk;
   };
 
-  const [resetApiKeyMutation] = useResetApiKeyMutation();
+  const [resetApiKeyMutation] = useResetApiKeyMutation({
+    context: { headers: { team_id } },
+  });
 
   const resetKeySecret = async (id: string) => {
     const { data: keyAfterReset, errors } = await resetApiKeyMutation({
+      context: { headers: { team_id } },
       variables: { id },
-      refetchQueries: [{ query: FetchKeysDocument }],
+      refetchQueries: [
+        { query: FetchKeysDocument, context: { headers: { team_id } } },
+      ],
 
       onCompleted: (data) => {
         if (data?.reset_api_key?.api_key) {
@@ -129,8 +166,7 @@ const useKeys = () => {
         }
       },
 
-      onError: (e) => {
-        console.error(e);
+      onError: () => {
         toast.error("Failed to reset API key");
       },
     });
@@ -146,6 +182,7 @@ const useKeys = () => {
     keys: fetchedKeys?.api_key ?? [],
     error,
     isLoading: loading,
+    refetchKeys,
     createKey,
     updateKey,
     deleteKey,

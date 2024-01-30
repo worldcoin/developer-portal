@@ -13,10 +13,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import slugify from "slugify";
 import { useInsertAction } from "../hooks";
 import { useAppStore } from "src/stores/appStore";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { toast } from "react-toastify";
 import { ApolloError } from "@apollo/client";
 import { VerificationSelect } from "@/scenes/actions/common/VerificationSelect";
+import { generateExternalNullifier } from "@/lib/hashing";
+import posthog from "posthog-js";
 
 const schema = yup.object({
   name: yup.string().required("This field is required"),
@@ -82,7 +83,7 @@ export function NewAction() {
           action: values.action,
           app_id: currentApp.id,
 
-          external_nullifier: IDKitInternal.generateExternalNullifier(
+          external_nullifier: generateExternalNullifier(
             currentApp.id,
             values.action
           ).digest,
@@ -92,6 +93,12 @@ export function NewAction() {
         if (result instanceof Error) {
           throw result;
         }
+
+        posthog.capture("action_created", {
+          name: values.name,
+          app_id: currentApp.id,
+          action_id: values.action,
+        });
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===

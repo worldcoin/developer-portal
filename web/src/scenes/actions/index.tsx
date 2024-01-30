@@ -74,34 +74,34 @@ export function Actions(): JSX.Element | null {
           <div className="grid gap-y-12">
             <div className="grid gap-y-6">
               <h1 className="font-sora text-24 font-semibold leading-tight">
-                Anonymous Actions
+                Incognito Actions
               </h1>
               <PageInfo
                 icon="notepad"
                 iconClassName="text-primary"
-                title="Anonymous Actions"
+                title="Incognito Actions"
                 text={[
-                  "Verify independent actions in your app.",
-                  "Each action is independent from other actions, providing the maximum level of privacy.",
-                  "For example: a voting application where each vote is independent of each other.",
+                  "Incognito Actions allow users to verify that they're a unique person without revealing their identity.",
+                  "Actions are independent from each other, preventing two separate actions from being linked to the same user.",
+                  "You can also limit how many times a user can perform any given action to prevent sybil attacks.",
                 ]}
                 linkText="Tech Docs"
-                linkHref="https://docs.worldcoin.org/id/anonymous-actions"
+                linkHref="https://docs.worldcoin.org/id/incognito-actions"
               />
             </div>
 
             <section className="grid gap-y-2">
               <div className="flex items-center gap-x-2">
                 <div className="font-medium text-14 leading-4">
-                  Anonymous Actions
+                  Incognito Actions
                 </div>
                 <div className="flex items-center h-5 px-1.5 font-sora text-12 text-657080 leading-4 bg-ebecef rounded">
                   {actions?.length ?? 0}
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl shadow-card">
-                <div className="flex items-center gap-x-8">
+              <div className="py-4 rounded-xl shadow-card min-w-0">
+                <div className="px-4 flex items-center gap-x-8">
                   <label className="grow flex items-center gap-x-4 h-12 px-4 border border-ebecef rounded-lg">
                     <Icon name="search" className="w-6 h-6 text-d6d9dd" />
                     <input
@@ -117,7 +117,7 @@ export function Actions(): JSX.Element | null {
                     Create New Action
                   </Button>
                 </div>
-                <div>
+                <div className="px-4 overflow-x-auto">
                   <table className="w-full max-w-full">
                     <thead>
                       <tr>
@@ -131,7 +131,7 @@ export function Actions(): JSX.Element | null {
                           Verifications per person
                         </th>
                         <th className="pt-8 pb-4 whitespace-nowrap text-12 text-center border-b border-f3f4f5">
-                          Unique persons
+                          Uses
                         </th>
                         <th className="pt-8 pb-4 whitespace-nowrap border-b border-f3f4f5" />
                       </tr>
@@ -143,10 +143,10 @@ export function Actions(): JSX.Element | null {
                             <div className="relative h-[182px] flex flex-col items-center justify-center bg-center bg-[url('/images/empty-actions.svg')]">
                               <Icon name="notepad" className="w-6 h-6" />
                               <div className="mt-4 font-sora font-semibold text-14 leading-4">
-                                This app has no anonymous actions yet
+                                This app has no Incognito Actions yet
                               </div>
                               <div className="mt-1.5 text-12 text-657080 leading-4">
-                                You can create your anonymous actions here or
+                                You can create your Incognito Actions here or
                                 with IDKit.
                               </div>
                             </div>

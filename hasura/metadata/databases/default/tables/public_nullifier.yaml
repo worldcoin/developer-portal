@@ -12,9 +12,8 @@ insert_permissions:
       columns:
         - action_id
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
-        - credential_type
 select_permissions:
   - role: analytics
     permission:
@@ -30,9 +29,7 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
         - nullifier_hash
-        - credential_type
       filter:
         action:
           app:
@@ -44,9 +41,8 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
-        - credential_type
       filter: {}
   - role: user
     permission:
@@ -54,13 +50,22 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - merkle_root
+        - uses
         - nullifier_hash
-        - credential_type
       filter:
         action:
           app:
             team:
-              users:
-                id:
-                  _eq: X-Hasura-User-Id
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - uses
+      filter: {}
+      check: null

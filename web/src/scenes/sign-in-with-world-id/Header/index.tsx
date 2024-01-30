@@ -8,8 +8,8 @@ export const Header = memo(function Header() {
       <PageInfo
         icon="world-id-sign-in"
         iconClassName="text-primary"
-        title="Sign in with Worldcoin"
-        text="Simplest authentication for your app. Proof of personhood included."
+        title="Sign in with World ID"
+        text="Let users sign in to your app with their World ID using OpenID Connect (OIDC), the open standard for web authentication."
         linkText="Tech Docs"
         linkHref="https://docs.worldcoin.org/id/sign-in"
       />

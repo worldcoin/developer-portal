@@ -29,7 +29,7 @@ export type ActionsQuery = {
       id: string;
       created_at: any;
       nullifier_hash: string;
-      credential_type: string;
+      uses?: number | null;
     }>;
   }>;
 };
@@ -56,7 +56,7 @@ export const ActionsDocument = gql`
         id
         created_at
         nullifier_hash
-        credential_type
+        uses
       }
     }
   }

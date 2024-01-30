@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { ApolloError, gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
@@ -10,8 +10,13 @@ import {
 import { getAPIServiceClient } from "src/backend/graphql";
 import { canVerifyForAction, validateRequestSchema } from "src/backend/utils";
 import { fetchActionForProof, verifyProof } from "src/backend/verify";
-import { CredentialType } from "src/lib/types";
+import {
+  AppErrorCodes,
+  CredentialType,
+  VerificationLevel,
+} from "@worldcoin/idkit-core";
 import * as yup from "yup";
+import { captureEvent } from "@/services/posthogClient";
 
 const schema = yup.object({
   action: yup
@@ -19,18 +24,21 @@ const schema = yup.object({
     .strict()
     .nonNullable()
     .defined("This attribute is required."),
-  signal: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .defined("This attribute is required."),
+  signal: yup.string().default(""),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
-  credential_type: yup
+  verification_level: yup
     .string()
-    .required("This attribute is required.")
-    .oneOf(Object.values(CredentialType)),
+    .oneOf(Object.values(VerificationLevel))
+    .when("credential_type", {
+      is: undefined,
+      then: (verification_level) =>
+        verification_level.required(
+          "`verification_level` required unless deprecated `credential_type` is used."
+        ),
+    }),
+  credential_type: yup.string().oneOf(Object.values(CredentialType)),
   max_age: yup
     .number()
     .integer()
@@ -85,7 +93,7 @@ export default async function handleVerify(
   }
 
   const { app } = data;
-  const { action } = app;
+  const { action, nullifier } = app;
 
   if (action.status === "inactive") {
     return errorResponse(
@@ -98,17 +106,19 @@ export default async function handleVerify(
     );
   }
 
-  // ANCHOR: Check if the action has a limit of verifications and if the person would exceed it
-  if (action.action !== "") {
-    // NOTE: If `action != ""`, action is NOT for Sign in with World ID
-    if (!canVerifyForAction(action.nullifiers, action.max_verifications)) {
-      // Return error response if person has already verified before and exceeded the max number of times to verify
-      const errorMsg =
-        action.max_verifications === 1
-          ? "This person has already verified for this action."
-          : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-      return errorValidation("already_verified", errorMsg, null, res, req);
-    }
+  if (!canVerifyForAction(nullifier, action.max_verifications)) {
+    // Return error response if person has already verified before and exceeded the max number of times to verify
+    const errorMsg =
+      action.max_verifications === 1
+        ? "This person has already verified for this action."
+        : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
+    return errorValidation(
+      "max_verifications_reached",
+      errorMsg,
+      null,
+      res,
+      req
+    );
   }
 
   if (!action.external_nullifier) {
@@ -122,6 +132,13 @@ export default async function handleVerify(
     );
   }
 
+  // NOTE: Backwards compatibility support for CredentialType
+  const verification_level =
+    parsedParams.verification_level ||
+    (parsedParams.credential_type === CredentialType.Orb
+      ? VerificationLevel.Orb
+      : VerificationLevel.Device);
+
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
@@ -133,57 +150,133 @@ export default async function handleVerify(
     },
     {
       is_staging: app.is_staging,
-      credential_type: parsedParams.credential_type,
+      verification_level,
       max_age: parsedParams.max_age,
     }
   );
   if (error || !success) {
+    await captureEvent({
+      event: "action_verify_failed",
+      distinctId: app.id,
+      properties: {
+        action_id: action.id,
+        error: error,
+      },
+    });
     return errorResponse(
       res,
       error?.statusCode || 400,
-      error?.code || "unknown_error",
+      error?.code || AppErrorCodes.GenericError,
       error?.message || "There was an error verifying this proof.",
       error?.attribute || null,
       req
     );
   }
 
-  const insertNullifierQuery = gql`
-    mutation InsertNullifier(
-      $nullifier_hash: String!
-      $action_id: String!
-      $merkle_root: String
-      $credential_type: String!
-    ) {
-      insert_nullifier_one(
-        object: {
-          nullifier_hash: $nullifier_hash
-          merkle_root: $merkle_root
-          action_id: $action_id
-          credential_type: $credential_type
-        }
-      ) {
-        nullifier_hash
-        created_at
-        credential_type
-      }
+  if (nullifier) {
+    const updateResponse = await client.mutate({
+      mutation: updateNullifierQuery,
+      variables: {
+        nullifier_hash: nullifier.nullifier_hash,
+        uses: nullifier.uses,
+      },
+    });
+
+    if (updateResponse.data.update_nullifier.affected_rows === 0) {
+      return errorValidation(
+        AppErrorCodes.MaxVerificationsReached,
+        "This person has already verified for this particular action the maximum number of times allowed.",
+        null,
+        res,
+        req
+      );
     }
-  `;
 
-  const insertResponse = await client.query({
-    query: insertNullifierQuery,
-    variables: {
-      nullifier_hash: parsedParams.nullifier_hash,
-      action_id: action.id,
-      merkle_root: parsedParams.merkle_root,
-      credential_type: parsedParams.credential_type,
-    },
-  });
+    res.status(200).json({
+      success: true,
+      uses: nullifier.uses + 1,
+      action: action.action ?? null,
+      created_at: nullifier.created_at,
+      max_uses: action.max_verifications,
+      nullifier_hash: nullifier.nullifier_hash,
+    });
+  } else {
+    try {
+      const insertResponse = await client.mutate({
+        mutation: insertNullifierQuery,
+        variables: {
+          action_id: action.id,
+          nullifier_hash: parsedParams.nullifier_hash,
+        },
+      });
 
-  res.status(200).json({
-    success: true,
-    action: action.action ?? null,
-    nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
-    created_at: insertResponse.data.insert_nullifier_one.created_at,
-  });
+      if (
+        insertResponse.data.insert_nullifier_one.nullifier_hash !==
+        parsedParams.nullifier_hash
+      ) {
+        return errorResponse(
+          res,
+          400,
+          "verification_error",
+          "There was an error inserting the nullifier. Please try again.",
+          null,
+          req
+        );
+      }
+      await captureEvent({
+        event: "action_verify_success",
+        distinctId: app.id,
+        properties: {
+          action_id: action.id,
+          error: error,
+        },
+      });
+      res.status(200).json({
+        uses: 1,
+        success: true,
+        action: action.action ?? null,
+        max_uses: action.max_verifications,
+        nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
+        created_at: insertResponse.data.insert_nullifier_one.created_at,
+        verification_level,
+      });
+    } catch (e) {
+      if (
+        (e as ApolloError)?.graphQLErrors?.[0]?.extensions?.code ==
+        "constraint-violation"
+      ) {
+        return errorValidation(
+          AppErrorCodes.MaxVerificationsReached,
+          "This person has already verified for this particular action the maximum number of times allowed.",
+          null,
+          res,
+          req
+        );
+      }
+
+      throw e;
+    }
+  }
 }
+
+const insertNullifierQuery = gql`
+  mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
+    insert_nullifier_one(
+      object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
+    ) {
+      created_at
+      nullifier_hash
+    }
+  }
+`;
+
+const updateNullifierQuery = gql`
+  mutation UpdateNullifierUses($nullifier_hash: String!, $uses: Int!) {
+    update_nullifier(
+      where: { uses: { _eq: $uses }, nullifier_hash: { _eq: $nullifier_hash } }
+      _inc: { uses: 1 }
+    ) {
+      affected_rows
+    }
+  }
+`;

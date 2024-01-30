@@ -19,6 +19,7 @@ import { Icon } from "src/components/Icon";
 import { Menu } from "@headlessui/react";
 import AnimateHeight from "react-animate-height";
 import { Button } from "src/components/Button";
+import { getCDNImageUrl } from "@/lib/utils";
 
 export const ButtonContent = memo(function ButtonContent(props: {
   app: AppModel;
@@ -26,16 +27,29 @@ export const ButtonContent = memo(function ButtonContent(props: {
   className?: string;
 }) {
   const [image, setImage] = useState<string | null>(
-    props.app.verified_app_logo ?? ""
+    props.app?.verified_app_metadata?.logo_img_url
+      ? getCDNImageUrl(
+          props.app.id,
+          props.app.verified_app_metadata?.logo_img_url
+        )
+      : ""
   );
 
   useEffect(() => {
-    if (!props.app.verified_app_logo) {
+    if (!props.app.verified_app_metadata?.logo_img_url) {
       return;
     }
-
-    setImage(props.app.verified_app_logo);
-  }, [props.app.verified_app_logo]);
+    setImage(
+      getCDNImageUrl(
+        props.app.id,
+        props.app.verified_app_metadata?.logo_img_url
+      )
+    );
+  }, [
+    props.app.app_metadata?.logo_img_url,
+    props.app?.id,
+    props.app.verified_app_metadata?.logo_img_url,
+  ]);
 
   return (
     <div
@@ -49,7 +63,7 @@ export const ButtonContent = memo(function ButtonContent(props: {
       <div>
         {image && (
           <Image
-            src={props.app?.verified_app_logo ?? ""}
+            src={image}
             width={20}
             height={20}
             alt="app logo"
@@ -59,12 +73,14 @@ export const ButtonContent = memo(function ButtonContent(props: {
 
         {!image && (
           <div className="w-5 h-5 rounded-full bg-primary-light flex justify-center items-center">
-            <span className="text-primary text-12">{props.app.name[0]}</span>
+            <span className="text-primary text-12">
+              {props.app.app_metadata?.name[0] ?? "?"}
+            </span>
           </div>
         )}
       </div>
       <span className="text-start font-sora text-14 truncate max-w-[13ch] mr-auto text-gray-900 transition-colors">
-        {props.app?.name}
+        {props.app?.app_metadata?.name}
       </span>
     </div>
   );
@@ -85,6 +101,8 @@ export const AppSelector = memo(function AppsSelector(props: {
   const { currentApp } = useAppStore(getStore, shallow);
   const router = useRouter();
 
+  const team_id = useMemo(() => router.query.team_id as string, [router]);
+
   const handleNewAppClick = useCallback(() => {
     selector.toggleOff();
     props.onNewAppClick();
@@ -99,19 +117,26 @@ export const AppSelector = memo(function AppsSelector(props: {
     () =>
       apps
         ?.filter((app) => !isSelected(app))
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort((a, b) =>
+          a.app_metadata?.name.localeCompare(b.app_metadata?.name)
+        ),
     [apps, isSelected]
   );
 
   const getHref = useCallback(
     (id: string) => {
       const pathname = router.pathname;
-      if (pathname.startsWith("/app/[app_id]")) {
-        return `/app/${id}${pathname.replace("/app/[app_id]", "")}`;
+
+      if (pathname.startsWith("/team/[team_id]/app/[app_id]")) {
+        return `/team/${team_id}/app/${id}${pathname.replace(
+          "/team/[team_id]/app/[app_id]",
+          ""
+        )}`;
       }
-      return `/app/${id}`;
+
+      return `/team/${team_id}/app/${id}`;
     },
-    [router.pathname]
+    [router.pathname, team_id]
   );
 
   return (

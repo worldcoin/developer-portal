@@ -2,8 +2,9 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, CredentialType, EngineType } from "src/lib/types";
+import { AppStatusType, EngineType } from "src/lib/types";
 
 type DateTime = string;
 
@@ -24,20 +25,46 @@ export interface TeamMemberModel {
 }
 
 export interface AppModel {
-  id: string;
-  name: string;
-  description_internal: string;
+  id: `app_${string}`;
   is_staging: boolean;
-  logo_url: string;
-  verified_app_logo?: string;
-  is_verified: boolean;
   team_id: string;
   engine: EngineType;
   status: AppStatusType;
   is_archived: boolean;
   created_at: DateTime;
   updated_at?: DateTime;
+  app_metadata: AppMetadataModel;
+  verified_app_metadata?: AppMetadataModel;
   __typename: "app";
+}
+
+export interface AppQueryModel
+  extends Omit<AppModel, "app_metadata" | "verified_app_metadata"> {
+  app_metadata: AppMetadataModel[];
+  verified_app_metadata?: AppMetadataModel[];
+}
+
+export interface AppMetadataModel {
+  id: `meta_${string}`;
+  app_id: `app_${string}`;
+  name: string;
+  description: string;
+  category: string;
+  integration_url: string;
+  app_website_url: string;
+  source_code_url: string;
+  is_developer_allow_listing: boolean;
+  is_reviewer_app_store_approved: boolean;
+  is_reviewer_world_app_approved: boolean;
+  world_app_description: string;
+  logo_img_url: string;
+  showcase_img_urls: string[] | null;
+  hero_image_url: string;
+  verified_at: DateTime;
+  updated_at: DateTime;
+  review_message: string;
+  verification_status: string;
+  __typename: "app_metadata";
 }
 
 export interface ActionModel {
@@ -48,12 +75,14 @@ export interface ActionModel {
   external_nullifier: string;
   max_verifications: number;
   max_accounts_per_user: number;
-  app_id: string;
+  app_id: `app_${string}`;
   client_secret: string; // Used for OIDC authentication
   created_at: DateTime;
   updated_at: DateTime;
   kiosk_enabled: boolean;
   status: "active" | "inactive"; // TODO: need add constraint for status field in hasura (or use boolean)
+  terms_uri: string;
+  privacy_policy_uri: string;
   __typename: "action";
 }
 
@@ -65,12 +94,11 @@ export interface ActionModelWithNullifiers extends ActionModel {
 
 export interface NullifierModel {
   id: string;
+  uses: number;
   action_id: string;
   nullifier_hash: string;
-  merkle_root: string;
   created_at: DateTime;
   updated_at: DateTime;
-  credential_type: CredentialType;
   __typename: "nullifier";
 }
 
@@ -99,6 +127,7 @@ export interface UserModel {
   name: string;
   team_id: string;
   world_id_nullifier: string;
+  auth0Id: string | null;
   is_subscribed: boolean;
   ironclad_id: string;
   created_at: DateTime;
@@ -112,7 +141,9 @@ export interface AuthCodeModel {
   app_id: string;
   expires_at: DateTime;
   nullifier_hash: string;
-  credential_type: CredentialType;
+  code_challenge: string;
+  code_challenge_method: string;
+  verification_level: VerificationLevel;
   scope: [];
   created_at: DateTime;
   updated_at: DateTime;
@@ -143,14 +174,4 @@ export interface APIKeyModel {
   api_key: string;
   name: string;
   __typename: "api_key";
-}
-
-export interface RevocationModel {
-  id: string;
-  identity_commitment: string;
-  revoked_at: DateTime;
-  created_at: DateTime;
-  updated_at?: DateTime;
-  credential_type: string; // TODO: need add constraint for status field in hasura (or use boolean)
-  __typename: "revocation";
 }

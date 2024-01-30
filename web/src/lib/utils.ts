@@ -1,21 +1,24 @@
-import { CredentialType } from "src/lib/types";
+import { Auth0EmailUser, Auth0User } from "src/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
 } from "./constants";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 // Sequencer mapping
 export const sequencerMapping: Record<
-  CredentialType,
+  VerificationLevel,
   { [key: string]: string | undefined }
 > = {
-  [CredentialType.Orb]: {
+  [VerificationLevel.Orb]: {
     true: ORB_SEQUENCER_STAGING,
     false: ORB_SEQUENCER,
   },
-  [CredentialType.Phone]: {
+  [VerificationLevel.Device]: {
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
   },
@@ -63,3 +66,10 @@ export const validateEmail = (candidate: string): boolean => {
 export const isSSR = () => typeof window === "undefined";
 
 export const uriHasJS = (uri: string) => /javascript:/.test(uri);
+
+export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
+  user.sub.startsWith("email|");
+
+export const getCDNImageUrl = (app_id: string, path: string) => {
+  return `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`;
+};

@@ -2,11 +2,10 @@ import useApps from "@/hooks/useApps";
 import { useToggle } from "@/hooks/useToggle";
 import { urls } from "@/lib/urls";
 import { IAppStore, useAppStore } from "@/stores/appStore";
-import { IUserStore, useUserStore } from "@/stores/userStore";
 import cn from "classnames";
 import { useRouter } from "next/router";
 import { Fragment, ReactNode, useEffect, useMemo } from "react";
-import { Slide, ToastContainer } from "react-toastify";
+import { Slide, ToastContainer, toast } from "react-toastify";
 import { Icon } from "../Icon";
 import { Link } from "../Link";
 import { Meta } from "../Meta";
@@ -16,6 +15,8 @@ import { NavItem } from "./NavItem";
 import { NavItemGroup } from "./NavItemsGroup";
 import { NewAppDialog } from "./NewAppDialog";
 import { SystemStatus } from "./SystemStatus";
+import { LoginErrorCode } from "@/lib/types";
+import { loginErrors } from "@/lib/constants";
 
 const getAppStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
@@ -48,6 +49,11 @@ export const Layout = (props: {
       return apps[0].id;
     }
   }, [apps, router.query.app_id]);
+
+  const teamId = useMemo(
+    () => router.query.team_id as string,
+    [router.query.team_id]
+  );
 
   const signInDisabled = useMemo(
     () => currentApp?.engine === "on-chain",
@@ -85,7 +91,10 @@ export const Layout = (props: {
                 <NavItem
                   icon="apps"
                   name="App Profile"
-                  href={urls.app(appId)}
+                  href={urls.app({
+                    team_id: teamId,
+                    app_id: appId,
+                  })}
                 />
 
                 <NavItem
@@ -95,7 +104,10 @@ export const Layout = (props: {
                       : "world-id-sign-in"
                   }
                   name="Sign In"
-                  href={urls.appSignIn(appId)}
+                  href={urls.appSignIn({
+                    team_id: router.query.team_id as string,
+                    app_id: appId,
+                  })}
                   disabled={signInDisabled}
                   stamp={
                     <span className="text-[10px] leading-none py-0.5 px-1 rounded-[4px] bg-gray-500 text-ffffff">
@@ -107,8 +119,11 @@ export const Layout = (props: {
 
                 <NavItem
                   icon="notepad"
-                  name="Anonymous Actions"
-                  href={urls.appActions(appId)}
+                  name="Incognito Actions"
+                  href={urls.appActions({
+                    team_id: router.query.team_id as string,
+                    app_id: appId,
+                  })}
                 />
               </NavItemGroup>
 
@@ -121,7 +136,10 @@ export const Layout = (props: {
                 <NavItem
                   name="Debugger"
                   icon="speed-test"
-                  href={urls.debugger(router.query.app_id as string)}
+                  href={urls.debugger({
+                    app_id: appId ?? "",
+                    team_id: teamId,
+                  })}
                 />
 
                 {/* <NavItem
@@ -134,7 +152,7 @@ export const Layout = (props: {
               <hr className="text-f3f4f5 my-4" />
 
               <NavItemGroup withoutHeading>
-                <NavItem name="My Team" icon="team" href={urls.team()} />
+                <NavItem name="My Team" icon="team" href={urls.team(teamId)} />
                 <NavItem
                   name="Leave Feedback"
                   icon="edit-alt"
@@ -143,7 +161,7 @@ export const Layout = (props: {
                 <NavItem
                   name="Log Out"
                   icon="logout"
-                  href="/logout"
+                  href={urls.logout()}
                   customColor="text-danger"
                 />
               </NavItemGroup>

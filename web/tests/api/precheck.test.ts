@@ -1,15 +1,26 @@
 import { createMocks } from "node-mocks-http";
 import handlePrecheck from "../../src/pages/api/v1/precheck/[app_id]";
+import { Nullifier } from "src/graphql/graphql";
 
 const requestReturnFn = jest.fn();
 
+type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
 const appPayload = {
   id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-  name: "The Yellow App",
-  is_verified: false,
   is_staging: true,
   engine: "cloud",
-  verified_app_logo: "",
+  app_metadata: [
+    {
+      name: "The Yellow App",
+      logo_img_url: "",
+    },
+  ],
+  verified_app_metadata: [
+    {
+      name: "The Yellow App Verified",
+      logo_img_url: "logo_img.png",
+    },
+  ],
   actions: [
     {
       name: "Swag Pack 2022",
@@ -19,7 +30,7 @@ const appPayload = {
         "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
       max_verifications: 1,
       max_accounts_per_user: 1,
-      nullifiers: [] as Record<string, string>[],
+      nullifiers: [] as [_Nullifier] | [],
     },
   ],
 };
@@ -40,7 +51,7 @@ jest.mock(
 );
 
 describe("/api/v1/precheck/[app_id]", () => {
-  test("can fetch precheck response", async () => {
+  test("can fetch precheck response verified", async () => {
     const { req, res } = createMocks({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
@@ -50,6 +61,43 @@ describe("/api/v1/precheck/[app_id]", () => {
     requestReturnFn.mockResolvedValue({
       data: {
         app: [{ ...appPayload }],
+      },
+    });
+
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      name: "The Yellow App Verified",
+      is_verified: true,
+      is_staging: true,
+      engine: "cloud",
+      verified_app_logo:
+        "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
+      sign_in_with_world_id: false,
+      can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
+      action: {
+        action: "swag_pack_2022",
+        name: "Swag Pack 2022",
+        description: "Receive our Swag Pack 2022",
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+      },
+    });
+  });
+
+  test("can fetch precheck response unverified", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: exampleValidRequestPayload,
+    });
+
+    requestReturnFn.mockResolvedValue({
+      data: {
+        app: [{ ...appPayload, verified_app_metadata: [] }],
       },
     });
 
@@ -89,7 +137,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const mockedResponse = { ...appPayload };
-    mockedResponse.actions[0].nullifiers = [{ nullifier_hash: "0x123" }];
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
 
     requestReturnFn.mockResolvedValue({
       data: {
@@ -142,6 +192,61 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
   });
 
+  test("can fetch precheck response with external_nullifier=null", async () => {
+    // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: { ...exampleValidRequestPayload, external_nullifier: null },
+    });
+
+    const mockedResponse = { ...appPayload };
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
+
+    requestReturnFn.mockResolvedValue({
+      data: {
+        app: [mockedResponse],
+      },
+    });
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      engine: "cloud",
+      sign_in_with_world_id: false,
+      action: {
+        max_verifications: 1,
+        external_nullifier:
+          "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
+      },
+    });
+  });
+
+  test("requires external_nullifier when action is not provided", async () => {
+    const { req, res } = createMocks({
+      method: "POST",
+      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      body: {
+        ...exampleValidRequestPayload,
+        external_nullifier: null,
+        action: null,
+      },
+    });
+
+    await handlePrecheck(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+    const response = res._getJSONData();
+    expect(response).toMatchObject({
+      attribute: "external_nullifier",
+      detail: "This attribute is required when action is not provided.",
+    });
+  });
+
   test("precheck with nullifier and below max number of verifications", async () => {
     const { req, res } = createMocks({
       method: "POST",
@@ -150,7 +255,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const mockedResponse = { ...appPayload };
-    mockedResponse.actions[0].nullifiers = [{ nullifier_hash: "0x123" }];
+    mockedResponse.actions[0].nullifiers = [
+      { nullifier_hash: "0x123", uses: 1 },
+    ];
     mockedResponse.actions[0].max_verifications = 2;
 
     requestReturnFn.mockResolvedValue({
@@ -182,8 +289,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
-      { nullifier_hash: "0x123" },
-      { nullifier_hash: "0x123" },
+      { nullifier_hash: "0x123", uses: 2 },
     ];
     mockedResponse.actions[0].max_verifications = 2;
 

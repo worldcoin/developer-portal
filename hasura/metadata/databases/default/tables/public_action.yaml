@@ -53,9 +53,12 @@ insert_permissions:
       check:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       columns:
         - action
         - app_id
@@ -65,7 +68,9 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
 select_permissions:
   - role: analytics
     permission:
@@ -97,6 +102,7 @@ select_permissions:
         - action
         - app_id
         - client_secret
+        - created_at
         - creation_mode
         - description
         - external_nullifier
@@ -105,8 +111,9 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
-        - created_at
+        - terms_uri
       filter:
         _and:
           - app:
@@ -129,14 +136,19 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
         - updated_at
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
 update_permissions:
   - role: api_key
     permission:
@@ -156,6 +168,8 @@ update_permissions:
       columns:
         - client_secret
         - external_nullifier
+        - privacy_policy_uri
+        - terms_uri
       filter: {}
       check: null
   - role: user
@@ -166,13 +180,18 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - privacy_policy_uri
         - status
+        - terms_uri
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
       check: null
 delete_permissions:
   - role: api_key
@@ -186,9 +205,17 @@ delete_permissions:
       filter:
         app:
           team:
-            users:
-              id:
-                _eq: X-Hasura-User-Id
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
+                - _or:
+                    - role:
+                        _eq: OWNER
+                    - role:
+                        _eq: ADMIN
 event_triggers:
   - name: generate_external_nullifier
     definition:

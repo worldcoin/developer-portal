@@ -1,17 +1,20 @@
-import { CredentialType, internal as IDKitInternal } from "@worldcoin/idkit";
-import { memo, useEffect } from "react";
+import {
+  useWorldBridgeStore,
+  VerificationState,
+  VerificationLevel,
+} from "@worldcoin/idkit-core";
+
+import { memo, useEffect, useState } from "react";
 import { IKioskStore, KioskScreen, useKioskStore } from "src/stores/kioskStore";
 
 interface IIDKitBridgeProps {
-  app_id: string;
+  app_id: `app_${string}`;
   action: string;
   action_description: string;
 }
 
 const getKioskStoreParams = (store: IKioskStore) => ({
   setScreen: store.setScreen,
-  setVerificationState: store.setVerificationState,
-  verificationState: store.verificationState,
   screen: store.screen,
   setQrData: store.setQrData,
   setWCReset: store.setWCReset,
@@ -19,64 +22,86 @@ const getKioskStoreParams = (store: IKioskStore) => ({
 });
 
 export const IDKitBridge = memo(function IDKitBridge(props: IIDKitBridgeProps) {
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const { setScreen, setQrData, setWCReset, setProofResult } =
+    useKioskStore(getKioskStoreParams);
+
   const {
-    setScreen,
-    verificationState,
-    setVerificationState,
-    setQrData,
-    setWCReset,
-    setProofResult,
-  } = useKioskStore(getKioskStoreParams);
-  const {
+    connectorURI,
     result,
-    errorCode,
     verificationState: idKitVerificationState,
-    qrData,
+    createClient,
+    pollForUpdates,
+    bridge_url,
     reset,
-  } = IDKitInternal.useAppConnection(
-    props.app_id,
-    props.action,
-    undefined,
-    [CredentialType.Orb, CredentialType.Phone],
-    props.action_description
-  );
+  } = useWorldBridgeStore();
+
+  useEffect(() => {
+    if (idKitVerificationState !== VerificationState.PreparingClient) {
+      return;
+    }
+
+    createClient({
+      app_id: props.app_id,
+      action: props.action,
+      bridge_url,
+      verification_level: VerificationLevel.Device,
+      action_description: props.action_description,
+    })
+      .then(() => {
+        const intervalId = setInterval(
+          () =>
+            pollForUpdates().catch((error) => {
+              console.error(error);
+              setIntervalId(null);
+              clearInterval(intervalId);
+            }),
+          3000
+        );
+
+        setIntervalId(intervalId);
+      })
+      .catch((error) => {
+        if (process.env.NODE_ENV === "development") {
+          console.error(error);
+        }
+      });
+  }, [bridge_url, createClient, idKitVerificationState, pollForUpdates, props.action, props.action_description, props.app_id]);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    if (idKitVerificationState === verificationState) return;
-
     switch (idKitVerificationState) {
-      case IDKitInternal.VerificationState.AwaitingConnection:
+      case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
         break;
-      case IDKitInternal.VerificationState.AwaitingVerification:
+
+      case VerificationState.WaitingForApp:
         setScreen(KioskScreen.Connected);
         break;
-      case IDKitInternal.VerificationState.Failed:
-        switch (errorCode) {
-          case "connection_failed":
-            setScreen(KioskScreen.ConnectionError);
-            break;
-          case "already_signed":
-            setScreen(KioskScreen.AlreadyVerified);
-            break;
-          case "verification_rejected":
-            setScreen(KioskScreen.VerificationRejected);
-            break;
-          case "unexpected_response":
-          case "generic_error":
-          default:
-            setScreen(KioskScreen.VerificationError);
+
+      case VerificationState.Confirmed:
+        if (intervalId) {
+          clearInterval(intervalId);
         }
+
+        setScreen(KioskScreen.Success);
+        break;
+
+      case VerificationState.Failed:
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+
+        setScreen(KioskScreen.VerificationError);
+        break;
     }
-    setVerificationState(idKitVerificationState);
-  }, [verificationState, idKitVerificationState, setScreen, errorCode, setVerificationState]);
+  }, [idKitVerificationState, intervalId, setScreen]);
 
   useEffect(() => {
-    if (qrData) {
-      setQrData(qrData);
+    if (connectorURI) {
+      setQrData(connectorURI);
     }
-  }, [qrData, setQrData]);
+  }, [connectorURI, setQrData]);
 
   useEffect(() => {
     setWCReset(() => {

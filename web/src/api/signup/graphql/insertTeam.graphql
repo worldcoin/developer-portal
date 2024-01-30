@@ -1,0 +1,5 @@
+mutation InsertTeam($team_name: String!) {
+  insert_team_one(object: { name: $team_name }) {
+    id
+  }
+}

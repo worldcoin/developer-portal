@@ -7,10 +7,11 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { CredentialType, JwtConfig } from "../lib/types";
+import { JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
+import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -89,10 +90,12 @@ export const getUserJWTPayload = (user_id: string, team_id: string) => ({
  * @param team_id
  * @returns
  */
-export const generateUserJWT = async (user_id: string, team_id: string) => {
+export const generateUserJWT = async (
+  user_id: string,
+  team_id: string,
+  expiration: number = dayjs().add(7, "day").unix()
+) => {
   const payload = getUserJWTPayload(user_id, team_id);
-
-  const expiration = dayjs().add(7, "day").unix();
   const token = await _generateJWT(payload, expiration);
 
   return { token, expiration };
@@ -203,7 +206,7 @@ interface IVerificationJWT {
   nonce?: string;
   nullifier_hash: string;
   app_id: string;
-  credential_type: CredentialType;
+  verification_level: VerificationLevel;
   scope: OIDCScopes[];
 }
 
@@ -216,7 +219,7 @@ export const generateOIDCJWT = async ({
   nonce,
   nullifier_hash,
   kid,
-  credential_type,
+  verification_level,
   scope,
 }: IVerificationJWT): Promise<string> => {
   const payload = {
@@ -227,9 +230,14 @@ export const generateOIDCJWT = async ({
     exp: formatOIDCDateTime(dayjs().add(1, "hour")),
     aud: app_id,
     scope: scope.join(" "),
+    // NOTE: DEPRECATED, will be removed in future versions
     "https://id.worldcoin.org/beta": {
-      likely_human: credential_type === CredentialType.Orb ? "strong" : "weak",
-      credential_type,
+      likely_human:
+        verification_level === VerificationLevel.Orb ? "strong" : "weak",
+      credential_type: verification_level,
+    },
+    "https://id.worldcoin.org/v1": {
+      verification_level,
     },
   } as Record<string, any>;
 

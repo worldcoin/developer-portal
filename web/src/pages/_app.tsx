@@ -1,11 +1,15 @@
 import "@/globals.css";
 import { usePostHog } from "@/hooks/usePostHog";
+import { PostHogProvider } from "posthog-js/react";
+import posthog from "posthog-js";
 import { client } from "@/services/apollo";
 import { ApolloProvider } from "@apollo/client";
 import { IBM_Plex_Mono, Rubik, Sora } from "next/font/google";
 import { NextSeo } from "next-seo";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
+import { UserProvider, useUser } from "@auth0/nextjs-auth0/client";
+import WithPostHogIdentifier from "@/providers/WithPostHogIdentifier";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -26,7 +30,6 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
-  usePostHog();
   const metaSiteName = "Worldcoin Developer Portal";
 
   const metaDescription =
@@ -106,7 +109,11 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
         }}
       />
 
-      <Component {...pageProps} />
+      <UserProvider>
+        <WithPostHogIdentifier>
+          <Component {...pageProps} />
+        </WithPostHogIdentifier>
+      </UserProvider>
 
       <style jsx global>{`
         :root {

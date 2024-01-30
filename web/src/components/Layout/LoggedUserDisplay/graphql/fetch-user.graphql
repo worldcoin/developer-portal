@@ -3,9 +3,15 @@ query FetchUser($id: String!) {
     id
     email
     name
-    team {
+    auth0Id
+    name
+    memberships {
       id
-      name
+      team {
+        id
+        name
+      }
+      role
     }
   }
 }

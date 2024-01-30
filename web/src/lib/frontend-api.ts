@@ -7,6 +7,7 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { toast } from "react-toastify";
+import { urls } from "./urls";
 
 interface RequestOptions extends RequestInit {
   json?: Record<string, any>;
@@ -63,10 +64,12 @@ export const restAPIRequest = async <T>(
  */
 export const graphQLRequest = async <T>(
   queryOptions: QueryOptions,
-  customErrorHandling?: boolean
+  customErrorHandling?: boolean,
+  headers?: Record<string, string>
 ): Promise<ApolloQueryResult<T | null>> => {
   const httpLink = createHttpLink({
     uri: "/api/v1/graphql",
+    headers,
   });
 
   const authLink = setContext(async (_, { headers }) => ({
@@ -87,7 +90,7 @@ export const graphQLRequest = async <T>(
     return await client.query(queryOptions);
   } catch (e) {
     if ((e as Error).toString().includes("JWTExpired")) {
-      window.location.href = "/logout";
+      window.location.href = urls.logout();
       throw "JWT is expired. Please log in again.";
     }
 
@@ -95,7 +98,7 @@ export const graphQLRequest = async <T>(
       handleError(e);
     }
 
-    console.error(e);
+    console.error("Failed to send GraphQL request", { error: e });
     throw e;
   }
 };

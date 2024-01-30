@@ -1,6 +1,0 @@
-query FindUserByNullifier($nullifier: String!) {
-  users: user(where: { world_id_nullifier: { _eq: $nullifier } }) {
-    id
-    team_id
-  }
-}

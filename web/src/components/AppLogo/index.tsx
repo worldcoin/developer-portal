@@ -1,14 +1,34 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import cn from "classnames";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import { AppModel } from "src/lib/models";
+import { AppMetadataModel } from "src/lib/models";
+import { getCDNImageUrl } from "@/lib/utils";
 
+{
+  /* This component is currently not used */
+}
 export const AppLogo = memo(function AppLogo(props: {
-  app: Pick<AppModel, "name" | "verified_app_logo" | "is_verified">;
+  appMetadata: Pick<
+    AppMetadataModel,
+    "name" | "logo_img_url" | "verification_status"
+  >;
+  app_id: string;
   className?: string;
   textClassName?: string;
 }) {
+  const [image, setImage] = useState<string | null>(
+    props.appMetadata.logo_img_url
+      ? getCDNImageUrl(props.app_id, props.appMetadata.logo_img_url)
+      : ""
+  );
+  useEffect(() => {
+    if (!props.appMetadata?.logo_img_url) {
+      return;
+    }
+    setImage(getCDNImageUrl(props.app_id, props.appMetadata.logo_img_url));
+  }, [props.appMetadata?.logo_img_url, props?.app_id]);
+
   return (
     <div
       className={cn(
@@ -18,7 +38,7 @@ export const AppLogo = memo(function AppLogo(props: {
         props.className
       )}
     >
-      {!props.app.verified_app_logo && (
+      {!image && (
         <span
           className={cn(
             "uppercase m-auto font-bold bg-gradient-to-r bg-clip-text text-transparent from-ff6848 to-primary leading-none",
@@ -26,17 +46,17 @@ export const AppLogo = memo(function AppLogo(props: {
             props.textClassName
           )}
         >
-          {props.app.name
+          {props.appMetadata.name
             .split(" ")
             .map((word) => word[0])
             .join("")}
         </span>
       )}
-
-      {props.app.verified_app_logo && (
+      {image && (
         <div className="w-full h-full">
           <Image
-            src={props.app.verified_app_logo}
+            src={image}
+            onError={() => setImage(null)}
             layout="responsive"
             width={20}
             height={20}

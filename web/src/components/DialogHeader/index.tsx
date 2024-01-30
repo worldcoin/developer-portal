@@ -3,7 +3,7 @@ import cn from "classnames";
 
 interface DialogHeaderProps {
   className?: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   additional?: ReactNode;
   titleClassName?: string;
@@ -16,7 +16,7 @@ export const DialogHeader = memo(function DialogHeader(
 
   return (
     <div className={cn(className, "flex flex-col items-center")}>
-      <div className="relative w-[72px] h-[72px]">{icon}</div>
+      {icon && <div className="relative w-[72px] h-[72px]">{icon}</div>}
 
       <h1
         className={cn(

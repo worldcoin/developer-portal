@@ -17,6 +17,8 @@ const actionFields = `
     id
     app_id
     status
+    privacy_policy_uri
+    terms_uri
 `;
 
 const FetchActionQuery = gql`
@@ -28,7 +30,8 @@ const FetchActionQuery = gql`
 `;
 
 const UpdateActionMutation = gql`
-  mutation UpdateAction($id: String!, $status: String!) {    update_action_by_pk(pk_columns: { id: $id }, _set: { status: $status }) {
+  mutation UpdateAction($id: String!, $changes: action_set_input) {
+    update_action_by_pk(pk_columns: { id: $id }, _set: $changes) {
       ${actionFields}
     }
   }
@@ -44,15 +47,15 @@ const redirectFields = `
 
 const FetchRedirectsQuery = gql`
   query Redirects($action_id: String!) {
-    redirect(where: {action_id: {_eq: $action_id}},  order_by: {created_at: asc}) {
+    redirect(where: {action_id: {_eq: $action_id}}, order_by: {created_at: asc}) {
       ${redirectFields}
     }
   }
 `;
 
 const InsertRedirectMutation = gql`
-  mutation InsertRedirect($action_id: String!) {
-    insert_redirect_one(object: { action_id: $action_id, redirect_uri: "" }) {
+  mutation InsertRedirect($action_id: String!, $uri: String!) {
+    insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
       ${redirectFields}
     }
   }
@@ -85,7 +88,7 @@ const ResetClientSecretMutation = gql`
   }
 `;
 
-const fetchAction = async (_key: [string, string | undefined]) => {
+const fetchAction = async ([_key, team_id]: [string, string | undefined]) => {
   const currentApp = useAppStore.getState().currentApp;
 
   if (!currentApp) {
@@ -94,21 +97,35 @@ const fetchAction = async (_key: [string, string | undefined]) => {
 
   const response = await graphQLRequest<{
     action: Array<ActionModel>;
-  }>({
-    query: FetchActionQuery,
-    variables: {
-      app_id: currentApp.id,
+  }>(
+    {
+      query: FetchActionQuery,
+      variables: {
+        app_id: currentApp.id,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   return response.data?.action?.[0] ?? null;
 };
 
 const updateActionFetcher = async (
-  _key: [string, string | undefined],
-  args: { arg: { status: ActionModel["status"] } }
+  [_key, team_id]: [string, string | undefined],
+  args: {
+    arg: {
+      changes: {
+        status?: ActionModel["status"];
+        terms_uri?: ActionModel["terms_uri"];
+        privacy_policy_uri?: ActionModel["privacy_policy_uri"];
+      };
+    };
+  }
 ) => {
-  const { status } = args.arg;
+  const { changes } = args.arg;
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
@@ -117,13 +134,19 @@ const updateActionFetcher = async (
 
   const response = await graphQLRequest<{
     update_action_by_pk: ActionModel;
-  }>({
-    query: UpdateActionMutation,
-    variables: {
-      id: currentAction.id,
-      status,
+  }>(
+    {
+      query: UpdateActionMutation,
+      variables: {
+        id: currentAction.id,
+        changes,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   if (response.data?.update_action_by_pk) {
     return response.data.update_action_by_pk;
@@ -132,7 +155,10 @@ const updateActionFetcher = async (
   throw new Error("Failed to update action");
 };
 
-const fetchRedirects = async () => {
+const fetchRedirects = async ([_key, team_id]: [
+  string,
+  string | undefined
+]) => {
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
@@ -141,12 +167,18 @@ const fetchRedirects = async () => {
 
   const response = await graphQLRequest<{
     redirect: Array<RedirectModel>;
-  }>({
-    query: FetchRedirectsQuery,
-    variables: {
-      action_id: currentAction.id,
+  }>(
+    {
+      query: FetchRedirectsQuery,
+      variables: {
+        action_id: currentAction.id,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   if (response.data?.redirect) {
     return response.data.redirect;
@@ -155,21 +187,38 @@ const fetchRedirects = async () => {
   throw new Error("Error fetching redirects");
 };
 
-const addRedirectFetcher = async (_key: [string, string | undefined]) => {
+const addRedirectFetcher = async (
+  [_key, team_id]: [string, string | undefined],
+
+  args: {
+    arg: {
+      uri: RedirectModel["redirect_uri"];
+    };
+  }
+) => {
   const currentAction = useSignInActionStore.getState().action;
 
   if (!currentAction) {
     return;
   }
 
+  const { uri } = args.arg;
+
   const response = await graphQLRequest<{
     insert_redirect_one: RedirectModel;
-  }>({
-    query: InsertRedirectMutation,
-    variables: {
-      action_id: currentAction.id,
+  }>(
+    {
+      query: InsertRedirectMutation,
+      variables: {
+        action_id: currentAction.id,
+        uri,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   if (response.data?.insert_redirect_one.id) {
     return response.data.insert_redirect_one;
@@ -179,7 +228,7 @@ const addRedirectFetcher = async (_key: [string, string | undefined]) => {
 };
 
 const updateRedirectFetcher = async (
-  _key: [string, string | undefined],
+  [_key, team_id]: [string, string | undefined],
   args: {
     arg: {
       id: RedirectModel["id"];
@@ -191,13 +240,19 @@ const updateRedirectFetcher = async (
 
   const response = await graphQLRequest<{
     update_redirect_by_pk: RedirectModel;
-  }>({
-    query: UpdateRedirectMutation,
-    variables: {
-      id,
-      uri,
+  }>(
+    {
+      query: UpdateRedirectMutation,
+      variables: {
+        id,
+        uri,
+      },
     },
-  });
+    undefined,
+    {
+      team_id: team_id ?? "",
+    }
+  );
 
   if (response.data?.update_redirect_by_pk.id) {
     return response.data.update_redirect_by_pk;
@@ -207,17 +262,21 @@ const updateRedirectFetcher = async (
 };
 
 const deleteRedirectFetcher = async (
-  _key: [string, string | undefined],
+  [_key, team_id]: [string, string | undefined],
   args: { arg: { id: RedirectModel["id"] } }
 ) => {
   const { id } = args.arg;
 
   const response = await graphQLRequest<{
     delete_redirect_by_pk: Pick<RedirectModel, "id">;
-  }>({
-    query: DeleteRedirectMutation,
-    variables: { id },
-  });
+  }>(
+    {
+      query: DeleteRedirectMutation,
+      variables: { id },
+    },
+    undefined,
+    { team_id: team_id ?? "" }
+  );
 
   if (response.data?.delete_redirect_by_pk.id) {
     return response.data.delete_redirect_by_pk.id;
@@ -226,25 +285,40 @@ const deleteRedirectFetcher = async (
   throw new Error("Fieled to delete redirect");
 };
 
-const resetClientSecretFetcher = async (_key: [string, string | undefined]) => {
+const resetClientSecretFetcher = async ([_key, team_id]: [
+  string,
+  string | undefined
+]) => {
   const currentApp = useAppStore.getState().currentApp;
 
   if (!currentApp) {
     return null;
   }
 
-  const response = await graphQLRequest<{
-    reset_client_secret: { client_secret: string };
-  }>({
-    query: ResetClientSecretMutation,
-    variables: { app_id: currentApp.id },
-  });
+  let response;
+
+  try {
+    response = await graphQLRequest<{
+      reset_client_secret: { client_secret: string };
+    }>(
+      {
+        query: ResetClientSecretMutation,
+        variables: { app_id: currentApp.id },
+      },
+      undefined,
+      {
+        team_id: team_id ?? "",
+      }
+    );
+  } catch {
+    return null;
+  }
 
   if (response.data?.reset_client_secret.client_secret) {
     return response.data.reset_client_secret.client_secret;
   }
 
-  throw new Error("Failed to reset client secret");
+  return null;
 };
 
 const getAppStore = (store: IAppStore) => ({
@@ -261,7 +335,8 @@ const getSignInActionStore = (store: ISignInActionStore) => ({
 });
 
 const useSignInAction = () => {
-  const { currentApp } = useAppStore(getAppStore, shallow);
+  const router = useRouter();
+  const team_id = router.query.team_id as string | undefined;
 
   const {
     currentAction: _action,
@@ -276,50 +351,63 @@ const useSignInAction = () => {
     data: action,
     error: actionError,
     isLoading: actionIsLoading,
-  } = useSWR<ActionModel | null>(
-    ["signInAction", currentApp?.id],
-    fetchAction,
-    {
-      onSuccess: (data) => setAction(data),
-    }
-  );
+  } = useSWR<ActionModel | null>(["fetchAction", team_id], fetchAction, {
+    onSuccess: (data) => setAction(data),
+  });
 
   const { trigger: updateAction } = useSWRMutation(
-    ["signInAction", currentApp?.id],
+    ["updateActionFetcher", team_id],
     updateActionFetcher,
     {
       onSuccess: (data) => {
         if (data) {
           setAction(data);
+          toast.success("Action updated");
         }
       },
     }
   );
 
   const {
+    mutate: mutateRedirects,
     data: redirects,
     error: redirectsError,
     isLoading: redirectsIsLoading,
-  } = useSWR<Array<RedirectModel>>(["redirect", _action?.id], fetchRedirects, {
-    onSuccess: (data) => setCurrentRedirects(data),
-  });
+  } = useSWR<Array<Pick<RedirectModel, "id" | "redirect_uri">>>(
+    ["fetchRedirects", team_id],
+    fetchRedirects,
+    {
+      onSuccess: (data) => setCurrentRedirects(data),
+    }
+  );
 
   const { trigger: addRedirect } = useSWRMutation(
-    ["redirect", _action?.id],
+    ["addRedirectFetcher", team_id],
     addRedirectFetcher,
     {
       onSuccess: (data) => {
         if (data) {
           setCurrentRedirects([...currentRedirects, data]);
-          // TODO: do not save the redirect before the user populates the uri
-          //toast.success("Redirect added");
+          toast.success("Redirect added");
         }
       },
+
+      onError: () => toast.error("Error while adding redirect"),
     }
   );
 
+  const addRedirectOptimistic = async ({
+    uri,
+  }: {
+    uri: RedirectModel["redirect_uri"];
+  }) => {
+    const newRedirects = [...(redirects ?? []), { id: "", redirect_uri: uri }];
+    await mutateRedirects(newRedirects, false);
+    return addRedirect({ uri });
+  };
+
   const { trigger: updateRedirect } = useSWRMutation(
-    ["redirect", _action?.id],
+    ["updateRedirectFetcher", team_id],
     updateRedirectFetcher,
     {
       onSuccess: (updatedRedirect) => {
@@ -337,7 +425,7 @@ const useSignInAction = () => {
   );
 
   const { trigger: deleteRedirect } = useSWRMutation(
-    ["redirect", _action?.id],
+    ["deleteRedirectFetcher", team_id],
     deleteRedirectFetcher,
     {
       onSuccess: (id) => {
@@ -353,7 +441,7 @@ const useSignInAction = () => {
   );
 
   const { trigger: resetClientSecret } = useSWRMutation(
-    ["redirect", _action?.id],
+    ["resetClientSecretFetcher", team_id],
     resetClientSecretFetcher,
     {
       onSuccess: (clientSecret) => {
@@ -364,8 +452,6 @@ const useSignInAction = () => {
       },
     }
   );
-
-  const router = useRouter();
 
   // NOTE: hide client secret on router history change
   useEffect(() => {
@@ -381,7 +467,7 @@ const useSignInAction = () => {
     redirects,
     redirectsError,
     redirectsIsLoading,
-    addRedirect,
+    addRedirect: addRedirectOptimistic,
     updateRedirect,
     deleteRedirect,
 

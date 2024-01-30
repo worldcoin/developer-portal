@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "src/backend/graphql";
 import { protectInternalEndpoint } from "src/backend/utils";
 import { ActionModel } from "src/lib/models";
 import { errorNotAllowed } from "../../backend/errors";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 /**
  * Generates the external nullifier for actions created in the Developer Portal.
@@ -29,7 +29,7 @@ export default async function handler(
     return res.status(200).json({ success: true, already_generated: true });
   }
 
-  const external_nullifier = IDKitInternal.generateExternalNullifier(
+  const external_nullifier = generateExternalNullifier(
     action.app_id,
     action.action
   ).digest;

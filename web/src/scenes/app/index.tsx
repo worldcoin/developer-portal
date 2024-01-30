@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { Layout } from "src/components/Layout";
 import { Preloader } from "src/components/Preloader";
 import { IAppStore, useAppStore } from "src/stores/appStore";
@@ -11,16 +11,27 @@ import { useToggle } from "@/hooks/useToggle";
 import { RemoveAppDialog } from "@/scenes/app/RemoveAppDialog";
 import { Button } from "@/components/Button";
 import { NotFound } from "src/components/NotFound";
+import { useRouter } from "next/router";
 
 const getStore = (store: IAppStore) => ({
   currentApp: store.currentApp,
+  setCurrentApp: store.setCurrentApp,
 });
 
-export const App = memo(function App(props: { appId: string }) {
-  const { isLoading } = useApps();
-  const { currentApp } = useAppStore(getStore, shallow);
-
+export const App = memo(function App() {
+  const { isLoading, apps } = useApps();
+  const { currentApp, setCurrentApp } = useAppStore(getStore, shallow);
   const removeAppDialog = useToggle();
+  const router = useRouter();
+  const app_id = useMemo(() => router.query.app_id as string, [router.query]);
+
+  useEffect(() => {
+    if (!app_id) {
+      return;
+    }
+
+    setCurrentApp(apps?.find((app) => app.id === app_id) ?? null);
+  }, [app_id, apps, setCurrentApp]);
 
   return (
     <Layout mainClassName="grid">

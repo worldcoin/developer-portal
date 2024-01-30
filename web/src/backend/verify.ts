@@ -1,10 +1,12 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { internal as IDKitInternal } from "@worldcoin/idkit";
 import { BigNumber, ethers } from "ethers";
-import { CredentialType, IInternalError } from "src/lib/types";
+import { IInternalError } from "src/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "src/lib/utils";
 import { logger } from "src/lib/logger";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { validateABILikeEncoding } from "@/lib/hashing";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
@@ -30,7 +32,7 @@ const KNOWN_ERROR_CODES = [
   },
 ];
 
-interface IInputParams {
+export interface IInputParams {
   merkle_root: string;
   signal: string;
   nullifier_hash: string;
@@ -38,10 +40,9 @@ interface IInputParams {
   proof: string;
 }
 
-interface IVerifyParams {
+export interface IVerifyParams {
   is_staging: boolean;
-  credential_type: CredentialType;
-  max_age?: number;
+  verification_level: VerificationLevel;
 }
 
 interface IAppAction {
@@ -55,6 +56,8 @@ interface IAppAction {
       status: string;
       external_nullifier: string;
       nullifiers: {
+        uses: number;
+        created_at: string;
         nullifier_hash: string;
       }[];
       max_verifications: number;
@@ -85,6 +88,8 @@ const queryFetchAppAction = gql`
         external_nullifier
         status
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+          uses
+          created_at
           nullifier_hash
         }
       }
@@ -130,8 +135,7 @@ export const fetchActionForProof = async (
   if (!result.data.app.length) {
     return {
       error: {
-        message:
-          "We couldn't find an app with this ID. App may be no longer active.",
+        message: "App not found. App may be no longer active.",
         code: "not_found",
         statusCode: 404,
       },
@@ -143,7 +147,7 @@ export const fetchActionForProof = async (
   if (!app.actions.length) {
     return {
       error: {
-        message: "We couldn't find the relevant action.",
+        message: "Action not found.",
         code: "invalid_action",
         statusCode: 400,
         attribute: "action",
@@ -163,7 +167,12 @@ export const fetchActionForProof = async (
   }
 
   return {
-    app: { ...app, action: app.actions[0], actions: undefined },
+    app: {
+      ...app,
+      actions: undefined,
+      action: app.actions[0],
+      nullifier: app.actions[0]?.nullifiers?.[0],
+    },
   };
 };
 
@@ -246,7 +255,7 @@ export const parseProofInputs = (params: IInputParams) => {
     };
   }
 
-  if (IDKitInternal.validateABILikeEncoding(params.signal)) {
+  if (validateABILikeEncoding(params.signal)) {
     try {
       signal_hash = (
         abi.decode(["uint256"], params.signal)[0] as BigNumber
@@ -264,9 +273,7 @@ export const parseProofInputs = (params: IInputParams) => {
       };
     }
   } else {
-    signal_hash = BigNumber.from(
-      IDKitInternal.hashToField(params.signal).hash
-    ).toHexString();
+    signal_hash = BigNumber.from(hashToField(params.signal).hash).toHexString();
   }
 
   return {
@@ -309,7 +316,7 @@ export const verifyProof = async (
   });
 
   const sequencerUrl =
-    sequencerMapping[verifyParams.credential_type]?.[
+    sequencerMapping[verifyParams.verification_level]?.[
       verifyParams.is_staging.toString()
     ];
 
@@ -357,7 +364,7 @@ export const verifyProof = async (
   const status = result.status === "mined" ? "on-chain" : "pending";
 
   if (!status) {
-    console.error("Unexpected response received from sequencer.", {
+    logger.error("Unexpected response received from sequencer.", {
       result,
       sequencerUrl,
     });

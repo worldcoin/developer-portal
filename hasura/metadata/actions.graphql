@@ -1,19 +1,44 @@
 type Mutation {
-  invite_team_members(
-    emails: [String!]
-  ): InviteTeamMembersOutput
+  delete_unverified_images(app_id: String!): DeleteImageOutput
 }
 
-type Mutation {
-  reset_api_key(
-    id: String!
-  ): ResetAPIOutput
+type Query {
+  get_all_unverified_images(app_id: String!): ImageGetAllUnverifiedImagesOutput
 }
 
-type Mutation {
-  reset_client_secret(
+type Query {
+  get_uploaded_image(
     app_id: String!
-  ): ResetClientOutput
+    image_type: String!
+    content_type_ending: String!
+  ): GetUploadedImageOutput
+}
+
+type Mutation {
+  invite_team_members(emails: [String!]): InviteTeamMembersOutput
+}
+
+type Mutation {
+  reset_api_key(id: String!): ResetAPIOutput
+}
+
+type Mutation {
+  reset_client_secret(app_id: String!): ResetClientOutput
+}
+
+type Query {
+  upload_image(
+    app_id: String!
+    image_type: String!
+    content_type_ending: String!
+  ): PresignedPostOutput
+}
+
+input UploadImageInput {
+  app_id: String!
+  team_id: String!
+  image_type: String!
+  content_type_ending: String!
 }
 
 type ResetClientOutput {
@@ -28,3 +53,36 @@ type InviteTeamMembersOutput {
   emails: [String!]
 }
 
+type PresignedPost {
+  url: String!
+  stringifiedFields: String!
+}
+
+type GetUploadedImageOutput {
+  url: String!
+}
+
+type ImageUrls {
+  logo_img_url: String
+  hero_image_url: String
+  showcase_img_urls: [String]
+}
+
+type ImageGetAllUnverifiedImagesResponse {
+  urls: ImageUrls
+}
+
+type ImageGetAllUnverifiedImagesOutput {
+  logo_img_url: String
+  hero_image_url: String
+  showcase_img_urls: [String!]
+}
+
+type PresignedPostOutput {
+  url: String!
+  stringifiedFields: String!
+}
+
+type DeleteImageOutput {
+  success: Boolean
+}
