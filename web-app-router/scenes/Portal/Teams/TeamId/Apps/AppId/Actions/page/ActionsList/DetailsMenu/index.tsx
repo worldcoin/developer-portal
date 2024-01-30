@@ -1,7 +1,7 @@
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { ElementsIcon } from "@/components/Icons/ElementsIcon";
+import { Link } from "@/components/Link";
 import { Menu } from "@headlessui/react";
-import Link from "next/link";
 
 export const DetailsMenu = (props: { path: string }) => {
   const { path } = props;
