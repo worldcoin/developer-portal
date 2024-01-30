@@ -16,16 +16,16 @@ export type NullifierItem = {
 // Example of how to use this component
 export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const { nullifiers } = props;
-  const headers = [
-    <span key={0}>Human</span>,
-    <span key={1}>Uses</span>,
-    <span key={2}>Time</span>,
-  ];
   const rowsPerPageOptions = [10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(nullifiers.length);
   const logos = ["bear.png", "owl.png"];
+  const headers = [
+    <span key={0}>Human</span>,
+    <span key={1}>Uses</span>,
+    <span key={2}>Time</span>,
+  ];
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
