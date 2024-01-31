@@ -25,25 +25,21 @@ export const ActionsPage = async ({
   const data = await GetActionsSdk(client).Actions({
     app_id: appId,
   });
-
   const showList = data?.action && data?.action?.length > 0;
+
   return (
     <div className="w-full h-full">
       <ActionsList
         actions={data.action}
-        className={clsx({ hidden: !showList && !createAction })}
+        className={clsx({ hidden: !showList || createAction })}
       />
       <CreateActionModal className={clsx({ hidden: !createAction })} />
       <div
         className={clsx("flex flex-col items-center pt-24", {
-          hidden: !createAction && showList,
+          hidden: showList || createAction,
         })}
       >
-        <div
-          className={clsx("grid gap-y-4 place-items-center max-w-[600px]", {
-            hidden: !createAction && !showList,
-          })}
-        >
+        <div className={clsx("grid gap-y-4 place-items-center max-w-[600px]")}>
           <div className="relative">
             <LogoLinesIcon className="z-0" />
             <WorldcoinBlueprintIcon className="absolute inset-0 m-auto z-10 w-[60px] h-[60px] rounded-2xl" />

@@ -2,7 +2,7 @@
  * Constants available to both backend and frontend.
  */
 
-import { LoginErrorCode } from "./types";
+import { LoginErrorCode } from "../../lib/types";
 
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import clsx from "clsx";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { Button } from "@/components/Button";
@@ -26,7 +25,7 @@ export const Footer: React.FC<FooterProps> = ({
   handlePageChange,
   handleRowsPerPageChange,
 }) => {
-  const pageCount = Math.ceil(totalResults / rowsPerPage);
+  const pageCount = Math.max(1, Math.ceil(totalResults / rowsPerPage));
 
   return (
     <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-grey-100">
@@ -42,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({
               "disabled:opacity-50 cursor-not-allowed": currentPage === 1,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage !== 1,
-            },
+            }
           )}
         >
           <CaretIcon
@@ -65,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({
                 currentPage === pageCount,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage < pageCount,
-            },
+            }
           )}
         >
           <CaretIcon
@@ -103,7 +102,7 @@ const PaginationSelect = (props: {
         className={clsx(
           "text-left items-center text-xs",
           "grid grid-cols-1fr/auto border-grey-200 border rounded-lg px-2 text-grey-700 h-8 w-20",
-          className,
+          className
         )}
       >
         {rowsPerPageOptions[value] ?? value.toString()}
@@ -112,7 +111,7 @@ const PaginationSelect = (props: {
 
       <SelectOptions
         className={clsx(
-          "mt-2 text-xs focus:ring-0 focus:outline-none max-h-24",
+          "mt-2 text-xs focus:ring-0 focus:outline-none max-h-24"
         )}
       >
         {rowsPerPageOptions.map((option, index) => (

@@ -1,5 +1,5 @@
 import { logger } from "@/legacy/lib/logger";
-import { LoginErrorCode } from "@/legacy/lib/types";
+import { LoginErrorCode } from "@/lib/types";
 import {
   handleAuth,
   handleCallback,

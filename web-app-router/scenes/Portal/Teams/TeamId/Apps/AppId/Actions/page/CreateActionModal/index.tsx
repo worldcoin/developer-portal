@@ -2,7 +2,6 @@
 
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { UserHelpNav } from "@/components/UserHelpNav";
-import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Input } from "@/components/Input";
 import * as yup from "yup";
@@ -19,6 +18,7 @@ import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import clsx from "clsx";
+import { Link } from "@/components/Link";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -115,14 +115,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           });
 
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, pathname, router, setError],
+    [appId, insertActionQuery, setError]
   );
 
   const copyAction = useCallback(() => {
@@ -134,7 +134,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     <div
       className={clsx(
         "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
-        className,
+        className
       )}
     >
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">

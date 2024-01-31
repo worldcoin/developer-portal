@@ -1,6 +1,6 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BigNumber, ethers } from "ethers";
-import { IInternalError } from "@/legacy/lib/types";
+import { IInternalError } from "@/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "@/legacy/lib/utils";
 import { logger } from "@/legacy/lib/logger";

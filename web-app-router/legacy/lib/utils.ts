@@ -1,4 +1,4 @@
-import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
+import { Auth0EmailUser, Auth0User } from "@/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
