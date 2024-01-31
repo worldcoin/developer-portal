@@ -28,7 +28,10 @@ export const ActionIdSettingsPage = async ({
     <div className="w-full h-full flex flex-col items-center ">
       <div className="grid gap-y-2 max-w-[1180px] w-full py-10">
         <div>
-          <Link href=".." className="flex flex-row items-center gap-x-2">
+          <Link
+            href={`..?$action_name=${action.name}`}
+            className="flex flex-row items-center gap-x-2"
+          >
             <CaretIcon className="h-3 w-3 text-grey-400 rotate-90" />
             <p className="text-grey-700 font-[400] text-xs">
               Back to Incognito Actions

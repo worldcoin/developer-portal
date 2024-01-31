@@ -38,12 +38,11 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - id
         - action_id
         - created_at
-        - updated_at
-        - nullifier_hash
+        - id
         - uses
+        - nullifier_hash
       filter: {}
   - role: user
     permission:

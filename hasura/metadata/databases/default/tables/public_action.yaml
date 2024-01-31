@@ -99,21 +99,20 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - id
-        - created_at
-        - updated_at
-        - name
-        - description
         - action
-        - external_nullifier
         - app_id
+        - client_secret
+        - created_at
+        - creation_mode
+        - description
+        - external_nullifier
+        - id
+        - kiosk_enabled
         - max_accounts_per_user
         - max_verifications
-        - creation_mode
-        - client_secret
-        - kiosk_enabled
-        - status
+        - name
         - privacy_policy_uri
+        - status
         - terms_uri
       filter:
         _and:
