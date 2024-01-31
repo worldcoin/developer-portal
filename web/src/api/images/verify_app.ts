@@ -132,7 +132,7 @@ export const handleVerifyApp = async (
     const sourcePrefix = `unverified/${app_id}/`;
     const destinationPrefix = `verified/${app_id}/`;
 
-    // Mark for deletion existing verified images
+    // In case we have some stale images in the folder we iterate directly to delete
     const listObjectsResponse = await s3Client.send(
       new ListObjectsCommand({
         Bucket: bucketName,
