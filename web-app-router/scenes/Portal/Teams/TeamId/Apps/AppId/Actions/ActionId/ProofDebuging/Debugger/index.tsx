@@ -21,11 +21,11 @@ const testProofSchema = yup.object({
 type TestProofFormValues = yup.Asserts<typeof testProofSchema>;
 
 const exampleVR = `{
-        "nullifier_hash": "0x26a12376e45f7b93fba3d5ddd7f1092eb...",
-        "proof": "0x0751916cb52efab89f7045f5174638d072ea60d9e9...",
-        "merkle_root": "0x0f6ee51b93a1261af6c4302c30afbbdf8af5...",
-        "verification_level": "orb"
-      }`;
+  "nullifier_hash": "0x26a12376e45f7b93fba3d5ddd7f1092eb...",
+  "proof": "0x0751916cb52efab89f7045f5174638d072ea60d9e9...",
+  "merkle_root": "0x0f6ee51b93a1261af6c4302c30afbbdf8af5...",
+  "verification_level": "orb"
+}`;
 
 const messages = {
   IDLE: <>No verification response</>,
@@ -172,7 +172,7 @@ export const Debugger = (props: DebuggerProps) => {
   );
   return (
     <form
-      className="w-full grid-cols-2 grid items-start justify-between gap-x-32"
+      className="w-full grid-cols-1fr/auto grid items-start justify-between gap-x-32"
       onSubmit={handleSubmit(submit)}
     >
       <div className="w-full grid gap-y-6">
@@ -190,7 +190,7 @@ export const Debugger = (props: DebuggerProps) => {
             label="Verification response"
             errors={errors?.verification_response}
             placeholder={exampleVR}
-            className="h-[200px]"
+            className="h-[200px] py-1"
           />
           <DecoratedButton
             type="button"
@@ -201,7 +201,7 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="w-full grid gap-y-6">
+      <div className="w-full grid gap-y-6 min-w-[480px]">
         <h1 className="text-lg font-[550]">Results</h1>
         <div
           className={clsx(
@@ -222,14 +222,10 @@ export const Debugger = (props: DebuggerProps) => {
             }
           >
             {status === Status.IDLE && <WorldcoinIcon />}
-            {status === Status.SUCCESS && (
-              <CheckIcon className="text-system-success-500" />
-            )}
-            {status === Status.ERROR && (
-              <CloseIcon className="text-system-error-500 stroke-3 w-5 h-5" />
-            )}
+            {status === Status.SUCCESS && <CheckIcon className="" />}
+            {status === Status.ERROR && <CloseIcon className="w-5 h-5" />}
           </CircleIconContainer>
-          <div className="flex flex-col items-center gap-y-5 mt-8">
+          <div className="flex flex-col items-center gap-y-5 mt-8 px-12 text-center">
             <p
               className={clsx("text-grey-400 text-sm", {
                 "text-system-error-600": status === Status.ERROR,
