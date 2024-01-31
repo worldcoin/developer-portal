@@ -42,7 +42,6 @@ export const handleVerifyApp = async (
       return errorNotAllowed(req.method!, res, req);
     }
 
-    // Do we want admin to be able to run this?
     if (
       !["reviewer", "admin"].includes(
         req.body.session_variables["x-hasura-role"]
@@ -51,8 +50,8 @@ export const handleVerifyApp = async (
       return errorHasuraQuery({
         res,
         req,
-        detail: "Only reviewers are allowed to verify apps.",
-        code: "required",
+        detail: "Unauthorized Role",
+        code: "unauthorized_role",
       });
     }
 
@@ -82,7 +81,7 @@ export const handleVerifyApp = async (
         res,
         req,
         detail:
-          "app_id, reviewer_name, is_reviewer_app_store_approved,is_reviewer_world_app_approved must be set.",
+          "app_id, reviewer_name, is_reviewer_app_store_approved, is_reviewer_world_app_approved must be set.",
         code: "required",
       });
     }
@@ -116,6 +115,7 @@ export const handleVerifyApp = async (
         code: "invalid_verification_status",
       });
     }
+
     const verifiedAppMetadata = app.app_metadata.find(
       (metadata) => metadata.verification_status === "verified"
     );
@@ -143,6 +143,7 @@ export const handleVerifyApp = async (
     const verifiedImageKeysToDelete = listObjectsResponse.Contents?.map(
       (object) => object.Key
     );
+
     if (verifiedImageKeysToDelete && verifiedImageKeysToDelete.length > 0) {
       const expirePromises = verifiedImageKeysToDelete.map((key) =>
         s3Client.send(
@@ -213,7 +214,7 @@ export const handleVerifyApp = async (
     copyPromises.push(...showcaseCopyPromises);
     await Promise.all(copyPromises);
 
-    // Delete an existing verified rows
+    // Delete any existing verified rows
     if (verifiedAppMetadata) {
       const deleteVerifiedAppMetadata = await deleteVerifiedAppMetadataSDK(
         reviewer_client
@@ -246,8 +247,8 @@ export const handleVerifyApp = async (
         verification_status: "verified",
         verified_at: new Date().toISOString(),
         reviewed_by: reviewer_name,
-        is_reviewer_app_store_approved: true,
-        is_reviewer_world_app_approved: true,
+        is_reviewer_app_store_approved: is_reviewer_app_store_approved,
+        is_reviewer_world_app_approved: is_reviewer_world_app_approved,
       },
     });
 
@@ -255,7 +256,7 @@ export const handleVerifyApp = async (
       return errorHasuraQuery({
         res,
         req,
-        detail: "Unable to update app metadata.",
+        detail: "Unable to verify.",
         code: "verification_failed",
       });
     }
