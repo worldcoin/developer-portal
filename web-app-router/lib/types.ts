@@ -4,7 +4,7 @@
  */
 
 import { NextApiRequest } from "next";
-import { ActionModel, AppMetadataModel, AppModel } from "../legacy/lib/models";
+import { ActionModel, AppMetadataModel, AppModel } from "./models";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;

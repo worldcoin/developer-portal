@@ -66,6 +66,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
     "deploying a smart contract and making a transaction\n" +
     "\nSee an end to end example:\n" +
     "https://github.com/worldcoin/world-id-onchain-template";
+
   return (
     <div className="w-full max-w-full grid gap-y-5">
       <CodeDisplayComponent

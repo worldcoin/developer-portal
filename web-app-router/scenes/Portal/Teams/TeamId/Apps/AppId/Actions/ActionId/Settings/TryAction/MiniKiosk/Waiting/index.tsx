@@ -23,7 +23,7 @@ export const Waiting = memo(function Waiting(props: {
   }, [qrData]);
 
   return (
-    <div className="grid gap-y-5">
+    <div className="grid gap-y-6">
       <div className="flex flex-col items-center portrait:py-12 landscape:py-6 bg-white p-10 rounded-2xl gap-y-5 shadow-qrCode">
         {qrData && (
           <QRCode
@@ -37,7 +37,7 @@ export const Waiting = memo(function Waiting(props: {
           type="button"
           onClick={handleCopy}
           disabled={!qrData}
-          className="h-9 font-medium text-14 flex flex-row items-center"
+          className="font-medium text-14 flex flex-row items-center"
         >
           <CopyIcon
             className={clsx("mr-2 font-[500]", copied && "text-grey-900")}

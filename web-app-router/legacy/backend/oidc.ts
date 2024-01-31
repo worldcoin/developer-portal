@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import crypto from "crypto";
-import { ActionModel, AppModel, RedirectModel } from "@/legacy/lib/models";
+import { ActionModel, AppModel, RedirectModel } from "@/lib/models";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
@@ -103,7 +103,7 @@ interface OIDCApp {
 
 export const fetchOIDCApp = async (
   app_id: string,
-  redirect_uri: string,
+  redirect_uri: string
 ): Promise<{ app?: OIDCApp; error?: IInternalError }> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchOIDCAppResult>({
@@ -157,7 +157,7 @@ export const generateOIDCCode = async (
   scope: OIDCScopes[],
   code_challenge?: string,
   code_challenge_method?: string,
-  nonce?: string | null,
+  nonce?: string | null
 ): Promise<string> => {
   // Generate a random code
   const auth_code = crypto.randomBytes(12).toString("hex");
@@ -220,7 +220,7 @@ type FetchAppSecretResult = {
 
 // TODO: Hash secrets as passwords (e.g. `PBKDF2`) instead of HMAC
 export const authenticateOIDCEndpoint = async (
-  auth_header: string,
+  auth_header: string
 ): Promise<string | null> => {
   const authToken = auth_header.replace("Basic ", "");
   const [app_id, client_secret] = Buffer.from(authToken, "base64")
@@ -243,7 +243,7 @@ export const authenticateOIDCEndpoint = async (
 
   if (!hmac_secret) {
     logger.info(
-      "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled.",
+      "authenticateOIDCEndpoint - App does not have Sign in with World ID enabled."
     );
     return null;
   }
