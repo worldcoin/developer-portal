@@ -72,6 +72,11 @@ insert_permissions:
         - status
         - terms_uri
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - app_id
+      filter: {}
   - role: api_key
     permission:
       columns:
@@ -94,20 +99,21 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - action
-        - app_id
-        - client_secret
-        - created_at
-        - creation_mode
-        - description
-        - external_nullifier
         - id
-        - kiosk_enabled
+        - created_at
+        - updated_at
+        - name
+        - description
+        - action
+        - external_nullifier
+        - app_id
         - max_accounts_per_user
         - max_verifications
-        - name
-        - privacy_policy_uri
+        - creation_mode
+        - client_secret
+        - kiosk_enabled
         - status
+        - privacy_policy_uri
         - terms_uri
       filter:
         _and:
@@ -216,12 +222,12 @@ event_triggers:
     definition:
       enable_manual: false
       insert:
-        columns: "*"
+        columns: '*'
     retry_conf:
       interval_sec: 10
       num_retries: 5
       timeout_sec: 20
-    webhook: "{{NEXT_API_URL}}/_gen-external-nullifier"
+    webhook: '{{NEXT_API_URL}}/_gen-external-nullifier'
     headers:
       - name: Authorization
         value_from_env: INTERNAL_ENDPOINTS_SECRET

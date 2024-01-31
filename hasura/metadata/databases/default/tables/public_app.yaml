@@ -68,6 +68,11 @@ insert_permissions:
         - name
         - status
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - is_staging
+      filter: {}
   - role: api_key
     permission:
       columns:
@@ -77,6 +82,14 @@ select_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
+  - role: reviewer
+    permission:
+      columns:
+        - id
+      filter:
+        app_metadata:
+          verification_status:
+            _neq: unverified
   - role: service
     permission:
       columns:

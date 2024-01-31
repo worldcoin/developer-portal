@@ -1,9 +1,13 @@
 type Mutation {
-  delete_unverified_images(app_id: String!): DeleteImageOutput
+  delete_unverified_images(
+    app_id: String!
+  ): DeleteImageOutput
 }
 
 type Query {
-  get_all_unverified_images(app_id: String!): ImageGetAllUnverifiedImagesOutput
+  get_all_unverified_images(
+    app_id: String!
+  ): ImageGetAllUnverifiedImagesOutput
 }
 
 type Query {
@@ -15,15 +19,21 @@ type Query {
 }
 
 type Mutation {
-  invite_team_members(emails: [String!]): InviteTeamMembersOutput
+  invite_team_members(
+    emails: [String!]
+  ): InviteTeamMembersOutput
 }
 
 type Mutation {
-  reset_api_key(id: String!): ResetAPIOutput
+  reset_api_key(
+    id: String!
+  ): ResetAPIOutput
 }
 
 type Mutation {
-  reset_client_secret(app_id: String!): ResetClientOutput
+  reset_client_secret(
+    app_id: String!
+  ): ResetClientOutput
 }
 
 type Query {
@@ -32,6 +42,15 @@ type Query {
     image_type: String!
     content_type_ending: String!
   ): PresignedPostOutput
+}
+
+type Mutation {
+  verify_app(
+    app_id: String!
+    reviewer_name: String!
+    is_reviewer_app_store_approved: Boolean!
+    is_reviewer_world_app_approved: Boolean!
+  ): VerifyAppOutput
 }
 
 input UploadImageInput {
@@ -86,3 +105,8 @@ type PresignedPostOutput {
 type DeleteImageOutput {
   success: Boolean
 }
+
+type VerifyAppOutput {
+  success: Boolean
+}
+
