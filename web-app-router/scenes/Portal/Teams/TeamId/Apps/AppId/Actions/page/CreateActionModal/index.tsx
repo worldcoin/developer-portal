@@ -115,14 +115,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           });
 
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, setError],
+    [appId, insertActionQuery, setError]
   );
 
   const copyAction = useCallback(() => {
@@ -134,7 +134,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     <div
       className={clsx(
         "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
-        className,
+        className
       )}
     >
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">

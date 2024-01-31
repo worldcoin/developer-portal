@@ -31,12 +31,12 @@ export const ActionsPage = async ({
     <div className="w-full h-full">
       <ActionsList
         actions={data.action}
-        className={clsx({ hidden: !showList && !createAction })}
+        className={clsx({ hidden: !showList || createAction })}
       />
       <CreateActionModal className={clsx({ hidden: !createAction })} />
       <div
         className={clsx("flex flex-col items-center pt-24", {
-          hidden: showList && !createAction,
+          hidden: showList || createAction,
         })}
       >
         <div className={clsx("grid gap-y-4 place-items-center max-w-[600px]")}>
