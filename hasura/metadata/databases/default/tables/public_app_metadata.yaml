@@ -117,7 +117,7 @@ select_permissions:
         - updated_at
       filter:
         verification_status:
-          _neq: unverified
+          _eq: awaiting_review
   - role: service
     permission:
       columns:
@@ -188,9 +188,6 @@ update_permissions:
   - role: reviewer
     permission:
       columns:
-        - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
         - verified_at
         - reviewed_by
         - is_reviewer_app_store_approved
