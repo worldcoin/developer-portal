@@ -32,6 +32,13 @@ export const AppIdLayout = (props: { children: ReactNode }) => {
           >
             Incognito actions
           </Tab>
+          <Tab
+            href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
+            underlined
+            segment={"sign-in-with-world-id"}
+          >
+            Sign in with World ID
+          </Tab>
         </Tabs>
       </div>
 
