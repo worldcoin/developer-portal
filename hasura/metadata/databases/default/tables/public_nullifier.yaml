@@ -15,6 +15,14 @@ insert_permissions:
         - uses
         - nullifier_hash
 select_permissions:
+  - role: analytics
+    permission:
+      columns:
+        - created_at
+        - id
+        - nullifier_hash
+      filter: {}
+      allow_aggregations: true
   - role: api_key
     permission:
       columns:

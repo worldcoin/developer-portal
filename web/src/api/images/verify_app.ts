@@ -116,7 +116,6 @@ export const handleVerifyApp = async (
         code: "invalid_verification_status",
       });
     }
-
     const verifiedAppMetadata = app.app_metadata.find(
       (metadata) => metadata.verification_status === "verified"
     );
@@ -167,36 +166,38 @@ export const handleVerifyApp = async (
     // Copy unverified images to verified images with random names
     const copyPromises = [];
 
-    const newLogoImgName = randomUUID();
     const currentLogoImgName = awaitingReviewAppMetadata.logo_img_url;
     const logoFileType = getFileExtension(currentLogoImgName);
+    const newLogoImgName = randomUUID() + logoFileType;
     copyPromises.push(
       s3Client.send(
         new CopyObjectCommand({
           Bucket: bucketName,
           CopySource: `${bucketName}/${sourcePrefix}${currentLogoImgName}`,
-          Key: `${destinationPrefix}${newLogoImgName}${logoFileType}`,
+          Key: `${destinationPrefix}${newLogoImgName}`,
         })
       )
     );
 
-    const newHeroImgName = randomUUID();
     const currentHeroImgName = awaitingReviewAppMetadata.hero_image_url;
     const heroFileType = getFileExtension(currentHeroImgName);
+    const newHeroImgName = randomUUID() + heroFileType;
     copyPromises.push(
       s3Client.send(
         new CopyObjectCommand({
           Bucket: bucketName,
           CopySource: `${bucketName}/${sourcePrefix}${currentHeroImgName}`,
-          Key: `${destinationPrefix}${newHeroImgName}${heroFileType}`,
+          Key: `${destinationPrefix}${newHeroImgName}`,
         })
       )
     );
 
     const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
-    const showcaseImgUUIDs = showcaseImgUrls.map(() => randomUUID());
     const showcaseFileTypes = showcaseImgUrls.map((url: string) =>
       getFileExtension(url)
+    );
+    const showcaseImgUUIDs = showcaseImgUrls.map(
+      (_: string, index: number) => randomUUID() + showcaseFileTypes[index]
     );
     const showcaseCopyPromises = showcaseImgUrls.map(
       (key: string, index: number) => {
@@ -204,7 +205,7 @@ export const handleVerifyApp = async (
           new CopyObjectCommand({
             Bucket: bucketName,
             CopySource: `${bucketName}/${sourcePrefix}${key}`,
-            Key: `${destinationPrefix}${showcaseImgUUIDs[index]}${showcaseFileTypes[index]}`,
+            Key: `${destinationPrefix}${showcaseImgUUIDs[index]}`,
           })
         );
       }
@@ -214,7 +215,6 @@ export const handleVerifyApp = async (
 
     // Delete an existing verified rows
     if (verifiedAppMetadata) {
-      console.log("deleting existing row");
       const deleteVerifiedAppMetadata = await deleteVerifiedAppMetadataSDK(
         reviewer_client
       ).DeleteVerifiedAppMetadata({
@@ -256,7 +256,7 @@ export const handleVerifyApp = async (
         res,
         req,
         detail: "Unable to update app metadata.",
-        code: "update_failed",
+        code: "verification_failed",
       });
     }
 

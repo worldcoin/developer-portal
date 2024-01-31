@@ -117,7 +117,7 @@ select_permissions:
         - updated_at
       filter:
         verification_status:
-          _eq: awaiting_review
+          _neq: unverified
   - role: service
     permission:
       columns:
