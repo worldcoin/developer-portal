@@ -5,9 +5,8 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
-  register: UseFormRegisterReturn;
+  register?: UseFormRegisterReturn;
   required?: boolean;
-  currentValue?: string;
   errors?: FieldError;
   isDirty?: boolean;
   label: string;
