@@ -1,5 +1,6 @@
 import { ComponentProps, memo, useCallback } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
+import { atomOneLight } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { PreTag } from "./PreTag";
 import clsx from "clsx";
 
@@ -14,7 +15,7 @@ export const CodeBlock = memo(function CodeBlock(
   } & (
     | { caption: string; captionClassName?: string }
     | { caption?: never; captionClassName?: never }
-  ),
+  )
 ) {
   const preTag = useCallback(
     (preTagProps: ComponentProps<any>) => (
@@ -22,14 +23,14 @@ export const CodeBlock = memo(function CodeBlock(
         {preTagProps.children}
       </PreTag>
     ),
-    [props.loading, props.theme],
+    [props.loading, props.theme]
   );
 
   const codeTag = useCallback(
     (codeTagProps: ComponentProps<any>) => (
-      <code className="font-ibm">{codeTagProps.children}</code>
+      <code className="font-ibm ">{codeTagProps.children}</code>
     ),
-    [],
+    []
   );
 
   return (
@@ -44,6 +45,9 @@ export const CodeBlock = memo(function CodeBlock(
         language={props.language}
         showLineNumbers={props.showLineNumbers}
         wrapLines
+        style={atomOneLight}
+        wrapLongLines
+        theme="gradient-dark"
         showInlineLineNumbers
         lineNumberStyle={{
           padding: "8px 16px",
@@ -53,12 +57,12 @@ export const CodeBlock = memo(function CodeBlock(
           color: clsx(
             { "#4940e0": props.theme === "neutral" },
             { "#ff5a76": props.theme === "error" },
-            { "#00c313": props.theme === "success" },
+            { "#00c313": props.theme === "success" }
           ),
           borderRight: `1px solid ${clsx(
             { "#4940e0": props.theme === "neutral" },
             { "#ff5a76": props.theme === "error" },
-            { "#00c313": props.theme === "success" },
+            { "#00c313": props.theme === "success" }
           )}`,
           marginRight: "16px",
         }}

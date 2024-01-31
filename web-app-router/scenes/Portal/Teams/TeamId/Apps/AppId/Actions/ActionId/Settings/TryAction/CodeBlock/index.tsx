@@ -11,31 +11,63 @@ type CodeBlockProps = {
 export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier, engine } = props;
 
-  const verifyProofCloudCodeString =
-    "// Note: Proof must be verified server side\n" +
-    "// For an end to end example see: https://github.com/worldcoin/world-id-cloud-template \n" +
-    "const verifyProof = async (proof) => {\n" +
-    "    console.log('proof', proof);\n" +
-    "    const response = await fetch(\n" +
-    `      'https://developer.worldcoin.org/api/v1/verify/${appId}',\n` +
-    "      {\n" +
-    "        method: 'POST',\n" +
-    "        headers: {\n" +
-    "          'Content-Type': 'application/json',\n" +
-    "        },\n" +
-    `        body: JSON.stringify({ ...proof, action: "${action_identifier}"}),\n` +
-    "      }\n" +
-    "    );\n" +
-    "    if (response.ok) {\n" +
-    "      const { verified } = await response.json();\n" +
-    "      return verified;\n" +
-    "    } else {\n" +
-    "      const { code, detail } = await response.json();\n" +
-    "      return new Error(`Error Code ${code}: ${detail}`);\n" +
-    "    }" +
-    "\n" +
-    `    return new Error("Proof did not verify")\n` +
-    "  };";
+  const idKitWidgetCodeString = `
+// (Required in Next - IDKitWidget must be run on client)
+"use client"
+import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
+
+// TODO: Calls your implemented server route
+const verifyProof = async (proof) => {
+  throw new Error("TODO: verify proof server route")
+};
+
+// TODO: Functionality after verifying
+const onSuccess = () => {
+  console.log("Success")
+};
+
+<IDKitWidget
+    app_id="${appId}"
+    action="${action_identifier}"
+    // Choose between Orb or Device
+    verification_level={VerificationLevel.Device}
+    handleVerify={verifyProof}
+    onSuccess={onSuccess}>
+    {({ open }) => (
+      <button
+        onClick={open}
+        className="your-button-class"
+      >
+        Verify with World ID
+      </button>
+    )}
+</IDKitWidget>
+`.trim();
+
+  const verifyProofCloudCodeString = `
+// Note: This must be implemented server side
+const verifyProof = async (proof) => {
+  console.log('proof', proof);
+  const response = await fetch(
+    'https://developer.worldcoin.org/api/v1/verify/app_staging_129259332fd6f93d4fabaadcc5e4ff9d',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...proof, action: "test"}),
+    }
+  );
+  if (response.ok) {
+    const { verified } = await response.json();
+    return verified;
+  } else {
+    const { code, detail } = await response.json();
+    throw new Error(\`Error Code \${code}: \${detail}\`);
+  }
+};
+// For a complete example see:
+// https://github.com/worldcoin/world-id-cloud-template`.trim();
 
   const verifyProofOnChainCodeString =
     "// TODO: Constructor...\n\n" +
@@ -75,20 +107,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
       />
       <CodeDisplayComponent
         buttonText="Usage"
-        panelText={
-          `"use client" // (Next.JS only - IDKitWidget must be run on client)\n` +
-          "import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'\n\n" +
-          `const verifyProof = async (proof) => throw new Error("TODO: verify proof server route")\n\n` +
-          "<IDKitWidget\n" +
-          `    app_id="${appId}"\n` +
-          `    action="${action_identifier}"\n` +
-          `    onSuccess={() => console.log("Success")}\n` +
-          `    handleVerify={verifyProof} // Make sure to use the correct callback\n` +
-          "    verification_level={VerificationLevel.Device} // Choose between Orb or Device\n" +
-          ">\n" +
-          "    {({ open }) => <button onClick={open}>Verify with World ID</button>}\n" +
-          "</IDKitWidget>"
-        }
+        panelText={idKitWidgetCodeString}
       />
       <CodeDisplayComponent
         buttonText={`Verify Proof (${engine === EngineType.OnChain ? "On Chain" : "Cloud"})`}
