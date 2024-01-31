@@ -10,7 +10,13 @@ import { Action } from "@/graphql/graphql";
 
 export const ClientInformationPage = (props: {
   appID: string;
-  action: Action;
+  action: {
+    id: string;
+    app_id: string;
+    status: string;
+    privacy_policy_uri?: string | null | undefined;
+    terms_uri?: string | null | undefined;
+  };
 }) => {
   const { appID } = props;
   const [clientSecret, setClientSecret] = useState<string>(""); // TODO: replace with actual client secret

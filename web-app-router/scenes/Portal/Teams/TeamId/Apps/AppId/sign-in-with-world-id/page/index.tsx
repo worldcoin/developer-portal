@@ -22,7 +22,7 @@ export const SignInWithWorldIdPage = async (
   const signInAction = data?.action;
   return (
     <div className="w-full h-full">
-      <div className="grid grid-cols-auto/1fr/auto pt-6 gap-x-5">
+      <div className="grid grid-cols-auto/1fr/auto py-6 gap-x-5">
         <Image src="/passport.png" alt="passport" width={60} height={60} />
         <div className="grid grid-cols-1 items-center justify-items-start gap-y-0">
           <Typography as="h3" variant={TYPOGRAPHY.H6}>
