@@ -85,7 +85,6 @@ export default async function handleAPIKeyReset(
     user_id: userId,
   });
 
-  console.log("userTeam", userTeam);
   if (!userTeam || !userTeam.length) {
     return errorHasuraQuery({
       res,
