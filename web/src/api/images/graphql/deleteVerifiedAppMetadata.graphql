@@ -1,0 +1,5 @@
+mutation DeleteVerifiedAppMetadata($id: String!) {
+  delete_app_metadata_by_pk(id: $id) {
+    id
+  }
+}

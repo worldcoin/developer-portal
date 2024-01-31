@@ -1,0 +1,11 @@
+mutation UpdateAppMetadata(
+  $id: String!
+  $verified_data_changes: app_metadata_set_input
+) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $id }
+    _set: $verified_data_changes
+  ) {
+    id
+  }
+}

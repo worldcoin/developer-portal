@@ -39,6 +39,28 @@ if (!GENERAL_SECRET_KEY) {
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
  * @returns
  */
+export const generateReviewerJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "reviewer_account",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["reviewer"],
+      "x-hasura-default-role": "reviewer",
+    },
+  };
+
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("1m")
+    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
+
+  return token;
+};
+
+/**
+ * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
+ * @returns
+ */
 export const generateServiceJWT = async (): Promise<string> => {
   const payload = {
     sub: "service_account",
