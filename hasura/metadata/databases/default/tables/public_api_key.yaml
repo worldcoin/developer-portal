@@ -94,17 +94,3 @@ delete_permissions:
                   _eq: X-Hasura-Team-Id
               - role:
                   _eq: OWNER
-event_triggers:
-  - name: generate_api_key
-    definition:
-      enable_manual: false
-      insert:
-        columns: '*'
-    retry_conf:
-      interval_sec: 10
-      num_retries: 5
-      timeout_sec: 20
-    webhook: '{{NEXT_API_URL}}/_gen-api-key'
-    headers:
-      - name: Authorization
-        value_from_env: INTERNAL_ENDPOINTS_SECRET

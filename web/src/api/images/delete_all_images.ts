@@ -27,6 +27,8 @@ export const handleDeleteAllImages = async (
   req: NextApiRequest,
   res: NextApiResponse
 ) => {
+  throw new Error("Not implemented yet.");
+
   try {
     if (!protectInternalEndpoint(req, res)) {
       return;
@@ -45,6 +47,7 @@ export const handleDeleteAllImages = async (
       });
     }
 
+    // TODO: If Hasura is calling this as a trigger on app deletion, these permissions checks should be removed
     const userId = req.body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
