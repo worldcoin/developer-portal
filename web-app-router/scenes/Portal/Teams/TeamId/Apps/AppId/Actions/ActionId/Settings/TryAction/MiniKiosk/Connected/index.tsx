@@ -1,6 +1,4 @@
-import { Fragment, memo, useCallback, useState } from "react";
-import { KioskScreen } from "..";
-import { Button } from "@/components/Button";
+import { Fragment, memo } from "react";
 import clsx from "clsx";
 import { DecoratedButton } from "@/components/DecoratedButton";
 

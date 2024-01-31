@@ -1,5 +1,5 @@
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
-import { memo, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Connected } from "./Connected";
 import { IDKitBridge } from "./IDKitBridge";
 import { KioskError } from "./KioskError";
@@ -54,7 +54,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     setQrData(null);
     setProofResult(null);
     setConnectionTimeout(true);
-  }, [setScreen, setQrData, setProofResult, setConnectionTimeout]);
+  }, [reset]);
 
   useEffect(() => {
     if (!action) {
@@ -96,7 +96,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         }
       }
     },
-    [setScreen],
+    [setScreen]
   );
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
             screen === KioskScreen.InvalidRequest ||
             screen === KioskScreen.InvalidIdentity ||
             screen === KioskScreen.AlreadyVerified,
-        },
+        }
       )}
     >
       <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center">
@@ -143,7 +143,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
           <Waiting qrData={qrData} showSimulator={action.app.is_staging} />
         )}
         {screen === KioskScreen.Connected && <Connected reset={resetKiosk} />}
-        {screen === KioskScreen.Success && <Success setScreen={setScreen} />}
+        {screen === KioskScreen.Success && <Success reset={resetKiosk} />}
 
         {screen === KioskScreen.ConnectionError && (
           <KioskError

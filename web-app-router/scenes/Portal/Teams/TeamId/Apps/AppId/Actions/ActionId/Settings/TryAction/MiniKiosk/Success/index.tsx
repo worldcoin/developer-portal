@@ -1,21 +1,11 @@
-import dayjs from "dayjs";
-import dayjsRelative from "dayjs/plugin/relativeTime";
-import { memo, useCallback } from "react";
-import { KioskScreen } from "..";
-import { Button } from "@/components/Button";
+import { memo } from "react";
 import clsx from "clsx";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { SuccessIcon } from "@/components/Icons/SuccessIcon";
 
-export const Success = memo(function Success(props: {
-  setScreen: (status: KioskScreen) => void;
-}) {
-  const { setScreen } = props;
-  const handleRestart = useCallback(
-    () => setScreen(KioskScreen.Waiting),
-    [setScreen],
-  );
+export const Success = memo(function Success(props: { reset: () => void }) {
+  const { reset } = props;
 
   return (
     <div className="grid items-center text-center justify-items-center gap-y-6 ">
@@ -34,7 +24,7 @@ export const Success = memo(function Success(props: {
         type="button"
         variant="secondary"
         className={clsx()}
-        onClick={handleRestart}
+        onClick={reset}
       >
         New Verification
       </DecoratedButton>

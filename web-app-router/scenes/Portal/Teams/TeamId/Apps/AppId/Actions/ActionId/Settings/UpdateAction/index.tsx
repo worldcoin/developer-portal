@@ -64,6 +64,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
+          refetchQueries: ["GetSingleAction"],
         });
 
         if (result instanceof Error) {
@@ -81,7 +82,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       }
       toast.success(`Action "${values.name}" updated.`);
     },
-    [updateActionQuery, action.id],
+    [updateActionQuery, action.id]
   );
 
   const copyAction = useCallback(() => {
@@ -90,75 +91,73 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   }, [watch]);
 
   return (
-    <div className="w-full">
-      <div className="grid items-center justify-center min-h-full">
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="grid grid-cols-1 gap-5"
-        >
-          <h1 className="text-lg font-[550] mb-2 text-grey-900">Settings</h1>
-          <Input
-            register={register("name")}
-            errors={errors.name}
-            label="Action Name"
-            placeholder="Anonymous Vote #12"
-            required
-            className="w-136"
-          />
-          <Input
-            register={register("description")}
-            errors={errors.description}
-            label="Short Description"
-            placeholder="Cast your vote on proposal #102"
-            helperText="Tell your users what the action is about. Shown in the World App."
-            required
-            className="w-136"
-          />
-          <Input
-            register={register("action")}
-            errors={errors.action}
-            label="Identifier"
-            helperText="This is the value you will use in IDKit and any API calls."
-            placeholder="A short description of your action"
-            disabled
-            addOnPosition="right"
-            addOn={
-              <button className="px-1" type="button" onClick={copyAction}>
-                <CopyIcon />
-              </button>
-            }
-            className="w-136 text-grey-400"
-          />
-          <Controller
-            name="maxVerifications"
-            control={control}
-            render={({ field }) => {
-              return (
-                <MaxVerificationsSelector
-                  value={field.value}
-                  onChange={field.onChange}
-                  errors={errors.maxVerifications}
-                  showCustomInput
-                  className="w-136" // border is 2 px
-                  label="Max verifications per user"
-                  helperText="The number of verifications the same person can do for this action"
-                />
-              );
-            }}
-          />
+    <div className="w-full grid min-h-full items-start">
+      <form
+        onSubmit={handleSubmit(submit)}
+        className="gap-y-5 w-full grid grid-cols-1"
+      >
+        <h1 className="text-lg font-[550] mb-2 text-grey-900">Settings</h1>
+        <Input
+          register={register("name")}
+          errors={errors.name}
+          label="Action Name"
+          placeholder="Anonymous Vote #12"
+          required
+          className="h-16"
+        />
+        <Input
+          register={register("description")}
+          errors={errors.description}
+          label="Short Description"
+          placeholder="Cast your vote on proposal #102"
+          helperText="Tell your users what the action is about. Shown in the World App."
+          required
+          className="h-16"
+        />
+        <Input
+          register={register("action")}
+          errors={errors.action}
+          label="Identifier"
+          helperText="This is the value you will use in IDKit and any API calls."
+          placeholder="A short description of your action"
+          disabled
+          addOnPosition="right"
+          addOn={
+            <button className="px-1" type="button" onClick={copyAction}>
+              <CopyIcon />
+            </button>
+          }
+          className=" text-grey-400 h-16"
+        />
+        <Controller
+          name="maxVerifications"
+          control={control}
+          render={({ field }) => {
+            return (
+              <MaxVerificationsSelector
+                value={field.value}
+                onChange={field.onChange}
+                errors={errors.maxVerifications}
+                showCustomInput
+                className="w-full " // border is 2 px
+                label="Max verifications per user"
+                helperText="The number of verifications the same person can do for this action"
+              />
+            );
+          }}
+        />
 
-          <div className="w-full flex justify-start">
-            <DecoratedButton
-              variant="primary"
-              type="submit"
-              disabled={!isValid || loading}
-              className="px-6 py-3 mt-4"
-            >
-              Save Changes
-            </DecoratedButton>
-          </div>
-        </form>
-      </div>
+        <div className="w-full flex justify-start">
+          <DecoratedButton
+            variant="primary"
+            type="submit"
+            disabled={!isValid || loading}
+            className="px-6 py-3 mt-4"
+          >
+            Save Changes
+          </DecoratedButton>
+        </div>
+      </form>
     </div>
   );
 };
