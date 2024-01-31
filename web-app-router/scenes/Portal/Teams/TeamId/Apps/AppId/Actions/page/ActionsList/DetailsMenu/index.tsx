@@ -6,7 +6,7 @@ import { Menu } from "@headlessui/react";
 export const DetailsMenu = (props: { path: string }) => {
   const { path } = props;
   return (
-    <Menu as="div" className="relative inline-block">
+    <Menu as="div" className="relative inline-block z-10">
       <Menu.Button className="w-8 h-8 flex justify-center items-center p-2 hover:bg-grey-100 rounded-lg">
         <ElementsIcon />
       </Menu.Button>
