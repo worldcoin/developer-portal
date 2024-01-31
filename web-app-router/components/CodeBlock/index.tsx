@@ -28,7 +28,7 @@ export const CodeBlock = memo(function CodeBlock(
 
   const codeTag = useCallback(
     (codeTagProps: ComponentProps<any>) => (
-      <code className="font-ibm ">{codeTagProps.children}</code>
+      <code className="font-ibm border-0 ">{codeTagProps.children}</code>
     ),
     []
   );

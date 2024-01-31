@@ -40,7 +40,7 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
               className="text-gray-500 px-8 pb-4 max-w-full"
               isOpen={open}
             >
-              <div className="w-full relative ">
+              <div className="w-full justify-items-end grid">
                 <CodeBlock
                   code={panelText}
                   language="javascript"
@@ -50,7 +50,7 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
                 <Button
                   type="button"
                   onClick={copyAction}
-                  className="absolute bottom-2 right-3 z-10 flex justify-end gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
+                  className="flex gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
                 >
                   <CopyIcon className="h-4 w-4" />
                   <p className="text-xs ">Copy</p>

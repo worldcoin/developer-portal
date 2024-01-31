@@ -1,13 +1,9 @@
 type Mutation {
-  delete_unverified_images(
-    app_id: String!
-  ): DeleteImageOutput
+  delete_unverified_images(app_id: String!): DeleteImageOutput
 }
 
 type Query {
-  get_all_unverified_images(
-    app_id: String!
-  ): ImageGetAllUnverifiedImagesOutput
+  get_all_unverified_images(app_id: String!): ImageGetAllUnverifiedImagesOutput
 }
 
 type Query {
@@ -105,11 +101,3 @@ type PresignedPostOutput {
 type DeleteImageOutput {
   success: Boolean
 }
-
-<<<<<<< Updated upstream
-type VerifyAppOutput {
-  success: Boolean
-}
-
-=======
->>>>>>> Stashed changes

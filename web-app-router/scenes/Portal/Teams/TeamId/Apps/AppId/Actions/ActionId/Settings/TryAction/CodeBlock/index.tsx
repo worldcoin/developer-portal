@@ -70,7 +70,7 @@ const verifyProof = async (proof) => {
 // https://github.com/worldcoin/world-id-cloud-template`.trim();
 
   const verifyProofOnChainCodeString =
-    "// TODO: Constructor...\n\n" +
+    "// example_verify.sol\n" +
     "function _exampleVerifyAndExecute(\n" +
     "    address signal,\n" +
     "    uint256 root,\n" +
