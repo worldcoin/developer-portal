@@ -25,7 +25,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
   const action = data?.action[0];
 
   if (loading) return <p></p>;
-  if (!action) return <p>Not found</p>;
+  if (!action) return <p>Not found</p>; // TODO generic 404 page
   return (
     <div className="w-full h-full flex flex-col items-center ">
       <div className="grid gap-y-2 max-w-[1180px] w-full py-10">

@@ -28,7 +28,7 @@ export const CodeBlock = memo(function CodeBlock(
 
   const codeTag = useCallback(
     (codeTagProps: ComponentProps<any>) => (
-      <code className="font-ibm border-0 ">{codeTagProps.children}</code>
+      <code className="font-ibm">{codeTagProps.children}</code>
     ),
     []
   );
@@ -46,8 +46,6 @@ export const CodeBlock = memo(function CodeBlock(
         showLineNumbers={props.showLineNumbers}
         wrapLines
         style={atomOneLight}
-        wrapLongLines
-        theme="gradient-dark"
         showInlineLineNumbers
         lineNumberStyle={{
           padding: "8px 16px",
