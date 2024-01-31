@@ -68,11 +68,6 @@ insert_permissions:
         - name
         - status
 select_permissions:
-  - role: analytics
-    permission:
-      columns:
-        - is_staging
-      filter: {}
   - role: api_key
     permission:
       columns:
