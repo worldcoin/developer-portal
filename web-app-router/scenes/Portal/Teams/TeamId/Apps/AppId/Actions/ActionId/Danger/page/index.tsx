@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { getSdk as GetActionSdk } from "./graphql/server/get-single-action.generated";
 import { getAPIServiceGraphqlClient } from "@/lib/graphql";
-import { ActionDangerZoneContent } from "./content";
+import { ActionDangerZoneContent } from "./ActionDangerZoneContent";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;

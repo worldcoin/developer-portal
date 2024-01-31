@@ -10,6 +10,7 @@ import { useDeleteActionMutation } from "./graphql/client/delete-action.generate
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { revalidatePath } from "next/cache";
+import { ActionsDocument } from "../../../../page/graphql/server/actions.generated";
 
 export const ActionDangerZoneContent = (props: { action: any }) => {
   const { action } = props;
@@ -23,17 +24,20 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
     try {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
+        refetchQueries: [
+          { query: ActionsDocument, variables: { app_id: action.app_id } },
+        ],
       });
       if (result instanceof Error) {
         throw result;
       }
-      router.replace(`..?deleteAction=${action.action}`); // TODO: Need to refetch action list to update, waiting till we decide on state
+      router.replace(`..`); // TODO: Need to refetch action list to update, waiting till we decide on state
     } catch (error) {
       console.error(error);
       return toast.error("Unable to delete action");
     }
     toast.success(`${action?.name} was deleted.`);
-  }, [action?.action, action.id, action?.name, deleteActionQuery, router]);
+  }, [action.app_id, action.id, action?.name, deleteActionQuery, router]);
 
   return (
     <div>

@@ -12,7 +12,6 @@ import { Input } from "@/components/Input";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 
-// TODO: Example of how to use this component
 export const ActionsList = (props: { actions: any; className: string }) => {
   const { actions, className } = props;
   const [currentPage, setCurrentPage] = useState(1);
