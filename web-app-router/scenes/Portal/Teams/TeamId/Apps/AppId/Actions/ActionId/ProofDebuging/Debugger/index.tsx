@@ -201,7 +201,7 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="w-full grid gap-y-6 min-w-[480px]">
+      <div className="w-full grid gap-y-6 md:min-w-[480px]">
         <h1 className="text-lg font-[550]">Results</h1>
         <div
           className={clsx(
