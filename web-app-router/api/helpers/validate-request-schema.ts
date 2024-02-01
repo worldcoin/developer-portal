@@ -1,3 +1,5 @@
+import "server-only";
+
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { errorResponse } from "./errors";

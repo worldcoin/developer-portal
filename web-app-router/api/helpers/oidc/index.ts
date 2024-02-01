@@ -1,3 +1,4 @@
+import "server-only";
 import crypto from "crypto";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { verifyHashedSecret } from "@/api/helpers/utils";

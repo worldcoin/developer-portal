@@ -6,7 +6,7 @@ import { sequencerMapping } from "@/legacy/lib/utils";
 import { logger } from "@/legacy/lib/logger";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
-import { validateABILikeEncoding } from "@/lib/hashing";
+import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [

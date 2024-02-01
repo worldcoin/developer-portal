@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Contains all functions for interacting with Amazon KMS
  */

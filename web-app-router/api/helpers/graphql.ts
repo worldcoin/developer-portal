@@ -1,3 +1,5 @@
+import "server-only";
+
 import { generateServiceJWT } from "@/api/helpers/jwts";
 import { GraphQLClient } from "graphql-request";
 

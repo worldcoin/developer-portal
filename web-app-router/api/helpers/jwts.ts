@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Contains all backend utilities related to JWTs.
  * * OIDC tokens
