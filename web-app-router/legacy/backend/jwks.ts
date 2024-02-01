@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
-import { JWKModel } from "@/lib/models";
+import { JWKModel } from "@/legacy/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
 import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "@/legacy/lib/constants";

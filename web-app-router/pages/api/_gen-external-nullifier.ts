@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { ActionModel } from "@/lib/models";
+import { ActionModel } from "@/legacy/lib/models";
 import { errorNotAllowed } from "@/legacy/backend/errors";
 import { generateExternalNullifier } from "@/lib/hashing";
 
@@ -13,7 +13,7 @@ import { generateExternalNullifier } from "@/lib/hashing";
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -31,7 +31,7 @@ export default async function handler(
 
   const external_nullifier = generateExternalNullifier(
     action.app_id,
-    action.action
+    action.action,
   ).digest;
 
   const mutation = gql`

@@ -1,10 +1,18 @@
+export enum OIDCFlowType {
+  AuthorizationCode = "authorization_code",
+  Implicit = "implicit",
+  Hybrid = "hybrid",
+  Token = "token",
+}
+
 /**
  * This file contains the main types for both the frontend and backend.
  * Types referring to Hasura models should be defined in models.ts.
  */
 
 import { NextApiRequest } from "next";
-import { ActionModel, AppMetadataModel, AppModel } from "./models";
+import { Membership } from "@/graphql/graphql";
+import { UserContext } from "@auth0/nextjs-auth0/client";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;
@@ -54,13 +62,6 @@ export enum OIDCResponseType {
   Token = "token",
 }
 
-export enum OIDCFlowType {
-  AuthorizationCode = "authorization_code",
-  Implicit = "implicit",
-  Hybrid = "hybrid",
-  Token = "token",
-}
-
 export interface IInternalError {
   message: string;
   code: string;
@@ -73,32 +74,6 @@ export interface IPendingProofResponse {
   root: string | null;
   status: "pending" | "mined" | "new";
 }
-
-export type ActionKioskQueryType = Pick<
-  ActionModel,
-  "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
-> & {
-  app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
-    app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
-    >;
-    verified_app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
-    >;
-  };
-};
-
-export type ActionKioskType = Omit<ActionKioskQueryType, "app"> & {
-  app: Omit<
-    ActionKioskQueryType["app"],
-    "app_metadata" | "verified_app_metadata"
-  > & {
-    app_metadata: Pick<
-      AppMetadataModel,
-      "name" | "logo_img_url" | "verification_status"
-    > | null;
-  };
-};
 
 export enum Environment {
   Production = "production",
@@ -130,7 +105,21 @@ export type Auth0WorldcoinUser = {
 export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser;
 
 export enum LoginErrorCode {
-  OneTeamPerPerson = "one-team-per-person",
   Generic = "generic",
   EmailNotVerified = "email-not-verified",
 }
+
+export type Auth0SessionUser = Omit<UserContext, "user"> & {
+  user?: UserContext["user"] & {
+    hasura: {
+      auth0Id: string;
+      email?: string;
+      id: string;
+      memberships: Array<
+        Pick<Membership, "role"> & Partial<Pick<Membership, "team">>
+      >;
+      name: string;
+      posthog_id?: string;
+    };
+  };
+};

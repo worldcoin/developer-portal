@@ -41,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({
               "disabled:opacity-50 cursor-not-allowed": currentPage === 1,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage !== 1,
-            }
+            },
           )}
         >
           <CaretIcon
@@ -64,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({
                 currentPage === pageCount,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage < pageCount,
-            }
+            },
           )}
         >
           <CaretIcon
@@ -102,7 +102,7 @@ const PaginationSelect = (props: {
         className={clsx(
           "text-left items-center text-xs",
           "grid grid-cols-1fr/auto border-grey-200 border rounded-lg px-2 text-grey-700 h-8 w-20",
-          className
+          className,
         )}
       >
         {rowsPerPageOptions[value] ?? value.toString()}
@@ -111,7 +111,7 @@ const PaginationSelect = (props: {
 
       <SelectOptions
         className={clsx(
-          "mt-2 text-xs focus:ring-0 focus:outline-none max-h-24"
+          "mt-2 text-xs focus:ring-0 focus:outline-none max-h-24",
         )}
       >
         {rowsPerPageOptions.map((option, index) => (

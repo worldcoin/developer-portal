@@ -7,11 +7,6 @@ import {
   solidityEncode,
 } from "@worldcoin/idkit-core/hashing";
 
-export const validateABILikeEncoding = (value: string): boolean => {
-  const ABI_REGEX = /^0x[\dabcdef]+$/;
-  return !!value.toString().match(ABI_REGEX) && value.length >= 66; // Because `0` contains 66 characters
-};
-
 export const generateExternalNullifier = (
   app_id: IDKitConfig["app_id"],
   action: IDKitConfig["action"],

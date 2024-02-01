@@ -1,0 +1,7 @@
+query Invite($id: String!) {
+  invite(where: { id: { _eq: $id } }) {
+    team_id
+    email
+    expires_at
+  }
+}

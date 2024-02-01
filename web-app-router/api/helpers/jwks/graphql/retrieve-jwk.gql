@@ -1,0 +1,7 @@
+query RetrieveJWK($kid: String!) {
+  jwks(limit: 1, where: { id: { _eq: $kid } }) {
+    id
+    kms_id
+    public_jwk
+  }
+}

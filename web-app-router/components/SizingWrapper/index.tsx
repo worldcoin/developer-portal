@@ -8,8 +8,8 @@ export const SizingWrapper = (props: {
   return (
     <div
       className={twMerge(
-        "grid grid-cols-[minmax(24px,1fr)_minmax(0,calc(1440px-11vw*2))_minmax(24px,1fr)]",
-        props.className
+        "grid grid-cols-[minmax(24px,1fr)_minmax(0,calc(1440px-11vw*2))_minmax(24px,1fr)] h-full w-full",
+        props.className,
       )}
     >
       <div className="col-start-2">{props.children}</div>

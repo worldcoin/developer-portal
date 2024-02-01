@@ -3,7 +3,7 @@ import { DocsIcon } from "@/components/Icons/DocsIcon";
 import Link from "next/link";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { getSdk as GetActionSdk } from "./graphql/server/get-single-action.generated";
-import { getAPIServiceGraphqlClient } from "@/lib/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 

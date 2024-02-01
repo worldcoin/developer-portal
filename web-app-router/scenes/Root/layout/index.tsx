@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +19,9 @@ export const RootLayout = ({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ApolloWrapper>{children}</ApolloWrapper>
+        <UserProvider>
+          <ApolloWrapper>{children}</ApolloWrapper>
+        </UserProvider>
       </body>
     </html>
   );

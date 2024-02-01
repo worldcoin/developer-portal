@@ -34,7 +34,7 @@ const schema = yup.object({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   await runCors(req, res);
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
@@ -52,7 +52,7 @@ export default async function handler(
 
   const external_nullifier = generateExternalNullifier(
     parsedParams.app_id,
-    parsedParams.action
+    parsedParams.action,
   ).digest;
 
   const result = await verifyProof(
@@ -66,7 +66,7 @@ export default async function handler(
     {
       is_staging: parsedParams.is_staging,
       verification_level: parsedParams.verification_level,
-    }
+    },
   );
 
   if (result.success) {
@@ -83,6 +83,6 @@ export default async function handler(
     "server_error",
     "Unable to verify proof due to a server error. Please try again.",
     null,
-    req
+    req,
   );
 }

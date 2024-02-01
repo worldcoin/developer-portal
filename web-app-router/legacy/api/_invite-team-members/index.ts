@@ -6,6 +6,10 @@ import { getSdk as getCreateInvitesSdk } from "@/legacy/api/_invite-team-members
 import { getSdk as getFetchUserSdk } from "@/legacy/api/_invite-team-members/graphql/fetchUser.generated";
 import { sendEmail } from "@/legacy/lib/send-email";
 import { logger } from "@/legacy/lib/logger";
+import {
+  GetMembershipsQuery,
+  getSdk as getMembershipsSdk,
+} from "./graphql/getMemberships.generated";
 
 export const handleInvite = async (
   req: NextApiRequest,
@@ -58,7 +62,47 @@ export const handleInvite = async (
       });
     }
 
-    const emails = req.body.input.emails;
+    const emails = req.body.input.emails as string[];
+    let memberships: GetMembershipsQuery | null = null;
+    const client = await getAPIServiceGraphqlClient();
+
+    try {
+      memberships = await getMembershipsSdk(client).GetMemberships({
+        team_id: teamId,
+      });
+    } catch (error) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Cannot fetch memberships.",
+        code: "cannot_fetch_memberships",
+      });
+    }
+
+    if (!memberships) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Cannot fetch memberships.",
+        code: "cannot_fetch_memberships",
+      });
+    }
+
+    const alreadyExistingEmails = emails.filter((email: string) => {
+      return memberships?.membership?.some(
+        (membership) => membership.user.email === email,
+      );
+    });
+
+    if (alreadyExistingEmails.length > 0) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Some emails are already in the team.",
+        code: "already_in_team",
+      });
+    }
+
     if (!emails) {
       return errorHasuraQuery({
         res,
@@ -67,7 +111,6 @@ export const handleInvite = async (
         code: "required",
       });
     }
-    const client = await getAPIServiceGraphqlClient();
 
     const fetchUserRes = await getFetchUserSdk(client).FetchUser({
       id: userId,

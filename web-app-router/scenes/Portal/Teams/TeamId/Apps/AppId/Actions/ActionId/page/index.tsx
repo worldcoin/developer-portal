@@ -3,7 +3,7 @@ import { getSdk as GetActionSdk } from "./graphql/server/get-single-action.gener
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { VerifiedTable } from "./VerifiedTable";
-import { getAPIServiceGraphqlClient } from "@/lib/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 

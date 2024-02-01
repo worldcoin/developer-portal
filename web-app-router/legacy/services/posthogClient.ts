@@ -1,6 +1,5 @@
 "use server";
 import { PostHog } from "posthog-node";
-import getConfig from "next/config";
 
 interface CaptureEventParams {
   event: string;

@@ -14,7 +14,7 @@ type DecoratedButtonProps = CommonButtonProps & {
 };
 
 export const DecoratedButton = memo(function DecoratedButton(
-  props: DecoratedButtonProps
+  props: DecoratedButtonProps,
 ) {
   const {
     icon,
@@ -62,8 +62,8 @@ export const DecoratedButton = memo(function DecoratedButton(
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,
           loading && buttonStyles[variant].loading,
-          className
-        )
+          className,
+        ),
       )}
       {...restProps}
     >

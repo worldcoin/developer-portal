@@ -9,6 +9,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
+import { useRouter } from "next/navigation";
+import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
+import { useSearchParams } from "next/navigation";
 
 const schema = yup.object({
   teamName: yup.string().required("Please enter a team name"),
@@ -24,6 +27,10 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const Form = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const invite_id = searchParams?.get("invite_id");
+
   const {
     register,
     handleSubmit,
@@ -33,10 +40,40 @@ export const Form = () => {
     mode: "onChange",
   });
 
-  const submit = useCallback((values: FormValues) => {
-    // TODO: update submit logic
-    console.log(values);
-  }, []);
+  const submit = useCallback(
+    async (values: FormValues) => {
+      const body: CreateTeamBody = {
+        team_name: values.teamName,
+        invite_id,
+      };
+
+      let data: CreateTeamResponse | null = null;
+
+      try {
+        const res = await fetch("/api/create-team", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw error;
+        }
+
+        data = await res.json();
+      } catch (error) {
+        // TODO: handle error
+        return console.error("Something went wrong while creating a team");
+      }
+
+      if (!data || !data.returnTo) {
+        return console.log("Something went wrong");
+      }
+
+      router.push(data.returnTo);
+    },
+    [invite_id, router],
+  );
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid gap-y-8">

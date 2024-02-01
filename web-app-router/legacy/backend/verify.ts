@@ -6,7 +6,7 @@ import { sequencerMapping } from "@/legacy/lib/utils";
 import { logger } from "@/legacy/lib/logger";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
-import { validateABILikeEncoding } from "@/lib/hashing";
+import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 
 // TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
@@ -94,7 +94,7 @@ const queryFetchAppAction = gql`
 function decodeProof(encodedProof: string) {
   const binArray = abi.decode(["uint256[8]"], encodedProof)[0] as BigInt[];
   const hexArray = binArray.map((item) =>
-    ethers.utils.hexlify(item as bigint).toString()
+    ethers.utils.hexlify(item as bigint).toString(),
   );
 
   if (hexArray.length !== 8) {
@@ -115,7 +115,7 @@ export const fetchActionForProof = async (
   graphQLClient: ApolloClient<NormalizedCacheObject>,
   app_id: string,
   nullifier_hash: string,
-  action: string
+  action: string,
 ) => {
   const result = await graphQLClient.query<IAppAction>({
     query: queryFetchAppAction,
@@ -286,7 +286,7 @@ export const parseProofInputs = (params: IInputParams) => {
  */
 export const verifyProof = async (
   proofParams: IInputParams,
-  verifyParams: IVerifyParams
+  verifyParams: IVerifyParams,
 ): Promise<{
   success?: true;
   status?: string;
@@ -326,7 +326,7 @@ export const verifyProof = async (
     try {
       const rawErrorMessage = await response.text();
       const knownError = KNOWN_ERROR_CODES.find(
-        ({ rawMessage }) => rawMessage === rawErrorMessage
+        ({ rawMessage }) => rawMessage === rawErrorMessage,
       );
       return {
         error: {
