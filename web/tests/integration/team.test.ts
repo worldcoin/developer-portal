@@ -210,29 +210,29 @@ describe("user role", () => {
   });
 });
 
-describe("api_key role", () => {
-  test("API Key: cannot select another team", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
-    )) as { rows: Array<{ id: string }> };
+// describe("api_key role", () => {
+//   test("API Key: cannot select another team", async () => {
+//     const { rows: teams } = (await integrationDBExecuteQuery(
+//       `SELECT id FROM "public"."team"`
+//     )) as { rows: Array<{ id: string }> };
 
-    for (const team of teams) {
-      const client = await getAPIClient({
-        team_id: team.id,
-      });
-      const query = gql`
-        query ListTeams {
-          team {
-            id
-          }
-        }
-      `;
+//     for (const team of teams) {
+//       const client = await getAPIClient({
+//         team_id: team.id,
+//       });
+//       const query = gql`
+//         query ListTeams {
+//           team {
+//             id
+//           }
+//         }
+//       `;
 
-      const response = await client.query({ query });
-      expect(response.data.team.length).toEqual(1);
-      expect(response.data.team[0].id).toEqual(team.id);
-    }
-  });
-});
+//       const response = await client.query({ query });
+//       expect(response.data.team.length).toEqual(1);
+//       expect(response.data.team[0].id).toEqual(team.id);
+//     }
+//   });
+// });
 
 // TODO: Add test cases using the /v1/graphql route

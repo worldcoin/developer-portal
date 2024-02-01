@@ -57,23 +57,6 @@ export const handleSecretReset = async (
     return errorHasuraQuery({ res, req });
   }
 
-  const gqlClient = await getAPIServiceGraphqlClient();
-
-  const data = await getMembershipSdk(gqlClient).GetMembership({
-    user_id,
-    team_id,
-  });
-
-  const user = data.membership[0];
-
-  if (!user?.user_id) {
-    logger.warn("Reset client reset failed for user due to permissions.", {
-      user_id,
-      team_id,
-    });
-    return errorHasuraQuery({ res, req });
-  }
-
   const { app_id } = req.body.input || {};
   if (!app_id) {
     return errorHasuraQuery({
@@ -87,14 +70,15 @@ export const handleSecretReset = async (
   const client = await getAPIServiceGraphqlClient();
 
   // ANCHOR: Make sure the user can perform this client reset
-  const { membership: membershipQuery } = await getMembershipSdk(
+  const { team: teamMembershipQuery } = await getMembershipSdk(
     client
   ).GetMembership({
     user_id,
     team_id,
+    app_id,
   });
 
-  if (!membershipQuery || !membershipQuery.length) {
+  if (!teamMembershipQuery || !teamMembershipQuery.length) {
     return errorHasuraQuery({
       res,
       req,
@@ -111,7 +95,7 @@ export const handleSecretReset = async (
     hashed_secret,
   });
 
-  if (updateResponse?.affected_rows) {
+  if (!updateResponse?.affected_rows) {
     return errorHasuraQuery({
       res,
       req,
