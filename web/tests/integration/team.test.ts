@@ -245,6 +245,40 @@ describe("user role", () => {
     const responseJSON = JSON.parse(responseData);
     expect(responseJSON.extensions.code).toBe("insufficient_permissions");
   });
+
+  test("can invite team members", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team";`
+    )) as { rows: Array<{ id: string }> };
+
+    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'ADMIN' limit 1;`
+    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+
+    const tokenUserId = teamMemberships[0].user_id;
+    const tokenTeamId = teamMemberships[0].team_id;
+
+    const { req, res } = createMocks({
+      method: "POST",
+      headers: {
+        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
+      },
+      body: {
+        input: { emails: ["test@gmail.com"] },
+        action: { name: "invite_team_members" },
+        session_variables: {
+          "x-hasura-role": "user",
+          "x-hasura-user-id": tokenUserId,
+          "x-hasura-team-id": tokenTeamId,
+        },
+      },
+    });
+
+    await handleInvite(req, res);
+    const responseData = res._getData();
+    const responseJSON = JSON.parse(responseData);
+    expect(responseJSON.emails).toEqual(["test@gmail.com"]);
+  });
 });
 
 describe("api_key role", () => {
