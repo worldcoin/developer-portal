@@ -9,6 +9,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
+import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -19,6 +20,7 @@ const updateActionSchema = yup.object({
     .typeError("Max verifications must be a number")
     .required("This field is required"),
 });
+
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
 type UpdateActionProps = {
@@ -33,7 +35,6 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action } = props;
-
   const {
     control,
     register,
@@ -50,8 +51,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       maxVerifications: action.max_verifications,
     },
   });
-  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
 
+  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
@@ -64,7 +65,13 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
-          refetchQueries: ["GetSingleAction"],
+          refetchQueries: [
+            {
+              query: GetSingleActionDocument,
+              variables: { action_id: action.id },
+            },
+          ],
+          awaitRefetchQueries: true,
         });
 
         if (result instanceof Error) {

@@ -2,7 +2,7 @@
 
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { UserHelpNav } from "@/components/UserHelpNav";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -13,12 +13,12 @@ import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
 import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { useRouter } from "next/navigation";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import clsx from "clsx";
 import { Link } from "@/components/Link";
+import { GetActionsDocument } from "../graphql/client/actions.generated";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -39,6 +39,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const { className } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
+  const router = useRouter();
   const appId = params?.appId as `app_${string}`;
 
   const {
@@ -49,6 +50,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     setValue,
     setError,
     watch,
+    reset,
   } = useForm<NewActionFormValues>({
     resolver: yupResolver(createActionSchema),
     mode: "onChange",
@@ -57,7 +59,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
   });
   const [insertActionQuery, { loading }] = useInsertActionMutation({});
-  const router = useRouter();
 
   useEffect(() => {
     const subscription = watch((value, { name }) => {
@@ -81,11 +82,17 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             description: values.description,
             action: values.action,
             app_id: appId,
-
             external_nullifier: generateExternalNullifier(appId, values.action)
               .digest,
             max_verifications: values.maxVerifications,
           },
+          refetchQueries: [
+            {
+              query: GetActionsDocument,
+              variables: { app_id: appId },
+            },
+          ],
+          awaitRefetchQueries: true,
         });
 
         if (result instanceof Error) {
@@ -97,13 +104,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
+        reset();
         const urlWithoutQueryParams = // Use this so we can refetch the actions without caching
           window.location.protocol +
           "//" +
           window.location.host +
           window.location.pathname;
-
-        window.location.href = urlWithoutQueryParams;
+        router.prefetch(urlWithoutQueryParams);
+        router.replace(urlWithoutQueryParams);
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===

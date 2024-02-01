@@ -18,7 +18,8 @@ export const ActionRow = (props: {
     }
   }
 
-  const copyAction = () => {
+  const copyAction = (event: any) => {
+    event.stopPropagation();
     navigator.clipboard.writeText(action.action);
     toast.success("Copied to clipboard");
   };

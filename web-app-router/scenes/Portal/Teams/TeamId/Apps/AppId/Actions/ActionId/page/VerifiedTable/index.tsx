@@ -1,10 +1,11 @@
 "use client";
 import { Table } from "@/components/Table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { VerifiedRow } from "./VerifiedRow";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
 import { Body } from "@/components/Table/Body";
+import { Row } from "@/components/Table/Row";
 
 export type NullifierItem = {
   id: string;
@@ -102,7 +103,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
           key: index,
           logo: _selectImage(nullifier.nullifier_hash),
         });
-      },
+      }
     );
   }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
 
@@ -129,7 +130,11 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
             }
           >
             <Header headers={headers} />
-            <Body rows={actionsToRender} />
+            <Body>
+              {actionsToRender.map((rowData: ReactNode[], index: number) => {
+                return <Row row={rowData} key={index} />;
+              })}
+            </Body>
           </Table>
         </div>
       </div>

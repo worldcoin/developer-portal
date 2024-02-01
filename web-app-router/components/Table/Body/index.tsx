@@ -1,21 +1,9 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
-type BodyProps = {
-  rows: React.ReactNode[][];
-};
-
-export const Body: React.FC<BodyProps> = ({ rows }) => {
+export const Body = (props: { children: ReactNode }) => {
   return (
     <tbody className="bg-white divide-y divide-grey-100 overflow-y-scroll">
-      {rows.map((row, rowIndex) => (
-        <tr key={rowIndex} className="hover:bg-grey-25 text-grey-500 text-xs">
-          {row.map((cell, cellIndex) => (
-            <td key={cellIndex} className="whitespace-nowrap">
-              {cell}
-            </td>
-          ))}
-        </tr>
-      ))}
+      {props.children}
     </tbody>
   );
 };
