@@ -1,0 +1,8 @@
+mutation UpdateAPIKey($id: String = "", $hashed_secret: String = "") {
+  update_api_key(
+    where: { id: { _eq: $id } }
+    _set: { api_key: $hashed_secret }
+  ) {
+    affected_rows
+  }
+}
