@@ -15,7 +15,7 @@ import { getSdk as checkUserPermissions } from "./graphql/check-user-permission.
  */
 export default async function handleAPIKeyReset(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -78,7 +78,7 @@ export default async function handleAPIKeyReset(
   }
 
   const { team: userTeam } = await checkUserPermissions(
-    client
+    client,
   ).CheckUserPermission({
     id: id,
     team_id: teamId,
