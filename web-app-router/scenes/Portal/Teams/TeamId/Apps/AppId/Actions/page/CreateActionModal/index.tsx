@@ -31,14 +31,16 @@ const createActionSchema = yup.object({
     .typeError("Max verifications must be a number")
     .required("This field is required"),
 });
+
 export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 
 type CreateActionModalProps = {
   className?: string;
+  firstAction?: boolean;
 };
 
 export const CreateActionModal = (props: CreateActionModalProps) => {
-  const { className } = props;
+  const { className, firstAction } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
   const router = useRouter();
@@ -106,14 +108,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         //   app_id: currentApp.id,
         //   action_id: values.action,
         // });
+        const action_id = result.data?.insert_action_one?.id;
         reset();
-        const urlWithoutQueryParams = // Use this so we can refetch the actions without caching
-          window.location.protocol +
-          "//" +
-          window.location.host +
-          window.location.pathname;
-        router.prefetch(urlWithoutQueryParams);
-        router.replace(urlWithoutQueryParams);
+        if (firstAction) {
+          router.replace(`${pathname}/${action_id}/settings`);
+        } else {
+          router.prefetch(pathname);
+          router.replace(pathname);
+        }
       } catch (error) {
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===
@@ -123,7 +125,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             type: "custom",
             message: "This action already exists.",
           });
-          console.log(values);
           return toast.error(
             "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
@@ -132,7 +133,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, reset, router, setError]
+    [appId, insertActionQuery, reset, router, setError, firstAction]
   );
 
   const copyAction = useCallback(() => {

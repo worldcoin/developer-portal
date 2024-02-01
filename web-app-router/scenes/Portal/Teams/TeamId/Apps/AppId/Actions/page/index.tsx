@@ -35,7 +35,10 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         actions={data.action}
         className={clsx({ hidden: !showList || createAction })}
       />
-      <CreateActionModal className={clsx({ hidden: !createAction })} />
+      <CreateActionModal
+        className={clsx({ hidden: !createAction })}
+        firstAction={data.action.length === 0} // Due to the refetch query completing this value will be updated to 1
+      />
       <div
         className={clsx("flex flex-col items-center pt-24", {
           hidden: showList || createAction,

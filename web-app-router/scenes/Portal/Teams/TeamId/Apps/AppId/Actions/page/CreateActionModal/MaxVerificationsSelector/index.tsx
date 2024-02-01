@@ -69,7 +69,6 @@ export const MaxVerificationsSelector = (props: {
   );
 
   const submitInput = useCallback(() => {
-    console.log("submitInput", input);
     handleSelect(Number(input));
     setInput("");
   }, [handleSelect, input]);
