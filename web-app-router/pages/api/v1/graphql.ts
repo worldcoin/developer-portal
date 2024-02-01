@@ -1,12 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-
-import {
-  generateAnalyticsJWT,
-  generateAPIKeyJWT,
-  generateUserJWT,
-} from "@/legacy/backend/jwts";
-
+import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
 import { errorUnauthenticated } from "@/legacy/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { verifyHashedSecret } from "@/legacy/backend/utils";
@@ -74,16 +68,6 @@ export default async function handleGraphQL(
     );
   }
 
-  // Check if request is from the analytics service
-  if (authorization?.startsWith("analytics_")) {
-    if (authorization !== process.env.ANALYTICS_API_KEY) {
-      return errorUnauthenticated("Invalid analytics API key", res, req);
-    }
-
-    headers.delete("Authorization");
-    headers.append("Authorization", `Bearer ${await generateAnalyticsJWT()}`);
-  }
-
   let body: string | undefined = undefined;
   try {
     body = JSON.stringify(req.body);
@@ -116,11 +100,6 @@ export default async function handleGraphQL(
       headers.append("Authorization", `Bearer ${token}`);
     }
   }
-  // TODO: REMOVE THIS
-  headers.append(
-    "x-hasura-admin-secret",
-    process.env.HASURA_GRAPHQL_ADMIN_SECRET!,
-  );
 
   const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_API_URL, {
     method: req.method,

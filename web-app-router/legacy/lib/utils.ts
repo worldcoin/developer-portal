@@ -1,4 +1,4 @@
-import { Auth0EmailUser, Auth0User } from "@/lib/types";
+import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import {
   ORB_SEQUENCER_STAGING,
   ORB_SEQUENCER,
@@ -67,3 +67,7 @@ export const uriHasJS = (uri: string) => /javascript:/.test(uri);
 
 export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
   user.sub.startsWith("email|");
+
+export const getCDNImageUrl = (app_id: string, path: string) => {
+  return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`;
+};
