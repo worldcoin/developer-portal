@@ -6,24 +6,10 @@ import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type GetMembershipsQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
-  user_id: Types.Scalars["String"];
 }>;
 
 export type GetMembershipsQuery = {
   __typename?: "query_root";
-  team: Array<{
-    __typename?: "team";
-    id: string;
-    memberships: Array<{
-      __typename?: "membership";
-      user: {
-        __typename?: "user";
-        id: string;
-        name: string;
-        email?: string | null;
-      };
-    }>;
-  }>;
   membership: Array<{
     __typename?: "membership";
     user: { __typename?: "user"; email?: string | null };
@@ -31,25 +17,7 @@ export type GetMembershipsQuery = {
 };
 
 export const GetMembershipsDocument = gql`
-  query GetMemberships($team_id: String!, $user_id: String!) {
-    team(
-      where: {
-        id: { _eq: $team_id }
-        memberships: {
-          user_id: { _eq: $user_id }
-          role: { _in: [ADMIN, OWNER] }
-        }
-      }
-    ) {
-      id
-      memberships {
-        user {
-          id
-          name
-          email
-        }
-      }
-    }
+  query GetMemberships($team_id: String!) {
     membership(where: { team_id: { _eq: $team_id } }) {
       user {
         email

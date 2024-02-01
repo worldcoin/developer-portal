@@ -1,19 +1,4 @@
-query GetMemberships($team_id: String!, $user_id: String!) {
-  team(
-    where: {
-      id: { _eq: $team_id }
-      memberships: { user_id: { _eq: $user_id }, role: { _in: [ADMIN, OWNER] } }
-    }
-  ) {
-    id
-    memberships {
-      user {
-        id
-        name
-        email
-      }
-    }
-  }
+query GetMemberships($team_id: String!) {
   membership(where: { team_id: { _eq: $team_id } }) {
     user {
       email
