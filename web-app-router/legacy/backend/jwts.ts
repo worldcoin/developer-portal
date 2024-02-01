@@ -7,7 +7,7 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { JwtConfig } from "../lib/types";
+import { JwtConfig } from "../../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";

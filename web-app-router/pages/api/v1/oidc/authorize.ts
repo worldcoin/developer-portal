@@ -21,7 +21,7 @@ import {
 import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
-import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`

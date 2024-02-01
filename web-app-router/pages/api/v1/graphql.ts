@@ -116,6 +116,11 @@ export default async function handleGraphQL(
       headers.append("Authorization", `Bearer ${token}`);
     }
   }
+  // TODO: REMOVE THIS
+  headers.append(
+    "x-hasura-admin-secret",
+    process.env.HASURA_GRAPHQL_ADMIN_SECRET!,
+  );
 
   const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_API_URL, {
     method: req.method,

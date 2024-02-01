@@ -14,7 +14,7 @@ type DecoratedButtonProps = CommonButtonProps & {
 };
 
 export const DecoratedButton = memo(function DecoratedButton(
-  props: DecoratedButtonProps,
+  props: DecoratedButtonProps
 ) {
   const {
     icon,
@@ -57,13 +57,13 @@ export const DecoratedButton = memo(function DecoratedButton(
       disabled={disabled}
       className={twMerge(
         clsx(
-          "px-6 py-2.5 rounded-xl border font-medium relative font-gta leading-[1.5]",
-          className,
+          "px-6 py-2.5 rounded-xl border font-medium relative font-gta flex items-center justify-center",
           { [buttonStyles[variant].normal]: !disabled && !loading },
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,
           loading && buttonStyles[variant].loading,
-        ),
+          className
+        )
       )}
       {...restProps}
     >

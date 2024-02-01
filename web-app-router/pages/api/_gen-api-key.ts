@@ -6,7 +6,7 @@ import {
   protectInternalEndpoint,
 } from "@/legacy/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { APIKeyModel } from "@/legacy/lib/models";
+import { APIKeyModel } from "@/lib/models";
 
 const updateAPIKeyQuery = gql`
   mutation UpdateAPIKey($id: String = "", $hashed_secret: String = "") {
@@ -26,7 +26,7 @@ const updateAPIKeyQuery = gql`
  */
 export default async function handleAPIKey(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;

@@ -44,8 +44,8 @@ module.exports = {
       ],
     },
 
-    backend: {
-      documents: ["backend/**/*.graphql", "backend/**/*.gql"],
+    "api": {
+      documents: ["api/**/*.graphql", "api/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -64,8 +64,8 @@ module.exports = {
       ],
     },
 
-    api: {
-      documents: ["api/**/*.graphql", "api/**/*.gql"],
+    "scenes/server": {
+      documents: ["scenes/**/server/**/*.graphql", "scenes/**/server/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -75,13 +75,37 @@ module.exports = {
         {
           add: {
             placement: "prepend",
-            content:
-              "/* eslint-disable import/no-relative-parent-imports -- auto generated file */",
+            content: "/* eslint-disable */",
           },
         },
         "typescript-operations",
         "typescript-graphql-request",
       ],
+      config: {
+        withMutationFn: true,
+      },
+    },
+
+    "scenes/client": {
+      documents: ["scenes/**/client/**/*.graphql", "scenes/**/client/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-react-apollo",
+      ],
+      config: {
+        withMutationFn: true,
+      },
     },
 
     app: {
