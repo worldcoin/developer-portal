@@ -1,7 +1,13 @@
 query GetMembership($user_id: String!, $team_id: String!) {
   membership(
-    where: { _and: { team_id: { _eq: $team_id }, user_id: { _eq: $user_id } } }
+    where: {
+      _and: {
+        team_id: { _eq: $team_id }
+        user_id: { _eq: $user_id }
+        role: { _in: [ADMIN, OWNER] }
+      }
+    }
   ) {
-    role
+    user_id
   }
 }

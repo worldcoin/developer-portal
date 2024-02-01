@@ -14,6 +14,7 @@ import { errorHasuraQuery, errorNotAllowed } from "@/backend/errors";
 
 import { getSdk as getMembershipSdk } from "./graphql/get-membership.generated";
 import { Role_Enum } from "@/graphql/graphql";
+import { logger } from "@/lib/logger";
 
 /**
  * Resets the client secret for an app (OIDC)
@@ -32,6 +33,11 @@ export const handleSecretReset = async (
     return errorNotAllowed(req.method, res, req);
   }
 
+  if (req.body.action?.name !== "reset_client_secret") {
+    logger.error("Invalid action in _reset-client-secret", { body: req.body });
+    return errorHasuraQuery({ res, req });
+  }
+
   const user_id = req.body.session_variables["x-hasura-user-id"];
   const team_id = req.body.session_variables["x-hasura-team-id"];
 
@@ -44,6 +50,13 @@ export const handleSecretReset = async (
     });
   }
 
+  if (req.body.session_variables["x-hasura-role"] === "admin") {
+    logger.error("Admin not allowed to run _reset-client-client-secret", {
+      body: req.body,
+    });
+    return errorHasuraQuery({ res, req });
+  }
+
   const gqlClient = await getAPIServiceGraphqlClient();
 
   const data = await getMembershipSdk(gqlClient).GetMembership({
@@ -51,33 +64,14 @@ export const handleSecretReset = async (
     team_id,
   });
 
-  if (!data.membership.length) {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "User is not a member of this team.",
-      code: "invalid_membership",
-    });
-  }
-
   const user = data.membership[0];
 
-  if (user.role !== Role_Enum.Owner && user.role !== Role_Enum.Admin) {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "Invalid User",
-      code: "invalid_role",
+  if (!user?.user_id) {
+    logger.warn("Reset client reset failed for user due to permissions.", {
+      user_id,
+      team_id,
     });
-  }
-
-  if (req.body.action?.name !== "reset_client_secret") {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "Invalid action.",
-      code: "invalid_action",
-    });
+    return errorHasuraQuery({ res, req });
   }
 
   const { app_id } = req.body.input || {};
@@ -92,16 +86,8 @@ export const handleSecretReset = async (
 
   const client = await getAPIServiceClient();
 
-  if (req.body.session_variables["x-hasura-role"] === "admin") {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "Admin is not allowed to run this query.",
-      code: "admin_not_allowed",
-    });
-  }
-
   // ANCHOR: Make sure the user can perform this client reset
+  // TODO: Merge query into get-membership
   const query = gql`
     query GetAppTeam($app_id: String!, $team_id: String!) {
       app(where: { id: { _eq: $app_id }, team_id: { _eq: $team_id } }) {

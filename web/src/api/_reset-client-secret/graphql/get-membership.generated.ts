@@ -11,17 +11,21 @@ export type GetMembershipQueryVariables = Types.Exact<{
 
 export type GetMembershipQuery = {
   __typename?: "query_root";
-  membership: Array<{ __typename?: "membership"; role: Types.Role_Enum }>;
+  membership: Array<{ __typename?: "membership"; user_id: string }>;
 };
 
 export const GetMembershipDocument = gql`
   query GetMembership($user_id: String!, $team_id: String!) {
     membership(
       where: {
-        _and: { team_id: { _eq: $team_id }, user_id: { _eq: $user_id } }
+        _and: {
+          team_id: { _eq: $team_id }
+          user_id: { _eq: $user_id }
+          role: { _in: [ADMIN, OWNER] }
+        }
       }
     ) {
-      role
+      user_id
     }
   }
 `;
