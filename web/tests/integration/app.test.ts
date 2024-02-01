@@ -328,7 +328,6 @@ describe("user role", () => {
       `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`
     )) as { rows: Array<{ id: string }> };
 
-    // Test invalid role
     const tokenTeamId = teams[0].id;
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
