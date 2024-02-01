@@ -4,7 +4,7 @@ import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { fetchActiveJWK } from "@/legacy/backend/jwks";
 import { generateOIDCJWT } from "@/legacy/backend/jwts";
 import { authenticateOIDCEndpoint } from "@/legacy/backend/oidc";
-import { AuthCodeModel } from "@/lib/models";
+import { AuthCodeModel } from "@/legacy/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createHash, timingSafeEqual } from "crypto";
 import * as yup from "yup";

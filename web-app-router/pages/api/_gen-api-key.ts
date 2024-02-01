@@ -6,7 +6,7 @@ import {
   protectInternalEndpoint,
 } from "@/legacy/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { APIKeyModel } from "@/lib/models";
+import { APIKeyModel } from "@/legacy/lib/models";
 
 const updateAPIKeyQuery = gql`
   mutation UpdateAPIKey($id: String = "", $hashed_secret: String = "") {

@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { ActionModel } from "@/lib/models";
+import { ActionModel } from "@/legacy/lib/models";
 import { errorNotAllowed } from "@/legacy/backend/errors";
 import { generateExternalNullifier } from "@/lib/hashing";
 

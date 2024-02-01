@@ -11,7 +11,6 @@ export enum OIDCFlowType {
  */
 
 import { NextApiRequest } from "next";
-import { ActionModel, AppMetadataModel, AppModel } from "./models";
 import { Membership } from "@/graphql/graphql";
 import { UserContext } from "@auth0/nextjs-auth0/client";
 
@@ -75,32 +74,6 @@ export interface IPendingProofResponse {
   root: string | null;
   status: "pending" | "mined" | "new";
 }
-
-export type ActionKioskQueryType = Pick<
-  ActionModel,
-  "id" | "name" | "description" | "action" | "external_nullifier" | "__typename"
-> & {
-  app: Pick<AppModel, "id" | "is_staging" | "__typename"> & {
-    app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
-    >;
-    verified_app_metadata: Array<
-      Pick<AppMetadataModel, "name" | "logo_img_url" | "verification_status">
-    >;
-  };
-};
-
-export type ActionKioskType = Omit<ActionKioskQueryType, "app"> & {
-  app: Omit<
-    ActionKioskQueryType["app"],
-    "app_metadata" | "verified_app_metadata"
-  > & {
-    app_metadata: Pick<
-      AppMetadataModel,
-      "name" | "logo_img_url" | "verification_status"
-    > | null;
-  };
-};
 
 export enum Environment {
   Production = "production",

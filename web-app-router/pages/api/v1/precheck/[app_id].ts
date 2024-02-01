@@ -11,7 +11,7 @@ import {
   AppMetadataModel,
   AppModel,
   NullifierModel,
-} from "@/lib/models";
+} from "@/legacy/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { runCors } from "@/legacy/backend/cors";

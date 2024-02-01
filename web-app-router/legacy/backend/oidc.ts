@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import crypto from "crypto";
-import { ActionModel, AppModel, RedirectModel } from "@/lib/models";
+import { ActionModel, AppModel, RedirectModel } from "@/legacy/lib/models";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
