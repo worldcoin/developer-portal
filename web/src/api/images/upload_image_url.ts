@@ -60,6 +60,7 @@ export const handleImageUpload = async (
       });
     }
 
+    // TODO: Use yup to validate input
     const { app_id, image_type, content_type_ending } =
       req.query as RequestQueryParams;
     if (!app_id || !image_type || !content_type_ending) {

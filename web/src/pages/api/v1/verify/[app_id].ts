@@ -39,6 +39,16 @@ const schema = yup.object({
         ),
     }),
   credential_type: yup.string().oneOf(Object.values(CredentialType)),
+  max_age: yup
+    .number()
+    .integer()
+    .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
+    .max(
+      604800,
+      "Maximum root age cannot be more than 604800 seconds (7 days)."
+    )
+    .strict()
+    .optional(),
 });
 
 export default async function handleVerify(
@@ -141,6 +151,7 @@ export default async function handleVerify(
     {
       is_staging: app.is_staging,
       verification_level,
+      max_age: parsedParams.max_age,
     }
   );
   if (error || !success) {
