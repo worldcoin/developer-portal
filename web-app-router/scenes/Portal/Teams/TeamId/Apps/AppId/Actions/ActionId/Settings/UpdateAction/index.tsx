@@ -9,6 +9,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
+import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -64,7 +65,13 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
-          refetchQueries: ["GetSingleAction"],
+          refetchQueries: [
+            {
+              query: GetSingleActionDocument,
+              variables: { action_id: action.id },
+            },
+          ],
+          awaitRefetchQueries: true,
         });
 
         if (result instanceof Error) {

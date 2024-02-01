@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { getSdk as GetActionSdk } from "./graphql/server/get-single-action.generated";
 import { getAPIServiceGraphqlClient } from "@/lib/graphql";
-import { ActionDangerZoneContent } from "./ActionDangerZoneContent";
+import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -15,12 +15,11 @@ export const ActionIdDangerPage = async ({
   params,
 }: ActionIdDangerPageProps) => {
   const actionID = params?.actionId;
-
   const client = await getAPIServiceGraphqlClient();
-
   const data = await GetActionSdk(client).Action({
     action_id: actionID ?? "",
   });
+
   const action = data?.action[0];
 
   return (

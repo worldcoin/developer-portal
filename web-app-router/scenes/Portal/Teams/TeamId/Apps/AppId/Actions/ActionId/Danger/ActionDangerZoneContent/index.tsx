@@ -9,7 +9,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { GetActionsDocument } from "../../../../page/graphql/client/actions.generated";
+import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 
 export const ActionDangerZoneContent = (props: { action: any }) => {
   const { action } = props;
@@ -34,7 +34,7 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
       if (result instanceof Error) {
         throw result;
       }
-      router.replace(`..`); 
+      router.replace(`..`);
     } catch (error) {
       console.error(error);
       return toast.error("Unable to delete action");
