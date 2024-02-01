@@ -7,6 +7,7 @@ import { useGetActionsQuery } from "./graphql/client/actions.generated";
 import { ActionsList } from "./ActionsList";
 import clsx from "clsx";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -46,30 +47,33 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
             <WorldcoinBlueprintIcon className="absolute inset-0 m-auto z-10 w-[60px] h-[60px] rounded-2xl" />
           </div>
           <div className="grid place-items-center gap-y-2 grid-cols-1">
-            <h1 className="text-2xl font-[550]">
+            <Typography variant={TYPOGRAPHY.H6}>
               Create your first incognito action
-            </h1>
-            <p className="text-grey-500 font-[400] text-sm">
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-grey-500 text-sm"
+            >
               Allow users to verify as a unique person without revealing their
               identity
-            </p>
+            </Typography>
           </div>
           <div className="grid grid-cols-auto/1fr/auto gap-x-4 w-full mt-5 border-grey-200 border p-5 rounded-2xl shadow-button">
             <IncognitoActionIcon />
             <div className="grid grid-cols-1">
-              <p className="text-grey-900 text-base font-[500]">
+              <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
                 Create an incognito action
-              </p>
-              <p className="text-xs text-grey-500 font-[400]">
+              </Typography>
+              <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
                 Verify users as unique humans
-              </p>
+              </Typography>
             </div>
             <DecoratedButton
               variant="primary"
               href="?createAction=true"
-              className="text-sm px-5 py-1 rounded-[.7rem]"
+              className="px-5 py-1 rounded-[.7rem]"
             >
-              Create
+              <Typography variant={TYPOGRAPHY.R4}>Create</Typography>
             </DecoratedButton>
           </div>
         </div>

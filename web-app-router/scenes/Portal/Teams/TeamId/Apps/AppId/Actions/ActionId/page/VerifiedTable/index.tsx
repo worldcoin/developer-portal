@@ -6,6 +6,7 @@ import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
 import { Body } from "@/components/Table/Body";
 import { Row } from "@/components/Table/Row";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export type NullifierItem = {
   id: string;
@@ -111,10 +112,13 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     <div className="flex items-center justify-end w-full">
       <div className="w-full grid gap-y-6">
         <div className="flex justify-start items-center gap-x-2">
-          <h1 className="text-lg text-grey-900 font-[550]">Verified humans</h1>
-          <p className="bg-grey-100 w-8 py-1 text-center rounded-xl text-xs">
+          <Typography variant={TYPOGRAPHY.M2}>Verified humans</Typography>
+          <Typography
+            variant={TYPOGRAPHY.R5}
+            className="bg-grey-100 w-8 py-1 text-center rounded-xl"
+          >
             {nullifiers.length}
-          </p>
+          </Typography>
         </div>
         <div className="w-full max-h-[380px] overflow-auto no-scrollbar">
           <Table

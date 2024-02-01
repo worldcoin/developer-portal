@@ -7,6 +7,7 @@ import {
   SelectOptions,
   SelectOption,
 } from "@/components/Select";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
 import { FieldError } from "react-hook-form";
@@ -55,14 +56,10 @@ export const MaxVerificationsSelector = (props: {
         true,
     }
   );
-  const labelClassNames = clsx(
-    "text-sm ml-2 px-[2px] peer-focus:text-blue-500",
-    {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
-        !errors,
-      "text-system-error-500 peer-focus:text-system-error-500": errors,
-    }
-  );
+  const labelClassNames = clsx("ml-2 px-[2px] peer-focus:text-blue-500", {
+    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700": !errors,
+    "text-system-error-500 peer-focus:text-system-error-500": errors,
+  });
 
   const handleSelect = useCallback(
     (newValue: number) => {
@@ -83,7 +80,7 @@ export const MaxVerificationsSelector = (props: {
       onChange={handleSelect}
       by={(a: number | null, b: number | null) => a === b}
     >
-      <div className={"inline-grid font-gta "}>
+      <div className={"inline-grid font-gta"}>
         <fieldset
           className={twMerge(clsx("grid group pb-2 w-full", parentClassNames))}
         >
@@ -95,8 +92,10 @@ export const MaxVerificationsSelector = (props: {
               className
             )}
           >
-            {VerificationOptions[value] ?? value.toString()}
-            <CaretIcon className="ml-2  text-grey-400 group-hover:text-grey-700" />
+            <Typography variant={TYPOGRAPHY.R4}>
+              {VerificationOptions[value] ?? value.toString()}
+            </Typography>
+            <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700" />
           </SelectButton>
 
           <SelectOptions
@@ -107,7 +106,9 @@ export const MaxVerificationsSelector = (props: {
             {VerificationOptions.map((option, index) => (
               <SelectOption key={index} value={index}>
                 <div className="grid grid-cols-1fr/auto">
-                  {VerificationOptions[index]}
+                  <Typography variant={TYPOGRAPHY.R4}>
+                    {VerificationOptions[index]}
+                  </Typography>
                 </div>
               </SelectOption>
             ))}
@@ -134,16 +135,23 @@ export const MaxVerificationsSelector = (props: {
               </SelectOption>
             )}
           </SelectOptions>
-          <legend className={labelClassNames}>{label} </legend>
+          <legend className={labelClassNames}>
+            <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>
+          </legend>
         </fieldset>
         <div className={clsx("flex flex-col w-full px-2")}>
           {helperText && (
-            <p className="mt-2 text-xs text-grey-500">{helperText}</p>
+            <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+              {helperText}
+            </Typography>
           )}
           {errors?.message && (
-            <p className="mt-2 text-xs text-system-error-500">
+            <Typography
+              className="mt-2 text-system-error-500"
+              variant={TYPOGRAPHY.R5}
+            >
               {errors.message}
-            </p>
+            </Typography>
           )}
         </div>
       </div>

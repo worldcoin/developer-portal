@@ -12,6 +12,7 @@ import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 const testProofSchema = yup.object({
   signal: yup.string().optional(),
@@ -176,7 +177,7 @@ export const Debugger = (props: DebuggerProps) => {
       onSubmit={handleSubmit(submit)}
     >
       <div className="w-full grid gap-y-6">
-        <h1 className="text-lg font-[550]">Output parameters</h1>
+        <Typography variant={TYPOGRAPHY.M2}>Output parameters</Typography>
         <div className="grid gap-y-8">
           <Input
             register={register("signal")}
@@ -202,7 +203,7 @@ export const Debugger = (props: DebuggerProps) => {
         </div>
       </div>
       <div className="w-full grid gap-y-6 md:min-w-[480px]">
-        <h1 className="text-lg font-[550]">Results</h1>
+        <Typography variant={TYPOGRAPHY.M2}>Results</Typography>
         <div
           className={clsx(
             "w-full h-80 bg-grey-50 border border-grey-100 flex flex-col items-center justify-center rounded-lg",
@@ -226,21 +227,22 @@ export const Debugger = (props: DebuggerProps) => {
             {status === Status.ERROR && <CloseIcon className="w-5 h-5" />}
           </CircleIconContainer>
           <div className="flex flex-col items-center gap-y-5 mt-8 px-12 text-center">
-            <p
+            <Typography
+              variant={TYPOGRAPHY.R4}
               className={clsx("text-grey-400 text-sm", {
                 "text-system-error-600": status === Status.ERROR,
                 "text-system-success-600": status === Status.SUCCESS,
               })}
             >
               {message}
-            </p>
+            </Typography>
             <DecoratedButton
               type="submit"
               variant="secondary"
-              className="w-60 text-grey-700"
+              className="w-60 text-grey-700 disabled:text-grey-300"
               disabled={!isDirty || !isValid}
             >
-              Validate Proof
+              <Typography variant={TYPOGRAPHY.M3}>Validate Proof</Typography>
             </DecoratedButton>
           </div>
         </div>

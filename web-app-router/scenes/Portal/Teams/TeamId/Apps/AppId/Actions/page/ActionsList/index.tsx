@@ -12,6 +12,7 @@ import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type ActionRow = {
   cells: ReactNode[];
@@ -89,11 +90,13 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     >
       <div className="max-w-[1180px] w-full grid gap-y-5">
         <div className="grid gap-2 text-grey-900 font-[550]">
-          <h1 className="text-2xl">Incognito Actions</h1>
-          <p className="text-grey-500 text-base font-light ">
+          <Typography variant={TYPOGRAPHY.H6} className="text-2xl">
+            Incognito Actions
+          </Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500 ">
             Allow users to verify that they are a unique person without
             revealing their identity
-          </p>
+          </Typography>
         </div>
         <div className="flex w-full justify-between items-center mt-5">
           <Input
@@ -105,7 +108,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
             addOnPosition="left"
           />
           <DecoratedButton className="h-12 w-36" href="?createAction=true">
-            New action
+            <Typography variant={TYPOGRAPHY.M3}>New action</Typography>
           </DecoratedButton>
         </div>
         <div className="w-full max-h-[400px] overflow-auto">

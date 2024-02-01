@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;
@@ -26,8 +27,10 @@ export const KioskError = memo(function KioskError(props: {
             <CloseIcon className="h-4 w-4 text-system-error-500" />
           </CircleIconContainer>
         </div>
-        <h2 className="text-grey-700 text-2xl font-semibold">{title}</h2>
-        <p className="text-grey-700">{details}</p>
+        <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+          {details}
+        </Typography>
       </div>
 
       {buttonText && (
@@ -38,7 +41,7 @@ export const KioskError = memo(function KioskError(props: {
           color="primary"
           onClick={reset}
         >
-          {buttonText}
+          <Typography variant={TYPOGRAPHY.M3}>{buttonText}</Typography>
         </DecoratedButton>
       )}
     </div>

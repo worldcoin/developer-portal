@@ -11,7 +11,7 @@ import { useCallback, useEffect } from "react";
 import slugify from "slugify";
 import { ApolloError } from "@apollo/client";
 import { toast } from "react-toastify";
-import { generateExternalNullifier } from "@/legacy/lib/hashing";
+import { generateExternalNullifier } from "@/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useInsertActionMutation } from "./graphql/insert-action.generated";
@@ -19,6 +19,8 @@ import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import clsx from "clsx";
 import { Link } from "@/components/Link";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
+import { LoggedUserNav } from "@/components/LoggedUserNav";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -121,7 +123,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             type: "custom",
             message: "This action already exists.",
           });
-
+          console.log(values);
           return toast.error(
             "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
@@ -130,7 +132,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, setError]
+    [appId, insertActionQuery, reset, router, setError]
   );
 
   const copyAction = useCallback(() => {
@@ -151,10 +153,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             <CloseIcon />
           </Link>
           <div className="border-r-[1px] border-grey-200 h-full"></div>
-          <p className="font-[500] text-sm">Create an incognito action</p>
+          <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
+            Create an incognito action
+          </Typography>
         </div>
         <div className="flex justify-end ">
-          <UserHelpNav />
+          <LoggedUserNav name="L" />
         </div>
       </div>
       <div className="w-screen p-10 overflow-auto grid items-center justify-center min-h-full">
@@ -162,9 +166,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           onSubmit={handleSubmit(submit)}
           className="grid grid-cols-1 gap-6"
         >
-          <h1 className="text-2xl font-[550] mb-2">
+          <Typography className="mb-2" variant={TYPOGRAPHY.H6}>
             Create an incognito action
-          </h1>
+          </Typography>
           <Input
             register={register("name")}
             errors={errors.name}
@@ -222,7 +226,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               disabled={!isValid || loading}
               className="px-10 py-3"
             >
-              Create Action
+              <Typography variant={TYPOGRAPHY.R3}>Create Action</Typography>
             </DecoratedButton>
           </div>
         </form>

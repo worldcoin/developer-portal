@@ -8,6 +8,7 @@ import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { Button } from "@/components/Button";
 import { toast } from "react-toastify";
 import { CodeBlock } from "@/components/CodeBlock";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type CodeDisplayComponentProps = {
   buttonText: string;
@@ -53,7 +54,9 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
                   className="flex gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
                 >
                   <CopyIcon className="h-4 w-4" />
-                  <p className="text-xs ">Copy</p>
+                  <Typography variant={TYPOGRAPHY.R5} className="text-xs">
+                    Copy
+                  </Typography>
                 </Button>
               </div>
             </DisclosurePanel>

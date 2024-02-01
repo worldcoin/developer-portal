@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
@@ -32,7 +33,9 @@ export const Waiting = memo(function Waiting(props: {
             value={qrData}
           />
         )}
-        {!qrData && <div>Loading QR code...</div>}
+        {!qrData && (
+          <Typography variant={TYPOGRAPHY.R3}>Loading QR code...</Typography>
+        )}
         <Button
           type="button"
           onClick={handleCopy}
@@ -42,7 +45,9 @@ export const Waiting = memo(function Waiting(props: {
           <CopyIcon
             className={clsx("mr-2 font-[500]", copied && "text-grey-900")}
           />
-          {copied ? "Copied!" : "Copy QR code"}
+          <Typography variant={TYPOGRAPHY.M3}>
+            {copied ? "Copied!" : "Copy QR code"}
+          </Typography>
         </Button>
       </div>
       {showSimulator && (
@@ -51,7 +56,7 @@ export const Waiting = memo(function Waiting(props: {
           variant="secondary"
           className="w-full py-4"
         >
-          Test in simulator
+          <Typography variant={TYPOGRAPHY.M3}>Test in simulator</Typography>
         </DecoratedButton>
       )}
     </div>

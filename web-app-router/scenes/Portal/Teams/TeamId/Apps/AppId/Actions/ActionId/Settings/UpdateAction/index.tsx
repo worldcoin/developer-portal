@@ -10,6 +10,7 @@ import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -103,7 +104,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         onSubmit={handleSubmit(submit)}
         className="gap-y-5 w-full grid grid-cols-1"
       >
-        <h1 className="text-lg font-[550] mb-2 text-grey-900">Settings</h1>
+        <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+          Settings
+        </Typography>
         <Input
           register={register("name")}
           errors={errors.name}
@@ -161,7 +164,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             disabled={!isValid || loading}
             className="px-6 py-3 mt-4"
           >
-            Save Changes
+            <Typography variant={TYPOGRAPHY.R4} className="text-white">
+              Save Changes
+            </Typography>
           </DecoratedButton>
         </div>
       </form>

@@ -1,6 +1,7 @@
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { ElementsIcon } from "@/components/Icons/ElementsIcon";
 import { Link } from "@/components/Link";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Menu } from "@headlessui/react";
 
 export const DetailsMenu = (props: { path: string }) => {
@@ -20,8 +21,8 @@ export const DetailsMenu = (props: { path: string }) => {
               <button>
                 <EditIcon className="text-grey-400" />
               </button>
-              <Link className="text-sm text-grey-900" href={path}>
-                View Details
+              <Link className="text-grey-900" href={path}>
+                <Typography variant={TYPOGRAPHY.R4}>View Details</Typography>
               </Link>
             </div>
           )}

@@ -6,6 +6,7 @@ import { UpdateActionForm } from "../UpdateAction";
 import { TryAction } from "../TryAction";
 import { Link } from "@/components/Link";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -31,22 +32,25 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
         <div>
           <Link href={`..`} className="flex flex-row items-center gap-x-2">
             <CaretIcon className="h-3 w-3 text-grey-400 rotate-90" />
-            <p className="text-grey-700 font-[400] text-xs">
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
               Back to Incognito Actions
-            </p>
+            </Typography>
           </Link>
         </div>
         <div className="w-full flex justify-between items-center">
-          <h1 className="text-grey-900 text-2xl font-[550] capitalize">
+          <Typography
+            variant={TYPOGRAPHY.H6}
+            className="text-grey-900 capitalize"
+          >
             {action.name}
-          </h1>
+          </Typography>
           <DecoratedButton
             variant="secondary"
             href="https://docs.worldcoin.org/id/idkit"
             className="text-grey-700 py-3 px-7 "
           >
             <DocsIcon />
-            Learn more
+            <Typography variant={TYPOGRAPHY.R3}>Learn more</Typography>
           </DecoratedButton>
         </div>
         <hr className="my-5 w-full text-grey-200 border-dashed" />

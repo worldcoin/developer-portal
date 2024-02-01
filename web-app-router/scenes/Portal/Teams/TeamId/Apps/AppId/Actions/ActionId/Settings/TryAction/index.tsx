@@ -7,6 +7,7 @@ import { MiniKiosk } from "./MiniKiosk";
 import { useState } from "react";
 import clsx from "clsx";
 import { CodeBlock } from "./CodeBlock";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type TryActionProps = {
   action: {
@@ -25,7 +26,9 @@ export const TryAction = (props: TryActionProps) => {
   return (
     <div className="h-full gap-y-5 grid grid-rows-auto/1fr items-start md:w-[480px]">
       <div className="grid grid-cols-2 justify-between w-full items-center">
-        <h1 className="text-grey-900 font-[550]">Try it out</h1>
+        <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+          Try it out
+        </Typography>
         <div className="w-full justify-end flex gap-x-4">
           <Button
             type="button"

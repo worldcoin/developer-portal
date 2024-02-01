@@ -4,7 +4,7 @@ import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { ActionModel } from "@/lib/models";
 import { errorNotAllowed } from "@/legacy/backend/errors";
-import { generateExternalNullifier } from "@/legacy/lib/hashing";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 /**
  * Generates the external nullifier for actions created in the Developer Portal.

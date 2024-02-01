@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { SuccessIcon } from "@/components/Icons/SuccessIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const Success = memo(function Success(props: { reset: () => void }) {
   const { reset } = props;
@@ -15,9 +16,7 @@ export const Success = memo(function Success(props: { reset: () => void }) {
             <SuccessIcon className="h-4 w-4 text-system-success-500" />
           </CircleIconContainer>
         </div>
-        <p className="font-sora font-semibold text-[26px] leading-[1.2]">
-          Verified successfully!
-        </p>
+        <Typography variant={TYPOGRAPHY.H6}>Verified successfully!</Typography>
       </div>
 
       <DecoratedButton
@@ -26,7 +25,7 @@ export const Success = memo(function Success(props: { reset: () => void }) {
         className={clsx()}
         onClick={reset}
       >
-        New Verification
+        <Typography variant={TYPOGRAPHY.M3}>New Verification</Typography>
       </DecoratedButton>
     </div>
   );

@@ -15,7 +15,7 @@ import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { runCors } from "@/legacy/backend/cors";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import * as yup from "yup";
-import { generateExternalNullifier } from "@/legacy/lib/hashing";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 type _Nullifier = Pick<
   NullifierModel,
