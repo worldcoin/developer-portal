@@ -21,7 +21,7 @@ type TypographyProps<T extends ElementType = "span"> = {
 };
 
 export const Typography = <T extends ElementType = "span">(
-  props: TypographyProps<T> & ComponentPropsWithoutRef<T>
+  props: TypographyProps<T> & ComponentPropsWithoutRef<T>,
 ) => {
   const {
     as: Component = "span",
@@ -47,7 +47,7 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.R3,
           "text-sm leading-[1.4] font-normal font-gta":
             variant === TYPOGRAPHY.R4,
-        })
+        }),
       )}
       {...otherProps}
     >

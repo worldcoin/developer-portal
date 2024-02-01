@@ -15,7 +15,7 @@ export const Logo = (props: {
   return (
     <div
       className={twMerge(
-        clsx("w-20 h-20 rounded-2xl overflow-hidden", props.className)
+        clsx("w-20 h-20 rounded-2xl overflow-hidden", props.className),
       )}
     >
       {image && (

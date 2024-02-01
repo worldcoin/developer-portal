@@ -1,6 +1,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { urls } from "@/lib/urls";
 import { ReactNode } from "react";
 
 export const LoginLayout = (props: { children: ReactNode }) => {
@@ -11,9 +12,8 @@ export const LoginLayout = (props: { children: ReactNode }) => {
           <div className="flex justify-between items-center py-2.5">
             <WorldcoinIcon />
 
-            {/* TODO: add href */}
             <DecoratedButton
-              href="/"
+              href={urls.login()}
               variant="secondary"
               className="rounded-lg"
             >
