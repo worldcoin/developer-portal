@@ -2,7 +2,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { getSdk as GetActionSdk } from "./graphql/server/debugger.generated";
-import { getAPIServiceGraphqlClient } from "@/lib/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Debugger } from "../Debugger";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
