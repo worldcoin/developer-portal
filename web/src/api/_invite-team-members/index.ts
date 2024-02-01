@@ -11,6 +11,9 @@ import {
   getSdk as getMembershipsSdk,
 } from "./graphql/getMemberships.generated";
 
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
+
 export const handleInvite = async (
   req: NextApiRequest,
   res: NextApiResponse
@@ -148,19 +151,37 @@ export const handleInvite = async (
       throw new Error("SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.");
     }
 
+    const window = new JSDOM("").window; // NOTE: this is a workaround for DOMPurify on the server
+    const DOMPurify = createDOMPurify(window);
+
+    DOMPurify.setConfig({
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+
     const promises = [];
     for (const invite of createInvitesRes.invites?.returning) {
       const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login?invite_id=${invite.id}`;
+
+      const inviter = DOMPurify.sanitize(
+        fetchUserRes.user[0].name || fetchUserRes.user[0].email || "Someone"
+      );
+
+      const team = DOMPurify.sanitize(
+        fetchUserRes.user[0].team.name ?? "their team"
+      );
+
+      const to = DOMPurify.sanitize(invite.email);
 
       promises.push(
         sendEmail({
           apiKey: process.env.SENDGRID_API_KEY!,
           from: process.env.SENDGRID_EMAIL_FROM!,
-          to: invite.email,
+          to,
           templateId: process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID!,
           templateData: {
-            inviter: fetchUserRes.user[0].name ?? fetchUserRes.user[0].email,
-            team: fetchUserRes.user[0].team.name ?? "their team",
+            inviter,
+            team,
             inviteLink: link,
           },
         })
