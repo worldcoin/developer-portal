@@ -11,7 +11,7 @@ import {
 } from "src/backend/utils";
 
 import { errorHasuraQuery, errorNotAllowed } from "@/backend/errors";
-
+import { getSdk as updateSecretSDK } from "./graphql/update-secret.generated";
 import { getSdk as getMembershipSdk } from "./graphql/get-membership.generated";
 import { Role_Enum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
@@ -84,57 +84,34 @@ export const handleSecretReset = async (
     });
   }
 
-  const client = await getAPIServiceClient();
+  const client = await getAPIServiceGraphqlClient();
 
   // ANCHOR: Make sure the user can perform this client reset
-  // TODO: Merge query into get-membership
-  const query = gql`
-    query GetAppTeam($app_id: String!, $team_id: String!) {
-      app(where: { id: { _eq: $app_id }, team_id: { _eq: $team_id } }) {
-        id
-      }
-    }
-  `;
-
-  const appQuery = await client.query({
-    query,
-    variables: {
-      app_id,
-      team_id,
-    },
+  const { membership: membershipQuery } = await getMembershipSdk(
+    client
+  ).GetMembership({
+    user_id,
+    team_id,
   });
 
-  if (!appQuery.data.app?.length) {
+  if (!membershipQuery || !membershipQuery.length) {
     return errorHasuraQuery({
       res,
       req,
-      detail: "App ID is invalid.",
-      code: "invalid_app_id",
+      detail: "Insufficient Permissions",
+      code: "insufficient_permissions",
     });
   }
 
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
-
-  const mutation = gql`
-    mutation UpdateSecret($app_id: String!, $hashed_secret: String!) {
-      update_action(
-        where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
-        _set: { client_secret: $hashed_secret }
-      ) {
-        affected_rows
-      }
-    }
-  `;
-
-  const response = await client.mutate({
-    mutation,
-    variables: {
-      app_id,
-      hashed_secret,
-    },
+  const { update_action: updateResponse } = await updateSecretSDK(
+    client
+  ).UpdateSecret({
+    app_id,
+    hashed_secret,
   });
 
-  if (!response.data.update_action.affected_rows) {
+  if (updateResponse?.affected_rows) {
     return errorHasuraQuery({
       res,
       req,
