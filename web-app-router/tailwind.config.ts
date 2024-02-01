@@ -31,6 +31,7 @@ const config: Config = {
       boxShadow: {
         button: "0px 1px 2px 0px #191C200F",
         lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
+        qrCode: "0px 16px 20px -8px #E6E9EEA3",
       },
 
       colors: {
@@ -42,11 +43,13 @@ const config: Config = {
         },
 
         blue: {
+          100: "#F0F0FD",
           500: "#4940E0",
         },
 
         grey: {
           0: "#FFFFFF",
+          25: "#FBFBFC",
           50: "#F9FAFB",
           70: "#F5F5F7",
           100: "#F3F4F5",
@@ -61,6 +64,7 @@ const config: Config = {
         system: {
           error: {
             50: "#FFF5F3",
+            100: "#FFF2F0",
             200: "#FFE5E2",
             300: "#FFCBC5",
             400: "#FF897C",
@@ -69,6 +73,7 @@ const config: Config = {
           },
 
           success: {
+            50: "#E9F8E9",
             500: "#00B800",
           },
         },
@@ -79,6 +84,10 @@ const config: Config = {
 
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
+      },
+
+      width: {
+        136: "34rem",
       },
     },
   },

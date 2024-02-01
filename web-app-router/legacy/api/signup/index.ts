@@ -16,7 +16,7 @@ import {
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
 
-import { Auth0User } from "@/legacy/lib/types";
+import { Auth0User } from "@/lib/types";
 import { isEmailUser } from "@/legacy/lib/utils";
 import { urls } from "@/legacy/lib/urls";
 import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";

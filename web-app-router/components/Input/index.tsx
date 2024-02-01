@@ -9,7 +9,6 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  isDirty?: boolean;
   label: string;
   placeholder?: string;
   helperText?: string;
@@ -55,16 +54,15 @@ export const Input = memo(function Input(props: InputInterface) {
     }
   );
 
-  const labelClassNames = clsx(
-    "text-sm ml-2 px-[2px] peer-focus:text-blue-500",
-    {
-      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
-        !errors && !disabled,
-      "text-system-error-500 peer-focus:text-system-error-500":
-        errors && !disabled,
-      "text-grey-400": disabled,
-    }
-  );
+  const labelClassNames = clsx("text-sm ml-2 peer-focus:text-blue-500", {
+    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      !errors && !disabled,
+    "text-system-error-500 peer-focus:text-system-error-500":
+      errors && !disabled,
+    "text-grey-400": disabled,
+    "px-0": label == "",
+    "px-0.5": label != "",
+  });
 
   return (
     <div className={"inline-grid font-gta w-full"}>
