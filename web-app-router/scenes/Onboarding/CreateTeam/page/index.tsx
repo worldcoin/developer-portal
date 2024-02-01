@@ -3,6 +3,7 @@ import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Form } from "./Form";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Suspense } from "react";
 
 export const CreateTeamPage = () => {
   return (
@@ -17,7 +18,9 @@ export const CreateTeamPage = () => {
             Create your first team
           </Typography>
 
-          <Form />
+          <Suspense>
+            <Form />
+          </Suspense>
         </div>
       </div>
     </SizingWrapper>

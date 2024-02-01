@@ -1,0 +1,65 @@
+name: CI [app-router]
+
+on:
+  - pull_request
+
+jobs:
+  lint:
+    name: Code formatting & linting
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
+          cache-dependency-path: web-app-router/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting with Prettier
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check Typescript
+        run: pnpm typecheck
+
+  build:
+    name: Test build
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
+          cache-dependency-path: web-app-router/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          GENERAL_SECRET_KEY: unsafe_test_key
+          HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
+          JWT_ISSUER: invalid.localhost
+        run: pnpm build
