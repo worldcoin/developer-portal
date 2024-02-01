@@ -27,7 +27,7 @@ export const GetUserAndTeamMembershipsDocument = gql`
   query GetUserAndTeamMemberships($team_id: String!) {
     user(
       where: {
-        membership: {
+        memberships: {
           team_id: { _eq: $team_id }
           role: { _in: [OWNER, ADMIN] }
         }

@@ -1,7 +1,7 @@
 query GetUserAndTeamMemberships($team_id: String!) {
   user(
     where: {
-      membership: { team_id: { _eq: $team_id }, role: { _in: [OWNER, ADMIN] } }
+      memberships: { team_id: { _eq: $team_id }, role: { _in: [OWNER, ADMIN] } }
     }
   ) {
     id
