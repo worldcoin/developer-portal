@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getAPIServiceGraphqlClient } from "src/backend/graphql";
+import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import {
   generateHashedSecret,
   protectInternalEndpoint,
-} from "src/backend/utils";
+} from "@/legacy/backend/utils";
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
 import { getSdk as updateAPIKey } from "./graphql/update-api-key.generated";
 import { getSdk as checkUserPermissions } from "./graphql/check-user-permission.generated";
@@ -15,7 +15,7 @@ import { getSdk as checkUserPermissions } from "./graphql/check-user-permission.
  */
 export default async function handleAPIKeyReset(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -78,7 +78,7 @@ export default async function handleAPIKeyReset(
   }
 
   const { team: userTeam } = await checkUserPermissions(
-    client,
+    client
   ).CheckUserPermission({
     id: id,
     team_id: teamId,
