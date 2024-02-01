@@ -1,4 +1,4 @@
-import { generateServiceJWT } from "@/backend/jwts";
+import { generateServiceJWT } from "@/api/helpers/jwts";
 import { GraphQLClient } from "graphql-request";
 
 /**

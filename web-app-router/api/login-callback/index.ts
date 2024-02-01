@@ -1,4 +1,4 @@
-import { getAPIServiceGraphqlClient } from "@/backend/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 
 import {
   getSession,
@@ -32,9 +32,9 @@ import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 import { Auth0User } from "@/lib/types";
 import { logger } from "@/lib/logger";
-import { isEmailUser } from "@/lib/utils";
 import { urls } from "@/lib/urls";
 import { Role_Enum } from "@/graphql/graphql";
+import { isEmailUser } from "../helpers/is-email-user";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const res = new NextResponse();

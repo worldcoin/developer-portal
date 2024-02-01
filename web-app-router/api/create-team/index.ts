@@ -7,15 +7,14 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 import { urls } from "@/lib/urls";
 import { logger } from "@/lib/logger";
-import { isEmailUser } from "@/lib/utils";
-import { getAPIServiceGraphqlClient } from "@/backend/graphql";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import * as yup from "yup";
 import { Auth0User } from "@/lib/types";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
-import { validateRequestSchema } from "@/backend/validate-request-schema";
-import { errorResponse } from "@/backend/errors";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { errorResponse } from "@/api/helpers/errors";
 
 import {
   InsertTeamMutation,
@@ -35,6 +34,7 @@ import {
 import { getSdk as getInviteByIdSdk } from "./graphql/getInviteById.generated";
 import { getSdk as createUserAndDeleteInviteSdk } from "./graphql/createUserAndDeleteInvite.generated";
 import { Role_Enum } from "@/graphql/graphql";
+import { isEmailUser } from "../helpers/is-email-user";
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),

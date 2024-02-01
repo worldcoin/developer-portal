@@ -2,8 +2,12 @@ import "server-only";
 
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
-import { getAPIServiceGraphqlClient } from "@/backend/graphql";
-import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "@/backend/kms";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import {
+  createKMSKey,
+  getKMSClient,
+  scheduleKeyDeletion,
+} from "@/api/helpers/kms";
 import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 
@@ -131,7 +135,7 @@ export const fetchActiveJWK = async () => {
 
   try {
     const data = await fetchActiveJWKsByExpirationSdk(
-      apiClient,
+      apiClient
     ).FetchActiveJWKsByExpiration({
       expires_at: new Date().toISOString(),
     });
