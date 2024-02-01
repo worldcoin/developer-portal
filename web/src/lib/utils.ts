@@ -6,6 +6,8 @@ import {
   PHONE_SEQUENCER,
 } from "./constants";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import getConfig from "next/config";
+const { publicRuntimeConfig } = getConfig();
 
 // Sequencer mapping
 export const sequencerMapping: Record<
@@ -67,3 +69,7 @@ export const uriHasJS = (uri: string) => /javascript:/.test(uri);
 
 export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
   user.sub.startsWith("email|");
+
+export const getCDNImageUrl = (app_id: string, path: string) => {
+  return `${publicRuntimeConfig.NEXT_PUBLIC_VERIFIED_CDN_URL}/${app_id}/${path}`;
+};
