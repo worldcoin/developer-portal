@@ -44,7 +44,7 @@ module.exports = {
       ],
     },
 
-    "api": {
+    api: {
       documents: ["api/**/*.graphql", "api/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {

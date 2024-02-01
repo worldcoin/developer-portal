@@ -33,7 +33,7 @@ export const getKMSClient = async () => {
 
 export const createKMSKey = async (
   client: KMSClient,
-  alg: KeySpec
+  alg: KeySpec,
 ): Promise<CreateKeyResult> => {
   try {
     const { KeyMetadata } = await client.send(
@@ -42,7 +42,7 @@ export const createKMSKey = async (
         KeyUsage: "SIGN_VERIFY",
         Description: `Developer Portal JWK for Sign in with World ID. Created: ${new Date().toISOString()}`,
         Tags: [{ TagKey: "app", TagValue: "developer-portal" }],
-      })
+      }),
     );
 
     const keyId = KeyMetadata?.KeyId;
@@ -50,7 +50,7 @@ export const createKMSKey = async (
 
     if (keyId && createdAt) {
       const { PublicKey } = await client.send(
-        new GetPublicKeyCommand({ KeyId: keyId })
+        new GetPublicKeyCommand({ KeyId: keyId }),
       );
 
       if (PublicKey) {
@@ -71,7 +71,7 @@ export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
     const { KeyMetadata } = await client.send(
       new DescribeKeyCommand({
         KeyId: keyId,
-      })
+      }),
     );
     return KeyMetadata?.Enabled;
   } catch (error) {
@@ -82,7 +82,7 @@ export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
 export const signJWTWithKMSKey = async (
   client: KMSClient,
   header: Record<string, any>,
-  payload: Record<string, any>
+  payload: Record<string, any>,
 ) => {
   const encodedHeader = base64url.encode(JSON.stringify(header));
   const encodedPayload = base64url.encode(JSON.stringify(payload));
@@ -101,7 +101,7 @@ export const signJWTWithKMSKey = async (
         Message: Buffer.from(encodedHeaderPayload),
         MessageType: "RAW",
         SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-      })
+      }),
     );
 
     if (response?.Signature) {
@@ -124,7 +124,7 @@ export const scheduleKeyDeletion = async (client: KMSClient, keyId: string) => {
       new ScheduleKeyDeletionCommand({
         KeyId: keyId,
         PendingWindowInDays: 7, // Note: 7 is the minimum allowed value
-      })
+      }),
     );
   } catch (error) {
     logger.error("Error scheduling key deletion:", { error });

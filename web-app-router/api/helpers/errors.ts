@@ -46,7 +46,7 @@ type OIDCErrorParam =
 
 export function errorUnauthenticated(
   detail: string = "Invalid credentials.",
-  req: NextRequest
+  req: NextRequest,
 ) {
   return errorResponse({
     statusCode: 401,
@@ -59,7 +59,7 @@ export function errorUnauthenticated(
 
 export function errorForbidden(
   detail: string = "You do not have permission to perform this action.",
-  req: NextRequest
+  req: NextRequest,
 ) {
   return errorResponse({
     statusCode: 403,
@@ -72,7 +72,7 @@ export function errorForbidden(
 
 export function errorRequiredAttribute(
   attribute: string = "",
-  req: NextRequest
+  req: NextRequest,
 ) {
   return errorResponse({
     statusCode: 400,
@@ -87,7 +87,7 @@ export function errorValidation(
   code: string,
   detail: string = "This attribute is invalid.",
   attribute: string | null,
-  req: NextRequest
+  req: NextRequest,
 ) {
   return errorResponse({ statusCode: 400, code, detail, attribute, req });
 }
@@ -97,7 +97,7 @@ export function errorOIDCResponse(
   code: OIDCErrorParam,
   detail: string = "Something went wrong",
   attribute: string | null = null,
-  req: NextRequest
+  req: NextRequest,
 ) {
   if (statusCode >= 500) {
     logger.error(`OIDC Error ${detail}`, {
@@ -119,7 +119,7 @@ export function errorOIDCResponse(
       error: code, // OAuth 2.0 spec
       error_description: detail, // OAuth 2.0 spec
     },
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 
@@ -141,6 +141,6 @@ export function errorHasuraQuery({
         code,
       },
     },
-    { status: 400 }
+    { status: 400 },
   );
 }
