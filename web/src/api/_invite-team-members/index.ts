@@ -70,6 +70,7 @@ export const handleInvite = async (
       client
     ).GetUserAndTeamMemberships({
       team_id: teamId,
+      user_id: userId,
     });
   } catch (error) {
     logger.error("Cannot fetch memberships.", { error });
@@ -77,13 +78,18 @@ export const handleInvite = async (
   }
 
   const invitingUser = query.user[0];
-
+  console.log(invitingUser);
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
       { userId, teamId }
     );
-    return errorHasuraQuery({ res, req });
+    return errorHasuraQuery({
+      res,
+      req,
+      detail: "Insufficient Permissions",
+      code: "insufficient_permissions",
+    });
   }
 
   const alreadyExistingEmails = emails.filter((email: string) => {
