@@ -19,6 +19,7 @@ const updateActionSchema = yup.object({
     .typeError("Max verifications must be a number")
     .required("This field is required"),
 });
+
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
 type UpdateActionProps = {
@@ -33,7 +34,6 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action } = props;
-
   const {
     control,
     register,
@@ -50,8 +50,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       maxVerifications: action.max_verifications,
     },
   });
-  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
 
+  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {

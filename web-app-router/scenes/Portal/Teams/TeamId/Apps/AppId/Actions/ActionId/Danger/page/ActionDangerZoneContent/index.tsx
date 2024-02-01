@@ -7,10 +7,8 @@ import { useCallback, useState } from "react";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { revalidatePath } from "next/cache";
-import { ActionsDocument } from "../../../../page/graphql/server/actions.generated";
 
 export const ActionDangerZoneContent = (props: { action: any }) => {
   const { action } = props;
@@ -24,9 +22,7 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
     try {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
-        refetchQueries: [
-          { query: ActionsDocument, variables: { app_id: action.app_id } },
-        ],
+        refetchQueries: ["GetActions"],
       });
       if (result instanceof Error) {
         throw result;
@@ -37,7 +33,7 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
       return toast.error("Unable to delete action");
     }
     toast.success(`${action?.name} was deleted.`);
-  }, [action.app_id, action.id, action?.name, deleteActionQuery, router]);
+  }, [action.id, action?.name, deleteActionQuery, router]);
 
   return (
     <div>

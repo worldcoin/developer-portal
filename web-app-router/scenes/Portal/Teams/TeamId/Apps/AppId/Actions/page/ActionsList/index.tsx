@@ -1,24 +1,32 @@
 "use client";
 import { Table } from "@/components/Table";
 import { Body } from "@/components/Table/Body";
+import { Row } from "@/components/Table/Row";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionRow } from "./ActionRow";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
 import clsx from "clsx";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+type ActionRow = {
+  cells: ReactNode[];
+  id: string;
+};
 
 export const ActionsList = (props: { actions: any; className: string }) => {
   const { actions, className } = props;
+  const pathName = usePathname() ?? "";
+  const router = useRouter();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(actions.length);
   const rowsPerPageOptions = [10, 20]; // Rows per page options
-  const pathName = usePathname() ?? "";
   const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
 
   const { register, control } = useForm<{ actionSearch: string }>({
@@ -65,15 +73,18 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     const paginatedActions = filteredActions.slice(startIndex, endIndex);
 
     return paginatedActions.map((action: any, index: number) => {
-      return ActionRow({ action: action, key: index, pathName: pathName });
+      return {
+        cells: ActionRow({ action: action, key: index, pathName: pathName }),
+        id: action.id,
+      };
     });
-  }, [actions, actionsSearch, currentPage, rowsPerPage]);
+  }, [actions, actionsSearch, currentPage, pathName, rowsPerPage]);
 
   return (
     <div
       className={clsx(
         "flex items-center justify-center w-full p-10 max-h-full",
-        className,
+        className
       )}
     >
       <div className="max-w-[1180px] w-full grid gap-y-5">
@@ -111,7 +122,20 @@ export const ActionsList = (props: { actions: any; className: string }) => {
             }
           >
             <Header headers={headers} />
-            <Body rows={actionsToRender} />
+            <Body>
+              {actionsToRender.map((rowData: ActionRow, index: number) => {
+                return (
+                  <Row
+                    row={rowData.cells}
+                    key={index}
+                    handleOnClick={() =>
+                      router.push(`${pathName}/${rowData.id}`)
+                    }
+                    className="cursor-pointer"
+                  />
+                );
+              })}
+            </Body>
           </Table>
         </div>
       </div>

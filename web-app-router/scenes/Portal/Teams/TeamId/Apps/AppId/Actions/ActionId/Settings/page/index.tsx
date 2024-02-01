@@ -4,7 +4,6 @@ import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { UpdateActionForm } from "../UpdateAction";
 import { TryAction } from "../TryAction";
-import { getAPIServiceGraphqlClient } from "@/lib/graphql";
 import { Link } from "@/components/Link";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 

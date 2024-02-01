@@ -1,12 +1,12 @@
+"use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { LogoLinesIcon } from "@/components/Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { CreateActionModal } from "./CreateActionModal";
-import { getSdk as GetActionsSdk } from "./graphql/server/actions.generated";
+import { useGetActionsQuery } from "./graphql/client/actions.generated";
 import { ActionsList } from "./ActionsList";
 import clsx from "clsx";
 import { IncognitoActionIcon } from "@/components/Icons/IncognitoActionIcon";
-import { getAPIServiceGraphqlClient } from "@/lib/graphql";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -14,21 +14,22 @@ type ActionsPageProps = {
 };
 
 // TODO: Ad TWK Lausanne font
-export const ActionsPage = async ({
-  params,
-  searchParams,
-}: ActionsPageProps) => {
+export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
-  const client = await getAPIServiceGraphqlClient();
 
-  const data = await GetActionsSdk(client).Actions({
-    app_id: appId,
+  const { data, loading } = useGetActionsQuery({
+    variables: {
+      app_id: appId ?? "",
+    },
   });
+
   const showList = data?.action && data?.action?.length > 0;
 
+  if (loading) return <></>;
+  if (!data) return <>No App Found</>;
   return (
-    <div className="w-full h-full">
+    <div className={clsx("w-full h-full")}>
       <ActionsList
         actions={data.action}
         className={clsx({ hidden: !showList || createAction })}
