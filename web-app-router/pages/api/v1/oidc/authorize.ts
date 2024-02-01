@@ -21,7 +21,7 @@ import {
 import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
-import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
+import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`
@@ -195,6 +195,7 @@ export default async function handleOIDCAuthorize(
     {
       is_staging: app.is_staging,
       verification_level,
+      max_age: 3600, // require that root be less than 1 hour old
     },
   );
   if (verifyError) {

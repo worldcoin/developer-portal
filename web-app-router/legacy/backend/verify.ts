@@ -1,6 +1,6 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BigNumber, ethers } from "ethers";
-import { IInternalError } from "@/lib/types";
+import { IInternalError } from "@/legacy/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { sequencerMapping } from "@/legacy/lib/utils";
 import { logger } from "@/legacy/lib/logger";
@@ -24,6 +24,12 @@ const KNOWN_ERROR_CODES = [
     detail:
       "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
   },
+  {
+    rawMessage: "Root provided in semaphore proof is too old.",
+    code: "root_too_old",
+    detail:
+      "The provided merkle root is too old. Please generate a new proof and try again.",
+  },
 ];
 
 export interface IInputParams {
@@ -37,6 +43,7 @@ export interface IInputParams {
 export interface IVerifyParams {
   is_staging: boolean;
   verification_level: VerificationLevel;
+  max_age?: number;
 }
 
 interface IAppAction {
@@ -314,13 +321,18 @@ export const verifyProof = async (
       verifyParams.is_staging.toString()
     ];
 
-  const response = await fetch(`${sequencerUrl}/verifySemaphoreProof`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    verifyParams.max_age
+      ? `${sequencerUrl}/verifySemaphoreProof?maxRootAgeSeconds=${verifyParams.max_age}`
+      : `${sequencerUrl}/verifySemaphoreProof`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
     },
-    body,
-  });
+  );
 
   if (!response.ok) {
     try {
