@@ -7,11 +7,8 @@ import {
 } from "./setup";
 
 import { getAPIClient, getAPIUserClient } from "./test-utils";
-import { generateAPIKeyJWT } from "@/backend/jwts";
-import getConfig from "next/config";
 import { createMocks } from "node-mocks-http";
 import { handleSecretReset } from "@/api/_reset-client-secret";
-const { publicRuntimeConfig } = getConfig();
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -291,7 +288,6 @@ describe("user role", () => {
       `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`
     )) as { rows: Array<{ id: string }> };
 
-    // Test invalid role
     const tokenTeamId = teams[1].id;
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;

@@ -78,7 +78,7 @@ export const handleInvite = async (
   }
 
   const invitingUser = query.user[0];
-  console.log(invitingUser);
+
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
