@@ -164,7 +164,7 @@ export const handleInvite = async (
       const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login?invite_id=${invite.id}`;
 
       const inviter = DOMPurify.sanitize(
-        fetchUserRes.user[0].name ?? fetchUserRes.user[0].email
+        fetchUserRes.user[0].name || fetchUserRes.user[0].email || "Someone"
       );
 
       const team = DOMPurify.sanitize(
