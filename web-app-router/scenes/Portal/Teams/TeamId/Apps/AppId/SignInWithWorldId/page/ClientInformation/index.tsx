@@ -32,7 +32,6 @@ export const ClientInformationPage = (props: {
     context: { headers: { team_id: teamID } },
   });
 
-  // TODO: Requires Team ID and User ID
   const handleReset = useCallback(async () => {
     try {
       const result = await resetClientSecretMutation({
