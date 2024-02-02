@@ -56,6 +56,7 @@ export const getAPIServiceGraphqlClient = async () => {
 /**
  * Used for generated requests
  * Returns an GraphQLClient to interact with GraphQL's API with a reviewer token
+ * See Documentation: https://www.notion.so/worldcoin/Reviewer-Role-Specification-5c43c442735842d7ae57e19823a962fb?pvs=4
  * @returns
  */
 export const getAPIReviewerGraphqlClient = async () => {
