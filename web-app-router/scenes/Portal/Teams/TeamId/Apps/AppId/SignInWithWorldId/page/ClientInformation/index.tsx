@@ -15,6 +15,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { useUpdateSignInActionMutation } from "./graphql/client/update-sign-in-action.generated";
+import Error from "next/error";
 
 const schema = yup.object({
   privacy_policy_uri: yup.string().url("Must be a valid URL").optional(),
@@ -26,23 +27,19 @@ type ClientInformation = yup.InferType<typeof schema>;
 export const ClientInformationPage = (props: {
   appID: string;
   teamID: string;
-  action: {
-    id: string;
-    app_id: string;
-    status: string;
-    privacy_policy_uri?: string | null | undefined;
-    terms_uri?: string | null | undefined;
-  };
 }) => {
-  const { appID, teamID, action } = props;
+  const { appID, teamID } = props;
   const [clientSecret, setClientSecret] = useState<string>("");
 
   const { data, loading: fetchingAction } = useFetchSignInActionQuery({
     variables: { app_id: appID },
+    context: { headers: { team_id: teamID } },
   });
+  const signInAction = data?.action[0];
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
     variables: { app_id: appID },
+    context: { headers: { team_id: teamID } },
   });
 
   const [updateSignInActionMutation] = useUpdateSignInActionMutation({
@@ -79,35 +76,37 @@ export const ClientInformationPage = (props: {
     resolver: yupResolver(schema),
     shouldFocusError: false,
     defaultValues: {
-      privacy_policy_uri: action.privacy_policy_uri ?? "",
-      terms_uri: action.terms_uri ?? "",
+      privacy_policy_uri: signInAction?.privacy_policy_uri ?? "",
+      terms_uri: signInAction?.terms_uri ?? "",
     },
   });
 
-  const submit = useCallback(async (data: ClientInformation) => {
-    try {
-      await updateSignInActionMutation({
-        variables: {
-          id: action.id,
-          input: {
-            privacy_policy_uri: data.privacy_policy_uri,
-            terms_uri: data.terms_uri,
+  const submit = useCallback(
+    async (data: ClientInformation) => {
+      try {
+        if (!signInAction) return; // This should never happen
+        await updateSignInActionMutation({
+          variables: {
+            id: signInAction?.id,
+            input: {
+              privacy_policy_uri: data.privacy_policy_uri,
+              terms_uri: data.terms_uri,
+            },
           },
-        },
-      });
-      toast.success("Links saved!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Error updating action");
-    }
-  }, []);
-
-  const signinAction = data?.action;
+        });
+        toast.success("Links saved!");
+      } catch (error) {
+        console.error(error);
+        toast.error("Error updating action");
+      }
+    },
+    [signInAction?.id]
+  );
 
   if (fetchingAction) {
     return <div></div>;
-  } else if (!signinAction || signinAction.length === 0) {
-    return <Typography variant={TYPOGRAPHY.M3}>Action found</Typography>;
+  } else if (!signInAction) {
+    return <Error statusCode={404} title="Action not found" />;
   }
   return (
     <div className="w-full gap-y-10 grid pt-5 pb-10">
@@ -150,7 +149,7 @@ export const ClientInformationPage = (props: {
               <div
                 className={clsx(
                   "grid grid-cols-1fr/auto justify-items-end gap-x-3",
-                  { "pr-4": clientSecret !== "" },
+                  { "pr-4": clientSecret !== "" }
                 )}
               >
                 <DecoratedButton
@@ -186,7 +185,7 @@ export const ClientInformationPage = (props: {
             You must specify at least one URL for authentication to work
           </Typography>
         </div>
-        <Redirects actionID={signinAction[0].id} />
+        <Redirects actionId={signInAction.id} teamId={teamID} />
       </div>
 
       <form className="grid gap-y-5" onSubmit={handleSubmit(submit)}>

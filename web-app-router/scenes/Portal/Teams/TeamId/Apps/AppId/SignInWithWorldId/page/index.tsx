@@ -3,32 +3,24 @@ import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Image from "next/image";
 import { ClientInformationPage } from "./ClientInformation";
-import { getSdk as GetSignInSDK } from "./graphql/server/fetch-signin.generated";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 
 type SignInWithWorldIdPageProps = {
   params: Record<string, string> | null | undefined;
 };
 export const SignInWithWorldIdPage = async (
-  props: SignInWithWorldIdPageProps,
+  props: SignInWithWorldIdPageProps
 ) => {
   const { params } = props;
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
-  const client = await getAPIServiceGraphqlClient();
-  const data = await GetSignInSDK(client).SignInAction({
-    app_id: appId,
-  });
-  const signInAction = data?.action;
+
   return (
     <div className="w-full h-full">
-      <div className="grid grid-cols-auto/1fr/auto py-6 gap-x-5">
-        <Image src="/passport.png" alt="passport" width={60} height={60} />
+      <div className="grid grid-cols-auto/1fr/auto py-6 gap-x-7">
+        <Image src="/passport.png" alt="passport" width={80} height={80} />
         <div className="grid grid-cols-1 items-center justify-items-start gap-y-0">
-          <Typography as="h3" variant={TYPOGRAPHY.H6}>
-            Sign in with World ID
-          </Typography>
+          <Typography variant={TYPOGRAPHY.H6}>Sign in with World ID</Typography>
           <Typography
             as="p"
             variant={TYPOGRAPHY.R3}
@@ -69,13 +61,9 @@ export const SignInWithWorldIdPage = async (
           </DecoratedButton>
         </div>
       </div>
-      <hr className="my-5 w-full text-grey-200 border-dashed" />
+      <hr className="my-4 w-full text-grey-200 border-dashed" />
       <div className="grid grid-cols-2">
-        <ClientInformationPage
-          appID={appId}
-          teamID={teamId}
-          action={signInAction[0]}
-        />
+        <ClientInformationPage appID={appId} teamID={teamId} />
       </div>
     </div>
   );

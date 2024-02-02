@@ -15,14 +15,18 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 
-export const Redirects = memo(function Redirects(props: { actionID: string }) {
-  const { actionID } = props;
+export const Redirects = memo(function Redirects(props: {
+  actionId: string;
+  teamId: string;
+}) {
+  const { actionId, teamId } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   const { data, loading } = useRedirectsQuery({
     variables: {
-      action_id: actionID ?? "",
+      action_id: actionId ?? "",
     },
+    context: { headers: { team_id: teamId } },
   });
 
   const [insertRedirectMutation] = useInsertRedirectMutation();
@@ -34,13 +38,13 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
       try {
         await insertRedirectMutation({
           variables: {
-            action_id: actionID,
+            action_id: actionId,
             uri: redirect_uri,
           },
           refetchQueries: [
             {
               query: RedirectsDocument,
-              variables: { action_id: actionID },
+              variables: { action_id: actionId },
             },
           ],
           awaitRefetchQueries: true,
@@ -51,7 +55,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
         toast.error("Error adding redirect");
       }
     },
-    [actionID, insertRedirectMutation],
+    [actionId, insertRedirectMutation]
   );
 
   const deleteRedirect = useCallback(
@@ -64,7 +68,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
           refetchQueries: [
             {
               query: RedirectsDocument,
-              variables: { action_id: actionID },
+              variables: { action_id: actionId },
             },
           ],
           awaitRefetchQueries: true,
@@ -74,7 +78,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
         toast.error("Error deleting redirect");
       }
     },
-    [actionID, deleteRedirectMutation],
+    [actionId, deleteRedirectMutation]
   );
 
   const redirects = data?.redirect;
@@ -103,7 +107,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
                 refetchQueries: [
                   {
                     query: RedirectsDocument,
-                    variables: { action_id: actionID },
+                    variables: { action_id: actionId },
                   },
                 ],
                 awaitRefetchQueries: true,
