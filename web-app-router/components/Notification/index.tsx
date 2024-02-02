@@ -20,8 +20,8 @@ export const Notification = (props: {
             "border-system-warning-200 bg-system-warning-50":
               props.variant === "warning",
           },
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       <IconFrame variant={props.variant} className="text-grey-0">
