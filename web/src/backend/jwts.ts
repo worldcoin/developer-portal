@@ -36,7 +36,7 @@ if (!GENERAL_SECRET_KEY) {
 // ANCHOR: -----------------HASURA JWTs--------------------------
 
 /**
- * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
+ * Generates a 1-min JWT for the `reviewer` role (only for internal use from Next.js API)
  * @returns
  */
 export const generateReviewerJWT = async (): Promise<string> => {
