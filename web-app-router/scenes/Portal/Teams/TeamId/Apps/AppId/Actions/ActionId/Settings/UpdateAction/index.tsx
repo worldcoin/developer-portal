@@ -90,7 +90,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       }
       toast.success(`Action "${values.name}" updated.`);
     },
-    [updateActionQuery, action.id]
+    [updateActionQuery, action.id],
   );
 
   const copyAction = useCallback(() => {

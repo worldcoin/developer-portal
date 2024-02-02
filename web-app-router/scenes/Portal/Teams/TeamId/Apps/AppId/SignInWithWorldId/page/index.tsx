@@ -11,7 +11,7 @@ type SignInWithWorldIdPageProps = {
   params: Record<string, string> | null | undefined;
 };
 export const SignInWithWorldIdPage = async (
-  props: SignInWithWorldIdPageProps
+  props: SignInWithWorldIdPageProps,
 ) => {
   const { params } = props;
   const appId = params?.appId as `app_${string}`;

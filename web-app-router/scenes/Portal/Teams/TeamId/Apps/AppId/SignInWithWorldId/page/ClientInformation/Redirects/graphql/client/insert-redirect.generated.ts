@@ -1,30 +1,41 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertRedirectMutationVariables = Types.Exact<{
-  action_id: Types.Scalars['String'];
-  uri: Types.Scalars['String'];
+  action_id: Types.Scalars["String"];
+  uri: Types.Scalars["String"];
 }>;
 
-
-export type InsertRedirectMutation = { __typename?: 'mutation_root', insert_redirect_one?: { __typename?: 'redirect', id: string, action_id: string, redirect_uri: string, created_at: any, updated_at: any } | null };
-
+export type InsertRedirectMutation = {
+  __typename?: "mutation_root";
+  insert_redirect_one?: {
+    __typename?: "redirect";
+    id: string;
+    action_id: string;
+    redirect_uri: string;
+    created_at: any;
+    updated_at: any;
+  } | null;
+};
 
 export const InsertRedirectDocument = gql`
-    mutation InsertRedirect($action_id: String!, $uri: String!) {
-  insert_redirect_one(object: {action_id: $action_id, redirect_uri: $uri}) {
-    id
-    action_id
-    redirect_uri
-    created_at
-    updated_at
+  mutation InsertRedirect($action_id: String!, $uri: String!) {
+    insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
+      id
+      action_id
+      redirect_uri
+      created_at
+      updated_at
+    }
   }
-}
-    `;
-export type InsertRedirectMutationFn = Apollo.MutationFunction<InsertRedirectMutation, InsertRedirectMutationVariables>;
+`;
+export type InsertRedirectMutationFn = Apollo.MutationFunction<
+  InsertRedirectMutation,
+  InsertRedirectMutationVariables
+>;
 
 /**
  * __useInsertRedirectMutation__
@@ -44,10 +55,24 @@ export type InsertRedirectMutationFn = Apollo.MutationFunction<InsertRedirectMut
  *   },
  * });
  */
-export function useInsertRedirectMutation(baseOptions?: Apollo.MutationHookOptions<InsertRedirectMutation, InsertRedirectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRedirectMutation, InsertRedirectMutationVariables>(InsertRedirectDocument, options);
-      }
-export type InsertRedirectMutationHookResult = ReturnType<typeof useInsertRedirectMutation>;
-export type InsertRedirectMutationResult = Apollo.MutationResult<InsertRedirectMutation>;
-export type InsertRedirectMutationOptions = Apollo.BaseMutationOptions<InsertRedirectMutation, InsertRedirectMutationVariables>;
+export function useInsertRedirectMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    InsertRedirectMutation,
+    InsertRedirectMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    InsertRedirectMutation,
+    InsertRedirectMutationVariables
+  >(InsertRedirectDocument, options);
+}
+export type InsertRedirectMutationHookResult = ReturnType<
+  typeof useInsertRedirectMutation
+>;
+export type InsertRedirectMutationResult =
+  Apollo.MutationResult<InsertRedirectMutation>;
+export type InsertRedirectMutationOptions = Apollo.BaseMutationOptions<
+  InsertRedirectMutation,
+  InsertRedirectMutationVariables
+>;

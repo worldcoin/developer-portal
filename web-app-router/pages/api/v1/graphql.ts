@@ -9,11 +9,11 @@ import dayjs from "dayjs";
 
 export default async function handleGraphQL(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (!process.env.NEXT_PUBLIC_GRAPHQL_API_URL) {
     throw new Error(
-      "Improperly configured. `NEXT_PUBLIC_GRAPHQL_API_URL` env var must be set."
+      "Improperly configured. `NEXT_PUBLIC_GRAPHQL_API_URL` env var must be set.",
     );
   }
 
@@ -24,14 +24,14 @@ export default async function handleGraphQL(
   const headers = new Headers();
   headers.append(
     "Content-Type",
-    req.headers["content-type"] || "application/json"
+    req.headers["content-type"] || "application/json",
   );
 
   // Check if request is authenticated with API key
   if (authorization?.startsWith("api_")) {
     const [key_id, secret] = Buffer.from(
       authorization.replace("api_", ""),
-      "base64"
+      "base64",
     )
       .toString()
       .split(":");
@@ -64,7 +64,7 @@ export default async function handleGraphQL(
     headers.delete("Authorization");
     headers.append(
       "Authorization",
-      `Bearer ${await generateAPIKeyJWT(response.data.api_key[0].team_id)}`
+      `Bearer ${await generateAPIKeyJWT(response.data.api_key[0].team_id)}`,
     );
   }
 
@@ -89,7 +89,7 @@ export default async function handleGraphQL(
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
         team_id ?? "",
-        dayjs().add(1, "minute").unix()
+        dayjs().add(1, "minute").unix(),
       );
 
       token = generatedToken;

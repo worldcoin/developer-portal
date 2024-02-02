@@ -65,7 +65,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
     {
       "hover:text-grey-700": !disabled,
       "bg-grey-50 text-grey-300 border-grey-200": disabled,
-    }
+    },
   );
 
   const inputClassNames = clsx(
@@ -74,7 +74,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
       "placeholder:text-grey-400": !errors.url,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
-    }
+    },
   );
 
   const handleSave = handleSubmit((data) => {
@@ -86,7 +86,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
       <fieldset
         className={twMerge(
           clsx("grid grid-cols-1fr/auto group", parentClassNames),
-          typeof className === "string" ? className : undefined
+          typeof className === "string" ? className : undefined,
         )}
       >
         <input

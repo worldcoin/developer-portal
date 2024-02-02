@@ -85,7 +85,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     <div
       className={clsx(
         "flex items-center justify-center w-full p-10 max-h-full",
-        className
+        className,
       )}
     >
       <div className="max-w-[1180px] w-full grid gap-y-5">

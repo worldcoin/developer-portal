@@ -1,25 +1,29 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type DeleteRedirectMutationVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars["String"];
 }>;
 
-
-export type DeleteRedirectMutation = { __typename?: 'mutation_root', delete_redirect_by_pk?: { __typename?: 'redirect', id: string } | null };
-
+export type DeleteRedirectMutation = {
+  __typename?: "mutation_root";
+  delete_redirect_by_pk?: { __typename?: "redirect"; id: string } | null;
+};
 
 export const DeleteRedirectDocument = gql`
-    mutation DeleteRedirect($id: String!) {
-  delete_redirect_by_pk(id: $id) {
-    id
+  mutation DeleteRedirect($id: String!) {
+    delete_redirect_by_pk(id: $id) {
+      id
+    }
   }
-}
-    `;
-export type DeleteRedirectMutationFn = Apollo.MutationFunction<DeleteRedirectMutation, DeleteRedirectMutationVariables>;
+`;
+export type DeleteRedirectMutationFn = Apollo.MutationFunction<
+  DeleteRedirectMutation,
+  DeleteRedirectMutationVariables
+>;
 
 /**
  * __useDeleteRedirectMutation__
@@ -38,10 +42,24 @@ export type DeleteRedirectMutationFn = Apollo.MutationFunction<DeleteRedirectMut
  *   },
  * });
  */
-export function useDeleteRedirectMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRedirectMutation, DeleteRedirectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRedirectMutation, DeleteRedirectMutationVariables>(DeleteRedirectDocument, options);
-      }
-export type DeleteRedirectMutationHookResult = ReturnType<typeof useDeleteRedirectMutation>;
-export type DeleteRedirectMutationResult = Apollo.MutationResult<DeleteRedirectMutation>;
-export type DeleteRedirectMutationOptions = Apollo.BaseMutationOptions<DeleteRedirectMutation, DeleteRedirectMutationVariables>;
+export function useDeleteRedirectMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    DeleteRedirectMutation,
+    DeleteRedirectMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    DeleteRedirectMutation,
+    DeleteRedirectMutationVariables
+  >(DeleteRedirectDocument, options);
+}
+export type DeleteRedirectMutationHookResult = ReturnType<
+  typeof useDeleteRedirectMutation
+>;
+export type DeleteRedirectMutationResult =
+  Apollo.MutationResult<DeleteRedirectMutation>;
+export type DeleteRedirectMutationOptions = Apollo.BaseMutationOptions<
+  DeleteRedirectMutation,
+  DeleteRedirectMutationVariables
+>;

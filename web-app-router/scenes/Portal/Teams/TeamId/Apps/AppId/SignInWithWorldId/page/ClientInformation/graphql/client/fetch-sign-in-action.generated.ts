@@ -1,28 +1,36 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchSignInActionQueryVariables = Types.Exact<{
-  app_id: Types.Scalars['String'];
+  app_id: Types.Scalars["String"];
 }>;
 
-
-export type FetchSignInActionQuery = { __typename?: 'query_root', action: Array<{ __typename?: 'action', id: string, app_id: string, status: string, privacy_policy_uri?: string | null, terms_uri?: string | null }> };
-
+export type FetchSignInActionQuery = {
+  __typename?: "query_root";
+  action: Array<{
+    __typename?: "action";
+    id: string;
+    app_id: string;
+    status: string;
+    privacy_policy_uri?: string | null;
+    terms_uri?: string | null;
+  }>;
+};
 
 export const FetchSignInActionDocument = gql`
-    query FetchSignInAction($app_id: String!) {
-  action(where: {app_id: {_eq: $app_id}, action: {_eq: ""}}) {
-    id
-    app_id
-    status
-    privacy_policy_uri
-    terms_uri
+  query FetchSignInAction($app_id: String!) {
+    action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
+      id
+      app_id
+      status
+      privacy_policy_uri
+      terms_uri
+    }
   }
-}
-    `;
+`;
 
 /**
  * __useFetchSignInActionQuery__
@@ -40,14 +48,37 @@ export const FetchSignInActionDocument = gql`
  *   },
  * });
  */
-export function useFetchSignInActionQuery(baseOptions: Apollo.QueryHookOptions<FetchSignInActionQuery, FetchSignInActionQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<FetchSignInActionQuery, FetchSignInActionQueryVariables>(FetchSignInActionDocument, options);
-      }
-export function useFetchSignInActionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FetchSignInActionQuery, FetchSignInActionQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<FetchSignInActionQuery, FetchSignInActionQueryVariables>(FetchSignInActionDocument, options);
-        }
-export type FetchSignInActionQueryHookResult = ReturnType<typeof useFetchSignInActionQuery>;
-export type FetchSignInActionLazyQueryHookResult = ReturnType<typeof useFetchSignInActionLazyQuery>;
-export type FetchSignInActionQueryResult = Apollo.QueryResult<FetchSignInActionQuery, FetchSignInActionQueryVariables>;
+export function useFetchSignInActionQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    FetchSignInActionQuery,
+    FetchSignInActionQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    FetchSignInActionQuery,
+    FetchSignInActionQueryVariables
+  >(FetchSignInActionDocument, options);
+}
+export function useFetchSignInActionLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    FetchSignInActionQuery,
+    FetchSignInActionQueryVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    FetchSignInActionQuery,
+    FetchSignInActionQueryVariables
+  >(FetchSignInActionDocument, options);
+}
+export type FetchSignInActionQueryHookResult = ReturnType<
+  typeof useFetchSignInActionQuery
+>;
+export type FetchSignInActionLazyQueryHookResult = ReturnType<
+  typeof useFetchSignInActionLazyQuery
+>;
+export type FetchSignInActionQueryResult = Apollo.QueryResult<
+  FetchSignInActionQuery,
+  FetchSignInActionQueryVariables
+>;

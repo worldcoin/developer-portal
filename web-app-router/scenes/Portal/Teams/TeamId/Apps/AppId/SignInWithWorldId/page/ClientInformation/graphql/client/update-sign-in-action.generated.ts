@@ -1,26 +1,30 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateSignInActionMutationVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars["String"];
   input?: Types.InputMaybe<Types.Action_Set_Input>;
 }>;
 
-
-export type UpdateSignInActionMutation = { __typename?: 'mutation_root', update_action_by_pk?: { __typename?: 'action', id: string } | null };
-
+export type UpdateSignInActionMutation = {
+  __typename?: "mutation_root";
+  update_action_by_pk?: { __typename?: "action"; id: string } | null;
+};
 
 export const UpdateSignInActionDocument = gql`
-    mutation UpdateSignInAction($id: String!, $input: action_set_input) {
-  update_action_by_pk(pk_columns: {id: $id}, _set: $input) {
-    id
+  mutation UpdateSignInAction($id: String!, $input: action_set_input) {
+    update_action_by_pk(pk_columns: { id: $id }, _set: $input) {
+      id
+    }
   }
-}
-    `;
-export type UpdateSignInActionMutationFn = Apollo.MutationFunction<UpdateSignInActionMutation, UpdateSignInActionMutationVariables>;
+`;
+export type UpdateSignInActionMutationFn = Apollo.MutationFunction<
+  UpdateSignInActionMutation,
+  UpdateSignInActionMutationVariables
+>;
 
 /**
  * __useUpdateSignInActionMutation__
@@ -40,10 +44,24 @@ export type UpdateSignInActionMutationFn = Apollo.MutationFunction<UpdateSignInA
  *   },
  * });
  */
-export function useUpdateSignInActionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSignInActionMutation, UpdateSignInActionMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateSignInActionMutation, UpdateSignInActionMutationVariables>(UpdateSignInActionDocument, options);
-      }
-export type UpdateSignInActionMutationHookResult = ReturnType<typeof useUpdateSignInActionMutation>;
-export type UpdateSignInActionMutationResult = Apollo.MutationResult<UpdateSignInActionMutation>;
-export type UpdateSignInActionMutationOptions = Apollo.BaseMutationOptions<UpdateSignInActionMutation, UpdateSignInActionMutationVariables>;
+export function useUpdateSignInActionMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateSignInActionMutation,
+    UpdateSignInActionMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateSignInActionMutation,
+    UpdateSignInActionMutationVariables
+  >(UpdateSignInActionDocument, options);
+}
+export type UpdateSignInActionMutationHookResult = ReturnType<
+  typeof useUpdateSignInActionMutation
+>;
+export type UpdateSignInActionMutationResult =
+  Apollo.MutationResult<UpdateSignInActionMutation>;
+export type UpdateSignInActionMutationOptions = Apollo.BaseMutationOptions<
+  UpdateSignInActionMutation,
+  UpdateSignInActionMutationVariables
+>;

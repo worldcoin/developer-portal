@@ -1,30 +1,44 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateRedirectMutationVariables = Types.Exact<{
-  id: Types.Scalars['String'];
-  uri: Types.Scalars['String'];
+  id: Types.Scalars["String"];
+  uri: Types.Scalars["String"];
 }>;
 
-
-export type UpdateRedirectMutation = { __typename?: 'mutation_root', update_redirect_by_pk?: { __typename?: 'redirect', id: string, action_id: string, redirect_uri: string, created_at: any, updated_at: any } | null };
-
+export type UpdateRedirectMutation = {
+  __typename?: "mutation_root";
+  update_redirect_by_pk?: {
+    __typename?: "redirect";
+    id: string;
+    action_id: string;
+    redirect_uri: string;
+    created_at: any;
+    updated_at: any;
+  } | null;
+};
 
 export const UpdateRedirectDocument = gql`
-    mutation UpdateRedirect($id: String!, $uri: String!) {
-  update_redirect_by_pk(pk_columns: {id: $id}, _set: {redirect_uri: $uri}) {
-    id
-    action_id
-    redirect_uri
-    created_at
-    updated_at
+  mutation UpdateRedirect($id: String!, $uri: String!) {
+    update_redirect_by_pk(
+      pk_columns: { id: $id }
+      _set: { redirect_uri: $uri }
+    ) {
+      id
+      action_id
+      redirect_uri
+      created_at
+      updated_at
+    }
   }
-}
-    `;
-export type UpdateRedirectMutationFn = Apollo.MutationFunction<UpdateRedirectMutation, UpdateRedirectMutationVariables>;
+`;
+export type UpdateRedirectMutationFn = Apollo.MutationFunction<
+  UpdateRedirectMutation,
+  UpdateRedirectMutationVariables
+>;
 
 /**
  * __useUpdateRedirectMutation__
@@ -44,10 +58,24 @@ export type UpdateRedirectMutationFn = Apollo.MutationFunction<UpdateRedirectMut
  *   },
  * });
  */
-export function useUpdateRedirectMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRedirectMutation, UpdateRedirectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRedirectMutation, UpdateRedirectMutationVariables>(UpdateRedirectDocument, options);
-      }
-export type UpdateRedirectMutationHookResult = ReturnType<typeof useUpdateRedirectMutation>;
-export type UpdateRedirectMutationResult = Apollo.MutationResult<UpdateRedirectMutation>;
-export type UpdateRedirectMutationOptions = Apollo.BaseMutationOptions<UpdateRedirectMutation, UpdateRedirectMutationVariables>;
+export function useUpdateRedirectMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    UpdateRedirectMutation,
+    UpdateRedirectMutationVariables
+  >,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    UpdateRedirectMutation,
+    UpdateRedirectMutationVariables
+  >(UpdateRedirectDocument, options);
+}
+export type UpdateRedirectMutationHookResult = ReturnType<
+  typeof useUpdateRedirectMutation
+>;
+export type UpdateRedirectMutationResult =
+  Apollo.MutationResult<UpdateRedirectMutation>;
+export type UpdateRedirectMutationOptions = Apollo.BaseMutationOptions<
+  UpdateRedirectMutation,
+  UpdateRedirectMutationVariables
+>;
