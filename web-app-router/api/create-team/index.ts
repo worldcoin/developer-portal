@@ -60,8 +60,7 @@ export type CreateTeamResponse =
     };
 
 export const POST = withApiAuthRequired(async (req: NextRequest) => {
-  const res = new NextResponse();
-  const session = (await getSession(req, res)) as Session;
+  const session = await getSession();
   const auth0User = session?.user as Auth0User;
   let body = await req.json();
 
@@ -259,18 +258,20 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
+  // FIXME: Update url
+  const res = NextResponse.json({
+    returnTo: "/teams",
+  });
+
   await updateSession(req, res, {
     ...session,
     user: {
-      ...session.user,
+      ...session?.user,
       hasura: {
         ...user,
       },
     },
   });
 
-  // FIXME: Update url
-  return NextResponse.json({
-    returnTo: "/teams",
-  });
+  return res;
 });
