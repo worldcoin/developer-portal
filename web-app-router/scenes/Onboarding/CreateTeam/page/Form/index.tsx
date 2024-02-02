@@ -12,6 +12,7 @@ import * as yup from "yup";
 import { useRouter } from "next/navigation";
 import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   teamName: yup.string().required("Please enter a team name"),
@@ -30,6 +31,7 @@ export const Form = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const invite_id = searchParams?.get("invite_id");
+  const { checkSession } = useUser();
 
   const {
     register,
@@ -70,9 +72,10 @@ export const Form = () => {
         return console.log("Something went wrong");
       }
 
+      await checkSession();
       router.push(data.returnTo);
     },
-    [invite_id, router],
+    [checkSession, invite_id, router]
   );
 
   return (

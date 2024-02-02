@@ -1,29 +1,25 @@
 /* eslint-disable */
-import * as Types from "@/graphql/graphql";
+import * as Types from '@/graphql/graphql';
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DeleteActionMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars['String'];
 }>;
 
-export type DeleteActionMutation = {
-  __typename?: "mutation_root";
-  delete_action_by_pk?: { __typename?: "action"; id: string } | null;
-};
+
+export type DeleteActionMutation = { __typename?: 'mutation_root', delete_action_by_pk?: { __typename?: 'action', id: string } | null };
+
 
 export const DeleteActionDocument = gql`
-  mutation DeleteAction($id: String!) {
-    delete_action_by_pk(id: $id) {
-      id
-    }
+    mutation DeleteAction($id: String!) {
+  delete_action_by_pk(id: $id) {
+    id
   }
-`;
-export type DeleteActionMutationFn = Apollo.MutationFunction<
-  DeleteActionMutation,
-  DeleteActionMutationVariables
->;
+}
+    `;
+export type DeleteActionMutationFn = Apollo.MutationFunction<DeleteActionMutation, DeleteActionMutationVariables>;
 
 /**
  * __useDeleteActionMutation__
@@ -42,24 +38,10 @@ export type DeleteActionMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteActionMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteActionMutation,
-    DeleteActionMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteActionMutation,
-    DeleteActionMutationVariables
-  >(DeleteActionDocument, options);
-}
-export type DeleteActionMutationHookResult = ReturnType<
-  typeof useDeleteActionMutation
->;
-export type DeleteActionMutationResult =
-  Apollo.MutationResult<DeleteActionMutation>;
-export type DeleteActionMutationOptions = Apollo.BaseMutationOptions<
-  DeleteActionMutation,
-  DeleteActionMutationVariables
->;
+export function useDeleteActionMutation(baseOptions?: Apollo.MutationHookOptions<DeleteActionMutation, DeleteActionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteActionMutation, DeleteActionMutationVariables>(DeleteActionDocument, options);
+      }
+export type DeleteActionMutationHookResult = ReturnType<typeof useDeleteActionMutation>;
+export type DeleteActionMutationResult = Apollo.MutationResult<DeleteActionMutation>;
+export type DeleteActionMutationOptions = Apollo.BaseMutationOptions<DeleteActionMutation, DeleteActionMutationVariables>;

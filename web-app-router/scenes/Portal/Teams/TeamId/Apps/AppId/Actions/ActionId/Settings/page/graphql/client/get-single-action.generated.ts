@@ -1,68 +1,45 @@
 /* eslint-disable */
-import * as Types from "@/graphql/graphql";
+import * as Types from '@/graphql/graphql';
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetSingleActionQueryVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
+  action_id: Types.Scalars['String'];
 }>;
 
-export type GetSingleActionQuery = {
-  __typename?: "query_root";
-  action: Array<{
-    __typename?: "action";
-    id: string;
-    app_id: string;
-    action: string;
-    created_at: any;
-    creation_mode: string;
-    description: string;
-    external_nullifier: string;
-    kiosk_enabled: boolean;
-    name: string;
-    max_accounts_per_user: number;
-    max_verifications: number;
-    updated_at: any;
-    nullifiers: Array<{
-      __typename?: "nullifier";
-      id: string;
-      updated_at: any;
-      nullifier_hash: string;
-      uses?: number | null;
-    }>;
-    app: { __typename?: "app"; is_staging: boolean; engine: string };
-  }>;
-};
+
+export type GetSingleActionQuery = { __typename?: 'query_root', action: Array<{ __typename?: 'action', id: string, app_id: string, action: string, created_at: any, creation_mode: string, description: string, external_nullifier: string, kiosk_enabled: boolean, name: string, max_accounts_per_user: number, max_verifications: number, updated_at: any, nullifiers: Array<{ __typename?: 'nullifier', id: string, updated_at: any, nullifier_hash: string, uses?: number | null }>, app: { __typename?: 'app', is_staging: boolean, engine: string } }> };
+
 
 export const GetSingleActionDocument = gql`
-  query GetSingleAction($action_id: String!) {
-    action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
+    query GetSingleAction($action_id: String!) {
+  action(order_by: {created_at: asc}, where: {id: {_eq: $action_id}}) {
+    id
+    app_id
+    action
+    created_at
+    creation_mode
+    description
+    external_nullifier
+    kiosk_enabled
+    name
+    max_accounts_per_user
+    max_verifications
+    updated_at
+    nullifiers {
       id
-      app_id
-      action
-      created_at
-      creation_mode
-      description
-      external_nullifier
-      kiosk_enabled
-      name
-      max_accounts_per_user
-      max_verifications
       updated_at
-      nullifiers {
-        id
-        updated_at
-        nullifier_hash
-        uses
-      }
-      app {
-        is_staging
-        engine
-      }
+      nullifier_hash
+      uses
+    }
+    app {
+      is_staging
+      engine
     }
   }
-`;
+}
+    `;
 
 /**
  * __useGetSingleActionQuery__
@@ -80,37 +57,14 @@ export const GetSingleActionDocument = gql`
  *   },
  * });
  */
-export function useGetSingleActionQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetSingleActionQuery, GetSingleActionQueryVariables>(
-    GetSingleActionDocument,
-    options,
-  );
-}
-export function useGetSingleActionLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >(GetSingleActionDocument, options);
-}
-export type GetSingleActionQueryHookResult = ReturnType<
-  typeof useGetSingleActionQuery
->;
-export type GetSingleActionLazyQueryHookResult = ReturnType<
-  typeof useGetSingleActionLazyQuery
->;
-export type GetSingleActionQueryResult = Apollo.QueryResult<
-  GetSingleActionQuery,
-  GetSingleActionQueryVariables
->;
+export function useGetSingleActionQuery(baseOptions: Apollo.QueryHookOptions<GetSingleActionQuery, GetSingleActionQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSingleActionQuery, GetSingleActionQueryVariables>(GetSingleActionDocument, options);
+      }
+export function useGetSingleActionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSingleActionQuery, GetSingleActionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSingleActionQuery, GetSingleActionQueryVariables>(GetSingleActionDocument, options);
+        }
+export type GetSingleActionQueryHookResult = ReturnType<typeof useGetSingleActionQuery>;
+export type GetSingleActionLazyQueryHookResult = ReturnType<typeof useGetSingleActionLazyQuery>;
+export type GetSingleActionQueryResult = Apollo.QueryResult<GetSingleActionQuery, GetSingleActionQueryVariables>;

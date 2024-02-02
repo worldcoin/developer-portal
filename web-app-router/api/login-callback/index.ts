@@ -37,8 +37,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
-  const res = new NextResponse();
-  const session = await getSession(req, res);
+  const session = await getSession();
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");
@@ -64,12 +63,12 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         {
           world_id_nullifier: nullifier,
           auth0Id: auth0User.sub,
-        },
+        }
       );
 
       if (!userData) {
         throw new Error(
-          "Error while fetching user for FetchUserByNullifierSdk.",
+          "Error while fetching user for FetchUserByNullifierSdk."
         );
       }
 
@@ -78,7 +77,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       } else if (userData.user.length > 1) {
         // NOTE: Edge case may occur if there's a migration error from legacy users, this will require manual handling.
         throw new Error(
-          `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`,
+          `Auth migration error, more than one user found for nullifier_hash: ${nullifier} & auth0Id: ${auth0User.sub}`
         );
       }
     } catch (error) {
@@ -88,7 +87,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
       return NextResponse.redirect(
         new URL(urls.logout(), req.url).toString(),
-        307,
+        307
       );
     }
   }
@@ -98,12 +97,12 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
     if (!auth0User.email_verified) {
       logger.error(
-        `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`,
+        `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`
       );
 
       return NextResponse.redirect(
         new URL(urls.logout(), req.url).toString(),
-        307,
+        307
       );
     }
 
@@ -130,7 +129,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
       return NextResponse.redirect(
         new URL(urls.logout(), req.url).toString(),
-        307,
+        307
       );
     }
   }
@@ -141,9 +140,9 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     return NextResponse.redirect(
       new URL(
         invite_id ? urls.createTeam({ invite_id }) : urls.createTeam(),
-        req.url,
+        req.url
       ).toString(),
-      307,
+      307
     );
   }
 
@@ -189,7 +188,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
     try {
       const insertMembershipResult = await InsertMembershipSdk(
-        client,
+        client
       ).InsertMembership({
         team_id: invite.team_id,
         user_id: user.id,
@@ -202,7 +201,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         "Error while inserting membership for InsertMembershipSdk.",
         {
           error,
-        },
+        }
       );
 
       return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
@@ -220,7 +219,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
       if (!deleteInviteResult.delete_invite_by_pk) {
         logger.error(
-          `Error while deleting invite: ${invite_id}, invite not found.`,
+          `Error while deleting invite: ${invite_id}, invite not found.`
         );
       }
     } catch (error) {
@@ -264,10 +263,13 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
       return NextResponse.redirect(
         new URL(urls.logout(), req.url).toString(),
-        307,
+        307
       );
     }
   }
+
+  // TODO: update url when we have pages
+  const res = NextResponse.redirect(new URL("/teams", req.url), 307);
 
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
   await updateSession(req, res, {
@@ -280,6 +282,5 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     },
   });
 
-  // TODO: update url when we have pages
-  return NextResponse.redirect(new URL("/teams", req.url), 307);
+  return res;
 });

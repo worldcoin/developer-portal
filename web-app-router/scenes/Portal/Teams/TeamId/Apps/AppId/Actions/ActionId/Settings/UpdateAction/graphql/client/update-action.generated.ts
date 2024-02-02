@@ -1,45 +1,32 @@
 /* eslint-disable */
-import * as Types from "@/graphql/graphql";
+import * as Types from '@/graphql/graphql';
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateActionMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars['String'];
   input?: Types.InputMaybe<Types.Action_Set_Input>;
 }>;
 
-export type UpdateActionMutation = {
-  __typename?: "mutation_root";
-  update_action_by_pk?: {
-    __typename?: "action";
-    id: string;
-    name: string;
-    description: string;
-    action: string;
-    max_verifications: number;
-    kiosk_enabled: boolean;
-    status: string;
-  } | null;
-};
+
+export type UpdateActionMutation = { __typename?: 'mutation_root', update_action_by_pk?: { __typename?: 'action', id: string, name: string, description: string, action: string, max_verifications: number, kiosk_enabled: boolean, status: string } | null };
+
 
 export const UpdateActionDocument = gql`
-  mutation UpdateAction($id: String!, $input: action_set_input) {
-    update_action_by_pk(pk_columns: { id: $id }, _set: $input) {
-      id
-      name
-      description
-      action
-      max_verifications
-      kiosk_enabled
-      status
-    }
+    mutation UpdateAction($id: String!, $input: action_set_input) {
+  update_action_by_pk(pk_columns: {id: $id}, _set: $input) {
+    id
+    name
+    description
+    action
+    max_verifications
+    kiosk_enabled
+    status
   }
-`;
-export type UpdateActionMutationFn = Apollo.MutationFunction<
-  UpdateActionMutation,
-  UpdateActionMutationVariables
->;
+}
+    `;
+export type UpdateActionMutationFn = Apollo.MutationFunction<UpdateActionMutation, UpdateActionMutationVariables>;
 
 /**
  * __useUpdateActionMutation__
@@ -59,24 +46,10 @@ export type UpdateActionMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateActionMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateActionMutation,
-    UpdateActionMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateActionMutation,
-    UpdateActionMutationVariables
-  >(UpdateActionDocument, options);
-}
-export type UpdateActionMutationHookResult = ReturnType<
-  typeof useUpdateActionMutation
->;
-export type UpdateActionMutationResult =
-  Apollo.MutationResult<UpdateActionMutation>;
-export type UpdateActionMutationOptions = Apollo.BaseMutationOptions<
-  UpdateActionMutation,
-  UpdateActionMutationVariables
->;
+export function useUpdateActionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateActionMutation, UpdateActionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateActionMutation, UpdateActionMutationVariables>(UpdateActionDocument, options);
+      }
+export type UpdateActionMutationHookResult = ReturnType<typeof useUpdateActionMutation>;
+export type UpdateActionMutationResult = Apollo.MutationResult<UpdateActionMutation>;
+export type UpdateActionMutationOptions = Apollo.BaseMutationOptions<UpdateActionMutation, UpdateActionMutationVariables>;
