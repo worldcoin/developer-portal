@@ -146,8 +146,11 @@ export const List = () => {
         onClose={() => setTeamForLeave(null)}
       />
 
+      {/* FIXME: pass email and team name */}
       <TransferTeamDialog
         open={!!teamForTransfer}
+        email="qwer@qwer.qwer"
+        teamName="A11 Team"
         onClose={() => setTeamForTransfer(null)}
       />
     </>

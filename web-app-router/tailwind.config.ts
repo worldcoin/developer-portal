@@ -102,6 +102,12 @@ const config: Config = {
             50: "#E9F8E9",
             500: "#00B800",
           },
+
+          warning: {
+            50: "#FFFAE5",
+            200: "#FFE999",
+            500: "#FFB200",
+          },
         },
       },
 
