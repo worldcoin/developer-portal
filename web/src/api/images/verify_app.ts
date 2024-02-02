@@ -67,13 +67,18 @@ export const handleVerifyApp = async (
     });
   }
 
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+  const { isValid, parsedParams } = await validateRequestSchema({
     value: req.body.input,
     schema,
   });
 
   if (!isValid || !parsedParams) {
-    return handleError(req, res);
+    return errorHasuraQuery({
+      req,
+      res,
+      detail: "Invalid request body.",
+      code: "invalid_request",
+    });
   }
 
   const {
