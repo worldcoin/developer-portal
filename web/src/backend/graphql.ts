@@ -6,7 +6,7 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
-import { generateServiceJWT } from "src/backend/jwts";
+import { generateReviewerJWT, generateServiceJWT } from "src/backend/jwts";
 import { GraphQLClient } from "graphql-request";
 
 const { publicRuntimeConfig } = getConfig();
@@ -49,6 +49,20 @@ export const getAPIServiceGraphqlClient = async () => {
   return new GraphQLClient(publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL, {
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
+    },
+  });
+};
+
+/**
+ * Used for generated requests
+ * Returns an GraphQLClient to interact with GraphQL's API with a reviewer token
+ * See Documentation: https://www.notion.so/worldcoin/Reviewer-Role-Specification-5c43c442735842d7ae57e19823a962fb?pvs=4
+ * @returns
+ */
+export const getAPIReviewerGraphqlClient = async () => {
+  return new GraphQLClient(publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL, {
+    headers: {
+      authorization: `Bearer ${await generateReviewerJWT()}`,
     },
   });
 };
