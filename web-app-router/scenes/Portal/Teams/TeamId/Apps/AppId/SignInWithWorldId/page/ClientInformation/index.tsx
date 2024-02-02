@@ -44,6 +44,7 @@ export const ClientInformationPage = (props: {
         throw result;
       }
       setClientSecret(result.data?.reset_client_secret?.client_secret ?? "");
+      toast.success("Client secret reset");
     } catch (error) {
       console.error(error);
     }
@@ -116,10 +117,10 @@ export const ClientInformationPage = (props: {
                     type="button"
                     className=""
                     onClick={() =>
-                      copyToClipboard("client secret", clientSecret)
+                      copyToClipboard("Client secret", clientSecret)
                     }
                   >
-                    <CopyIcon className="w-5 h-5 text-grey-900 border" />
+                    <CopyIcon className="w-5 h-5 text-grey-900" />
                   </Button>
                 )}
               </div>

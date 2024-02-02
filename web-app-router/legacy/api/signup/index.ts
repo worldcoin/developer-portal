@@ -32,11 +32,11 @@ import {
 } from "@auth0/nextjs-auth0";
 
 import { Auth0User } from "@/lib/types";
-import { isEmailUser } from "@/lib/utils";
 import { urls } from "@/legacy/lib/urls";
 import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Membership, Role_Enum } from "@/graphql/graphql";
+import { isEmailUser } from "@/api/helpers/is-email-user";
 
 export type SignupResponse = { returnTo: string };
 
@@ -98,7 +98,7 @@ export const handleSignup = withApiAuthRequired(
         "Failed to send acceptance",
         undefined,
         null,
-        req,
+        req
       );
     }
 
@@ -119,7 +119,7 @@ export const handleSignup = withApiAuthRequired(
       }
 
       const { user: createdUser } = await createUserAndDeleteInviteSdk(
-        client,
+        client
       ).CreateUserAndDeleteInvite({
         team_id: invite.team.id,
         ironclad_id: ironCladUserId,
@@ -131,7 +131,7 @@ export const handleSignup = withApiAuthRequired(
       });
 
       insertMembershipResult = await getInsertMembershipSdk(
-        client,
+        client
       ).InsertMembership({
         team_id: invite.team.id,
         user_id: createdUser?.id ?? "",
@@ -143,7 +143,7 @@ export const handleSignup = withApiAuthRequired(
         !insertMembershipResult.insert_membership_one?.user
       ) {
         logger.error(
-          "Failed to insert membership while creating account from invite",
+          "Failed to insert membership while creating account from invite"
         );
 
         return errorResponse(
@@ -152,7 +152,7 @@ export const handleSignup = withApiAuthRequired(
           "Failed to signup",
           undefined,
           null,
-          req,
+          req
         );
       }
 
@@ -177,7 +177,7 @@ export const handleSignup = withApiAuthRequired(
           "Failed to signup",
           undefined,
           null,
-          req,
+          req
         );
       }
 
@@ -210,12 +210,12 @@ export const handleSignup = withApiAuthRequired(
           "Failed to signup",
           undefined,
           null,
-          req,
+          req
         );
       }
 
       insertMembershipResult = await getInsertMembershipSdk(
-        client,
+        client
       ).InsertMembership({
         team_id: insertTeamResult.insert_team_one.id,
         user_id: insertUserResult.insert_user_one.id,
@@ -232,7 +232,7 @@ export const handleSignup = withApiAuthRequired(
           "Failed to signup",
           undefined,
           null,
-          req,
+          req
         );
       }
 
@@ -258,5 +258,5 @@ export const handleSignup = withApiAuthRequired(
         team_id: insertMembershipResult.insert_membership_one.team_id,
       }),
     });
-  },
+  }
 );
