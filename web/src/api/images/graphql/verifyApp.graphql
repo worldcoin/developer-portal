@@ -1,0 +1,15 @@
+mutation verifyApp(
+  $idToVerify: String!
+  $idToDelete: String!
+  $verified_data_changes: app_metadata_set_input
+) {
+  delete_app_metadata_by_pk(id: $idToDelete) {
+    id
+  }
+  update_app_metadata_by_pk(
+    pk_columns: { id: $idToVerify }
+    _set: $verified_data_changes
+  ) {
+    id
+  }
+}
