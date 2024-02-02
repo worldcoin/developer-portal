@@ -140,7 +140,7 @@ export const ClientInformationPage = (props: {
             className="h-16"
             addOnLeft={
               clientSecret == "" ? (
-                <LockIcon className=" text-grey-400" />
+                <LockIcon className="pl-1 w-8 text-grey-400" />
               ) : (
                 <></>
               )
@@ -149,7 +149,7 @@ export const ClientInformationPage = (props: {
               <div
                 className={clsx(
                   "grid grid-cols-1fr/auto justify-items-end gap-x-3",
-                  { "pr-4": clientSecret !== "" },
+                  { "pr-4": clientSecret !== "" }
                 )}
               >
                 <DecoratedButton
