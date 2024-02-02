@@ -28,7 +28,7 @@ const schema = yup.object({
   is_reviewer_world_app_approved: yup.boolean().required(),
 });
 
-// TODO: This should be converted to an Async Worker. 
+// TODO: This should be converted to an Async Worker.
 
 /**
  * This function handles the verification of the app by a reviewer
