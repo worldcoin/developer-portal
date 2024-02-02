@@ -41,15 +41,18 @@ export const Redirects = memo(function Redirects(props: {
             action_id: actionId,
             uri: redirect_uri,
           },
+          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: RedirectsDocument,
               variables: { action_id: actionId },
+              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
         });
         setAddRedirectFormShown(false);
+        toast.success("Redirect added!");
       } catch (error) {
         console.error(error);
         toast.error("Error adding redirect");
@@ -65,14 +68,17 @@ export const Redirects = memo(function Redirects(props: {
           variables: {
             id,
           },
+          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: RedirectsDocument,
               variables: { action_id: actionId },
+              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
         });
+        toast.success("Redirect deleted!");
       } catch (error) {
         console.error(error);
         toast.error("Error deleting redirect");
@@ -108,8 +114,10 @@ export const Redirects = memo(function Redirects(props: {
                   {
                     query: RedirectsDocument,
                     variables: { action_id: actionId },
+                    context: { headers: { team_id: teamId } },
                   },
                 ],
+                context: { headers: { team_id: teamId } },
                 awaitRefetchQueries: true,
               });
             }

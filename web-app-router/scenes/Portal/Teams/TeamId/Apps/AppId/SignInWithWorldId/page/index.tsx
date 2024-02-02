@@ -18,7 +18,13 @@ export const SignInWithWorldIdPage = async (
   return (
     <div className="w-full h-full">
       <div className="grid grid-cols-auto/1fr/auto py-6 gap-x-7">
-        <Image src="/passport.png" alt="passport" width={80} height={80} />
+        <Image
+          src="/passport.png"
+          alt="passport"
+          width={100}
+          height={100}
+          className="h-auto w-16"
+        />
         <div className="grid grid-cols-1 items-center justify-items-start gap-y-0">
           <Typography variant={TYPOGRAPHY.H6}>Sign in with World ID</Typography>
           <Typography
