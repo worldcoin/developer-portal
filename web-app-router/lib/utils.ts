@@ -4,7 +4,7 @@ import {
   ORB_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
-} from "./constants";
+} from "../legacy/lib/constants";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 
 // Sequencer mapping
@@ -56,8 +56,8 @@ export const validateUrl = (candidate: string): boolean => {
 export const validateEmail = (candidate: string): boolean => {
   return Boolean(
     candidate.match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    ),
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    )
   );
 };
 

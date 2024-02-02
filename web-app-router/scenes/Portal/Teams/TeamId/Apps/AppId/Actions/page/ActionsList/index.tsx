@@ -85,7 +85,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     <div
       className={clsx(
         "flex items-center justify-center w-full p-10 max-h-full",
-        className,
+        className
       )}
     >
       <div className="max-w-[1180px] w-full grid gap-y-5">
@@ -104,8 +104,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
             label=""
             placeholder="Search actions by name"
             className="w-136 pt-2 text-base"
-            addOn={<SearchIcon className="mx-2 text-grey-400" />}
-            addOnPosition="left"
+            addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
           />
           <DecoratedButton className="h-12 w-36" href="?createAction=true">
             <Typography variant={TYPOGRAPHY.M3}>New action</Typography>

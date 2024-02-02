@@ -1,7 +1,6 @@
 "use client";
 
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { UserHelpNav } from "@/components/UserHelpNav";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
 import * as yup from "yup";
@@ -126,14 +125,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             message: "This action already exists.",
           });
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, reset, router, setError, firstAction],
+    [appId, insertActionQuery, reset, router, setError, firstAction]
   );
 
   const copyAction = useCallback(() => {
@@ -145,7 +144,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     <div
       className={clsx(
         "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
-        className,
+        className
       )}
     >
       <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
@@ -194,8 +193,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             helperText="This is the value you will use in IDKit and any API calls."
             placeholder="A short description of your action"
             required
-            addOnPosition="right"
-            addOn={
+            addOnRight={
               <button className="px-1" type="button" onClick={copyAction}>
                 <CopyIcon />
               </button>

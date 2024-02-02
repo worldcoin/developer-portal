@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { fetchOIDCApp } from "@/legacy/backend/oidc";
-import { uriHasJS } from "@/legacy/lib/utils";
+import { uriHasJS } from "@/lib/utils";
 import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
 
@@ -17,7 +17,7 @@ const schema = yup.object({
  */
 export default async function handleOIDCValidate(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   if (!req.method || !["POST"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);
@@ -41,13 +41,13 @@ export default async function handleOIDCValidate(
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
       "redirect_uri",
-      req,
+      req
     );
   }
 
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
-    redirect_uri,
+    redirect_uri
   );
   if (!app || fetchAppError) {
     return errorResponse(
@@ -56,7 +56,7 @@ export default async function handleOIDCValidate(
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
       fetchAppError?.attribute ?? "app_id",
-      req,
+      req
     );
   }
 
@@ -67,7 +67,7 @@ export default async function handleOIDCValidate(
       "invalid_redirect_uri",
       "Invalid redirect_uri provided.",
       "redirect_uri",
-      req,
+      req
     );
   }
 

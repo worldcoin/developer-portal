@@ -5,15 +5,15 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
-  register: UseFormRegisterReturn;
+  register?: UseFormRegisterReturn;
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
   label: string;
   placeholder?: string;
   helperText?: string;
-  addOn?: React.ReactElement;
-  addOnPosition?: "left" | "right";
+  addOnLeft?: React.ReactElement;
+  addOnRight?: React.ReactElement;
   className?: string;
 }
 
@@ -26,8 +26,8 @@ export const Input = memo(function Input(props: InputInterface) {
     placeholder,
     className,
     errors,
-    addOn,
-    addOnPosition,
+    addOnLeft,
+    addOnRight,
     disabled,
     ...restProps
   } = props;
@@ -43,7 +43,7 @@ export const Input = memo(function Input(props: InputInterface) {
     {
       "hover:text-grey-700": !disabled,
       "bg-grey-50 text-grey-300 border-grey-200": disabled,
-    },
+    }
   );
   const inputClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
@@ -51,7 +51,7 @@ export const Input = memo(function Input(props: InputInterface) {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
-    },
+    }
   );
 
   const labelClassNames = clsx("text-sm ml-2 peer-focus:text-blue-500", {
@@ -69,12 +69,10 @@ export const Input = memo(function Input(props: InputInterface) {
       <fieldset
         className={twMerge(
           clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),
-          typeof className === "string" ? className : undefined,
+          typeof className === "string" ? className : undefined
         )}
       >
-        <div className="flex items-center">
-          {addOn && addOnPosition === "left" && addOn}
-        </div>
+        <div className="flex items-center">{addOnLeft && addOnLeft}</div>
 
         <input
           {...register}
@@ -86,9 +84,7 @@ export const Input = memo(function Input(props: InputInterface) {
           aria-invalid={errors ? "true" : "false"}
         />
 
-        <div className="flex items-center">
-          {addOn && addOnPosition === "right" && addOn}
-        </div>
+        <div className="flex items-center">{addOnRight && addOnRight}</div>
 
         <legend className={labelClassNames}>
           {label} {required && <span className="text-system-error-500">*</span>}
