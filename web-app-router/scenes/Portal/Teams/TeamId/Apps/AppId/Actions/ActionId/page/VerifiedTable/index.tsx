@@ -112,7 +112,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     <div className="flex items-center justify-end w-full">
       <div className="w-full grid gap-y-6">
         <div className="flex justify-start items-center gap-x-2">
-          <Typography variant={TYPOGRAPHY.M2}>Verified humans</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
           <Typography
             variant={TYPOGRAPHY.R5}
             className="bg-grey-100 w-8 py-1 text-center rounded-xl"

@@ -88,7 +88,7 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
 
       <div className="w-1/2 grid grid-cols-1 gap-y-10">
         <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
             Danger Zone
           </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
