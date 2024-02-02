@@ -4,7 +4,7 @@ import { runCors } from "@/legacy/backend/cors";
 import { verifyProof } from "@/legacy/backend/verify";
 import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
-import { generateExternalNullifier } from "@/legacy/lib/hashing";
+import { generateExternalNullifier } from "@/lib/hashing";
 import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 
 const schema = yup.object({

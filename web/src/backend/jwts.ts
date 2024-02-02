@@ -137,22 +137,6 @@ export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
   return await _generateJWT(payload);
 };
 
-/**
- * Generates a JWT for the analytics service.
- * @returns
- */
-export const generateAnalyticsJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "analytics_service",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["analytics"],
-      "x-hasura-default-role": "analytics",
-    },
-  };
-
-  return await _generateJWT(payload);
-};
-
 // ANCHOR: -----------------Sign up JWTs--------------------------
 
 /**

@@ -2,6 +2,13 @@ table:
   name: team
   schema: public
 array_relationships:
+  - name: api_keys
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          name: api_key
+          schema: public
   - name: apps
     using:
       foreign_key_constraint_on:

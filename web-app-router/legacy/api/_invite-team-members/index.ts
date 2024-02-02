@@ -6,6 +6,13 @@ import { getSdk as getCreateInvitesSdk } from "@/legacy/api/_invite-team-members
 import { getSdk as getFetchUserSdk } from "@/legacy/api/_invite-team-members/graphql/fetchUser.generated";
 import { sendEmail } from "@/legacy/lib/send-email";
 import { logger } from "@/legacy/lib/logger";
+import {
+  GetMembershipsQuery,
+  getSdk as getMembershipsSdk,
+} from "./graphql/getMemberships.generated";
+
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 
 export const handleInvite = async (
   req: NextApiRequest,
@@ -58,7 +65,47 @@ export const handleInvite = async (
       });
     }
 
-    const emails = req.body.input.emails;
+    const emails = req.body.input.emails as string[];
+    let memberships: GetMembershipsQuery | null = null;
+    const client = await getAPIServiceGraphqlClient();
+
+    try {
+      memberships = await getMembershipsSdk(client).GetMemberships({
+        team_id: teamId,
+      });
+    } catch (error) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Cannot fetch memberships.",
+        code: "cannot_fetch_memberships",
+      });
+    }
+
+    if (!memberships) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Cannot fetch memberships.",
+        code: "cannot_fetch_memberships",
+      });
+    }
+
+    const alreadyExistingEmails = emails.filter((email: string) => {
+      return memberships?.membership?.some(
+        (membership) => membership.user.email === email,
+      );
+    });
+
+    if (alreadyExistingEmails.length > 0) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Some emails are already in the team.",
+        code: "already_in_team",
+      });
+    }
+
     if (!emails) {
       return errorHasuraQuery({
         res,
@@ -67,7 +114,6 @@ export const handleInvite = async (
         code: "required",
       });
     }
-    const client = await getAPIServiceGraphqlClient();
 
     const fetchUserRes = await getFetchUserSdk(client).FetchUser({
       id: userId,
@@ -105,19 +151,37 @@ export const handleInvite = async (
       throw new Error("SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.");
     }
 
+    const window = new JSDOM("").window; // NOTE: this is a workaround for DOMPurify on the server
+    const DOMPurify = createDOMPurify(window);
+
+    DOMPurify.setConfig({
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+
     const promises = [];
     for (const invite of createInvitesRes.invites?.returning) {
       const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login?invite_id=${invite.id}`;
+
+      const inviter = DOMPurify.sanitize(
+        fetchUserRes.user[0].name || fetchUserRes.user[0].email || "Someone",
+      );
+
+      const team = DOMPurify.sanitize(
+        fetchUserRes.user[0].team.name ?? "their team",
+      );
+
+      const to = DOMPurify.sanitize(invite.email);
 
       promises.push(
         sendEmail({
           apiKey: process.env.SENDGRID_API_KEY!,
           from: process.env.SENDGRID_EMAIL_FROM!,
-          to: invite.email,
+          to,
           templateId: process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID!,
           templateData: {
-            inviter: fetchUserRes.user[0].name ?? fetchUserRes.user[0].email,
-            team: fetchUserRes.user[0].team.name ?? "their team",
+            inviter,
+            team,
             inviteLink: link,
           },
         }),

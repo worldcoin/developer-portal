@@ -1,0 +1,11 @@
+query GetInviteById($id: String!) {
+  invite: invite_by_pk(id: $id) {
+    id
+    expires_at
+    email
+    team {
+      id
+      name
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { urls } from "@/lib/urls";
 
 export const LoginPage = () => (
   <div className="w-full h-full flex items-center justify-center">
@@ -26,8 +27,7 @@ export const LoginPage = () => (
       </div>
 
       <div className="grid gap-y-4">
-        {/* TODO: update url */}
-        <DecoratedButton href="/create-team" className="py-4">
+        <DecoratedButton href={urls.login()} className="py-4">
           Create an account
         </DecoratedButton>
 

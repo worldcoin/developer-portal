@@ -2,7 +2,7 @@
  * Constants available to both backend and frontend.
  */
 
-import { LoginErrorCode } from "./types";
+import { LoginErrorCode } from "../../lib/types";
 
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
@@ -23,9 +23,6 @@ export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
 export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const loginErrors: Record<LoginErrorCode, string> = {
-  [LoginErrorCode.OneTeamPerPerson]:
-    "You already have a team. You can only belong to a team at the moment.",
-
   [LoginErrorCode.Generic]:
     "There was a problem with your login. Please try again.",
 

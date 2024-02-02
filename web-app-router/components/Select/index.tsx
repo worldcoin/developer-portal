@@ -40,7 +40,7 @@ export const Select = <T,>(props: SelectProps<T>) => {
       setFloating: refs.setFloating,
       floatingStyles,
     }),
-    [refs, floatingStyles]
+    [refs, floatingStyles],
   );
 
   return (

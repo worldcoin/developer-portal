@@ -1,0 +1,21 @@
+mutation InsertAction(
+  $name: String!
+  $description: String = ""
+  $action: String = ""
+  $app_id: String!
+  $external_nullifier: String!
+  $max_verifications: Int = 1
+) {
+  insert_action_one(
+    object: {
+      action: $action
+      app_id: $app_id
+      name: $name
+      description: $description
+      external_nullifier: $external_nullifier
+      max_verifications: $max_verifications
+    }
+  ) {
+    id
+  }
+}
