@@ -26,9 +26,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
   });
 
   const [insertRedirectMutation] = useInsertRedirectMutation();
-
   const [updateRedirectMutation] = useUpdateRedirectMutation();
-
   const [deleteRedirectMutation] = useDeleteRedirectMutation();
 
   const addRedirect = useCallback(
@@ -53,7 +51,7 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
         toast.error("Error adding redirect");
       }
     },
-    [actionID, insertRedirectMutation],
+    [actionID, insertRedirectMutation]
   );
 
   const deleteRedirect = useCallback(
@@ -76,8 +74,9 @@ export const Redirects = memo(function Redirects(props: { actionID: string }) {
         toast.error("Error deleting redirect");
       }
     },
-    [actionID, deleteRedirectMutation],
+    [actionID, deleteRedirectMutation]
   );
+
   const redirects = data?.redirect;
   if (loading) return <div></div>;
   return (

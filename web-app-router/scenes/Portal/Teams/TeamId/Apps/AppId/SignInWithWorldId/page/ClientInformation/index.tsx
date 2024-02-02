@@ -103,6 +103,7 @@ export const ClientInformationPage = (props: {
   }, []);
 
   const signinAction = data?.action;
+
   if (fetchingAction) {
     return <div></div>;
   } else if (!signinAction || signinAction.length === 0) {
