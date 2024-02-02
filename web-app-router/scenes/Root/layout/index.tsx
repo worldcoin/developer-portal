@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Rubik } from "next/font/google";
 import "@/styles/globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { CSSProperties } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,8 +18,15 @@ export const RootLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html
+      lang="en"
+      style={
+        {
+          "--font-rubik": rubik.style.fontFamily,
+        } as CSSProperties
+      }
+    >
+      <body>
         <UserProvider>
           <ApolloWrapper>{children}</ApolloWrapper>
         </UserProvider>

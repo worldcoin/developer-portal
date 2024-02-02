@@ -116,6 +116,7 @@ const config: Config = {
 
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
+        rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
       },
 
       fontSize: {
@@ -134,7 +135,7 @@ const config: Config = {
         32: "calc(32 * 1rem / 16)",
       },
 
-      width: {
+      spacing: {
         136: "34rem",
       },
     },
