@@ -1,22 +1,23 @@
 /* eslint-disable */
-import * as Types from '@/graphql/graphql';
+import * as Types from "@/graphql/graphql";
 
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type AppsQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type AppsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-
-export type AppsQuery = { __typename?: 'query_root', app: Array<{ __typename?: 'app', id: string }> };
-
+export type AppsQuery = {
+  __typename?: "query_root";
+  app: Array<{ __typename?: "app"; id: string }>;
+};
 
 export const AppsDocument = gql`
-    query Apps {
-  app {
-    id
+  query Apps {
+    app {
+      id
+    }
   }
-}
-    `;
+`;
 
 /**
  * __useAppsQuery__
@@ -33,14 +34,21 @@ export const AppsDocument = gql`
  *   },
  * });
  */
-export function useAppsQuery(baseOptions?: Apollo.QueryHookOptions<AppsQuery, AppsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AppsQuery, AppsQueryVariables>(AppsDocument, options);
-      }
-export function useAppsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AppsQuery, AppsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AppsQuery, AppsQueryVariables>(AppsDocument, options);
-        }
+export function useAppsQuery(
+  baseOptions?: Apollo.QueryHookOptions<AppsQuery, AppsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<AppsQuery, AppsQueryVariables>(AppsDocument, options);
+}
+export function useAppsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<AppsQuery, AppsQueryVariables>,
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<AppsQuery, AppsQueryVariables>(
+    AppsDocument,
+    options,
+  );
+}
 export type AppsQueryHookResult = ReturnType<typeof useAppsQuery>;
 export type AppsLazyQueryHookResult = ReturnType<typeof useAppsLazyQuery>;
 export type AppsQueryResult = Apollo.QueryResult<AppsQuery, AppsQueryVariables>;

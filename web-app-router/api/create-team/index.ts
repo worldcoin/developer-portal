@@ -142,7 +142,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     }
 
     const { user: createdUser } = await createUserAndDeleteInviteSdk(
-      client
+      client,
     ).CreateUserAndDeleteInvite({
       team_id: invite.team.id,
       ironclad_id: ironCladUserId,
@@ -154,7 +154,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
 
     insertMembershipResult = await getInsertMembershipSdk(
-      client
+      client,
     ).InsertMembership({
       team_id: invite.team.id,
       user_id: createdUser?.id ?? "",
@@ -166,7 +166,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       !insertMembershipResult.insert_membership_one?.user
     ) {
       logger.error(
-        "Failed to insert membership while creating account from invite"
+        "Failed to insert membership while creating account from invite",
       );
 
       return errorResponse({
@@ -229,7 +229,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     }
 
     insertMembershipResult = await getInsertMembershipSdk(
-      client
+      client,
     ).InsertMembership({
       team_id: insertTeamResult.insert_team_one.id,
       user_id: insertUserResult.insert_user_one.id,
