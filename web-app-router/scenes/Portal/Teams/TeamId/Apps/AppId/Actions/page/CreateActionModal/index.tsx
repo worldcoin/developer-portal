@@ -1,7 +1,6 @@
 "use client";
 
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { UserHelpNav } from "@/components/UserHelpNav";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
 import * as yup from "yup";
@@ -194,8 +193,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             helperText="This is the value you will use in IDKit and any API calls."
             placeholder="A short description of your action"
             required
-            addOnPosition="right"
-            addOn={
+            addOnRight={
               <button className="px-1" type="button" onClick={copyAction}>
                 <CopyIcon />
               </button>

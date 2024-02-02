@@ -131,8 +131,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           helperText="This is the value you will use in IDKit and any API calls."
           placeholder="A short description of your action"
           disabled
-          addOnPosition="right"
-          addOn={
+          addOnRight={
             <button className="px-1" type="button" onClick={copyAction}>
               <CopyIcon />
             </button>

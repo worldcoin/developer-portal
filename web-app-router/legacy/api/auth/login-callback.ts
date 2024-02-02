@@ -35,9 +35,9 @@ import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { urls } from "@/legacy/lib/urls";
 import { Auth0User, LoginErrorCode } from "@/lib/types";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
-import { isEmailUser } from "@/legacy/lib/utils";
 import { logger } from "@/lib/logger";
 import { Role_Enum } from "@/graphql/graphql";
+import { isEmailUser } from "@/api/helpers/is-email-user";
 
 export const auth0Login = withApiAuthRequired(
   async (req: NextApiRequest, res: NextApiResponse) => {

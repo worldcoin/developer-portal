@@ -2,7 +2,7 @@ import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BigNumber, ethers } from "ethers";
 import { IInternalError } from "@/legacy/lib/types";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
-import { sequencerMapping } from "@/legacy/lib/utils";
+import { sequencerMapping } from "@/lib/utils";
 import { logger } from "@/legacy/lib/logger";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";

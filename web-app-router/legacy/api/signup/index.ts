@@ -32,11 +32,11 @@ import {
 } from "@auth0/nextjs-auth0";
 
 import { Auth0User } from "@/lib/types";
-import { isEmailUser } from "@/legacy/lib/utils";
 import { urls } from "@/legacy/lib/urls";
 import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Membership, Role_Enum } from "@/graphql/graphql";
+import { isEmailUser } from "@/api/helpers/is-email-user";
 
 export type SignupResponse = { returnTo: string };
 

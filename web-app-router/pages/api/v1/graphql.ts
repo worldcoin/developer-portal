@@ -85,7 +85,6 @@ export default async function handleGraphQL(
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
     const session = await getSession(req, res);
     let token: string | null = null;
-
     if (session?.user.hasura.id && team_id) {
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { fetchOIDCApp } from "@/legacy/backend/oidc";
-import { uriHasJS } from "@/legacy/lib/utils";
+import { uriHasJS } from "@/lib/utils";
 import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
 
