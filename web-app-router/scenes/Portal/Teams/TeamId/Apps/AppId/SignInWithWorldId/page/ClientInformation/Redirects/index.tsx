@@ -58,7 +58,7 @@ export const Redirects = memo(function Redirects(props: {
         toast.error("Error adding redirect");
       }
     },
-    [actionId, insertRedirectMutation]
+    [actionId, insertRedirectMutation],
   );
 
   const deleteRedirect = useCallback(
@@ -84,7 +84,7 @@ export const Redirects = memo(function Redirects(props: {
         toast.error("Error deleting redirect");
       }
     },
-    [actionId, deleteRedirectMutation]
+    [actionId, deleteRedirectMutation],
   );
 
   const redirects = data?.redirect;
