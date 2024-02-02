@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 
 import {
@@ -19,6 +18,7 @@ import { EditIcon } from "@/components/Icons/EditIcon";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
 import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { TeamLogo } from "./TeamLogo";
 
 export const List = () => {
   const [teamForEdit, setTeamForEdit] = useState<any>(null);
@@ -48,7 +48,8 @@ export const List = () => {
 
         <div className="contents">
           <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
-            <Image className="w-12 h-12" alt="" src="" />
+            {/* FIXME: pass real team name */}
+            <TeamLogo src={""} name="A11 Team" />
             <Typography variant={TYPOGRAPHY.R3}>A11 Team</Typography>
           </div>
 
@@ -96,7 +97,7 @@ export const List = () => {
 
         <div className="contents">
           <div className="flex items-center gap-x-4 px-2 py-4 leading-6 text-16 border-b border-grey-100">
-            <Image className="w-12 h-12" alt="" src="" />
+            <TeamLogo src={""} name="A11 Team" />
             A11 Team
           </div>
 
