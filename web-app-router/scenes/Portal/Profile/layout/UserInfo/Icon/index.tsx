@@ -155,7 +155,7 @@ export const Icon = (props: IconProps) => {
       </svg>
 
       <div
-        className="absolute inset-0 flex items-center justify-center font-550 text-24"
+        className="absolute inset-0 flex items-center justify-center font-medium text-24"
         style={{ color: "var(--color-500)" }}
       >
         {name && name[0]}

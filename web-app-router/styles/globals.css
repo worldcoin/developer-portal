@@ -1,3 +1,4 @@
+@import "react-toastify/dist/ReactToastify.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,3 +38,52 @@
   font-weight: 500;
   font-style: normal;
 }
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* Begin Toastify overrides */
+
+:root {
+  --toastify-color-info: #4940e0;
+  --toastify-icon-color-info: #4940e0;
+  --toastify-color-success: #00b800;
+  --toastify-icon-color-success: #00b800;
+  --toastify-color-warning: #ff4732;
+  --toastify-icon-color-warning: #ff4732;
+}
+
+.Toastify__toast {
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-color: #ebecef;
+  border-width: 1px;
+  min-height: 50px;
+  font-size: 14px;
+  box-shadow:
+    0px 4px 6px -2px #191c2008,
+    0px 12px 16px -4px #191c2014;
+}
+
+.Toastify__toast-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.Toastify__close-button {
+  align-self: center;
+}
+
+/* End Toastify overrides */

@@ -1,9 +1,11 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
+
 import {
   canVerifyForAction,
   validateRequestSchema,
 } from "@/legacy/backend/utils";
+
 import {
   ActionModel,
   AppMetadataModel,
@@ -11,11 +13,11 @@ import {
   NullifierModel,
 } from "@/legacy/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CanUserVerifyType, EngineType } from "@/legacy/lib/types";
+import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { runCors } from "@/legacy/backend/cors";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import * as yup from "yup";
-import { generateExternalNullifier } from "@/legacy/lib/hashing";
+import { generateExternalNullifier } from "@/lib/hashing";
 
 type _Nullifier = Pick<
   NullifierModel,

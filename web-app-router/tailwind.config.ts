@@ -8,12 +8,7 @@ const gridTemplates = {
 };
 
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./scenes/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./components/**/*.{ts,tsx}", "./scenes/**/*.{ts,tsx}"],
 
   theme: {
     extend: {
@@ -31,22 +26,18 @@ const config: Config = {
       boxShadow: {
         button: "0px 1px 2px 0px #191C200F",
         lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
+        qrCode: "0px 16px 20px -8px #E6E9EEA3",
       },
 
       colors: {
-        additional: {
-          pink: {
-            100: "#FFF1F7",
-            500: "#FF5096",
-          },
-        },
-
         blue: {
+          100: "#F0F0FD",
           500: "#4940E0",
         },
 
         grey: {
           0: "#FFFFFF",
+          25: "#FBFBFC",
           50: "#F9FAFB",
           70: "#F5F5F7",
           100: "#F3F4F5",
@@ -63,34 +54,42 @@ const config: Config = {
             100: "#E4F2FE",
             500: "#4292F4",
           },
+
           purple: {
             100: "#F7F1FF",
             500: "#9D50FF",
           },
+
           green: {
             100: "#EBFAEC",
             500: "#00C313",
           },
+
           sea: {
             100: "#EBFAF9",
             500: "#00C3B6",
           },
+
           yellow: {
             100: "#FFFBEB",
             500: "#FFC700",
           },
+
           orange: {
             100: "#FFF3F0",
             500: "#FF6848",
           },
+
           pink: {
             100: "#FFF1F7",
             500: "#FF5096",
           },
         },
+
         system: {
           error: {
             50: "#FFF5F3",
+            100: "#FFF2F0",
             200: "#FFE5E2",
             300: "#FFCBC5",
             400: "#FF897C",
@@ -99,6 +98,7 @@ const config: Config = {
           },
 
           success: {
+            50: "#E9F8E9",
             500: "#00B800",
           },
         },
@@ -110,10 +110,7 @@ const config: Config = {
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
       },
-      fontWeight: {
-        500: "500",
-        550: "550",
-      },
+
       fontSize: {
         0: "0",
         6: "calc(6 * 1rem / 16)",
@@ -128,6 +125,10 @@ const config: Config = {
         26: "calc(26 * 1rem / 16)",
         30: "calc(30 * 1rem / 16)",
         32: "calc(32 * 1rem / 16)",
+      },
+
+      width: {
+        136: "34rem",
       },
     },
   },

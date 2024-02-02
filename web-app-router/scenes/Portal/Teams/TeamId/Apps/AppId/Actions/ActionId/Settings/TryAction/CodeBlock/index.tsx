@@ -1,0 +1,122 @@
+import React from "react";
+import { CodeDisplayComponent } from "./CodeDisplays";
+import { EngineType } from "@/lib/types";
+
+type CodeBlockProps = {
+  appId: string;
+  action_identifier: string;
+  engine?: string;
+};
+
+export const CodeBlock = (props: CodeBlockProps) => {
+  const { appId, action_identifier, engine } = props;
+
+  const idKitWidgetCodeString = `
+// (Required in Next - IDKitWidget must be run on client)
+"use client"
+import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
+
+// TODO: Calls your implemented server route
+const verifyProof = async (proof) => {
+  throw new Error("TODO: verify proof server route")
+};
+
+// TODO: Functionality after verifying
+const onSuccess = () => {
+  console.log("Success")
+};
+
+<IDKitWidget
+    app_id="${appId}"
+    action="${action_identifier}"
+    // Choose between Orb or Device
+    verification_level={VerificationLevel.Device}
+    handleVerify={verifyProof}
+    onSuccess={onSuccess}>
+    {({ open }) => (
+      <button
+        onClick={open}
+        className="your-button-class"
+      >
+        Verify with World ID
+      </button>
+    )}
+</IDKitWidget>
+`.trim();
+
+  const verifyProofCloudCodeString = `
+// Note: This must be implemented server side
+const verifyProof = async (proof) => {
+  console.log('proof', proof);
+  const response = await fetch(
+    'https://developer.worldcoin.org/api/v1/verify/app_staging_129259332fd6f93d4fabaadcc5e4ff9d',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...proof, action: "test"}),
+    }
+  );
+  if (response.ok) {
+    const { verified } = await response.json();
+    return verified;
+  } else {
+    const { code, detail } = await response.json();
+    throw new Error(\`Error Code \${code}: \${detail}\`);
+  }
+};
+// For a complete example see:
+// https://github.com/worldcoin/world-id-cloud-template`.trim();
+
+  const verifyProofOnChainCodeString =
+    "// example_verify.sol\n" +
+    "function _exampleVerifyAndExecute(\n" +
+    "    address signal,\n" +
+    "    uint256 root,\n" +
+    "    uint256 nullifierHash,\n" +
+    "    uint256[8] calldata proof\n" +
+    ") public {\n" +
+    "    // Check Uniqueness\n" +
+    "    if (nullifierHashes[nullifierHash]) revert InvalidNullifier();\n" +
+    "\n" +
+    "    // Verify User has a valid World ID\n" +
+    "    worldId.verifyProof(\n" +
+    "        root,\n" +
+    '        groupId, // set to "1" in the constructor\n' +
+    "        abi.encodePacked(signal).hashToField(),\n" +
+    "        nullifierHash,\n" +
+    "        externalNullifierHash,\n" +
+    "        proof\n" +
+    "    );\n" +
+    "\n" +
+    "    nullifierHashes[nullifierHash] = true;\n" +
+    "\n" +
+    "    // Finally, execute your logic here, knowing the user is verified\n" +
+    "}\n\n" +
+    "Note: This is just an example. Full implementation requires \n" +
+    "deploying a smart contract and making a transaction\n" +
+    "\nSee an end to end example:\n" +
+    "https://github.com/worldcoin/world-id-onchain-template";
+
+  return (
+    <div className="w-full max-w-full grid gap-y-5">
+      <CodeDisplayComponent
+        buttonText="Install ID Kit"
+        panelText="npm install @worldcoin/idkit"
+      />
+      <CodeDisplayComponent
+        buttonText="Usage"
+        panelText={idKitWidgetCodeString}
+      />
+      <CodeDisplayComponent
+        buttonText={`Verify Proof (${engine === EngineType.OnChain ? "On Chain" : "Cloud"})`}
+        panelText={
+          engine === EngineType.OnChain
+            ? verifyProofOnChainCodeString
+            : verifyProofCloudCodeString
+        }
+      />
+    </div>
+  );
+};

@@ -1,14 +1,9 @@
 import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import {
-  generateAnalyticsJWT,
-  generateAPIKeyJWT,
-  generateUserJWT,
-} from "@/legacy/backend/jwts";
+import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
 import { errorUnauthenticated } from "@/legacy/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { verifyHashedSecret } from "@/legacy/backend/utils";
-import { inspect } from "util";
 import { getSession } from "@auth0/nextjs-auth0";
 import dayjs from "dayjs";
 
@@ -23,6 +18,7 @@ export default async function handleGraphQL(
   }
 
   const authorization = req.headers["authorization"]?.replace("Bearer ", "");
+  const team_id = req.headers.team_id as string | undefined;
 
   // Strictly set the necessary properties to avoid passing other headers that wreak havoc (e.g. SSL certs collisions)
   const headers = new Headers();
@@ -72,16 +68,6 @@ export default async function handleGraphQL(
     );
   }
 
-  // Check if request is from the analytics service
-  if (authorization?.startsWith("analytics_")) {
-    if (authorization !== process.env.ANALYTICS_API_KEY) {
-      return errorUnauthenticated("Invalid analytics API key", res, req);
-    }
-
-    headers.delete("Authorization");
-    headers.append("Authorization", `Bearer ${await generateAnalyticsJWT()}`);
-  }
-
   let body: string | undefined = undefined;
   try {
     body = JSON.stringify(req.body);
@@ -100,10 +86,10 @@ export default async function handleGraphQL(
     const session = await getSession(req, res);
     let token: string | null = null;
 
-    if (session?.user.hasura.id && session?.user.hasura.team_id) {
+    if (session?.user.hasura.id && team_id) {
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
-        session.user.hasura.team_id,
+        team_id ?? "",
         dayjs().add(1, "minute").unix(),
       );
 
