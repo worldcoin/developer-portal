@@ -38,7 +38,7 @@ export const SignInWithWorldIdPage = async (
             Connect (OIDC)
           </Typography>
         </div>
-        <div className="grid grid-cols-1fr/auto gap-x-3 items-center">
+        <div className="grid grid-cols-1fr/auto gap-x-5 items-center">
           <DecoratedButton
             href="https://github.com/worldcoin/world-id-nextauth-template"
             variant="secondary"
@@ -50,7 +50,7 @@ export const SignInWithWorldIdPage = async (
               variant={TYPOGRAPHY.M3}
               className="text-center text-grey-700"
             >
-              Open in GitHub
+              See an example
             </Typography>
           </DecoratedButton>
           <DecoratedButton
