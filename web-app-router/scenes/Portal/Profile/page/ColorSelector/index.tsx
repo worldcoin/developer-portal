@@ -1,8 +1,8 @@
 import { Option } from "@/scenes/Portal/Profile/page/ColorSelector/Option";
-import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
+import { Color, colors } from "@/scenes/Portal/Profile/types";
 
 type ColorSelectorProps = {
-  value: ColorName;
+  value: Color;
   onChange: (value: Color) => void;
 };
 

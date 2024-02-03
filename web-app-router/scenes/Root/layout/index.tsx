@@ -6,6 +6,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 import { CSSProperties } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { Provider } from "jotai";
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
@@ -32,7 +33,7 @@ export const RootLayout = ({
         <UserProvider>
           <ApolloWrapper>
             <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
-              {children}
+              <Provider>{children}</Provider>
             </SkeletonTheme>
           </ApolloWrapper>
         </UserProvider>

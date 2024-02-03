@@ -1,7 +1,7 @@
 "use client";
 
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { ColorName } from "@/scenes/Portal/Profile/types";
+import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
 import { Input } from "@/components/Input";
 import { useForm, useWatch, Controller } from "react-hook-form";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -12,17 +12,19 @@ import { useCallback, useEffect } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import { colorAtom } from "../../layout";
-import { set } from "date-fns";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
-  color: yup.string<ColorName>().optional().default("pink"),
+  color: yup.object<Color>({
+    "100": yup.string().required(),
+    "500": yup.string().required(),
+  }),
 });
 
 type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
-  const [_, setColor] = useAtom(colorAtom);
+  const [color, setColor] = useAtom(colorAtom);
 
   const {
     register,
@@ -31,19 +33,19 @@ export const ProfilePage = () => {
     formState: { isValid, errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
-      color: "pink",
+      color: color ?? colors["pink"],
       name: "Lisa",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
   });
 
-  const color = useWatch({ control, name: "color" });
+  const selectedColor = useWatch({ control, name: "color" });
   const name = useWatch({ control, name: "name" });
 
   useEffect(() => {
-    setColor(color);
-  }, [color, setColor]);
+    setColor(selectedColor);
+  }, [selectedColor, setColor]);
 
   const submit = useCallback((values: FormValues) => {
     console.log("CLIENT: ", values);

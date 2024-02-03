@@ -1,5 +1,4 @@
 import { CSSProperties, HTMLAttributes } from "react";
-import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -32,7 +31,7 @@ export const Icon = (props: IconProps) => {
     >
       <div
         className={clsx(
-          "absolute inset-0 shadow-[0_0_0_1px_var(--color-100)_inset] rounded-full animate-pulse transition-opacity duration-300",
+          "absolute inset-0 shadow-[0_0_0_1px_var(--color-500)_inset] rounded-full animate-pulse transition-opacity duration-300",
           { "opacity-0 pointer-events-none": name && color }
         )}
       />
