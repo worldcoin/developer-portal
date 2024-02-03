@@ -44,6 +44,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const params = useParams();
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId as `team_${string}`;
 
   const {
     control,
@@ -89,10 +90,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               .digest,
             max_verifications: values.maxVerifications,
           },
+          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: GetActionsDocument,
               variables: { app_id: appId },
+              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,

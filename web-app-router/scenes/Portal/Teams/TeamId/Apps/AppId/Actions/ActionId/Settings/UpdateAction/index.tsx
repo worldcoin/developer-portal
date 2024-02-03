@@ -25,6 +25,7 @@ const updateActionSchema = yup.object({
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
 type UpdateActionProps = {
+  teamId: string;
   action: {
     id: string;
     name: string;
@@ -35,7 +36,7 @@ type UpdateActionProps = {
 };
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
-  const { action } = props;
+  const { action, teamId } = props;
   const {
     control,
     register,
@@ -66,10 +67,12 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
+          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: GetSingleActionDocument,
               variables: { action_id: action.id },
+              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
