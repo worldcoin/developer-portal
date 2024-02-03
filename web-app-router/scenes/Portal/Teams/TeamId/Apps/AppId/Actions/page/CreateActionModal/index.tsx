@@ -1,7 +1,6 @@
 "use client";
 
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { UserHelpNav } from "@/components/UserHelpNav";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/Input";
 import * as yup from "yup";
@@ -45,6 +44,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const params = useParams();
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId as `team_${string}`;
 
   const {
     control,
@@ -90,10 +90,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               .digest,
             max_verifications: values.maxVerifications,
           },
+          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: GetActionsDocument,
               variables: { app_id: appId },
+              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
@@ -194,8 +196,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             helperText="This is the value you will use in IDKit and any API calls."
             placeholder="A short description of your action"
             required
-            addOnPosition="right"
-            addOn={
+            addOnRight={
               <button className="px-1" type="button" onClick={copyAction}>
                 <CopyIcon />
               </button>

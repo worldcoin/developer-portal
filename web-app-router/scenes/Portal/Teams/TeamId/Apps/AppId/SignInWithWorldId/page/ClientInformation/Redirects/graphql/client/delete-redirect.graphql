@@ -1,0 +1,5 @@
+mutation DeleteRedirect($id: String!) {
+  delete_redirect_by_pk(id: $id) {
+    id
+  }
+}

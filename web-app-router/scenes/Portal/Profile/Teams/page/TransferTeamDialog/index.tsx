@@ -124,11 +124,16 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
               type="button"
               variant="secondary"
               onClick={() => props.onClose(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </DecoratedButton>
 
-            <DecoratedButton type="submit" variant="primary">
+            <DecoratedButton
+              type="submit"
+              variant="primary"
+              disabled={!isValid || isSubmitting}
+            >
               Transfer ownership
             </DecoratedButton>
           </div>

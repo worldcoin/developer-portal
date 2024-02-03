@@ -5,15 +5,15 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
-  register: UseFormRegisterReturn;
+  register?: UseFormRegisterReturn;
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
   label: string;
   placeholder?: string;
   helperText?: string;
-  addOn?: React.ReactElement;
-  addOnPosition?: "left" | "right";
+  addOnLeft?: React.ReactElement;
+  addOnRight?: React.ReactElement;
   className?: string;
 }
 
@@ -26,8 +26,8 @@ export const Input = memo(function Input(props: InputInterface) {
     placeholder,
     className,
     errors,
-    addOn,
-    addOnPosition,
+    addOnLeft,
+    addOnRight,
     disabled,
     ...restProps
   } = props;
@@ -72,9 +72,7 @@ export const Input = memo(function Input(props: InputInterface) {
           typeof className === "string" ? className : undefined,
         )}
       >
-        <div className="flex items-center">
-          {addOn && addOnPosition === "left" && addOn}
-        </div>
+        <div className="flex items-center">{addOnLeft && addOnLeft}</div>
 
         <input
           {...register}
@@ -86,9 +84,7 @@ export const Input = memo(function Input(props: InputInterface) {
           aria-invalid={errors ? "true" : "false"}
         />
 
-        <div className="flex items-center">
-          {addOn && addOnPosition === "right" && addOn}
-        </div>
+        <div className="flex items-center">{addOnRight && addOnRight}</div>
 
         <legend className={labelClassNames}>
           {label} {required && <span className="text-system-error-500">*</span>}
