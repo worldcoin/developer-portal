@@ -1,3 +1,5 @@
+import twConfig from "@/tailwind.config";
+
 export type Color = {
   100: string;
   500: string;

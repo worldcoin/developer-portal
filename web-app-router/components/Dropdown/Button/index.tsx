@@ -13,10 +13,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
   return (
     <Menu.Button
       ref={setReference}
-      className={twMerge(
-        "rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100",
-        className,
-      )}
+      className={twMerge(className)}
       {...otherProps}
     />
   );

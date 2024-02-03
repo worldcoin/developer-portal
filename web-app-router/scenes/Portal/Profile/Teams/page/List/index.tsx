@@ -62,7 +62,7 @@ export const List = () => {
 
           <div className="flex items-center px-2 py-4 border-b border-grey-100">
             <Dropdown>
-              <DropdownButton>
+              <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
                 <MoreVerticalIcon />
               </DropdownButton>
 
