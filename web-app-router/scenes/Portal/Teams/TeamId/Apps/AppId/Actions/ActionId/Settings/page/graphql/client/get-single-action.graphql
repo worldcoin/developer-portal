@@ -11,13 +11,6 @@ query GetSingleAction($action_id: String!) {
     name
     max_accounts_per_user
     max_verifications
-    updated_at
-    nullifiers {
-      id
-      updated_at
-      nullifier_hash
-      uses
-    }
     app {
       is_staging
       engine

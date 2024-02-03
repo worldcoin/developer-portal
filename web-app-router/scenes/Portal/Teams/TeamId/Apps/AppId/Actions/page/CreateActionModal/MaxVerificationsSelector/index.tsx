@@ -1,5 +1,4 @@
 "use client";
-import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import {
   Select,

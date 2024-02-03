@@ -15,11 +15,12 @@ type ActionIdSettingsPageProps = {
 
 export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
   const actionID = params?.actionId;
-
+  const teamId = params?.teamId;
   const { data, loading } = useGetSingleActionQuery({
     variables: {
       action_id: actionID ?? "",
     },
+    context: { headers: { team_id: teamId } },
   });
 
   const action = data?.action[0];
@@ -55,7 +56,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
         </div>
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <div className="w-full grid-cols-1fr/auto grid items-start justify-between gap-x-32">
-          <UpdateActionForm action={action} />
+          <UpdateActionForm action={action} teamId={teamId ?? ""} />
           <TryAction action={action} />
         </div>
       </div>
