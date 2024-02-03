@@ -1,46 +1,47 @@
 import twConfig from "@/tailwind.config";
+import { RecursiveKeyValuePair, ResolvableTo } from "tailwindcss/types/config";
 
-export type Color = {
-  100: string;
-  500: string;
-};
-
-export type ColorName =
-  | "blue"
-  | "purple"
-  | "green"
-  | "sea"
-  | "yellow"
-  | "orange"
-  | "pink";
-
-export const colors: Record<ColorName, Color> = {
+type AdditionalColors = {
   blue: {
-    100: "#E4F2FE",
-    500: "#4292F4",
-  },
+    100: string;
+    500: string;
+  };
+
   purple: {
-    100: "#F7F1FF",
-    500: "#9D50FF",
-  },
+    100: string;
+    500: string;
+  };
+
   green: {
-    100: "#EBFAEC",
-    500: "#00C313",
-  },
+    100: string;
+    500: string;
+  };
+
   sea: {
-    100: "#EBFAF9",
-    500: "#00C3B6",
-  },
+    100: string;
+    500: string;
+  };
+
   yellow: {
-    100: "#FFFBEB",
-    500: "#FFC700",
-  },
+    100: string;
+    500: string;
+  };
+
   orange: {
-    100: "#FFF3F0",
-    500: "#FF6848",
-  },
+    100: string;
+    500: string;
+  };
+
   pink: {
-    100: "#FFF1F7",
-    500: "#FF5096",
-  },
+    100: string;
+    500: string;
+  };
 };
+
+export type ColorName = keyof AdditionalColors;
+export type Color = Record<number, string>;
+
+const configColors: ResolvableTo<RecursiveKeyValuePair<ColorName, Color>> =
+  twConfig.theme?.extend?.colors! as RecursiveKeyValuePair<ColorName, Color>;
+
+export const colors = configColors?.additional as AdditionalColors;

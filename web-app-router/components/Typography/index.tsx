@@ -7,6 +7,7 @@ export enum TYPOGRAPHY {
   H6 = "h6",
   H7 = "h7",
 
+  M2 = "m2",
   M3 = "m3",
   M4 = "m4",
 
@@ -25,7 +26,7 @@ type TypographyProps<T extends ElementType = "span"> = {
 };
 
 export const Typography = <T extends ElementType = "span">(
-  props: TypographyProps<T> & ComponentPropsWithoutRef<T>,
+  props: TypographyProps<T> & ComponentPropsWithoutRef<T>
 ) => {
   const {
     as: Component = "span",
@@ -44,6 +45,8 @@ export const Typography = <T extends ElementType = "span">(
           "text-lg leading-[1.3] font-medium font-twk":
             variant === TYPOGRAPHY.H7,
 
+          "text-2xl leading-[1.5] font-medium font-gta":
+            variant === TYPOGRAPHY.M2,
           "text-base leading-[1.5] font-medium font-gta":
             variant === TYPOGRAPHY.M3,
           "text-sm leading-[1.4] font-medium font-gta":
@@ -58,7 +61,7 @@ export const Typography = <T extends ElementType = "span">(
 
           "text-xs leading-[1.3] font-normal font-rubik":
             variant === TYPOGRAPHY.B4,
-        }),
+        })
       )}
       {...otherProps}
     >
