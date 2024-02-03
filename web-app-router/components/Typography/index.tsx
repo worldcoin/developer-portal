@@ -51,7 +51,7 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.R3,
           "text-sm leading-[1.4] font-normal font-gta":
             variant === TYPOGRAPHY.R4,
-          "text-xs leading-[1.4] font-normal font-gta":
+          "text-xs leading-[1.3] font-normal font-gta":
             variant === TYPOGRAPHY.R5,
         }),
       )}

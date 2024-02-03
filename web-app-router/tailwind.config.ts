@@ -19,6 +19,7 @@ const config: Config = {
       },
 
       borderRadius: {
+        8: "0.5rem",
         12: "0.75rem",
         20: "1.25em",
       },
@@ -100,6 +101,12 @@ const config: Config = {
           success: {
             50: "#E9F8E9",
             500: "#00B800",
+          },
+
+          warning: {
+            50: "#FFFAE5",
+            200: "#FFE999",
+            500: "#FFB200",
           },
         },
       },
