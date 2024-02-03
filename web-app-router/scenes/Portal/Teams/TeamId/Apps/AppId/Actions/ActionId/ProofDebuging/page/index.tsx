@@ -6,6 +6,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Debugger } from "../Debugger";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { getSession } from "@auth0/nextjs-auth0";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -17,7 +18,6 @@ export const ActionIdProofDebugingPage = async ({
 }: ActionIdSettingsPageProps) => {
   const appID = params?.appId;
   const actionID = params?.actionId;
-
   const client = await getAPIServiceGraphqlClient();
   const data = await GetActionSdk(client).Debugger({
     action_id: actionID ?? "",

@@ -12,11 +12,5 @@ query Action($action_id: String!) {
     max_accounts_per_user
     max_verifications
     updated_at
-    nullifiers {
-      id
-      updated_at
-      nullifier_hash
-      uses
-    }
   }
 }
