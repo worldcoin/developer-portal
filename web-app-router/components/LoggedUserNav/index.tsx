@@ -13,6 +13,7 @@ import { TYPOGRAPHY, Typography } from "../Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { DOCS_URL } from "@/lib/constants";
+import Link from "next/link";
 
 export const LoggedUserNav = (props: { name: string }) => {
   const nameFirstLetter = props.name.charAt(0).toUpperCase();
@@ -50,25 +51,25 @@ export const LoggedUserNav = (props: { name: string }) => {
           </Typography>
 
           <DropdownItem>
-            <Button
+            <Link
               href="/profile"
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <UserCircleIcon className="text-grey-400" />
               <Typography variant={TYPOGRAPHY.R4}>Profile</Typography>
-            </Button>
+            </Link>
           </DropdownItem>
 
           <hr className="border-grey-200" />
 
           <DropdownItem>
-            <Button
+            <a
               href="/api/auth/logout"
               className="grid grid-cols-auto/1fr items-center gap-x-2 text-system-error-600"
             >
               <LogoutIcon className="w-4 h-4" />
               <Typography variant={TYPOGRAPHY.R4}>Log out</Typography>
-            </Button>
+            </a>
           </DropdownItem>
         </DropdownItems>
       </Dropdown>
