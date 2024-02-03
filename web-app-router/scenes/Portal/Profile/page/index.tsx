@@ -1,5 +1,5 @@
 "use client";
-import { UserInfo } from "@/scenes/Portal/Profile/layout/UserInfo";
+
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
 import { ColorName } from "@/scenes/Portal/Profile/types";
 import { Input } from "@/components/Input";
@@ -44,10 +44,6 @@ export const ProfilePage = () => {
   return (
     <SizingWrapper>
       <div className="grid gap-y-8 m-auto py-8">
-        <UserInfo color={color} name={name} email="lisa@toolsforhumanity.org" />
-
-        <div className="border-b border-grey-200 border-dashed" />
-
         <Typography as="h1" variant={TYPOGRAPHY.H7}>
           Profile settings
         </Typography>

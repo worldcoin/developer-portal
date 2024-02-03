@@ -4,6 +4,8 @@ import "@/styles/globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import { CSSProperties } from "react";
+import { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
@@ -28,7 +30,11 @@ export const RootLayout = ({
     >
       <body>
         <UserProvider>
-          <ApolloWrapper>{children}</ApolloWrapper>
+          <ApolloWrapper>
+            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
+              {children}
+            </SkeletonTheme>
+          </ApolloWrapper>
         </UserProvider>
       </body>
     </html>

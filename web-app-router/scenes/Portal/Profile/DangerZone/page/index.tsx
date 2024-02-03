@@ -1,12 +1,8 @@
 "use client";
 
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { UserInfo } from "../../layout/UserInfo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
 import { useState } from "react";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
@@ -16,10 +12,6 @@ export const DangerZone = () => {
   return (
     <SizingWrapper className="py-8">
       <div className="grid gap-y-8">
-        <UserInfo color="pink" name="Lisa" email="lisa@toolsforhumanity.org" />
-
-        <div className="border-b border-grey-200 border-dashed" />
-
         <div className="grid gap-y-3 w-full max-w-[580px]">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
             Danger zone

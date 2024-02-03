@@ -1,23 +1,31 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Icon } from "@/scenes/Portal/Profile/layout/UserInfo/Icon";
 import { ColorName } from "@/scenes/Portal/Profile/types";
+import clsx from "clsx";
+import Skeleton from "react-loading-skeleton";
+import { twMerge } from "tailwind-merge";
 
 export type UserInfoProps = {
   color: ColorName;
-  name: string;
-  email: string;
+  name: string | undefined | null;
+  email: string | undefined | null;
+  className?: string;
 };
 
 export const UserInfo = (props: UserInfoProps) => {
   return (
-    <div className="flex items-center gap-x-5">
+    <div
+      className={twMerge(clsx("flex items-center gap-x-5", props.className))}
+    >
       <Icon color={props.color} name={props.name} />
 
       <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H6}>{props.name}</Typography>
+        <Typography variant={TYPOGRAPHY.H6}>
+          {props.name ?? <Skeleton width={200} />}
+        </Typography>
 
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          {props.email}
+          {props.email ?? <Skeleton width={150} />}
         </Typography>
       </div>
     </div>

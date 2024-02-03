@@ -1,10 +1,11 @@
 import { CSSProperties, HTMLAttributes } from "react";
 import { ColorName, colors } from "@/scenes/Portal/Profile/types";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 
 export type IconProps = Omit<HTMLAttributes<HTMLElement>, "color"> & {
   color: ColorName;
-  name: string;
+  name: string | undefined | null;
 };
 
 export const Icon = (props: IconProps) => {
@@ -130,7 +131,7 @@ export const Icon = (props: IconProps) => {
       </svg>
 
       <svg
-        className="absolute inset-0"
+        className={clsx("absolute inset-0", { "animate-pulse": !name })}
         width="72"
         height="72"
         viewBox="0 0 72 72"
@@ -147,13 +148,15 @@ export const Icon = (props: IconProps) => {
         />
       </svg>
 
-      <Typography
-        variant={TYPOGRAPHY.M2}
-        className="relative"
-        style={{ color: "var(--color-500)" }}
-      >
-        {name && name[0]}
-      </Typography>
+      {name && (
+        <Typography
+          variant={TYPOGRAPHY.M2}
+          className="relative"
+          style={{ color: "var(--color-500)" }}
+        >
+          {name && name[0]}
+        </Typography>
+      )}
     </div>
   );
 };
