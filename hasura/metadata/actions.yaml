@@ -2,7 +2,7 @@ actions:
   - name: delete_unverified_images
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/images/_delete_images'
+      handler: "{{NEXT_API_URL}}/images/_delete_images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,14 +12,14 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_get_unverified_images'
+      handler: "{{NEXT_API_URL}}/images/_get_unverified_images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: '{{$body.input.app_id}}'
+          app_id: "{{$body.input.app_id}}"
         request_headers:
           add_headers: {}
           remove_headers:
@@ -32,16 +32,16 @@ actions:
   - name: get_uploaded_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_get_image'
+      handler: "{{NEXT_API_URL}}/images/_get_image"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          content_type_ending: '{{$body.input.content_type_ending}}'
-          image_type: '{{$body.input.image_type}}'
+          app_id: "{{$body.input.app_id}}"
+          content_type_ending: "{{$body.input.content_type_ending}}"
+          image_type: "{{$body.input.image_type}}"
         request_headers:
           add_headers: {}
           remove_headers:
@@ -55,7 +55,7 @@ actions:
   - name: invite_team_members
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/_invite_team_members'
+      handler: "{{NEXT_API_URL}}/_invite_team_members"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -65,7 +65,7 @@ actions:
   - name: reset_api_key
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/_reset-api-key'
+      handler: "{{NEXT_API_URL}}/_reset-api-key"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -75,7 +75,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/_reset-client-secret'
+      handler: "{{NEXT_API_URL}}/_reset-client-secret"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -86,16 +86,16 @@ actions:
   - name: upload_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_upload_image'
+      handler: "{{NEXT_API_URL}}/images/_upload_image"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: GET
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          content_type_ending: '{{$body.input.content_type_ending}}'
-          image_type: '{{$body.input.image_type}}'
+          app_id: "{{$body.input.app_id}}"
+          content_type_ending: "{{$body.input.content_type_ending}}"
+          image_type: "{{$body.input.image_type}}"
         request_headers:
           add_headers: {}
           remove_headers:
@@ -106,25 +106,6 @@ actions:
       - role: api_key
       - role: user
     comment: Generates a Signed URL to upload images
-  - name: verify_app
-    definition:
-      kind: synchronous
-      handler: '{{NEXT_API_URL}}/images/_verify_app'
-      headers:
-        - name: Authorization
-          value_from_env: INTERNAL_ENDPOINTS_SECRET
-      request_transform:
-        method: POST
-        query_params:
-          app_id: '{{$body.input.app_id}}'
-          is_reviewer_app_store_approved: '{{$body.input.is_reviewer_app_store_approved}}'
-          is_reviewer_world_app_approved: '{{$body.input.is_reviewer_world_app_approved}}'
-          reviewer_name: '{{$body.input.reviewer_name}}'
-        template_engine: Kriti
-        version: 2
-    permissions:
-      - role: reviewer
-    comment: Verify an App
 custom_types:
   enums: []
   input_objects:
@@ -140,5 +121,4 @@ custom_types:
     - name: ImageGetAllUnverifiedImagesOutput
     - name: PresignedPostOutput
     - name: DeleteImageOutput
-    - name: VerifyAppOutput
   scalars: []
