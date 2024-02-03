@@ -18,8 +18,8 @@ export const Icon = (props: IconProps) => {
       className={twMerge(
         clsx(
           "relative w-[72px] h-[72px] flex justify-center items-center transition-opacity duration-300",
-          className
-        )
+          className,
+        ),
       )}
       {...otherProps}
       style={
@@ -32,7 +32,7 @@ export const Icon = (props: IconProps) => {
       <div
         className={clsx(
           "absolute inset-0 shadow-[0_0_0_1px_var(--color-500)_inset] rounded-full animate-pulse transition-opacity duration-300",
-          { "opacity-0 pointer-events-none": name && color }
+          { "opacity-0 pointer-events-none": name && color },
         )}
       />
       <svg
@@ -45,7 +45,7 @@ export const Icon = (props: IconProps) => {
           "absolute inset-x-0 -bottom-1 transition-opacity duration-300",
           {
             "opacity-0": !name || !color,
-          }
+          },
         )}
       >
         <g opacity="0.56">
@@ -185,7 +185,7 @@ export const Icon = (props: IconProps) => {
           "relative transition-[color,opacity] duration-500 uppercase",
           {
             "opacity-0": !name || !color,
-          }
+          },
         )}
         style={{ color: "var(--color-500)" }}
       >
