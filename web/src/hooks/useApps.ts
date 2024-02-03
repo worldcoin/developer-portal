@@ -271,8 +271,8 @@ const updateAppMetadataFetcher = async (
 
   // We don't want to put an empty array in the database and ensure paths are cleaned
   const filtered_showcase_img_urls =
-    which_showcase_img_urls?.filter(
-      (url, index) => url != null && url.startsWith(`showcase_img_${index + 1}`)
+    which_showcase_img_urls?.filter((url, index) =>
+      url.startsWith(`showcase_img_${index + 1}`)
     ) || null;
 
   const formatted_showcase_img_urls = filtered_showcase_img_urls

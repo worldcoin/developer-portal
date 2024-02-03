@@ -4,24 +4,24 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetMembershipQueryVariables = Types.Exact<{
-  user_id: Types.Scalars["String"];
+export type GetMembershipsQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
 }>;
 
-export type GetMembershipQuery = {
+export type GetMembershipsQuery = {
   __typename?: "query_root";
-  membership: Array<{ __typename?: "membership"; role: Types.Role_Enum }>;
+  membership: Array<{
+    __typename?: "membership";
+    user: { __typename?: "user"; email?: string | null };
+  }>;
 };
 
-export const GetMembershipDocument = gql`
-  query GetMembership($user_id: String!, $team_id: String!) {
-    membership(
-      where: {
-        _and: { team_id: { _eq: $team_id }, user_id: { _eq: $user_id } }
+export const GetMembershipsDocument = gql`
+  query GetMemberships($team_id: String!) {
+    membership(where: { team_id: { _eq: $team_id } }) {
+      user {
+        email
       }
-    ) {
-      role
     }
   }
 `;
@@ -43,17 +43,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    GetMembership(
-      variables: GetMembershipQueryVariables,
+    GetMemberships(
+      variables: GetMembershipsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<GetMembershipQuery> {
+    ): Promise<GetMembershipsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetMembershipQuery>(GetMembershipDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "GetMembership",
+          client.request<GetMembershipsQuery>(
+            GetMembershipsDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "GetMemberships",
         "query"
       );
     },

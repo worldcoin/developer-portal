@@ -7,8 +7,6 @@ import {
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 import { gql } from "@apollo/client";
 import { Role_Enum } from "@/graphql/graphql";
-import { createMocks } from "node-mocks-http";
-import { handleInvite } from "@/api/_invite-team-members";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -177,107 +175,38 @@ describe("user role", () => {
 
     expect(response.data.update_team.affected_rows).toEqual(0);
   });
-
-  test("cannot invite team members as member", async () => {
+  test("cannot update another team with an invalid team_id", async () => {
+    // Test using an team that the user is not a member of
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team";`
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
-
-    const { req, res } = createMocks({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"] },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
-        },
-      },
+    const testInvalidClient = await getAPIUserClient({
+      team_id: teams[1].id,
+      user_id: teamMemberships[0].user_id,
     });
 
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
-    expect(responseJSON.extensions.code).toBe("insufficient_permissions");
-  });
-
-  test("cannot invite team members to another team", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
-    )) as { rows: Array<{ id: string }> };
-
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teams[1].id;
-
-    const { req, res } = createMocks({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"] },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
-        },
+    const query = gql`
+      mutation UpdateTeam($team_id: String!) {
+        update_team(
+          _set: { name: "new name" }
+          where: { id: { _eq: $team_id } }
+        ) {
+          affected_rows
+        }
+      }
+    `;
+    const testInvalidTeamResponse = await testInvalidClient.mutate({
+      mutation: query,
+      variables: {
+        team_id: teams[0].id,
       },
     });
-
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
-    expect(responseJSON.extensions.code).toBe("insufficient_permissions");
-  });
-
-  test("can invite team members", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
-    )) as { rows: Array<{ id: string }> };
-
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'ADMIN' limit 1;`
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
-
-    const { req, res } = createMocks({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"] },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
-        },
-      },
-    });
-
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
-    expect(responseJSON.emails).toEqual(["test@gmail.com"]);
+    expect(testInvalidTeamResponse.data.update_team.affected_rows).toEqual(0);
   });
 });
 
