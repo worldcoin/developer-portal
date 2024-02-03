@@ -75,7 +75,7 @@ export const Form = () => {
       await checkSession();
       router.push(data.returnTo);
     },
-    [checkSession, invite_id, router],
+    [checkSession, invite_id, router]
   );
 
   return (

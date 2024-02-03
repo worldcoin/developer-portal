@@ -1,41 +1,69 @@
 import { CSSProperties, HTMLAttributes } from "react";
-import { ColorName, colors } from "@/scenes/Portal/Profile/types";
+import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
+import { colorAtom } from "@/scenes/Portal/layout";
+import { useAtom } from "jotai";
 
 export type IconProps = Omit<HTMLAttributes<HTMLElement>, "color"> & {
-  color: ColorName;
   name: string | undefined | null;
 };
 
 export const Icon = (props: IconProps) => {
-  const { className, color, name, ...otherProps } = props;
+  const [color] = useAtom(colorAtom);
+
+  const { className, name, ...otherProps } = props;
   return (
     <div
-      className="relative w-[72px] h-[72px] flex justify-center items-center"
+      className={twMerge(
+        clsx(
+          "relative w-[72px] h-[72px] flex justify-center items-center transition-opacity duration-300",
+          className
+        )
+      )}
       {...otherProps}
       style={
         {
-          "--color-100": colors[color]["100"],
-          "--color-500": colors[color]["500"],
+          "--color-100": color?.["100"],
+          "--color-500": color?.["500"],
         } as CSSProperties
       }
     >
+      <div
+        className={clsx(
+          "absolute inset-0 shadow-[0_0_0_1px_var(--color-100)_inset] rounded-full animate-pulse transition-opacity duration-300",
+          { "opacity-0 pointer-events-none": name && color }
+        )}
+      />
       <svg
         width="72"
         height="8"
         viewBox="0 0 72 8"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="absolute inset-x-0 -bottom-1"
+        className={clsx(
+          "absolute inset-x-0 -bottom-1 transition-opacity duration-300",
+          {
+            "opacity-0": !name || !color,
+          }
+        )}
       >
         <g opacity="0.56">
           <g opacity="0.1" filter="url(#filter0_f_11_122)">
-            <ellipse cx="36" cy="4" rx="36" ry="4" fill="var(--color-500)" />
+            <ellipse
+              className="transition-color duration-300"
+              cx="36"
+              cy="4"
+              rx="36"
+              ry="4"
+              fill="var(--color-500)"
+            />
           </g>
 
           <g opacity="0.3" filter="url(#filter1_f_11_122)">
             <ellipse
+              className="transition-color duration-300"
               cx="36.0033"
               cy="2.6684"
               rx="25.92"
@@ -46,6 +74,7 @@ export const Icon = (props: IconProps) => {
 
           <g opacity="0.1" filter="url(#filter2_f_11_122)">
             <ellipse
+              className="transition-color duration-300"
               cx="36.0008"
               cy="3.1107"
               rx="19.44"
@@ -131,7 +160,9 @@ export const Icon = (props: IconProps) => {
       </svg>
 
       <svg
-        className={clsx("absolute inset-0", { "animate-pulse": !name })}
+        className={clsx("absolute inset-0 transition-opacity duration-300", {
+          "opacity-0": !name || !color,
+        })}
         width="72"
         height="72"
         viewBox="0 0 72 72"
@@ -139,6 +170,7 @@ export const Icon = (props: IconProps) => {
         xmlns="http://www.w3.org/2000/svg"
       >
         <rect
+          className="transition-colors duration-300"
           x="0"
           y="0"
           width="71.9999"
@@ -148,15 +180,18 @@ export const Icon = (props: IconProps) => {
         />
       </svg>
 
-      {name && (
-        <Typography
-          variant={TYPOGRAPHY.M2}
-          className="relative"
-          style={{ color: "var(--color-500)" }}
-        >
-          {name && name[0]}
-        </Typography>
-      )}
+      <Typography
+        variant={TYPOGRAPHY.M2}
+        className={clsx(
+          "relative transition-[color,opacity] duration-500 uppercase",
+          {
+            "opacity-0": !name || !color,
+          }
+        )}
+        style={{ color: "var(--color-500)" }}
+      >
+        {name && name[0]}
+      </Typography>
     </div>
   );
 };

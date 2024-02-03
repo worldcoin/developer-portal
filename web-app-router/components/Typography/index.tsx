@@ -10,6 +10,7 @@ export enum TYPOGRAPHY {
   M2 = "m2",
   M3 = "m3",
   M4 = "m4",
+  M5 = "m5",
 
   R3 = "r3",
   R4 = "r4",
@@ -51,6 +52,8 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.M3,
           "text-sm leading-[1.4] font-medium font-gta":
             variant === TYPOGRAPHY.M4,
+          "text-xs leading-[1.3] font-medium font-gta":
+            variant === TYPOGRAPHY.M5,
 
           "text-base leading-[1.5] font-normal font-gta":
             variant === TYPOGRAPHY.R3,

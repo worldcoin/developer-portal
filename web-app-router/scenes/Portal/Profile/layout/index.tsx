@@ -31,7 +31,7 @@ export const ProfileLayout = (props: { children: ReactNode }) => {
 
       <div className="pt-9">
         <SizingWrapper className="grid gap-y-8">
-          <UserInfo email={user?.email} name={user?.name} color="pink" />
+          <UserInfo email={user?.email} name={user?.name} />
 
           <div className="border-b border-grey-200 border-dashed" />
         </SizingWrapper>

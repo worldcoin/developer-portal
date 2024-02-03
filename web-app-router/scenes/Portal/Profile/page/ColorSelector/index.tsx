@@ -1,20 +1,20 @@
 import { Option } from "@/scenes/Portal/Profile/page/ColorSelector/Option";
-import { ColorName, colors } from "@/scenes/Portal/Profile/types";
+import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
 
 type ColorSelectorProps = {
   value: ColorName;
-  onChange: (value: ColorName) => void;
+  onChange: (value: Color) => void;
 };
 
 export const ColorSelector = (props: ColorSelectorProps) => {
   return (
     <div className="flex gap-x-2.5">
-      {Object.keys(colors).map((colorName) => (
+      {Object.entries(colors).map(([colorName, colors]) => (
         <Option
           key={colorName}
-          selected={colorName === props.value}
-          value={colorName as ColorName}
-          onClick={() => props.onChange(colorName as ColorName)}
+          selected={colors[100] === props.value[100]}
+          value={colors}
+          onClick={() => props.onChange(colors as Color)}
         />
       ))}
     </div>

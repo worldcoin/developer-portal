@@ -8,8 +8,11 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { useAtom } from "jotai";
+import { colorAtom } from "../../layout";
+import { set } from "date-fns";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -19,6 +22,8 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
+  const [_, setColor] = useAtom(colorAtom);
+
   const {
     register,
     control,
@@ -36,9 +41,12 @@ export const ProfilePage = () => {
   const color = useWatch({ control, name: "color" });
   const name = useWatch({ control, name: "name" });
 
+  useEffect(() => {
+    setColor(color);
+  }, [color, setColor]);
+
   const submit = useCallback((values: FormValues) => {
-    // TODO: update submit logic
-    console.log(values);
+    console.log("CLIENT: ", values);
   }, []);
 
   return (
