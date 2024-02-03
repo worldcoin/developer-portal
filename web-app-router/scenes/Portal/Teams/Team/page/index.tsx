@@ -1,23 +1,32 @@
-"use client";
-
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAppsQuery } from "./graphql/apps.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { ExampleClientComponent } from "./ExampleClientComponent";
+import { getSession } from "@auth0/nextjs-auth0";
+import { inspect } from "util";
+import { Auth0SessionUser } from "@/lib/types";
+import { Suspense } from "react";
 
-export const TeamPage = () => {
-  const { data, loading, error } = useAppsQuery();
-  const { user } = useUser();
+export const TeamPage = async () => {
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser;
 
   return (
     <SizingWrapper>
-      <div className="grid">
-        <span>{`Loading: ${loading}`}</span>
-        <span>{`Data: ${JSON.stringify(data)}`}</span>
-        <span>{`Error: ${error}`}</span>
+      <div className="grid gap-y-10">
+        <div>
+          <h1 className="text-3xl">Server side (getSession): </h1>
+
+          <pre>{inspect(user, { depth: 10 })}</pre>
+        </div>
 
         <hr className="bg-grey-900 text-grey-900 w-full h-1" />
 
-        <p>USER: {JSON.stringify(user)}</p>
+        <div>
+          <h2 className="text-3xl">Client side (useUser): </h2>
+
+          <Suspense>
+            <ExampleClientComponent />
+          </Suspense>
+        </div>
       </div>
     </SizingWrapper>
   );

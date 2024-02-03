@@ -23,14 +23,6 @@ export type GetSingleActionQuery = {
     name: string;
     max_accounts_per_user: number;
     max_verifications: number;
-    updated_at: any;
-    nullifiers: Array<{
-      __typename?: "nullifier";
-      id: string;
-      updated_at: any;
-      nullifier_hash: string;
-      uses?: number | null;
-    }>;
     app: { __typename?: "app"; is_staging: boolean; engine: string };
   }>;
 };
@@ -49,13 +41,6 @@ export const GetSingleActionDocument = gql`
       name
       max_accounts_per_user
       max_verifications
-      updated_at
-      nullifiers {
-        id
-        updated_at
-        nullifier_hash
-        uses
-      }
       app {
         is_staging
         engine

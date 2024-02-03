@@ -37,8 +37,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
-  const res = new NextResponse();
-  const session = await getSession(req, res);
+  const session = await getSession();
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");
@@ -269,6 +268,9 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
+  // TODO: update url when we have pages
+  const res = NextResponse.redirect(new URL("/teams", req.url), 307);
+
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
   await updateSession(req, res, {
     ...session,
@@ -280,6 +282,5 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     },
   });
 
-  // TODO: update url when we have pages
-  return NextResponse.redirect(new URL("/teams", req.url), 307);
+  return res;
 });
