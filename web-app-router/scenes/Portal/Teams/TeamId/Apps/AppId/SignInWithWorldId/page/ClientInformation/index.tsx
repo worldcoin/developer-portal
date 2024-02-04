@@ -63,7 +63,7 @@ export const ClientInformationPage = (props: {
     <div className="w-full gap-y-10 grid pt-5 pb-10">
       <div className="gap-y-5 grid">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.M2}>Client information</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Use these attributes to configure Sign in with World ID in your app
           </Typography>
@@ -129,7 +129,7 @@ export const ClientInformationPage = (props: {
       </div>
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography as="h6" variant={TYPOGRAPHY.M2}>
+          <Typography as="h6" variant={TYPOGRAPHY.H7}>
             Redirects
           </Typography>
           <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">

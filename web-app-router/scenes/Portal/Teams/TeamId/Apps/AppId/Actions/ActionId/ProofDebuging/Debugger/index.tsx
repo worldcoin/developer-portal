@@ -177,7 +177,7 @@ export const Debugger = (props: DebuggerProps) => {
       onSubmit={handleSubmit(submit)}
     >
       <div className="w-full grid gap-y-6">
-        <Typography variant={TYPOGRAPHY.M2}>Output parameters</Typography>
+        <Typography variant={TYPOGRAPHY.H7}>Output parameters</Typography>
         <div className="grid gap-y-8">
           <Input
             register={register("signal")}
@@ -203,7 +203,7 @@ export const Debugger = (props: DebuggerProps) => {
         </div>
       </div>
       <div className="w-full grid gap-y-6 md:min-w-[480px]">
-        <Typography variant={TYPOGRAPHY.M2}>Results</Typography>
+        <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(
             "w-full h-80 bg-grey-50 border border-grey-100 flex flex-col items-center justify-center rounded-lg",

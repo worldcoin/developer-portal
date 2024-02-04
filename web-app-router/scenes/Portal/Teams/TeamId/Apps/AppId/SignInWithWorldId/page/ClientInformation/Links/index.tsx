@@ -64,7 +64,7 @@ export const LinksForm = memo(function LinksForm(props: {
   return (
     <form className="grid gap-y-5" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-3">
-        <Typography as="h6" variant={TYPOGRAPHY.M2}>
+        <Typography as="h6" variant={TYPOGRAPHY.H7}>
           Legal links
         </Typography>
         <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
