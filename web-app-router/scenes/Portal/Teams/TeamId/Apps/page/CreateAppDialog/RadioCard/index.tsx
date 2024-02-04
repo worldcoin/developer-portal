@@ -9,15 +9,15 @@ export const RadioCard = (
     option: { value: string; label: string };
     description?: string;
     stampText?: string;
-  }
+  },
 ) => {
   return (
     <label
       className={twMerge(
         clsx(
           "px-6 py-5 border border-grey-100 hover:border-blue-500 transition-colors rounded-lg grid gap-y-3 cursor-pointer",
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       <div className="flex items-center justify-between">
