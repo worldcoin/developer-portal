@@ -27,7 +27,7 @@ export const InitialSteps = (props: {
 }) => {
   const { user } = useUser() as Auth0SessionUser;
   const [currentStep, setCurrentStep] = useState<StepEnum>(
-    StepEnum.CreateAction
+    StepEnum.CreateAction,
   );
 
   return (

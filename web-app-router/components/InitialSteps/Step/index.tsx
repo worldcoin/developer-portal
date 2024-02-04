@@ -14,7 +14,7 @@ export const Step = (
     icon: ReactNode;
     disabled?: boolean;
     completed?: boolean;
-  }
+  },
 ) => {
   const {
     title,
@@ -35,8 +35,8 @@ export const Step = (
           {
             "grayscale cursor-not-allowed select-none": disabled,
           },
-          className
-        )
+          className,
+        ),
       )}
     >
       {icon}
