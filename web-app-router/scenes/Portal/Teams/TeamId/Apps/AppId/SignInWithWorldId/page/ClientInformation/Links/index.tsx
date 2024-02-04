@@ -58,7 +58,7 @@ export const LinksForm = memo(function LinksForm(props: {
         toast.error("Error updating action");
       }
     },
-    [signInAction?.id],
+    [signInAction?.id]
   );
 
   return (

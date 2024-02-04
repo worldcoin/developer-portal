@@ -1,0 +1,18 @@
+query GetBasicAppInfo($app_id: String!) {
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    app_id
+    name
+    action
+    team {
+      name
+    }
+    app_metadata {
+      name
+      description
+      category
+
+      logo_img_url
+    }
+  }
+}

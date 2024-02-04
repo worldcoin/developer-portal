@@ -169,7 +169,7 @@ export const Debugger = (props: DebuggerProps) => {
         });
       }
     },
-    [setValue, setError],
+    [setValue, setError]
   );
   return (
     <form
@@ -210,7 +210,7 @@ export const Debugger = (props: DebuggerProps) => {
             {
               "bg-system-success-50 border-0": status === Status.SUCCESS,
               "bg-system-error-50 border-0": status === Status.ERROR,
-            },
+            }
           )}
         >
           <CircleIconContainer

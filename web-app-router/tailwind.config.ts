@@ -96,11 +96,19 @@ const config: Config = {
             400: "#FF897C",
             500: "#ff4732",
             600: "#DB2824",
+            700: "#FF5A76",
           },
 
           success: {
             50: "#E9F8E9",
+            100: "#F5FDF6",
             500: "#00B800",
+            700: "#00C313",
+          },
+
+          warning: {
+            100: "#FFF9EF",
+            700: "#FFB11B",
           },
 
           warning: {
