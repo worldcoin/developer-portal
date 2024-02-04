@@ -41,7 +41,7 @@ export const BasicInformation = (props: { appId: string }) => {
       <div className="">
         <form className="grid gap-y-7">
           <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
-          <AppStatus disb/>
+          <AppStatus disb />
           <Input
             register={register("name")}
             errors={errors.name}

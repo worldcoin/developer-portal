@@ -22,7 +22,7 @@ export const AppStatus = (props: { disabled?: boolean }) => {
           {
             "text-system-success-500 bg-system-success-50": enabled,
             "text-grey-400 bg-gray-50": !enabled,
-          }
+          },
         )}
       >
         <div
