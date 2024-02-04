@@ -107,14 +107,11 @@ const config: Config = {
           },
 
           warning: {
-            100: "#FFF9EF",
-            700: "#FFB11B",
-          },
-
-          warning: {
             50: "#FFFAE5",
+            100: "#FFF9EF",
             200: "#FFE999",
             500: "#FFB200",
+            700: "#FFB11B",
           },
         },
       },
