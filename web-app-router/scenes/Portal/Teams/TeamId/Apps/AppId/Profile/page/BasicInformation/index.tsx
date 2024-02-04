@@ -39,12 +39,10 @@ export const BasicInformation = (props: {
   const {
     register,
     handleSubmit,
-    setValue,
     control,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { errors, isSubmitting },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
-    mode: "onChange",
     defaultValues: {
       name: app.app_metadata[0].name,
       category: app.app_metadata[0].category,
@@ -56,33 +54,36 @@ export const BasicInformation = (props: {
     toast.success("Copied to clipboard");
   };
 
-  const submit = useCallback(async (data: BasicInformationFormValues) => {
-    try {
-      const result = await updateAppInfoMutation({
-        variables: {
-          app_id: appId,
-          app_metadata_id: app.app_metadata[0].id,
-          input: { ...data },
-          status: status ? "active" : "inactive",
-        },
-        context: { headers: { team_id: teamId } },
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-            variables: { id: appId },
-            context: { headers: { team_id: teamId } },
+  const submit = useCallback(
+    async (data: BasicInformationFormValues) => {
+      try {
+        const result = await updateAppInfoMutation({
+          variables: {
+            app_id: appId,
+            app_metadata_id: app.app_metadata[0].id,
+            input: { ...data },
+            status: status ? "active" : "inactive",
           },
-        ],
-      });
-      if (result instanceof Error) {
-        throw result;
+          context: { headers: { team_id: teamId } },
+          refetchQueries: [
+            {
+              query: FetchAppMetadataDocument,
+              variables: { id: appId },
+              context: { headers: { team_id: teamId } },
+            },
+          ],
+        });
+        if (result instanceof Error) {
+          throw result;
+        }
+        toast.success("App information updated successfully");
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to update app information");
       }
-      toast.success("App information updated successfully");
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to update app information");
-    }
-  }, []);
+    },
+    [status],
+  );
 
   return (
     <div className="grid grid-cols-2">

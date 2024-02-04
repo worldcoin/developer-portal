@@ -1,7 +1,6 @@
 import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useState } from "react";
 
 export const AppStatus = (props: {
   disabled?: boolean;
@@ -25,7 +24,7 @@ export const AppStatus = (props: {
           {
             "text-system-success-500 bg-system-success-50": status,
             "text-grey-400 bg-gray-50": !status,
-          }
+          },
         )}
       >
         <div

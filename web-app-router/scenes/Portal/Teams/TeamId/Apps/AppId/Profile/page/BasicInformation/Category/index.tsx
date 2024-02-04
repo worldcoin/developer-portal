@@ -29,7 +29,7 @@ export const CategorySelector = (props: {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors,
       "border-system-error-500 text-system-error-500 ": errors,
-    }
+    },
   );
   const selectorClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent py-1.5 h-full",
@@ -37,7 +37,7 @@ export const CategorySelector = (props: {
       "text-grey-400": !errors && !value,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400 ":
         true,
-    }
+    },
   );
   const labelClassNames = clsx("ml-2 px-[2px] peer-focus:text-blue-500", {
     "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700": !errors,
@@ -48,7 +48,7 @@ export const CategorySelector = (props: {
     (newValue: number) => {
       onChange(Categories[newValue]);
     },
-    [onChange]
+    [onChange],
   );
 
   return (
@@ -66,7 +66,7 @@ export const CategorySelector = (props: {
               "text-left",
               selectorClassNames,
               "grid grid-cols-1fr/auto",
-              className
+              className,
             )}
           >
             <Typography variant={TYPOGRAPHY.R4}>
@@ -77,7 +77,7 @@ export const CategorySelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-40"
+              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-40",
             )}
           >
             {Categories.map((_, index) => (
