@@ -11,7 +11,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
     actionId: string;
   }>();
   return (
-    <div>
+    <div className="h-full w-full">
       <div className="bg-grey-50 border-b border-grey-100">
         <SizingWrapper>
           <Tabs className="max-w-[1180px] m-auto font-gta">
@@ -50,7 +50,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
         </SizingWrapper>
       </div>
 
-      <SizingWrapper>{props.children}</SizingWrapper>
+      <SizingWrapper className="h-full">{props.children}</SizingWrapper>
     </div>
   );
 };

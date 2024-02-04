@@ -1,0 +1,5 @@
+query InitialApp($teamId: String!) {
+  app(where: { team: { id: { _eq: $teamId } } }, limit: 1) {
+    id
+  }
+}

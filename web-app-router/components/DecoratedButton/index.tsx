@@ -14,7 +14,7 @@ type DecoratedButtonProps = CommonButtonProps & {
 };
 
 export const DecoratedButton = memo(function DecoratedButton(
-  props: DecoratedButtonProps,
+  props: DecoratedButtonProps
 ) {
   const {
     icon,
@@ -62,14 +62,14 @@ export const DecoratedButton = memo(function DecoratedButton(
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,
           loading && buttonStyles[variant].loading,
-          className,
-        ),
+          className
+        )
       )}
       {...restProps}
     >
       <div
         className={clsx("gap-2 flex items-center justify-center", {
-          "before:absolute before:inset-0 before:rounded-[11px] before:shadow-[0_0_0_1px_rgba(255,255,255,.1)_inset]":
+          "before:absolute before:inset-0 before:rounded-[11px] before:shadow-[0_0_0_1px_rgba(255,255,255,.1)_inset] before:pointer-events-none":
             variant === "primary",
         })}
       >
