@@ -18,20 +18,20 @@ export const AppStatus = (props: { disabled?: boolean }) => {
       </div>
       <div
         className={clsx(
-          "grid grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 h-fit ",
+          "grid grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1 h-fit ",
           {
             "text-system-success-500 bg-system-success-50": enabled,
-            "text-grey-500 bg-gray-50": !enabled,
+            "text-grey-400 bg-gray-50": !enabled,
           }
         )}
       >
         <div
           className={clsx("rounded-full w-2 h-2", {
             "bg-system-success-500": enabled,
-            "bg-grey-500": !enabled,
+            "bg-grey-400": !enabled,
           })}
         />
-        <Typography variant={TYPOGRAPHY.R3}>
+        <Typography variant={TYPOGRAPHY.S3}>
           {enabled ? "Active" : "Inactive"}
         </Typography>
       </div>
