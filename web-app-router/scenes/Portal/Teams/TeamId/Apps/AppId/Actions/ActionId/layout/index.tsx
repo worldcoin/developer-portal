@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { useParams } from "next/navigation";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const ActionIdLayout = (props: { children: ReactNode }) => {
   const params = useParams<{
@@ -20,7 +21,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}`}
               segment={null}
             >
-              Overview
+              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
             </Tab>
 
             <Tab
@@ -28,7 +29,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/settings`}
               segment={"settings"}
             >
-              Settings
+              <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
             </Tab>
 
             <Tab
@@ -36,7 +37,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/proof-debugging`}
               segment={"proof-debugging"}
             >
-              Proof debugging
+              <Typography variant={TYPOGRAPHY.R4}>Proof debugging</Typography>
             </Tab>
 
             <Tab
@@ -44,7 +45,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/danger`}
               segment={"danger"}
             >
-              Danger zone
+              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>

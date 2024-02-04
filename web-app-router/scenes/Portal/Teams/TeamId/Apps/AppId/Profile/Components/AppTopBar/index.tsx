@@ -1,14 +1,25 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Status } from "./Status";
+import { Status, StatusVariant } from "./Status";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Environment } from "./Environment";
+import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { useAtom } from "jotai";
+import { viewModeAtom } from "../../layout";
 
 type AppTopBarProps = {
   appId: string;
   teamId: string;
+  app: FetchAppMetadataQuery["app"][0];
 };
+
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId } = props;
+  const { appId, teamId, app } = props;
+  const [viewMode, setviewMode] = useAtom(viewModeAtom);
+
+  const appMetaData =
+    viewMode === "verified"
+      ? app.verified_app_metadata[0]
+      : app.app_metadata[0];
 
   return (
     <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
@@ -18,10 +29,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
       </div>
       <div className="grid grid-cols-1 gap-y-1">
         <div className="flex flex-row gap-x-3 items-center">
-          <Typography variant={TYPOGRAPHY.H6}>A11 Test App</Typography>
-          <Status status="Not verified" variant="rejected" />
+          <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
+          <Status status={appMetaData.verification_status as StatusVariant} />
         </div>
-        <Environment environment="production" engine="cloud" />
+        <Environment
+          environment={app.is_staging ? "staging" : "production"}
+          engine={app.engine}
+        />
       </div>
       <DecoratedButton type="submit" className="px-6 py-3 h-12">
         <Typography variant={TYPOGRAPHY.M3}>Submit for review</Typography>
