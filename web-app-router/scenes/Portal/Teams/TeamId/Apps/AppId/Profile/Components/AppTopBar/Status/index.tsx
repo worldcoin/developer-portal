@@ -29,7 +29,7 @@ export const Status = (props: StatusProps) => {
     <div
       className={clsx(
         "px-3 py-1 rounded-3xl flex gap-x-1.5 items-center",
-        statusStyles[variant].normal
+        statusStyles[variant].normal,
       )}
     >
       {variant === "verified" && <CheckmarkBadge className="w-4 h-auto" />}

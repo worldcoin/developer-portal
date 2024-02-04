@@ -22,7 +22,7 @@ export const Switcher = (props: SwitchProps) => {
           " bg-gradient-to-b from-white/15 to-transparent ": enabled,
         },
 
-        "relative inline-flex h-6 w-10 items-center rounded-full"
+        "relative inline-flex h-6 w-10 items-center rounded-full",
       )}
     >
       <span
@@ -32,7 +32,7 @@ export const Switcher = (props: SwitchProps) => {
             "translate-x-[.15rem]": !enabled,
           },
           "inline-block h-[20px] w-[20px] transform rounded-full bg-white transition",
-          "after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:w-[17px] after:h-[17px] after:rounded-full after:-translate-x-1/2 after:-translate-y-1/2 after:bg-gradient-to-b from-[#D3D4D645] to-white "
+          "after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:w-[17px] after:h-[17px] after:rounded-full after:-translate-x-1/2 after:-translate-y-1/2 after:bg-gradient-to-b from-[#D3D4D645] to-white ",
         )}
       />
     </Switch>

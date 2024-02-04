@@ -29,7 +29,7 @@ type TypographyProps<T extends ElementType = "span"> = {
 };
 
 export const Typography = <T extends ElementType = "span">(
-  props: TypographyProps<T> & ComponentPropsWithoutRef<T>
+  props: TypographyProps<T> & ComponentPropsWithoutRef<T>,
 ) => {
   const {
     as: Component = "span",
@@ -69,7 +69,7 @@ export const Typography = <T extends ElementType = "span">(
 
           "text-sm leading-[1.4] font-medium font-rubik":
             variant === TYPOGRAPHY.S3,
-        })
+        }),
       )}
       {...otherProps}
     >
