@@ -93,7 +93,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       }
       toast.success(`Action "${values.name}" updated.`);
     },
-    [updateActionQuery, action.id],
+    [updateActionQuery, action.id]
   );
 
   const copyAction = useCallback(() => {
@@ -107,7 +107,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         onSubmit={handleSubmit(submit)}
         className="gap-y-5 w-full grid grid-cols-1"
       >
-        <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Settings
         </Typography>
         <Input
