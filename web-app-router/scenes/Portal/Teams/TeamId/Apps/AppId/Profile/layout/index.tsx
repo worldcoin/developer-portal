@@ -3,6 +3,10 @@ import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { useParams } from "next/navigation";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { atom } from "jotai";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+
+export const viewModeAtom = atom<"unverified" | "verified">("unverified");
 
 export const AppProfileLayout = (props: { children: ReactNode }) => {
   const params = useParams<{ teamId: string; appId: string }>();
@@ -16,7 +20,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
               segment={null}
             >
-              Overview
+              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
             </Tab>
 
             <Tab
@@ -24,7 +28,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
               segment={"store-info"}
             >
-              Store info
+              <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
             </Tab>
 
             <Tab
@@ -32,7 +36,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
               segment={"gallery"}
             >
-              Gallery
+              <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
             </Tab>
 
             <Tab
@@ -40,7 +44,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
               segment={"links"}
             >
-              Links
+              <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
             </Tab>
 
             <Tab
@@ -48,7 +52,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
               segment={"danger"}
             >
-              Danger zone
+              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>

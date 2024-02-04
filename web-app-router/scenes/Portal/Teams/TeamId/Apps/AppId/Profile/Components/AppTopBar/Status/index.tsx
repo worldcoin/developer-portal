@@ -3,22 +3,34 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 
+export type StatusVariant =
+  | "unverified"
+  | "awaiting_review"
+  | "changes_requested"
+  | "verified";
+
 type StatusProps = {
-  status: string;
-  variant: "not_verified" | "in_review" | "rejected" | "verified";
+  status: StatusVariant;
+};
+
+const statusMessageMap = {
+  unverified: "Not verified",
+  awaiting_review: "In review",
+  changes_requested: "Rejected",
+  verified: "Verified",
 };
 
 export const Status = (props: StatusProps) => {
-  const { status, variant } = props;
+  const { status } = props;
 
   const statusStyles = {
-    not_verified: {
+    unverified: {
       normal: "bg-grey-100 text-grey-900",
     },
-    in_review: {
+    awaiting_review: {
       normal: "bg-system-warning-100 text-system-warning-700",
     },
-    rejected: {
+    changes_requested: {
       normal: "bg-system-error-100 text-system-error-700",
     },
     verified: {
@@ -29,11 +41,13 @@ export const Status = (props: StatusProps) => {
     <div
       className={clsx(
         "px-3 py-1 rounded-3xl flex gap-x-1.5 items-center",
-        statusStyles[variant].normal,
+        statusStyles[status].normal
       )}
     >
-      {variant === "verified" && <CheckmarkBadge className="w-4 h-auto" />}
-      <Typography variant={TYPOGRAPHY.S3}>{status}</Typography>
+      {status === "verified" && <CheckmarkBadge className="w-4 h-auto" />}
+      <Typography variant={TYPOGRAPHY.S3}>
+        {statusMessageMap[status]}
+      </Typography>
     </div>
   );
 };
