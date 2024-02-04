@@ -7,7 +7,7 @@ import { CheckIcon } from "../Icons/CheckIcon";
 export const Checkbox = (
   props: ComponentProps<"input"> & {
     register: UseFormRegisterReturn;
-  }
+  },
 ) => {
   return (
     <label
