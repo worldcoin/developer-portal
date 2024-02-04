@@ -18,10 +18,10 @@ import { CSSProperties } from "react";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useAtom } from "jotai";
 
-export const LoggedUserNav = (props: { name: string }) => {
+export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
-  const nameFirstLetter = props.name.charAt(0).toUpperCase();
   const { user } = useUser() as Auth0SessionUser;
+  const nameFirstLetter = user?.name?.charAt(0).toUpperCase();
 
   return (
     <div

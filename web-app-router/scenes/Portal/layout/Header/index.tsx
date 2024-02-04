@@ -16,7 +16,7 @@ export const Header = (props: { color: Color | null }) => {
     <header className="p-4">
       <SizingWrapper className="flex justify-between items-center w-full">
         <WorldcoinIcon />
-        <LoggedUserNav name={user?.name ?? "User"} />
+        <LoggedUserNav />
       </SizingWrapper>
     </header>
   );
