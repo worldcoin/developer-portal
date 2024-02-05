@@ -7,10 +7,11 @@ import { atom } from "jotai";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type Images = {
-  logo_img_url: string;
-  hero_image_url: string;
-  showcase_image_urls: string[] | null;
+  logo_img_url?: string;
+  hero_image_url?: string;
+  showcase_image_urls?: string[] | null;
 };
+
 export const viewModeAtom = atom<"unverified" | "verified">("unverified");
 export const unverifiedImageAtom = atom<Images>({
   logo_img_url: "",

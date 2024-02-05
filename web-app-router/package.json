@@ -47,6 +47,7 @@
     "jsdom": "^24.0.0",
     "json5": "^2.2.3",
     "next": "14.1.0",
+    "next-safe": "^3.5.0",
     "next-useragent": "^2.8.0",
     "posthog-node": "^3.5.0",
     "react": "^18",
