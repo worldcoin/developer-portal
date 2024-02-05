@@ -6,7 +6,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as getUnverifiedImagesSDK } from "@/legacy/api/images/graphql/getUnverifiedImages.generated";
+import { getSdk as getUnverifiedImagesSDK } from "@/api/images/graphql/getUnverifiedImages.generated";
 import {
   S3Client,
   ListObjectsCommand,
@@ -23,10 +23,7 @@ export type DeleteAllImagesResponse = {
  * @param req
  * @param res
  */
-export const handleDeleteAllImages = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
+export const POST = async (req: NextApiRequest, res: NextApiResponse) => {
   throw new Error("Not implemented yet.");
 
   // try {

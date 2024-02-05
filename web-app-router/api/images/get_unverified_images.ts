@@ -6,7 +6,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as getUnverifiedImagesSDK } from "@/legacy/api/images/graphql/getUnverifiedImages.generated";
+import { getSdk as getUnverifiedImagesSDK } from "@/api/images/graphql/getUnverifiedImages.generated";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
@@ -22,10 +22,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
  * @param req
  * @param res
  */
-export const handleGetAllUnverifiedImages = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
+export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
       return;
@@ -75,7 +72,7 @@ export const handleGetAllUnverifiedImages = async (
     }
     const client = await getAPIServiceGraphqlClient();
     const { app: appInfo } = await getUnverifiedImagesSDK(
-      client,
+      client
     ).GetUnverifiedImages({
       team_id: teamId,
       app_id: app_id as string,
@@ -113,7 +110,7 @@ export const handleGetAllUnverifiedImages = async (
       urlPromises.push(
         getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
           logo_img_url: url,
-        })),
+        }))
       );
     }
 
@@ -125,8 +122,8 @@ export const handleGetAllUnverifiedImages = async (
             Bucket: bucketName,
             Key: objectKey + app.hero_image_url,
           }),
-          { expiresIn: 7200 },
-        ).then((url) => ({ hero_image_url: url })),
+          { expiresIn: 7200 }
+        ).then((url) => ({ hero_image_url: url }))
       );
     }
 
@@ -138,8 +135,8 @@ export const handleGetAllUnverifiedImages = async (
             Bucket: bucketName,
             Key: objectKey + key,
           }),
-          { expiresIn: 7200 },
-        ),
+          { expiresIn: 7200 }
+        )
       );
       const showcaseUrls = await Promise.all(showcaseUrlPromises);
       urlPromises.push({ showcase_img_urls: showcaseUrls });
@@ -149,7 +146,7 @@ export const handleGetAllUnverifiedImages = async (
     const signedUrls = await Promise.all(urlPromises);
     const formattedSignedUrl = signedUrls.reduce(
       (a, urlObj) => ({ ...a, ...urlObj }),
-      {},
+      {}
     );
     res.status(200).json({
       ...formattedSignedUrl,
@@ -162,7 +159,7 @@ export const handleGetAllUnverifiedImages = async (
       "internal_server_error",
       "Unable to get images",
       null,
-      req,
+      req
     );
   }
 };

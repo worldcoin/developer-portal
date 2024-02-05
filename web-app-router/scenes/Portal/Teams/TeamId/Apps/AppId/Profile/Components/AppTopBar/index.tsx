@@ -5,6 +5,7 @@ import { Environment } from "./Environment";
 import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { useAtom } from "jotai";
 import { viewModeAtom } from "../../layout";
+import { LogoImageUpload } from "./LogoImageUpload";
 
 type AppTopBarProps = {
   appId: string;
@@ -24,9 +25,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   return (
     <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
       {/* Placeholder */}
-      <div className="bg-grey-200 rounded-lg px-5 py-5 h-20 w-20 items-center flex justify-center">
-        IMAGE
-      </div>
+      <LogoImageUpload appId={appId} teamId={teamId} />
       <div className="grid grid-cols-1 gap-y-1">
         <div className="flex flex-row gap-x-3 items-center">
           <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
