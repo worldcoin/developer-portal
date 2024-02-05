@@ -1,11 +1,5 @@
-import {
-  useGetUploadedImageLazyQuery,
-  useGetUploadedImageQuery,
-} from "./graphql/client/get-uploaded-image.generated";
-import {
-  useUploadImageLazyQuery,
-  useUploadImageQuery,
-} from "./graphql/client/upload-image.generated";
+import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
+import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
 import { toast } from "react-toastify";
 
 export const useImage = () => {
@@ -22,7 +16,7 @@ export const useImage = () => {
         image_type: imageType,
         content_type_ending: fileType,
       },
-      context: { headers: { teamId } },
+      context: { headers: { team_id: teamId } },
     });
     const imageUrl = response.data?.get_uploaded_image?.url;
     if (!imageUrl) {
@@ -74,9 +68,8 @@ export const useImage = () => {
         image_type: imageType,
         content_type_ending: file.type.split("/")[1],
       },
-      context: { headers: { teamId } },
+      context: { headers: { team_id: teamId } },
     });
-    console.log(response);
 
     if (!response.data?.upload_image?.url) {
       throw new Error("Failed to get upload signed URL");

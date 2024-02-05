@@ -19,13 +19,15 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { toast } from "react-toastify";
 import { useImage } from "../../../hook/images";
+import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;
+  appMetadataId: string;
   teamId: string;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const { appId, teamId } = props;
+  const { appId, appMetadataId, teamId } = props;
   const [showDialog, setShowDialog] = useState(false);
   const [mode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -33,6 +35,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [disabled, setDisabled] = useState(false);
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
+  const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
+
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = () => {
@@ -42,28 +46,63 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     const imageType = "logo_img";
+
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
+      toast.info("Uploading image", {
+        toastId: "upload_toast",
+        autoClose: false,
+      });
       try {
         await validateImageDimensions(file, 500, 500);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
-        console.log("here");
         const imageUrl = await getImage(
-          imageType,
+          fileTypeEnding,
           appId,
           teamId,
-          fileTypeEnding
+          imageType
         );
         setUnverifiedImages({
           ...unverifiedImages,
           logo_img_url: imageUrl,
         });
-        toast.success("Image uploaded successfully");
+        console.log(`${imageType}.${fileTypeEnding}`);
+        const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+        await updateLogoMutation({
+          variables: {
+            id: appMetadataId,
+            fileName: `${imageType}.${saveFileType}`,
+          },
+          context: { headers: { team_id: teamId } },
+        });
+        toast.update("upload_toast", {
+          type: "success",
+          render: "Image uploaded successfully",
+          autoClose: 5000,
+        });
       } catch (error) {
         console.error(error);
-        toast.error("Failed to upload image");
+        toast.update("upload_toast", {
+          type: "error",
+          render: "Error uploading image",
+          autoClose: 5000,
+        });
       }
     }
+  };
+
+  const removeImage = async () => {
+    setUnverifiedImages({
+      ...unverifiedImages,
+      logo_img_url: "",
+    });
+    await updateLogoMutation({
+      variables: {
+        id: appMetadataId,
+        fileName: "",
+      },
+      context: { headers: { team_id: teamId } },
+    });
   };
 
   return (
@@ -79,6 +118,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
               type="button"
+              onClick={() => setShowDialog(false)}
               className="rounded-full bg-grey-100 hover:bg-grey-200 h-7 w-7 flex items-center justify-center"
             >
               <CloseIcon className="w-4 h-4" />
@@ -90,13 +130,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="rounded-lg w-32 h-32 object-contain"
+                  className="rounded-lg w-28 h-28 object-contain"
                   width={500}
                   height={500}
                 />
               </div>
             ) : (
-              <div className="bg-blue-100 h-20 w-20 flex items-center justify-center rounded-2xl">
+              <div className="bg-blue-100 h-24 w-24 flex items-center justify-center rounded-2xl">
                 <WorldcoinIcon className="w-10 h-10 text-blue-500" />
               </div>
             )}
@@ -120,6 +160,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <DecoratedButton
               type="button"
               variant="secondary"
+              disabled={loading}
+              onClick={removeImage}
               className="w-full bg-grey-100 hover:bg-grey-200"
             >
               Remove
@@ -127,6 +169,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <DecoratedButton
               type="button"
               variant="secondary"
+              disabled={loading}
               className="w-full"
               onClick={handleUpload}
             >
@@ -142,6 +185,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             alt="logo"
             src={unverifiedImages?.logo_img_url}
             className="h-20 w-20"
+            width={500}
+            height={500}
           />
         ) : (
           <WorldcoinIcon className="w-10 h-10 text-blue-500" />

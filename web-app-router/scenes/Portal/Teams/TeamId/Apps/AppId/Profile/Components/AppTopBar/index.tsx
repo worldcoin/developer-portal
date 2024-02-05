@@ -25,7 +25,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
   return (
     <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
       {/* Placeholder */}
-      <LogoImageUpload appId={appId} teamId={teamId} />
+      <LogoImageUpload
+        appId={appId}
+        teamId={teamId}
+        appMetadataId={appMetaData.id}
+      />
       <div className="grid grid-cols-1 gap-y-1">
         <div className="flex flex-row gap-x-3 items-center">
           <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>

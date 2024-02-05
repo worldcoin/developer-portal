@@ -4,6 +4,8 @@ import { AppTopBar } from "../components/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
+import { unverifiedImageAtom } from "../layout";
+import { useAtom } from "jotai";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -16,12 +18,20 @@ export const AppProfilePage = ({
 }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
+  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
   const { data, loading } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
+    onCompleted: (data) => {
+      setUnverifiedImages({
+        logo_img_url: data?.unverified_images?.logo_img_url ?? "",
+        hero_image_url: data?.unverified_images?.hero_image_url ?? "",
+        showcase_image_urls: data?.unverified_images?.showcase_img_urls,
+      });
+    },
   });
   const app = data?.app[0];
 
