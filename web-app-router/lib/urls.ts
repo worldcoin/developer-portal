@@ -17,4 +17,6 @@ export const urls = {
     const searchParams = new URLSearchParams(params);
     return `/join?${searchParams.toString()}`;
   },
+
+  profile: (): "/profile" => "/profile",
 };
