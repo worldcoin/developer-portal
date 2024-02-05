@@ -21,13 +21,14 @@ import {
 } from "@/components/Select";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { RadioCard } from "./RadioCard";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/components/Button";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { urls } from "@/lib/urls";
+import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 
 const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
 const BUILD_TYPES = ["staging", "production"] as const;
@@ -50,19 +51,25 @@ export const CreateAppDialog = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
 
+  const defaultValues: Partial<FormValues> = useMemo(
+    () => ({
+      build: "staging",
+      verification: "cloud",
+      image: "/default.png", // FIXME: remove once image upload is implemented
+    }),
+    [],
+  );
+
   const {
     register,
     control,
     formState: { isValid, errors, isSubmitting },
     handleSubmit,
+    reset,
   } = useForm<FormValues>({
     mode: "onChange",
     resolver: yupResolver(createAppSchema),
-    defaultValues: {
-      build: "staging",
-      verification: "cloud",
-      image: "/default.png", // FIXME: remove once image upload is implemented
-    },
+    defaultValues,
   });
 
   const [insertApp] = useInsertAppMutation();
@@ -80,32 +87,49 @@ export const CreateAppDialog = (props: DialogProps) => {
           is_staging: values.build === "staging",
           engine: values.verification,
         },
+
+        refetchQueries: [
+          {
+            query: FetchAppsDocument,
+            context: { headers: { team_id: teamId } },
+          },
+        ],
+
         context: { headers: { team_id: teamId } },
+
         onCompleted: (data) => {
           if (!data.insert_app_one) {
             toast.error("Failed to create app");
           }
 
+          props.onClose(false);
+          reset(defaultValues);
           router.push(
-            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id })
+            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id }),
           );
         },
+
         onError: () => {
           toast.error("Error while creating app");
         },
       });
     },
-    [insertApp, router, teamId]
+    [defaultValues, insertApp, props, reset, router, teamId],
   );
 
+  const onClose = useCallback(() => {
+    reset(defaultValues);
+    props.onClose(false);
+  }, [defaultValues, props, reset]);
+
   return (
-    <Dialog open={props.open} onClose={props.onClose} className="z-50">
+    <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel className={clsx("fixed inset-0 p-4", props.className)}>
         <div className="grid grid-rows-auto/1fr items-center">
           <SizingWrapper>
             <header className="w-full flex justify-between items-center min-h-9">
               <div className="flex gap-3 w-full items-center">
-                <Button type="button" onClick={() => props.onClose(false)}>
+                <Button type="button" onClick={onClose}>
                   <CloseIcon />
                 </Button>
 

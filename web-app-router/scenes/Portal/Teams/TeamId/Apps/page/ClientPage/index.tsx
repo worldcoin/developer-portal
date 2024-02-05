@@ -7,11 +7,12 @@ import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Fragment, Suspense, useState } from "react";
-import { CreateAppDialog } from "../CreateAppDialog";
+import { Fragment } from "react";
+import { useAtom } from "jotai";
+import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
 
 export const ClientPage = () => {
-  const [dialogOpened, setDialogOpened] = useState(false);
+  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
 
   return (
     <Fragment>
@@ -23,7 +24,7 @@ export const ClientPage = () => {
             <Step
               key={`apps-tutorial-step-1`}
               type="button"
-              onClick={() => setDialogOpened(true)}
+              onClick={() => setCreateAppDialogOpen(true)}
               icon={
                 <IconFrame className="bg-blue-500 text-grey-0">
                   <PlusCircleIcon />
@@ -64,8 +65,6 @@ export const ClientPage = () => {
           ]}
         />
       </SizingWrapper>
-
-      <CreateAppDialog open={dialogOpened} onClose={setDialogOpened} />
     </Fragment>
   );
 };
