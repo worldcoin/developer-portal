@@ -1,5 +1,6 @@
 "use client";
-import { AppTopBar } from "../Components/AppTopBar";
+import clsx from "clsx";
+import { AppTopBar } from "../components/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
@@ -24,12 +25,11 @@ export const AppProfilePage = ({
   });
   const app = data?.app[0];
 
-  if (loading) return <></>;
-  else if (!app) {
+  if (!app) {
     <Error statusCode={404} title="Action not found" />;
   } else {
     return (
-      <div className="py-8 gap-y-4 grid">
+      <div className={clsx("py-8 gap-y-4 grid", { hidden: loading })}>
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <BasicInformation appId={appId} teamId={teamId} app={app} />

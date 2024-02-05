@@ -1,15 +1,11 @@
-import {
-  errorHasuraQuery,
-  errorNotAllowed,
-  errorResponse,
-} from "@/legacy/backend/errors";
+import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as checkUserInAppDocumentSDK } from "@/legacy/api/images/graphql/checkUserInApp.generated";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
+import { S3Client } from "@aws-sdk/client-s3";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { logger } from "@/lib/logger";
+import { protectInternalEndpoint } from "@/legacy/backend/utils";
 
 type RequestQueryParams = {
   app_id: string;
@@ -18,25 +14,25 @@ type RequestQueryParams = {
 };
 
 /**
- * Returns a single signed url to get the recently uploaded image from S3
+ * Returns a signed url to upload to the predefined path in S3
  * @param req
  * @param res
  */
-export const handleImageGet = async (
+export const handleImageUpload = async (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => {
   try {
+    console.log('here')
     if (!protectInternalEndpoint(req, res)) {
       return;
     }
 
-    if (!req.method || req.method !== "GET") {
+    if (req.method !== "GET") {
       return errorNotAllowed(req.method, res, req);
     }
-
     const body = JSON.parse(req.body);
-    if (body?.action.name !== "get_uploaded_image") {
+    if (body?.action.name !== "upload_image") {
       return errorHasuraQuery({
         res,
         req,
@@ -64,6 +60,8 @@ export const handleImageGet = async (
         code: "required",
       });
     }
+
+    // TODO: Use yup to validate input
     const { app_id, image_type, content_type_ending } =
       req.query as RequestQueryParams;
     if (!app_id || !image_type || !content_type_ending) {
@@ -74,17 +72,26 @@ export const handleImageGet = async (
         code: "required",
       });
     }
+    // Check that content_type_ending is png or jpeg
+    if (!["png", "jpeg"].includes(content_type_ending)) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Content Type is invalid",
+        code: "invalid_input",
+      });
+    }
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client,
+      client
     ).CheckUserInApp({
       team_id: teamId,
       app_id: app_id,
       user_id: userId,
     });
 
-    // Admin and Owner allowed to view uploaded images. Not relevant for Member.
+    // Admins and Owners allowed to upload images
     if (userTeam.length === 0) {
       return errorHasuraQuery({
         res,
@@ -103,29 +110,32 @@ export const handleImageGet = async (
       throw new Error("AWS Bucket Name must be set.");
     }
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
+    // Standardize JPEG to jpg
     const objectKey = `unverified/${app_id}/${image_type}.${
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;
-    const command = new GetObjectCommand({
+    const contentType = `image/${content_type_ending}`;
+    const signedUrl = await createPresignedPost(s3Client, {
       Bucket: bucketName,
       Key: objectKey,
+      Expires: 600, // URL expires in 10 minutes
+      Conditions: [
+        ["content-length-range", 0, 250000], // 250 kb max file size
+        ["eq", "$Content-Type", contentType],
+      ],
     });
-    const signedUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 900, // The URL will expire in 15 minutes
-    });
-
+    const { url, fields } = signedUrl;
     res.status(200).json({
-      url: signedUrl,
+      url,
+      stringifiedFields: JSON.stringify(fields),
     });
-  } catch (error) {
-    logger.error("Error getting uploaded image.", { error });
-    return errorResponse(
+  } catch (error: any) {
+    logger.error("Error uploading image.", { error });
+    return errorHasuraQuery({
       res,
-      500,
-      "internal_server_error",
-      "Unable to get uploaded image",
-      null,
       req,
-    );
+      detail: "Unable to upload image",
+      code: "internal_server_error",
+    });
   }
 };
