@@ -7,7 +7,7 @@ import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Fragment, useState } from "react";
+import { Fragment, Suspense, useState } from "react";
 import { CreateAppDialog } from "../CreateAppDialog";
 
 export const ClientPage = () => {

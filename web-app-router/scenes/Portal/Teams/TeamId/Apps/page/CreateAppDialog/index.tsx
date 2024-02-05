@@ -23,9 +23,13 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { RadioCard } from "./RadioCard";
 import { useCallback } from "react";
 import { Button } from "@/components/Button";
+import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
+import { useParams, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { urls } from "@/lib/urls";
 
 const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
-
 const BUILD_TYPES = ["staging", "production"] as const;
 const VERIFICATION_TYPES = ["cloud", "on-chain"] as const;
 
@@ -43,6 +47,9 @@ const createAppSchema = yup.object({
 type FormValues = yup.InferType<typeof createAppSchema>;
 
 export const CreateAppDialog = (props: DialogProps) => {
+  const { teamId } = useParams() as { teamId: string | undefined };
+  const router = useRouter();
+
   const {
     register,
     control,
@@ -54,12 +61,42 @@ export const CreateAppDialog = (props: DialogProps) => {
     defaultValues: {
       build: "staging",
       verification: "cloud",
+      image: "/default.png", // FIXME: remove once image upload is implemented
     },
   });
 
-  const submit = useCallback((values: FormValues) => {
-    console.log({ values });
-  }, []);
+  const [insertApp] = useInsertAppMutation();
+
+  const submit = useCallback(
+    (values: FormValues) => {
+      if (!teamId) {
+        return toast.error("Failed to create app");
+      }
+
+      insertApp({
+        variables: {
+          name: values.appName,
+          category: values.category,
+          is_staging: values.build === "staging",
+          engine: values.verification,
+        },
+        context: { headers: { team_id: teamId } },
+        onCompleted: (data) => {
+          if (!data.insert_app_one) {
+            toast.error("Failed to create app");
+          }
+
+          router.push(
+            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id })
+          );
+        },
+        onError: () => {
+          toast.error("Error while creating app");
+        },
+      });
+    },
+    [insertApp, router, teamId]
+  );
 
   return (
     <Dialog open={props.open} onClose={props.onClose} className="z-50">
@@ -78,6 +115,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   Create an incognito action
                 </Typography>
               </div>
+
               <div className="flex justify-end ">
                 <LoggedUserNav />
               </div>
@@ -106,6 +144,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   box shows the logo&apos;s final display size.
                 </Typography>
 
+                {/* TODO: implement image upload */}
                 <DecoratedButton
                   type="button"
                   variant="secondary"
