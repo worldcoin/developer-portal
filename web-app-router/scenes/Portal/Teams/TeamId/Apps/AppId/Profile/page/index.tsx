@@ -43,7 +43,7 @@ export const AppProfilePage = ({
   });
 
   const app = data?.app[0];
-  
+
   if (loading) return <div>Loading...</div>;
   else if (!app) {
     return <Error statusCode={404} title="App not found" />;

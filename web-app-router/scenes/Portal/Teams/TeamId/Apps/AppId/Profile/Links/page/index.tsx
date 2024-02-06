@@ -44,7 +44,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
     viewMode === "verified"
       ? app?.verified_app_metadata[0]
       : app?.app_metadata[0];
-      
+
   if (loading) return <div></div>;
   else if (!app) {
     return <Error statusCode={404} title="App not found" />;

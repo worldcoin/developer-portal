@@ -60,7 +60,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType
+          imageType,
         );
         setUnverifiedImages({
           ...unverifiedImages,
@@ -108,7 +108,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   return (
     <div
       className={clsx(
-        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative"
+        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative",
       )}
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
@@ -196,7 +196,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         onClick={() => setShowDialog(true)}
         className={clsx(
           "absolute -bottom-2 -right-2 p-2 bg-white rounded-full border-2 border-grey-200 text-grey-500 hover:bg-grey-50",
-          { hidden: !editable }
+          { hidden: !editable },
         )}
       >
         <EditIcon className="w-3 h-3 " />
