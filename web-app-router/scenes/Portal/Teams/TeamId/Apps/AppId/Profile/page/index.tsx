@@ -6,6 +6,7 @@ import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
 import { unverifiedImageAtom } from "../layout";
 import { useAtom } from "jotai";
+import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -25,6 +26,12 @@ export const AppProfilePage = ({
       id: appId,
     },
     context: { headers: { team_id: teamId } },
+  });
+  const { data: images } = useFetchImagesQuery({
+    variables: {
+      id: appId,
+    },
+    context: { headers: { team_id: teamId } },
     onCompleted: (data) => {
       setUnverifiedImages({
         logo_img_url: data?.unverified_images?.logo_img_url ?? "",
@@ -33,6 +40,7 @@ export const AppProfilePage = ({
       });
     },
   });
+
   const app = data?.app[0];
 
   if (!app) {
