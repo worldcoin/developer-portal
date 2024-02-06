@@ -74,7 +74,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client
+      client,
     ).CheckUserInApp({
       team_id: teamId,
       app_id: app_id,
@@ -122,7 +122,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
       "internal_server_error",
       "Unable to get uploaded image",
       null,
-      req
+      req,
     );
   }
 };

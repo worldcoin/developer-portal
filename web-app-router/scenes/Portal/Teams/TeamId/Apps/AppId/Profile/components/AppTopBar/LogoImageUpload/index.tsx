@@ -60,7 +60,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType
+          imageType,
         );
         setUnverifiedImages({
           ...unverifiedImages,
@@ -108,7 +108,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   return (
     <div
       className={clsx(
-        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative"
+        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative",
       )}
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
