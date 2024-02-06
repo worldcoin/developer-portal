@@ -12,7 +12,7 @@ import {
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/images";
+import { useImage } from "../../../hook/useImage";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
@@ -46,7 +46,7 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -63,8 +63,8 @@ export const ImageForm = (props: ImageFormTypes) => {
     return SHOWCASE_IMAGE_NAMES.find(
       (name: string) =>
         !showcaseImgFileNames.find((existingFileName: string) =>
-          existingFileName.includes(name),
-        ),
+          existingFileName.includes(name)
+        )
     );
   }, [showcaseImgFileNames]);
 
@@ -110,7 +110,7 @@ export const ImageForm = (props: ImageFormTypes) => {
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
       const fileNameToDelete = SHOWCASE_IMAGE_NAMES.filter((name: string) =>
-        url.includes(name),
+        url.includes(name)
       )[0];
 
       const formatted_showcase_img_urls = `{${showcaseImgFileNames
@@ -143,7 +143,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       setUnverifiedImages({
         ...unverifiedImages,
         showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
-          (img: string) => img !== url,
+          (img: string) => img !== url
         ),
       });
     },
@@ -155,14 +155,14 @@ export const ImageForm = (props: ImageFormTypes) => {
       appId,
       setUnverifiedImages,
       unverifiedImages,
-    ],
+    ]
   );
 
   const uploadImage = async (
     imageType: string,
     file: File,
     height: number,
-    width: number,
+    width: number
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
@@ -178,7 +178,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType,
+          imageType
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
@@ -314,7 +314,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             onClick={deleteHeroImage}
             className={clsx(
               "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-              { hidden: !isEnoughPermissions || !isEditable },
+              { hidden: !isEnoughPermissions || !isEditable }
             )}
           >
             <TrashIcon />
@@ -370,7 +370,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                 onClick={() => deleteShowcaseImage(url)}
                 className={clsx(
                   "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-                  { hidden: !isEnoughPermissions || !isEditable },
+                  { hidden: !isEnoughPermissions || !isEditable }
                 )}
               >
                 <TrashIcon />

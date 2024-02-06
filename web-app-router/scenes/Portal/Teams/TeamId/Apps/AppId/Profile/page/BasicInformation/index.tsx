@@ -42,7 +42,7 @@ export const BasicInformation = (props: {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -61,6 +61,7 @@ export const BasicInformation = (props: {
     formState: { errors, isSubmitting },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
+    mode: "onChange",
     defaultValues: {
       name: app.app_metadata[0].name,
       category: app.app_metadata[0].category,
@@ -101,7 +102,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [status],
+    [status]
   );
 
   return (

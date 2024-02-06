@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { useParams } from "next/navigation";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 export const AppIdLayout = (props: { children: ReactNode }) => {
   const params = useParams<{ teamId: string; appId: string }>();
@@ -16,7 +17,7 @@ export const AppIdLayout = (props: { children: ReactNode }) => {
               underlined
               segment={null}
             >
-              Dashboard
+              <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
             </Tab>
 
             <Tab
@@ -24,7 +25,7 @@ export const AppIdLayout = (props: { children: ReactNode }) => {
               underlined
               segment={"profile"}
             >
-              App profile
+              <Typography variant={TYPOGRAPHY.R4}> App profile</Typography>
             </Tab>
 
             <Tab
@@ -32,14 +33,14 @@ export const AppIdLayout = (props: { children: ReactNode }) => {
               underlined
               segment={"actions"}
             >
-              Incognito actions
+              <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
             <Tab
               href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
               underlined
               segment={"sign-in-with-world-id"}
             >
-              Sign in with World ID
+              <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>

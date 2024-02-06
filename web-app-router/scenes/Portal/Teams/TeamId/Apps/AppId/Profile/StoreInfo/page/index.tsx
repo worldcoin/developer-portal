@@ -48,9 +48,9 @@ export const AppProfileStoreInfoPage = ({
     viewMode === "verified"
       ? app?.verified_app_metadata[0]
       : app?.app_metadata[0];
-
-  if (!app) {
-    <Error statusCode={404} title="Action not found" />;
+  if (loading) return <div></div>;
+  else if (!app) {
+    return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <div
