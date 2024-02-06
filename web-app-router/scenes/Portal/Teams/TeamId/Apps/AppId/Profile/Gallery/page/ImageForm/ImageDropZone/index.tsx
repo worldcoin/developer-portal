@@ -1,6 +1,7 @@
 "use client";
 import { UploadIcon } from "@/components/Icons/UploadIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
@@ -10,30 +11,62 @@ type ImageDropZoneProps = {
   disabled?: boolean;
   width: number;
   height: number;
+  uploadImage?: (
+    itemType: string,
+    file: File,
+    height: number,
+    width: number,
+  ) => void;
+  imageType?: string;
 };
 
 export const ImageDropZone = (props: ImageDropZoneProps) => {
-  const { registerImageUpload, disabled, width, height, ...otherProps } = props;
+  const {
+    registerImageUpload,
+    disabled,
+    width,
+    height,
+    uploadImage,
+    imageType,
+    ...otherProps
+  } = props;
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log(acceptedFiles);
-    toast.success("Image saved");
-  }, []);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (uploadImage && imageType) {
+        uploadImage(imageType, acceptedFiles[0], height, width);
+      }
+    },
+    [uploadImage, imageType],
+  );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    noClick: true,
+  });
 
   return (
     <label
-      className="w-full p-8 rounded-xl border-[1px] border-dashed border-blue-150 cursor-pointer grid justify-items-center gap-y-4"
+      className={clsx(
+        "w-full p-8 rounded-xl border-[1px] border-dashed border-blue-150  grid justify-items-center gap-y-4",
+        {
+          "hover:bg-blue-50 hover:border-solid hover:border-blue-500 cursor-pointer":
+            !disabled,
+        },
+        {
+          "bg-blue-50 border-solid border-blue-500": !disabled && isDragActive,
+        },
+        { "opacity-50 cursor-not-allowed": disabled },
+      )}
       {...getRootProps()}
     >
       <input
         type="file"
         accept=".png,.jpg,.jpeg"
         disabled={disabled}
+        // onChange={handleFileUpload}
         {...getInputProps()}
         {...otherProps}
-        onChange={registerImageUpload}
         style={{ display: "none" }}
       />
       <UploadIcon className="h-12 w-12 text-blue-500" />

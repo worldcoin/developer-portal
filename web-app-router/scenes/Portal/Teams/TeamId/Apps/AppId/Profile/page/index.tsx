@@ -27,6 +27,7 @@ export const AppProfilePage = ({
     },
     context: { headers: { team_id: teamId } },
   });
+
   const { data: images, loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
