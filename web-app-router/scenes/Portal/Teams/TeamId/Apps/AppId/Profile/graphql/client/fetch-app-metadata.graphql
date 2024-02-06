@@ -43,9 +43,4 @@ query FetchAppMetadata($id: String!) {
       verification_status
     }
   }
-  unverified_images: get_all_unverified_images(app_id: $id) {
-    logo_img_url
-    hero_image_url
-    showcase_img_urls
-  }
 }

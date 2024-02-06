@@ -55,12 +55,6 @@ export type FetchAppMetadataQuery = {
       verification_status: string;
     }>;
   }>;
-  unverified_images?: {
-    __typename?: "ImageGetAllUnverifiedImagesOutput";
-    logo_img_url?: string | null;
-    hero_image_url?: string | null;
-    showcase_img_urls?: Array<string> | null;
-  } | null;
 };
 
 export const FetchAppMetadataDocument = gql`
@@ -108,11 +102,6 @@ export const FetchAppMetadataDocument = gql`
         review_message
         verification_status
       }
-    }
-    unverified_images: get_all_unverified_images(app_id: $id) {
-      logo_img_url
-      hero_image_url
-      showcase_img_urls
     }
   }
 `;
