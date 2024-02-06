@@ -23,7 +23,7 @@ const schema = yup.object().shape({
       message: "Link must be a valid HTTPS URL",
       excludeEmptyString: true,
     })
-    .optional(),
+    .required("This field is required"),
   app_website_url: yup
     .string()
     .url("Must be a valid URL")
@@ -123,6 +123,14 @@ export const LinksForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <Input
+          label="Try it out"
+          required
+          errors={errors.integration_url}
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="https://"
+          register={register("integration_url")}
+        />
+        <Input
           label="Official website"
           errors={errors.app_website_url}
           disabled={!isEditable || !isEnoughPermissions}
@@ -135,13 +143,6 @@ export const LinksForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://"
           register={register("source_code_url")}
-        />
-        <Input
-          label="Try it out"
-          errors={errors.integration_url}
-          disabled={!isEditable || !isEnoughPermissions}
-          placeholder="https://"
-          register={register("integration_url")}
         />
       </div>
 
