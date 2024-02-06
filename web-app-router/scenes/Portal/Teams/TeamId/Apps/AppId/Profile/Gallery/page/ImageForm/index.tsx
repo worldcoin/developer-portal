@@ -67,27 +67,35 @@ export const ImageForm = (props: ImageFormTypes) => {
   }, [showcaseImgFileNames]);
 
   const deleteHeroImage = useCallback(async () => {
-    setUnverifiedImages({
-      ...unverifiedImages,
-      hero_image_url: "",
-    });
-
-    updateHeroImageMutation({
-      variables: {
-        app_metadata_id: appMetadataId,
+    try {
+      setUnverifiedImages({
+        ...unverifiedImages,
         hero_image_url: "",
-      },
-      context: { headers: { team_id: teamId } },
-      refetchQueries: [
-        {
-          query: FetchAppMetadataDocument,
-          variables: {
-            id: appId,
-          },
-          context: { headers: { team_id: teamId } },
+      });
+
+      const result = await updateHeroImageMutation({
+        variables: {
+          app_metadata_id: appMetadataId,
+          hero_image_url: "",
         },
-      ],
-    });
+        context: { headers: { team_id: teamId } },
+        refetchQueries: [
+          {
+            query: FetchAppMetadataDocument,
+            variables: {
+              id: appId,
+            },
+            context: { headers: { team_id: teamId } },
+          },
+        ],
+      });
+      if (result instanceof Error) {
+        throw result;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error deleting image");
+    }
   }, [appMetadataId, appId, teamId, updateHeroImageMutation, unverifiedImages]);
 
   const deleteShowcaseImage = useCallback(
@@ -101,7 +109,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         .map((fileName: string) => `"${fileName}"`)
         .join(",")}}`;
 
-      updateShowcaseImagesMutation({
+      const result = await updateShowcaseImagesMutation({
         variables: {
           app_metadata_id: appMetadataId,
           showcase_img_urls: formatted_showcase_img_urls,
@@ -118,6 +126,11 @@ export const ImageForm = (props: ImageFormTypes) => {
         ],
         awaitRefetchQueries: true,
       });
+
+      if (result instanceof Error) {
+        throw result;
+      }
+
       setUnverifiedImages({
         ...unverifiedImages,
         showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
@@ -159,7 +172,7 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
         if (imageType === "hero_image") {
-          await updateHeroImageMutation({
+          const result = await updateHeroImageMutation({
             variables: {
               app_metadata_id: appMetadataId,
               hero_image_url: `${imageType}.${saveFileType}`,
@@ -175,6 +188,9 @@ export const ImageForm = (props: ImageFormTypes) => {
               },
             ],
           });
+          if (result instanceof Error) {
+            throw result;
+          }
           setUnverifiedImages({
             ...unverifiedImages,
             [`${imageType}_url`]: imageUrl,
@@ -187,7 +203,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             .map((url: string) => `"${url}"`)
             .join(",")}}`;
 
-          await updateShowcaseImagesMutation({
+          const result = await updateShowcaseImagesMutation({
             variables: {
               app_metadata_id: appMetadataId,
               showcase_img_urls: formatted_showcase_img_urls,
@@ -204,6 +220,11 @@ export const ImageForm = (props: ImageFormTypes) => {
             ],
             awaitRefetchQueries: true,
           });
+
+          if (result instanceof Error) {
+            throw result;
+          }
+
           setUnverifiedImages({
             ...unverifiedImages,
             showcase_image_urls: [
