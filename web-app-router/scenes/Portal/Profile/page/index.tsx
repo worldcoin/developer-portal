@@ -12,6 +12,12 @@ import { useCallback, useEffect } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import { colorAtom } from "../../layout";
+import { useUser } from '@auth0/nextjs-auth0/client'
+import { FetchUserDocument, useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
+import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
+import { toast } from "react-toastify";
+import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
+import { Auth0SessionUser } from "@/lib/types";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -24,6 +30,18 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
+  const { user } = useUser() as Auth0SessionUser;
+
+  const { data } = useFetchUserQuery({
+    context: { headers: { team_id: '_' } },
+    variables: user?.hasura ? { user_id: user?.hasura.id } : undefined,
+    skip: !user?.hasura
+  })
+
+  const [updateUser] = useUpdateUserMutation({
+    context: { headers: { team_id: '_' } },
+  })
+
   const [color, setColor] = useAtom(colorAtom);
 
   const {
@@ -32,9 +50,9 @@ export const ProfilePage = () => {
     handleSubmit,
     formState: { isValid, errors, isSubmitting },
   } = useForm<FormValues>({
-    defaultValues: {
+    values: {
       color: color ?? colors["pink"],
-      name: "Lisa",
+      name: data?.user?.name ?? '',
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -47,63 +65,91 @@ export const ProfilePage = () => {
     setColor(selectedColor);
   }, [selectedColor, setColor]);
 
-  const submit = useCallback((values: FormValues) => {
-    console.log("CLIENT: ", values);
-  }, []);
+  const submit = useCallback(async (values: FormValues) => {
+    if (!user?.hasura) return;
+    try {
+      await updateUser({
+        variables: {
+          user_id: user?.hasura.id,
+          input: {
+            name: values.name,
+            //color: values.color,
+          },
+        },
+        refetchQueries: [
+          FetchUserDocument,
+        ]
+      })
+      toast.success("Profile saved!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error updating profile");
+    }
+  }, [updateUser, user?.hasura?.id]);
 
   return (
-    <SizingWrapper>
-      <div className="grid gap-y-8 m-auto py-8">
-        <Typography as="h1" variant={TYPOGRAPHY.H7}>
-          Profile settings
-        </Typography>
+    <>
+      <div className="pt-9">
+        <SizingWrapper className="grid gap-y-8">
+          <UserInfo name={name}/>
 
-        <form
-          className="grid gap-y-8 max-w-[36.25rem]"
-          onSubmit={handleSubmit(submit)}
-        >
-          <section className="p-6 border border-grey-200 rounded-12">
-            <Typography as="h2" variant={TYPOGRAPHY.R3}>
-              Avatar color
-            </Typography>
-
-            <Typography
-              as="p"
-              variant={TYPOGRAPHY.R4}
-              className="max-w-[22.5rem] mt-3 mb-6 text-grey-500"
-            >
-              Assigning colors randomly is the default, but feel free to switch
-              them if it`s necessary or preferred
-            </Typography>
-
-            <Controller
-              name="color"
-              control={control}
-              render={({ field }) => (
-                <ColorSelector value={field.value} onChange={field.onChange} />
-              )}
-            />
-          </section>
-
-          <Input
-            className="-mt-2"
-            label="Display name"
-            register={register("name")}
-            errors={errors.name}
-          />
-
-          <div>
-            <DecoratedButton
-              type="submit"
-              variant="primary"
-              className="py-4"
-              disabled={!isValid || isSubmitting}
-            >
-              Save changes
-            </DecoratedButton>
-          </div>
-        </form>
+          <div className="border-b border-grey-200 border-dashed" />
+        </SizingWrapper>
       </div>
-    </SizingWrapper>
+
+      <SizingWrapper>
+        <div className="grid gap-y-8 m-auto py-8">
+          <Typography as="h1" variant={TYPOGRAPHY.H7}>
+            Profile settings
+          </Typography>
+
+          <form
+            className="grid gap-y-8 max-w-[36.25rem]"
+            onSubmit={handleSubmit(submit)}
+          >
+            <section className="p-6 border border-grey-200 rounded-12">
+              <Typography as="h2" variant={TYPOGRAPHY.R3}>
+                Avatar color
+              </Typography>
+
+              <Typography
+                as="p"
+                variant={TYPOGRAPHY.R4}
+                className="max-w-[22.5rem] mt-3 mb-6 text-grey-500"
+              >
+                Assigning colors randomly is the default, but feel free to switch
+                them if it`s necessary or preferred
+              </Typography>
+
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <ColorSelector value={field.value} onChange={field.onChange} />
+                )}
+              />
+            </section>
+
+            <Input
+              className="-mt-2"
+              label="Display name"
+              register={register("name")}
+              errors={errors.name}
+            />
+
+            <div>
+              <DecoratedButton
+                type="submit"
+                variant="primary"
+                className="py-4"
+                disabled={!isValid || isSubmitting}
+              >
+                Save changes
+              </DecoratedButton>
+            </div>
+          </form>
+        </div>
+      </SizingWrapper>
+    </>
   );
 };

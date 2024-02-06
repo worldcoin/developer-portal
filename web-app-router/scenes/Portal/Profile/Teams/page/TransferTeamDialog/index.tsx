@@ -13,47 +13,70 @@ import {
   SelectOptions,
 } from "@/components/Select";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
-import * as yup from "yup";
-import { Controller, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useCallback } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { FetchMembersQuery, useFetchMembersQuery } from "./graphql/client/fetch-members.generated";
+import { FetchMembershipsDocument, FetchMembershipsQuery } from "../graphql/client/fetch-memberships.generated";
+import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
+import { toast } from "react-toastify";
+import { Auth0SessionUser } from "@/lib/types";
 
 type TransferTeamDialogProps = DialogProps & {
-  email: string;
-  teamName: string;
+  team?: FetchMembershipsQuery["memberships"][0]["team"];
 };
 
-const schema = yup.object({
-  user: yup.string().required("This field is required"),
-});
-
-type FormValues = yup.InferType<typeof schema>;
+type FormValues =  {
+  member: FetchMembersQuery["members"][0];
+};
 
 export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
-  const { ...otherProps } = props;
+  const { team, ...otherProps } = props;
 
-  const members = [
-    "qwer@qwer.qwer",
-    "qwer1@qwer.qwer",
-    "qwer2@qwer.qwer",
-    "qwer3@qwer.qwer",
-  ];
+  const { user } = useUser() as Auth0SessionUser;
+
+  const membersQueryRes = useFetchMembersQuery({
+    context: { headers: { team_id: team?.id } },
+    variables: !team || !user?.hasura ? undefined : {
+      user_id: user?.hasura.id,
+      team_id: team.id,
+    },
+    skip: !team || !user?.hasura,
+  })
+
+  const [transferMembership] = useTransferOwnershipMutation({
+    context: { headers: { team_id: team?.id } },
+  })
 
   const {
     control,
     handleSubmit,
     formState: { isValid, isSubmitting },
   } = useForm<FormValues>({
-    resolver: yupResolver(schema),
     mode: "onChange",
-    defaultValues: {
-      user: members[0],
-    },
   });
 
-  const submit = useCallback((values: FormValues) => {
-    console.log({ values });
-  }, []);
+  const member = useWatch({ control, name: "member" });
+
+  const submit = useCallback(async (values: FormValues) => {
+    if (!user?.hasura) return;
+    try {
+      await transferMembership({
+        variables: {
+          id: values.member.id,
+          user_id: user?.hasura.id,
+        },
+        refetchQueries: [
+          FetchMembershipsDocument
+        ]
+      })
+      toast.success("Ownership transferred!");
+      props.onClose(true);
+    } catch (e) {
+      console.error(e);
+      toast.error("Error ownership transferring");
+    }
+  }, [props, transferMembership, user?.hasura]);
 
   return (
     <Dialog {...otherProps}>
@@ -68,28 +91,41 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
           Transfer ownership
         </Typography>
 
-        <Notification variant="warning">
-          <span className="font-gta">
-            Are you sure you want to make{" "}
-            <span className="font-medium">{props.email}</span> the owner of{" "}
-            <span className="font-medium">{props.teamName}</span>? You can`t
-            undo this action.
-          </span>
-        </Notification>
+        {member && (
+          <Notification variant="warning">
+            <span className="font-gta">
+              Are you sure you want to make{" "}
+              <span className="font-medium">{member.user.name} ({member.user.email})</span> the owner of{" "}
+              <span className="font-medium">{team?.name}</span>? You can`t
+              undo this action.
+            </span>
+          </Notification>
+        )}
 
         <form
           className="w-full grid gap-y-10 mt-2"
           onSubmit={handleSubmit(submit)}
         >
           <Controller
-            name="user"
+            name="member"
             control={control}
+            rules={{ required: true }}
             render={({ field }) => {
               return (
-                <Select onChange={field.onChange}>
+                <Select
+                  by={(a, b) => a?.id === b?.id}
+                  value={field.value}
+                  onChange={field.onChange}
+                >
                   <SelectButton className="w-full grid grid-cols-1fr/auto items-center text-start relative py-3">
                     <Typography variant={TYPOGRAPHY.R3}>
-                      {field.value}
+                      {!field.value ? (
+                        <span className="text-gray-400">Select team member</span>
+                      ) : (
+                        <span>
+                          {field.value.user.name} ({field.value.user.email})
+                        </span>
+                      )}
                     </Typography>
 
                     <fieldset className="absolute inset-x-0 bottom-0 top-[-12px] border border-grey-200 rounded-lg pointer-events-none">
@@ -102,17 +138,15 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   </SelectButton>
 
                   <SelectOptions className="mt-2">
-                    {members
-                      .filter((m) => m !== field.value)
-                      .map((member, i) => (
-                        <SelectOption
-                          key={`${member}-${i}`}
-                          className="hover:bg-grey-100 transition"
-                          value={member}
-                        >
-                          {member}
-                        </SelectOption>
-                      ))}
+                    {membersQueryRes.data?.members.map((member, i) => (
+                      <SelectOption
+                        key={member.id}
+                        className="hover:bg-grey-100 transition"
+                        value={member}
+                      >
+                        {member.user.name} ({member.user.email})
+                      </SelectOption>
+                    ))}
                   </SelectOptions>
                 </Select>
               );
