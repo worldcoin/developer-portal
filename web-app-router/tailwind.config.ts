@@ -107,6 +107,7 @@ const config: Config = {
           success: {
             50: "#E9F8E9",
             100: "#F5FDF6",
+            300: "#66CC66",
             400: "#29CC29",
             500: "#00B800",
             700: "#00C313",
@@ -116,6 +117,7 @@ const config: Config = {
             50: "#FFFAE5",
             100: "#FFF9EF",
             200: "#FFE999",
+            300: "#FFE999",
             500: "#FFB200",
             700: "#FFB11B",
           },

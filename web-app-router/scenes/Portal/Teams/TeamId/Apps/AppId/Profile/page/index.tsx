@@ -18,7 +18,7 @@ export const AppProfilePage = ({
 }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
   const { data, loading } = useFetchAppMetadataQuery({
     variables: {
