@@ -162,7 +162,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
             Allow App Store listing
           </Typography>
-          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
             Once you submit your app for review, it can be placed in Worldcoin
             App Store, if it’s chosen to be displayed by the Worldcoin team.
           </Typography>
