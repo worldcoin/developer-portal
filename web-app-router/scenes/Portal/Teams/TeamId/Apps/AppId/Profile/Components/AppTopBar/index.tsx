@@ -115,7 +115,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (loading) return;
     const dataToSubmit = app.app_metadata[0];
     try {
-      await submitSchema.validate(dataToSubmit, { abortEarly: false });
+      const description = JSON.parse(dataToSubmit.description);
+      await submitSchema.validate(
+        { ...dataToSubmit, ...description },
+        { abortEarly: false },
+      );
       await updateAppVerificationStatusMutation({
         variables: {
           app_metadata_id: dataToSubmit.id,

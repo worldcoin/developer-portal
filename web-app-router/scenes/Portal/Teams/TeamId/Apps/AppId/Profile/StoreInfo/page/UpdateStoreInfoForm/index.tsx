@@ -65,14 +65,14 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const parseDescription = () => {
-    if (app && app) {
+  const parseDescription = (stringifiedDescription: string) => {
+    if (stringifiedDescription) {
       try {
-        return JSON.parse(app.description);
+        return JSON.parse(stringifiedDescription);
       } catch (error) {
         console.error("Failed to parse description:", error);
         return {
-          description_overview: app.description,
+          description_overview: stringifiedDescription,
           description_how_it_works: "",
           description_connect: "",
         };
@@ -92,7 +92,8 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
       [DescriptionSubFields.DescriptionConnect]: description_connect,
     });
   };
-  const description = parseDescription();
+
+  const description = parseDescription(app?.description ?? "");
 
   const {
     register,
@@ -107,6 +108,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
       world_app_description: app?.world_app_description,
     },
   });
+
   const worldAppDescription = watch("world_app_description");
   const remainingCharacters = 50 - (worldAppDescription?.length || 0);
 
@@ -147,13 +149,14 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     },
     [app?.id, updateAppInfoMutation, teamId, appId],
   );
+
   return (
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
       <Typography variant={TYPOGRAPHY.H7}>Permissions</Typography>
       <div className="grid grid-cols-auto/1fr py-6 px-5 border-[1px] rounded-xl border-grey-200 gap-x-4">
         <Checkbox
           register={register("is_developer_allow_listing")}
-          disabled={!isEditable && !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions}
         />
         <div className="grid gap-y-2">
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
@@ -179,7 +182,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           required
           rows={5}
           errors={errors.description_overview}
-          disabled={!isEditable && !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions}
           placeholder="Describe the project for the users who would like to try your integration"
           register={register("description_overview")}
         />
@@ -187,7 +190,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           label="How it works"
           rows={5}
           errors={errors.description_how_it_works}
-          disabled={!isEditable && !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions}
           placeholder="How do users interact with World ID in your app?"
           register={register("description_how_it_works")}
         />
@@ -195,7 +198,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           label="How to connect"
           rows={5}
           errors={errors.description_connect}
-          disabled={!isEditable && !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions}
           placeholder="Explain, if required, how users should set up this app to start using World ID."
           register={register("description_connect")}
         />
@@ -203,7 +206,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           label="World App Description"
           maxLength={50}
           errors={errors.world_app_description}
-          disabled={!isEditable && !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions}
           placeholder="Short description for display in the app"
           register={register("world_app_description")}
           addOnRight={
@@ -213,7 +216,11 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           }
         />
       </div>
-      <DecoratedButton type="submit" className="w-40 h-12">
+      <DecoratedButton
+        type="submit"
+        className="w-40 h-12"
+        disabled={!isEditable || !isEnoughPermissions}
+      >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>
     </form>
