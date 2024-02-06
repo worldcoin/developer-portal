@@ -80,7 +80,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client
+      client,
     ).CheckUserInApp({
       team_id: teamId,
       app_id: app_id,
