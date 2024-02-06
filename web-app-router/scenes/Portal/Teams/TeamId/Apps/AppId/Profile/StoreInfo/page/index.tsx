@@ -4,7 +4,7 @@ import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadat
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import { useAtom } from "jotai";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-import { AppTopBar } from "../../components/AppTopBar";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
 import Error from "next/error";
 import clsx from "clsx";
 import { UpdateStoreInfoForm } from "./UpdateStoreInfoForm";

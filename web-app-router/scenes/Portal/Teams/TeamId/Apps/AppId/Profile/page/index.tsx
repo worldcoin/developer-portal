@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { AppTopBar } from "../components/AppTopBar";
+import { AppTopBar } from "../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
@@ -27,6 +27,7 @@ export const AppProfilePage = ({
     },
     context: { headers: { team_id: teamId } },
   });
+
   const { data: images, loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
