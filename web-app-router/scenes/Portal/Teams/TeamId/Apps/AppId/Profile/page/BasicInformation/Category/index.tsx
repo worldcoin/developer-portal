@@ -20,41 +20,49 @@ export const CategorySelector = (props: {
   errors?: FieldError;
   label: string;
   helperText?: string;
+  disabled: boolean;
 }) => {
-  const { value, onChange, errors, label, helperText, className } = props;
+  const { value, onChange, errors, label, helperText, className, disabled } =
+    props;
 
   const parentClassNames = clsx(
-    "border-[1px] text-grey-700 rounded-lg bg-grey-0  text-sm hover:text-grey-700",
+    "border-[1px] text-grey-700 rounded-lg bg-grey-0 text-sm",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
-        !errors,
-      "border-system-error-500 text-system-error-500 ": errors,
-    },
+        !errors && !disabled,
+      "border-system-error-500 text-system-error-500 ": errors && !disabled,
+      "hover:text-grey-700": !disabled,
+      "bg-grey-50 text-grey-300 border-grey-200": disabled,
+    }
   );
   const selectorClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent py-1.5 h-full",
     {
       "text-grey-400": !errors && !value,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400 ":
-        true,
-    },
+        !disabled,
+    }
   );
   const labelClassNames = clsx("ml-2 px-[2px] peer-focus:text-blue-500", {
-    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700": !errors,
-    "text-system-error-500 peer-focus:text-system-error-500": errors,
+    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+      !errors && !disabled,
+    "text-system-error-500 peer-focus:text-system-error-500":
+      errors && !disabled,
+    "text-grey-400": disabled,
   });
 
   const handleSelect = useCallback(
     (newValue: number) => {
       onChange(Categories[newValue]);
     },
-    [onChange],
+    [onChange]
   );
 
   return (
     <Select
       value={value ? Categories.indexOf(value) : -1}
       onChange={handleSelect}
+      disabled={disabled}
       by={(a: number | null, b: number | null) => a === b}
     >
       <div className={"inline-grid font-gta"}>
@@ -66,18 +74,22 @@ export const CategorySelector = (props: {
               "text-left",
               selectorClassNames,
               "grid grid-cols-1fr/auto",
-              className,
+              className
             )}
           >
             <Typography variant={TYPOGRAPHY.R4}>
               {value ?? "Select a category"}
             </Typography>
-            <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700" />
+            <CaretIcon
+              className={clsx("ml-2 text-grey-400", {
+                "group-hover:text-grey-700": !disabled,
+              })}
+            />
           </SelectButton>
 
           <SelectOptions
             className={clsx(
-              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-40",
+              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-40"
             )}
           >
             {Categories.map((_, index) => (
