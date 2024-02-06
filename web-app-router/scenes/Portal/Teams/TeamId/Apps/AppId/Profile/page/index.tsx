@@ -27,7 +27,7 @@ export const AppProfilePage = ({
     },
     context: { headers: { team_id: teamId } },
   });
-  const { data: images } = useFetchImagesQuery({
+  const { data: images, loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
     },
@@ -47,7 +47,11 @@ export const AppProfilePage = ({
     <Error statusCode={404} title="Action not found" />;
   } else {
     return (
-      <div className={clsx("py-8 gap-y-4 grid", { hidden: loading })}>
+      <div
+        className={clsx("py-8 gap-y-4 grid", {
+          hidden: loading || loadingImages,
+        })}
+      >
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <BasicInformation appId={appId} teamId={teamId} app={app} />
