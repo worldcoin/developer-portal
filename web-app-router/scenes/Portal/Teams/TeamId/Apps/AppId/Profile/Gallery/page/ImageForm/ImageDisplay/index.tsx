@@ -14,7 +14,7 @@ export const ImageDisplay = (props: {
   return (
     <Image
       src={src}
-      alt="verified"
+      alt="image"
       className={className}
       width={width}
       height={height}
