@@ -1,5 +1,5 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { ImageDropZone } from "./ImageDropZone";
+import { ImageDropZone } from "@/components/ImageDropZone";
 import { unverifiedImageAtom, viewModeAtom } from "../../../layout";
 import { useAtom } from "jotai";
 import { ImageDisplay } from "./ImageDisplay";
@@ -18,6 +18,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import clsx from "clsx";
+import { UploadIcon } from "@/components/Icons/UploadIcon";
 
 type ImageFormTypes = {
   appId: string;
@@ -58,6 +59,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     app?.app_metadata.length === 0;
 
   const nextShowcaseImgName = useMemo(() => {
+    if (!showcaseImgFileNames) return SHOWCASE_IMAGE_NAMES[0];
     return SHOWCASE_IMAGE_NAMES.find(
       (name: string) =>
         !showcaseImgFileNames.find((existingFileName: string) =>
@@ -96,7 +98,14 @@ export const ImageForm = (props: ImageFormTypes) => {
       console.error(error);
       toast.error("Error deleting image");
     }
-  }, [appMetadataId, appId, teamId, updateHeroImageMutation, unverifiedImages]);
+  }, [
+    setUnverifiedImages,
+    unverifiedImages,
+    updateHeroImageMutation,
+    appMetadataId,
+    teamId,
+    appId,
+  ]);
 
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
@@ -139,11 +148,13 @@ export const ImageForm = (props: ImageFormTypes) => {
       });
     },
     [
-      unverifiedImages?.showcase_image_urls,
-      appMetadataId,
-      appId,
-      teamId,
+      showcaseImgFileNames,
       updateShowcaseImagesMutation,
+      appMetadataId,
+      teamId,
+      appId,
+      setUnverifiedImages,
+      unverifiedImages,
     ],
   );
 
@@ -271,7 +282,23 @@ export const ImageForm = (props: ImageFormTypes) => {
         }
         uploadImage={uploadImage}
         imageType={"hero_image"}
-      />
+      >
+        <UploadIcon className="h-12 w-12 text-blue-500" />
+        <div className="gap-y-2">
+          <div className="text-center">
+            <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+              Click to upload
+            </Typography>{" "}
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+              {" "}
+              or drag and drop
+            </Typography>
+          </div>
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+            {`JPG or PNG (max 250kb), required size ${1600}x${1200}px`}
+          </Typography>
+        </div>
+      </ImageDropZone>
 
       {unverifiedImages.hero_image_url && (
         <div className="relative w-fit h-fit">
@@ -310,7 +337,23 @@ export const ImageForm = (props: ImageFormTypes) => {
         uploadImage={uploadImage}
         disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
         imageType={nextShowcaseImgName}
-      />
+      >
+        <UploadIcon className="h-12 w-12 text-blue-500" />
+        <div className="gap-y-2">
+          <div className="text-center">
+            <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+              Click to upload
+            </Typography>{" "}
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+              {" "}
+              or drag and drop
+            </Typography>
+          </div>
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+            {`JPG or PNG (max 250kb), required size ${1920}x${1080}px`}
+          </Typography>
+        </div>
+      </ImageDropZone>
       <div className="grid grid-cols-3">
         {unverifiedImages.showcase_image_urls &&
           unverifiedImages.showcase_image_urls.map((url, index) => (

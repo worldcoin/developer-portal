@@ -1,13 +1,9 @@
 "use client";
-import { UploadIcon } from "@/components/Icons/UploadIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { toast } from "react-toastify";
 
 type ImageDropZoneProps = {
-  registerImageUpload?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   width: number;
   height: number;
@@ -18,16 +14,17 @@ type ImageDropZoneProps = {
     width: number,
   ) => void;
   imageType?: string;
+  children?: React.ReactNode;
 };
 
 export const ImageDropZone = (props: ImageDropZoneProps) => {
   const {
-    registerImageUpload,
     disabled,
     width,
     height,
     uploadImage,
     imageType,
+    children,
     ...otherProps
   } = props;
 
@@ -37,7 +34,7 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
         uploadImage(imageType, acceptedFiles[0], height, width);
       }
     },
-    [uploadImage, imageType],
+    [uploadImage, imageType, height, width],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -64,26 +61,12 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
         type="file"
         accept=".png,.jpg,.jpeg"
         disabled={disabled}
-        // onChange={handleFileUpload}
         {...getInputProps()}
         {...otherProps}
         style={{ display: "none" }}
+        className="hidden"
       />
-      <UploadIcon className="h-12 w-12 text-blue-500" />
-      <div className="gap-y-2">
-        <div className="text-center">
-          <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-            Click to upload
-          </Typography>{" "}
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-            {" "}
-            or drag and drop
-          </Typography>
-        </div>
-        <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-          {`JPG or PNG (max 250kb), required size ${width}x${height}px`}
-        </Typography>
-      </div>
+      {children}
     </label>
   );
 };
