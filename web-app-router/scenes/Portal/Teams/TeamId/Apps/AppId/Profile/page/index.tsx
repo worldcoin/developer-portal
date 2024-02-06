@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { AppTopBar } from "../components/AppTopBar";
+import { AppTopBar } from "../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";

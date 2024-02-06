@@ -1,6 +1,6 @@
 "use client";
 import { useAtom } from "jotai";
-import { AppTopBar } from "../../components/AppTopBar";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { unverifiedImageAtom } from "../../layout";
 import { ImageForm } from "./ImageForm";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
