@@ -109,61 +109,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
-  const submitForReview = useCallback(
-    async (loading: boolean) => {
-      if (loading) return;
-      const dataToSubmit = app.app_metadata[0];
-      try {
-        const description = JSON.parse(dataToSubmit.description);
-        await submitSchema.validate(
-          { ...dataToSubmit, ...description },
-          { abortEarly: false },
-        );
-        await updateAppVerificationStatusMutation({
-          variables: {
-            app_metadata_id: dataToSubmit.id,
-            verification_status: "awaiting_review",
-          },
-          context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: {
-                id: appId,
-              },
-              context: { headers: { team_id: teamId } },
-            },
-          ],
-          awaitRefetchQueries: true,
-        });
-        toast.success("App submitted for review");
-      } catch (error) {
-        if (error instanceof yup.ValidationError) {
-          toast.error(error.errors[0]);
-          return;
-        } else {
-          console.error(error);
-          toast.error("Error occurred while submitting app for review");
-        }
-      }
-    },
-    [
-      app.app_metadata,
-      appId,
-      loading,
-      teamId,
-      updateAppVerificationStatusMutation,
-    ],
-  );
-
-  const removeFromReview = useCallback(
-    async (loading: boolean) => {
-      if (loading) return;
-      const appMetadataId = app.app_metadata[0].id;
+  const submitForReview = useCallback(async () => {
+    if (loading) return;
+    const dataToSubmit = app.app_metadata[0];
+    try {
+      const description = JSON.parse(dataToSubmit.description);
+      await submitSchema.validate(
+        { ...dataToSubmit, ...description },
+        { abortEarly: false },
+      );
       await updateAppVerificationStatusMutation({
         variables: {
-          app_metadata_id: appMetadataId,
-          verification_status: "unverified",
+          app_metadata_id: dataToSubmit.id,
+          verification_status: "awaiting_review",
         },
         context: { headers: { team_id: teamId } },
         refetchQueries: [
@@ -177,9 +135,51 @@ export const AppTopBar = (props: AppTopBarProps) => {
         ],
         awaitRefetchQueries: true,
       });
-    },
-    [app.app_metadata, updateAppVerificationStatusMutation, teamId, appId],
-  );
+      toast.success("App submitted for review");
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        toast.error(error.errors[0]);
+        return;
+      } else {
+        console.error(error);
+        toast.error("Error occurred while submitting app for review");
+      }
+    }
+  }, [
+    app.app_metadata,
+    appId,
+    loading,
+    teamId,
+    updateAppVerificationStatusMutation,
+  ]);
+
+  const removeFromReview = useCallback(async () => {
+    if (loading) return;
+    const appMetadataId = app.app_metadata[0].id;
+    await updateAppVerificationStatusMutation({
+      variables: {
+        app_metadata_id: appMetadataId,
+        verification_status: "unverified",
+      },
+      context: { headers: { team_id: teamId } },
+      refetchQueries: [
+        {
+          query: FetchAppMetadataDocument,
+          variables: {
+            id: appId,
+          },
+          context: { headers: { team_id: teamId } },
+        },
+      ],
+      awaitRefetchQueries: true,
+    });
+  }, [
+    app.app_metadata,
+    loading,
+    updateAppVerificationStatusMutation,
+    teamId,
+    appId,
+  ]);
 
   const createNewDraft = useCallback(async () => {
     try {
@@ -279,7 +279,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <DecoratedButton
               type="submit"
               className="px-6 py-3 h-12"
-              onClick={() => submitForReview(loading)}
+              onClick={submitForReview}
             >
               <Typography variant={TYPOGRAPHY.M3}>Submit for review</Typography>
             </DecoratedButton>
@@ -295,7 +295,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <DecoratedButton
               type="submit"
               className="px-6 py-3 h-12"
-              onClick={() => removeFromReview(loading)}
+              onClick={removeFromReview}
             >
               <Typography variant={TYPOGRAPHY.M3}>
                 Remove from review
