@@ -9,7 +9,8 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  label: string;
+  label?: string;
+  labelNode?: React.ReactNode;
   placeholder?: string;
   helperText?: string;
   addOnLeft?: React.ReactElement;
@@ -23,6 +24,7 @@ export const Input = memo(function Input(props: InputInterface) {
     required,
     helperText,
     label,
+    labelNode,
     placeholder,
     className,
     errors,
@@ -87,7 +89,8 @@ export const Input = memo(function Input(props: InputInterface) {
         <div className="flex items-center">{addOnRight && addOnRight}</div>
 
         <legend className={labelClassNames}>
-          {label} {required && <span className="text-system-error-500">*</span>}
+          {labelNode ? labelNode : label}{" "}
+          {required && <span className="text-system-error-500">*</span>}
         </legend>
       </fieldset>
       <div className={clsx("flex flex-col w-full px-2")}>
