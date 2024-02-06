@@ -46,7 +46,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     {
       "hover:text-grey-700": !disabled,
       "bg-grey-50 text-grey-300 border-grey-200": disabled,
-    }
+    },
   );
   const inputClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
@@ -54,7 +54,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
-    }
+    },
   );
 
   const labelClassNames = clsx(
@@ -66,7 +66,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
         errors && !disabled,
       "text-grey-400": disabled,
       "px-0": label === "",
-    }
+    },
   );
 
   return (
@@ -74,7 +74,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
       <fieldset
         className={twMerge(
           clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),
-          typeof className === "string" ? className : undefined
+          typeof className === "string" ? className : undefined,
         )}
       >
         <div className="flex items-center">

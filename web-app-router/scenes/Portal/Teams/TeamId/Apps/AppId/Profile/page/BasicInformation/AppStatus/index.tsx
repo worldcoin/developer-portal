@@ -24,7 +24,7 @@ export const AppStatus = (props: {
           {
             "text-system-success-500 bg-system-success-50": status,
             "text-grey-400 bg-gray-50": !status,
-          }
+          },
         )}
       >
         <div

@@ -107,24 +107,17 @@ const config: Config = {
           success: {
             50: "#E9F8E9",
             100: "#F5FDF6",
-<<<<<<< HEAD
-=======
             300: "#66CC66",
->>>>>>> andywang-wid-711-app-profile-overview-2
             500: "#00B800",
             700: "#00C313",
           },
 
           warning: {
-<<<<<<< HEAD
-            100: "#FFF9EF",
-=======
             50: "#FFFAE5",
             100: "#FFF9EF",
             200: "#FFE999",
             300: "#FFE999",
             500: "#FFB200",
->>>>>>> andywang-wid-711-app-profile-overview-2
             700: "#FFB11B",
           },
         },
