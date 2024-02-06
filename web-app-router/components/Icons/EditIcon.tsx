@@ -1,5 +1,4 @@
-export const EditIcon = (props: { className?: string }) => {
-  const { className } = props;
+export const EditIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       width="16"

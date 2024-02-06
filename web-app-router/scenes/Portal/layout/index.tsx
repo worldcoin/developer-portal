@@ -1,19 +1,21 @@
-import { urls } from "@/lib/urls";
 import { ReactNode } from "react";
-import { TeamSelector } from "@/scenes/Portal/layout/TeamSelector";
+import { Header } from "./Header";
+import { atom } from "jotai";
+import { getSession } from "@auth0/nextjs-auth0";
+import { Auth0SessionUser } from "@/lib/types";
+import { calculateColorFromString } from "@/lib/calculate-color-from-string";
+import { Color } from "../Profile/types";
 
-export const PortalLayout = (props: { children: ReactNode }) => {
+export const colorAtom = atom<Color | null>(null);
+
+export const PortalLayout = async (props: { children: ReactNode }) => {
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
+  const initialColor = calculateColorFromString(user?.name ?? user?.email);
+
   return (
     <div>
-      <header className="flex justify-between items-center p-4 border border-black w-full">
-        <span>Logo</span>
-        <TeamSelector />
-
-        <a className="hover:opacity-60 transition" href={urls.logout()}>
-          Logout
-        </a>
-      </header>
-
+      <Header color={initialColor} />
       <div>{props.children}</div>
     </div>
   );

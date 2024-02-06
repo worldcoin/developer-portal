@@ -133,12 +133,13 @@ module.exports = {
 
   hooks: {
     afterAllFileWrite: [
-      (...filePaths) => {
+      async (...filePaths) => {
         for (const path of filePaths) {
           const rawText = fs.readFileSync(path, "utf8");
-          const formattedText = prettier.format(rawText, {
+          const formattedText = await prettier.format(rawText, {
             parser: "typescript",
           });
+
           fs.writeFileSync(path, formattedText);
         }
       },
