@@ -83,7 +83,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [status],
+    [status]
   );
 
   return (
