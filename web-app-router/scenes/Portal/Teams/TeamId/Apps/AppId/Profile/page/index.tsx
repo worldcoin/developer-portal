@@ -10,13 +10,9 @@ import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
 };
 
-export const AppProfilePage = ({
-  params,
-  searchParams,
-}: AppProfilePageProps) => {
+export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -28,7 +24,7 @@ export const AppProfilePage = ({
     context: { headers: { team_id: teamId } },
   });
 
-  const { data: images, loading: loadingImages } = useFetchImagesQuery({
+  const { loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
     },

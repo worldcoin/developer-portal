@@ -107,22 +107,63 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [updateAppVerificationStatusMutation, { loading }] =
     useUpdateAppVerificationStatusMutation({});
 
-  const [createEditableRowMutation, { loading: creatingRow }] =
-    useCreateEditableRowMutation({});
+  const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
-  const submitForReview = async () => {
-    if (loading) return;
-    const dataToSubmit = app.app_metadata[0];
-    try {
-      const description = JSON.parse(dataToSubmit.description);
-      await submitSchema.validate(
-        { ...dataToSubmit, ...description },
-        { abortEarly: false },
-      );
+  const submitForReview = useCallback(
+    async (loading: boolean) => {
+      if (loading) return;
+      const dataToSubmit = app.app_metadata[0];
+      try {
+        const description = JSON.parse(dataToSubmit.description);
+        await submitSchema.validate(
+          { ...dataToSubmit, ...description },
+          { abortEarly: false },
+        );
+        await updateAppVerificationStatusMutation({
+          variables: {
+            app_metadata_id: dataToSubmit.id,
+            verification_status: "awaiting_review",
+          },
+          context: { headers: { team_id: teamId } },
+          refetchQueries: [
+            {
+              query: FetchAppMetadataDocument,
+              variables: {
+                id: appId,
+              },
+              context: { headers: { team_id: teamId } },
+            },
+          ],
+          awaitRefetchQueries: true,
+        });
+        toast.success("App submitted for review");
+      } catch (error) {
+        if (error instanceof yup.ValidationError) {
+          toast.error(error.errors[0]);
+          return;
+        } else {
+          console.error(error);
+          toast.error("Error occurred while submitting app for review");
+        }
+      }
+    },
+    [
+      app.app_metadata,
+      appId,
+      loading,
+      teamId,
+      updateAppVerificationStatusMutation,
+    ],
+  );
+
+  const removeFromReview = useCallback(
+    async (loading: boolean) => {
+      if (loading) return;
+      const appMetadataId = app.app_metadata[0].id;
       await updateAppVerificationStatusMutation({
         variables: {
-          app_metadata_id: dataToSubmit.id,
-          verification_status: "awaiting_review",
+          app_metadata_id: appMetadataId,
+          verification_status: "unverified",
         },
         context: { headers: { team_id: teamId } },
         refetchQueries: [
@@ -136,39 +177,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
         ],
         awaitRefetchQueries: true,
       });
-      toast.success("App submitted for review");
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        toast.error(error.errors[0]);
-        return;
-      } else {
-        console.error(error);
-        toast.error("Error occurred while submitting app for review");
-      }
-    }
-  };
-
-  const removeFromReview = useCallback(async () => {
-    if (loading) return;
-    const appMetadataId = app.app_metadata[0].id;
-    await updateAppVerificationStatusMutation({
-      variables: {
-        app_metadata_id: appMetadataId,
-        verification_status: "unverified",
-      },
-      context: { headers: { team_id: teamId } },
-      refetchQueries: [
-        {
-          query: FetchAppMetadataDocument,
-          variables: {
-            id: appId,
-          },
-          context: { headers: { team_id: teamId } },
-        },
-      ],
-      awaitRefetchQueries: true,
-    });
-  }, [teamId, appId, updateAppVerificationStatusMutation]);
+    },
+    [app.app_metadata, updateAppVerificationStatusMutation, teamId, appId],
+  );
 
   const createNewDraft = useCallback(async () => {
     try {
@@ -215,7 +226,23 @@ export const AppTopBar = (props: AppTopBarProps) => {
       console.error(error.message);
       toast.error("Error creating a new draft");
     }
-  }, [appMetaData, createEditableRowMutation]);
+  }, [
+    app,
+    appId,
+    appMetaData.app_website_url,
+    appMetaData.category,
+    appMetaData.description,
+    appMetaData.hero_image_url,
+    appMetaData.integration_url,
+    appMetaData.is_developer_allow_listing,
+    appMetaData.logo_img_url,
+    appMetaData.name,
+    appMetaData.showcase_img_urls,
+    appMetaData.source_code_url,
+    appMetaData.world_app_description,
+    createEditableRowMutation,
+    teamId,
+  ]);
 
   // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
   const _getImageEndpoint = (imageType: string) => {
@@ -252,7 +279,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <DecoratedButton
               type="submit"
               className="px-6 py-3 h-12"
-              onClick={submitForReview}
+              onClick={() => submitForReview(loading)}
             >
               <Typography variant={TYPOGRAPHY.M3}>Submit for review</Typography>
             </DecoratedButton>
@@ -268,7 +295,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <DecoratedButton
               type="submit"
               className="px-6 py-3 h-12"
-              onClick={removeFromReview}
+              onClick={() => removeFromReview(loading)}
             >
               <Typography variant={TYPOGRAPHY.M3}>
                 Remove from review
