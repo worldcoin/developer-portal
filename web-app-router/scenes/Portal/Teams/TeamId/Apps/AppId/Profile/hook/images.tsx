@@ -8,7 +8,7 @@ export const useImage = () => {
     fileType: string, // png, jpeg
     appId: string,
     teamId: string,
-    imageType: string // logo, showcase, hero
+    imageType: string, // logo, showcase, hero
   ) => {
     const response = await getUploadedImage({
       variables: {
@@ -28,7 +28,7 @@ export const useImage = () => {
   const validateImageDimensions = (
     file: File,
     width: number,
-    height: number
+    height: number,
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -60,7 +60,7 @@ export const useImage = () => {
     file: File,
     appId: string,
     teamId: string,
-    imageType: string
+    imageType: string,
   ) => {
     const response = await uploadImage({
       variables: {
@@ -79,7 +79,7 @@ export const useImage = () => {
     const fields = JSON.parse(stringifiedFields);
     const formData = new FormData();
     Object.entries(fields).forEach(([key, value]) =>
-      formData.append(key, value as string)
+      formData.append(key, value as string),
     );
     formData.append("Content-Type", file.type);
     formData.append("file", file);
@@ -90,7 +90,7 @@ export const useImage = () => {
     if (!uploadResponse.ok) {
       const errorBody = await uploadResponse.json();
       throw new Error(
-        `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`
+        `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
     }
   };

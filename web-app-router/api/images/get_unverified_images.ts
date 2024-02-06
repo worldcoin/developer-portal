@@ -72,7 +72,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     const client = await getAPIServiceGraphqlClient();
     const { app: appInfo } = await getUnverifiedImagesSDK(
-      client
+      client,
     ).GetUnverifiedImages({
       team_id: teamId,
       app_id: app_id as string,
@@ -110,7 +110,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
       urlPromises.push(
         getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
           logo_img_url: url,
-        }))
+        })),
       );
     }
 
@@ -122,8 +122,8 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
             Bucket: bucketName,
             Key: objectKey + app.hero_image_url,
           }),
-          { expiresIn: 7200 }
-        ).then((url) => ({ hero_image_url: url }))
+          { expiresIn: 7200 },
+        ).then((url) => ({ hero_image_url: url })),
       );
     }
 
@@ -135,8 +135,8 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
             Bucket: bucketName,
             Key: objectKey + key,
           }),
-          { expiresIn: 7200 }
-        )
+          { expiresIn: 7200 },
+        ),
       );
       const showcaseUrls = await Promise.all(showcaseUrlPromises);
       urlPromises.push({ showcase_img_urls: showcaseUrls });
@@ -146,7 +146,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
     const signedUrls = await Promise.all(urlPromises);
     const formattedSignedUrl = signedUrls.reduce(
       (a, urlObj) => ({ ...a, ...urlObj }),
-      {}
+      {},
     );
     res.status(200).json({
       ...formattedSignedUrl,
@@ -159,7 +159,7 @@ export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
       "internal_server_error",
       "Unable to get images",
       null,
-      req
+      req,
     );
   }
 };
