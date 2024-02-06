@@ -16,6 +16,7 @@ interface TextAreaInterface
   addOn?: React.ReactElement;
   addOnPosition?: "left" | "right";
   className?: string;
+  rows?: number;
 }
 
 export const TextArea = memo(function TextArea(props: TextAreaInterface) {
@@ -30,6 +31,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     addOn,
     addOnPosition,
     disabled,
+    rows,
     ...restProps
   } = props;
 
@@ -82,6 +84,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
         <textarea
           {...register}
           {...restProps}
+          rows={rows}
           className={clsx(inputClassNames)}
           placeholder={placeholder}
           disabled={disabled}

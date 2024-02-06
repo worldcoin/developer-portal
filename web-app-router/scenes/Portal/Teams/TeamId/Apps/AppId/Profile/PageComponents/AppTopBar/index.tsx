@@ -8,14 +8,14 @@ import {
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useAtom } from "jotai";
 import { viewModeAtom } from "../../layout";
-import { LogoImageUpload } from "./LogoImageUpload";
-import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { useCallback, useMemo } from "react";
 import { Role_Enum } from "@/graphql/graphql";
+import { LogoImageUpload } from "./LogoImageUpload";
+import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 
 type AppTopBarProps = {
@@ -57,7 +57,7 @@ const submitSchema = yup.object().shape({
     .url("Integration URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "Integration URL is not a valid url"
+      "Integration URL is not a valid url",
     )
     .required("Integration URL is required"),
   app_website_url: yup
@@ -87,7 +87,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -114,7 +114,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (loading) return;
     const dataToSubmit = app.app_metadata[0];
     try {
-      await submitSchema.validate(dataToSubmit, { abortEarly: false });
+      const description = JSON.parse(dataToSubmit.description);
+      await submitSchema.validate(
+        { ...dataToSubmit, ...description },
+        { abortEarly: false },
+      );
       await updateAppVerificationStatusMutation({
         variables: {
           app_metadata_id: dataToSubmit.id,
@@ -183,14 +187,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
           source_code_url: appMetaData.source_code_url,
           integration_url: appMetaData.integration_url,
           logo_img_url: `logo_img.${_getImageEndpoint(
-            appMetaData.logo_img_url
+            appMetaData.logo_img_url,
           )}`,
           hero_image_url: `hero_image.${_getImageEndpoint(
-            appMetaData.hero_image_url
+            appMetaData.hero_image_url,
           )}`,
           showcase_img_urls: appMetaData.showcase_img_urls?.map(
             (img: string, index: number) =>
-              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
+              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
           ),
           verification_status: "unverified",
         },
