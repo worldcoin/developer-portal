@@ -3,35 +3,33 @@ import { LinkIcon } from "@/components/Icons/LinkIcon";
 import { SmartPhoneIcon } from "@/components/Icons/SmartPhoneIcon";
 import { StartUpIcon } from "@/components/Icons/StartUp";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 
 type EnvironmentProps = {
   environment: string;
   engine: string;
 };
 
-const environmentStyles = {
-  production: {
-    normal: "bg-grey-100 text-system-success-700",
-  },
-  staging: {
-    normal: "bg-system-warning-100 text-system-warning-700",
-  },
-};
-
 export const Environment = (props: EnvironmentProps) => {
   const { environment, engine } = props;
   return (
     <div className="flex flex-row gap-x-4 items-center ">
-      <div className="text-system-success-500 py-1 rounded-3xl">
+      <div className="py-1 rounded-3xl">
         <div className="flex flex-row gap-x-2">
           {environment === "production" && (
-            <StartUpIcon className="w-4 h-auto" />
+            <StartUpIcon className="w-4 h-auto text-system-success-300 " />
           )}
           {environment === "staging" && (
-            <SmartPhoneIcon className="w-4 h-auto" />
+            <SmartPhoneIcon className="w-4 h-auto text-system-warning-300" />
           )}
 
-          <Typography variant={TYPOGRAPHY.R4} className="capitalize">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className={clsx("capitalize", {
+              "text-system-success-500": environment === "production",
+              "text-system-warning-500": environment === "staging",
+            })}
+          >
             {environment}
           </Typography>
         </div>
