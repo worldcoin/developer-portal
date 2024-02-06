@@ -56,6 +56,7 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
+      if (loading) return;
       try {
         const result = await updateAppInfoMutation({
           variables: {
@@ -82,7 +83,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [status],
+    [status]
   );
 
   return (
