@@ -14,8 +14,11 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
 
 const schema = yup.object({
   name: yup
@@ -35,6 +38,21 @@ export const BasicInformation = (props: {
   const { appId, teamId, app } = props;
   const [status, setStatus] = useState(app.status === "active");
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
+  const { user } = useUser() as Auth0SessionUser;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === teamId
+    );
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [teamId, user?.hasura.memberships]);
+
+  const isEditable =
+    app?.app_metadata[0]?.verification_status === "unverified" ||
+    app?.app_metadata.length === 0;
 
   const {
     register,
@@ -83,7 +101,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [status],
+    [status]
   );
 
   return (
@@ -91,11 +109,16 @@ export const BasicInformation = (props: {
       <div className="">
         <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
           <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
-          <AppStatus status={status} setStatus={setStatus} />
+          <AppStatus
+            status={status}
+            setStatus={setStatus}
+            disabled={!isEditable || !isEnoughPermissions}
+          />
           <Input
             register={register("name")}
             errors={errors.name}
             label="App name"
+            disabled={!isEditable || !isEnoughPermissions}
             required
             placeholder="Enter your App Name"
           />
@@ -106,6 +129,7 @@ export const BasicInformation = (props: {
               return (
                 <CategorySelector
                   value={field.value}
+                  disabled={!isEditable || !isEnoughPermissions}
                   onChange={field.onChange}
                   errors={errors.category}
                   label="Category"

@@ -25,9 +25,10 @@ type LogoImageUploadProps = {
   appId: string;
   appMetadataId: string;
   teamId: string;
+  editable: boolean;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const { appId, appMetadataId, teamId } = props;
+  const { appId, appMetadataId, teamId, editable } = props;
   const [showDialog, setShowDialog] = useState(false);
   const [mode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -36,7 +37,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
-
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = () => {
@@ -60,7 +60,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType,
+          imageType
         );
         setUnverifiedImages({
           ...unverifiedImages,
@@ -108,7 +108,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   return (
     <div
       className={clsx(
-        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative",
+        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative"
       )}
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
@@ -194,7 +194,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       <Button
         type="button"
         onClick={() => setShowDialog(true)}
-        className="absolute -bottom-2 -right-2 p-2 bg-white rounded-full border-2 border-grey-200 text-grey-500 hover:bg-grey-50"
+        className={clsx(
+          "absolute -bottom-2 -right-2 p-2 bg-white rounded-full border-2 border-grey-200 text-grey-500 hover:bg-grey-50",
+          { hidden: !editable }
+        )}
       >
         <EditIcon className="w-3 h-3 " />
       </Button>
