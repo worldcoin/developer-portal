@@ -4,12 +4,12 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type SubmitAppMutationVariables = Types.Exact<{
+export type UpdateAppVerificationStatusMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
   verification_status: Types.Scalars["String"];
 }>;
 
-export type SubmitAppMutation = {
+export type UpdateAppVerificationStatusMutation = {
   __typename?: "mutation_root";
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
@@ -17,8 +17,11 @@ export type SubmitAppMutation = {
   } | null;
 };
 
-export const SubmitAppDocument = gql`
-  mutation SubmitApp($app_metadata_id: String!, $verification_status: String!) {
+export const UpdateAppVerificationStatusDocument = gql`
+  mutation UpdateAppVerificationStatus(
+    $app_metadata_id: String!
+    $verification_status: String!
+  ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
       _set: { verification_status: $verification_status }
@@ -27,46 +30,48 @@ export const SubmitAppDocument = gql`
     }
   }
 `;
-export type SubmitAppMutationFn = Apollo.MutationFunction<
-  SubmitAppMutation,
-  SubmitAppMutationVariables
+export type UpdateAppVerificationStatusMutationFn = Apollo.MutationFunction<
+  UpdateAppVerificationStatusMutation,
+  UpdateAppVerificationStatusMutationVariables
 >;
 
 /**
- * __useSubmitAppMutation__
+ * __useUpdateAppVerificationStatusMutation__
  *
- * To run a mutation, you first call `useSubmitAppMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSubmitAppMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUpdateAppVerificationStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAppVerificationStatusMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [submitAppMutation, { data, loading, error }] = useSubmitAppMutation({
+ * const [updateAppVerificationStatusMutation, { data, loading, error }] = useUpdateAppVerificationStatusMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
  *      verification_status: // value for 'verification_status'
  *   },
  * });
  */
-export function useSubmitAppMutation(
+export function useUpdateAppVerificationStatusMutation(
   baseOptions?: Apollo.MutationHookOptions<
-    SubmitAppMutation,
-    SubmitAppMutationVariables
+    UpdateAppVerificationStatusMutation,
+    UpdateAppVerificationStatusMutationVariables
   >,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<SubmitAppMutation, SubmitAppMutationVariables>(
-    SubmitAppDocument,
-    options,
-  );
+  return Apollo.useMutation<
+    UpdateAppVerificationStatusMutation,
+    UpdateAppVerificationStatusMutationVariables
+  >(UpdateAppVerificationStatusDocument, options);
 }
-export type SubmitAppMutationHookResult = ReturnType<
-  typeof useSubmitAppMutation
+export type UpdateAppVerificationStatusMutationHookResult = ReturnType<
+  typeof useUpdateAppVerificationStatusMutation
 >;
-export type SubmitAppMutationResult = Apollo.MutationResult<SubmitAppMutation>;
-export type SubmitAppMutationOptions = Apollo.BaseMutationOptions<
-  SubmitAppMutation,
-  SubmitAppMutationVariables
->;
+export type UpdateAppVerificationStatusMutationResult =
+  Apollo.MutationResult<UpdateAppVerificationStatusMutation>;
+export type UpdateAppVerificationStatusMutationOptions =
+  Apollo.BaseMutationOptions<
+    UpdateAppVerificationStatusMutation,
+    UpdateAppVerificationStatusMutationVariables
+  >;

@@ -133,8 +133,8 @@ export const Configuration = memo(function Configuration() {
   const currentApp = useAppStore((store) => store.currentApp);
   const { updateAppMetadata, parseDescription, encodeDescription } = useApps();
   const router = useRouter();
-  const { user } = useUser() as Auth0SessionUser;
   const team_id = router.query.team_id as string;
+  const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
