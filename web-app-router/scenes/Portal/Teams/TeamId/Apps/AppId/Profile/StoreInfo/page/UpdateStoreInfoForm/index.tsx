@@ -57,7 +57,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -84,7 +84,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const encodeDescription = (
     description_overview: string,
     description_how_it_works: string = "",
-    description_connect: string = ""
+    description_connect: string = "",
   ) => {
     return JSON.stringify({
       [DescriptionSubFields.DescriptionOverview]: description_overview,
@@ -121,7 +121,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
               description: encodeDescription(
                 data.description_overview,
                 data.description_how_it_works,
-                data.description_connect
+                data.description_connect,
               ),
               is_developer_allow_listing: data.is_developer_allow_listing,
               world_app_description: data.world_app_description,
@@ -145,7 +145,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, updateAppInfoMutation, teamId, appId]
+    [app?.id, updateAppInfoMutation, teamId, appId],
   );
   return (
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
