@@ -15,13 +15,13 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
   });
-  const { data: images, loading: loadingImages } = useFetchImagesQuery({
+  const {} = useFetchImagesQuery({
     variables: {
       id: appId,
     },
@@ -44,7 +44,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
       <div className="py-8 gap-y-4 grid pb-14">
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed " />
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-1 max-w-[600px]">
           <ImageForm
             appId={appId}
             teamId={teamId}

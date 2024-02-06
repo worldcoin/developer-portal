@@ -57,7 +57,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -84,7 +84,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const encodeDescription = (
     description_overview: string,
     description_how_it_works: string = "",
-    description_connect: string = "",
+    description_connect: string = ""
   ) => {
     return JSON.stringify({
       [DescriptionSubFields.DescriptionOverview]: description_overview,
@@ -99,7 +99,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty, isValid },
   } = useForm<StoreInfoFormValues>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -123,7 +123,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
               description: encodeDescription(
                 data.description_overview,
                 data.description_how_it_works,
-                data.description_connect,
+                data.description_connect
               ),
               is_developer_allow_listing: data.is_developer_allow_listing,
               world_app_description: data.world_app_description,
@@ -147,7 +147,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, updateAppInfoMutation, teamId, appId],
+    [updatingInfo, updateAppInfoMutation, app?.id, teamId, appId]
   );
 
   return (
@@ -219,7 +219,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
       <DecoratedButton
         type="submit"
         className="w-40 h-12"
-        disabled={!isEditable || !isEnoughPermissions}
+        disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>
