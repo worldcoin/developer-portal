@@ -33,7 +33,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [mode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [verifiedImages] = useAtom(verifiedImagesAtom);
-  const [disabled, setDisabled] = useState(false);
+  const [disabled] = useState(false);
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
