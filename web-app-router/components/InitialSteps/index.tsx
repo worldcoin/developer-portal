@@ -32,7 +32,7 @@ export const InitialSteps = (props: {
 
   return (
     <div
-      className={clsx("grid gap-y-4 place-items-center w-full max-w-[480px]")}
+      className={clsx("grid gap-y-6 place-items-center w-full max-w-[480px]")}
     >
       <div className="relative">
         <LogoLinesIcon className="z-0" />
