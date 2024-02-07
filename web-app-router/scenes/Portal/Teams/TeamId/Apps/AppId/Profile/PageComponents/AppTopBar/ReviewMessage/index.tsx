@@ -18,7 +18,10 @@ export const ReviewMessage = (props: {
       <DialogOverlay />
       <DialogPanel className="max-w-[500px] grid gap-y-8">
         <CircleIconContainer variant={"error"}>
-          <CloseIcon className="h-5 w-5" />
+          <CloseIcon
+            className="h-5 w-5 text-system-error-600"
+            strokeWidth={3}
+          />
         </CircleIconContainer>
         <div className="grid gap-y-4 w-full items-center justify-center">
           <Typography

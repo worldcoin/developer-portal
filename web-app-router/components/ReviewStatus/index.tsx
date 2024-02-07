@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import { CheckmarkBadge } from "../Icons/CheckmarkBadge";
 import { Button } from "../Button";
 import { ArrowRightIcon } from "../Icons/ArrowRightIcon";
+import { useAtom } from "jotai";
+import { showReviewStatusAtom } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Profile/layout";
 
 type ReviewStatusProps = {
   status: "changes_requested" | "verified";
@@ -15,6 +17,8 @@ type ReviewStatusProps = {
 
 export const ReviewStatus = (props: ReviewStatusProps) => {
   const { status, message, className, onClick } = props;
+  const [showReviewStatus, setShowReviewStatus] = useAtom(showReviewStatusAtom);
+
   const statusStyles = {
     verified: {
       normal:
@@ -38,12 +42,15 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
     }
   }, [status, message]);
 
+  if (status === "verified" && showReviewStatus === false) {
+    return;
+  }
   return (
     <div
       className={clsx(
         statusStyles[status].normal,
         "grid grid-cols-auto/1fr/auto items-center px-0 pl-5 rounded-lg gap-x-3",
-        className
+        className,
       )}
     >
       {status === "changes_requested" ? (
@@ -55,17 +62,23 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
 
       <Button
         type="button"
-        onClick={status === "changes_requested" ? onClick : () => {}}
+        onClick={
+          status === "changes_requested"
+            ? onClick
+            : () => {
+                setShowReviewStatus(false);
+              }
+        }
         className={clsx(
           "px-6 py-3 h-12 grid grid-cols-1fr/auto gap-x-2 items-center",
           {
             "text-system-warning-600 hover:text-system-warning-700":
               status === "changes_requested",
             "text-system-success-600": status === "verified",
-          }
+          },
         )}
       >
-        <Typography variant={TYPOGRAPHY.R3}>
+        <Typography variant={TYPOGRAPHY.R4}>
           {status === "changes_requested" ? "Resolve" : "Dismiss"}
         </Typography>
         {status === "changes_requested" && <ArrowRightIcon />}
