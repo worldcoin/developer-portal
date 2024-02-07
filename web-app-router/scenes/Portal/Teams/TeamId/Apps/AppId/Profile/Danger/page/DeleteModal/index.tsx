@@ -82,7 +82,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
         >
           <Input
             register={register("app_name")}
-            labelNode={
+            label={
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
                 {" "}
                 To delete, type{" "}
