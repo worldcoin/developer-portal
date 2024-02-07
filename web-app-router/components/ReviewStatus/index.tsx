@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { CheckmarkBadge } from "../Icons/CheckmarkBadge";
 import { Button } from "../Button";
 import { ArrowRightIcon } from "../Icons/ArrowRightIcon";
-import { CloseIcon } from "../Icons/CloseIcon";
 
 type ReviewStatusProps = {
   status: "changes_requested" | "verified";
@@ -44,7 +43,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
       className={clsx(
         statusStyles[status].normal,
         "grid grid-cols-auto/1fr/auto items-center px-0 pl-5 rounded-lg gap-x-3",
-        className,
+        className
       )}
     >
       {status === "changes_requested" ? (
@@ -63,7 +62,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
             "text-system-warning-600 hover:text-system-warning-700":
               status === "changes_requested",
             "text-system-success-600": status === "verified",
-          },
+          }
         )}
       >
         <Typography variant={TYPOGRAPHY.R3}>
