@@ -18,7 +18,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/images";
+import { useImage } from "../../../hook/use-image";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {

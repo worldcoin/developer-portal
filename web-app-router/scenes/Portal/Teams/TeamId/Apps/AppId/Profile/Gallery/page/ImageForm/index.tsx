@@ -12,7 +12,7 @@ import {
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/images";
+import { useImage } from "../../../hook/use-image";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
