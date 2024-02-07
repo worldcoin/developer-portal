@@ -1,7 +1,13 @@
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { AppStatsGraph } from "./AppStatsGraph";
+
 export const TeamIdPage = () => {
   return (
-    <div>
-      <h1>TeamId</h1>
-    </div>
+    <SizingWrapper>
+      <div>
+        <AppStatsGraph />
+        <h1>TeamId</h1>
+      </div>
+    </SizingWrapper>
   );
 };
