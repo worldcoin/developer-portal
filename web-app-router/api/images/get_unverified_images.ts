@@ -22,7 +22,10 @@ export type ImageGetAllUnverifiedImagesResponse = {
  * @param req
  * @param res
  */
-export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
+export const handleGetUnverifiedImages = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
       return;
