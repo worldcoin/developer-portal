@@ -15,7 +15,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
@@ -37,10 +37,9 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   });
 
   const app = data?.app[0];
-
   if (loading) return <div></div>;
-  else if (!app) {
-    <Error statusCode={404} title="App not found" />;
+  else if (error || !app) {
+    return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <div className="py-8 gap-y-4 grid pb-14">

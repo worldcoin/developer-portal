@@ -17,7 +17,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
@@ -41,7 +41,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const app = data?.app[0];
 
   if (loading) return <div>Loading...</div>;
-  else if (!app) {
+  else if (error || !app) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
