@@ -15,11 +15,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-<<<<<<< HEAD
-  const { data, loading } = useFetchAppMetadataQuery({
-=======
   const { data, loading, error } = useFetchAppMetadataQuery({
->>>>>>> andywang-wid-711-app-profile-overview-2
     variables: {
       id: appId,
     },

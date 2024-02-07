@@ -57,13 +57,9 @@ export type UpdateAppLinksInfoMutationFn = Apollo.MutationFunction<
  * const [updateAppLinksInfoMutation, { data, loading, error }] = useUpdateAppLinksInfoMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
-<<<<<<< HEAD
- *      input: // value for 'input'
-=======
  *      integration_url: // value for 'integration_url'
  *      app_website_url: // value for 'app_website_url'
  *      source_code_url: // value for 'source_code_url'
->>>>>>> andywang-wid-711-app-profile-overview-2
  *   },
  * });
  */

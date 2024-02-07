@@ -11,6 +11,9 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
+import { useDeleteAppMutation } from "./graphql/client/delete-app.generated";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 type DeleteModalProps = {
   openDeleteModal: boolean;
@@ -22,9 +25,25 @@ type DeleteModalProps = {
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, app, appId, teamId } = props;
   const appName = app?.app_metadata[0].name ?? "";
-  const deleteApp = () => {
-    // TODO
-    setOpenDeleteModal(false);
+  const [deleteAppMutation, { loading: deletingApp }] = useDeleteAppMutation();
+  const router = useRouter();
+
+  const deleteApp = async () => {
+    if (deletingApp) return;
+    try {
+      setOpenDeleteModal(false);
+      await deleteAppMutation({
+        variables: {
+          id: appId,
+        },
+        context: { headers: { team_id: teamId } },
+      });
+      toast.success("App deleted successfully");
+      router.replace(`/teams/${teamId}/apps`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error deleting app");
+    }
   };
 
   const schema = yup.object().shape({

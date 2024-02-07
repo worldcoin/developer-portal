@@ -17,6 +17,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+import ErrorComponent from "next/error";
 
 type AppTopBarProps = {
   appId: string;
@@ -146,7 +147,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       }
     }
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     appId,
     loading,
     teamId,
@@ -174,7 +175,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       awaitRefetchQueries: true,
     });
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     loading,
     updateAppVerificationStatusMutation,
     teamId,
@@ -229,17 +230,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData.app_website_url,
-    appMetaData.category,
-    appMetaData.description,
-    appMetaData.hero_image_url,
-    appMetaData.integration_url,
-    appMetaData.is_developer_allow_listing,
-    appMetaData.logo_img_url,
-    appMetaData.name,
-    appMetaData.showcase_img_urls,
-    appMetaData.source_code_url,
-    appMetaData.world_app_description,
+    appMetaData?.app_website_url,
+    appMetaData?.category,
+    appMetaData?.description,
+    appMetaData?.hero_image_url,
+    appMetaData?.integration_url,
+    appMetaData?.is_developer_allow_listing,
+    appMetaData?.logo_img_url,
+    appMetaData?.name,
+    appMetaData?.showcase_img_urls,
+    appMetaData?.source_code_url,
+    appMetaData?.world_app_description,
     createEditableRowMutation,
     teamId,
   ]);
@@ -254,18 +255,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   };
 
+  if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (
     <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
       {/* Placeholder */}
       <LogoImageUpload
         appId={appId}
         teamId={teamId}
-        appMetadataId={appMetaData.id}
+        appMetadataId={appMetaData?.id}
         editable={isEditable && isEnoughPermissions}
       />
       <div className="grid grid-cols-1 gap-y-1">
         <div className="flex flex-row gap-x-3 items-center">
-          <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
+          <Typography variant={TYPOGRAPHY.H6}>{appMetaData?.name}</Typography>
           <Status status={appMetaData.verification_status as StatusVariant} />
         </div>
         <Environment

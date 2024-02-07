@@ -18,11 +18,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
   const [viewMode] = useAtom(viewModeAtom);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-<<<<<<< HEAD
-  const { data, loading } = useFetchAppMetadataQuery({
-=======
   const { data, loading, error } = useFetchAppMetadataQuery({
->>>>>>> andywang-wid-711-app-profile-overview-2
     variables: {
       id: appId,
     },

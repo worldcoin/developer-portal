@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 "use client";
->>>>>>> andywang-wid-711-app-profile-overview-2
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
