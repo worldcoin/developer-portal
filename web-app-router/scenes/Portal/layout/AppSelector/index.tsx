@@ -42,7 +42,6 @@ export const AppSelector = () => {
 
   const onChange = useCallback(
     (app: FetchAppsQuery["app"][number] | null) => {
-      console.log({ app });
       // NOTE: null is value for "Create new app" option
       if (app === null) {
         return setCreateAppDialogOpen(true);
