@@ -6,7 +6,9 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateAppLinksInfoMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
-  input?: Types.InputMaybe<Types.App_Metadata_Set_Input>;
+  integration_url: Types.Scalars["String"];
+  app_website_url: Types.Scalars["String"];
+  source_code_url: Types.Scalars["String"];
 }>;
 
 export type UpdateAppLinksInfoMutation = {
@@ -20,11 +22,17 @@ export type UpdateAppLinksInfoMutation = {
 export const UpdateAppLinksInfoDocument = gql`
   mutation UpdateAppLinksInfo(
     $app_metadata_id: String!
-    $input: app_metadata_set_input
+    $integration_url: String!
+    $app_website_url: String!
+    $source_code_url: String!
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
-      _set: $input
+      _set: {
+        integration_url: $integration_url
+        app_website_url: $app_website_url
+        source_code_url: $source_code_url
+      }
     ) {
       id
     }
@@ -49,7 +57,13 @@ export type UpdateAppLinksInfoMutationFn = Apollo.MutationFunction<
  * const [updateAppLinksInfoMutation, { data, loading, error }] = useUpdateAppLinksInfoMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
+<<<<<<< HEAD
  *      input: // value for 'input'
+=======
+ *      integration_url: // value for 'integration_url'
+ *      app_website_url: // value for 'app_website_url'
+ *      source_code_url: // value for 'source_code_url'
+>>>>>>> andywang-wid-711-app-profile-overview-2
  *   },
  * });
  */

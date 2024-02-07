@@ -18,7 +18,11 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
   const [viewMode] = useAtom(viewModeAtom);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
+<<<<<<< HEAD
   const { data, loading } = useFetchAppMetadataQuery({
+=======
+  const { data, loading, error } = useFetchAppMetadataQuery({
+>>>>>>> andywang-wid-711-app-profile-overview-2
     variables: {
       id: appId,
     },
@@ -46,7 +50,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
       : app?.app_metadata[0];
 
   if (loading) return <div></div>;
-  else if (!app) {
+  else if (error || !app) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
