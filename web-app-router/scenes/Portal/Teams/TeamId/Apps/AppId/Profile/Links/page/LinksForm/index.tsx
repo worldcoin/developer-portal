@@ -4,7 +4,7 @@ import {
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
@@ -59,7 +59,7 @@ export const LinksForm = (props: LinksFormProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -70,6 +70,7 @@ export const LinksForm = (props: LinksFormProps) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty, isValid },
   } = useForm<LinksFormValues>({
     resolver: yupResolver(schema),
@@ -80,6 +81,14 @@ export const LinksForm = (props: LinksFormProps) => {
       source_code_url: app?.source_code_url,
     },
   });
+
+  useEffect(() => {
+    reset({
+      integration_url: app?.integration_url,
+      app_website_url: app?.app_website_url,
+      source_code_url: app?.source_code_url,
+    });
+  }, [app, reset]);
 
   const submit = useCallback(
     async (values: LinksFormValues) => {
@@ -114,7 +123,7 @@ export const LinksForm = (props: LinksFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, appId, teamId, updateLinksMutation, updatingInfo],
+    [app?.id, appId, teamId, updateLinksMutation, updatingInfo]
   );
 
   return (

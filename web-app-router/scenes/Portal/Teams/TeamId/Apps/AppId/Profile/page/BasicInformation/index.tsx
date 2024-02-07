@@ -14,11 +14,13 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { useAtom } from "jotai";
+import { viewModeAtom } from "../../layout";
 
 const schema = yup.object({
   name: yup
@@ -36,13 +38,14 @@ export const BasicInformation = (props: {
   app: FetchAppMetadataQuery["app"][0];
 }) => {
   const { appId, teamId, app } = props;
+  const [viewMode] = useAtom(viewModeAtom);
   const [status, setStatus] = useState(app.status === "active");
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -50,23 +53,36 @@ export const BasicInformation = (props: {
     );
   }, [teamId, user?.hasura.memberships]);
 
+  const appMetaData =
+    viewMode === "verified"
+      ? app.verified_app_metadata[0]
+      : app.app_metadata[0];
+
   const isEditable =
-    app?.app_metadata[0]?.verification_status === "unverified" ||
+    appMetaData.verification_status === "unverified" ||
     app?.app_metadata.length === 0;
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      name: app.app_metadata[0].name,
-      category: app.app_metadata[0].category,
+      name: appMetaData.name,
+      category: appMetaData.category,
     },
   });
+
+  useEffect(() => {
+    reset({
+      name: appMetaData.name,
+      category: appMetaData.category,
+    });
+  }, [viewMode, appMetaData, reset]);
 
   const copyId = () => {
     navigator.clipboard.writeText(appId);
@@ -103,7 +119,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation],
+    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation]
   );
 
   return (

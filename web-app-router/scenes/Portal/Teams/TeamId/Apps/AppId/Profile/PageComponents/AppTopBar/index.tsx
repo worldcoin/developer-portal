@@ -17,6 +17,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+import { VersionSwitcher } from "./VersionSwitcher";
 
 type AppTopBarProps = {
   appId: string;
@@ -57,7 +58,7 @@ const submitSchema = yup.object().shape({
     .url("Integration URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "Integration URL is not a valid url",
+      "Integration URL is not a valid url"
     )
     .required("Integration URL is required"),
   app_website_url: yup
@@ -87,7 +88,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -116,7 +117,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       const description = JSON.parse(dataToSubmit.description);
       await submitSchema.validate(
         { ...dataToSubmit, ...description },
-        { abortEarly: false },
+        { abortEarly: false }
       );
       await updateAppVerificationStatusMutation({
         variables: {
@@ -198,14 +199,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
           source_code_url: appMetaData.source_code_url,
           integration_url: appMetaData.integration_url,
           logo_img_url: `logo_img.${_getImageEndpoint(
-            appMetaData.logo_img_url,
+            appMetaData.logo_img_url
           )}`,
           hero_image_url: `hero_image.${_getImageEndpoint(
-            appMetaData.hero_image_url,
+            appMetaData.hero_image_url
           )}`,
           showcase_img_urls: appMetaData.showcase_img_urls?.map(
             (img: string, index: number) =>
-              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
+              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
           ),
           verification_status: "unverified",
         },
@@ -262,6 +263,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         teamId={teamId}
         appMetadataId={appMetaData.id}
         editable={isEditable && isEnoughPermissions}
+        logoFile={appMetaData.logo_img_url}
       />
       <div className="grid grid-cols-1 gap-y-1">
         <div className="flex flex-row gap-x-3 items-center">
@@ -274,11 +276,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
         />
       </div>
       {isEnoughPermissions && (
-        <div>
+        <div className="grid grid-cols-auto/1fr gap-x-3 items-center">
+          <VersionSwitcher appId={appId} teamId={teamId} app={app} />
           {isEditable ? (
             <DecoratedButton
               type="submit"
               className="px-6 py-3 h-12"
+              disabled={viewMode === "verified"}
               onClick={submitForReview}
             >
               <Typography variant={TYPOGRAPHY.M3}>Submit for review</Typography>

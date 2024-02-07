@@ -19,6 +19,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import clsx from "clsx";
 import { UploadIcon } from "@/components/Icons/UploadIcon";
+import { getCDNImageUrl } from "@/lib/utils";
 
 type ImageFormTypes = {
   appId: string;
@@ -46,7 +47,7 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -55,16 +56,17 @@ export const ImageForm = (props: ImageFormTypes) => {
   }, [teamId, user?.hasura.memberships]);
 
   const isEditable =
-    app?.app_metadata[0]?.verification_status === "unverified" ||
-    app?.app_metadata.length === 0;
+    (app?.app_metadata[0]?.verification_status === "unverified" ||
+      app?.app_metadata.length === 0) &&
+    viewMode === "unverified";
 
   const nextShowcaseImgName = useMemo(() => {
     if (!showcaseImgFileNames) return SHOWCASE_IMAGE_NAMES[0];
     return SHOWCASE_IMAGE_NAMES.find(
       (name: string) =>
         !showcaseImgFileNames.find((existingFileName: string) =>
-          existingFileName.includes(name),
-        ),
+          existingFileName.includes(name)
+        )
     );
   }, [showcaseImgFileNames]);
 
@@ -110,7 +112,7 @@ export const ImageForm = (props: ImageFormTypes) => {
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
       const fileNameToDelete = SHOWCASE_IMAGE_NAMES.filter((name: string) =>
-        url.includes(name),
+        url.includes(name)
       )[0];
 
       const formatted_showcase_img_urls = `{${showcaseImgFileNames
@@ -143,7 +145,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       setUnverifiedImages({
         ...unverifiedImages,
         showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
-          (img: string) => img !== url,
+          (img: string) => img !== url
         ),
       });
     },
@@ -155,14 +157,14 @@ export const ImageForm = (props: ImageFormTypes) => {
       appId,
       setUnverifiedImages,
       unverifiedImages,
-    ],
+    ]
   );
 
   const uploadImage = async (
     imageType: string,
     file: File,
     height: number,
-    width: number,
+    width: number
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
@@ -178,7 +180,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType,
+          imageType
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
@@ -261,6 +263,39 @@ export const ImageForm = (props: ImageFormTypes) => {
     }
   };
 
+  const heroImage = useMemo(() => {
+    if (viewMode === "verified") {
+      return getCDNImageUrl(
+        appId,
+        app?.verified_app_metadata[0]?.hero_image_url
+      );
+    } else {
+      return unverifiedImages.hero_image_url;
+    }
+  }, [
+    app?.verified_app_metadata,
+    appId,
+    unverifiedImages.hero_image_url,
+    viewMode,
+  ]);
+
+  const showcaseImgUrls = useMemo(() => {
+    if (viewMode === "verified") {
+      return app?.verified_app_metadata[0]?.showcase_img_urls.map(
+        (url: string) => {
+          return getCDNImageUrl(appId, url);
+        }
+      );
+    } else {
+      return unverifiedImages.showcase_image_urls;
+    }
+  }, [
+    viewMode,
+    app?.verified_app_metadata,
+    appId,
+    unverifiedImages.showcase_image_urls,
+  ]);
+
   return (
     <form className="grid gap-y-7">
       <div className="grid gap-y-3">
@@ -300,10 +335,10 @@ export const ImageForm = (props: ImageFormTypes) => {
         </div>
       </ImageDropZone>
 
-      {unverifiedImages.hero_image_url && (
+      {heroImage && (
         <div className="relative w-fit h-fit">
           <ImageDisplay
-            src={unverifiedImages.hero_image_url}
+            src={heroImage}
             type={viewMode}
             width={400}
             height={300}
@@ -314,7 +349,9 @@ export const ImageForm = (props: ImageFormTypes) => {
             onClick={deleteHeroImage}
             className={clsx(
               "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-              { hidden: !isEnoughPermissions || !isEditable },
+              {
+                hidden: !isEnoughPermissions || !isEditable,
+              }
             )}
           >
             <TrashIcon />
@@ -355,8 +392,8 @@ export const ImageForm = (props: ImageFormTypes) => {
         </div>
       </ImageDropZone>
       <div className="grid grid-cols-3">
-        {unverifiedImages.showcase_image_urls &&
-          unverifiedImages.showcase_image_urls.map((url, index) => (
+        {showcaseImgUrls &&
+          showcaseImgUrls.map((url: string, index: number) => (
             <div className="relative w-fit h-fit" key={index}>
               <ImageDisplay
                 src={url}
@@ -370,7 +407,9 @@ export const ImageForm = (props: ImageFormTypes) => {
                 onClick={() => deleteShowcaseImage(url)}
                 className={clsx(
                   "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-                  { hidden: !isEnoughPermissions || !isEditable },
+                  {
+                    hidden: !isEnoughPermissions || !isEditable,
+                  }
                 )}
               >
                 <TrashIcon />

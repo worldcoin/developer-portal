@@ -5,7 +5,7 @@ import {
   viewModeAtom,
 } from "../../../layout";
 import Image from "next/image";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import clsx from "clsx";
@@ -20,20 +20,21 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { toast } from "react-toastify";
 import { useImage } from "../../../hook/useImage";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
+import { getCDNImageUrl } from "@/lib/utils";
 
 type LogoImageUploadProps = {
   appId: string;
   appMetadataId: string;
   teamId: string;
   editable: boolean;
+  logoFile?: string;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const { appId, appMetadataId, teamId, editable } = props;
+  const { appId, appMetadataId, teamId, editable, logoFile } = props;
   const [showDialog, setShowDialog] = useState(false);
-  const [mode] = useAtom(viewModeAtom);
+  const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [verifiedImages] = useAtom(verifiedImagesAtom);
-  const [disabled, setDisabled] = useState(false);
+  const [disabled] = useState(false);
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
@@ -60,13 +61,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType,
+          imageType
         );
         setUnverifiedImages({
           ...unverifiedImages,
           logo_img_url: imageUrl,
         });
-        console.log(`${imageType}.${fileTypeEnding}`);
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
         await updateLogoMutation({
           variables: {
@@ -105,10 +105,17 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     });
   };
 
+  const verifiedImageURL = useMemo(() => {
+    if (viewMode === "unverified" || !logoFile) {
+      return "";
+    }
+    return getCDNImageUrl(appId, logoFile);
+  }, [appId, logoFile, viewMode]);
+
   return (
     <div
       className={clsx(
-        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative",
+        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative"
       )}
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
@@ -178,8 +185,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         </DialogPanel>
       </Dialog>
-      {mode === "verified" && <img src={verifiedImages?.logo_img_url}></img>}
-      {mode === "unverified" &&
+      {viewMode === "verified" && <img src={verifiedImageURL}></img>}
+      {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
           <Image
             alt="logo"
@@ -196,7 +203,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         onClick={() => setShowDialog(true)}
         className={clsx(
           "absolute -bottom-2 -right-2 p-2 bg-white rounded-full border-2 border-grey-200 text-grey-500 hover:bg-grey-50",
-          { hidden: !editable },
+          { hidden: !editable || viewMode === "verified" }
         )}
       >
         <EditIcon className="w-3 h-3 " />

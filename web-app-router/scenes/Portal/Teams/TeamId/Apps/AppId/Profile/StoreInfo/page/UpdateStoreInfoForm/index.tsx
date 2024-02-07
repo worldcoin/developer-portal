@@ -4,7 +4,7 @@ import {
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { DescriptionSubFields } from "../../../types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,6 +17,8 @@ import { toast } from "react-toastify";
 import { Checkbox } from "@/components/Checkbox";
 import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { useAtom } from "jotai";
+import { viewModeAtom } from "../../../layout";
 
 const schema = yup.object().shape({
   is_developer_allow_listing: yup.boolean(),
@@ -48,16 +50,16 @@ type UpdateStoreInfoFormProps = {
 
 export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const { app, teamId, appId } = props;
+  const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
 
   const [updateAppInfoMutation, { loading: updatingInfo }] =
     useUpdateAppStoreInfoMutation({});
 
   const isEditable = app?.verification_status === "unverified";
-
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -84,7 +86,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const encodeDescription = (
     description_overview: string,
     description_how_it_works: string = "",
-    description_connect: string = "",
+    description_connect: string = ""
   ) => {
     return JSON.stringify({
       [DescriptionSubFields.DescriptionOverview]: description_overview,
@@ -93,12 +95,15 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     });
   };
 
-  const description = parseDescription(app?.description ?? "");
+  const description = useMemo(() => {
+    return parseDescription(app?.description ?? "");
+  }, [app?.description]);
 
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isDirty, isValid },
   } = useForm<StoreInfoFormValues>({
     resolver: yupResolver(schema),
@@ -109,6 +114,14 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
       world_app_description: app?.world_app_description,
     },
   });
+
+  useEffect(() => {
+    reset({
+      ...description,
+      is_developer_allow_listing: app?.is_developer_allow_listing,
+      world_app_description: app?.world_app_description,
+    });
+  }, [viewMode, app, reset, description]);
 
   const worldAppDescription = watch("world_app_description");
   const remainingCharacters = 50 - (worldAppDescription?.length || 0);
@@ -124,7 +137,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
               description: encodeDescription(
                 data.description_overview,
                 data.description_how_it_works,
-                data.description_connect,
+                data.description_connect
               ),
               is_developer_allow_listing: data.is_developer_allow_listing,
               world_app_description: data.world_app_description,
@@ -148,7 +161,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [updatingInfo, updateAppInfoMutation, app?.id, teamId, appId],
+    [updatingInfo, updateAppInfoMutation, app?.id, teamId, appId]
   );
 
   return (

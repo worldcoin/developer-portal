@@ -8,7 +8,7 @@ const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.e
 
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
-    "https://world-id-assets.com",
+    "https://world-id-assets.com"
 );
 
 /** @type {import('next').NextConfig} */
@@ -27,6 +27,8 @@ const nextConfig = {
               "https://world-id-public.s3.amazonaws.com",
               "https://worldcoin.org",
               ...(s3BucketUrl ? [s3BucketUrl] : []),
+              // TODO:
+              ...(cdnURLObject ? [cdnURLObject.hostname] : []),
             ],
             "style-src": "'unsafe-inline'",
             "font-src": ["https://world-id-public.s3.amazonaws.com"],
@@ -75,8 +77,8 @@ const nextConfig = {
   },
   publicRuntimeConfig: Object.fromEntries(
     Object.entries(process.env).filter(([key]) =>
-      key.startsWith("NEXT_PUBLIC_"),
-    ),
+      key.startsWith("NEXT_PUBLIC_")
+    )
   ),
 
   async redirects() {
