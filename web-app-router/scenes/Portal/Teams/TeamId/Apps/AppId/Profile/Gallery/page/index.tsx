@@ -21,6 +21,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     },
     context: { headers: { team_id: teamId } },
   });
+
   const {} = useFetchImagesQuery({
     variables: {
       id: appId,

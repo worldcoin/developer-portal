@@ -28,6 +28,8 @@ const nextConfig = {
               "https://worldcoin.org",
               ...(s3BucketUrl ? [s3BucketUrl] : []),
             ],
+            // @ts-ignore false is not a valid type for this directive
+            "prefetch-src": false,
             "style-src": "'unsafe-inline'",
             "font-src": ["https://world-id-public.s3.amazonaws.com"],
             "connect-src": [

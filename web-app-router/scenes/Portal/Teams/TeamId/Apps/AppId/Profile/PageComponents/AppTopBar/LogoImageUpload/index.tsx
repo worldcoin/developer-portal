@@ -124,7 +124,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               <CloseIcon className="w-4 h-4" />
             </Button>
           </div>
-          <div className="border-1 rounded-xl p-6 border-grey-200 grid gap-y-6">
+          <div className="border rounded-xl p-6 border-grey-200 grid gap-y-6">
             {unverifiedImages?.logo_img_url ? (
               <div>
                 <Image
@@ -178,7 +178,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         </DialogPanel>
       </Dialog>
-      {mode === "verified" && <img src={verifiedImages?.logo_img_url}></img>}
+      {mode === "verified" && (
+        <img src={verifiedImages?.logo_img_url} alt="logo" />
+      )}
       {mode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
           <Image

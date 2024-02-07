@@ -357,7 +357,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       <div className="grid grid-cols-3">
         {unverifiedImages.showcase_image_urls &&
           unverifiedImages.showcase_image_urls.map((url, index) => (
-            <div className="relative w-fit h-fit" key={index}>
+            <div className="relative w-fit h-fit" key={url}>
               <ImageDisplay
                 src={url}
                 type={viewMode}
