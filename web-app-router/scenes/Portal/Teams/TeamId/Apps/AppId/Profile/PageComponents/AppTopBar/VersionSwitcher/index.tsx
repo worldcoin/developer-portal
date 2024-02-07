@@ -13,12 +13,10 @@ import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadat
 import { useMemo } from "react";
 
 type VersionSwitcherProps = {
-  appId: string;
-  teamId: string;
   app: FetchAppMetadataQuery["app"][0];
 };
 export const VersionSwitcher = (props: VersionSwitcherProps) => {
-  const { appId, teamId, app } = props;
+  const { app } = props;
   const [viewMode, setMode] = useAtom(viewModeAtom);
 
   const formattedDate = useMemo(() => {

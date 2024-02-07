@@ -296,7 +296,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         </div>
         {isEnoughPermissions && (
           <div className="grid grid-cols-auto/1fr gap-x-3 items-center">
-            <VersionSwitcher appId={appId} teamId={teamId} app={app} />
+            <VersionSwitcher app={app} />
             {isEditable ? (
               <DecoratedButton
                 type="submit"
