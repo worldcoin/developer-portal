@@ -258,9 +258,10 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
-  // FIXME: Update url
   const res = NextResponse.json({
-    returnTo: "/teams",
+    returnTo: urls.app({
+      team_id: insertMembershipResult.insert_membership_one.team_id,
+    }),
   });
 
   await updateSession(req, res, {

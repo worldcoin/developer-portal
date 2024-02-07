@@ -18,7 +18,7 @@ export const Checkbox = (
 
       <div className="cursor-pointer absolute inset-0 flex justify-center items-center bg-grey-900 invisible opacity-0 peer-checked:visible peer-checked:opacity-100 rounded-md transition-[visibility,opacity]">
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-grey-0/10 to-transparent" />
-        <CheckIcon className="text-grey-0" />
+        <CheckIcon size="16" className="text-grey-0" />
       </div>
     </label>
   );
