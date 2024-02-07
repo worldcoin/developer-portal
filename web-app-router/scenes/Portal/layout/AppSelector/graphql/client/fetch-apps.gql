@@ -1,0 +1,8 @@
+query FetchApps {
+  app {
+    id
+    app_metadata {
+      name
+    }
+  }
+}

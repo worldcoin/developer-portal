@@ -14,9 +14,9 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
   const initialColor = calculateColorFromString(user?.name ?? user?.email);
 
   return (
-    <div>
+    <div className="min-h-[100dvh] grid grid-rows-auto/1fr">
       <Header color={initialColor} />
-      <div>{props.children}</div>
+      {props.children}
     </div>
   );
 };

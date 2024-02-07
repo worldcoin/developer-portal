@@ -161,7 +161,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           </Typography>
         </div>
         <div className="flex justify-end ">
-          <LoggedUserNav name="L" />
+          <LoggedUserNav />
         </div>
       </div>
       <div className="w-screen p-10 overflow-auto grid items-center justify-center min-h-full">

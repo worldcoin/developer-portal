@@ -268,8 +268,19 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
-  // TODO: update url when we have pages
-  const res = NextResponse.redirect(new URL("/teams", req.url), 307);
+  const teamId = user?.memberships[0].team.id;
+
+  const res = NextResponse.redirect(
+    new URL(
+      teamId
+        ? urls.app({
+            team_id: teamId,
+          })
+        : urls.profile(),
+      req.url,
+    ),
+    307,
+  );
 
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
   await updateSession(req, res, {

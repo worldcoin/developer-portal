@@ -21,7 +21,7 @@ export const CreateTeamLayout = (props: { children: ReactNode }) => {
               <Typography variant={TYPOGRAPHY.M4}>Create a new team</Typography>
             </div>
 
-            <LoggedUserNav name="L" />
+            <LoggedUserNav />
           </div>
         </SizingWrapper>
       </header>
