@@ -45,7 +45,7 @@ export const BasicInformation = (props: {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -119,7 +119,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation]
+    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation],
   );
 
   return (
