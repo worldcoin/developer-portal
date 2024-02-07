@@ -46,7 +46,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
         disabled={disabled}
       />
 
-      {props.label && (
+      {label && (
         <span
           className={clsx(
             "min-h-[30px] grid items-center select-none text-14 leading-5 font-gta",
