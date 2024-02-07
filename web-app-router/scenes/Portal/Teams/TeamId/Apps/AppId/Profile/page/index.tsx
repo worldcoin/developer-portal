@@ -10,25 +10,21 @@ import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
 };
 
-export const AppProfilePage = ({
-  params,
-  searchParams,
-}: AppProfilePageProps) => {
+export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
   });
 
-  const { data: images, loading: loadingImages } = useFetchImagesQuery({
+  const { loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
     },
@@ -44,8 +40,9 @@ export const AppProfilePage = ({
 
   const app = data?.app[0];
 
-  if (!app) {
-    <Error statusCode={404} title="Action not found" />;
+  if (loading) return <div>Loading...</div>;
+  else if (error || !app) {
+    return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <div

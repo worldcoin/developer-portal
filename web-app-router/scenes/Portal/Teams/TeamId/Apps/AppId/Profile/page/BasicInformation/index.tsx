@@ -58,9 +58,10 @@ export const BasicInformation = (props: {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
+    mode: "onChange",
     defaultValues: {
       name: app.app_metadata[0].name,
       category: app.app_metadata[0].category,
@@ -91,6 +92,7 @@ export const BasicInformation = (props: {
               context: { headers: { team_id: teamId } },
             },
           ],
+          awaitRefetchQueries: true,
         });
         if (result instanceof Error) {
           throw result;
@@ -101,7 +103,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [status],
+    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation],
   );
 
   return (
@@ -157,7 +159,9 @@ export const BasicInformation = (props: {
             type="submit"
             variant="primary"
             className=" mr-5 w-40 h-12"
-            disabled={isSubmitting}
+            disabled={
+              !isEditable || !isEnoughPermissions || !isDirty || !isValid
+            }
           >
             <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
           </DecoratedButton>

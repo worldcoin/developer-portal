@@ -102,6 +102,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     formState: { errors, isDirty, isValid },
   } = useForm<StoreInfoFormValues>({
     resolver: yupResolver(schema),
+    mode: "onChange",
     defaultValues: {
       ...description,
       is_developer_allow_listing: app?.is_developer_allow_listing,

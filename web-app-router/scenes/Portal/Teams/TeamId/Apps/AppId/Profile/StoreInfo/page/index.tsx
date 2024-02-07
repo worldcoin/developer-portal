@@ -22,7 +22,7 @@ export const AppProfileStoreInfoPage = ({
 
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
@@ -48,9 +48,9 @@ export const AppProfileStoreInfoPage = ({
     viewMode === "verified"
       ? app?.verified_app_metadata[0]
       : app?.app_metadata[0];
-
-  if (!app) {
-    <Error statusCode={404} title="Action not found" />;
+  if (loading) return <div></div>;
+  else if (error || !app) {
+    return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <div

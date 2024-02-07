@@ -107,10 +107,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [updateAppVerificationStatusMutation, { loading }] =
     useUpdateAppVerificationStatusMutation({});
 
-  const [createEditableRowMutation, { loading: creatingRow }] =
-    useCreateEditableRowMutation({});
+  const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
-  const submitForReview = async () => {
+  const submitForReview = useCallback(async () => {
     if (loading) return;
     const dataToSubmit = app.app_metadata[0];
     try {
@@ -146,7 +145,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error("Error occurred while submitting app for review");
       }
     }
-  };
+  }, [
+    app.app_metadata,
+    appId,
+    loading,
+    teamId,
+    updateAppVerificationStatusMutation,
+  ]);
 
   const removeFromReview = useCallback(async () => {
     if (loading) return;
@@ -168,7 +173,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
       ],
       awaitRefetchQueries: true,
     });
-  }, [teamId, appId, updateAppVerificationStatusMutation]);
+  }, [
+    app.app_metadata,
+    loading,
+    updateAppVerificationStatusMutation,
+    teamId,
+    appId,
+  ]);
 
   const createNewDraft = useCallback(async () => {
     try {
@@ -215,7 +226,23 @@ export const AppTopBar = (props: AppTopBarProps) => {
       console.error(error.message);
       toast.error("Error creating a new draft");
     }
-  }, [appMetaData, createEditableRowMutation]);
+  }, [
+    app,
+    appId,
+    appMetaData.app_website_url,
+    appMetaData.category,
+    appMetaData.description,
+    appMetaData.hero_image_url,
+    appMetaData.integration_url,
+    appMetaData.is_developer_allow_listing,
+    appMetaData.logo_img_url,
+    appMetaData.name,
+    appMetaData.showcase_img_urls,
+    appMetaData.source_code_url,
+    appMetaData.world_app_description,
+    createEditableRowMutation,
+    teamId,
+  ]);
 
   // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
   const _getImageEndpoint = (imageType: string) => {
