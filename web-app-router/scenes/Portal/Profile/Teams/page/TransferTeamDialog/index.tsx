@@ -16,8 +16,14 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useCallback } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { FetchMembersQuery, useFetchMembersQuery } from "./graphql/client/fetch-members.generated";
-import { FetchMembershipsDocument, FetchMembershipsQuery } from "../graphql/client/fetch-memberships.generated";
+import {
+  FetchMembersQuery,
+  useFetchMembersQuery,
+} from "./graphql/client/fetch-members.generated";
+import {
+  FetchMembershipsDocument,
+  FetchMembershipsQuery,
+} from "../graphql/client/fetch-memberships.generated";
 import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
 import { toast } from "react-toastify";
 import { Auth0SessionUser } from "@/lib/types";
@@ -26,7 +32,7 @@ type TransferTeamDialogProps = DialogProps & {
   team?: FetchMembershipsQuery["memberships"][0]["team"];
 };
 
-type FormValues =  {
+type FormValues = {
   member: FetchMembersQuery["members"][0];
 };
 
@@ -37,16 +43,19 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const membersQueryRes = useFetchMembersQuery({
     context: { headers: { team_id: team?.id } },
-    variables: !team || !user?.hasura ? undefined : {
-      user_id: user?.hasura.id,
-      team_id: team.id,
-    },
+    variables:
+      !team || !user?.hasura
+        ? undefined
+        : {
+            user_id: user?.hasura.id,
+            team_id: team.id,
+          },
     skip: !team || !user?.hasura,
-  })
+  });
 
   const [transferMembership] = useTransferOwnershipMutation({
     context: { headers: { team_id: team?.id } },
-  })
+  });
 
   const {
     control,
@@ -58,25 +67,26 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const member = useWatch({ control, name: "member" });
 
-  const submit = useCallback(async (values: FormValues) => {
-    if (!user?.hasura) return;
-    try {
-      await transferMembership({
-        variables: {
-          id: values.member.id,
-          user_id: user?.hasura.id,
-        },
-        refetchQueries: [
-          FetchMembershipsDocument
-        ]
-      })
-      toast.success("Ownership transferred!");
-      props.onClose(true);
-    } catch (e) {
-      console.error(e);
-      toast.error("Error ownership transferring");
-    }
-  }, [props, transferMembership, user?.hasura]);
+  const submit = useCallback(
+    async (values: FormValues) => {
+      if (!user?.hasura) return;
+      try {
+        await transferMembership({
+          variables: {
+            id: values.member.id,
+            user_id: user?.hasura.id,
+          },
+          refetchQueries: [FetchMembershipsDocument],
+        });
+        toast.success("Ownership transferred!");
+        props.onClose(true);
+      } catch (e) {
+        console.error(e);
+        toast.error("Error ownership transferring");
+      }
+    },
+    [props, transferMembership, user?.hasura],
+  );
 
   return (
     <Dialog {...otherProps}>
@@ -95,9 +105,11 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
           <Notification variant="warning">
             <span className="font-gta">
               Are you sure you want to make{" "}
-              <span className="font-medium">{member.user.name} ({member.user.email})</span> the owner of{" "}
-              <span className="font-medium">{team?.name}</span>? You can`t
-              undo this action.
+              <span className="font-medium">
+                {member.user.name} ({member.user.email})
+              </span>{" "}
+              the owner of <span className="font-medium">{team?.name}</span>?
+              You can`t undo this action.
             </span>
           </Notification>
         )}
@@ -120,7 +132,9 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   <SelectButton className="w-full grid grid-cols-1fr/auto items-center text-start relative py-3">
                     <Typography variant={TYPOGRAPHY.R3}>
                       {!field.value ? (
-                        <span className="text-gray-400">Select team member</span>
+                        <span className="text-gray-400">
+                          Select team member
+                        </span>
                       ) : (
                         <span>
                           {field.value.user.name} ({field.value.user.email})

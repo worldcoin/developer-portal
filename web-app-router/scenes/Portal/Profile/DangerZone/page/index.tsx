@@ -27,9 +27,9 @@ export const DangerZone = () => {
               </Typography>
 
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                This will immediately and permanently delete your user account and
-                will remove your from all your existing teams. This cannot be
-                undone.
+                This will immediately and permanently delete your user account
+                and will remove your from all your existing teams. This cannot
+                be undone.
               </Typography>
 
               <DecoratedButton

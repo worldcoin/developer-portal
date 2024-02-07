@@ -12,8 +12,11 @@ import { useCallback, useEffect } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import { colorAtom } from "../../layout";
-import { useUser } from '@auth0/nextjs-auth0/client'
-import { FetchUserDocument, useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import {
+  FetchUserDocument,
+  useFetchUserQuery,
+} from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
 import { toast } from "react-toastify";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
@@ -33,14 +36,14 @@ export const ProfilePage = () => {
   const { user } = useUser() as Auth0SessionUser;
 
   const { data } = useFetchUserQuery({
-    context: { headers: { team_id: '_' } },
+    context: { headers: { team_id: "_" } },
     variables: user?.hasura ? { user_id: user?.hasura.id } : undefined,
-    skip: !user?.hasura
-  })
+    skip: !user?.hasura,
+  });
 
   const [updateUser] = useUpdateUserMutation({
-    context: { headers: { team_id: '_' } },
-  })
+    context: { headers: { team_id: "_" } },
+  });
 
   const [color, setColor] = useAtom(colorAtom);
 
@@ -52,7 +55,7 @@ export const ProfilePage = () => {
   } = useForm<FormValues>({
     values: {
       color: color ?? colors["pink"],
-      name: data?.user?.name ?? '',
+      name: data?.user?.name ?? "",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -65,33 +68,34 @@ export const ProfilePage = () => {
     setColor(selectedColor);
   }, [selectedColor, setColor]);
 
-  const submit = useCallback(async (values: FormValues) => {
-    if (!user?.hasura) return;
-    try {
-      await updateUser({
-        variables: {
-          user_id: user?.hasura.id,
-          input: {
-            name: values.name,
-            //color: values.color,
+  const submit = useCallback(
+    async (values: FormValues) => {
+      if (!user?.hasura) return;
+      try {
+        await updateUser({
+          variables: {
+            user_id: user?.hasura.id,
+            input: {
+              name: values.name,
+              //color: values.color,
+            },
           },
-        },
-        refetchQueries: [
-          FetchUserDocument,
-        ]
-      })
-      toast.success("Profile saved!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Error updating profile");
-    }
-  }, [updateUser, user?.hasura?.id]);
+          refetchQueries: [FetchUserDocument],
+        });
+        toast.success("Profile saved!");
+      } catch (error) {
+        console.error(error);
+        toast.error("Error updating profile");
+      }
+    },
+    [updateUser, user?.hasura?.id],
+  );
 
   return (
     <>
       <div className="pt-9">
         <SizingWrapper className="grid gap-y-8">
-          <UserInfo name={name}/>
+          <UserInfo name={name} />
 
           <div className="border-b border-grey-200 border-dashed" />
         </SizingWrapper>
@@ -117,15 +121,18 @@ export const ProfilePage = () => {
                 variant={TYPOGRAPHY.R4}
                 className="max-w-[22.5rem] mt-3 mb-6 text-grey-500"
               >
-                Assigning colors randomly is the default, but feel free to switch
-                them if it`s necessary or preferred
+                Assigning colors randomly is the default, but feel free to
+                switch them if it`s necessary or preferred
               </Typography>
 
               <Controller
                 name="color"
                 control={control}
                 render={({ field }) => (
-                  <ColorSelector value={field.value} onChange={field.onChange} />
+                  <ColorSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </section>

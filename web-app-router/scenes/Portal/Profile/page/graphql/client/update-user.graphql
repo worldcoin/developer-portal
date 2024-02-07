@@ -1,5 +1,5 @@
 mutation UpdateUser($user_id: String!, $input: user_set_input) {
-    update_user_by_pk(pk_columns: {id: $user_id}, _set: $input) {
-        name
-    }
+  update_user_by_pk(pk_columns: { id: $user_id }, _set: $input) {
+    name
+  }
 }
