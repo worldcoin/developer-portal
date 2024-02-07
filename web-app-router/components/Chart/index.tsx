@@ -29,7 +29,7 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 const defaultOptions: ChartOptions<"line"> = {
@@ -114,7 +114,7 @@ export const Chart = (props: ChartProps) => {
       labels: props.data.x,
       datasets: props.data.y,
     }),
-    [props.data.x, props.data.y]
+    [props.data.x, props.data.y],
   );
 
   const options = useMemo(() => {
