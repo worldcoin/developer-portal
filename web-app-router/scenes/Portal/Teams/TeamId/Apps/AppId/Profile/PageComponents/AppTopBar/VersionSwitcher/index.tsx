@@ -68,7 +68,9 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
               Approved version
             </Typography>
             {viewMode === "verified" && <CheckIcon className="w-3 h-3 ml-2" />}
-            {viewMode !== "verified" && formattedDate}
+            <Typography className="text-grey-500" variant={TYPOGRAPHY.R5}>
+              {viewMode !== "verified" && formattedDate}
+            </Typography>
           </div>
         </DropdownItem>
       </DropdownItems>
