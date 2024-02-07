@@ -16,7 +16,7 @@ export const SelectOptions = (props: SelectOptionsProps) => {
       <div
         ref={setFloating}
         style={floatingStyles}
-        className="z-[1] flex flex-col"
+        className="z-[100] flex flex-col"
       >
         <Transition
           enter="transition duration-300 ease-out"

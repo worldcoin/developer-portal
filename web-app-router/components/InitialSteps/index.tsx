@@ -4,13 +4,6 @@ import clsx from "clsx";
 import { LogoLinesIcon } from "../Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "../Icons/WorldcoinBlueprintIcon";
 import { Typography, TYPOGRAPHY } from "../Typography";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { PlusCircleIcon } from "../Icons/PlusCircleIcon";
-import { TestTubeIcon } from "../Icons/TestTubeIcon";
-import { UserStoryIcon } from "../Icons/UserStoryIcon";
-import { IconFrame } from "./IconFrame";
-import { Step } from "./Step";
 import { ReactNode, useState } from "react";
 import { Button } from "../Button";
 
@@ -25,11 +18,6 @@ export const InitialSteps = (props: {
   description: string;
   steps: ReactNode[];
 }) => {
-  const { user } = useUser() as Auth0SessionUser;
-  const [currentStep, setCurrentStep] = useState<StepEnum>(
-    StepEnum.CreateAction,
-  );
-
   return (
     <div
       className={clsx("grid gap-y-6 place-items-center w-full max-w-[480px]")}
