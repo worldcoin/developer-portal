@@ -4,7 +4,7 @@ import {
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { DescriptionSubFields } from "../../../types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,6 +17,8 @@ import { toast } from "react-toastify";
 import { Checkbox } from "@/components/Checkbox";
 import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { useAtom } from "jotai";
+import { viewModeAtom } from "../../../layout";
 
 const schema = yup.object().shape({
   is_developer_allow_listing: yup.boolean(),
@@ -41,20 +43,20 @@ const schema = yup.object().shape({
 export type StoreInfoFormValues = yup.Asserts<typeof schema>;
 
 type UpdateStoreInfoFormProps = {
-  app?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
   teamId: string;
   appId: string;
 };
 
 export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
-  const { app, teamId, appId } = props;
+  const { appMetadata, teamId, appId } = props;
+  const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
 
   const [updateAppInfoMutation, { loading: updatingInfo }] =
     useUpdateAppStoreInfoMutation({});
 
-  const isEditable = app?.verification_status === "unverified";
-
+  const isEditable = appMetadata?.verification_status === "unverified";
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
       (m) => m.team?.id === teamId,
@@ -93,22 +95,39 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     });
   };
 
-  const description = parseDescription(app?.description ?? "");
+  const description = useMemo(() => {
+    return parseDescription(appMetadata?.description ?? "");
+  }, [appMetadata?.description]);
 
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isDirty, isValid },
   } = useForm<StoreInfoFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
       ...description,
-      is_developer_allow_listing: app?.is_developer_allow_listing,
-      world_app_description: app?.world_app_description,
+      is_developer_allow_listing: appMetadata?.is_developer_allow_listing,
+      world_app_description: appMetadata?.world_app_description,
     },
   });
+  // Used to update the fields when view mode is change
+  useEffect(() => {
+    reset({
+      ...description,
+      is_developer_allow_listing: appMetadata?.is_developer_allow_listing,
+      world_app_description: appMetadata?.world_app_description,
+    });
+  }, [
+    viewMode,
+    appMetadata?.is_developer_allow_listing,
+    appMetadata?.world_app_description,
+    reset,
+    description,
+  ]);
 
   const worldAppDescription = watch("world_app_description");
   const remainingCharacters = 50 - (worldAppDescription?.length || 0);
@@ -119,7 +138,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
       try {
         const result = await updateAppInfoMutation({
           variables: {
-            app_metadata_id: app?.id ?? "",
+            app_metadata_id: appMetadata?.id ?? "",
             input: {
               description: encodeDescription(
                 data.description_overview,
@@ -148,7 +167,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [updatingInfo, updateAppInfoMutation, app?.id, teamId, appId],
+    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId],
   );
 
   return (

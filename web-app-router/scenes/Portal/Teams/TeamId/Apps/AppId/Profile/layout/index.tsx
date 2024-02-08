@@ -16,6 +16,8 @@ type Images = {
 };
 
 export const viewModeAtom = atom<"unverified" | "verified">("unverified");
+export const showReviewStatusAtom = atom<boolean>(true);
+
 export const unverifiedImageAtom = atom<Images>({
   logo_img_url: "",
   hero_image_url: "",

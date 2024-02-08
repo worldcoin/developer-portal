@@ -19,12 +19,13 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import clsx from "clsx";
 import { UploadIcon } from "@/components/Icons/UploadIcon";
+import { getCDNImageUrl } from "@/lib/utils";
 
 type ImageFormTypes = {
   appId: string;
   teamId: string;
   appMetadataId: string;
-  app: FetchAppMetadataQuery["app"][0];
+  appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
 
 const SHOWCASE_IMAGE_NAMES = [
@@ -34,13 +35,13 @@ const SHOWCASE_IMAGE_NAMES = [
 ];
 
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, app } = props;
+  const { appId, teamId, appMetadataId, appMetadata } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const showcaseImgFileNames = app.app_metadata[0].showcase_img_urls;
+  const showcaseImgFileNames = appMetadata?.showcase_img_urls;
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
 
@@ -54,9 +55,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const isEditable =
-    app?.app_metadata[0]?.verification_status === "unverified" ||
-    app?.app_metadata.length === 0;
+  const isEditable = appMetadata?.verification_status === "unverified";
 
   const nextShowcaseImgName = useMemo(() => {
     if (!showcaseImgFileNames) return SHOWCASE_IMAGE_NAMES[0];
@@ -261,6 +260,35 @@ export const ImageForm = (props: ImageFormTypes) => {
     }
   };
 
+  const heroImage = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      if (!appMetadata?.hero_image_url) return null;
+      return getCDNImageUrl(appId, appMetadata?.hero_image_url);
+    } else {
+      return unverifiedImages.hero_image_url;
+    }
+  }, [
+    appMetadata?.hero_image_url,
+    appId,
+    unverifiedImages.hero_image_url,
+    appMetadata?.verification_status,
+  ]);
+
+  const showcaseImgUrls = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      return appMetadata?.showcase_img_urls.map((url: string) => {
+        return getCDNImageUrl(appId, url);
+      });
+    } else {
+      return unverifiedImages.showcase_image_urls;
+    }
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.showcase_img_urls,
+    appId,
+    unverifiedImages.showcase_image_urls,
+  ]);
+
   return (
     <form className="grid gap-y-7">
       <div className="grid gap-y-3">
@@ -300,10 +328,10 @@ export const ImageForm = (props: ImageFormTypes) => {
         </div>
       </ImageDropZone>
 
-      {unverifiedImages.hero_image_url && (
+      {heroImage && (
         <div className="relative w-fit h-fit">
           <ImageDisplay
-            src={unverifiedImages.hero_image_url}
+            src={heroImage}
             type={viewMode}
             width={400}
             height={300}
@@ -314,7 +342,9 @@ export const ImageForm = (props: ImageFormTypes) => {
             onClick={deleteHeroImage}
             className={clsx(
               "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-              { hidden: !isEnoughPermissions || !isEditable },
+              {
+                hidden: !isEnoughPermissions || !isEditable,
+              },
             )}
           >
             <TrashIcon />
@@ -355,9 +385,9 @@ export const ImageForm = (props: ImageFormTypes) => {
         </div>
       </ImageDropZone>
       <div className="grid grid-cols-3">
-        {unverifiedImages.showcase_image_urls &&
-          unverifiedImages.showcase_image_urls.map((url, index) => (
-            <div className="relative w-fit h-fit" key={url}>
+        {showcaseImgUrls &&
+          showcaseImgUrls.map((url: string, index: number) => (
+            <div className="relative w-fit h-fit" key={index}>
               <ImageDisplay
                 src={url}
                 type={viewMode}
@@ -370,7 +400,9 @@ export const ImageForm = (props: ImageFormTypes) => {
                 onClick={() => deleteShowcaseImage(url)}
                 className={clsx(
                   "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
-                  { hidden: !isEnoughPermissions || !isEditable },
+                  {
+                    hidden: !isEnoughPermissions || !isEditable,
+                  },
                 )}
               >
                 <TrashIcon />

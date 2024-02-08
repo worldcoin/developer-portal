@@ -1,10 +1,8 @@
 export const CheckmarkBadge = (props: { className?: string }) => {
   return (
     <svg
-      width="16"
-      height="16"
-      className={props.className}
       viewBox="0 0 16 16"
+      className={props.className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
