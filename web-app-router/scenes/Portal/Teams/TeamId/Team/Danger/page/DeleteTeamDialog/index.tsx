@@ -110,11 +110,11 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             register={register("confirmation")}
             errors={errors.confirmation}
             label={
-              <>
+              <span className="select-none">
                 To verify, type{" "}
                 <span className="font-medium text-gray-900">{team?.name}</span>{" "}
                 below
-              </>
+              </span>
             }
             autoFocus
           />
