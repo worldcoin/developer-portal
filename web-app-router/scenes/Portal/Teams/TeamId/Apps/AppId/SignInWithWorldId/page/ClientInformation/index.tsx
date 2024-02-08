@@ -47,7 +47,7 @@ export const ClientInformationPage = (props: {
     } catch (error) {
       console.error(error);
     }
-  }, [appID, resetClientSecretMutation]);
+  }, [appID, resetClientSecretMutation, teamID]);
 
   const copyToClipboard = (fieldName: string, fieldValue: string) => {
     navigator.clipboard.writeText(fieldValue);

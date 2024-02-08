@@ -6,7 +6,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as getUnverifiedImagesSDK } from "@/legacy/api/images/graphql/getUnverifiedImages.generated";
+import { getSdk as getUnverifiedImagesSDK } from "@/api/images/graphql/getUnverifiedImages.generated";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
@@ -22,7 +22,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
  * @param req
  * @param res
  */
-export const handleGetAllUnverifiedImages = async (
+export const handleGetUnverifiedImages = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
