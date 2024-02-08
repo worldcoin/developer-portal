@@ -60,7 +60,7 @@ export const LinksForm = (props: LinksFormProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -122,7 +122,7 @@ export const LinksForm = (props: LinksFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, appId, teamId, updateLinksMutation, updatingInfo]
+    [app?.id, appId, teamId, updateLinksMutation, updatingInfo],
   );
 
   return (

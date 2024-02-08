@@ -29,6 +29,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
 
   const deleteApp = async () => {
     if (deletingApp) return;
+    toast.info("Deleting app", { toastId: "deleting_app" });
     try {
       setOpenDeleteModal(false);
       await deleteAppMutation({
@@ -37,11 +38,11 @@ export const DeleteModal = (props: DeleteModalProps) => {
         },
         context: { headers: { team_id: teamId } },
       });
-      toast.success("App deleted successfully");
+      toast.success("App deleted", { toastId: "app_deleted" });
       router.replace(`/teams/${teamId}/apps`);
     } catch (error) {
       console.error(error);
-      toast.error("Error deleting app");
+      toast.error("Failed to delete app", { toastId: "failed_to_delete_app" });
     }
   };
 

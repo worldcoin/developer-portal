@@ -61,7 +61,7 @@ const submitSchema = yup.object().shape({
     .url("Integration URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "Integration URL is not a valid url"
+      "Integration URL is not a valid url",
     )
     .required("Integration URL is required"),
   app_website_url: yup
@@ -92,7 +92,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -123,7 +123,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       const description = JSON.parse(dataToSubmit.description);
       await submitSchema.validate(
         { ...dataToSubmit, ...description },
-        { abortEarly: false }
+        { abortEarly: false },
       );
       await updateAppVerificationStatusMutation({
         variables: {
@@ -205,15 +205,15 @@ export const AppTopBar = (props: AppTopBarProps) => {
           source_code_url: appMetaData.source_code_url,
           integration_url: appMetaData.integration_url,
           logo_img_url: `logo_img.${_getImageEndpoint(
-            appMetaData.logo_img_url
+            appMetaData.logo_img_url,
           )}`,
           hero_image_url: `hero_image.${_getImageEndpoint(
-            appMetaData.hero_image_url
+            appMetaData.hero_image_url,
           )}`,
           showcase_img_urls: `{${appMetaData.showcase_img_urls
             ?.map(
               (img: string, index: number) =>
-                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
+                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
             )
             .join(",")}}`,
           verification_status: "unverified",
@@ -269,7 +269,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   return (
     <div className="grid gap-y-5">
       {["changes_requested", "verified"].includes(
-        appMetaData.verification_status
+        appMetaData.verification_status,
       ) && (
         <ReviewStatus
           status={
