@@ -20,16 +20,18 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     variables: { action_id: actionId ?? "" },
     context: { headers: { team_id: teamId } },
   });
+
   const action = data?.action[0];
+
   if (loading) return <div></div>;
-  else if (!action)
+  else if (!action) {
     return (
       <ErrorComponent
         statusCode={404}
         title="Action not found"
       ></ErrorComponent>
     );
-  else {
+  } else {
     return (
       <div className="w-full h-full flex flex-col items-center ">
         <div className="grid gap-y-2 w-full py-10">

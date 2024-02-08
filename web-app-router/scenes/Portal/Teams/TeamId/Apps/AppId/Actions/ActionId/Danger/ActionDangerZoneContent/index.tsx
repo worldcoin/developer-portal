@@ -27,7 +27,7 @@ export const ActionDangerZoneContent = (props: {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||

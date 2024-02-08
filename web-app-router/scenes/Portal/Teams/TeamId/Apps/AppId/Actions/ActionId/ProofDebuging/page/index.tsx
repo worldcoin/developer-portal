@@ -19,22 +19,25 @@ export const ActionIdProofDebugingPage = ({
   const appId = params?.appId;
   const teamId = params?.teamId;
   const actionID = params?.actionId;
+
   const { data, loading } = useDebuggerQuery({
     variables: {
       action_id: actionID ?? "",
     },
     context: { headers: { team_id: teamId } },
   });
+
   const action = data?.action[0];
+
   if (loading) return <div></div>;
-  else if (!action)
+  else if (!action) {
     return (
       <ErrorComponent
         statusCode={404}
         title="Action not found"
       ></ErrorComponent>
     );
-  else {
+  } else {
     return (
       <div className="w-full h-full flex flex-col items-center ">
         <div className="grid gap-y-2 max-w-[1180px] w-full py-10">
