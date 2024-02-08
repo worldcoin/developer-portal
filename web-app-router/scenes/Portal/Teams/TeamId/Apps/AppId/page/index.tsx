@@ -79,7 +79,7 @@ export const AppIdPage = async (props: {
   const shouldDisplayReviewStatus = verificationData !== null;
 
   return (
-    <SizingWrapper className="grid gap-y-10 py-5 content-start">
+    <SizingWrapper className="flex flex-col gap-y-10 py-5">
       <div className="grid gap-y-5">
         {shouldDisplayReviewStatus && (
           <ReviewStatus
