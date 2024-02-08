@@ -7,6 +7,7 @@ import Error from "next/error";
 import { AppTopBar } from "../../PageComponents/AppTopBar";
 import clsx from "clsx";
 import { LinksForm } from "./LinksForm";
+import { useMemo } from "react";
 
 type AppProfileLinksProps = {
   params: Record<string, string> | null | undefined;
@@ -40,10 +41,14 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
   });
 
   const app = data?.app[0];
-  const appMetaData =
-    viewMode === "verified"
-      ? app?.verified_app_metadata[0]
-      : app?.app_metadata[0];
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app?.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
 
   if (loading) return <div></div>;
   else if (error || !app) {
@@ -58,7 +63,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <div className="grid grid-cols-1 max-w-[600px]">
-          <LinksForm appId={appId} teamId={teamId} app={appMetaData} />
+          <LinksForm appId={appId} teamId={teamId} appMetadata={appMetaData} />
         </div>
       </div>
     );

@@ -12,11 +12,15 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Role_Enum } from "@/graphql/graphql";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+import { VersionSwitcher } from "./VersionSwitcher";
+import { ReviewStatus } from "@/components/ReviewStatus";
+import { ReviewMessage } from "./ReviewMessage";
+import ErrorComponent from "next/error";
 
 type AppTopBarProps = {
   appId: string;
@@ -82,8 +86,9 @@ const submitSchema = yup.object().shape({
 
 export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
-  const [viewMode] = useAtom(viewModeAtom);
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
+  const [showReviewMessage, setShowReviewMessage] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -95,14 +100,16 @@ export const AppTopBar = (props: AppTopBarProps) => {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const appMetaData =
-    viewMode === "verified"
-      ? app.verified_app_metadata[0]
-      : app.app_metadata[0];
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
 
-  const isEditable =
-    app?.app_metadata[0]?.verification_status === "unverified" ||
-    app?.app_metadata.length === 0;
+  const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
 
   const [updateAppVerificationStatusMutation, { loading }] =
     useUpdateAppVerificationStatusMutation({});
@@ -146,7 +153,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       }
     }
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     appId,
     loading,
     teamId,
@@ -174,7 +181,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       awaitRefetchQueries: true,
     });
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     loading,
     updateAppVerificationStatusMutation,
     teamId,
@@ -183,7 +190,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const createNewDraft = useCallback(async () => {
     try {
-      if (!app || app?.app_metadata?.[0].verification_status !== "verified") {
+      if (!app || app?.app_metadata?.length > 0) {
         throw new Error("Your app must be already verified for this action");
       }
       await createEditableRowMutation({
@@ -203,10 +210,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
           hero_image_url: `hero_image.${_getImageEndpoint(
             appMetaData.hero_image_url,
           )}`,
-          showcase_img_urls: appMetaData.showcase_img_urls?.map(
-            (img: string, index: number) =>
-              `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
-          ),
+          showcase_img_urls: `{${appMetaData.showcase_img_urls
+            ?.map(
+              (img: string, index: number) =>
+                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
+            )
+            .join(",")}}`,
           verification_status: "unverified",
         },
         context: { headers: { team_id: teamId } },
@@ -221,6 +230,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         ],
         awaitRefetchQueries: true,
       });
+      setViewMode("unverified");
       toast.success("New app draft created");
     } catch (error: any) {
       console.error(error.message);
@@ -229,18 +239,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData.app_website_url,
-    appMetaData.category,
-    appMetaData.description,
-    appMetaData.hero_image_url,
-    appMetaData.integration_url,
-    appMetaData.is_developer_allow_listing,
-    appMetaData.logo_img_url,
-    appMetaData.name,
-    appMetaData.showcase_img_urls,
-    appMetaData.source_code_url,
-    appMetaData.world_app_description,
+    appMetaData?.app_website_url,
+    appMetaData?.category,
+    appMetaData?.description,
+    appMetaData?.hero_image_url,
+    appMetaData?.integration_url,
+    appMetaData?.is_developer_allow_listing,
+    appMetaData?.logo_img_url,
+    appMetaData?.name,
+    appMetaData?.showcase_img_urls,
+    appMetaData?.source_code_url,
+    appMetaData?.world_app_description,
     createEditableRowMutation,
+    setViewMode,
     teamId,
   ]);
 
@@ -254,56 +265,83 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   };
 
+  if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (
-    <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
-      {/* Placeholder */}
-      <LogoImageUpload
-        appId={appId}
-        teamId={teamId}
-        appMetadataId={appMetaData.id}
-        editable={isEditable && isEnoughPermissions}
-      />
-      <div className="grid grid-cols-1 gap-y-1">
-        <div className="flex flex-row gap-x-3 items-center">
-          <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
-          <Status status={appMetaData.verification_status as StatusVariant} />
-        </div>
-        <Environment
-          environment={app.is_staging ? "staging" : "production"}
-          engine={app.engine}
+    <div className="grid gap-y-5">
+      {["changes_requested", "verified"].includes(
+        appMetaData.verification_status,
+      ) && (
+        <ReviewStatus
+          status={
+            appMetaData.verification_status as "changes_requested" | "verified"
+          }
+          message={appMetaData.review_message}
+          onClick={() => setShowReviewMessage(true)}
         />
-      </div>
-      {isEnoughPermissions && (
-        <div>
-          {isEditable ? (
-            <DecoratedButton
-              type="submit"
-              className="px-6 py-3 h-12"
-              onClick={submitForReview}
-            >
-              <Typography variant={TYPOGRAPHY.M3}>Submit for review</Typography>
-            </DecoratedButton>
-          ) : app?.app_metadata?.[0].verification_status === "verified" ? (
-            <DecoratedButton
-              type="submit"
-              className="px-6 py-3 h-12"
-              onClick={createNewDraft}
-            >
-              <Typography variant={TYPOGRAPHY.M3}>Create new draft</Typography>
-            </DecoratedButton>
-          ) : (
-            <DecoratedButton
-              type="submit"
-              className="px-6 py-3 h-12"
-              onClick={removeFromReview}
-            >
-              <Typography variant={TYPOGRAPHY.M3}>
-                Remove from review
-              </Typography>
-            </DecoratedButton>
-          )}
-        </div>
       )}
+      <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
+        <ReviewMessage
+          message={appMetaData.review_message}
+          closeModal={() => setShowReviewMessage(false)}
+          open={showReviewMessage}
+        />
+        <LogoImageUpload
+          appId={appId}
+          teamId={teamId}
+          appMetadataId={appMetaData.id}
+          editable={isEditable && isEnoughPermissions}
+          logoFile={appMetaData.logo_img_url}
+        />
+        <div className="grid grid-cols-1 gap-y-1">
+          <div className="flex flex-row gap-x-3 items-center">
+            <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
+            <Status status={appMetaData.verification_status as StatusVariant} />
+          </div>
+          <Environment
+            environment={app.is_staging ? "staging" : "production"}
+            engine={app.engine}
+          />
+        </div>
+        {isEnoughPermissions && (
+          <div className="grid grid-cols-auto/1fr gap-x-3 items-center">
+            {app.verified_app_metadata.length > 0 && (
+              <VersionSwitcher app={app} />
+            )}
+            {isEditable ? (
+              <DecoratedButton
+                type="submit"
+                className="px-6 py-3 h-12"
+                disabled={viewMode === "verified"}
+                onClick={submitForReview}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>
+                  Submit for review
+                </Typography>
+              </DecoratedButton>
+            ) : app?.app_metadata?.length === 0 ? (
+              <DecoratedButton
+                type="submit"
+                className="px-6 py-3 h-12"
+                onClick={createNewDraft}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>
+                  Create new draft
+                </Typography>
+              </DecoratedButton>
+            ) : (
+              <DecoratedButton
+                type="submit"
+                className="px-6 py-3 h-12"
+                onClick={removeFromReview}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>
+                  Remove from review
+                </Typography>
+              </DecoratedButton>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -14,11 +14,13 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { useAtom } from "jotai";
+import { viewModeAtom } from "../../layout";
 
 const schema = yup.object({
   name: yup
@@ -34,8 +36,10 @@ export const BasicInformation = (props: {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
+  teamName: string;
 }) => {
-  const { appId, teamId, app } = props;
+  const { appId, teamId, app, teamName } = props;
+  const [viewMode] = useAtom(viewModeAtom);
   const [status, setStatus] = useState(app.status === "active");
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
   const { user } = useUser() as Auth0SessionUser;
@@ -50,23 +54,39 @@ export const BasicInformation = (props: {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const isEditable =
-    app?.app_metadata[0]?.verification_status === "unverified" ||
-    app?.app_metadata.length === 0;
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
+
+  const isEditable = appMetaData.verification_status === "unverified";
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      name: app.app_metadata[0].name,
-      category: app.app_metadata[0].category,
+      name: appMetaData.name,
+      category: appMetaData.category,
     },
   });
+
+  // Used to update the fields when view mode is change
+  useEffect(() => {
+    reset({
+      name: appMetaData.name,
+      category: appMetaData.category,
+    });
+  }, [viewMode, appMetaData?.name, appMetaData?.category, reset]);
 
   const copyId = () => {
     navigator.clipboard.writeText(appId);
@@ -80,7 +100,7 @@ export const BasicInformation = (props: {
         const result = await updateAppInfoMutation({
           variables: {
             app_id: appId,
-            app_metadata_id: app.app_metadata[0].id,
+            app_metadata_id: appMetaData.id,
             input: { ...data },
             status: status ? "active" : "inactive",
           },
@@ -103,7 +123,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation],
+    [appId, appMetaData.id, loading, status, teamId, updateAppInfoMutation],
   );
 
   return (
@@ -153,8 +173,7 @@ export const BasicInformation = (props: {
               </Button>
             }
           />
-          {/* TODO: Graphql Sync */}
-          <Input label="Publisher" required disabled placeholder="Team Name" />
+          <Input label="Publisher" disabled placeholder={teamName} />
           <DecoratedButton
             type="submit"
             variant="primary"
