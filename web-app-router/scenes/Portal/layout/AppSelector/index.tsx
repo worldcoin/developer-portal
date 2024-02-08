@@ -53,7 +53,7 @@ export const AppSelector = () => {
 
       router.push(urls.app({ team_id: teamId, app_id: app?.id }));
     },
-    [router, setCreateAppDialogOpen, teamId]
+    [router, setCreateAppDialogOpen, teamId],
   );
 
   if (!data || loading || error || data.app.length === 0 || !teamId) {
@@ -66,7 +66,7 @@ export const AppSelector = () => {
       onChange={onChange}
       by={(
         a: FetchAppsQuery["app"][number],
-        b: FetchAppsQuery["app"][number]
+        b: FetchAppsQuery["app"][number],
       ) => a?.id === b?.id}
     >
       <SelectButton>

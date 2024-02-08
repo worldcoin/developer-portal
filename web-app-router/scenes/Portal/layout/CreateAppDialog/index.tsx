@@ -57,7 +57,7 @@ export const CreateAppDialog = (props: DialogProps) => {
       verification: "cloud",
       image: "/default.png", // FIXME: remove once image upload is implemented
     }),
-    []
+    [],
   );
 
   const {
@@ -105,7 +105,7 @@ export const CreateAppDialog = (props: DialogProps) => {
           props.onClose(false);
           reset(defaultValues);
           router.push(
-            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id })
+            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id }),
           );
         },
 
@@ -114,7 +114,7 @@ export const CreateAppDialog = (props: DialogProps) => {
         },
       });
     },
-    [defaultValues, insertApp, props, reset, router, teamId]
+    [defaultValues, insertApp, props, reset, router, teamId],
   );
 
   const onClose = useCallback(() => {
