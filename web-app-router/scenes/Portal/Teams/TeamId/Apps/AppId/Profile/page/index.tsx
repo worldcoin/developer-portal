@@ -4,7 +4,7 @@ import { AppTopBar } from "../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
-import { unverifiedImageAtom, viewModeAtom } from "../layout";
+import { unverifiedImageAtom } from "../layout";
 import { useAtom } from "jotai";
 import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";

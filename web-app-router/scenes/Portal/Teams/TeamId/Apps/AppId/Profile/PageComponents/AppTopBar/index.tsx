@@ -5,9 +5,10 @@ import { Environment } from "./Environment";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
+  useFetchAppMetadataLazyQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useAtom } from "jotai";
-import { viewModeAtom } from "../../layout";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -22,6 +23,11 @@ import { ReviewStatus } from "@/components/ReviewStatus";
 import { ReviewMessage } from "./ReviewMessage";
 import ErrorComponent from "next/error";
 import { SubmitAppModal } from "./SubmitAppModal";
+import {
+  FetchImagesDocument,
+  useFetchImagesLazyQuery,
+  useFetchImagesQuery,
+} from "../../graphql/client/fetch-images.generated";
 
 type AppTopBarProps = {
   appId: string;
@@ -91,6 +97,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { user } = useUser() as Auth0SessionUser;
   const [showReviewMessage, setShowReviewMessage] = useState(false);
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
+  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
       (m) => m.team?.id === teamId,
@@ -165,6 +172,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     teamId,
     appId,
   ]);
+  const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
   const createNewDraft = useCallback(async () => {
     try {
@@ -208,6 +216,21 @@ export const AppTopBar = (props: AppTopBarProps) => {
         ],
         awaitRefetchQueries: true,
       });
+
+      await fetchImagesQuery({
+        variables: {
+          id: appId,
+        },
+        context: { headers: { team_id: teamId } },
+        onCompleted: (data) => {
+          setUnverifiedImages({
+            logo_img_url: data?.unverified_images?.logo_img_url ?? "",
+            hero_image_url: data?.unverified_images?.hero_image_url ?? "",
+            showcase_image_urls: data?.unverified_images?.showcase_img_urls,
+          });
+        },
+      });
+
       setViewMode("unverified");
       toast.success("New app draft created");
     } catch (error: any) {

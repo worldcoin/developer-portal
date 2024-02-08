@@ -41,7 +41,7 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const showcaseImgFileNames = appMetadata?.showcase_img_urls;
+  const showcaseImgFileNames = appMetadata?.showcase_img_urls ?? [];
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
 
