@@ -44,51 +44,49 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">
-        <SizingWrapper>
-          <Tabs className="max-w-[1180px] m-auto font-gta">
+        <Tabs className="max-w-[1180px] m-auto font-gta">
+          <Tab
+            className="py-4"
+            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+            segment={null}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+          </Tab>
+
+          <Tab
+            className="py-4"
+            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
+            segment={"store-info"}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
+          </Tab>
+
+          <Tab
+            className="py-4"
+            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
+            segment={"gallery"}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
+          </Tab>
+
+          <Tab
+            className="py-4"
+            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
+            segment={"links"}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
+          </Tab>
+
+          {isEnoughPermissions && (
             <Tab
               className="py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
-              segment={null}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
+              segment={"danger"}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
             </Tab>
-
-            <Tab
-              className="py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
-              segment={"store-info"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
-            </Tab>
-
-            <Tab
-              className="py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
-              segment={"gallery"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
-            </Tab>
-
-            <Tab
-              className="py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
-              segment={"links"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
-            </Tab>
-
-            {isEnoughPermissions && (
-              <Tab
-                className="py-4"
-                href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
-                segment={"danger"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
-              </Tab>
-            )}
-          </Tabs>
-        </SizingWrapper>
+          )}
+        </Tabs>
       </div>
       <SizingWrapper>{props.children}</SizingWrapper>
     </div>

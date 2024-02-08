@@ -18,7 +18,10 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
+export const handleUploadImage = async (
+  req: NextApiRequest,
+  res: NextApiResponse,
+) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
       return;

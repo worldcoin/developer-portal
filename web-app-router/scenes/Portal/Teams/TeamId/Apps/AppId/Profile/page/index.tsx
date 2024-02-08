@@ -4,7 +4,7 @@ import { AppTopBar } from "../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import Error from "next/error";
-import { unverifiedImageAtom } from "../layout";
+import { unverifiedImageAtom, viewModeAtom } from "../layout";
 import { useAtom } from "jotai";
 import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 
@@ -16,12 +16,18 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
+    onCompleted: (data) => {
+      if (data.app[0].app_metadata.length === 0) {
+        setViewMode("verified");
+      }
+    },
   });
 
   const { loading: loadingImages } = useFetchImagesQuery({
@@ -39,9 +45,8 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   });
 
   const app = data?.app[0];
-
   if (loading) return <div>Loading...</div>;
-  else if (!app) {
+  else if (error || !app) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (

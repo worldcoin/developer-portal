@@ -1,3 +1,4 @@
+"use client";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -59,7 +60,7 @@ export const LinksForm = (props: LinksFormProps) => {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -97,11 +98,9 @@ export const LinksForm = (props: LinksFormProps) => {
         const result = await updateLinksMutation({
           variables: {
             app_metadata_id: app?.id ?? "",
-            input: {
-              integration_url: values.integration_url,
-              app_website_url: values.app_website_url,
-              source_code_url: values.source_code_url,
-            },
+            integration_url: values.integration_url,
+            app_website_url: values.app_website_url ?? "",
+            source_code_url: values.source_code_url ?? "",
           },
           context: { headers: { team_id: teamId } },
           refetchQueries: [
@@ -123,7 +122,7 @@ export const LinksForm = (props: LinksFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, appId, teamId, updateLinksMutation, updatingInfo],
+    [app?.id, appId, teamId, updateLinksMutation, updatingInfo]
   );
 
   return (

@@ -1,10 +1,16 @@
 mutation UpdateAppLinksInfo(
   $app_metadata_id: String!
-  $input: app_metadata_set_input
+  $integration_url: String!
+  $app_website_url: String!
+  $source_code_url: String!
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
-    _set: $input
+    _set: {
+      integration_url: $integration_url
+      app_website_url: $app_website_url
+      source_code_url: $source_code_url
+    }
   ) {
     id
   }

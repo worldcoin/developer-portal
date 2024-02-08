@@ -90,7 +90,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
             type="button"
             variant="danger"
             onClick={() => setOpenDeleteModal(true)}
-            // disabled={deleteActionLoading}
             className="bg-system-error-100 w-fit "
           >
             <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>

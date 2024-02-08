@@ -20,6 +20,7 @@ import { useCreateEditableRowMutation } from "./graphql/client/create-editable-r
 import { VersionSwitcher } from "./VersionSwitcher";
 import { ReviewStatus } from "@/components/ReviewStatus";
 import { ReviewMessage } from "./ReviewMessage";
+import ErrorComponent from "next/error";
 
 type AppTopBarProps = {
   appId: string;
@@ -152,7 +153,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       }
     }
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     appId,
     loading,
     teamId,
@@ -180,7 +181,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       awaitRefetchQueries: true,
     });
   }, [
-    app.app_metadata,
+    app?.app_metadata,
     loading,
     updateAppVerificationStatusMutation,
     teamId,
@@ -238,19 +239,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData.app_website_url,
-    appMetaData.category,
-    appMetaData.description,
-    appMetaData.hero_image_url,
-    appMetaData.integration_url,
-    appMetaData.is_developer_allow_listing,
-    appMetaData.logo_img_url,
-    appMetaData.name,
-    appMetaData.showcase_img_urls,
-    appMetaData.source_code_url,
-    appMetaData.world_app_description,
-    setViewMode,
+    appMetaData?.app_website_url,
+    appMetaData?.category,
+    appMetaData?.description,
+    appMetaData?.hero_image_url,
+    appMetaData?.integration_url,
+    appMetaData?.is_developer_allow_listing,
+    appMetaData?.logo_img_url,
+    appMetaData?.name,
+    appMetaData?.showcase_img_urls,
+    appMetaData?.source_code_url,
+    appMetaData?.world_app_description,
     createEditableRowMutation,
+    setViewMode,
     teamId,
   ]);
 
@@ -264,6 +265,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   };
 
+  if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (
     <div className="grid gap-y-5">
       {["changes_requested", "verified"].includes(

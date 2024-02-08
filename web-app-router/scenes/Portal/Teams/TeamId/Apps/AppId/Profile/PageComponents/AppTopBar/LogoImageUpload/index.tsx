@@ -18,7 +18,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/useImage";
+import { useImage } from "../../../hook/use-image";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 import { getCDNImageUrl } from "@/lib/utils";
 
@@ -34,6 +34,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [showDialog, setShowDialog] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [verifiedImages] = useAtom(verifiedImagesAtom);
   const [disabled] = useState(false);
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
@@ -132,7 +133,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               <CloseIcon className="w-4 h-4" />
             </Button>
           </div>
-          <div className="border-1 rounded-xl p-6 border-grey-200 grid gap-y-6">
+          <div className="border rounded-xl p-6 border-grey-200 grid gap-y-6">
             {unverifiedImages?.logo_img_url ? (
               <div>
                 <Image
@@ -186,7 +187,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         </DialogPanel>
       </Dialog>
-      {viewMode === "verified" && <img src={verifiedImageURL}></img>}
+      {viewMode === "verified" && <img src={verifiedImageURL} alt="logo" />}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
           <Image
