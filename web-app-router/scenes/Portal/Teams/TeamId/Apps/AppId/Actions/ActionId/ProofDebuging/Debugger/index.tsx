@@ -189,16 +189,17 @@ export const Debugger = (props: DebuggerProps) => {
             register={register("verification_response")}
             helperText="These are the parameters you get from the JS widget"
             label="Verification response"
+            rows={8}
             errors={errors?.verification_response}
             placeholder={exampleVR}
-            className="h-[200px] py-1"
+            className="py-1"
           />
           <DecoratedButton
             type="button"
-            className="w-44 text-sm"
+            className="w-fit py-3"
             onClick={() => handleSubmit(formatCode)()}
           >
-            Format Response
+            <Typography variant={TYPOGRAPHY.M3}>Format Response</Typography>
           </DecoratedButton>
         </div>
       </div>
