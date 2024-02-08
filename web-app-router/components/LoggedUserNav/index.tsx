@@ -14,14 +14,18 @@ import { Auth0SessionUser } from "@/lib/types";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { DOCS_URL } from "@/lib/constants";
 import Link from "next/link";
-import { CSSProperties } from "react";
+import { CSSProperties, Fragment } from "react";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useAtom } from "jotai";
+import { useParams } from "next/navigation";
+import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
+import { SettingsIcon } from "../Icons/SettingsIcon";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user } = useUser() as Auth0SessionUser;
   const nameFirstLetter = user?.name?.charAt(0).toUpperCase();
+  const { teamId } = useParams() as { teamId?: string };
 
   return (
     <div
@@ -78,6 +82,43 @@ export const LoggedUserNav = () => {
           </DropdownItem>
 
           <hr className="border-grey-200" />
+
+          {teamId && (
+            <Fragment>
+              <hr className="border-grey-200" />
+
+              {/* FIXME: create proper team name component */}
+              <Typography
+                as="div"
+                variant={TYPOGRAPHY.R4}
+                className="truncate max-w-full px-4 py-2.5 text-grey-400"
+              >
+                {teamId}
+              </Typography>
+
+              <DropdownItem>
+                <Link
+                  href={`/teams/${teamId}`}
+                  className="grid grid-cols-auto/1fr items-center gap-x-2"
+                >
+                  <UserMultipleIcon className="text-grey-400" />
+                  <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+                </Link>
+              </DropdownItem>
+
+              <DropdownItem>
+                <Link
+                  href={`/teams/${teamId}/settings`}
+                  className="grid grid-cols-auto/1fr items-center gap-x-2"
+                >
+                  <SettingsIcon className="text-grey-400" />
+                  <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
+                </Link>
+              </DropdownItem>
+
+              <hr className="border-grey-200" />
+            </Fragment>
+          )}
 
           <DropdownItem>
             <a
