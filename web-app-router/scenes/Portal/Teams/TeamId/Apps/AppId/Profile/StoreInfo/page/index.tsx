@@ -69,7 +69,7 @@ export const AppProfileStoreInfoPage = ({
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <div className="grid grid-cols-1 max-w-[600px]">
           <UpdateStoreInfoForm
-            app={appMetaData}
+            appMetadata={appMetaData}
             teamId={teamId}
             appId={appId}
           />

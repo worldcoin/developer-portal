@@ -48,15 +48,15 @@ type LinksFormValues = yup.Asserts<typeof schema>;
 type LinksFormProps = {
   appId: string;
   teamId: string;
-  app?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
 
 export const LinksForm = (props: LinksFormProps) => {
-  const { appId, teamId, app } = props;
+  const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const [updateLinksMutation, { loading: updatingInfo }] =
     useUpdateAppLinksInfoMutation();
-  const isEditable = app?.verification_status === "unverified";
+  const isEditable = appMetadata?.verification_status === "unverified";
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -77,19 +77,24 @@ export const LinksForm = (props: LinksFormProps) => {
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      integration_url: app?.integration_url,
-      app_website_url: app?.app_website_url,
-      source_code_url: app?.source_code_url,
+      integration_url: appMetadata?.integration_url,
+      app_website_url: appMetadata?.app_website_url,
+      source_code_url: appMetadata?.source_code_url,
     },
   });
-
+  // Used to update the fields when view mode is change
   useEffect(() => {
     reset({
-      integration_url: app?.integration_url,
-      app_website_url: app?.app_website_url,
-      source_code_url: app?.source_code_url,
+      integration_url: appMetadata?.integration_url,
+      app_website_url: appMetadata?.app_website_url,
+      source_code_url: appMetadata?.source_code_url,
     });
-  }, [app, reset]);
+  }, [
+    appMetadata?.app_website_url,
+    appMetadata?.integration_url,
+    appMetadata?.source_code_url,
+    reset,
+  ]);
 
   const submit = useCallback(
     async (values: LinksFormValues) => {
@@ -97,7 +102,7 @@ export const LinksForm = (props: LinksFormProps) => {
       try {
         const result = await updateLinksMutation({
           variables: {
-            app_metadata_id: app?.id ?? "",
+            app_metadata_id: appMetadata?.id ?? "",
             integration_url: values.integration_url,
             app_website_url: values.app_website_url ?? "",
             source_code_url: values.source_code_url ?? "",
@@ -122,7 +127,7 @@ export const LinksForm = (props: LinksFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [app?.id, appId, teamId, updateLinksMutation, updatingInfo],
+    [appMetadata?.id, appId, teamId, updateLinksMutation, updatingInfo],
   );
 
   return (

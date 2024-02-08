@@ -79,12 +79,13 @@ export const BasicInformation = (props: {
     },
   });
 
+  // Used to update the fields when view mode is change
   useEffect(() => {
     reset({
       name: appMetaData.name,
       category: appMetaData.category,
     });
-  }, [viewMode, appMetaData, reset]);
+  }, [viewMode, appMetaData?.name, appMetaData?.category, reset]);
 
   const copyId = () => {
     navigator.clipboard.writeText(appId);

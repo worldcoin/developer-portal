@@ -63,7 +63,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <div className="grid grid-cols-1 max-w-[600px]">
-          <LinksForm appId={appId} teamId={teamId} app={appMetaData} />
+          <LinksForm appId={appId} teamId={teamId} appMetadata={appMetaData} />
         </div>
       </div>
     );

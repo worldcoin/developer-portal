@@ -16,18 +16,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
   const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
-    onCompleted: (data) => {
-      if (data.app[0].app_metadata.length === 0) {
-        setViewMode("verified");
-      }
-    },
   });
 
   const { loading: loadingImages } = useFetchImagesQuery({
