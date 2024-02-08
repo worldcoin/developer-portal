@@ -2,11 +2,12 @@ import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { ArrowUpIcon } from "@/components/Icons/ArrowUpIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
+import Skeleton from "react-loading-skeleton";
 
 export const StatCard = (props: {
   mainColorClassName: string;
   title: string;
-  value: number;
+  value: number | null;
   changePercentage: number;
 }) => {
   return (
@@ -26,7 +27,7 @@ export const StatCard = (props: {
 
       <div className="flex items-center gap-x-2">
         <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
-          {props.value.toLocaleString()}
+          {props.value?.toLocaleString() ?? <Skeleton width={100} />}
         </Typography>
 
         <div

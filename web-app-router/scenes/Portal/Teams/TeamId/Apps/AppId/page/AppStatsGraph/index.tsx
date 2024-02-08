@@ -1,10 +1,12 @@
 "use client";
 
 import { atom, useAtom } from "jotai";
+
 import {
   FetchAppStatsQuery,
   useFetchAppStatsQuery,
 } from "./graphql/client/fetch-app-stats.generated";
+
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import tz from "dayjs/plugin/timezone";
@@ -14,7 +16,8 @@ import { Chart, ChartProps } from "@/components/Chart";
 import { Timespan, TimespanSelector } from "./TimespanSelector";
 import { StatCard } from "./StatCard";
 import { ChartData } from "chart.js";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import Skeleton from "react-loading-skeleton";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -89,7 +92,7 @@ export const AppStatsGraph = () => {
     }
   }, [timespan.value]);
 
-  const { data } = useFetchAppStatsQuery({
+  const { data, loading } = useFetchAppStatsQuery({
     variables: {
       appId,
       startsAt,
@@ -142,15 +145,29 @@ export const AppStatsGraph = () => {
     return formattedData;
   }, [labelDateFormat, stats]);
 
-  const totalVerifications = useMemo(
-    () => (stats ? stats[stats.length - 1]?.verifications : 0),
-    [stats],
-  );
+  const totalVerifications = useMemo(() => {
+    if (loading || !stats) {
+      return null;
+    }
 
-  const totalUnique = useMemo(
-    () => (stats ? stats[stats.length - 1]?.unique_users : 0),
-    [stats],
-  );
+    if (!stats[stats.length - 1]) {
+      return 0;
+    }
+
+    return stats[stats.length - 1].verifications;
+  }, [loading, stats]);
+
+  const totalUnique = useMemo(() => {
+    if (loading || !stats) {
+      return null;
+    }
+
+    if (!stats[stats.length - 1]) {
+      return 0;
+    }
+
+    return stats[stats.length - 1].unique_users;
+  }, [loading, stats]);
 
   const verificationPercentageChange = useMemo(
     () => calculatePercentageChange(stats, "verifications"),
@@ -188,9 +205,21 @@ export const AppStatsGraph = () => {
 
       {formattedData && <Chart data={formattedData} />}
 
-      {!formattedData && (
-        <div className="w-full aspect-[1180/350] rounded-xl flex items-center justify-center">
-          <WorldcoinIcon className="animate-ping" />
+      {loading && (
+        <div className="w-full aspect-[1180/350] rounded-2xl relative">
+          <Skeleton className="w-full h-full absolute inset-0 rounded-2xl" />
+        </div>
+      )}
+
+      {!loading && !formattedData && (
+        <div className="w-full aspect-[1180/350] grid gap-y-1 justify-center content-center justify-items-center border border-grey-200 rounded-2xl pointer-events-none select-none">
+          <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+            No data available yet
+          </Typography>
+
+          <Typography variant={TYPOGRAPHY.R4} className="text-14 text-grey-400">
+            Your verification numbers will show up here.
+          </Typography>
         </div>
       )}
     </div>
