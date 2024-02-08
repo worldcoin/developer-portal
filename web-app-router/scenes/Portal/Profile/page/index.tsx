@@ -1,7 +1,7 @@
 "use client";
 
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { Color, ColorName, colors } from "@/scenes/Portal/Profile/types";
+import { Color, colors } from "@/scenes/Portal/Profile/types";
 import { Input } from "@/components/Input";
 import { useForm, useWatch, Controller } from "react-hook-form";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -70,25 +70,29 @@ export const ProfilePage = () => {
 
   const submit = useCallback(
     async (values: FormValues) => {
-      if (!user?.hasura) return;
+      if (!user?.hasura) {
+        return;
+      }
+
       try {
         await updateUser({
           variables: {
             user_id: user?.hasura.id,
             input: {
               name: values.name,
-              //color: values.color,
+              // TODO: pass color
             },
           },
           refetchQueries: [FetchUserDocument],
         });
-        toast.success("Profile saved!");
+
+        toast.success("Your profile was successfully updated");
       } catch (error) {
         console.error(error);
         toast.error("Error updating profile");
       }
     },
-    [updateUser, user?.hasura?.id],
+    [updateUser, user?.hasura],
   );
 
   return (

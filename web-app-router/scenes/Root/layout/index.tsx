@@ -7,6 +7,7 @@ import { CSSProperties } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Provider } from "jotai";
+import { Slide, ToastContainer } from "react-toastify";
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
@@ -30,6 +31,13 @@ export const RootLayout = ({
       }
     >
       <body>
+        <ToastContainer
+          autoClose={4000}
+          transition={Slide}
+          hideProgressBar
+          position="bottom-right"
+        />
+
         <UserProvider>
           <ApolloWrapper>
             <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
