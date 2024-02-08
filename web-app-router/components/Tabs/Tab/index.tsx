@@ -1,3 +1,5 @@
+"use client";
+
 import { HTMLAttributes, useMemo } from "react";
 import { tv } from "tailwind-variants";
 import Link, { LinkProps } from "next/link";
@@ -35,7 +37,7 @@ export const Tab = (props: TabProps) => {
 
   const active = useMemo(
     () => props.segment === selectedLayoutSegment,
-    [props.segment, selectedLayoutSegment],
+    [props.segment, selectedLayoutSegment]
   );
 
   return (
