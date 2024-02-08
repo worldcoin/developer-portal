@@ -28,8 +28,8 @@ export const Image = (props: {
       className={twMerge(
         clsx(
           "h-full w-full rounded-2xl overflow-hidden flex justify-center items-center bg-[var(--color-100)] text-[var(--color-500)]",
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       {src && (

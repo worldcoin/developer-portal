@@ -30,8 +30,8 @@ export const TeamProfile = (props: { className?: string }) => {
       className={twMerge(
         clsx(
           "grid grid-cols-auto/1fr grid-rows-2 gap-x-5 gap-y-2 justify-self-start py-8 border-b border-dashed border-grey-200",
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       <div className="row-span-2 w-20 h-20 rounded-2xl overflow-hidden">
