@@ -33,6 +33,8 @@ select_permissions:
       columns:
         - id
         - role
+        - team_id
+        - user_id
       filter:
         _or:
           - team_id:
@@ -46,7 +48,25 @@ update_permissions:
         - role
       filter: {}
       check: null
+  - role: user
+    permission:
+      columns:
+        - role
+      filter:
+        team:
+          memberships:
+            _and:
+              - role:
+                  _eq: OWNER
+              - user_id:
+                  _eq: X-Hasura-User-Id
+      check: null
 delete_permissions:
   - role: service
     permission:
       filter: {}
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

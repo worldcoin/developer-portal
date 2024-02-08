@@ -1,0 +1,22 @@
+#mutation TransferOwnership($id: String!, $role: role_enum = OWNER) {
+#    update_membership_by_pk(pk_columns: {id: $id}, _set: {role: $role}) {
+#        role
+#    }
+#}
+
+mutation TransferOwnership(
+  $id: String!
+  $role: role_enum = OWNER
+  $user_id: String!
+  $user_role: role_enum = ADMIN
+) {
+  update_membership_by_pk(pk_columns: { id: $id }, _set: { role: $role }) {
+    id
+  }
+  update_membership(
+    where: { user_id: { _eq: $user_id } }
+    _set: { role: $user_role }
+  ) {
+    affected_rows
+  }
+}

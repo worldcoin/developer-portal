@@ -12,6 +12,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
+import { useDeleteAccountMutation } from "./graphql/client/delete-account.generated";
+import { toast } from "react-toastify";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
 
 const DELETE_WORD = "DELETE";
 
@@ -25,6 +29,8 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const DeleteAccountDialog = (props: DialogProps) => {
+  const { user } = useUser() as Auth0SessionUser;
+
   const {
     register,
     handleSubmit,
@@ -40,10 +46,24 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     props.onClose(false);
   }, [props, reset]);
 
-  const submit = useCallback(() => {
-    // FIXME: Update delete account logic
-    console.log("Delete account");
-  }, []);
+  const [deleteAccount] = useDeleteAccountMutation({
+    context: { headers: { team_id: "" } },
+  });
+
+  const submit = useCallback(async () => {
+    if (!user?.hasura) return;
+    try {
+      await deleteAccount({
+        variables: {
+          user_id: user.hasura.id,
+        },
+      });
+      toast.success("Team leaved!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error account deleting");
+    }
+  }, [deleteAccount, user?.hasura]);
 
   return (
     <Dialog {...props} onClose={onClose}>
