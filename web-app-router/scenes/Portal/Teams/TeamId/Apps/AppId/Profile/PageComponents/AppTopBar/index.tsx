@@ -21,6 +21,7 @@ import { VersionSwitcher } from "./VersionSwitcher";
 import { ReviewStatus } from "@/components/ReviewStatus";
 import { ReviewMessage } from "./ReviewMessage";
 import ErrorComponent from "next/error";
+import { SubmitAppModal } from "./SubmitAppModal";
 
 type AppTopBarProps = {
   appId: string;
@@ -61,7 +62,7 @@ const submitSchema = yup.object().shape({
     .url("Integration URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "Integration URL is not a valid url",
+      "Integration URL is not a valid url"
     )
     .required("Integration URL is required"),
   app_website_url: yup
@@ -89,10 +90,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [showReviewMessage, setShowReviewMessage] = useState(false);
-
+  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -118,31 +119,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const submitForReview = useCallback(async () => {
     if (loading) return;
-    const dataToSubmit = app.app_metadata[0];
+    if (appMetaData?.verification_status !== "unverified") return;
     try {
-      const description = JSON.parse(dataToSubmit.description);
+      const description = JSON.parse(appMetaData.description);
       await submitSchema.validate(
-        { ...dataToSubmit, ...description },
-        { abortEarly: false },
+        { ...appMetaData, ...description },
+        { abortEarly: false }
       );
-      await updateAppVerificationStatusMutation({
-        variables: {
-          app_metadata_id: dataToSubmit.id,
-          verification_status: "awaiting_review",
-        },
-        context: { headers: { team_id: teamId } },
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-            variables: {
-              id: appId,
-            },
-            context: { headers: { team_id: teamId } },
-          },
-        ],
-        awaitRefetchQueries: true,
-      });
-      toast.success("App submitted for review");
+      setShowSubmitAppModal(true);
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         toast.error(error.errors[0]);
@@ -152,13 +136,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error("Error occurred while submitting app for review");
       }
     }
-  }, [
-    app?.app_metadata,
-    appId,
-    loading,
-    teamId,
-    updateAppVerificationStatusMutation,
-  ]);
+  }, [appMetaData, loading]);
 
   const removeFromReview = useCallback(async () => {
     if (loading) return;
@@ -205,15 +183,15 @@ export const AppTopBar = (props: AppTopBarProps) => {
           source_code_url: appMetaData.source_code_url,
           integration_url: appMetaData.integration_url,
           logo_img_url: `logo_img.${_getImageEndpoint(
-            appMetaData.logo_img_url,
+            appMetaData.logo_img_url
           )}`,
           hero_image_url: `hero_image.${_getImageEndpoint(
-            appMetaData.hero_image_url,
+            appMetaData.hero_image_url
           )}`,
           showcase_img_urls: `{${appMetaData.showcase_img_urls
             ?.map(
               (img: string, index: number) =>
-                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
+                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`
             )
             .join(",")}}`,
           verification_status: "unverified",
@@ -269,7 +247,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   return (
     <div className="grid gap-y-5">
       {["changes_requested", "verified"].includes(
-        appMetaData.verification_status,
+        appMetaData.verification_status
       ) && (
         <ReviewStatus
           status={
@@ -279,6 +257,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
           onClick={() => setShowReviewMessage(true)}
         />
       )}
+      <SubmitAppModal
+        open={showSubmitAppModal}
+        setOpen={setShowSubmitAppModal}
+        appMetadataId={appMetaData.id}
+        teamId={teamId}
+        appId={appId}
+        isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
+      />
       <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
         <ReviewMessage
           message={appMetaData.review_message}

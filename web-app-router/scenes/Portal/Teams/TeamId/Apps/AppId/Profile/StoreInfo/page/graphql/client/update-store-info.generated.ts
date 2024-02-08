@@ -6,7 +6,8 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateAppStoreInfoMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
-  input?: Types.InputMaybe<Types.App_Metadata_Set_Input>;
+  description: Types.Scalars["String"];
+  world_app_description: Types.Scalars["String"];
 }>;
 
 export type UpdateAppStoreInfoMutation = {
@@ -20,11 +21,15 @@ export type UpdateAppStoreInfoMutation = {
 export const UpdateAppStoreInfoDocument = gql`
   mutation UpdateAppStoreInfo(
     $app_metadata_id: String!
-    $input: app_metadata_set_input
+    $description: String!
+    $world_app_description: String!
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
-      _set: $input
+      _set: {
+        description: $description
+        world_app_description: $world_app_description
+      }
     ) {
       id
     }
@@ -49,7 +54,8 @@ export type UpdateAppStoreInfoMutationFn = Apollo.MutationFunction<
  * const [updateAppStoreInfoMutation, { data, loading, error }] = useUpdateAppStoreInfoMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
- *      input: // value for 'input'
+ *      description: // value for 'description'
+ *      world_app_description: // value for 'world_app_description'
  *   },
  * });
  */

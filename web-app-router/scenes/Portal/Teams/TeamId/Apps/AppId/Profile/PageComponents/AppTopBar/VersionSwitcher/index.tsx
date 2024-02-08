@@ -58,7 +58,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
               Current version
             </Typography>
             {viewMode === "unverified" && (
-              <CheckIcon className="w-3 h-3 ml-2" />
+              <CheckIcon size="16" className="w-3 h-3 ml-2" />
             )}
           </div>
         </DropdownItem>
@@ -74,7 +74,9 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
             >
               Approved version
             </Typography>
-            {viewMode === "verified" && <CheckIcon className="w-3 h-3 ml-2" />}
+            {viewMode === "verified" && (
+              <CheckIcon size="16" className="w-3 h-3 ml-2" />
+            )}
             <Typography className="text-grey-500" variant={TYPOGRAPHY.R5}>
               {viewMode !== "verified" && formattedDate}
             </Typography>

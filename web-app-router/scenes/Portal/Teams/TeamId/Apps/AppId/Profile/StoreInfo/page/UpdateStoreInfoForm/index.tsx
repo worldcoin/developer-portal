@@ -14,14 +14,12 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { Checkbox } from "@/components/Checkbox";
 import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useAtom } from "jotai";
 import { viewModeAtom } from "../../../layout";
 
 const schema = yup.object().shape({
-  is_developer_allow_listing: yup.boolean(),
   world_app_description: yup
     .string()
     .max(50, "World app description cannot exceed 50 characters")
@@ -59,7 +57,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const isEditable = appMetadata?.verification_status === "unverified";
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -86,7 +84,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const encodeDescription = (
     description_overview: string,
     description_how_it_works: string = "",
-    description_connect: string = "",
+    description_connect: string = ""
   ) => {
     return JSON.stringify({
       [DescriptionSubFields.DescriptionOverview]: description_overview,
@@ -139,15 +137,12 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         const result = await updateAppInfoMutation({
           variables: {
             app_metadata_id: appMetadata?.id ?? "",
-            input: {
-              description: encodeDescription(
-                data.description_overview,
-                data.description_how_it_works,
-                data.description_connect,
-              ),
-              is_developer_allow_listing: data.is_developer_allow_listing,
-              world_app_description: data.world_app_description,
-            },
+            description: encodeDescription(
+              data.description_overview,
+              data.description_how_it_works,
+              data.description_connect
+            ),
+            world_app_description: data.world_app_description ?? "",
           },
           context: { headers: { team_id: teamId } },
           refetchQueries: [
@@ -167,27 +162,11 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId],
+    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId]
   );
 
   return (
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
-      <Typography variant={TYPOGRAPHY.H7}>Permissions</Typography>
-      <div className="grid grid-cols-auto/1fr py-6 px-5 border-[1px] rounded-xl border-grey-200 gap-x-4">
-        <Checkbox
-          register={register("is_developer_allow_listing")}
-          disabled={!isEditable || !isEnoughPermissions}
-        />
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-            Allow App Store listing
-          </Typography>
-          <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-            Once you submit your app for review, it can be placed in Worldcoin
-            App Store, if it’s chosen to be displayed by the Worldcoin team.
-          </Typography>
-        </div>
-      </div>
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           App description
