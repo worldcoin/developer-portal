@@ -5,8 +5,8 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { UpdateActionForm } from "../UpdateAction";
 import { TryAction } from "../TryAction";
 import { Link } from "@/components/Link";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
