@@ -64,7 +64,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           appId={appId}
           teamId={teamId}
           app={app}
-          teamName={teamName}
+          teamName={teamName ?? ""}
         />
       </div>
     );
