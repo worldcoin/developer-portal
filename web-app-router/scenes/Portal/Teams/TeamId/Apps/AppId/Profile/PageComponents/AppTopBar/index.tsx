@@ -257,7 +257,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
             appMetaData.verification_status as "changes_requested" | "verified"
           }
           message={appMetaData.review_message}
-          onClick={() => setShowReviewMessage(true)}
         />
       )}
       <SubmitAppModal
