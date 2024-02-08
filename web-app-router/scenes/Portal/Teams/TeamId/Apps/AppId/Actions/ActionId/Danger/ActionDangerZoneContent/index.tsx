@@ -3,7 +3,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { Dialog } from "@/components/Dialog";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
@@ -11,11 +11,29 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
+import { Role_Enum } from "@/graphql/graphql";
 
-export const ActionDangerZoneContent = (props: { action: any }) => {
-  const { action } = props;
+export const ActionDangerZoneContent = (props: {
+  action: GetSingleActionQuery["action"][0];
+  teamId?: string;
+}) => {
+  const { action, teamId } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const router = useRouter();
+  const { user } = useUser() as Auth0SessionUser;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === teamId,
+    );
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [teamId, user?.hasura.memberships]);
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
     useDeleteActionMutation({});
@@ -100,7 +118,7 @@ export const ActionDangerZoneContent = (props: { action: any }) => {
           type="button"
           variant="danger"
           onClick={() => setOpenDeleteModal(true)}
-          disabled={deleteActionLoading}
+          disabled={deleteActionLoading || !isEnoughPermissions}
           className="bg-system-error-100 w-40 "
         >
           <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>

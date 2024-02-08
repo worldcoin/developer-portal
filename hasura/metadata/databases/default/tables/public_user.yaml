@@ -50,9 +50,12 @@ select_permissions:
         - is_subscribed
         - name
       filter:
-        memberships:
-          team_id:
-            _eq: X-Hasura-Team-Id
+        _or:
+          - id:
+              _eq: X-Hasura-User-Id
+          - memberships:
+              team_id:
+                _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:

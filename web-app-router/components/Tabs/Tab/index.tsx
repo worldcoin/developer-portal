@@ -1,3 +1,5 @@
+"use client";
+
 import { HTMLAttributes, useMemo } from "react";
 import { tv } from "tailwind-variants";
 import Link, { LinkProps } from "next/link";
