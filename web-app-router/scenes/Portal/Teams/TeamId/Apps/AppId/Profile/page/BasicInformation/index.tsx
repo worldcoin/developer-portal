@@ -36,8 +36,9 @@ export const BasicInformation = (props: {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
+  teamName: string;
 }) => {
-  const { appId, teamId, app } = props;
+  const { appId, teamId, app, teamName } = props;
   const [viewMode] = useAtom(viewModeAtom);
   const [status, setStatus] = useState(app.status === "active");
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
@@ -172,8 +173,7 @@ export const BasicInformation = (props: {
               </Button>
             }
           />
-          {/* TODO: Graphql Sync */}
-          <Input label="Publisher" required disabled placeholder="Team Name" />
+          <Input label="Publisher" disabled placeholder={teamName} />
           <DecoratedButton
             type="submit"
             variant="primary"

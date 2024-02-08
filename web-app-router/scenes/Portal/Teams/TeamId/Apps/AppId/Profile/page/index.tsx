@@ -7,6 +7,7 @@ import Error from "next/error";
 import { unverifiedImageAtom, viewModeAtom } from "../layout";
 import { useAtom } from "jotai";
 import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
+import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -20,6 +21,13 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
+    },
+    context: { headers: { team_id: teamId } },
+  });
+
+  const { data: teamData } = useFetchTeamNameQuery({
+    variables: {
+      id: teamId,
     },
     context: { headers: { team_id: teamId } },
   });
@@ -39,6 +47,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   });
 
   const app = data?.app[0];
+  const teamName = teamData?.team[0]?.name;
   if (loading) return <div>Loading...</div>;
   else if (error || !app) {
     return <Error statusCode={404} title="App not found" />;
@@ -51,7 +60,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
       >
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <BasicInformation appId={appId} teamId={teamId} app={app} />
+        <BasicInformation
+          appId={appId}
+          teamId={teamId}
+          app={app}
+          teamName={teamName}
+        />
       </div>
     );
   }
