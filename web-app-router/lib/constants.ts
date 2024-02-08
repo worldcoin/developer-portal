@@ -25,6 +25,8 @@ export const DOCS_URL = "https://docs.worldcoin.org";
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
 export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
+export const SIMULATOR_URL = "https://simulator.worldcoin.org";
+
 export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.Generic]:
     "There was a problem with your login. Please try again.",

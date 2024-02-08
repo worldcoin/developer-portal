@@ -18,5 +18,8 @@ export const urls = {
     return `/join?${searchParams.toString()}`;
   },
 
+  createAction: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/actions?createAction=true`,
+
   profile: (): "/profile" => "/profile",
 };

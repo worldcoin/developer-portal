@@ -1,10 +1,14 @@
-export const CheckmarkBadge = (props: { className?: string }) => {
+import { ComponentProps } from "react";
+
+export const CheckmarkBadge = (props: ComponentProps<"svg">) => {
   return (
     <svg
+      width="16"
+      height="16"
       viewBox="0 0 16 16"
-      className={props.className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         fillRule="evenodd"

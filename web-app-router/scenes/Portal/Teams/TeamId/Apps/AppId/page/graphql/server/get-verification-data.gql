@@ -1,0 +1,16 @@
+query FetchAppVerificationData($id: String!) {
+  app_by_pk(id: $id) {
+    app_metadata(
+      where: {
+        _or: [
+          { verification_status: { _eq: "changes_requested" } }
+          { verification_status: { _eq: "verified" } }
+        ]
+      }
+    ) {
+      id
+      review_message
+      verification_status
+    }
+  }
+}
