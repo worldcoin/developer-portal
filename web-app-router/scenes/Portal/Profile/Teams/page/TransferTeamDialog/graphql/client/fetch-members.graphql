@@ -1,0 +1,12 @@
+query FetchMembers($user_id: String!, $team_id: String!) {
+  members: membership(
+    where: { _and: { user_id: { _neq: $user_id }, team_id: { _eq: $team_id } } }
+  ) {
+    id
+    user {
+      id
+      name
+      email
+    }
+  }
+}

@@ -6,7 +6,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as checkUserInAppDocumentSDK } from "@/legacy/api/images/graphql/checkUserInApp.generated";
+import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@/lib/logger";
@@ -22,7 +22,7 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const handleImageGet = async (
+export const handleGetUploadedImage = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {

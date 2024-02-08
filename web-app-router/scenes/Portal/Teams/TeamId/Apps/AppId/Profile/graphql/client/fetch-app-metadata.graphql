@@ -1,0 +1,46 @@
+query FetchAppMetadata($id: String!) {
+  app(where: { id: { _eq: $id } }) {
+    id
+    engine
+    is_staging
+    status
+    app_metadata(where: { verification_status: { _neq: "verified" } }) {
+      id
+      app_id
+      name
+      logo_img_url
+      showcase_img_urls
+      hero_image_url
+      description
+      world_app_description
+      category
+      is_developer_allow_listing
+      integration_url
+      app_website_url
+      source_code_url
+      verified_at
+      review_message
+      verification_status
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      id
+      app_id
+      name
+      logo_img_url
+      showcase_img_urls
+      hero_image_url
+      description
+      world_app_description
+      category
+      is_developer_allow_listing
+      integration_url
+      app_website_url
+      source_code_url
+      verified_at
+      review_message
+      verification_status
+    }
+  }
+}

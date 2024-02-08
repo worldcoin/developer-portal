@@ -19,12 +19,46 @@ import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferT
 import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { TeamLogo } from "./TeamLogo";
+import {
+  FetchMembershipsQuery,
+  useFetchMembershipsQuery,
+} from "../graphql/client/fetch-memberships.generated";
+import { Role_Enum } from "@/graphql/graphql";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+
+const roleName: Record<Role_Enum, string> = {
+  [Role_Enum.Admin]: "Admin",
+  [Role_Enum.Member]: "Member",
+  [Role_Enum.Owner]: "Owner",
+};
 
 export const List = () => {
-  const [teamForEdit, setTeamForEdit] = useState<any>(null);
-  const [teamForTransfer, setTeamForTransfer] = useState<any>(null);
-  const [teamForDelete, setTeamForDelete] = useState<any>(null);
-  const [teamForLeave, setTeamForLeave] = useState<any>(null);
+  const { user } = useUser() as Auth0SessionUser;
+
+  const membershipsQueryRes = useFetchMembershipsQuery({
+    context: { headers: { team_id: "_" } },
+    variables: !user?.hasura
+      ? undefined
+      : {
+          user_id: user?.hasura.id,
+        },
+    skip: !user?.hasura,
+  });
+
+  const [teamForEdit, setTeamForEdit] = useState<
+    FetchMembershipsQuery["memberships"][0]["team"] | undefined
+  >();
+  const [teamForTransfer, setTeamForTransfer] = useState<
+    FetchMembershipsQuery["memberships"][0]["team"] | undefined
+  >();
+  const [teamForDelete, setTeamForDelete] = useState<
+    FetchMembershipsQuery["memberships"][0]["team"] | undefined
+  >();
+  const [teamForLeave, setTeamForLeave] = useState<
+    FetchMembershipsQuery["memberships"][0]["team"] | undefined
+  >();
+
   return (
     <>
       <div className="grid grid-cols-[1fr_1fr_auto]">
@@ -46,112 +80,131 @@ export const List = () => {
           <div className="py-3 border-b border-grey-100" />
         </div>
 
-        <div className="contents">
-          <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
-            {/* FIXME: pass real team name */}
-            <TeamLogo src={""} name="A11 Team" />
-            <Typography variant={TYPOGRAPHY.R3}>A11 Team</Typography>
+        {membershipsQueryRes.data?.memberships.map((membership) => (
+          <div key={membership.team.id} className="contents">
+            <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
+              <TeamLogo
+                src={""}
+                name={
+                  membership.team.name ??
+                  "" /*FIXME: team.name must be non nullable*/
+                }
+              />
+
+              <Typography variant={TYPOGRAPHY.R3}>
+                {
+                  membership.team.name ??
+                    "" /*FIXME: team.name must be non nullable*/
+                }
+              </Typography>
+            </div>
+
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="flex items-center px-2 py-4 leading-5 text-14 text-grey-500 border-b border-grey-100"
+            >
+              {roleName[membership.role]}
+            </Typography>
+
+            <div className="flex items-center px-2 py-4 border-b border-grey-100">
+              <Dropdown>
+                <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
+                  <MoreVerticalIcon />
+                </DropdownButton>
+
+                <DropdownItems>
+                  {false && (
+                    /* FIXME: implement current team identifying */ <DropdownItem>
+                      <div className="flex items-center gap-x-2">
+                        <LoginSquareIcon className="w-4 h-4 text-grey-400" />
+                        Switch to team
+                      </div>
+                    </DropdownItem>
+                  )}
+
+                  {(membership.role === Role_Enum.Owner ||
+                    membership.role === Role_Enum.Admin) && (
+                    <DropdownItem
+                      onClick={() => setTeamForEdit(membership.team)}
+                    >
+                      <div className="flex items-center gap-x-2">
+                        <EditIcon className="w-4 h-4 text-grey-400" />
+
+                        <Typography variant={TYPOGRAPHY.R4}>
+                          Edit team
+                        </Typography>
+                      </div>
+                    </DropdownItem>
+                  )}
+
+                  {membership.role === Role_Enum.Owner && (
+                    <DropdownItem
+                      onClick={() => setTeamForTransfer(membership.team)}
+                    >
+                      <div className="flex items-center gap-x-2">
+                        <ExchangeIcon className="w-4 h-4 text-grey-400" />
+
+                        <Typography variant={TYPOGRAPHY.R4}>
+                          Transfer ownership
+                        </Typography>
+                      </div>
+                    </DropdownItem>
+                  )}
+
+                  {membership.role === Role_Enum.Owner && (
+                    <DropdownItem
+                      onClick={() => setTeamForDelete(membership.team)}
+                    >
+                      <div className="flex items-center gap-x-2 text-system-error-600">
+                        <LogoutIcon className="w-4 h-4" />
+
+                        <Typography variant={TYPOGRAPHY.R4}>
+                          Delete team
+                        </Typography>
+                      </div>
+                    </DropdownItem>
+                  )}
+
+                  {(membership.role === Role_Enum.Admin ||
+                    membership.role === Role_Enum.Member) && (
+                    <DropdownItem
+                      onClick={() => setTeamForLeave(membership.team)}
+                    >
+                      <div className="flex items-center gap-x-2 text-system-error-600">
+                        <LogoutIcon className="w-4 h-4" />
+                        Leave team
+                      </div>
+                    </DropdownItem>
+                  )}
+                </DropdownItems>
+              </Dropdown>
+            </div>
           </div>
-
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="flex items-center px-2 py-4 leading-5 text-14 text-grey-500 border-b border-grey-100"
-          >
-            Owner
-          </Typography>
-
-          <div className="flex items-center px-2 py-4 border-b border-grey-100">
-            <Dropdown>
-              <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
-                <MoreVerticalIcon />
-              </DropdownButton>
-
-              <DropdownItems>
-                <DropdownItem onClick={() => setTeamForEdit({})}>
-                  <div className="flex items-center gap-x-2">
-                    <EditIcon className="w-4 h-4 text-grey-400" />
-                    <Typography variant={TYPOGRAPHY.R4}>Edit team</Typography>
-                  </div>
-                </DropdownItem>
-
-                <DropdownItem onClick={() => setTeamForTransfer({})}>
-                  <div className="flex items-center gap-x-2">
-                    <ExchangeIcon className="w-4 h-4 text-grey-400" />
-
-                    <Typography variant={TYPOGRAPHY.R4}>
-                      Transfer ownership
-                    </Typography>
-                  </div>
-                </DropdownItem>
-
-                <DropdownItem onClick={() => setTeamForDelete({})}>
-                  <div className="flex items-center gap-x-2 text-system-error-600">
-                    <LogoutIcon className="w-4 h-4" />
-                    <Typography variant={TYPOGRAPHY.R4}>Delete team</Typography>
-                  </div>
-                </DropdownItem>
-              </DropdownItems>
-            </Dropdown>
-          </div>
-        </div>
-
-        <div className="contents">
-          <div className="flex items-center gap-x-4 px-2 py-4 leading-6 text-16 border-b border-grey-100">
-            <TeamLogo src={""} name="A11 Team" />
-            A11 Team
-          </div>
-
-          <div className="flex items-center px-2 py-4 leading-5 text-14 text-grey-500 border-b border-grey-100">
-            Owner
-          </div>
-
-          <div className="flex items-center px-2 py-4 border-b border-grey-100">
-            <Dropdown>
-              <DropdownButton>
-                <MoreVerticalIcon />
-              </DropdownButton>
-
-              <DropdownItems>
-                <DropdownItem>
-                  <div className="flex items-center gap-x-2">
-                    <LoginSquareIcon className="w-4 h-4 text-grey-400" />
-                    Switch to team
-                  </div>
-                </DropdownItem>
-
-                <DropdownItem onClick={() => setTeamForLeave({})}>
-                  <div className="flex items-center gap-x-2 text-system-error-600">
-                    <LogoutIcon className="w-4 h-4" />
-                    Leave team
-                  </div>
-                </DropdownItem>
-              </DropdownItems>
-            </Dropdown>
-          </div>
-        </div>
+        ))}
       </div>
 
       <DeleteTeamDialog
+        //team={teamForDelete}
         open={!!teamForDelete}
-        onClose={() => setTeamForDelete(null)}
+        onClose={() => setTeamForDelete(undefined)}
       />
 
       <EditTeamDialog
+        //team={teamForEdit}
         open={!!teamForEdit}
-        onClose={() => setTeamForEdit(null)}
+        onClose={() => setTeamForEdit(undefined)}
       />
 
       <LeaveTeamDialog
+        team={teamForLeave}
         open={!!teamForLeave}
-        onClose={() => setTeamForLeave(null)}
+        onClose={() => setTeamForLeave(undefined)}
       />
 
-      {/* FIXME: pass email and team name */}
       <TransferTeamDialog
+        team={teamForTransfer}
         open={!!teamForTransfer}
-        email="qwer@qwer.qwer"
-        teamName="A11 Team"
-        onClose={() => setTeamForTransfer(null)}
+        onClose={() => setTeamForTransfer(undefined)}
       />
     </>
   );

@@ -1,0 +1,5 @@
+mutation deleteAccount($user_id: String!) {
+  delete_user_by_pk(id: $user_id) {
+    id
+  }
+}

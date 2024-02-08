@@ -16,6 +16,8 @@ export enum TYPOGRAPHY {
   R4 = "r4",
   R5 = "r5",
 
+  S3 = "s3",
+
   B4 = "b4",
 }
 
@@ -64,6 +66,9 @@ export const Typography = <T extends ElementType = "span">(
 
           "text-xs leading-[1.3] font-normal font-rubik":
             variant === TYPOGRAPHY.B4,
+
+          "text-sm leading-[1.4] font-medium font-rubik":
+            variant === TYPOGRAPHY.S3,
         }),
       )}
       {...otherProps}

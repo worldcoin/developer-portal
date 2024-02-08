@@ -1,7 +1,7 @@
 import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { getSdk as checkUserInAppDocumentSDK } from "@/legacy/api/images/graphql/checkUserInApp.generated";
+import { getSdk as checkUserInAppDocumentSDK } from "@/api/images/graphql/checkUserInApp.generated";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { logger } from "@/lib/logger";
@@ -18,7 +18,7 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const handleImageUpload = async (
+export const handleUploadImage = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
