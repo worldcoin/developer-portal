@@ -1,6 +1,10 @@
 import { withMiddlewareAuthRequired } from "@auth0/nextjs-auth0/edge";
 import { NextRequest, NextResponse } from "next/server";
 
+const cdnURLObject = new URL(
+  process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
+    "https://world-id-assets.com"
+);
 const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
@@ -49,6 +53,7 @@ const generateCsp = () => {
         "https://world-id-public.s3.amazonaws.com",
         "https://worldcoin.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(cdnURLObject ? [cdnURLObject.hostname] : []),
       ],
     },
   ];
@@ -63,7 +68,7 @@ const generateCsp = () => {
 };
 
 export default withMiddlewareAuthRequired(async function middleware(
-  request: NextRequest,
+  request: NextRequest
 ) {
   const { csp, nonce } = generateCsp();
   const headers = new Headers(request.headers);
