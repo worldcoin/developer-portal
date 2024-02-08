@@ -107,7 +107,7 @@ export const AppIdPage = async (props: {
       <div className="grid gap-y-6">
         <Typography variant={TYPOGRAPHY.H7}>Quick actions</Typography>
 
-        <div className="grid grid-cols-3 gap-x-6">
+        <div className="grid gap-y-4 lg:grid-cols-3 gap-x-6">
           <QuickAction
             icon={<MultiplePlusIcon />}
             title="Create an action"
