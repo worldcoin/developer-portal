@@ -29,8 +29,8 @@ const onSuccess = () => {
 <IDKitWidget
     app_id="${appId}"
     action="${action_identifier}"
-    // Choose between Orb or Device
-    verification_level={VerificationLevel.Device}
+    ${engine === EngineType.OnChain ? "// On-chain only accepts Orb" : "// Choose between Orb or Device"}
+    verification_level={VerificationLevel.${engine === EngineType.OnChain ? "Orb" : "Device"}}
     handleVerify={verifyProof}
     onSuccess={onSuccess}>
     {({ open }) => (
