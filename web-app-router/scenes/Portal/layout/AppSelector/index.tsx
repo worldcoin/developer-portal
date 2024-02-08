@@ -53,7 +53,7 @@ export const AppSelector = () => {
 
       router.push(urls.app({ team_id: teamId, app_id: app?.id }));
     },
-    [router, setCreateAppDialogOpen, teamId],
+    [router, setCreateAppDialogOpen, teamId]
   );
 
   if (!data || loading || error || data.app.length === 0 || !teamId) {
@@ -66,16 +66,16 @@ export const AppSelector = () => {
       onChange={onChange}
       by={(
         a: FetchAppsQuery["app"][number],
-        b: FetchAppsQuery["app"][number],
+        b: FetchAppsQuery["app"][number]
       ) => a?.id === b?.id}
     >
       <SelectButton>
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
           <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
-            <Placeholder name={value?.app_metadata[0].name ?? "Select team"} />
+            <Placeholder name={value?.app_metadata[0].name ?? "Select app"} />
 
             <Typography variant={TYPOGRAPHY.R4}>
-              {value?.app_metadata[0].name ?? "Select team"}
+              {value?.app_metadata[0].name ?? "Select app"}
             </Typography>
 
             <div className="border border-grey-200 rounded-full flex justify-center items-center p-[3px]">
@@ -89,17 +89,14 @@ export const AppSelector = () => {
         {data.app.map((app) => (
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
-              <div
-                // href={urls.app({ team_id: teamId, app_id: app.id })}
-                className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate"
-              >
+              <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate">
                 <Placeholder name={app?.app_metadata[0].name ?? "Select app"} />
 
                 <span className="truncate text-grey-900">
                   <Typography
                     variant={selected ? TYPOGRAPHY.M4 : TYPOGRAPHY.R4}
                   >
-                    {app?.app_metadata[0].name ?? "Select team"}
+                    {app?.app_metadata[0].name ?? "Select app"}
                   </Typography>
                 </span>
 
