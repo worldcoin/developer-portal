@@ -10,13 +10,16 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
 import { useCallback } from "react";
 import { useRemoveFromReview } from "../hooks/use-remove-from-review";
+import { useRouter } from "next/navigation";
 
 export const reviewMessageDialogOpenedAtom = atom<boolean>(false);
 
 export const ReviewMessageDialog = (props: {
   message: string;
   metadataId: string;
+  goTo?: string;
 }) => {
+  const router = useRouter();
   const [isOpened, setIsOpened] = useAtom(reviewMessageDialogOpenedAtom);
   const { message } = props;
 
@@ -25,6 +28,7 @@ export const ReviewMessageDialog = (props: {
   });
 
   const closeModal = useCallback(() => {
+    console.log({ loading });
     if (loading) {
       return;
     }
@@ -35,7 +39,11 @@ export const ReviewMessageDialog = (props: {
   const removeAndClose = useCallback(() => {
     removeFromReview();
     closeModal();
-  }, [closeModal, removeFromReview]);
+
+    if (props.goTo) {
+      router.push(props.goTo);
+    }
+  }, [closeModal, props.goTo, removeFromReview, router]);
 
   return (
     <Dialog onClose={closeModal} open={isOpened}>

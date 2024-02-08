@@ -1,3 +1,5 @@
+"use client";
+
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { AppStatsGraph } from "./AppStatsGraph";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -9,15 +11,11 @@ import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getSdk as getVerificationStatusSdk } from "./graphql/server/get-verification-status.generated";
-import {
-  FetchAppVerificationDataQuery,
-  getSdk as getVerificationDataSdk,
-} from "./graphql/server/get-verification-data.generated";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { UserCardIcon } from "@/components/Icons/UserCardIcon";
-import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessage";
+import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
+import { useMemo } from "react";
+import { useGetVerificationDataQuery } from "./graphql/client/get-verification-data.generated";
 
 dayjs.extend(advancedFormat);
 
@@ -28,64 +26,43 @@ enum VerificationStatus {
   Verified = "verified",
 }
 
-export const AppIdPage = async (props: {
+export const AppIdPage = (props: {
   params: {
     teamId: string;
     appId: string;
   };
 }) => {
   const { teamId, appId } = props.params;
-  const client = await getAPIServiceGraphqlClient();
 
-  let verificationStatus: VerificationStatus | null = null;
-
-  try {
-    const data = await getVerificationStatusSdk(client).GetVerificationStatus({
+  console.log({ appId });
+  const { data } = useGetVerificationDataQuery({
+    variables: {
       id: appId,
-    });
+    },
+    context: { headers: { team_id: teamId } },
+  });
 
-    verificationStatus = data.app_by_pk?.app_metadata[0]
-      ?.verification_status as VerificationStatus;
-  } catch (error) {
-    console.error("Error fetching verification status", error);
-  }
+  const verificationStatus = useMemo(
+    () =>
+      data?.verificationStatus?.app_metadata?.[0]
+        .verification_status as VerificationStatus,
+    [data],
+  );
 
-  const shouldFetchVerificationData =
-    verificationStatus !== VerificationStatus.Unverified &&
-    verificationStatus !== null &&
-    verificationStatus !== VerificationStatus.AwaitingReview;
-
-  let verificationData:
-    | NonNullable<
-        FetchAppVerificationDataQuery["app_by_pk"]
-      >["app_metadata"][number]
-    | undefined
-    | null = null;
-
-  if (shouldFetchVerificationData) {
-    try {
-      const data = await getVerificationDataSdk(
-        client,
-      ).FetchAppVerificationData({
-        id: appId,
-      });
-
-      verificationData = data.app_by_pk?.app_metadata[0];
-    } catch (error) {
-      console.error("Error fetching verification data", error);
-    }
-  }
-
-  const shouldDisplayReviewStatus = verificationData !== null;
+  const verificationData = useMemo(
+    () => data?.verificationData?.app_metadata?.[0],
+    [data],
+  );
 
   return (
     <SizingWrapper className="flex flex-col gap-y-10 py-5">
       <div className="grid gap-y-5">
-        {shouldDisplayReviewStatus && (
+        {verificationData && (
           <ReviewStatus
             status={
-              (verificationData?.verification_status as VerificationStatus.ChangesRequested) ||
-              VerificationStatus.Verified
+              verificationData?.verification_status as
+                | VerificationStatus.ChangesRequested
+                | VerificationStatus.Verified
             }
             message={verificationData?.review_message ?? ""}
           />
@@ -148,6 +125,7 @@ export const AppIdPage = async (props: {
         <ReviewMessageDialog
           message={verificationData?.review_message ?? ""}
           metadataId={verificationData?.id}
+          goTo={urls.appProfile({ team_id: teamId, app_id: appId })}
         />
       )}
     </SizingWrapper>

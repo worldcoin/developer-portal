@@ -23,7 +23,7 @@ import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewSta
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
-} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessage";
+} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import ErrorComponent from "next/error";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";

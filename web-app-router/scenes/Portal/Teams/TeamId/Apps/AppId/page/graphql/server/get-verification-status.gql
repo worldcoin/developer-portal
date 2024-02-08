@@ -1,7 +1,0 @@
-query GetVerificationStatus($id: String!) {
-  app_by_pk(id: $id) {
-    app_metadata {
-      verification_status
-    }
-  }
-}

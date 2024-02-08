@@ -9,7 +9,7 @@ import { Button } from "@/components/Button";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { useAtom } from "jotai";
 import { showReviewStatusAtom } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Profile/layout";
-import { reviewMessageDialogOpenedAtom } from "../ReviewMessage";
+import { reviewMessageDialogOpenedAtom } from "../ReviewMessageDialog";
 
 type ReviewStatusProps = {
   status: "changes_requested" | "verified";
@@ -60,7 +60,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
   return (
     <div
       className={clsx(
-        statusStyles[status].normal,
+        statusStyles[status]?.normal,
         "grid grid-cols-auto/1fr/auto items-center px-0 pl-5 rounded-lg gap-x-3",
         className,
       )}

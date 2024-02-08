@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { FetchAppMetadataDocument } from "../../AppId/Profile/graphql/client/fetch-app-metadata.generated";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
 import { useParams } from "next/navigation";
+import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
 
 export const useRemoveFromReview = (props: { metadataId: string }) => {
   const { teamId, appId } = useParams() as { teamId: string; appId: string };
@@ -27,6 +28,16 @@ export const useRemoveFromReview = (props: { metadataId: string }) => {
       refetchQueries: [
         {
           query: FetchAppMetadataDocument,
+
+          variables: {
+            id: appId,
+          },
+
+          context: { headers: { team_id: teamId } },
+        },
+
+        {
+          query: GetVerificationDataDocument,
 
           variables: {
             id: appId,
