@@ -58,7 +58,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
             </DecoratedButton>
           </div>
           <hr className="my-5 w-full text-grey-200 border-dashed" />
-          <ActionDangerZoneContent action={action} />
+          <ActionDangerZoneContent action={action} teamId={teamId} />
         </div>
       </div>
     );
