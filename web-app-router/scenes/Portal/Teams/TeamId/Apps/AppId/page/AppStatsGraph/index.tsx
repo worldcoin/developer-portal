@@ -54,7 +54,7 @@ const timespanAtom = atom(timespans[0]);
 
 const calculatePercentageChange = (
   arr: FetchAppStatsQuery["app_stats"] | undefined,
-  key: keyof FetchAppStatsQuery["app_stats"][number]
+  key: keyof FetchAppStatsQuery["app_stats"][number],
 ) => {
   if (!arr || arr.length < 2) {
     return 0;
@@ -144,22 +144,22 @@ export const AppStatsGraph = () => {
 
   const totalVerifications = useMemo(
     () => (stats ? stats[stats.length - 1]?.verifications : 0),
-    [stats]
+    [stats],
   );
 
   const totalUnique = useMemo(
     () => (stats ? stats[stats.length - 1]?.unique_users : 0),
-    [stats]
+    [stats],
   );
 
   const verificationPercentageChange = useMemo(
     () => calculatePercentageChange(stats, "verifications"),
-    [stats]
+    [stats],
   );
 
   const uniquePercentageChange = useMemo(
     () => calculatePercentageChange(stats, "unique_users"),
-    [stats]
+    [stats],
   );
 
   return (
