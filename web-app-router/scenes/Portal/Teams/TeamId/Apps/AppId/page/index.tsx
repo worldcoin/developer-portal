@@ -65,7 +65,7 @@ export const AppIdPage = async (props: {
   if (shouldFetchVerificationData) {
     try {
       const data = await getVerificationDataSdk(
-        client
+        client,
       ).FetchAppVerificationData({
         id: appId,
       });

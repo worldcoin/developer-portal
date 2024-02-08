@@ -11,7 +11,7 @@ export const QuickAction = (
     icon: ReactNode;
     title: string;
     description: string;
-  }
+  },
 ) => {
   const { icon, className, ...buttonProps } = props;
 
@@ -20,8 +20,8 @@ export const QuickAction = (
       className={twMerge(
         clsx(
           "p-6 flex justify-between items-end border border-grey-200 hover:border-blue-500 rounded-2xl group transition-colors",
-          className
-        )
+          className,
+        ),
       )}
       {...buttonProps}
     >
