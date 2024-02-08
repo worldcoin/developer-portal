@@ -223,7 +223,7 @@ export const Debugger = (props: DebuggerProps) => {
             }
           >
             {status === Status.IDLE && <WorldcoinIcon />}
-            {status === Status.SUCCESS && <CheckIcon className="" />}
+            {status === Status.SUCCESS && <CheckIcon size="28" />}
             {status === Status.ERROR && <CloseIcon className="w-5 h-5" />}
           </CircleIconContainer>
           <div className="flex flex-col items-center gap-y-5 mt-8 px-12 text-center">

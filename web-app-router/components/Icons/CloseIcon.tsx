@@ -1,5 +1,8 @@
-export const CloseIcon = (props: { className?: string }) => {
-  const { className } = props;
+export const CloseIcon = (props: {
+  className?: string;
+  strokeWidth?: number;
+}) => {
+  const { className, strokeWidth = 1 } = props;
 
   return (
     <svg
@@ -15,6 +18,7 @@ export const CloseIcon = (props: { className?: string }) => {
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
+        strokeWidth={strokeWidth}
       />
     </svg>
   );

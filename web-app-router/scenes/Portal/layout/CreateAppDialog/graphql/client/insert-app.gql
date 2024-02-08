@@ -1,0 +1,17 @@
+mutation InsertApp(
+  $name: String!
+  $engine: String!
+  $category: String!
+  $is_staging: Boolean!
+) {
+  insert_app_one(
+    object: {
+      engine: $engine
+      app_metadata: { data: { category: $category, name: $name } }
+      name: $name
+      is_staging: $is_staging
+    }
+  ) {
+    id
+  }
+}

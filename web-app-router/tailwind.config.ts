@@ -28,11 +28,14 @@ const config: Config = {
         button: "0px 1px 2px 0px #191C200F",
         lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
         qrCode: "0px 16px 20px -8px #E6E9EEA3",
+        image: "0px 3px 2px 0px #00000010",
       },
 
       colors: {
         blue: {
+          50: "#F9F9FE",
           100: "#F0F0FD",
+          150: "#DCD9FD",
           500: "#4940E0",
         },
 
@@ -94,19 +97,29 @@ const config: Config = {
             200: "#FFE5E2",
             300: "#FFCBC5",
             400: "#FF897C",
-            500: "#ff4732",
+            500: "#FF4732",
             600: "#DB2824",
+            700: "#FF5A76",
           },
 
           success: {
             50: "#E9F8E9",
+            100: "#F5FDF6",
+            300: "#66CC66",
+            400: "#29CC29",
             500: "#00B800",
+            600: "#008000",
+            700: "#00C313",
           },
 
           warning: {
             50: "#FFFAE5",
+            100: "#FFF9EF",
             200: "#FFE999",
+            300: "#FFE999",
             500: "#FFB200",
+            600: "#DB9200",
+            700: "#FFB11B",
           },
         },
       },

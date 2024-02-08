@@ -9,7 +9,7 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  label: string;
+  label?: React.ReactNode;
   placeholder?: string;
   helperText?: string;
   addOnLeft?: React.ReactElement;
