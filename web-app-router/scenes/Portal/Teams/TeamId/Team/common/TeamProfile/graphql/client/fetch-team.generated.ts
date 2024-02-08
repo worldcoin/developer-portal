@@ -12,6 +12,7 @@ export type FetchTeamQuery = {
   __typename?: "query_root";
   team_by_pk?: {
     __typename?: "team";
+    id: string;
     name?: string | null;
     memberships: Array<{ __typename?: "membership"; user_id: string }>;
   } | null;
@@ -20,6 +21,7 @@ export type FetchTeamQuery = {
 export const FetchTeamDocument = gql`
   query FetchTeam($teamId: String!) {
     team_by_pk(id: $teamId) {
+      id
       name
       memberships {
         user_id
