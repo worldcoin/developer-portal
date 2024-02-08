@@ -25,7 +25,7 @@ type ImageFormTypes = {
   appId: string;
   teamId: string;
   appMetadataId: string;
-  app: FetchAppMetadataQuery["app"][0];
+  appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
 
 const SHOWCASE_IMAGE_NAMES = [
@@ -35,19 +35,19 @@ const SHOWCASE_IMAGE_NAMES = [
 ];
 
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, app } = props;
+  const { appId, teamId, appMetadataId, appMetadata } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const showcaseImgFileNames = app.app_metadata[0].showcase_img_urls;
+  const showcaseImgFileNames = appMetadata?.showcase_img_urls;
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -55,18 +55,15 @@ export const ImageForm = (props: ImageFormTypes) => {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const isEditable =
-    (app?.app_metadata[0]?.verification_status === "unverified" ||
-      app?.app_metadata.length === 0) &&
-    viewMode === "unverified";
+  const isEditable = appMetadata?.verification_status === "unverified";
 
   const nextShowcaseImgName = useMemo(() => {
     if (!showcaseImgFileNames) return SHOWCASE_IMAGE_NAMES[0];
     return SHOWCASE_IMAGE_NAMES.find(
       (name: string) =>
         !showcaseImgFileNames.find((existingFileName: string) =>
-          existingFileName.includes(name),
-        ),
+          existingFileName.includes(name)
+        )
     );
   }, [showcaseImgFileNames]);
 
@@ -112,7 +109,7 @@ export const ImageForm = (props: ImageFormTypes) => {
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
       const fileNameToDelete = SHOWCASE_IMAGE_NAMES.filter((name: string) =>
-        url.includes(name),
+        url.includes(name)
       )[0];
 
       const formatted_showcase_img_urls = `{${showcaseImgFileNames
@@ -145,7 +142,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       setUnverifiedImages({
         ...unverifiedImages,
         showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
-          (img: string) => img !== url,
+          (img: string) => img !== url
         ),
       });
     },
@@ -157,14 +154,14 @@ export const ImageForm = (props: ImageFormTypes) => {
       appId,
       setUnverifiedImages,
       unverifiedImages,
-    ],
+    ]
   );
 
   const uploadImage = async (
     imageType: string,
     file: File,
     height: number,
-    width: number,
+    width: number
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
@@ -180,7 +177,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           fileTypeEnding,
           appId,
           teamId,
-          imageType,
+          imageType
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
@@ -264,34 +261,30 @@ export const ImageForm = (props: ImageFormTypes) => {
   };
 
   const heroImage = useMemo(() => {
-    if (viewMode === "verified") {
-      return getCDNImageUrl(
-        appId,
-        app?.verified_app_metadata[0]?.hero_image_url,
-      );
+    if (appMetadata?.verification_status === "verified") {
+      if (!appMetadata?.hero_image_url) return null;
+      return getCDNImageUrl(appId, appMetadata?.hero_image_url);
     } else {
       return unverifiedImages.hero_image_url;
     }
   }, [
-    app?.verified_app_metadata,
+    appMetadata?.hero_image_url,
     appId,
     unverifiedImages.hero_image_url,
-    viewMode,
+    appMetadata?.verification_status,
   ]);
 
   const showcaseImgUrls = useMemo(() => {
-    if (viewMode === "verified") {
-      return app?.verified_app_metadata[0]?.showcase_img_urls.map(
-        (url: string) => {
-          return getCDNImageUrl(appId, url);
-        },
-      );
+    if (appMetadata?.verification_status === "verified") {
+      return appMetadata?.showcase_img_urls.map((url: string) => {
+        return getCDNImageUrl(appId, url);
+      });
     } else {
       return unverifiedImages.showcase_image_urls;
     }
   }, [
-    viewMode,
-    app?.verified_app_metadata,
+    appMetadata?.verification_status,
+    appMetadata?.showcase_img_urls,
     appId,
     unverifiedImages.showcase_image_urls,
   ]);
@@ -351,7 +344,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
               {
                 hidden: !isEnoughPermissions || !isEditable,
-              },
+              }
             )}
           >
             <TrashIcon />
@@ -409,7 +402,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                   "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
                   {
                     hidden: !isEnoughPermissions || !isEditable,
-                  },
+                  }
                 )}
               >
                 <TrashIcon />

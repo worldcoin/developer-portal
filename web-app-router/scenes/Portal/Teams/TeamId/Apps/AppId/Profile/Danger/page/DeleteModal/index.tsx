@@ -15,13 +15,12 @@ import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 type DeleteModalProps = {
   openDeleteModal: boolean;
   setOpenDeleteModal: (open: boolean) => void;
-  app: FetchAppMetadataQuery["app"][0];
+  appName: string;
   appId: string;
   teamId: string;
 };
 export const DeleteModal = (props: DeleteModalProps) => {
-  const { openDeleteModal, setOpenDeleteModal, app, appId, teamId } = props;
-  const appName = app?.app_metadata[0].name ?? "";
+  const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
   const deleteApp = () => {
     // TODO
     setOpenDeleteModal(false);
@@ -61,7 +60,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
           >
             The{" "}
             <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-              {app?.app_metadata[0].name ?? ""}
+              {appName ?? ""}
             </Typography>{" "}
             App will be deleted, along with all of its actions, configurations
             and statistics.

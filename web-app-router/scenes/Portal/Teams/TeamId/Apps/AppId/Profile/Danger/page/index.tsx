@@ -1,6 +1,6 @@
 "use client";
 import { useAtom } from "jotai";
-import { unverifiedImageAtom } from "../../layout";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import { AppTopBar } from "../../PageComponents/AppTopBar";
@@ -9,7 +9,7 @@ import Error from "next/error";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { DecoratedButton } from "@/components/DecoratedButton";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
@@ -19,6 +19,7 @@ type AppProfileDangerPageProps = {
 export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
+  const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
@@ -44,6 +45,14 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   });
 
   const app = data?.app[0];
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app?.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
 
   if (loading) return <div></div>;
   else if (!app) {
@@ -56,7 +65,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
         })}
       >
         <DeleteModal
-          app={app}
+          appName={appMetaData?.name ?? ""}
           appId={appId}
           teamId={teamId}
           openDeleteModal={openDeleteModal}
@@ -72,7 +81,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               This will immediately and permanently delete{" "}
               <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-                {app?.app_metadata[0].name ?? ""}
+                {appMetaData?.name ?? ""}
               </Typography>{" "}
               and its data for everyone. This cannot be undone.
             </Typography>

@@ -45,7 +45,7 @@ export const BasicInformation = (props: {
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
+      (m) => m.team?.id === teamId
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -53,14 +53,16 @@ export const BasicInformation = (props: {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const appMetaData =
-    viewMode === "verified"
-      ? app.verified_app_metadata[0]
-      : app.app_metadata[0];
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
 
-  const isEditable =
-    appMetaData.verification_status === "unverified" ||
-    app?.app_metadata.length === 0;
+  const isEditable = appMetaData.verification_status === "unverified";
 
   const {
     register,
@@ -96,7 +98,7 @@ export const BasicInformation = (props: {
         const result = await updateAppInfoMutation({
           variables: {
             app_id: appId,
-            app_metadata_id: app.app_metadata[0].id,
+            app_metadata_id: appMetaData.id,
             input: { ...data },
             status: status ? "active" : "inactive",
           },
@@ -119,7 +121,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [app?.app_metadata, appId, loading, status, teamId, updateAppInfoMutation],
+    [appId, appMetaData.id, loading, status, teamId, updateAppInfoMutation]
   );
 
   return (

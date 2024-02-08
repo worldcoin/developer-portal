@@ -10,7 +10,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];
@@ -20,7 +20,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
   const [viewMode, setMode] = useAtom(viewModeAtom);
 
   const formattedDate = useMemo(() => {
-    const date = new Date(app?.verified_app_metadata[0].verified_at);
+    const date = new Date(app?.verified_app_metadata[0]?.verified_at);
     const month = date.getMonth() + 1; // Months are 0-based in JavaScript
     const day = date.getDate();
     const year = date.getFullYear();
@@ -28,13 +28,22 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
     return `${month}.${day}.${year}`;
   }, [app?.verified_app_metadata]);
 
+  useEffect(() => {
+    if (app?.app_metadata.length === 0) {
+      setMode("verified");
+    }
+  }, [app?.app_metadata.length, setMode]);
+
   return (
     <Dropdown>
-      <DropdownButton className="bg-grey-0 text-grey-700 border-grey-200 shadow-button px-4 py-2.5 rounded-xl border  flex items-center justify-center">
+      <DropdownButton
+        disabled={app?.app_metadata.length === 0}
+        className="bg-grey-0 text-grey-700 border-grey-200 shadow-button px-4 py-2.5 rounded-xl border  flex items-center justify-center"
+      >
         <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
           {viewMode === "verified" ? "Approved version" : "Current version"}
         </Typography>
-        <CaretIcon className="w-4 h-4 ml-2" />
+        {app?.app_metadata.length > 0 && <CaretIcon className="w-4 h-4 ml-2" />}
       </DropdownButton>
       <DropdownItems className="mt-2">
         <DropdownItem
