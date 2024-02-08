@@ -18,5 +18,8 @@ export const urls = {
     return `/join?${searchParams.toString()}`;
   },
 
+  teams: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}`,
+
   profile: (): "/profile" => "/profile",
 };
