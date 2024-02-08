@@ -57,7 +57,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const isEditable = appMetadata?.verification_status === "unverified";
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId
+      (m) => m.team?.id === teamId,
     );
     return (
       membership?.role === Role_Enum.Owner ||
@@ -84,7 +84,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   const encodeDescription = (
     description_overview: string,
     description_how_it_works: string = "",
-    description_connect: string = ""
+    description_connect: string = "",
   ) => {
     return JSON.stringify({
       [DescriptionSubFields.DescriptionOverview]: description_overview,
@@ -140,7 +140,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             description: encodeDescription(
               data.description_overview,
               data.description_how_it_works,
-              data.description_connect
+              data.description_connect,
             ),
             world_app_description: data.world_app_description ?? "",
           },
@@ -162,7 +162,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId]
+    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId],
   );
 
   return (

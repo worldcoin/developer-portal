@@ -5,13 +5,20 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useCallback } from "react";
 
 export const ReviewMessage = (props: {
   message: string;
   open: boolean;
   closeModal: () => void;
+  removeFromReview: () => void;
 }) => {
-  const { message, open, closeModal } = props;
+  const { message, open, closeModal, removeFromReview } = props;
+
+  const removeAndClose = useCallback(() => {
+    removeFromReview();
+    closeModal();
+  }, [removeFromReview, closeModal]);
 
   return (
     <Dialog onClose={closeModal} open={open}>
@@ -32,13 +39,13 @@ export const ReviewMessage = (props: {
           </Typography>
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center"
+            className="text-grey-500 text-center "
           >
-            Unfortunately, your app’s review was evaluated by our Worldcoin
-            team, and it was rejected due to the reason:
+            Unfortunately, your app was evaluated by our team, and it was
+            rejected for the following reason
           </Typography>
         </div>
-        <div className="border border-grey-200 rounded-lg px-5 py-4 bg-grey-25">
+        <div className="border border-grey-200 rounded-lg px-5 py-4 bg-grey-25 w-full">
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
             {message}
           </Typography>
@@ -51,7 +58,7 @@ export const ReviewMessage = (props: {
           >
             Cancel
           </DecoratedButton>
-          <DecoratedButton onClick={closeModal} type="submit">
+          <DecoratedButton onClick={removeAndClose} type="submit">
             Resolve issues
           </DecoratedButton>
         </div>

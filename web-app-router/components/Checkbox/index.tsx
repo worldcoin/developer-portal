@@ -8,7 +8,7 @@ export const Checkbox = (
   props: ComponentProps<"input"> & {
     register: UseFormRegisterReturn;
     disabled?: boolean;
-  }
+  },
 ) => {
   return (
     <label
@@ -16,8 +16,8 @@ export const Checkbox = (
         clsx(
           "h-6 w-6 relative rounded-md ",
           { "opacity-50": props.disabled },
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       <input
