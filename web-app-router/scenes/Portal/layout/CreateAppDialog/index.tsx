@@ -124,10 +124,10 @@ export const CreateAppDialog = (props: DialogProps) => {
 
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50">
-      <DialogPanel className={clsx("fixed inset-0 p-4", props.className)}>
-        <div className="grid grid-rows-auto/1fr items-center">
-          <SizingWrapper>
-            <header className="w-full flex justify-between items-center min-h-9">
+      <DialogPanel className={clsx("fixed inset-0 p-0", props.className)}>
+        <div className="grid grid-rows-auto/1fr items-center h-[100dvh]">
+          <SizingWrapper gridClassName="bg-grey-0 z-10">
+            <header className="w-full flex justify-between items-center min-h-9 py-4">
               <div className="flex gap-3 w-full items-center">
                 <Button type="button" onClick={onClose}>
                   <CloseIcon />
@@ -146,143 +146,148 @@ export const CreateAppDialog = (props: DialogProps) => {
             </header>
           </SizingWrapper>
 
-          <form
-            onSubmit={handleSubmit(submit)}
-            className="w-full max-w-[580px] justify-self-center grid gap-y-10"
+          <SizingWrapper
+            gridClassName="overflow-y-auto no-scrollbar"
+            className="flex justify-center items-start"
           >
-            <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
-
-            <div className="grid gap-y-8">
-              <div className="grid grid-cols-auto/1fr p-6 border border-grey-200 rounded-xl gap-x-6 gap-y-3">
-                <Image src="" alt="app logo" className="row-span-2" />
-
-                <Typography variant={TYPOGRAPHY.R3}>
-                  Image requirements
-                </Typography>
-
-                <Typography
-                  variant={TYPOGRAPHY.R4}
-                  className="text-grey-500 max-w-[360px]"
-                >
-                  Upload a PNG, JPEG or GIF image smaller than 1 MB. The preview
-                  box shows the logo&apos;s final display size.
-                </Typography>
-
-                {/* TODO: implement image upload */}
-                <DecoratedButton
-                  type="button"
-                  variant="secondary"
-                  className="col-start-2 max-w-[100px] mt-3"
-                >
-                  Upload
-                </DecoratedButton>
-              </div>
-
-              <Input
-                register={register("appName")}
-                label="App name"
-                placeholder="Name will be visible to the users"
-                required
-                errors={errors.appName}
-              />
-
-              <Controller
-                control={control}
-                name="category"
-                render={({ field }) => {
-                  return (
-                    <div>
-                      <Select onChange={field.onChange}>
-                        <SelectButton className="w-full grid grid-cols-1fr/auto items-center text-start relative py-3">
-                          <Typography variant={TYPOGRAPHY.R3}>
-                            {field.value ?? "Select a category"}
-                          </Typography>
-
-                          <fieldset className="absolute inset-x-0 bottom-0 top-[-12px] border border-grey-200 rounded-lg pointer-events-none">
-                            <legend className="text-grey-400 ml-4 px-0.5">
-                              <Typography variant={TYPOGRAPHY.R4}>
-                                Category
-                              </Typography>
-                            </legend>
-                          </fieldset>
-
-                          <CaretIcon />
-                        </SelectButton>
-
-                        <SelectOptions className="mt-2">
-                          {CATEGORIES.map((category, i) => (
-                            <SelectOption
-                              key={`create-app-category-${category}-${i}`}
-                              value={category}
-                              className="hover:bg-grey-100 transition"
-                            >
-                              {category}
-                            </SelectOption>
-                          ))}
-                        </SelectOptions>
-                      </Select>
-
-                      {errors.category?.message && (
-                        <Typography
-                          variant={TYPOGRAPHY.R5}
-                          className="text-system-error-500"
-                        >
-                          {errors.category?.message} qwer
-                        </Typography>
-                      )}
-                    </div>
-                  );
-                }}
-              />
-            </div>
-
-            <div className="grid gap-y-6">
-              <Typography variant={TYPOGRAPHY.H7}>Build</Typography>
-
-              <div className="grid grid-cols-2 gap-x-2">
-                <RadioCard
-                  register={register("build")}
-                  option={{ value: "staging", label: "Staging" }}
-                  description="Pre-release environment for code changes"
-                  stampText="Recommended"
-                />
-
-                <RadioCard
-                  register={register("build")}
-                  option={{ value: "production", label: "Production" }}
-                  description="Live environment accessible to end-users"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-y-6">
-              <Typography variant={TYPOGRAPHY.H7}>Verification</Typography>
-
-              <div className="grid grid-cols-2 gap-x-2">
-                <RadioCard
-                  register={register("verification")}
-                  option={{ value: "cloud", label: "Cloud" }}
-                  description="Pre-release environment for code changes"
-                  stampText="Easiest"
-                />
-
-                <RadioCard
-                  register={register("verification")}
-                  option={{ value: "on-chain", label: "On-chain" }}
-                  description="Live environment accessible to end-users"
-                />
-              </div>
-            </div>
-
-            <DecoratedButton
-              type="submit"
-              variant="primary"
-              className="py-3 justify-self-end"
-              disabled={!isValid || isSubmitting}
+            <form
+              onSubmit={handleSubmit(submit)}
+              className="w-full max-w-[580px] justify-self-center grid gap-y-10 py-10"
             >
-              Create app
-            </DecoratedButton>
-          </form>
+              <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
+
+              <div className="grid gap-y-8">
+                <div className="grid grid-cols-auto/1fr p-6 border border-grey-200 rounded-xl gap-x-6 gap-y-3">
+                  <Image src="" alt="app logo" className="row-span-2" />
+
+                  <Typography variant={TYPOGRAPHY.R3}>
+                    Image requirements
+                  </Typography>
+
+                  <Typography
+                    variant={TYPOGRAPHY.R4}
+                    className="text-grey-500 max-w-[360px]"
+                  >
+                    Upload a PNG, JPEG or GIF image smaller than 1 MB. The
+                    preview box shows the logo&apos;s final display size.
+                  </Typography>
+
+                  {/* TODO: implement image upload */}
+                  <DecoratedButton
+                    type="button"
+                    variant="secondary"
+                    className="col-start-2 max-w-[100px] mt-3"
+                  >
+                    Upload
+                  </DecoratedButton>
+                </div>
+
+                <Input
+                  register={register("appName")}
+                  label="App name"
+                  placeholder="Name will be visible to the users"
+                  required
+                  errors={errors.appName}
+                />
+
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field }) => {
+                    return (
+                      <div>
+                        <Select onChange={field.onChange}>
+                          <SelectButton className="w-full grid grid-cols-1fr/auto items-center text-start relative py-3">
+                            <Typography variant={TYPOGRAPHY.R3}>
+                              {field.value ?? "Select a category"}
+                            </Typography>
+
+                            <fieldset className="absolute inset-x-0 bottom-0 top-[-12px] border border-grey-200 rounded-lg pointer-events-none">
+                              <legend className="text-grey-400 ml-4 px-0.5">
+                                <Typography variant={TYPOGRAPHY.R4}>
+                                  Category
+                                </Typography>
+                              </legend>
+                            </fieldset>
+
+                            <CaretIcon />
+                          </SelectButton>
+
+                          <SelectOptions className="mt-2">
+                            {CATEGORIES.map((category, i) => (
+                              <SelectOption
+                                key={`create-app-category-${category}-${i}`}
+                                value={category}
+                                className="hover:bg-grey-100 transition"
+                              >
+                                {category}
+                              </SelectOption>
+                            ))}
+                          </SelectOptions>
+                        </Select>
+
+                        {errors.category?.message && (
+                          <Typography
+                            variant={TYPOGRAPHY.R5}
+                            className="text-system-error-500"
+                          >
+                            {errors.category?.message} qwer
+                          </Typography>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+
+              <div className="grid gap-y-6">
+                <Typography variant={TYPOGRAPHY.H7}>Build</Typography>
+
+                <div className="grid grid-cols-2 gap-x-2">
+                  <RadioCard
+                    register={register("build")}
+                    option={{ value: "staging", label: "Staging" }}
+                    description="Pre-release environment for code changes"
+                    stampText="Recommended"
+                  />
+
+                  <RadioCard
+                    register={register("build")}
+                    option={{ value: "production", label: "Production" }}
+                    description="Live environment accessible to end-users"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-y-6">
+                <Typography variant={TYPOGRAPHY.H7}>Verification</Typography>
+
+                <div className="grid grid-cols-2 gap-x-2">
+                  <RadioCard
+                    register={register("verification")}
+                    option={{ value: "cloud", label: "Cloud" }}
+                    description="Pre-release environment for code changes"
+                    stampText="Easiest"
+                  />
+
+                  <RadioCard
+                    register={register("verification")}
+                    option={{ value: "on-chain", label: "On-chain" }}
+                    description="Live environment accessible to end-users"
+                  />
+                </div>
+              </div>
+
+              <DecoratedButton
+                type="submit"
+                variant="primary"
+                className="py-3 justify-self-end"
+                disabled={!isValid || isSubmitting}
+              >
+                Create app
+              </DecoratedButton>
+            </form>
+          </SizingWrapper>
         </div>
       </DialogPanel>
     </Dialog>
