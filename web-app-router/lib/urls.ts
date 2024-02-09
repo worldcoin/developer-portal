@@ -6,6 +6,9 @@ export const urls = {
   app: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id || ""}`,
 
+  appProfile: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/profile`,
+
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 
@@ -20,6 +23,9 @@ export const urls = {
     const searchParams = new URLSearchParams(params);
     return `/join?${searchParams.toString()}`;
   },
+
+  createAction: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/actions?createAction=true`,
 
   teams: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}`,

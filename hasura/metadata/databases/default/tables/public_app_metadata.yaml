@@ -121,10 +121,10 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - name
-        - logo_img_url
-        - showcase_img_urls
         - hero_image_url
+        - logo_img_url
+        - name
+        - showcase_img_urls
         - verification_status
       filter: {}
   - role: user

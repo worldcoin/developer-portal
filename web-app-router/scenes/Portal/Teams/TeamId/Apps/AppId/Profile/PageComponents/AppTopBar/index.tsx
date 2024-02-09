@@ -1,3 +1,5 @@
+"use client";
+
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Status, StatusVariant } from "./Status";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -5,7 +7,6 @@ import { Environment } from "./Environment";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-  useFetchAppMetadataLazyQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useAtom } from "jotai";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout";
@@ -16,18 +17,17 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useCallback, useMemo, useState } from "react";
 import { Role_Enum } from "@/graphql/graphql";
 import { LogoImageUpload } from "./LogoImageUpload";
-import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { ReviewStatus } from "@/components/ReviewStatus";
-import { ReviewMessage } from "./ReviewMessage";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import {
+  ReviewMessageDialog,
+  reviewMessageDialogOpenedAtom,
+} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import ErrorComponent from "next/error";
 import { SubmitAppModal } from "./SubmitAppModal";
-import {
-  FetchImagesDocument,
-  useFetchImagesLazyQuery,
-  useFetchImagesQuery,
-} from "../../graphql/client/fetch-images.generated";
+import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
+import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 
 type AppTopBarProps = {
   appId: string;
@@ -95,7 +95,15 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const [showReviewMessage, setShowReviewMessage] = useState(false);
+
+  const [_showReviewMessage, setShowReviewMessage] = useAtom(
+    reviewMessageDialogOpenedAtom,
+  );
+
+  const { removeFromReview, loading } = useRemoveFromReview({
+    metadataId: app.app_metadata[0].id,
+  });
+
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const isEnoughPermissions = useMemo(() => {
@@ -118,9 +126,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [app, viewMode]);
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
-
-  const [updateAppVerificationStatusMutation, { loading }] =
-    useUpdateAppVerificationStatusMutation({});
 
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
@@ -145,33 +150,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   }, [appMetaData, loading]);
 
-  const removeFromReview = useCallback(async () => {
-    if (loading) return;
-    const appMetadataId = app.app_metadata[0].id;
-    await updateAppVerificationStatusMutation({
-      variables: {
-        app_metadata_id: appMetadataId,
-        verification_status: "unverified",
-      },
-      context: { headers: { team_id: teamId } },
-      refetchQueries: [
-        {
-          query: FetchAppMetadataDocument,
-          variables: {
-            id: appId,
-          },
-          context: { headers: { team_id: teamId } },
-        },
-      ],
-      awaitRefetchQueries: true,
-    });
-  }, [
-    app?.app_metadata,
-    loading,
-    updateAppVerificationStatusMutation,
-    teamId,
-    appId,
-  ]);
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
   const createNewDraft = useCallback(async () => {
@@ -240,18 +218,20 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData?.app_website_url,
-    appMetaData?.category,
-    appMetaData?.description,
-    appMetaData?.hero_image_url,
-    appMetaData?.integration_url,
-    appMetaData?.is_developer_allow_listing,
-    appMetaData?.logo_img_url,
-    appMetaData?.name,
-    appMetaData?.showcase_img_urls,
-    appMetaData?.source_code_url,
-    appMetaData?.world_app_description,
+    appMetaData.app_website_url,
+    appMetaData.category,
+    appMetaData.description,
+    appMetaData.hero_image_url,
+    appMetaData.integration_url,
+    appMetaData.is_developer_allow_listing,
+    appMetaData.logo_img_url,
+    appMetaData.name,
+    appMetaData.showcase_img_urls,
+    appMetaData.source_code_url,
+    appMetaData.world_app_description,
     createEditableRowMutation,
+    fetchImagesQuery,
+    setUnverifiedImages,
     setViewMode,
     teamId,
   ]);
@@ -277,7 +257,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
             appMetaData.verification_status as "changes_requested" | "verified"
           }
           message={appMetaData.review_message}
-          onClick={() => setShowReviewMessage(true)}
         />
       )}
       <SubmitAppModal
@@ -289,11 +268,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
       <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
-        <ReviewMessage
+        <ReviewMessageDialog
           message={appMetaData.review_message}
-          closeModal={() => setShowReviewMessage(false)}
-          removeFromReview={removeFromReview}
-          open={showReviewMessage}
+          metadataId={appMetaData.id}
         />
         <LogoImageUpload
           appId={appId}
