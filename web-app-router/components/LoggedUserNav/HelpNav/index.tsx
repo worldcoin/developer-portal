@@ -5,7 +5,6 @@ import {
   DropdownItem,
   DropdownItems,
 } from "@/components/Dropdown";
-import { CustomerSupportIcon } from "@/components/Icons/CustomerSupportIcon";
 import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
@@ -19,7 +18,6 @@ import {
   WORLDCOIN_PRIVACY_URL,
   WORLDCOIN_STATUS_URL,
 } from "@/lib/constants";
-import Link from "next/link";
 
 export const HelpNav = () => {
   return (
