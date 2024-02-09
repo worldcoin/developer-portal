@@ -1,0 +1,26 @@
+table:
+  name: action_stats_returning
+  schema: public
+object_relationships:
+  - name: action
+    using:
+      foreign_key_constraint_on: action_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - action_id
+        - date
+        - unique_users
+        - verifications
+      filter:
+        action:
+          app:
+            team:
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+      allow_aggregations: true
