@@ -122,10 +122,8 @@ select_permissions:
     permission:
       columns:
         - hero_image_url
-        - id
         - logo_img_url
         - name
-        - review_message
         - showcase_img_urls
         - verification_status
       filter: {}
