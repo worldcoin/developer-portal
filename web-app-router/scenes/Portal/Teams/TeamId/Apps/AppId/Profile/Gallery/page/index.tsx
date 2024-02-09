@@ -7,6 +7,8 @@ import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadat
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import Error from "next/error";
 import { useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
+import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -24,7 +26,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     context: { headers: { team_id: teamId } },
   });
 
-  const {} = useFetchImagesQuery({
+  const { loading: loadingImages } = useFetchImagesQuery({
     variables: {
       id: appId,
     },
@@ -49,21 +51,28 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     }
   }, [app, viewMode]);
 
-  if (loading) return <div></div>;
-  else if (error || !app) {
+  if (!loadingImages && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <div className="py-8 gap-y-4 grid pb-14">
-        <AppTopBar appId={appId} teamId={teamId} app={app} />
+        {loading || loadingImages ? (
+          <Skeleton count={2} height={50} />
+        ) : (
+          <AppTopBar appId={appId} teamId={teamId} app={app!} />
+        )}
         <hr className="my-5 w-full text-grey-200 border-dashed " />
-        <div className="grid grid-cols-1 max-w-[600px]">
-          <ImageForm
-            appId={appId}
-            teamId={teamId}
-            appMetadataId={appMetaData?.id ?? ""}
-            appMetadata={appMetaData}
-          />
+        <div className="grid grid-cols-1 max-w-[580px]">
+          {loading || loadingImages ? (
+            <FormSkeleton count={2} />
+          ) : (
+            <ImageForm
+              appId={appId}
+              teamId={teamId}
+              appMetadataId={appMetaData?.id ?? ""}
+              appMetadata={appMetaData}
+            />
+          )}
         </div>
       </div>
     );

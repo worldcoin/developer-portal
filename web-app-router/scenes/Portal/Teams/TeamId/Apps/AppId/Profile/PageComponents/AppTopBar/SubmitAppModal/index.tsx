@@ -26,6 +26,7 @@ type SubmitAppModalProps = {
   appMetadataId: string;
   teamId: string;
   appId: string;
+  canSubmitAppStore: boolean;
 };
 
 export type SubmitAppFormValues = yup.Asserts<typeof schema>;
@@ -38,6 +39,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     appMetadataId,
     teamId,
     appId,
+    canSubmitAppStore,
   } = props;
   const [submitAppMutation, { loading: submittingApp }] =
     useSubmitAppMutation();
@@ -49,35 +51,52 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     },
   });
 
-  const submit = useCallback(async (values: SubmitAppFormValues) => {
-    if (submittingApp) return;
-    try {
-      await submitAppMutation({
-        variables: {
-          app_metadata_id: appMetadataId,
-          is_developer_allow_listing:
-            values?.is_developer_allow_listing ?? false,
-          verification_status: "awaiting_review",
-        },
-        context: { headers: { team_id: teamId } },
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-            variables: {
-              id: appId,
-            },
-            context: { headers: { team_id: teamId } },
+  const submit = useCallback(
+    async (values: SubmitAppFormValues) => {
+      if (submittingApp) return;
+      try {
+        if (values.is_developer_allow_listing && !canSubmitAppStore) {
+          toast.error(
+            "You must have a featured image and showcase images to list on the App Store",
+          );
+          return;
+        }
+        await submitAppMutation({
+          variables: {
+            app_metadata_id: appMetadataId,
+            is_developer_allow_listing:
+              values?.is_developer_allow_listing ?? false,
+            verification_status: "awaiting_review",
           },
-        ],
-        awaitRefetchQueries: true,
-      });
-      toast.success("App submitted for review");
-      setOpen(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to submit app for review");
-    }
-  }, []);
+          context: { headers: { team_id: teamId } },
+          refetchQueries: [
+            {
+              query: FetchAppMetadataDocument,
+              variables: {
+                id: appId,
+              },
+              context: { headers: { team_id: teamId } },
+            },
+          ],
+          awaitRefetchQueries: true,
+        });
+        toast.success("App submitted for review");
+        setOpen(false);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to submit app for review");
+      }
+    },
+    [
+      appId,
+      appMetadataId,
+      canSubmitAppStore,
+      setOpen,
+      submitAppMutation,
+      submittingApp,
+      teamId,
+    ],
+  );
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>

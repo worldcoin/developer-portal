@@ -166,62 +166,64 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
   );
 
   return (
-    <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
-      <div className="grid gap-y-3">
-        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          App description
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Describe your app integration to possible users
-        </Typography>
-      </div>
-      <div className="grid gap-y-5">
-        <TextArea
-          label="Overview"
-          required
-          rows={5}
-          errors={errors.description_overview}
-          disabled={!isEditable || !isEnoughPermissions}
-          placeholder="Describe the project for the users who would like to try your integration"
-          register={register("description_overview")}
-        />
-        <TextArea
-          label="How it works"
-          rows={5}
-          errors={errors.description_how_it_works}
-          disabled={!isEditable || !isEnoughPermissions}
-          placeholder="How do users interact with World ID in your app?"
-          register={register("description_how_it_works")}
-        />
-        <TextArea
-          label="How to connect"
-          rows={5}
-          errors={errors.description_connect}
-          disabled={!isEditable || !isEnoughPermissions}
-          placeholder="Explain, if required, how users should set up this app to start using World ID."
-          register={register("description_connect")}
-        />
-        <Input
-          label="World App Description"
-          maxLength={50}
-          errors={errors.world_app_description}
-          disabled={!isEditable || !isEnoughPermissions}
-          placeholder="Short description for display in the app"
-          register={register("world_app_description")}
-          addOnRight={
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-              {remainingCharacters}
-            </Typography>
-          }
-        />
-      </div>
-      <DecoratedButton
-        type="submit"
-        className="w-40 h-12"
-        disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
-      >
-        <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
-      </DecoratedButton>
-    </form>
+    <div className="grid grid-cols-1fr/auto">
+      <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+            App description
+          </Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Describe your app integration to possible users
+          </Typography>
+        </div>
+        <div className="grid gap-y-5">
+          <TextArea
+            label="Overview"
+            required
+            rows={5}
+            errors={errors.description_overview}
+            disabled={!isEditable || !isEnoughPermissions}
+            placeholder="Describe the project for the users who would like to try your integration"
+            register={register("description_overview")}
+          />
+          <TextArea
+            label="How it works"
+            rows={5}
+            errors={errors.description_how_it_works}
+            disabled={!isEditable || !isEnoughPermissions}
+            placeholder="How do users interact with World ID in your app?"
+            register={register("description_how_it_works")}
+          />
+          <TextArea
+            label="How to connect"
+            rows={5}
+            errors={errors.description_connect}
+            disabled={!isEditable || !isEnoughPermissions}
+            placeholder="Explain, if required, how users should set up this app to start using World ID."
+            register={register("description_connect")}
+          />
+          <Input
+            label="World App Description"
+            maxLength={50}
+            errors={errors.world_app_description}
+            disabled={!isEditable || !isEnoughPermissions}
+            placeholder="Short description for display in the app"
+            register={register("world_app_description")}
+            addOnRight={
+              <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+                {remainingCharacters}
+              </Typography>
+            }
+          />
+        </div>
+        <DecoratedButton
+          type="submit"
+          className="w-40 h-12"
+          disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
+        >
+          <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
+        </DecoratedButton>
+      </form>
+    </div>
   );
 };
