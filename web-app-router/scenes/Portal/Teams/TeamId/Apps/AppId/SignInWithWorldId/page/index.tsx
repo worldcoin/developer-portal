@@ -17,7 +17,7 @@ export const SignInWithWorldIdPage = async (
 
   return (
     <div className="w-full h-full">
-      <div className="grid grid-cols-auto/1fr/auto py-6 gap-x-7">
+      <div className="grid md:grid-cols-auto/1fr/auto py-6 gap-x-7 grid-cols-1">
         <Image
           src="/passport.png"
           alt="passport"
