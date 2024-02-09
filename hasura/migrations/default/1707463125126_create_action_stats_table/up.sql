@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION public.action_stats(
     "startsAt" timestamp with time zone, 
     "actionId" character varying
 )
--- If you changing returning values of this function, please, change app_stats_returning columns too
+-- If you changing returning values of this function, please, change action_stats_returning columns too
  RETURNS SETOF action_stats_returning
  LANGUAGE sql
  STABLE
