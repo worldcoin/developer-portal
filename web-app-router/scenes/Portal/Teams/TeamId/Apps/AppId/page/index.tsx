@@ -45,12 +45,12 @@ export const AppIdPage = (props: {
     () =>
       data?.verificationStatus?.app_metadata?.[0]
         .verification_status as VerificationStatus,
-    [data]
+    [data],
   );
 
   const verificationData = useMemo(
     () => data?.verificationData?.app_metadata?.[0],
-    [data]
+    [data],
   );
 
   return (
