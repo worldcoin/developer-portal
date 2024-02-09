@@ -55,7 +55,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     },
   });
 
-  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
+  const [updateActionQuery, { loading }] = useUpdateActionMutation({
+    context: { headers: { team_id: teamId } },
+  });
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
@@ -68,13 +70,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
-          context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: GetActionNameDocument,
-              variables: { action_id: action.id },
-            },
-          ],
+          refetchQueries: [GetActionNameDocument],
           awaitRefetchQueries: true,
         });
 
@@ -93,7 +89,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       }
       toast.success(`Action "${values.name}" updated.`);
     },
-    [updateActionQuery, action.id],
+    [updateActionQuery, action.id]
   );
 
   const copyAction = useCallback(() => {

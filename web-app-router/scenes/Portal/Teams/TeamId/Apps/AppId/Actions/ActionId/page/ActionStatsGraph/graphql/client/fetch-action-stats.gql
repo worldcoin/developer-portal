@@ -1,0 +1,12 @@
+query FetchActionStats(
+  $actionId: String!
+  $startsAt: timestamptz!
+  $timeSpan: String!
+) {
+  action_stats(args: { actionId: $actionId, startsAt: $startsAt, timespan: $timeSpan }) {
+    action_id
+    date
+    verifications
+    unique_users
+  }
+}

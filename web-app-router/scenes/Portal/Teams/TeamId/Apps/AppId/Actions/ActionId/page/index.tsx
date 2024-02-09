@@ -4,6 +4,7 @@ import ErrorComponent from "next/error";
 import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
 import { ActionsHeader } from "../Common/ActionsHeader";
 import Skeleton from "react-loading-skeleton";
+import { ActionStatsGraph } from "./ActionStatsGraph";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -36,7 +37,7 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
           <hr className="my-5 w-full text-grey-200 border-dashed" />
           <div className="w-full grid-cols-2 grid items-start justify-between gap-x-32">
-            <div className="bg-green-50 h-50 w-50">Action Stats: TODO</div>
+            <ActionStatsGraph />
             {loading ? (
               <div>
                 <Skeleton count={5} />
