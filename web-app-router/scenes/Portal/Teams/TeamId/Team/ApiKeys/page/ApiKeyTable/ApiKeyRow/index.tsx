@@ -22,6 +22,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { ApolloError } from "@apollo/client";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -74,10 +75,21 @@ export const ApiKeyRow = (props: {
         setSecretKey(result.data?.reset_api_key?.api_key);
       } catch (error) {
         console.error(error);
-        toast.error("Error occurred while resetting API key.");
+        if (error instanceof ApolloError) {
+          for (let graphQLError of error.graphQLErrors) {
+            if (
+              graphQLError.message ===
+              "User does not have sufficient permissions."
+            ) {
+              toast.error("API key must be active to reset.");
+            }
+          }
+        } else {
+          toast.error("Error occurred while resetting API key.");
+        }
       }
     },
-    [resetApiKeyMutation],
+    [loading, resetApiKeyMutation],
   );
 
   return (
@@ -141,7 +153,7 @@ export const ApiKeyRow = (props: {
               >
                 <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
                   <EditIcon className="text-grey-400 w-5" />
-                  <Typography variant={TYPOGRAPHY.R4}>View Details</Typography>
+                  <Typography variant={TYPOGRAPHY.R4}>Edit Key</Typography>
                 </div>
               </DropdownItem>
               {isEnoughPermissions && (

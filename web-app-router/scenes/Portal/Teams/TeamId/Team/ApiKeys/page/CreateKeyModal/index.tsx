@@ -35,6 +35,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   const {
     register,
     formState: { errors },
+    reset,
     handleSubmit,
   } = useForm<CreateKeyFormValues>({
     resolver: yupResolver(schema),
@@ -57,6 +58,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
           New API key <b>{values.name}</b> was created
         </span>,
       );
+      reset();
       setIsOpen(false);
     } catch (error) {
       console.error(error);

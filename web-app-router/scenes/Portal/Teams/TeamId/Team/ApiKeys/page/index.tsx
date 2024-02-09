@@ -38,7 +38,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
               className="text-grey-500 text-center"
             >
               Create a secure API key to seamlessly <br />
-              manage your team's World ID apps
+              manage your team&apos;s World ID apps
             </Typography>
             <DecoratedButton
               type="button"

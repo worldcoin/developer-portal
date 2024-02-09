@@ -32,12 +32,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
         variables: {
           id: keyId,
         },
-        refetchQueries: [
-          {
-            query: FetchKeysDocument,
-            context: { headers: { team_id: teamId } },
-          },
-        ],
+        refetchQueries: [FetchKeysDocument],
         awaitRefetchQueries: true,
       });
       if (result instanceof Error) {
@@ -63,11 +58,14 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
             <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Are you sure you want to remove{" "}
-              <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-                {name && name.length > 150
-                  ? `${name.substring(0, 150)}...`
-                  : name}
-              </Typography>{" "}
+              <div className="inline-flex">
+                <Typography
+                  variant={TYPOGRAPHY.M3}
+                  className="text-grey-900 max-w-52 truncate"
+                >
+                  {name}
+                </Typography>
+              </div>{" "}
               API key? Please be aware that this action is permanent.
             </Typography>
           </div>

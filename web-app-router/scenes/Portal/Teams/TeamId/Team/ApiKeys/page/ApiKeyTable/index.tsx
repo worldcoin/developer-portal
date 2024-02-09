@@ -91,10 +91,10 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
         };
       },
     );
-  }, [apiKeys, currentPage, rowsPerPage]);
+  }, [apiKeys, currentPage, rowsPerPage, openViewDetails]);
 
   return (
-    <div className="w-full max-h-[380px] overflow-auto no-scrollbar">
+    <div className="w-full overflow-auto no-scrollbar pb-16">
       <ViewDetailsModal
         teamId={teamId}
         isOpen={showViewDetailsModal}

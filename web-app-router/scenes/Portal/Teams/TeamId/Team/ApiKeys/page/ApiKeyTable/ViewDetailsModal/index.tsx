@@ -75,8 +75,12 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
         throw result;
       }
       toast.success(
-        <span>
-          API key <b>{values.name}</b> was updated
+        <span className="">
+          API key{" "}
+          <span className="inline-flex">
+            <b className="truncate max-w-20 ">{values.name}</b>
+          </span>{" "}
+          was updated
         </span>,
       );
       setIsOpen(false);
