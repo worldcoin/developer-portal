@@ -29,7 +29,7 @@ export const Members = () => {
     <div className="grid gap-y-4">
       <Typography variant={TYPOGRAPHY.H7}>Members</Typography>
 
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center mt-4 gap-x-6">
         <Input
           register={register("search")}
           label=""

@@ -22,6 +22,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
 import { useFetchInvitesQuery } from "./graphql/client/fetch-invites.generated";
 import dayjs from "dayjs";
+import Skeleton from "react-loading-skeleton";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -89,7 +90,7 @@ export const List = (props: { search?: string }) => {
   }, [data?.membership, fetchInvitesData?.invite]);
 
   const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length,
+    memberships.length
   );
 
   const rowsPerPageOptions = [10, 20];
@@ -136,25 +137,25 @@ export const List = (props: { search?: string }) => {
   return (
     <div>
       <div className="grid grid-cols-[1fr_1fr_auto]">
-        <div className="contents leading-4 text-12 text-grey-400">
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="py-3 border-b border-grey-100"
-          >
-            Member
-          </Typography>
+        {membersToRender.length > 0 && (
+          <div className="contents leading-4 text-12 text-grey-400">
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="py-3 border-b border-grey-100"
+            >
+              Member
+            </Typography>
 
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="py-3 border-b border-grey-100"
-          >
-            Role
-          </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="py-3 border-b border-grey-100"
+            >
+              Role
+            </Typography>
 
-          <div className="py-3 border-b border-grey-100" />
+            <div className="py-3 border-b border-grey-100" />
 
-          {membersToRender &&
-            membersToRender.map((membership) => (
+            {membersToRender.map((membership) => (
               <div key={membership.user.id} className="contents">
                 <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
                   <UserLogo src={""} name={membership.user.name ?? ""} />
@@ -234,8 +235,17 @@ export const List = (props: { search?: string }) => {
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
       </div>
+
+      {membersToRender.length === 0 && (
+        <div className="grid w-full gap-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={`skeleton-list-item-${i}`} height={80} />
+          ))}
+        </div>
+      )}
 
       <Footer
         totalResults={totalResultsCount ?? 0}
