@@ -68,7 +68,7 @@ export const SignInWithWorldIdPage = async (
         </div>
       </div>
       <hr className="my-4 w-full text-grey-200 border-dashed" />
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 max-w-[580px]">
         <ClientInformationPage appID={appId} teamID={teamId} />
       </div>
     </div>
