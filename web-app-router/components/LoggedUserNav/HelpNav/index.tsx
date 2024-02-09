@@ -30,7 +30,7 @@ export const HelpNav = () => {
         </Typography>
       </DropdownButton>
 
-      <DropdownItems className="mt-2 py-3  text-grey-400 w-full gap-y-.5 grid min-w-[300px]">
+      <DropdownItems className="mt-2 py-3  text-grey-400 w-full gap-y-.5 grid min-w-[296px]">
         <Typography
           variant={TYPOGRAPHY.R4}
           className="text-grey-400 pb-2.5 px-4"
