@@ -6,7 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useState } from "react";
-import { ViewDetailsModal } from "./ApiKeyTable/ViewDetailsModal";
+import Skeleton from "react-loading-skeleton";
 
 type TeamApiKeysPageProps = {
   params: Record<string, string> | null | undefined;
@@ -21,9 +21,6 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   });
 
   const apiKeys = data?.api_key;
-  if (loading) {
-    return <div></div>;
-  }
   return (
     <div className="grid gap-y-8 grid-cols-1">
       <TeamProfile className="w-full" />
@@ -33,7 +30,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
           isOpen={showCreateKeyModal}
           setIsOpen={setShowCreateKeyModal}
         />
-        {apiKeys?.length === 0 ? (
+        {!loading && apiKeys?.length === 0 ? (
           <div className="grid grid-cols-1 gap-y-5 justify-items-center">
             <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
             <Typography
@@ -54,14 +51,22 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
           <div className="w-full grid gap-y-7">
             <div className="flex justify-between items-center gap-x-2">
               <Typography variant={TYPOGRAPHY.H7}>API keys</Typography>
-              <DecoratedButton
-                type="button"
-                onClick={() => setShowCreateKeyModal(true)}
-              >
-                Create new key
-              </DecoratedButton>
+              {loading ? (
+                <Skeleton width={150} />
+              ) : (
+                <DecoratedButton
+                  type="button"
+                  onClick={() => setShowCreateKeyModal(true)}
+                >
+                  Create new key
+                </DecoratedButton>
+              )}
             </div>
-            <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
+            {loading ? (
+              <Skeleton count={5} />
+            ) : (
+              <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
+            )}
           </div>
         )}
       </div>

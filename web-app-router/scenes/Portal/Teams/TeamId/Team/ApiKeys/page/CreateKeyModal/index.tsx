@@ -67,7 +67,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
-      <DialogPanel>
+      <DialogPanel className="z-100">
         <div className="max-w-[580px] grid grid-cols-1 gap-y-10 justify-items-center">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
