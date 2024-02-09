@@ -69,15 +69,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             verification_status: "awaiting_review",
           },
           context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: {
-                id: appId,
-              },
-              context: { headers: { team_id: teamId } },
-            },
-          ],
+          refetchQueries: [FetchAppMetadataDocument],
           awaitRefetchQueries: true,
         });
         toast.success("App submitted for review");
@@ -88,7 +80,6 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       }
     },
     [
-      appId,
       appMetadataId,
       canSubmitAppStore,
       setOpen,
