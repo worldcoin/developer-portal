@@ -84,11 +84,11 @@ export const ActionsList = (props: { actions: any; className: string }) => {
   return (
     <div
       className={clsx(
-        "flex items-center justify-center w-full p-10 max-h-full",
+        "flex items-center justify-center w-full py-10 max-h-full",
         className,
       )}
     >
-      <div className="max-w-[1180px] w-full grid gap-y-5">
+      <div className=" w-full grid gap-y-5">
         <div className="grid gap-2 text-grey-900 font-[550]">
           <Typography variant={TYPOGRAPHY.H6} className="text-2xl">
             Incognito Actions
@@ -98,19 +98,21 @@ export const ActionsList = (props: { actions: any; className: string }) => {
             revealing their identity
           </Typography>
         </div>
-        <div className="flex w-full justify-between items-center mt-5">
+        <div className="grid grid-cols-1fr/auto w-full justify-between items-center mt-5 gap-x-2">
           <Input
             register={register("actionSearch")}
             label=""
             placeholder="Search actions by name"
-            className="w-136 pt-2 text-base"
+            className="max-w-136 pt-2 text-base"
             addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
           />
           <DecoratedButton className="h-12 w-36" href="?createAction=true">
-            <Typography variant={TYPOGRAPHY.M3}>New action</Typography>
+            <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+              New action
+            </Typography>
           </DecoratedButton>
         </div>
-        <div className="w-full max-h-[400px] overflow-auto">
+        <div className="w-full overflow-auto">
           <Table
             footer={
               <Footer

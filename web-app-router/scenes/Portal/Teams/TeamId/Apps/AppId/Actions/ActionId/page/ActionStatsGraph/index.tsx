@@ -184,7 +184,7 @@ export const ActionStatsGraph = () => {
 
   return (
     <div className="grid gap-y-6">
-      <div className="flex justify-between items-center">
+      <div className="md:flex justify-between items-center ">
         <div className="flex gap-x-6 items-center">
           <StatCard
             mainColorClassName="bg-blue-500"
