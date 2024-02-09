@@ -39,11 +39,12 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - id
         - action_id
         - created_at
-        - id
-        - uses
+        - updated_at
         - nullifier_hash
+        - uses
       filter:
         action:
           app:
