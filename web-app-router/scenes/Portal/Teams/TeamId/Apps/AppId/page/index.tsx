@@ -34,7 +34,6 @@ export const AppIdPage = (props: {
 }) => {
   const { teamId, appId } = props.params;
 
-  console.log({ appId });
   const { data } = useGetVerificationDataQuery({
     variables: {
       id: appId,
