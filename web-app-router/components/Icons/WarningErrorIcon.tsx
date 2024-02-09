@@ -2,8 +2,6 @@ export const WarningErrorIcon = (props: { className: string }) => {
   const { className } = props;
   return (
     <svg
-      width="15"
-      height="12"
       className={className}
       viewBox="0 0 15 12"
       fill="none"

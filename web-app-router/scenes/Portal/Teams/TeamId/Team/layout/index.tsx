@@ -17,7 +17,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
 
   return (
     <div>
-      <div className="h-full w-full">
+      <div className="h-full w-full grid grid-rows-auto/1fr">
         <div className="bg-grey-50 border-b border-grey-100">
           <SizingWrapper>
             <Tabs className="max-w-[1180px] m-auto font-gta">
