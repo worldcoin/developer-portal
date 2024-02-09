@@ -27,6 +27,16 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 
+export const GITHUB_ISSUES_URL = "https://github.com/worldcoin/idkit-js/issues";
+
+export const DISCORD_URL = "https://worldcoin.org/discord";
+
+export const WORLDCOIN_STATUS_URL = "https://status.worldcoin.org/";
+
+export const WORLDCOIN_PRIVACY_URL = "https://worldcoin.org/privacy";
+
+export const FAQ_URL = "https://worldcoin.org/faqs";
+
 export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.Generic]:
     "There was a problem with your login. Please try again.",

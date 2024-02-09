@@ -20,6 +20,7 @@ import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
+import { HelpNav } from "./HelpNav";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -38,11 +39,7 @@ export const LoggedUserNav = () => {
       }
     >
       {/* FIXME: update url for Help */}
-      <Button href="#">
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          Help
-        </Typography>
-      </Button>
+      <HelpNav />
 
       <Button href={DOCS_URL}>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
