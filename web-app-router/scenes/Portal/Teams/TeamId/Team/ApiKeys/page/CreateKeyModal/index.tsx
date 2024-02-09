@@ -1,3 +1,4 @@
+"use client";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -27,7 +28,9 @@ export type CreateKeyFormValues = yup.Asserts<typeof schema>;
 
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
-  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
+  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation({
+    context: { headers: { team_id: teamId } },
+  });
 
   const {
     register,
@@ -44,7 +47,6 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         variables: {
           name: values.name,
         },
-        context: { headers: { team_id: teamId } },
         refetchQueries: [FetchKeysDocument],
       });
       if (result instanceof Error) {

@@ -15,11 +15,10 @@ import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import clsx from "clsx";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
 import { toast } from "react-toastify";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { useDeleteKeyMutation } from "../DeleteKeyModal/graphql/client/delete-key.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
@@ -45,7 +44,7 @@ export const ApiKeyRow = (props: {
     return membership?.role === Role_Enum.Owner;
   }, [teamId, user?.hasura.memberships]);
 
-  const [resetApiKeyMutation] = useResetApiKeyMutation({
+  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation({
     context: { headers: { team_id: teamId } },
   });
 
@@ -56,6 +55,9 @@ export const ApiKeyRow = (props: {
 
   const resetAPIKey = useCallback(
     async (apiKeyId: string) => {
+      if (loading) {
+        return;
+      }
       try {
         const result = await resetApiKeyMutation({
           variables: {
@@ -89,6 +91,7 @@ export const ApiKeyRow = (props: {
           {apiKey.name}
         </Typography>
       </td>
+
       <td className="group break-all max-w-96 pr-3" key={`api_key${index}_2`}>
         <Typography
           variant={TYPOGRAPHY.R3}
@@ -112,15 +115,16 @@ export const ApiKeyRow = (props: {
         </Typography>
       </td>
 
-      <td key={`api_key${index}_3`} className="text-grey-500">
+      <td key={`api_key_${index}_3`} className="text-grey-500">
         <Typography variant={TYPOGRAPHY.R4}>{timeAgo}</Typography>
       </td>
 
-      <td key={`api_key${index}_4`} className="text-grey-500">
+      <td key={`api_key_${index}_4`} className="text-grey-500">
         <Typography variant={TYPOGRAPHY.R4}>
           <Status isActive={apiKey.is_active} />
         </Typography>
       </td>
+
       <td>
         <div
           key={`api_key_${index}_5`}
@@ -143,7 +147,7 @@ export const ApiKeyRow = (props: {
               {isEnoughPermissions && (
                 <DropdownItem
                   className="hover:bg-grey-50"
-                  onClick={async () => await resetAPIKey(apiKey.id)}
+                  onClick={() => resetAPIKey(apiKey.id)}
                 >
                   <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
                     <KeyIcon className="text-grey-400 w-5" />
