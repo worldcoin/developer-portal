@@ -32,7 +32,7 @@ type ViewDetailsModalProps = {
 export type ViewDetailsFormValues = yup.Asserts<typeof schema>;
 
 export const ViewDetailsModal = memo(function ViewDetailsModal(
-  props: ViewDetailsModalProps
+  props: ViewDetailsModalProps,
 ) {
   const { teamId, isOpen, name, isActive, keyId, setIsOpen } = props;
   const [updateKeyMutation, { loading: updatingKey }] = useUpdateKeyMutation();
@@ -77,7 +77,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
       toast.success(
         <span>
           API key <b>{values.name}</b> was updated
-        </span>
+        </span>,
       );
       setIsOpen(false);
     } catch (error) {

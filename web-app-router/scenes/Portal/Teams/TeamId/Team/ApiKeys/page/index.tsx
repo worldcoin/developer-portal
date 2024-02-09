@@ -51,7 +51,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
             </DecoratedButton>
           </div>
         ) : (
-          <div className="w-full">
+          <div className="w-full grid gap-y-7">
             <div className="flex justify-between items-center gap-x-2">
               <Typography variant={TYPOGRAPHY.H7}>API keys</Typography>
               <DecoratedButton

@@ -53,7 +53,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       toast.success(
         <span>
           New API key <b>{values.name}</b> was created
-        </span>
+        </span>,
       );
       setIsOpen(false);
     } catch (error) {

@@ -14,7 +14,7 @@ export const Status = memo(function Status(props: { isActive: boolean }) {
             { "bg-green-50 text-green-500": isActive },
             {
               "bg-grey-50 text-grey-500": !isActive,
-            }
+            },
           )}
         >
           <Typography variant={TYPOGRAPHY.S3}>

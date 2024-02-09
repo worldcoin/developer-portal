@@ -1,10 +1,7 @@
 "use client";
 import { formatDistanceToNowStrict } from "date-fns";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  FetchKeysDocument,
-  FetchKeysQuery,
-} from "../../graphql/client/fetch-keys.generated";
+import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
 import {
   Dropdown,
   DropdownButton,
@@ -18,11 +15,14 @@ import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import clsx from "clsx";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
 import { toast } from "react-toastify";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useDeleteKeyMutation } from "../DeleteKeyModal/graphql/client/delete-key.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -36,12 +36,16 @@ export const ApiKeyRow = (props: {
   const timeAgo = formatDistanceToNowStrict(new Date(apiKey.created_at), {
     addSuffix: true,
   });
+  const { user } = useUser() as Auth0SessionUser;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === teamId,
+    );
+    return membership?.role === Role_Enum.Owner;
+  }, [teamId, user?.hasura.memberships]);
 
   const [resetApiKeyMutation] = useResetApiKeyMutation({
-    context: { headers: { team_id: teamId } },
-  });
-
-  const [deleteApiKeyMutation] = useDeleteKeyMutation({
     context: { headers: { team_id: teamId } },
   });
 
@@ -71,28 +75,7 @@ export const ApiKeyRow = (props: {
         toast.error("Error occurred while resetting API key.");
       }
     },
-    [resetApiKeyMutation]
-  );
-
-  const deleteAPIKey = useCallback(
-    async (apiKeyId: string) => {
-      try {
-        const result = await deleteApiKeyMutation({
-          variables: {
-            id: apiKeyId,
-          },
-          refetchQueries: [FetchKeysDocument],
-        });
-        if (result instanceof Error) {
-          throw result;
-        }
-        toast.success("API key was deleted");
-      } catch (error) {
-        console.error(error);
-        toast.error("Error occurred while deleting API key.");
-      }
-    },
-    [deleteApiKeyMutation]
+    [resetApiKeyMutation],
   );
 
   return (
@@ -121,7 +104,7 @@ export const ApiKeyRow = (props: {
             onClick={copyKey}
             className={clsx(
               "py-2 px-5 rounded-lg opacity-0 transition-opacity duration-300 whitespace-nowrap",
-              { "group-hover:opacity-100": secretKey }
+              { "group-hover:opacity-100": secretKey },
             )}
           >
             <Typography variant={TYPOGRAPHY.M4}>Copy</Typography>
@@ -157,27 +140,30 @@ export const ApiKeyRow = (props: {
                   <Typography variant={TYPOGRAPHY.R4}>View Details</Typography>
                 </div>
               </DropdownItem>
-              <DropdownItem
-                className="hover:bg-grey-50"
-                onClick={async () => await resetAPIKey(apiKey.id)}
-              >
-                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                  <KeyIcon className="text-grey-400 w-5" />
-                  <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
-                </div>
-              </DropdownItem>
-
-              <DropdownItem
-                className="text-system-error-600 hover:bg-grey-50"
-                onClick={() => openDeleteKeyModal(apiKey)}
-              >
-                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                  <TrashIcon className="w-5" />
-                  <Typography as="div" variant={TYPOGRAPHY.R4}>
-                    Remove key
-                  </Typography>
-                </div>
-              </DropdownItem>
+              {isEnoughPermissions && (
+                <DropdownItem
+                  className="hover:bg-grey-50"
+                  onClick={async () => await resetAPIKey(apiKey.id)}
+                >
+                  <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
+                    <KeyIcon className="text-grey-400 w-5" />
+                    <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
+                  </div>
+                </DropdownItem>
+              )}
+              {isEnoughPermissions && (
+                <DropdownItem
+                  className="text-system-error-600 hover:bg-grey-50"
+                  onClick={() => openDeleteKeyModal(apiKey)}
+                >
+                  <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
+                    <TrashIcon className="w-5" />
+                    <Typography as="div" variant={TYPOGRAPHY.R4}>
+                      Remove key
+                    </Typography>
+                  </div>
+                </DropdownItem>
+              )}
             </DropdownItems>
           </Dropdown>
         </div>

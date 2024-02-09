@@ -7,7 +7,6 @@ import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiKeyRow } from "./ApiKeyRow";
 import { ViewDetailsModal } from "./ViewDetailsModal";
-import { toast } from "react-toastify";
 import { useResetApiKeyMutation } from "./ApiKeyRow/graphql/client/reset-api-key.generated";
 import { DeleteKeyModal } from "./DeleteKeyModal";
 
@@ -33,7 +32,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
   const [showDeleteKeyModal, setShowDeleteKeyModal] = useState(false);
   const [totalResultsCount, setTotalResultsCount] = useState(
-    apiKeys?.length ?? 0
+    apiKeys?.length ?? 0,
   );
 
   const openViewDetails = useCallback(
@@ -41,7 +40,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
       setSelectedKey(key);
       setShowViewDetailsModal(true);
     },
-    [setSelectedKey, setShowViewDetailsModal]
+    [setSelectedKey, setShowViewDetailsModal],
   );
 
   const openDeleteKeyModal = useCallback(
@@ -49,7 +48,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
       setSelectedKey(key);
       setShowDeleteKeyModal(true);
     },
-    [setShowDeleteKeyModal, setSelectedKey]
+    [setShowDeleteKeyModal, setSelectedKey],
   );
 
   useEffect(() => {
@@ -90,7 +89,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
           openViewDetails: openViewDetails,
           apiKey: apiKey,
         };
-      }
+      },
     );
   }, [apiKeys, currentPage, rowsPerPage]);
 
