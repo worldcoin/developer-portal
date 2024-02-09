@@ -25,7 +25,7 @@ export const App = (props: {
 
   const environment = useMemo(
     () => (props.isStaging ? "staging" : "production"),
-    [props.isStaging]
+    [props.isStaging],
   );
 
   return (

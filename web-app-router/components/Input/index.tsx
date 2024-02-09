@@ -43,7 +43,7 @@ export const Input = memo(function Input(props: InputInterface) {
     {
       "hover:text-grey-700": !disabled,
       "bg-grey-50 text-grey-300 border-grey-200": disabled,
-    }
+    },
   );
   const inputClassNames = clsx(
     "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full transition-colors placeholder:transition-colors",
@@ -51,7 +51,7 @@ export const Input = memo(function Input(props: InputInterface) {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
-    }
+    },
   );
 
   const labelClassNames = clsx("text-sm ml-2 peer-focus:text-blue-500", {
@@ -70,9 +70,9 @@ export const Input = memo(function Input(props: InputInterface) {
         className={twMerge(
           clsx(
             "grid grid-cols-auto/1fr/auto group pb-2 transition-colors",
-            parentClassNames
+            parentClassNames,
           ),
-          typeof className === "string" ? className : undefined
+          typeof className === "string" ? className : undefined,
         )}
       >
         <div className="flex items-center">{addOnLeft && addOnLeft}</div>

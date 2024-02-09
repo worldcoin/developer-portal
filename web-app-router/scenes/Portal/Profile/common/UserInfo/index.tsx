@@ -18,7 +18,6 @@ export const UserInfo = (props: UserInfoProps) => {
   const { user } = useUser();
   const userHasura = user?.hasura as { id: string } | undefined;
   const userId = userHasura?.id;
-  //console.log(userId);
 
   const userQueryRes = useFetchUserQuery({
     variables: !userId ? undefined : { user_id: userId },
