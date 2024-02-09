@@ -327,6 +327,8 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       "https://id.worldcoin.org/beta": {
         likely_human: "strong",
         credential_type: "orb",
+        warning:
+          "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",
       },
       "https://id.worldcoin.org/v1": {
         verification_level: "orb",
