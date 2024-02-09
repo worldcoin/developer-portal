@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { FetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { redirect } from "next/navigation";
 
 type DeleteTeamDialogProps = DialogProps & {
   team: FetchTeamQuery["team_by_pk"];
@@ -64,11 +65,12 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         },
       });
       toast.success("Team deleted!");
+      redirect("/teams");
     } catch (e) {
       console.error(e);
       toast.error("Error team deleting");
     }
-  }, [deleteTeam, user?.hasura]);
+  }, [deleteTeam, team?.id]);
 
   return (
     <Dialog {...props} onClose={onClose}>
@@ -88,7 +90,10 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             variant={TYPOGRAPHY.R3}
             className="text-grey-500 text-center"
           >
-            The <span className="font-medium text-gray-900">{team?.name}</span>{" "}
+            The{" "}
+            <span className="font-medium text-gray-900 select-none">
+              {team?.name}
+            </span>{" "}
             will be deleted, along with all of its apps, actions, configurations
             and statistics.
           </Typography>
