@@ -98,7 +98,7 @@ export const List = (props: { search?: string }) => {
   }, [data?.membership, fetchInvitesData?.invite]);
 
   const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length
+    memberships.length,
   );
 
   const rowsPerPageOptions = [10, 20];
@@ -147,7 +147,7 @@ export const List = (props: { search?: string }) => {
       setUserToRemove(membership.user);
       setIsRemoveDialogOpened(true);
     },
-    [setIsRemoveDialogOpened]
+    [setIsRemoveDialogOpened],
   );
 
   return (
