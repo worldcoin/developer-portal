@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useFetchMembershipsQuery } from "./graphql/client/fetch-members.generated";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserLogo } from "./UserLogo";
 import { Role_Enum } from "@/graphql/graphql";
@@ -23,6 +23,9 @@ import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
 import { useFetchInvitesQuery } from "./graphql/client/fetch-invites.generated";
 import dayjs from "dayjs";
 import Skeleton from "react-loading-skeleton";
+import { useAtom } from "jotai";
+import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
+import { FetchMembersQuery } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-members.generated";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -33,6 +36,11 @@ const roleName: Record<Role_Enum, string> = {
 export const List = (props: { search?: string }) => {
   const { user } = useUser() as Auth0SessionUser;
   const { teamId } = useParams() as { teamId: string };
+  const [, setIsRemoveDialogOpened] = useAtom(removeUserDialogAtom);
+
+  const [userToRemove, setUserToRemove] = useState<
+    FetchMembersQuery["members"][number]["user"] | null
+  >(null);
 
   const [fetchUser, { data: fetchUserResult }] = useFetchUserLazyQuery({
     context: { headers: { team_id: teamId } },
@@ -56,7 +64,7 @@ export const List = (props: { search?: string }) => {
       return false;
     }
 
-    return fetchUserResult?.membership?.[0].role === Role_Enum.Owner;
+    return fetchUserResult?.membership?.[0]?.role === Role_Enum.Owner;
   }, [fetchUserResult]);
 
   const { data } = useFetchMembershipsQuery({
@@ -133,6 +141,14 @@ export const List = (props: { search?: string }) => {
 
     return paginatedActions;
   }, [currentPage, memberships, props.search, rowsPerPage]);
+
+  const onRemoveUser = useCallback(
+    (membership: (typeof membersToRender)[number]) => {
+      setUserToRemove(membership.user);
+      setIsRemoveDialogOpened(true);
+    },
+    [setIsRemoveDialogOpened]
+  );
 
   return (
     <div>
@@ -219,7 +235,8 @@ export const List = (props: { search?: string }) => {
                       {isEnoughPermissions && (
                         <DropdownItem>
                           <Button
-                            href="#"
+                            type="button"
+                            onClick={() => onRemoveUser(membership)}
                             className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors"
                           >
                             <TrashIcon />
@@ -256,6 +273,8 @@ export const List = (props: { search?: string }) => {
         handleRowsPerPageChange={handleRowsPerPageChange}
         className="border-none"
       />
+
+      <RemoveUserDialog name={userToRemove?.name ?? ""} id={userToRemove?.id} />
     </div>
   );
 };
