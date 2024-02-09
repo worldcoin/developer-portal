@@ -45,12 +45,12 @@ export const AppIdPage = (props: {
     () =>
       data?.verificationStatus?.app_metadata?.[0]
         .verification_status as VerificationStatus,
-    [data],
+    [data]
   );
 
   const verificationData = useMemo(
     () => data?.verificationData?.app_metadata?.[0],
-    [data],
+    [data]
   );
 
   return (
@@ -103,8 +103,7 @@ export const AppIdPage = (props: {
               icon={<CheckmarkBadge className="w-[22px] h-[22px]" />}
               title="Get your app verified"
               description="Verified apps get a special checkmark badge"
-              // FIXME: pass relevant href/onClick
-              href="#"
+              href={urls.appProfile({ team_id: teamId, app_id: appId })}
             />
           )}
 
@@ -113,8 +112,7 @@ export const AppIdPage = (props: {
               icon={<UserCardIcon />}
               title="Sign in with World ID"
               description="Let users sign in with their World ID"
-              // FIXME: pass relevant href/onClick
-              href="#"
+              href={urls.signInWorldId({ team_id: teamId, app_id: appId })}
             />
           )}
         </div>
