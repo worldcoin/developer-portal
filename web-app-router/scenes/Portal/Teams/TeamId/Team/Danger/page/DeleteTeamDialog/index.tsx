@@ -13,10 +13,8 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { useDeleteTeamMutation } from "./graphql/client/delete-team.generated";
 import { toast } from "react-toastify";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 import { FetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type DeleteTeamDialogProps = DialogProps & {
   team: FetchTeamQuery["team_by_pk"];
@@ -24,7 +22,7 @@ type DeleteTeamDialogProps = DialogProps & {
 
 export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const { team } = props;
-  const { user } = useUser() as Auth0SessionUser;
+  const router = useRouter();
 
   const schema = useMemo(() => {
     return yup.object({
@@ -65,7 +63,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         },
       });
       toast.success("Team deleted!");
-      redirect("/teams");
+      router.push("/teams");
     } catch (e) {
       console.error(e);
       toast.error("Error team deleting");
