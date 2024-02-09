@@ -6,6 +6,9 @@ export const urls = {
   app: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id || ""}`,
 
+  actions: (params: { team_id: string; app_id?: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/actions`,
+
   createTeam: (params?: { invite_id: string }): string =>
     `/create-team${params?.invite_id ? `?invite_id=${params?.invite_id}` : ""}`,
 
