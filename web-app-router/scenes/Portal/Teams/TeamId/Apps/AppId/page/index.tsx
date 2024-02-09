@@ -103,7 +103,7 @@ export const AppIdPage = (props: {
             <QuickAction
               icon={<CheckmarkBadge className="w-[22px] h-[22px]" />}
               title="Get your app verified"
-              description="Get a green badge for your app"
+              description="Verified apps get a special checkmark badge"
               // FIXME: pass relevant href/onClick
               href="#"
             />
