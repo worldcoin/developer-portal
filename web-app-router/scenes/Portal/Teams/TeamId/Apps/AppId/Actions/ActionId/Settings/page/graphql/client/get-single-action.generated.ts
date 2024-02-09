@@ -15,13 +15,8 @@ export type GetSingleActionQuery = {
     id: string;
     app_id: string;
     action: string;
-    created_at: any;
-    creation_mode: string;
     description: string;
-    external_nullifier: string;
-    kiosk_enabled: boolean;
     name: string;
-    max_accounts_per_user: number;
     max_verifications: number;
     app: { __typename?: "app"; is_staging: boolean; engine: string };
   }>;
@@ -33,13 +28,8 @@ export const GetSingleActionDocument = gql`
       id
       app_id
       action
-      created_at
-      creation_mode
       description
-      external_nullifier
-      kiosk_enabled
       name
-      max_accounts_per_user
       max_verifications
       app {
         is_staging

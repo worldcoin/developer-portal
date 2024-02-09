@@ -11,6 +11,7 @@ import { useUpdateActionMutation } from "./graphql/client/update-action.generate
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -70,9 +71,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
-              query: GetSingleActionDocument,
+              query: GetActionNameDocument,
               variables: { action_id: action.id },
-              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,

@@ -26,6 +26,7 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
     );
   }, [params?.teamId, user?.hasura.memberships]);
 
+  // TODO: Remove tabs for on chain apps
   return (
     <div className="h-full w-full">
       <div className="bg-grey-50 border-b border-grey-100">
