@@ -15,7 +15,7 @@ export const StatCard = (props: {
         <div
           className={clsx(
             "w-1.5 h-1.5 rounded-[1px]",
-            props.mainColorClassName
+            props.mainColorClassName,
           )}
         />
 
@@ -45,7 +45,7 @@ export const StatCard = (props: {
                 "bg-system-error-50 text-system-error-500":
                   props.changePercentage < 0,
                 "bg-grey-100": props.changePercentage === 0,
-              }
+              },
             )}
           >
             <ArrowUpIcon

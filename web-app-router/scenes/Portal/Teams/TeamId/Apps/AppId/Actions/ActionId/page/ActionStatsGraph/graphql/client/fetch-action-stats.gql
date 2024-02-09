@@ -3,7 +3,9 @@ query FetchActionStats(
   $startsAt: timestamptz!
   $timeSpan: String!
 ) {
-  action_stats(args: { actionId: $actionId, startsAt: $startsAt, timespan: $timeSpan }) {
+  action_stats(
+    args: { actionId: $actionId, startsAt: $startsAt, timespan: $timeSpan }
+  ) {
     action_id
     date
     verifications

@@ -101,6 +101,7 @@ const defaultOptions: ChartOptions<"line"> = {
           family: "GT America",
           size: 12,
         },
+        precision: 0,
 
         maxTicksLimit: 5,
       },
@@ -112,7 +113,12 @@ export const Chart = (props: ChartProps) => {
   const data: ChartData<"line"> = useMemo(
     () => ({
       labels: props.data.x,
-      datasets: props.data.y,
+      datasets: props.data.y.map((dataset) => ({
+        ...dataset,
+        pointRadius: dataset.data.length === 1 ? 5 : dataset.pointRadius,
+        pointHoverRadius:
+          dataset.data.length === 1 ? 5 : dataset.pointHoverRadius,
+      })),
     }),
     [props.data.x, props.data.y],
   );

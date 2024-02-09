@@ -21,13 +21,21 @@ CREATE OR REPLACE FUNCTION public.action_stats(
  LANGUAGE sql
  STABLE
 AS $function$
+WITH sum_query AS (
+    SELECT
+        action.id as action_id,
+        DATE_TRUNC("timespan", nullifier.created_at) as date,
+        SUM(nullifier.uses) as verifications,
+        SUM(COUNT(DISTINCT nullifier_hash)) OVER (ORDER BY DATE_TRUNC("timespan", nullifier.created_at)) as unique_users
+    FROM nullifier AS nullifier
+    LEFT JOIN action action ON action.id = nullifier.action_id
+    WHERE action_id = "actionId" AND nullifier.created_at >= "startsAt"
+    GROUP BY DATE_TRUNC("timespan", nullifier.created_at), action.id
+)
 SELECT
-    action.id as action_id,
-    DATE_TRUNC("timespan", nullifier.created_at) as date,
-    SUM(COUNT(1)) OVER (ORDER BY DATE_TRUNC("timespan", nullifier.created_at)) as verifications,
-    SUM(COUNT(DISTINCT nullifier_hash)) OVER (ORDER BY DATE_TRUNC("timespan", nullifier.created_at)) as unique_users
-FROM nullifier AS nullifier
-LEFT JOIN action action ON action.id = nullifier.action_id
-WHERE action_id = "actionId" AND nullifier.created_at >= "startsAt"
-GROUP BY DATE_TRUNC("timespan", nullifier.created_at), action.id
+    action_id,
+    date,
+    SUM(verifications) OVER (ORDER BY date) as total_verifications,
+    unique_users
+FROM sum_query;
 $function$;

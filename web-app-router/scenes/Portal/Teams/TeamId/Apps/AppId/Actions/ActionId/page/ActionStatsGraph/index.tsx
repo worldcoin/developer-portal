@@ -56,7 +56,7 @@ const timespanAtom = atom(timespans[0]);
 
 const calculatePercentageChange = (
   arr: FetchActionStatsQuery["action_stats"] | undefined,
-  key: keyof FetchActionStatsQuery["action_stats"][number]
+  key: keyof FetchActionStatsQuery["action_stats"][number],
 ) => {
   if (!arr || arr.length < 2) {
     return 0;
@@ -174,12 +174,12 @@ export const ActionStatsGraph = () => {
 
   const verificationPercentageChange = useMemo(
     () => calculatePercentageChange(stats, "verifications"),
-    [stats]
+    [stats],
   );
 
   const uniquePercentageChange = useMemo(
     () => calculatePercentageChange(stats, "unique_users"),
-    [stats]
+    [stats],
   );
 
   return (
@@ -206,7 +206,9 @@ export const ActionStatsGraph = () => {
         <TimespanSelector options={timespans} atom={timespanAtom} />
       </div>
 
-      {formattedData && <Chart data={formattedData} />}
+      {formattedData && (
+        <Chart data={formattedData} options={{ aspectRatio: 580 / 350 }} />
+      )}
 
       {loading && (
         <div className="w-full aspect-[1180/350] rounded-2xl relative">
