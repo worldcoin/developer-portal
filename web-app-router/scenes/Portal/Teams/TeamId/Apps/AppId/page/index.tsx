@@ -95,7 +95,7 @@ export const AppIdPage = (props: {
           <QuickAction
             icon={<FlaskIcon />}
             title="Try simulator"
-            description="Test your app in simulator"
+            description="Test your app in the simulator"
             href={SIMULATOR_URL}
           />
 
