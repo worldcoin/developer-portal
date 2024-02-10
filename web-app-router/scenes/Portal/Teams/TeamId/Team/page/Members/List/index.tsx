@@ -277,11 +277,19 @@ export const List = (props: { search?: string }) => {
         )}
       </div>
 
-      {membersToRender.length === 0 && (
+      {membersToRender.length === 0 && !props.search && (
         <div className="grid w-full gap-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={`skeleton-list-item-${i}`} height={80} />
           ))}
+        </div>
+      )}
+
+      {membersToRender.length === 0 && props.search && (
+        <div className="w-full h-[240px] border border-grey-200 rounded-2xl flex justify-center items-center">
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
+            No results
+          </Typography>
         </div>
       )}
 
