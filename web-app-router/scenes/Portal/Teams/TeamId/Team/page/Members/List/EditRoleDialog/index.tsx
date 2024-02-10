@@ -32,6 +32,7 @@ import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { Button } from "@/components/Button";
 import { permissionsDialogAtom } from "../PermissionsDialog";
+import clsx from "clsx";
 
 export const editRoleDialogAtom = atom(false);
 
@@ -49,7 +50,9 @@ export const EditRoleDialog = (props: {
   membership: FetchMembershipsQuery["membership"][number] | null;
 }) => {
   const [isOpened, setIsOpened] = useAtom(editRoleDialogAtom);
-  const [, setPermissionsOpened] = useAtom(permissionsDialogAtom);
+  const [permissionsOpened, setPermissionsOpened] = useAtom(
+    permissionsDialogAtom,
+  );
   const { teamId } = useParams() as { teamId: string };
 
   const roles = useMemo(
@@ -98,12 +101,16 @@ export const EditRoleDialog = (props: {
   });
 
   const onClose = useCallback(() => {
+    if (permissionsOpened) {
+      return;
+    }
+
     setIsOpened(false);
 
     if (defaultValues) {
       reset(defaultValues);
     }
-  }, [defaultValues, reset, setIsOpened]);
+  }, [defaultValues, permissionsOpened, reset, setIsOpened]);
 
   const submit = useCallback(
     (values: FormValues) => {
