@@ -18,7 +18,10 @@ export const Header = (props: { color: Color | null }) => {
 
   return (
     <header className="p-4">
-      <SizingWrapper className="flex justify-between items-center w-full">
+      <SizingWrapper
+        className="flex justify-between items-center w-full"
+        variant="nav"
+      >
         <div className="grid grid-cols-auto/1fr gap-x-8">
           <WorldcoinIcon />
           <AppSelector />

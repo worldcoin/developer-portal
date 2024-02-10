@@ -3,7 +3,6 @@
 import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { UserInfo } from "./UserInfo";
 import { useUser } from "@auth0/nextjs-auth0/client";
 
 export const ProfileLayout = (props: { children: ReactNode }) => {
@@ -12,7 +11,7 @@ export const ProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">
-        <SizingWrapper>
+        <SizingWrapper variant="nav">
           <Tabs className="font-gta">
             <Tab className="py-4" href={`/profile`} segment={null}>
               User profile
