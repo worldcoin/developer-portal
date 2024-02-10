@@ -8,7 +8,6 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
-import { NavWrapper } from "@/components/NavWrapper";
 
 type Images = {
   logo_img_url?: string;
@@ -45,7 +44,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">
-        <NavWrapper>
+        <SizingWrapper variant="nav">
           <Tabs className="m-auto font-gta">
             <Tab
               className="py-4"
@@ -89,7 +88,7 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
               </Tab>
             )}
           </Tabs>
-        </NavWrapper>
+        </SizingWrapper>
       </div>
       <SizingWrapper>{props.children}</SizingWrapper>
     </div>

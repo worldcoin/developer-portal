@@ -9,7 +9,6 @@ import { colorAtom } from "..";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialog } from "../CreateAppDialog";
 import { atom, useAtom } from "jotai";
-import { NavWrapper } from "@/components/NavWrapper";
 
 export const createAppDialogOpenedAtom = atom(false);
 
@@ -19,14 +18,17 @@ export const Header = (props: { color: Color | null }) => {
 
   return (
     <header className="p-4">
-      <NavWrapper className="flex justify-between items-center w-full">
+      <SizingWrapper
+        className="flex justify-between items-center w-full"
+        variant="nav"
+      >
         <div className="grid grid-cols-auto/1fr gap-x-8">
           <WorldcoinIcon />
           <AppSelector />
         </div>
 
         <LoggedUserNav />
-      </NavWrapper>
+      </SizingWrapper>
 
       <CreateAppDialog open={open} onClose={setOpen} />
     </header>

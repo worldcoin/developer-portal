@@ -1,4 +1,3 @@
-import { NavWrapper } from "@/components/NavWrapper";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
@@ -20,7 +19,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
     <div>
       <div className="h-full w-full grid grid-rows-auto/1fr">
         <div className="border-b border-grey-100">
-          <NavWrapper>
+          <SizingWrapper variant="nav">
             <Tabs className="m-auto font-gta">
               <Tab
                 className="py-4"
@@ -58,7 +57,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
               </Tab>
             </Tabs>
-          </NavWrapper>
+          </SizingWrapper>
         </div>
 
         <SizingWrapper className="h-full">{props.children}</SizingWrapper>
