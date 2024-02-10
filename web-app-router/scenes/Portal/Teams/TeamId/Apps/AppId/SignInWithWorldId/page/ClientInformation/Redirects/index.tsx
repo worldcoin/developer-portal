@@ -104,6 +104,7 @@ export const Redirects = memo(function Redirects(props: {
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => deleteRedirect(redirect.id)}
             >
               <CloseIcon />
@@ -137,6 +138,7 @@ export const Redirects = memo(function Redirects(props: {
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => setAddRedirectFormShown(false)}
             >
               <CloseIcon />
