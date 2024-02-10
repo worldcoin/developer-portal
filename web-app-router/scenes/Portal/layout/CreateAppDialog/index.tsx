@@ -136,7 +136,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                 <span className="text-grey-200">|</span>
 
                 <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
-                  Create an incognito action
+                  Create a new app
                 </Typography>
               </div>
 
@@ -157,31 +157,6 @@ export const CreateAppDialog = (props: DialogProps) => {
               <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
 
               <div className="grid gap-y-8">
-                <div className="grid grid-cols-auto/1fr p-6 border border-grey-200 rounded-xl gap-x-6 gap-y-3">
-                  <Image src="" alt="app logo" className="row-span-2" />
-
-                  <Typography variant={TYPOGRAPHY.R3}>
-                    Image requirements
-                  </Typography>
-
-                  <Typography
-                    variant={TYPOGRAPHY.R4}
-                    className="text-grey-500 max-w-[360px]"
-                  >
-                    Upload a PNG, JPEG or GIF image smaller than 1 MB. The
-                    preview box shows the logo&apos;s final display size.
-                  </Typography>
-
-                  {/* TODO: implement image upload */}
-                  <DecoratedButton
-                    type="button"
-                    variant="secondary"
-                    className="col-start-2 max-w-[100px] mt-3"
-                  >
-                    Upload
-                  </DecoratedButton>
-                </div>
-
                 <Input
                   register={register("appName")}
                   label="App name"
