@@ -5,6 +5,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
+import { Auth0SessionUser } from "@/lib/types";
 
 type Params = {
   teamId?: string;
@@ -20,13 +21,12 @@ type ActionIdLayout = {
 export const ActionIdLayout = async (props: ActionIdLayout) => {
   const params = props.params;
   const session = await getSession();
-  const user = session?.user;
+  const user = session?.user as Auth0SessionUser["user"];
 
-  const isEnoughPermissions = checkUserPermissions(
-    user?.hasura,
-    params.teamId ?? "",
-    [Role_Enum.Owner, Role_Enum.Admin],
-  );
+  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
 
   // TODO: Remove tabs for on chain apps
   return (

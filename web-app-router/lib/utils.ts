@@ -58,8 +58,8 @@ export const validateUrl = (candidate: string): boolean => {
 export const validateEmail = (candidate: string): boolean => {
   return Boolean(
     candidate.match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    ),
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    )
   );
 };
 
@@ -77,11 +77,12 @@ export const getCDNImageUrl = (app_id: string, path: string) => {
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
   teamId: string,
-  validRoles: Role_Enum[],
+  validRoles: Role_Enum[] | string[]
 ) => {
   const membership = user?.hasura?.memberships.find(
-    (m) => m.team?.id === teamId,
+    (m) => m.team?.id == teamId
   );
+
   if (!membership) {
     return false;
   }

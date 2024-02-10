@@ -2,9 +2,10 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 
 type Params = {
   teamId?: string;
@@ -19,11 +20,15 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   const params = props.params;
   const session = await getSession();
 
-  const user = session?.user;
-  const isEnoughPermissions = checkUserPermissions(
-    user?.hasura,
+  const user = session?.user as Auth0SessionUser["user"];
+  const ownerPermission = checkUserPermissions(user, params.teamId ?? "", [
+    Role_Enum.Owner,
+  ]);
+
+  const ownerAndAdminPermission = checkUserPermissions(
+    user,
     params.teamId ?? "",
-    [Role_Enum.Owner],
+    [Role_Enum.Owner]
   );
 
   return (
@@ -40,7 +45,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               >
                 <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
               </Tab>
-              {isEnoughPermissions && (
+              {ownerPermission && (
                 <Tab
                   className="py-4"
                   href={`/teams/${params!.teamId}/settings`}
@@ -51,7 +56,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
                 </Tab>
               )}
 
-              {isEnoughPermissions && (
+              {ownerAndAdminPermission && (
                 <Tab
                   className="py-4"
                   href={`/teams/${params!.teamId}/api-keys`}
@@ -61,7 +66,8 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
                   <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
                 </Tab>
               )}
-              {isEnoughPermissions && (
+
+              {ownerPermission && (
                 <Tab
                   className="py-4"
                   href={`/teams/${params!.teamId}/danger`}

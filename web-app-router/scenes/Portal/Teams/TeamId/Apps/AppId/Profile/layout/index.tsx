@@ -6,6 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
+import { Auth0SessionUser } from "@/lib/types";
 
 type Images = {
   logo_img_url?: string;
@@ -41,13 +42,11 @@ export const verifiedImagesAtom = atom<Images>({
 export const AppProfileLayout = async (props: AppProfileLayout) => {
   const params = props.params;
   const session = await getSession();
-  const user = session?.user;
+  const user = session?.user as Auth0SessionUser["user"];
 
-  const isEnoughPermissions = checkUserPermissions(
-    user?.hasura,
-    params.teamId ?? "",
-    [Role_Enum.Owner],
-  );
+  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
+    Role_Enum.Owner,
+  ]);
 
   return (
     <div>
