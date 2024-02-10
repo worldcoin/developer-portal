@@ -102,7 +102,7 @@ export const AppIdPage = (props: {
             <QuickAction
               icon={<CheckmarkBadge className="w-[22px] h-[22px]" />}
               title="Get your app verified"
-              description="Verified apps get a special checkmark badge"
+              description="Display a verified app badge"
               href={urls.appProfile({ team_id: teamId, app_id: appId })}
             />
           )}
