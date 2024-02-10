@@ -26,11 +26,12 @@ export const ActionIdLayout = (props: { children: ReactNode }) => {
     );
   }, [params?.teamId, user?.hasura.memberships]);
 
+  // TODO: Remove tabs for on chain apps
   return (
     <div className="h-full w-full">
       <div className="bg-grey-50 border-b border-grey-100">
-        <SizingWrapper>
-          <Tabs className="max-w-[1180px] m-auto font-gta">
+        <SizingWrapper variant="nav">
+          <Tabs className="m-auto font-gta">
             <Tab
               className="py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}`}

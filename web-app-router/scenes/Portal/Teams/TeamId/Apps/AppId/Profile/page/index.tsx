@@ -8,6 +8,8 @@ import { unverifiedImageAtom } from "../layout";
 import { useAtom } from "jotai";
 import { useFetchImagesQuery } from "../graphql/client/fetch-images.generated";
 import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";
+import Skeleton from "react-loading-skeleton";
+import { FormSkeleton } from "../PageComponents/AppTopBar/FormSkeleton";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -48,24 +50,28 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const app = data?.app[0];
   const teamName = teamData?.team[0]?.name;
-  if (loading) return <div>Loading...</div>;
-  else if (error || !app) {
+
+  if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div
-        className={clsx("py-8 gap-y-4 grid", {
-          hidden: loading || loadingImages,
-        })}
-      >
-        <AppTopBar appId={appId} teamId={teamId} app={app} />
+      <div className={clsx("py-8 gap-y-4 grid")}>
+        {loading || loadingImages ? (
+          <Skeleton count={2} height={50} />
+        ) : (
+          <AppTopBar appId={appId} teamId={teamId} app={app!} />
+        )}
         <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <BasicInformation
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          teamName={teamName ?? ""}
-        />
+        {loading ? (
+          <FormSkeleton count={4} />
+        ) : (
+          <BasicInformation
+            appId={appId}
+            teamId={teamId}
+            app={app!}
+            teamName={teamName ?? ""}
+          />
+        )}
       </div>
     );
   }

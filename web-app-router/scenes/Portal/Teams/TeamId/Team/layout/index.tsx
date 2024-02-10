@@ -17,14 +17,15 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
 
   return (
     <div>
-      <div className="h-full w-full">
-        <div className="bg-grey-50 border-b border-grey-100">
-          <SizingWrapper>
-            <Tabs className="max-w-[1180px] m-auto font-gta">
+      <div className="h-full w-full grid grid-rows-auto/1fr">
+        <div className="border-b border-grey-100">
+          <SizingWrapper variant="nav">
+            <Tabs className="m-auto font-gta">
               <Tab
                 className="py-4"
                 href={`/teams/${params!.teamId}`}
                 segment={null}
+                underlined
               >
                 <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
               </Tab>
@@ -33,6 +34,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
                 className="py-4"
                 href={`/teams/${params!.teamId}/settings`}
                 segment={"settings"}
+                underlined
               >
                 <Typography variant={TYPOGRAPHY.R4}>Team settings</Typography>
               </Tab>
@@ -41,6 +43,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
                 className="py-4"
                 href={`/teams/${params!.teamId}/api-keys`}
                 segment={"api-keys"}
+                underlined
               >
                 <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
               </Tab>
@@ -49,6 +52,7 @@ export const TeamIdLayout = (props: TeamIdLayoutProps) => {
                 className="py-4"
                 href={`/teams/${params!.teamId}/danger`}
                 segment={"danger"}
+                underlined
               >
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
               </Tab>

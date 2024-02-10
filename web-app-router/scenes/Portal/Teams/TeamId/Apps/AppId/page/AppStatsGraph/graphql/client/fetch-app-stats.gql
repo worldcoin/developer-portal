@@ -1,0 +1,12 @@
+query FetchAppStats(
+  $appId: String!
+  $startsAt: timestamptz!
+  $timeSpan: String!
+) {
+  app_stats(args: { appId: $appId, startsAt: $startsAt, timespan: $timeSpan }) {
+    app_id
+    date
+    verifications
+    unique_users
+  }
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   AppStatus,
@@ -8,7 +10,6 @@ import { Environment } from "./Environment";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-  useFetchAppMetadataLazyQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useAtom } from "jotai";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout";
@@ -19,18 +20,17 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useCallback, useMemo, useState } from "react";
 import { Role_Enum } from "@/graphql/graphql";
 import { LogoImageUpload } from "./LogoImageUpload";
-import { useUpdateAppVerificationStatusMutation } from "./graphql/client/submit-app.generated";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { ReviewStatus } from "@/components/ReviewStatus";
-import { ReviewMessage } from "./ReviewMessage";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import {
+  ReviewMessageDialog,
+  reviewMessageDialogOpenedAtom,
+} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import ErrorComponent from "next/error";
 import { SubmitAppModal } from "./SubmitAppModal";
-import {
-  FetchImagesDocument,
-  useFetchImagesLazyQuery,
-  useFetchImagesQuery,
-} from "../../graphql/client/fetch-images.generated";
+import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
+import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 
 type AppTopBarProps = {
   appId: string;
@@ -60,33 +60,29 @@ const submitSchema = yup.object().shape({
     .max(50, "World app description cannot exceed 50 characters")
     .required("World app description is required"),
   logo_img_url: yup.string().required("A logo image is required"),
-  hero_image_url: yup.string().required("A featured image is required"),
-  showcase_img_urls: yup
-    .array()
-    .of(yup.string().required("At least one showcase image is required"))
-    .min(1, "At least one showcase image is required")
-    .required("At least one showcase image is required"),
+  hero_image_url: yup.string().optional(),
+  showcase_img_urls: yup.array().optional(),
   integration_url: yup
     .string()
-    .url("Integration URL is not a valid url")
+    .url("Try it out URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
       "Integration URL is not a valid url",
     )
-    .required("Integration URL is required"),
+    .required("Try it out URL is required"),
   app_website_url: yup
     .string()
-    .url("App Website URL is not a valid url")
+    .url("Official Website URL is not a valid url")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "App Website URL is not a valid url",
+      message: "Official Website URL is not a valid url",
       excludeEmptyString: true,
     })
     .optional(),
   source_code_url: yup
     .string()
-    .url("Source Code URL is not a valid url")
+    .url("Github URL is not a valid url")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Source Code URL is not a valid url",
+      message: "Github URL is not a valid url",
       excludeEmptyString: true,
     })
     .optional(),
@@ -98,18 +94,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const [showReviewMessage, setShowReviewMessage] = useState(false);
-  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+
+  const [_showReviewMessage, setShowReviewMessage] = useAtom(
+    reviewMessageDialogOpenedAtom,
+  );
 
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
@@ -120,18 +108,36 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   }, [app, viewMode]);
 
+  const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
+    metadataId: appMetaData.id,
+  });
+
+  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
+  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === teamId,
+    );
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [teamId, user?.hasura.memberships]);
+
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
-
-  const [updateAppVerificationStatusMutation, { loading }] =
-    useUpdateAppVerificationStatusMutation({});
-
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
+  const hasRequiredImagesForAppStore = useMemo(() => {
+    return (appMetaData?.logo_img_url && appMetaData?.hero_image_url) !== "";
+  }, [appMetaData.logo_img_url, appMetaData.hero_image_url]);
+
   const submitForReview = useCallback(async () => {
-    if (loading) return;
     if (appMetaData?.verification_status !== "unverified") return;
     try {
-      const description = JSON.parse(appMetaData.description);
+      const description = JSON.parse(
+        appMetaData.description ? appMetaData.description : "{}",
+      );
       await submitSchema.validate(
         { ...appMetaData, ...description },
         { abortEarly: false },
@@ -146,35 +152,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error("Error occurred while submitting app for review");
       }
     }
-  }, [appMetaData, loading]);
+  }, [appMetaData]);
 
-  const removeFromReview = useCallback(async () => {
-    if (loading) return;
-    const appMetadataId = app.app_metadata[0].id;
-    await updateAppVerificationStatusMutation({
-      variables: {
-        app_metadata_id: appMetadataId,
-        verification_status: "unverified",
-      },
-      context: { headers: { team_id: teamId } },
-      refetchQueries: [
-        {
-          query: FetchAppMetadataDocument,
-          variables: {
-            id: appId,
-          },
-          context: { headers: { team_id: teamId } },
-        },
-      ],
-      awaitRefetchQueries: true,
-    });
-  }, [
-    app?.app_metadata,
-    loading,
-    updateAppVerificationStatusMutation,
-    teamId,
-    appId,
-  ]);
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
   const createNewDraft = useCallback(async () => {
@@ -208,15 +187,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           verification_status: "unverified",
         },
         context: { headers: { team_id: teamId } },
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-            variables: {
-              id: appId,
-            },
-            context: { headers: { team_id: teamId } },
-          },
-        ],
+        refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
       });
 
@@ -243,18 +214,20 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData?.app_website_url,
-    appMetaData?.category,
-    appMetaData?.description,
-    appMetaData?.hero_image_url,
-    appMetaData?.integration_url,
-    appMetaData?.is_developer_allow_listing,
-    appMetaData?.logo_img_url,
-    appMetaData?.name,
-    appMetaData?.showcase_img_urls,
-    appMetaData?.source_code_url,
-    appMetaData?.world_app_description,
+    appMetaData.app_website_url,
+    appMetaData.category,
+    appMetaData.description,
+    appMetaData.hero_image_url,
+    appMetaData.integration_url,
+    appMetaData.is_developer_allow_listing,
+    appMetaData.logo_img_url,
+    appMetaData.name,
+    appMetaData.showcase_img_urls,
+    appMetaData.source_code_url,
+    appMetaData.world_app_description,
     createEditableRowMutation,
+    fetchImagesQuery,
+    setUnverifiedImages,
     setViewMode,
     teamId,
   ]);
@@ -280,23 +253,21 @@ export const AppTopBar = (props: AppTopBarProps) => {
             appMetaData.verification_status as "changes_requested" | "verified"
           }
           message={appMetaData.review_message}
-          onClick={() => setShowReviewMessage(true)}
         />
       )}
       <SubmitAppModal
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
         appMetadataId={appMetaData.id}
+        canSubmitAppStore={hasRequiredImagesForAppStore}
         teamId={teamId}
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
       <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
-        <ReviewMessage
+        <ReviewMessageDialog
           message={appMetaData.review_message}
-          closeModal={() => setShowReviewMessage(false)}
-          removeFromReview={removeFromReview}
-          open={showReviewMessage}
+          metadataId={appMetaData.id}
         />
         <LogoImageUpload
           appId={appId}
@@ -347,6 +318,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               <DecoratedButton
                 type="submit"
                 className="px-6 py-3 h-12"
+                disabled={removeLoading}
                 onClick={removeFromReview}
               >
                 <Typography variant={TYPOGRAPHY.M3}>

@@ -20,7 +20,7 @@ export const Environment = (props: EnvironmentProps) => {
             <StartUpIcon className="w-4 h-auto text-system-success-300 " />
           )}
           {environment === "staging" && (
-            <SmartPhoneIcon className="w-4 h-auto text-system-warning-300" />
+            <SmartPhoneIcon className="w-4 h-auto text-system-warning-500" />
           )}
 
           <Typography

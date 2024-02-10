@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({
           />
         </Button>
       </div>
-      <div className="flex w-full justify-end">
+      <div className="flex w-full justify-end ">
         <PaginationSelect
           rowsPerPageOptions={rowsPerPageOptions}
           value={rowsPerPage}
@@ -123,7 +123,7 @@ const PaginationSelect = (props: {
 
       <SelectOptions
         className={clsx(
-          "mt-2 text-xs focus:ring-0 focus:outline-none max-h-24",
+          "mt-1 text-xs focus:ring-0 focus:outline-none max-h-24 mb-2",
         )}
       >
         {rowsPerPageOptions.map((option, index) => (

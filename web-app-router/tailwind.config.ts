@@ -116,7 +116,7 @@ const config: Config = {
             50: "#FFFAE5",
             100: "#FFF9EF",
             200: "#FFE999",
-            300: "#FFE999",
+            300: "#FFDA66",
             500: "#FFB200",
             600: "#DB9200",
             700: "#FFB11B",

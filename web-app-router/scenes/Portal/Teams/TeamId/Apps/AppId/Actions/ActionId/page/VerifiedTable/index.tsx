@@ -18,9 +18,9 @@ export type NullifierItem = {
 // Example of how to use this component
 export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const { nullifiers } = props;
-  const rowsPerPageOptions = [10, 20]; // Rows per page options
+  const rowsPerPageOptions = [5, 10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalResultsCount, setTotalResultsCount] = useState(nullifiers.length);
 
   const logos = useMemo(
@@ -120,7 +120,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
             {nullifiers.length}
           </Typography>
         </div>
-        <div className="w-full max-h-[380px] overflow-auto no-scrollbar">
+        <div className="w-full overflow-auto no-scrollbar">
           <Table
             footer={
               <Footer

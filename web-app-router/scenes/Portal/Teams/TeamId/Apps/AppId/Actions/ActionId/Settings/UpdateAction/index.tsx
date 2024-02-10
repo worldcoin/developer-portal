@@ -11,6 +11,7 @@ import { useUpdateActionMutation } from "./graphql/client/update-action.generate
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -54,7 +55,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     },
   });
 
-  const [updateActionQuery, { loading }] = useUpdateActionMutation({});
+  const [updateActionQuery, { loading }] = useUpdateActionMutation({
+    context: { headers: { team_id: teamId } },
+  });
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
@@ -67,14 +70,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               max_verifications: values.maxVerifications,
             },
           },
-          context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: GetSingleActionDocument,
-              variables: { action_id: action.id },
-              context: { headers: { team_id: teamId } },
-            },
-          ],
+          refetchQueries: [GetActionNameDocument],
           awaitRefetchQueries: true,
         });
 

@@ -300,34 +300,35 @@ export const ImageForm = (props: ImageFormTypes) => {
           Worldcoin’s App Store, or other display areas of Worldcoin
         </Typography>
       </div>
-      <ImageDropZone
-        width={1600}
-        height={1200}
-        disabled={
-          unverifiedImages.hero_image_url !== "" ||
-          !isEnoughPermissions ||
-          !isEditable
-        }
-        uploadImage={uploadImage}
-        imageType={"hero_image"}
-      >
-        <UploadIcon className="h-12 w-12 text-blue-500" />
-        <div className="gap-y-2">
-          <div className="text-center">
-            <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-              Click to upload
-            </Typography>{" "}
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-              {" "}
-              or drag and drop
+      {!heroImage && (
+        <ImageDropZone
+          width={1600}
+          height={1200}
+          disabled={
+            unverifiedImages.hero_image_url !== "" ||
+            !isEnoughPermissions ||
+            !isEditable
+          }
+          uploadImage={uploadImage}
+          imageType={"hero_image"}
+        >
+          <UploadIcon className="h-12 w-12 text-blue-500" />
+          <div className="gap-y-2">
+            <div className="text-center">
+              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+                Click to upload
+              </Typography>{" "}
+              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                {" "}
+                or drag and drop
+              </Typography>
+            </div>
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+              {`JPG or PNG (max 250kb), required size ${1600}x${1200}px`}
             </Typography>
           </div>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-            {`JPG or PNG (max 250kb), required size ${1600}x${1200}px`}
-          </Typography>
-        </div>
-      </ImageDropZone>
-
+        </ImageDropZone>
+      )}
       {heroImage && (
         <div className="relative w-fit h-fit">
           <ImageDisplay
@@ -361,29 +362,31 @@ export const ImageForm = (props: ImageFormTypes) => {
           displayed at the top of your app’s detail page in the App Store
         </Typography>
       </div>
-      <ImageDropZone
-        width={1920}
-        height={1080}
-        uploadImage={uploadImage}
-        disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
-        imageType={nextShowcaseImgName}
-      >
-        <UploadIcon className="h-12 w-12 text-blue-500" />
-        <div className="gap-y-2">
-          <div className="text-center">
-            <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-              Click to upload
-            </Typography>{" "}
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-              {" "}
-              or drag and drop
+      {showcaseImgUrls?.length < 3 && (
+        <ImageDropZone
+          width={1920}
+          height={1080}
+          uploadImage={uploadImage}
+          disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
+          imageType={nextShowcaseImgName}
+        >
+          <UploadIcon className="h-12 w-12 text-blue-500" />
+          <div className="gap-y-2">
+            <div className="text-center">
+              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+                Click to upload
+              </Typography>{" "}
+              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                {" "}
+                or drag and drop
+              </Typography>
+            </div>
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+              {`JPG or PNG (max 250kb), required size ${1920}x${1080}px`}
             </Typography>
           </div>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-            {`JPG or PNG (max 250kb), required size ${1920}x${1080}px`}
-          </Typography>
-        </div>
-      </ImageDropZone>
+        </ImageDropZone>
+      )}
       <div className="grid grid-cols-3">
         {showcaseImgUrls &&
           showcaseImgUrls.map((url: string, index: number) => (

@@ -127,7 +127,7 @@ export const BasicInformation = (props: {
   );
 
   return (
-    <div className="grid grid-cols-2">
+    <div className="grid grid-cols-1fr/auto max-w-[580px]">
       <div className="">
         <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
           <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
