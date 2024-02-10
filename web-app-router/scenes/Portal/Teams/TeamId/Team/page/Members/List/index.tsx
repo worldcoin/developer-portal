@@ -238,22 +238,23 @@ export const List = (props: { search?: string }) => {
                     </DropdownButton>
 
                     <DropdownItems>
-                      {isEnoughPermissions && (
-                        <DropdownItem
-                          as="button"
-                          onClick={() => onEditUser(membership)}
-                          className=" grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
-                        >
-                          <EditUserIcon className="text-grey-400" />
-
-                          <Typography
-                            variant={TYPOGRAPHY.R4}
-                            className="text-start"
+                      {isEnoughPermissions &&
+                        !membership.user.id.startsWith("invite-") && (
+                          <DropdownItem
+                            as="button"
+                            onClick={() => onEditUser(membership)}
+                            className=" grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
                           >
-                            Edit role
-                          </Typography>
-                        </DropdownItem>
-                      )}
+                            <EditUserIcon className="text-grey-400" />
+
+                            <Typography
+                              variant={TYPOGRAPHY.R4}
+                              className="text-start"
+                            >
+                              Edit role
+                            </Typography>
+                          </DropdownItem>
+                        )}
 
                       {isEnoughPermissions && (
                         <DropdownItem
