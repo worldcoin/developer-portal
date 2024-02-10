@@ -21,7 +21,7 @@ import {
 } from "@/components/Select";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { RadioCard } from "./RadioCard";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@/components/Button";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
 import { useParams } from "next/navigation";
@@ -50,7 +50,6 @@ type FormValues = yup.InferType<typeof createAppSchema>;
 export const CreateAppDialog = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const defaultValues: Partial<FormValues> = useMemo(
     () => ({
