@@ -12,6 +12,8 @@ import {
   ChartOptions,
   ChartData,
   ChartDataset,
+  Filler,
+  ScriptableContext,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
@@ -30,6 +32,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  Filler,
 );
 
 const defaultOptions: ChartOptions<"line"> = {
@@ -101,6 +104,7 @@ const defaultOptions: ChartOptions<"line"> = {
           family: "GT America",
           size: 12,
         },
+        precision: 0,
 
         maxTicksLimit: 5,
       },
@@ -112,7 +116,25 @@ export const Chart = (props: ChartProps) => {
   const data: ChartData<"line"> = useMemo(
     () => ({
       labels: props.data.x,
-      datasets: props.data.y,
+      datasets: props.data.y.map((dataset) => ({
+        ...dataset,
+        pointRadius: dataset.data.length === 1 ? 5 : dataset.pointRadius,
+        pointHoverRadius:
+          dataset.data.length === 1 ? 5 : dataset.pointHoverRadius,
+        fill: true,
+        backgroundColor: (context: ScriptableContext<"line">) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(
+            ctx.canvas.clientWidth / 2,
+            0,
+            ctx.canvas.clientWidth / 2,
+            ctx.canvas.clientHeight,
+          );
+          gradient.addColorStop(0, "rgba(73, 64, 224, 0.06)");
+          gradient.addColorStop(1, "rgba(251, 251, 252, 0)");
+          return gradient;
+        },
+      })),
     }),
     [props.data.x, props.data.y],
   );

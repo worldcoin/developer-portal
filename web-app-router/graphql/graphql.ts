@@ -120,11 +120,6 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]>;
 };
 
-export type VerifyAppOutput = {
-  __typename?: "VerifyAppOutput";
-  success?: Maybe<Scalars["Boolean"]>;
-};
-
 /** Boolean expression to compare columns of type "_text". All fields are combined with logical 'AND'. */
 export type _Text_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["_text"]>;
@@ -599,6 +594,245 @@ export type Action_Set_Input = {
   status?: InputMaybe<Scalars["String"]>;
   terms_uri?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+};
+
+export type Action_Stats_Args = {
+  actionId?: InputMaybe<Scalars["String"]>;
+  startsAt?: InputMaybe<Scalars["timestamptz"]>;
+  timespan?: InputMaybe<Scalars["String"]>;
+};
+
+/** Returning value of action_stats function */
+export type Action_Stats_Returning = {
+  __typename?: "action_stats_returning";
+  /** An object relationship */
+  action: Action;
+  action_id: Scalars["String"];
+  date: Scalars["timestamptz"];
+  unique_users: Scalars["numeric"];
+  verifications: Scalars["numeric"];
+};
+
+export type Action_Stats_Returning_Aggregate = {
+  __typename?: "action_stats_returning_aggregate";
+  aggregate?: Maybe<Action_Stats_Returning_Aggregate_Fields>;
+  nodes: Array<Action_Stats_Returning>;
+};
+
+/** aggregate fields of "action_stats_returning" */
+export type Action_Stats_Returning_Aggregate_Fields = {
+  __typename?: "action_stats_returning_aggregate_fields";
+  avg?: Maybe<Action_Stats_Returning_Avg_Fields>;
+  count: Scalars["Int"];
+  max?: Maybe<Action_Stats_Returning_Max_Fields>;
+  min?: Maybe<Action_Stats_Returning_Min_Fields>;
+  stddev?: Maybe<Action_Stats_Returning_Stddev_Fields>;
+  stddev_pop?: Maybe<Action_Stats_Returning_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Action_Stats_Returning_Stddev_Samp_Fields>;
+  sum?: Maybe<Action_Stats_Returning_Sum_Fields>;
+  var_pop?: Maybe<Action_Stats_Returning_Var_Pop_Fields>;
+  var_samp?: Maybe<Action_Stats_Returning_Var_Samp_Fields>;
+  variance?: Maybe<Action_Stats_Returning_Variance_Fields>;
+};
+
+/** aggregate fields of "action_stats_returning" */
+export type Action_Stats_Returning_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** aggregate avg on columns */
+export type Action_Stats_Returning_Avg_Fields = {
+  __typename?: "action_stats_returning_avg_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_stats_returning". All fields are combined with a logical 'AND'. */
+export type Action_Stats_Returning_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_Stats_Returning_Bool_Exp>>;
+  _not?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_Stats_Returning_Bool_Exp>>;
+  action?: InputMaybe<Action_Bool_Exp>;
+  action_id?: InputMaybe<String_Comparison_Exp>;
+  date?: InputMaybe<Timestamptz_Comparison_Exp>;
+  unique_users?: InputMaybe<Numeric_Comparison_Exp>;
+  verifications?: InputMaybe<Numeric_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_stats_returning" */
+export enum Action_Stats_Returning_Constraint {
+  /** unique or primary key constraint on columns "action_id" */
+  ActionStatsReturningPkey = "action_stats_returning_pkey",
+}
+
+/** input type for incrementing numeric columns in table "action_stats_returning" */
+export type Action_Stats_Returning_Inc_Input = {
+  unique_users?: InputMaybe<Scalars["numeric"]>;
+  verifications?: InputMaybe<Scalars["numeric"]>;
+};
+
+/** input type for inserting data into table "action_stats_returning" */
+export type Action_Stats_Returning_Insert_Input = {
+  action?: InputMaybe<Action_Obj_Rel_Insert_Input>;
+  action_id?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["timestamptz"]>;
+  unique_users?: InputMaybe<Scalars["numeric"]>;
+  verifications?: InputMaybe<Scalars["numeric"]>;
+};
+
+/** aggregate max on columns */
+export type Action_Stats_Returning_Max_Fields = {
+  __typename?: "action_stats_returning_max_fields";
+  action_id?: Maybe<Scalars["String"]>;
+  date?: Maybe<Scalars["timestamptz"]>;
+  unique_users?: Maybe<Scalars["numeric"]>;
+  verifications?: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate min on columns */
+export type Action_Stats_Returning_Min_Fields = {
+  __typename?: "action_stats_returning_min_fields";
+  action_id?: Maybe<Scalars["String"]>;
+  date?: Maybe<Scalars["timestamptz"]>;
+  unique_users?: Maybe<Scalars["numeric"]>;
+  verifications?: Maybe<Scalars["numeric"]>;
+};
+
+/** response of any mutation on the table "action_stats_returning" */
+export type Action_Stats_Returning_Mutation_Response = {
+  __typename?: "action_stats_returning_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_Stats_Returning>;
+};
+
+/** on_conflict condition type for table "action_stats_returning" */
+export type Action_Stats_Returning_On_Conflict = {
+  constraint: Action_Stats_Returning_Constraint;
+  update_columns?: Array<Action_Stats_Returning_Update_Column>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_stats_returning". */
+export type Action_Stats_Returning_Order_By = {
+  action?: InputMaybe<Action_Order_By>;
+  action_id?: InputMaybe<Order_By>;
+  date?: InputMaybe<Order_By>;
+  unique_users?: InputMaybe<Order_By>;
+  verifications?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_stats_returning */
+export type Action_Stats_Returning_Pk_Columns_Input = {
+  action_id: Scalars["String"];
+};
+
+/** select columns of table "action_stats_returning" */
+export enum Action_Stats_Returning_Select_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  UniqueUsers = "unique_users",
+  /** column name */
+  Verifications = "verifications",
+}
+
+/** input type for updating data in table "action_stats_returning" */
+export type Action_Stats_Returning_Set_Input = {
+  action_id?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["timestamptz"]>;
+  unique_users?: InputMaybe<Scalars["numeric"]>;
+  verifications?: InputMaybe<Scalars["numeric"]>;
+};
+
+/** aggregate stddev on columns */
+export type Action_Stats_Returning_Stddev_Fields = {
+  __typename?: "action_stats_returning_stddev_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Action_Stats_Returning_Stddev_Pop_Fields = {
+  __typename?: "action_stats_returning_stddev_pop_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Action_Stats_Returning_Stddev_Samp_Fields = {
+  __typename?: "action_stats_returning_stddev_samp_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** Streaming cursor of the table "action_stats_returning" */
+export type Action_Stats_Returning_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_Stats_Returning_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_Stats_Returning_Stream_Cursor_Value_Input = {
+  action_id?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["timestamptz"]>;
+  unique_users?: InputMaybe<Scalars["numeric"]>;
+  verifications?: InputMaybe<Scalars["numeric"]>;
+};
+
+/** aggregate sum on columns */
+export type Action_Stats_Returning_Sum_Fields = {
+  __typename?: "action_stats_returning_sum_fields";
+  unique_users?: Maybe<Scalars["numeric"]>;
+  verifications?: Maybe<Scalars["numeric"]>;
+};
+
+/** update columns of table "action_stats_returning" */
+export enum Action_Stats_Returning_Update_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  UniqueUsers = "unique_users",
+  /** column name */
+  Verifications = "verifications",
+}
+
+export type Action_Stats_Returning_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Action_Stats_Returning_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_Stats_Returning_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_Stats_Returning_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Action_Stats_Returning_Var_Pop_Fields = {
+  __typename?: "action_stats_returning_var_pop_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Action_Stats_Returning_Var_Samp_Fields = {
+  __typename?: "action_stats_returning_var_samp_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate variance on columns */
+export type Action_Stats_Returning_Variance_Fields = {
+  __typename?: "action_stats_returning_variance_fields";
+  unique_users?: Maybe<Scalars["Float"]>;
+  verifications?: Maybe<Scalars["Float"]>;
 };
 
 /** aggregate stddev on columns */
@@ -3303,6 +3537,10 @@ export type Mutation_Root = {
   delete_action?: Maybe<Action_Mutation_Response>;
   /** delete single row from the table: "action" */
   delete_action_by_pk?: Maybe<Action>;
+  /** delete data from the table: "action_stats_returning" */
+  delete_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
+  /** delete single row from the table: "action_stats_returning" */
+  delete_action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
   /** delete data from the table: "api_key" */
   delete_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** delete single row from the table: "api_key" */
@@ -3364,6 +3602,10 @@ export type Mutation_Root = {
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
   insert_action_one?: Maybe<Action>;
+  /** insert data into the table: "action_stats_returning" */
+  insert_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
+  /** insert a single row into the table: "action_stats_returning" */
+  insert_action_stats_returning_one?: Maybe<Action_Stats_Returning>;
   /** insert data into the table: "api_key" */
   insert_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** insert a single row into the table: "api_key" */
@@ -3432,6 +3674,14 @@ export type Mutation_Root = {
   update_action_by_pk?: Maybe<Action>;
   /** update multiples rows of table: "action" */
   update_action_many?: Maybe<Array<Maybe<Action_Mutation_Response>>>;
+  /** update data of the table: "action_stats_returning" */
+  update_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
+  /** update single row of the table: "action_stats_returning" */
+  update_action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
+  /** update multiples rows of table: "action_stats_returning" */
+  update_action_stats_returning_many?: Maybe<
+    Array<Maybe<Action_Stats_Returning_Mutation_Response>>
+  >;
   /** update data of the table: "api_key" */
   update_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** update single row of the table: "api_key" */
@@ -3520,8 +3770,6 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
-  /** Verify an App */
-  verify_app?: Maybe<VerifyAppOutput>;
 };
 
 /** mutation root */
@@ -3532,6 +3780,16 @@ export type Mutation_RootDelete_ActionArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Action_By_PkArgs = {
   id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Stats_ReturningArgs = {
+  where: Action_Stats_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Stats_Returning_By_PkArgs = {
+  action_id: Scalars["String"];
 };
 
 /** mutation root */
@@ -3689,6 +3947,18 @@ export type Mutation_RootInsert_ActionArgs = {
 export type Mutation_RootInsert_Action_OneArgs = {
   object: Action_Insert_Input;
   on_conflict?: InputMaybe<Action_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Stats_ReturningArgs = {
+  objects: Array<Action_Stats_Returning_Insert_Input>;
+  on_conflict?: InputMaybe<Action_Stats_Returning_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Stats_Returning_OneArgs = {
+  object: Action_Stats_Returning_Insert_Input;
+  on_conflict?: InputMaybe<Action_Stats_Returning_On_Conflict>;
 };
 
 /** mutation root */
@@ -3891,6 +4161,25 @@ export type Mutation_RootUpdate_Action_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Action_ManyArgs = {
   updates: Array<Action_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Stats_ReturningArgs = {
+  _inc?: InputMaybe<Action_Stats_Returning_Inc_Input>;
+  _set?: InputMaybe<Action_Stats_Returning_Set_Input>;
+  where: Action_Stats_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Stats_Returning_By_PkArgs = {
+  _inc?: InputMaybe<Action_Stats_Returning_Inc_Input>;
+  _set?: InputMaybe<Action_Stats_Returning_Set_Input>;
+  pk_columns: Action_Stats_Returning_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Stats_Returning_ManyArgs = {
+  updates: Array<Action_Stats_Returning_Updates>;
 };
 
 /** mutation root */
@@ -4153,14 +4442,6 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
-};
-
-/** mutation root */
-export type Mutation_RootVerify_AppArgs = {
-  app_id: Scalars["String"];
-  is_reviewer_app_store_approved: Scalars["Boolean"];
-  is_reviewer_world_app_approved: Scalars["Boolean"];
-  reviewer_name: Scalars["String"];
 };
 
 /** columns and relationships of "nullifier" */
@@ -4544,6 +4825,16 @@ export type Query_Root = {
   action_aggregate: Action_Aggregate;
   /** fetch data from the table: "action" using primary key columns */
   action_by_pk?: Maybe<Action>;
+  /** execute function "action_stats" which returns "action_stats_returning" */
+  action_stats: Array<Action_Stats_Returning>;
+  /** execute function "action_stats" and query aggregates on result of table type "action_stats_returning" */
+  action_stats_aggregate: Action_Stats_Returning_Aggregate;
+  /** fetch data from the table: "action_stats_returning" */
+  action_stats_returning: Array<Action_Stats_Returning>;
+  /** fetch aggregated fields from the table: "action_stats_returning" */
+  action_stats_returning_aggregate: Action_Stats_Returning_Aggregate;
+  /** fetch data from the table: "action_stats_returning" using primary key columns */
+  action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -4657,6 +4948,44 @@ export type Query_RootAction_AggregateArgs = {
 
 export type Query_RootAction_By_PkArgs = {
   id: Scalars["String"];
+};
+
+export type Query_RootAction_StatsArgs = {
+  args: Action_Stats_Args;
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Query_RootAction_Stats_AggregateArgs = {
+  args: Action_Stats_Args;
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Query_RootAction_Stats_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Query_RootAction_Stats_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Query_RootAction_Stats_Returning_By_PkArgs = {
+  action_id: Scalars["String"];
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -5349,6 +5678,18 @@ export type Subscription_Root = {
   action_aggregate: Action_Aggregate;
   /** fetch data from the table: "action" using primary key columns */
   action_by_pk?: Maybe<Action>;
+  /** execute function "action_stats" which returns "action_stats_returning" */
+  action_stats: Array<Action_Stats_Returning>;
+  /** execute function "action_stats" and query aggregates on result of table type "action_stats_returning" */
+  action_stats_aggregate: Action_Stats_Returning_Aggregate;
+  /** fetch data from the table: "action_stats_returning" */
+  action_stats_returning: Array<Action_Stats_Returning>;
+  /** fetch aggregated fields from the table: "action_stats_returning" */
+  action_stats_returning_aggregate: Action_Stats_Returning_Aggregate;
+  /** fetch data from the table: "action_stats_returning" using primary key columns */
+  action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
+  /** fetch data from the table in a streaming manner: "action_stats_returning" */
+  action_stats_returning_stream: Array<Action_Stats_Returning>;
   /** fetch data from the table in a streaming manner: "action" */
   action_stream: Array<Action>;
   /** fetch data from the table: "api_key" */
@@ -5487,6 +5828,50 @@ export type Subscription_RootAction_AggregateArgs = {
 
 export type Subscription_RootAction_By_PkArgs = {
   id: Scalars["String"];
+};
+
+export type Subscription_RootAction_StatsArgs = {
+  args: Action_Stats_Args;
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Stats_AggregateArgs = {
+  args: Action_Stats_Args;
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Stats_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Stats_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_Stats_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Action_Stats_Returning_Order_By>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Stats_Returning_By_PkArgs = {
+  action_id: Scalars["String"];
+};
+
+export type Subscription_RootAction_Stats_Returning_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<Action_Stats_Returning_Stream_Cursor_Input>>;
+  where?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
 };
 
 export type Subscription_RootAction_StreamArgs = {

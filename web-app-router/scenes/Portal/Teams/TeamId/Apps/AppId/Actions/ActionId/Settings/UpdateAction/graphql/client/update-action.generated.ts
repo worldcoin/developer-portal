@@ -16,9 +16,7 @@ export type UpdateActionMutation = {
     id: string;
     name: string;
     description: string;
-    action: string;
     max_verifications: number;
-    kiosk_enabled: boolean;
     status: string;
   } | null;
 };
@@ -29,9 +27,7 @@ export const UpdateActionDocument = gql`
       id
       name
       description
-      action
       max_verifications
-      kiosk_enabled
       status
     }
   }

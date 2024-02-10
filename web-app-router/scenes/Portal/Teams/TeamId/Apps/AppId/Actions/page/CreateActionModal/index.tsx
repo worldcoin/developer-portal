@@ -135,7 +135,16 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, insertActionQuery, reset, router, setError, firstAction],
+    [
+      insertActionQuery,
+      appId,
+      teamId,
+      reset,
+      firstAction,
+      router,
+      pathname,
+      setError,
+    ],
   );
 
   const copyAction = useCallback(() => {
