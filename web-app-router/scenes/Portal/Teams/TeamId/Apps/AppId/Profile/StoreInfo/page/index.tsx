@@ -9,6 +9,8 @@ import Error from "next/error";
 import clsx from "clsx";
 import { UpdateStoreInfoForm } from "./UpdateStoreInfoForm";
 import { useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
+import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 
 type AppProfileStoreInfoProps = {
   params: Record<string, string> | null | undefined;
@@ -55,24 +57,27 @@ export const AppProfileStoreInfoPage = ({
     }
   }, [app, viewMode]);
 
-  if (loading) return <div></div>;
-  else if (error || !app) {
+  if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div
-        className={clsx("py-8 gap-y-4 grid", {
-          hidden: loading || imageLoading,
-        })}
-      >
-        <AppTopBar appId={appId} teamId={teamId} app={app} />
+      <div className={clsx("py-8 gap-y-4 grid")}>
+        {loading || imageLoading ? (
+          <Skeleton count={2} height={50} />
+        ) : (
+          <AppTopBar appId={appId} teamId={teamId} app={app!} />
+        )}
         <hr className="my-5 w-full text-grey-200 border-dashed" />
         <div className="grid grid-cols-1 max-w-[600px]">
-          <UpdateStoreInfoForm
-            appMetadata={appMetaData}
-            teamId={teamId}
-            appId={appId}
-          />
+          {loading ? (
+            <FormSkeleton count={4} />
+          ) : (
+            <UpdateStoreInfoForm
+              appMetadata={appMetaData}
+              teamId={teamId}
+              appId={appId}
+            />
+          )}
         </div>
       </div>
     );

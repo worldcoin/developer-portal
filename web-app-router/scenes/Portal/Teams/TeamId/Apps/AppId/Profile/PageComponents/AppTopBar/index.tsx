@@ -57,33 +57,29 @@ const submitSchema = yup.object().shape({
     .max(50, "World app description cannot exceed 50 characters")
     .required("World app description is required"),
   logo_img_url: yup.string().required("A logo image is required"),
-  hero_image_url: yup.string().required("A featured image is required"),
-  showcase_img_urls: yup
-    .array()
-    .of(yup.string().required("At least one showcase image is required"))
-    .min(1, "At least one showcase image is required")
-    .required("At least one showcase image is required"),
+  hero_image_url: yup.string().optional(),
+  showcase_img_urls: yup.array().optional(),
   integration_url: yup
     .string()
-    .url("Integration URL is not a valid url")
+    .url("Try it out URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
       "Integration URL is not a valid url",
     )
-    .required("Integration URL is required"),
+    .required("Try it out URL is required"),
   app_website_url: yup
     .string()
-    .url("App Website URL is not a valid url")
+    .url("Official Website URL is not a valid url")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "App Website URL is not a valid url",
+      message: "Official Website URL is not a valid url",
       excludeEmptyString: true,
     })
     .optional(),
   source_code_url: yup
     .string()
-    .url("Source Code URL is not a valid url")
+    .url("Github URL is not a valid url")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Source Code URL is not a valid url",
+      message: "Github URL is not a valid url",
       excludeEmptyString: true,
     })
     .optional(),
@@ -100,12 +96,22 @@ export const AppTopBar = (props: AppTopBarProps) => {
     reviewMessageDialogOpenedAtom,
   );
 
-  const { removeFromReview, loading } = useRemoveFromReview({
-    metadataId: app.app_metadata[0].id,
+  const appMetaData = useMemo(() => {
+    if (viewMode === "verified") {
+      return app.verified_app_metadata[0];
+    } else {
+      // Null check in case app got verified and has no unverified metadata
+      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+    }
+  }, [app, viewMode]);
+
+  const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
+    metadataId: appMetaData.id,
   });
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
       (m) => m.team?.id === teamId,
@@ -116,24 +122,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
     );
   }, [teamId, user?.hasura.memberships]);
 
-  const appMetaData = useMemo(() => {
-    if (viewMode === "verified") {
-      return app.verified_app_metadata[0];
-    } else {
-      // Null check in case app got verified and has no unverified metadata
-      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
-    }
-  }, [app, viewMode]);
-
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
-
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
+  const hasRequiredImagesForAppStore = useMemo(() => {
+    return (appMetaData?.logo_img_url && appMetaData?.hero_image_url) !== "";
+  }, [appMetaData.logo_img_url, appMetaData.hero_image_url]);
+
   const submitForReview = useCallback(async () => {
-    if (loading) return;
     if (appMetaData?.verification_status !== "unverified") return;
     try {
-      const description = JSON.parse(appMetaData.description);
+      const description = JSON.parse(
+        appMetaData.description ? appMetaData.description : "{}",
+      );
       await submitSchema.validate(
         { ...appMetaData, ...description },
         { abortEarly: false },
@@ -148,7 +149,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error("Error occurred while submitting app for review");
       }
     }
-  }, [appMetaData, loading]);
+  }, [appMetaData]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -183,15 +184,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           verification_status: "unverified",
         },
         context: { headers: { team_id: teamId } },
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-            variables: {
-              id: appId,
-            },
-            context: { headers: { team_id: teamId } },
-          },
-        ],
+        refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
       });
 
@@ -263,6 +256,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
         appMetadataId={appMetaData.id}
+        canSubmitAppStore={hasRequiredImagesForAppStore}
         teamId={teamId}
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
@@ -319,6 +313,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               <DecoratedButton
                 type="submit"
                 className="px-6 py-3 h-12"
+                disabled={removeLoading}
                 onClick={removeFromReview}
               >
                 <Typography variant={TYPOGRAPHY.M3}>
