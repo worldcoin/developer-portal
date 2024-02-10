@@ -1,7 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useFetchMembershipsQuery } from "./graphql/client/fetch-members.generated";
+import {
+  FetchMembershipsQuery,
+  useFetchMembershipsQuery,
+} from "./graphql/client/fetch-members.generated";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserLogo } from "./UserLogo";
@@ -15,7 +18,6 @@ import {
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { Footer } from "@/components/Table/Footer";
 import { EditUserIcon } from "@/components/Icons/EditUserIcon";
-import { Button } from "@/components/Button";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
@@ -25,7 +27,8 @@ import dayjs from "dayjs";
 import Skeleton from "react-loading-skeleton";
 import { useAtom } from "jotai";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
-import { FetchMembersQuery } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-members.generated";
+import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
+import { PermissionsDialog } from "./PermissionsDialog";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -37,9 +40,14 @@ export const List = (props: { search?: string }) => {
   const { user } = useUser() as Auth0SessionUser;
   const { teamId } = useParams() as { teamId: string };
   const [, setIsRemoveDialogOpened] = useAtom(removeUserDialogAtom);
+  const [, setIsEditRoleDialogOpened] = useAtom(editRoleDialogAtom);
 
   const [userToRemove, setUserToRemove] = useState<
-    FetchMembersQuery["members"][number]["user"] | null
+    FetchMembershipsQuery["membership"][number]["user"] | null
+  >(null);
+
+  const [userToEditRole, setUserToEditRole] = useState<
+    FetchMembershipsQuery["membership"][number] | null
   >(null);
 
   const [fetchUser, { data: fetchUserResult }] = useFetchUserLazyQuery({
@@ -85,20 +93,25 @@ export const List = (props: { search?: string }) => {
   const memberships = useMemo(() => {
     const formatttedInvites = fetchInvitesData?.invite
       .filter((invite) => dayjs(invite.expires_at) > dayjs())
-      .map((invite) => ({
-        user: {
-          id: `invite-${window.crypto.randomUUID()}`,
-          name: invite.email,
-          email: invite.email,
-        },
-        role: Role_Enum.Member,
-      }));
+      .map(
+        (invite) =>
+          ({
+            id: "",
+            role: Role_Enum.Member,
+
+            user: {
+              id: `invite-${window.crypto.randomUUID()}`,
+              name: invite.email,
+              email: invite.email,
+            },
+          }) as FetchMembershipsQuery["membership"][number]
+      );
 
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
   }, [data?.membership, fetchInvitesData?.invite]);
 
   const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length,
+    memberships.length
   );
 
   const rowsPerPageOptions = [10, 20];
@@ -142,12 +155,20 @@ export const List = (props: { search?: string }) => {
     return paginatedActions;
   }, [currentPage, memberships, props.search, rowsPerPage]);
 
+  const onEditUser = useCallback(
+    (membership: (typeof membersToRender)[number]) => {
+      setUserToEditRole(membership);
+      setIsEditRoleDialogOpened(true);
+    },
+    [setIsEditRoleDialogOpened]
+  );
+
   const onRemoveUser = useCallback(
     (membership: (typeof membersToRender)[number]) => {
       setUserToRemove(membership.user);
       setIsRemoveDialogOpened(true);
     },
-    [setIsRemoveDialogOpened],
+    [setIsRemoveDialogOpened]
   );
 
   return (
@@ -218,33 +239,33 @@ export const List = (props: { search?: string }) => {
 
                     <DropdownItems>
                       {isEnoughPermissions && (
-                        <DropdownItem>
-                          <Button
-                            href="#"
-                            className=" grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors"
-                          >
-                            <EditUserIcon />
+                        <DropdownItem
+                          as="button"
+                          onClick={() => onEditUser(membership)}
+                          className=" grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                        >
+                          <EditUserIcon className="text-grey-400" />
 
-                            <Typography variant={TYPOGRAPHY.R4}>
-                              Edit role
-                            </Typography>
-                          </Button>
+                          <Typography
+                            variant={TYPOGRAPHY.R4}
+                            className="text-start"
+                          >
+                            Edit role
+                          </Typography>
                         </DropdownItem>
                       )}
 
                       {isEnoughPermissions && (
-                        <DropdownItem>
-                          <Button
-                            type="button"
-                            onClick={() => onRemoveUser(membership)}
-                            className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors"
-                          >
-                            <TrashIcon />
+                        <DropdownItem
+                          as="button"
+                          onClick={() => onRemoveUser(membership)}
+                          className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors"
+                        >
+                          <TrashIcon />
 
-                            <Typography variant={TYPOGRAPHY.R4}>
-                              Remove member
-                            </Typography>
-                          </Button>
+                          <Typography variant={TYPOGRAPHY.R4}>
+                            Remove member
+                          </Typography>
                         </DropdownItem>
                       )}
                     </DropdownItems>
@@ -275,6 +296,8 @@ export const List = (props: { search?: string }) => {
       />
 
       <RemoveUserDialog name={userToRemove?.name ?? ""} id={userToRemove?.id} />
+      <EditRoleDialog membership={userToEditRole} />
+      <PermissionsDialog />
     </div>
   );
 };

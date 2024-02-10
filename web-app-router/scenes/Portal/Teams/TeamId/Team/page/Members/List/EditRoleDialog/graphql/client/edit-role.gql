@@ -1,0 +1,8 @@
+mutation EditRole($membershipId: String!, $role: role_enum) {
+  update_membership_by_pk(
+    pk_columns: { id: $membershipId }
+    _set: { role: $role }
+  ) {
+    role
+  }
+}

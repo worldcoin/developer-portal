@@ -12,6 +12,7 @@ export type FetchMembershipsQuery = {
   __typename?: "query_root";
   membership: Array<{
     __typename?: "membership";
+    id: string;
     role: Types.Role_Enum;
     user: {
       __typename?: "user";
@@ -25,6 +26,7 @@ export type FetchMembershipsQuery = {
 export const FetchMembershipsDocument = gql`
   query FetchMemberships($teamId: String!) {
     membership(where: { team_id: { _eq: $teamId } }) {
+      id
       role
       user {
         name
