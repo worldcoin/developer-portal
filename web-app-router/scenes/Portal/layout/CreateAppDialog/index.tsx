@@ -153,7 +153,7 @@ export const CreateAppDialog = (props: DialogProps) => {
           >
             <form
               onSubmit={handleSubmit(submit)}
-              className="w-full max-w-[580px] justify-self-center grid gap-y-8 py-10"
+              className="w-full max-w-[580px] justify-self-center grid gap-y-10 py-10"
             >
               <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
 
