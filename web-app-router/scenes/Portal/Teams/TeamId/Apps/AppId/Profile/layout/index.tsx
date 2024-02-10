@@ -8,6 +8,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { NavWrapper } from "@/components/NavWrapper";
 
 type Images = {
   logo_img_url?: string;
@@ -44,49 +45,51 @@ export const AppProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">
-        <Tabs className="max-w-[1180px] m-auto font-gta">
-          <Tab
-            className="py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
-            segment={null}
-          >
-            <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
-          </Tab>
-
-          <Tab
-            className="py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
-            segment={"store-info"}
-          >
-            <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
-          </Tab>
-
-          <Tab
-            className="py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
-            segment={"gallery"}
-          >
-            <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
-          </Tab>
-
-          <Tab
-            className="py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
-            segment={"links"}
-          >
-            <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
-          </Tab>
-
-          {isEnoughPermissions && (
+        <NavWrapper>
+          <Tabs className="m-auto font-gta">
             <Tab
               className="py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
-              segment={"danger"}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+              segment={null}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
             </Tab>
-          )}
-        </Tabs>
+
+            <Tab
+              className="py-4"
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
+              segment={"store-info"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
+            </Tab>
+
+            <Tab
+              className="py-4"
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
+              segment={"gallery"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
+            </Tab>
+
+            <Tab
+              className="py-4"
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
+              segment={"links"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
+            </Tab>
+
+            {isEnoughPermissions && (
+              <Tab
+                className="py-4"
+                href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
+                segment={"danger"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+              </Tab>
+            )}
+          </Tabs>
+        </NavWrapper>
       </div>
       <SizingWrapper>{props.children}</SizingWrapper>
     </div>
