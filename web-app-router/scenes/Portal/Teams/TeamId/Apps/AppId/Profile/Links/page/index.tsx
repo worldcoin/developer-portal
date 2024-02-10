@@ -8,6 +8,8 @@ import { AppTopBar } from "../../PageComponents/AppTopBar";
 import clsx from "clsx";
 import { LinksForm } from "./LinksForm";
 import { useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
+import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 
 type AppProfileLinksProps = {
   params: Record<string, string> | null | undefined;
@@ -50,20 +52,27 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
     }
   }, [app, viewMode]);
 
-  if (loading) return <div></div>;
-  else if (error || !app) {
+  if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div
-        className={clsx("py-8 gap-y-4 grid", {
-          hidden: loading || loadingImages,
-        })}
-      >
-        <AppTopBar appId={appId} teamId={teamId} app={app} />
+      <div className={clsx("py-8 gap-y-4 grid")}>
+        {loading || loadingImages ? (
+          <Skeleton count={2} height={50} />
+        ) : (
+          <AppTopBar appId={appId} teamId={teamId} app={app!} />
+        )}
         <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <div className="grid grid-cols-1 max-w-[600px]">
-          <LinksForm appId={appId} teamId={teamId} appMetadata={appMetaData} />
+        <div className="grid grid-cols-1 max-w-[580px]">
+          {loading ? (
+            <FormSkeleton count={3} />
+          ) : (
+            <LinksForm
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetaData}
+            />
+          )}
         </div>
       </div>
     );
