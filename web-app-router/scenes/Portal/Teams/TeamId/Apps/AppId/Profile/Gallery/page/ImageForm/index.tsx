@@ -19,7 +19,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import clsx from "clsx";
 import { UploadIcon } from "@/components/Icons/UploadIcon";
-import { getCDNImageUrl } from "@/lib/utils";
+import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 
 type ImageFormTypes = {
   appId: string;
@@ -41,19 +41,20 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const showcaseImgFileNames = appMetadata?.showcase_img_urls ?? [];
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
 
+  const showcaseImgFileNames = useMemo(
+    () => appMetadata?.showcase_img_urls ?? [],
+    [appMetadata?.showcase_img_urls],
+  );
+
   const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+    return checkUserPermissions(user, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [user, teamId]);
 
   const isEditable = appMetadata?.verification_status === "unverified";
 

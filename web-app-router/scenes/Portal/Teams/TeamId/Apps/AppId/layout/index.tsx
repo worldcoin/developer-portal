@@ -1,12 +1,21 @@
-"use client";
 import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
-import { useParams } from "next/navigation";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SizingWrapper } from "@/components/SizingWrapper";
 
-export const AppIdLayout = (props: { children: ReactNode }) => {
-  const params = useParams<{ teamId: string; appId: string }>();
+type Params = {
+  teamId?: string;
+  appId?: string;
+};
+
+type AppIdLayoutProps = {
+  params: Params;
+  children: ReactNode;
+};
+
+export const AppIdLayout = (props: AppIdLayoutProps) => {
+  const params = props.params;
+
   return (
     <div>
       <div className="border-b border-grey-100">

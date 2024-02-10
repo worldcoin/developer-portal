@@ -6,6 +6,8 @@ import {
   PHONE_SEQUENCER,
 } from "./constants";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import { Auth0SessionUser } from "./types";
+import { Role_Enum } from "@/graphql/graphql";
 
 // Sequencer mapping
 export const sequencerMapping: Record<
@@ -70,4 +72,18 @@ export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
 
 export const getCDNImageUrl = (app_id: string, path: string) => {
   return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`;
+};
+
+export const checkUserPermissions = (
+  user: Auth0SessionUser["user"],
+  teamId: string,
+  validRoles: Role_Enum[],
+) => {
+  const membership = user?.hasura?.memberships.find(
+    (m) => m.team?.id === teamId,
+  );
+  if (!membership) {
+    return false;
+  }
+  return validRoles.includes(membership?.role);
 };

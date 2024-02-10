@@ -1,18 +1,27 @@
-"use client";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
-import { useParams } from "next/navigation";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { atom } from "jotai";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { checkUserPermissions } from "@/lib/utils";
+import { getSession } from "@auth0/nextjs-auth0";
 
 type Images = {
   logo_img_url?: string;
   hero_image_url?: string;
   showcase_image_urls?: string[] | null;
+};
+
+type Params = {
+  teamId?: string;
+  appId?: string;
+  actionId?: string;
+};
+
+type AppProfileLayout = {
+  params: Params;
+  children: ReactNode;
 };
 
 export const viewModeAtom = atom<"unverified" | "verified">("unverified");
@@ -29,17 +38,16 @@ export const verifiedImagesAtom = atom<Images>({
   showcase_image_urls: null,
 });
 
-export const AppProfileLayout = (props: { children: ReactNode }) => {
-  const params = useParams<{ teamId: string; appId: string }>();
-  const teamId = params?.teamId;
-  const { user } = useUser() as Auth0SessionUser;
+export const AppProfileLayout = async (props: AppProfileLayout) => {
+  const params = props.params;
+  const session = await getSession();
+  const user = session?.user;
 
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return membership?.role === Role_Enum.Owner;
-  }, [teamId, user?.hasura.memberships]);
+  const isEnoughPermissions = checkUserPermissions(
+    user?.hasura,
+    params.teamId ?? "",
+    [Role_Enum.Owner],
+  );
 
   return (
     <div>

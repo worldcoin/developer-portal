@@ -1,30 +1,32 @@
-"use client";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
-import { useParams } from "next/navigation";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
+import { checkUserPermissions } from "@/lib/utils";
+import { getSession } from "@auth0/nextjs-auth0";
 
-export const ActionIdLayout = (props: { children: ReactNode }) => {
-  const params = useParams<{
-    teamId: string;
-    appId: string;
-    actionId: string;
-  }>();
-  const { user } = useUser() as Auth0SessionUser;
+type Params = {
+  teamId?: string;
+  appId?: string;
+  actionId?: string;
+};
 
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === params?.teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [params?.teamId, user?.hasura.memberships]);
+type ActionIdLayout = {
+  params: Params;
+  children: ReactNode;
+};
+
+export const ActionIdLayout = async (props: ActionIdLayout) => {
+  const params = props.params;
+  const session = await getSession();
+  const user = session?.user;
+
+  const isEnoughPermissions = checkUserPermissions(
+    user?.hasura,
+    params.teamId ?? "",
+    [Role_Enum.Owner, Role_Enum.Admin],
+  );
 
   // TODO: Remove tabs for on chain apps
   return (

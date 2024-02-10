@@ -15,6 +15,7 @@ import { useUpdateAppLinksInfoMutation } from "./graphql/client/update-app-links
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Input } from "@/components/Input";
+import { checkUserPermissions } from "@/lib/utils";
 
 const schema = yup.object().shape({
   integration_url: yup
@@ -59,14 +60,11 @@ export const LinksForm = (props: LinksFormProps) => {
   const isEditable = appMetadata?.verification_status === "unverified";
 
   const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+    return checkUserPermissions(user, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [user, teamId]);
 
   const {
     register,
