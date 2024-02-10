@@ -1,7 +1,5 @@
-import { getSession } from "@auth0/nextjs-auth0";
 import { withMiddlewareAuthRequired } from "@auth0/nextjs-auth0/edge";
 import { NextRequest, NextResponse } from "next/server";
-import { checkUserPermissions } from "./lib/utils";
 
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
