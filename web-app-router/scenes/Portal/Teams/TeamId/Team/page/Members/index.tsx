@@ -5,16 +5,24 @@ import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
-import clsx from "clsx";
 import { useForm, useWatch } from "react-hook-form";
 import * as yup from "yup";
 import { List } from "./List";
+import {
+  InviteTeamMemberDialog,
+  inviteTeamMemberDialogAtom,
+} from "./InviteTeamMemberDialog";
+import { useAtom } from "jotai";
 
 const schema = yup.object({
   search: yup.string(),
 });
 
 export const Members = () => {
+  const [, setInviteTeamMemberDialogOpened] = useAtom(
+    inviteTeamMemberDialogAtom,
+  );
+
   const { register, control } = useForm({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -39,7 +47,8 @@ export const Members = () => {
         />
 
         <DecoratedButton
-          href="#"
+          type="button"
+          onClick={() => setInviteTeamMemberDialogOpened(true)}
           variant="primary"
           className="py-2.5 min-w-[200px]"
         >
@@ -48,6 +57,8 @@ export const Members = () => {
       </div>
 
       <List search={search} />
+
+      <InviteTeamMemberDialog />
     </div>
   );
 };

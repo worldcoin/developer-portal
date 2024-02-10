@@ -26,6 +26,7 @@ select_permissions:
       columns:
         - email
         - expires_at
+        - id
         - team_id
       filter:
         team:
@@ -39,3 +40,13 @@ delete_permissions:
   - role: service
     permission:
       filter: {}
+  - role: user
+    permission:
+      filter:
+        team:
+          memberships:
+            _and:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - role:
+                  _eq: OWNER

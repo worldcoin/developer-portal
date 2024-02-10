@@ -10,12 +10,18 @@ export type FetchInvitesQueryVariables = Types.Exact<{
 
 export type FetchInvitesQuery = {
   __typename?: "query_root";
-  invite: Array<{ __typename?: "invite"; email: string; expires_at: any }>;
+  invite: Array<{
+    __typename?: "invite";
+    id: string;
+    email: string;
+    expires_at: any;
+  }>;
 };
 
 export const FetchInvitesDocument = gql`
   query FetchInvites($teamId: String!) {
     invite(where: { team_id: { _eq: $teamId } }) {
+      id
       email
       expires_at
     }

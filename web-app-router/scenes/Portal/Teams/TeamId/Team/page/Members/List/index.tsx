@@ -22,13 +22,20 @@ import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
-import { useFetchInvitesQuery } from "./graphql/client/fetch-invites.generated";
+import {
+  FetchInvitesDocument,
+  useFetchInvitesQuery,
+} from "./graphql/client/fetch-invites.generated";
 import dayjs from "dayjs";
 import Skeleton from "react-loading-skeleton";
 import { useAtom } from "jotai";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
 import { PermissionsDialog } from "./PermissionsDialog";
+import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { toast } from "react-toastify";
+import { SendIcon } from "@/components/Icons/SendIcon";
+import { useDeleteInviteMutation } from "./graphql/client/delete-invite.generated";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -96,7 +103,7 @@ export const List = (props: { search?: string }) => {
       .map(
         (invite) =>
           ({
-            id: "",
+            id: invite.id,
             role: Role_Enum.Member,
 
             user: {
@@ -104,14 +111,14 @@ export const List = (props: { search?: string }) => {
               name: invite.email,
               email: invite.email,
             },
-          }) as FetchMembershipsQuery["membership"][number],
+          }) as FetchMembershipsQuery["membership"][number]
       );
 
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
   }, [data?.membership, fetchInvitesData?.invite]);
 
   const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length,
+    memberships.length
   );
 
   const rowsPerPageOptions = [10, 20];
@@ -160,7 +167,7 @@ export const List = (props: { search?: string }) => {
       setUserToEditRole(membership);
       setIsEditRoleDialogOpened(true);
     },
-    [setIsEditRoleDialogOpened],
+    [setIsEditRoleDialogOpened]
   );
 
   const onRemoveUser = useCallback(
@@ -168,7 +175,63 @@ export const List = (props: { search?: string }) => {
       setUserToRemove(membership.user);
       setIsRemoveDialogOpened(true);
     },
-    [setIsRemoveDialogOpened],
+    [setIsRemoveDialogOpened]
+  );
+
+  const [inviteTeamMembers, { loading: resendMutationLoading }] =
+    useInviteTeamMembersMutation({
+      context: { headers: { team_id: teamId } },
+    });
+
+  const resendInvite = useCallback(
+    async (membership: (typeof membersToRender)[number]) => {
+      if (!membership.user.email || resendMutationLoading) {
+        return;
+      }
+
+      try {
+        await inviteTeamMembers({
+          variables: { emails: [membership.user.email] },
+          refetchQueries: [FetchInvitesDocument],
+        });
+
+        toast.success(`New invite is sent to ${membership.user.email}`);
+      } catch (error) {
+        toast.error("Error inviting team members");
+      }
+    },
+    [inviteTeamMembers, resendMutationLoading]
+  );
+
+  const [deleteInvite, { loading: deleteInviteMutationLoading }] =
+    useDeleteInviteMutation({
+      context: { headers: { team_id: teamId } },
+      refetchQueries: [FetchInvitesDocument],
+    });
+
+  const cancelInvite = useCallback(
+    (membership: (typeof membersToRender)[number]) => {
+      if (
+        !isEnoughPermissions ||
+        !membership.id.startsWith("inv_") ||
+        deleteInviteMutationLoading
+      ) {
+        return;
+      }
+
+      try {
+        deleteInvite({
+          variables: {
+            inviteId: membership.id,
+          },
+        });
+
+        toast.success("Invite canceled successfully");
+      } catch (error) {
+        return toast.error("Error canceling invite");
+      }
+    },
+    [deleteInvite, deleteInviteMutationLoading, isEnoughPermissions]
   );
 
   return (
@@ -192,54 +255,56 @@ export const List = (props: { search?: string }) => {
 
             <div className="py-3 border-b border-grey-100" />
 
-            {membersToRender.map((membership) => (
-              <div key={membership.user.id} className="contents">
-                <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
-                  <UserLogo src={""} name={membership.user.name ?? ""} />
+            {membersToRender.map((membership) => {
+              const isInviteRow = membership.id.startsWith("inv_");
 
-                  <div className="grid gap-y-0.5">
-                    <Typography
-                      variant={TYPOGRAPHY.R3}
-                      className="text-grey-900"
-                    >
-                      {membership.user.name ?? ""}
-                    </Typography>
+              return (
+                <div key={membership.user.id} className="contents">
+                  <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
+                    <UserLogo src={""} name={membership.user.name ?? ""} />
 
-                    <Typography
-                      variant={TYPOGRAPHY.R4}
-                      className="text-grey-500"
-                    >
-                      {membership.user.email ?? ""}
-                    </Typography>
-                  </div>
-                </div>
-
-                <div className="flex items-center py-4 leading-5 text-14 text-grey-500 border-b border-grey-100">
-                  <Typography variant={TYPOGRAPHY.R4}>
-                    {roleName[membership.role]}
-                  </Typography>
-
-                  {membership.user.id.startsWith("invite-") && (
-                    <div className="mx-auto py-1 px-3 rounded-full bg-system-warning-100">
+                    <div className="grid gap-y-0.5">
                       <Typography
-                        variant={TYPOGRAPHY.S3}
-                        className="text-system-warning-500"
+                        variant={TYPOGRAPHY.R3}
+                        className="text-grey-900"
                       >
-                        Pending invite
+                        {membership.user.name ?? ""}
+                      </Typography>
+
+                      <Typography
+                        variant={TYPOGRAPHY.R4}
+                        className="text-grey-500"
+                      >
+                        {membership.user.email ?? ""}
                       </Typography>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="flex items-center px-2 py-4 border-b border-grey-100">
-                  <Dropdown>
-                    <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
-                      <MoreVerticalIcon className="text-grey-900" />
-                    </DropdownButton>
+                  <div className="flex items-center py-4 leading-5 text-14 text-grey-500 border-b border-grey-100">
+                    <Typography variant={TYPOGRAPHY.R4}>
+                      {roleName[membership.role]}
+                    </Typography>
 
-                    <DropdownItems>
-                      {isEnoughPermissions &&
-                        !membership.user.id.startsWith("invite-") && (
+                    {isInviteRow && (
+                      <div className="mx-auto py-1 px-3 rounded-full bg-system-warning-100">
+                        <Typography
+                          variant={TYPOGRAPHY.S3}
+                          className="text-system-warning-500"
+                        >
+                          Pending invite
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center px-2 py-4 border-b border-grey-100">
+                    <Dropdown>
+                      <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
+                        <MoreVerticalIcon className="text-grey-900" />
+                      </DropdownButton>
+
+                      <DropdownItems>
+                        {isEnoughPermissions && !isInviteRow && (
                           <DropdownItem
                             as="button"
                             onClick={() => onEditUser(membership)}
@@ -256,24 +321,43 @@ export const List = (props: { search?: string }) => {
                           </DropdownItem>
                         )}
 
-                      {isEnoughPermissions && (
-                        <DropdownItem
-                          as="button"
-                          onClick={() => onRemoveUser(membership)}
-                          className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors"
-                        >
-                          <TrashIcon />
+                        {isEnoughPermissions && isInviteRow && (
+                          <DropdownItem
+                            as="button"
+                            onClick={() => resendInvite(membership)}
+                            className="grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                          >
+                            <SendIcon className="text-grey-400" />
 
-                          <Typography variant={TYPOGRAPHY.R4}>
-                            Remove member
-                          </Typography>
-                        </DropdownItem>
-                      )}
-                    </DropdownItems>
-                  </Dropdown>
+                            <Typography variant={TYPOGRAPHY.R4}>
+                              Re-send invite
+                            </Typography>
+                          </DropdownItem>
+                        )}
+
+                        {isEnoughPermissions && (
+                          <DropdownItem
+                            as="button"
+                            onClick={() =>
+                              isInviteRow
+                                ? cancelInvite(membership)
+                                : onRemoveUser(membership)
+                            }
+                            className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                          >
+                            <TrashIcon />
+
+                            <Typography variant={TYPOGRAPHY.R4}>
+                              {isInviteRow ? "Cancel invite" : "Remove member"}
+                            </Typography>
+                          </DropdownItem>
+                        )}
+                      </DropdownItems>
+                    </Dropdown>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
