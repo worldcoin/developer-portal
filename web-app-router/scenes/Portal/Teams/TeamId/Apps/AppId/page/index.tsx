@@ -102,9 +102,8 @@ export const AppIdPage = (props: {
             <QuickAction
               icon={<CheckmarkBadge className="w-[22px] h-[22px]" />}
               title="Get your app verified"
-              description="Verified apps get a special checkmark badge"
-              // FIXME: pass relevant href/onClick
-              href="#"
+              description="Display a verified app badge"
+              href={urls.appProfile({ team_id: teamId, app_id: appId })}
             />
           )}
 
@@ -113,8 +112,7 @@ export const AppIdPage = (props: {
               icon={<UserCardIcon />}
               title="Sign in with World ID"
               description="Let users sign in with their World ID"
-              // FIXME: pass relevant href/onClick
-              href="#"
+              href={urls.signInWorldId({ team_id: teamId, app_id: appId })}
             />
           )}
         </div>

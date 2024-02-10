@@ -19,7 +19,7 @@ export const QuickAction = (
     <Button
       className={twMerge(
         clsx(
-          "p-6 flex justify-between items-end border border-grey-200 hover:border-blue-500 rounded-2xl group transition-colors",
+          "p-6 grid grid-cols-1fr/auto justify-between items-center border border-grey-200 hover:border-blue-500 rounded-2xl group transition-colors",
           className,
         ),
       )}
@@ -41,9 +41,10 @@ export const QuickAction = (
           {props.description}
         </Typography>
       </div>
-
-      <div className="w-6 h-6 border border-grey-200 rounded-full flex justify-center items-center group-hover:border-blue-500 transition-colors">
-        <ArrowUpIcon className="rotate-45 group-hover:text-blue-500 transition-colors" />
+      <div className="h-full flex items-end">
+        <div className="w-6 h-6 border border-grey-200 rounded-full flex justify-center items-center group-hover:border-blue-500 transition-colors">
+          <ArrowUpIcon className="rotate-45 group-hover:text-blue-500 transition-colors text-grey-400" />
+        </div>
       </div>
     </Button>
   );
