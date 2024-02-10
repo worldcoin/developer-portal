@@ -28,7 +28,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   const ownerAndAdminPermission = checkUserPermissions(
     user,
     params.teamId ?? "",
-    [Role_Enum.Owner]
+    [Role_Enum.Owner],
   );
 
   return (
