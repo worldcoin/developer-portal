@@ -22,8 +22,8 @@ export const Notification = (props: {
               props.variant === "warning",
             "border-blue-150 bg-blue-50": props.variant === "info",
           },
-          props.className
-        )
+          props.className,
+        ),
       )}
     >
       <IconFrame variant={props.variant} className="text-grey-0">

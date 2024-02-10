@@ -104,14 +104,14 @@ export const List = (props: { search?: string }) => {
               name: invite.email,
               email: invite.email,
             },
-          }) as FetchMembershipsQuery["membership"][number]
+          }) as FetchMembershipsQuery["membership"][number],
       );
 
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
   }, [data?.membership, fetchInvitesData?.invite]);
 
   const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length
+    memberships.length,
   );
 
   const rowsPerPageOptions = [10, 20];
@@ -160,7 +160,7 @@ export const List = (props: { search?: string }) => {
       setUserToEditRole(membership);
       setIsEditRoleDialogOpened(true);
     },
-    [setIsEditRoleDialogOpened]
+    [setIsEditRoleDialogOpened],
   );
 
   const onRemoveUser = useCallback(
@@ -168,7 +168,7 @@ export const List = (props: { search?: string }) => {
       setUserToRemove(membership.user);
       setIsRemoveDialogOpened(true);
     },
-    [setIsRemoveDialogOpened]
+    [setIsRemoveDialogOpened],
   );
 
   return (

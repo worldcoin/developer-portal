@@ -58,7 +58,7 @@ export const EditRoleDialog = (props: {
         label: key,
         value,
       })),
-    []
+    [],
   );
 
   const defaultValues = useMemo(() => {
@@ -128,7 +128,7 @@ export const EditRoleDialog = (props: {
 
       setIsOpened(false);
     },
-    [editRole, props.membership, setIsOpened]
+    [editRole, props.membership, setIsOpened],
   );
 
   return (

@@ -147,7 +147,7 @@ export const PermissionsDialog = () => {
             <div
               className={clsx(
                 "grid grid-cols-4 justify-items-center items-center rounded-lg",
-                { "bg-grey-100": index % 2 === 0 }
+                { "bg-grey-100": index % 2 === 0 },
               )}
               key={permission}
             >
