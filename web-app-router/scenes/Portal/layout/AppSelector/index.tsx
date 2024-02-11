@@ -22,19 +22,47 @@ import { createAppDialogOpenedAtom } from "../Header";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import clsx from "clsx";
+
+const colors = [
+  "bg-blue-400",
+  "bg-blue-500",
+  "bg-blue-600",
+  "bg-blue-700",
+  "bg-grey-700",
+  "bg-grey-900",
+  "bg-system-success-400",
+  "bg-system-success-500",
+  "bg-system-success-600",
+  "bg-system-success-700",
+  "bg-system-success-800",
+  "bg-system-success-900",
+  "bg-system-error-500",
+  "bg-system-error-600",
+  "bg-system-error-700",
+  "bg-system-error-800",
+  "bg-system-error-900",
+  "bg-additional-blue-500",
+  "bg-additional-purple-500",
+  "bg-additional-green-500",
+  "bg-additional-sea-500",
+  "bg-additional-orange-500",
+  "bg-additional-pink-500",
+  "bg-additional-lightOrange-500",
+];
 
 const Placeholder = (props: { name: string }) => {
   // Hash function I made up to create entropy
   const hash = props.name.split("").reduce((hash, char) => {
     return (hash << 5) - hash + char.charCodeAt(0);
   }, 0);
-  const hue1 = ((hash * 7) % 256) % 360; // Hash the ASCII value and limit it to 360
-  const solidColor = `hsl(${hue1}, 100%, 35%)`;
-
+  const solidColor = colors[Math.abs(hash) % colors.length];
   return (
     <div
-      className="w-6 h-6 flex justify-center items-center rounded-lg"
-      style={{ backgroundColor: solidColor }}
+      className={clsx(
+        "w-6 h-6 flex justify-center items-center rounded-lg",
+        solidColor,
+      )}
     >
       <div className="text-grey-0 text-xs">{props.name[0]}</div>
     </div>
