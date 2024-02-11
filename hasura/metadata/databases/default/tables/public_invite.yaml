@@ -36,6 +36,8 @@ select_permissions:
                   _eq: X-Hasura-Team-Id
               - role:
                   _eq: OWNER
+              - user_id:
+                  _eq: X-Hasura-User-Id
 delete_permissions:
   - role: service
     permission:
@@ -50,3 +52,5 @@ delete_permissions:
                   _eq: X-Hasura-Team-Id
               - role:
                   _eq: OWNER
+              - user_id:
+                  _eq: X-Hasura-User-Id

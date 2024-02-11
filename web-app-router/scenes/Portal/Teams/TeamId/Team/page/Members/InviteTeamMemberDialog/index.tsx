@@ -12,7 +12,6 @@ import { EmailsInput } from "./EmailsInput";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
 import { useParams } from "next/navigation";
-import { FetchMembershipsDocument } from "../List/graphql/client/fetch-members.generated";
 import { toast } from "react-toastify";
 import { FetchInvitesDocument } from "../List/graphql/client/fetch-invites.generated";
 
