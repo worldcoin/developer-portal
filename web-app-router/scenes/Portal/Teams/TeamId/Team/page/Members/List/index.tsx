@@ -74,6 +74,7 @@ export const List = (props: { search?: string }) => {
     });
   }, [fetchUser, teamId, user?.hasura.id]);
 
+  // TODO: Use checkUserPermissions helper instead
   const isEnoughPermissions = useMemo(() => {
     if (!fetchUserResult) {
       return false;
@@ -207,10 +208,11 @@ export const List = (props: { search?: string }) => {
     useDeleteInviteMutation({
       context: { headers: { team_id: teamId } },
       refetchQueries: [FetchInvitesDocument],
+      awaitRefetchQueries: true,
     });
 
   const cancelInvite = useCallback(
-    (membership: (typeof membersToRender)[number]) => {
+    async (membership: (typeof membersToRender)[number]) => {
       if (
         !isEnoughPermissions ||
         !membership.id.startsWith("inv_") ||
@@ -220,7 +222,7 @@ export const List = (props: { search?: string }) => {
       }
 
       try {
-        deleteInvite({
+        await deleteInvite({
           variables: {
             inviteId: membership.id,
           },
