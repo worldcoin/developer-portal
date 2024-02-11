@@ -232,6 +232,7 @@ export default async function handleVerify(
           req,
         );
       }
+
       await captureEvent({
         event: "action_verify_success",
         distinctId: action.id,
@@ -239,9 +240,9 @@ export default async function handleVerify(
           action_id: action.id,
           app_id: app.id,
           environment: app.is_staging ? "staging" : "production",
-          error: error,
         },
       });
+
       res.status(200).json({
         uses: 1,
         success: true,
