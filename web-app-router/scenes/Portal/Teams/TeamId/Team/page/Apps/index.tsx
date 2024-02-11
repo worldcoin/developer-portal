@@ -19,17 +19,7 @@ export const Apps = () => {
       <Typography variant={TYPOGRAPHY.H7}>Apps</Typography>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {data?.app.map((app) => (
-          <App
-            key={app.id}
-            id={app.id}
-            isStaging={app.is_staging}
-            engine={app.engine as "cloud" | "on-chain"}
-            name={app.app_metadata?.[0].name}
-            imageSrc={app.app_metadata?.[0].logo_img_url}
-            status={app.app_metadata?.[0].verification_status as StatusVariant}
-          />
-        ))}
+        {data?.app.map((app) => <App key={app.id} app={app} />)}
 
         {!data?.app &&
           Array.from({ length: 4 }).map((_, index) => (
