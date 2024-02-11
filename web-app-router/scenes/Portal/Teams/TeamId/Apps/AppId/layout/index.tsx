@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { EngineType } from "@/lib/types";
 
 type Params = {
   teamId?: string;
@@ -13,8 +16,14 @@ type AppIdLayoutProps = {
   children: ReactNode;
 };
 
-export const AppIdLayout = (props: AppIdLayoutProps) => {
+export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const params = props.params;
+  const client = await getAPIServiceGraphqlClient();
+  const { app } = await getAppEnv(client).FetchAppEnv({
+    id: params.appId ?? "",
+  });
+
+  const isOnChainApp = app?.[0].engine === EngineType.OnChain;
 
   return (
     <div>
@@ -37,15 +46,17 @@ export const AppIdLayout = (props: AppIdLayoutProps) => {
               <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
 
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
-              underlined
-              segment={"sign-in-with-world-id"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>
-                Sign in with World ID
-              </Typography>
-            </Tab>
+            {!isOnChainApp && (
+              <Tab
+                href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
+                underlined
+                segment={"sign-in-with-world-id"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>
+                  Sign in with World ID
+                </Typography>
+              </Tab>
+            )}
 
             <Tab
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
