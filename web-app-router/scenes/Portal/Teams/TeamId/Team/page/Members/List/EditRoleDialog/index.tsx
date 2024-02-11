@@ -113,13 +113,13 @@ export const EditRoleDialog = (props: {
   }, [defaultValues, permissionsOpened, reset, setIsOpened]);
 
   const submit = useCallback(
-    (values: FormValues) => {
+    async (values: FormValues) => {
       if (!props.membership) {
         return;
       }
 
       try {
-        editRole({
+        await editRole({
           variables: {
             membershipId: props.membership.id,
             role: values.role.value,
