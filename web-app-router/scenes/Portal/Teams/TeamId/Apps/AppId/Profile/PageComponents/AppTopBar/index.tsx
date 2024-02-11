@@ -1,10 +1,7 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  AppStatus,
-  StatusVariant,
-} from "@/components/AppStatus";
+import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Environment } from "./Environment";
 import {
