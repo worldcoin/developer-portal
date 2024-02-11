@@ -8,6 +8,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { toast } from "react-toastify";
+import clsx from "clsx";
 
 const schema = yup.object({
   privacy_policy_uri: yup.string().url("Must be a valid URL").optional(),
@@ -20,8 +21,9 @@ type ClientInformation = yup.InferType<typeof schema>;
 export const LinksForm = memo(function LinksForm(props: {
   teamId: string;
   signInAction: SignInActionQuery["action"][0];
+  canEdit: boolean;
 }) {
-  const { teamId, signInAction } = props;
+  const { teamId, signInAction, canEdit } = props;
   const [updateSignInActionMutation] = useUpdateSignInActionMutation({
     context: { headers: { team_id: teamId } },
   });
@@ -58,7 +60,7 @@ export const LinksForm = memo(function LinksForm(props: {
         toast.error("Error updating action");
       }
     },
-    [signInAction?.id],
+    [signInAction, updateSignInActionMutation],
   );
 
   return (
@@ -76,6 +78,7 @@ export const LinksForm = memo(function LinksForm(props: {
         placeholder="https://"
         label="Privacy Policy"
         className="h-16"
+        disabled={!canEdit}
         errors={errors?.privacy_policy_uri}
       />
       <Input
@@ -83,10 +86,14 @@ export const LinksForm = memo(function LinksForm(props: {
         placeholder="https://"
         label="Terms of Use"
         className="h-16"
+        disabled={!canEdit}
         errors={errors?.terms_uri}
       />
 
-      <DecoratedButton type="submit" className="w-fit text-sm h-12">
+      <DecoratedButton
+        type="submit"
+        className={clsx("w-fit text-sm h-12", { hidden: !canEdit })}
+      >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>
     </form>

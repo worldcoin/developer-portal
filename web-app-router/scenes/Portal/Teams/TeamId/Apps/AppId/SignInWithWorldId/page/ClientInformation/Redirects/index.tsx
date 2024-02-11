@@ -14,12 +14,14 @@ import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.gene
 import { toast } from "react-toastify";
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import clsx from "clsx";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
   teamId: string;
+  canEdit: boolean;
 }) {
-  const { actionId, teamId } = props;
+  const { actionId, teamId, canEdit } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   const { data, loading } = useRedirectsQuery({
@@ -58,7 +60,7 @@ export const Redirects = memo(function Redirects(props: {
         toast.error("Error adding redirect");
       }
     },
-    [actionId, insertRedirectMutation],
+    [actionId, insertRedirectMutation, teamId],
   );
 
   const deleteRedirect = useCallback(
@@ -84,7 +86,7 @@ export const Redirects = memo(function Redirects(props: {
         toast.error("Error deleting redirect");
       }
     },
-    [actionId, deleteRedirectMutation],
+    [actionId, deleteRedirectMutation, teamId],
   );
 
   const redirects = data?.redirect;
@@ -97,10 +99,12 @@ export const Redirects = memo(function Redirects(props: {
           placeholder="https://"
           currentValue={redirect.redirect_uri}
           className="h-14"
+          disabled={!canEdit}
           addOnRight={
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => deleteRedirect(redirect.id)}
             >
               <CloseIcon />
@@ -129,10 +133,12 @@ export const Redirects = memo(function Redirects(props: {
           currentValue=""
           placeholder="https://"
           className="h-14"
+          disabled={!canEdit}
           addOnRight={
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => setAddRedirectFormShown(false)}
             >
               <CloseIcon />
@@ -146,7 +152,7 @@ export const Redirects = memo(function Redirects(props: {
       <DecoratedButton
         type="button"
         variant="secondary"
-        className="w-fit text-sm h-12"
+        className={clsx("w-fit text-sm h-12", { hidden: !canEdit })}
         onClick={() => setAddRedirectFormShown(true)}
       >
         <Typography variant={TYPOGRAPHY.M3}>Add another</Typography>
