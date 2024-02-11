@@ -46,7 +46,7 @@ export const Input = memo(function Input(props: InputInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
+    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full transition-colors placeholder:transition-colors",
     {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
@@ -65,10 +65,13 @@ export const Input = memo(function Input(props: InputInterface) {
   });
 
   return (
-    <div className={"inline-grid font-gta w-full"}>
+    <div className={"inline-grid font-gta w-full transition-colors"}>
       <fieldset
         className={twMerge(
-          clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),
+          clsx(
+            "grid grid-cols-auto/1fr/auto group pb-2 transition-colors",
+            parentClassNames,
+          ),
           typeof className === "string" ? className : undefined,
         )}
       >
@@ -86,9 +89,12 @@ export const Input = memo(function Input(props: InputInterface) {
 
         <div className="flex items-center">{addOnRight && addOnRight}</div>
 
-        <legend className={labelClassNames}>
-          {label} {required && <span className="text-system-error-500">*</span>}
-        </legend>
+        {label && (
+          <legend className={labelClassNames}>
+            {label}{" "}
+            {required && <span className="text-system-error-500">*</span>}
+          </legend>
+        )}
       </fieldset>
       <div className={clsx("flex flex-col w-full px-2")}>
         {helperText && (

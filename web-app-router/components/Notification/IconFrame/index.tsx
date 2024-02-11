@@ -12,6 +12,7 @@ export const IconFrame = (props: {
       className={clsx(
         "relative rounded-full w-8 h-8 flex justify-center items-center",
         {
+          "bg-blue-500": props.variant === "info",
           "bg-system-warning-500": props.variant === "warning",
         },
         props.className,

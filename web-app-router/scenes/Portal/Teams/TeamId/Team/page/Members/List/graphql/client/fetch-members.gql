@@ -1,0 +1,11 @@
+query FetchMemberships($teamId: String!) {
+  membership(where: { team_id: { _eq: $teamId } }) {
+    id
+    role
+    user {
+      name
+      email
+      id
+    }
+  }
+}

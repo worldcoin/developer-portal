@@ -1,7 +1,7 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Status, StatusVariant } from "./Status";
+import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Environment } from "./Environment";
 import {
@@ -276,7 +276,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
         <div className="grid grid-cols-1 gap-y-1">
           <div className="flex flex-row gap-x-3 items-center">
             <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
-            <Status status={appMetaData.verification_status as StatusVariant} />
+            <AppStatus
+              status={appMetaData.verification_status as StatusVariant}
+            />
           </div>
           <Environment
             environment={app.is_staging ? "staging" : "production"}
