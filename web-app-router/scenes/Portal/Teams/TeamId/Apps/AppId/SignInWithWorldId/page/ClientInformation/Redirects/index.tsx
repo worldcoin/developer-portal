@@ -54,18 +54,19 @@ export const Redirects = memo(function Redirects(props: {
           awaitRefetchQueries: true,
         });
         setAddRedirectFormShown(false);
+        toast.success("Redirect added!");
+
         posthog.capture("redirect_added_success", {
           team_id: teamId,
           app_id: appId,
         });
-        toast.success("Redirect added!");
       } catch (error) {
-        console.error(error);
         posthog.capture("redirect_add_failed", {
           team_id: teamId,
           app_id: appId,
         });
 
+        console.error(error);
         toast.error("Error adding redirect");
       }
     },
