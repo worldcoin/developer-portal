@@ -29,7 +29,7 @@ export const Waiting = memo(function Waiting(props: {
         {qrData && (
           <QRCode
             size={180}
-            className="h-aut max-w-full w-full "
+            className="h-auto max-w-full w-full "
             value={qrData}
           />
         )}

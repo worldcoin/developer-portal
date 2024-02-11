@@ -23,9 +23,11 @@ export const HelpNav = () => {
   return (
     <Dropdown>
       <DropdownButton>
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          Help
-        </Typography>
+        <div className=" flex justify-center items-center">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+            Help
+          </Typography>
+        </div>
       </DropdownButton>
 
       <DropdownItems className="mt-2 py-3 text-grey-400 w-full gap-y-.5 grid min-w-[296px]">
