@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fonts start */
+
 @font-face {
   font-display: block;
   font-family: "GT America";
@@ -38,6 +40,26 @@
   font-weight: 500;
   font-style: normal;
 }
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://world-id-public.s3.amazonaws.com/fonts/TWKLausanne/TWKLausanne-400.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://world-id-public.s3.amazonaws.com/fonts/TWKLausanne/TWKLausanne-550.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fonts end */
 
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */

@@ -130,6 +130,7 @@ const config: Config = {
       fontFamily: {
         gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
         rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
+        twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
       },
 
       fontSize: {
