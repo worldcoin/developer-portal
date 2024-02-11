@@ -29,12 +29,12 @@ const Placeholder = (props: { name: string }) => {
     return (hash << 5) - hash + char.charCodeAt(0);
   }, 0);
   const hue1 = ((hash * 7) % 256) % 360; // Hash the ASCII value and limit it to 360
-  const gradientColor = `linear-gradient(180deg, hsl(${hue1}, 100%, 50%), hsl(${hue1}, 100%, 50%))`;
+  const solidColor = `hsl(${hue1}, 100%, 50%)`;
 
   return (
     <div
       className="w-6 h-6 flex justify-center items-center rounded-lg"
-      style={{ backgroundImage: gradientColor }}
+      style={{ backgroundColor: solidColor }}
     >
       <div className="text-grey-0 text-xs">{props.name[0]}</div>
     </div>
