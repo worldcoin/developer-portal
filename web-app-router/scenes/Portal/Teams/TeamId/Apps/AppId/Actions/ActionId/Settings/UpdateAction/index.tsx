@@ -58,6 +58,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   const [updateActionQuery, { loading }] = useUpdateActionMutation({
     context: { headers: { team_id: teamId } },
   });
+
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
@@ -77,12 +78,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         if (result instanceof Error) {
           throw result;
         }
-        // TODO: Turn on Posthog
-        // posthog.capture("action_created", {
-        //   name: values.name,
-        //   app_id: currentApp.id,
-        //   action_id: values.action,
-        // });
       } catch (error) {
         console.error(error);
         return toast.error("Error occurred while updating action.");

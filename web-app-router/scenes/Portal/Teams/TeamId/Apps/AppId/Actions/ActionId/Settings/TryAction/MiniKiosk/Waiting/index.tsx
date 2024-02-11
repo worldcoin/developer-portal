@@ -5,6 +5,8 @@ import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import posthog from "posthog-js";
+import { useParams } from "next/navigation";
 
 export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
@@ -12,16 +14,23 @@ export const Waiting = memo(function Waiting(props: {
 }) {
   const [copied, setCopied] = useState(false);
   const { qrData, showSimulator } = props;
+  const params = useParams();
 
   const handleCopy = useCallback(() => {
     if (!qrData) return;
+
+    posthog.capture("mini_kiosk_copied", {
+      app_id: params?.appId,
+      team_id: params?.teamId,
+      action_id: params?.actionId,
+    });
 
     navigator.clipboard
       .writeText(qrData)
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
-  }, [qrData]);
+  }, [qrData, params, setCopied]);
 
   return (
     <div className="grid gap-y-6">

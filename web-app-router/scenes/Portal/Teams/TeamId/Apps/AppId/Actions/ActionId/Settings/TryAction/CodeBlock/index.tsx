@@ -103,14 +103,17 @@ const verifyProof = async (proof) => {
     <div className="w-full max-w-full grid gap-y-5">
       <CodeDisplayComponent
         buttonText="Install ID Kit"
+        type="install"
         panelText="npm install @worldcoin/idkit"
       />
       <CodeDisplayComponent
         buttonText="Usage"
+        type="idkit"
         panelText={idKitWidgetCodeString}
       />
       <CodeDisplayComponent
         buttonText={`Verify Proof (${engine === EngineType.OnChain ? "On Chain" : "Cloud"})`}
+        type="verify"
         panelText={
           engine === EngineType.OnChain
             ? verifyProofOnChainCodeString

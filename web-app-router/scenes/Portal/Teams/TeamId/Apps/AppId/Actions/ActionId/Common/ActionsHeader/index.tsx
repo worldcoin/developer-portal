@@ -4,10 +4,11 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Link from "next/link";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useGetActionNameQuery } from "./graphql/client/get-action-name.generated";
 import Skeleton from "react-loading-skeleton";
 import { urls } from "@/lib/urls";
+import posthog from "posthog-js";
 
 export const ActionsHeader = memo(function ActionsHeader(props: {
   actionId?: string;
@@ -23,6 +24,15 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
     team_id: props.teamId ?? "",
     app_id: props.appId,
   });
+
+  const trackDocsClicked = useCallback(() => {
+    posthog.capture("docs_clicked", {
+      teamId: props.teamId,
+      appId: props.appId,
+      actionId: props.actionId,
+      location: "actions",
+    });
+  }, [props.actionId, props.appId, props.teamId]);
 
   const name = data?.action[0]?.name ?? "";
   return (
@@ -47,6 +57,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
           variant="secondary"
           href="https://docs.worldcoin.org/id/incognito-actions"
           className="text-grey-700 py-3 px-7 "
+          onClick={trackDocsClicked}
         >
           <DocsIcon />
           <Typography variant={TYPOGRAPHY.R3}>Learn more</Typography>

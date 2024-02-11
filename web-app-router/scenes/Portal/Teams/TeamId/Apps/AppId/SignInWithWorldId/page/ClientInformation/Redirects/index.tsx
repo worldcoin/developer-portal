@@ -14,14 +14,16 @@ import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.gene
 import { toast } from "react-toastify";
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import posthog from "posthog-js";
 import clsx from "clsx";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
+  appId: string;
   teamId: string;
   canEdit: boolean;
 }) {
-  const { actionId, teamId, canEdit } = props;
+  const { actionId, appId, teamId, canEdit } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   const { data, loading } = useRedirectsQuery({
@@ -55,12 +57,22 @@ export const Redirects = memo(function Redirects(props: {
         });
         setAddRedirectFormShown(false);
         toast.success("Redirect added!");
+
+        posthog.capture("redirect_added_success", {
+          team_id: teamId,
+          app_id: appId,
+        });
       } catch (error) {
+        posthog.capture("redirect_add_failed", {
+          team_id: teamId,
+          app_id: appId,
+        });
+
         console.error(error);
         toast.error("Error adding redirect");
       }
     },
-    [actionId, insertRedirectMutation, teamId],
+    [actionId, appId, insertRedirectMutation, teamId],
   );
 
   const deleteRedirect = useCallback(

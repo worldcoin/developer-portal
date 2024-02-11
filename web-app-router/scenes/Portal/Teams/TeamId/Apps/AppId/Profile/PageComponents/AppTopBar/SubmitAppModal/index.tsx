@@ -14,6 +14,7 @@ import { useCallback } from "react";
 import { useSubmitAppMutation } from "./graphql/client/submit-app.generated";
 import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
 import { toast } from "react-toastify";
+import posthog from "posthog-js";
 
 const schema = yup.object().shape({
   is_developer_allow_listing: yup.boolean(),
@@ -72,6 +73,13 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           refetchQueries: [FetchAppMetadataDocument],
           awaitRefetchQueries: true,
         });
+
+        posthog.capture("app_submitted_for_review", {
+          app_id: appId,
+          team_id: teamId,
+          is_developer_allow_listing: values.is_developer_allow_listing,
+        });
+
         toast.success("App submitted for review");
         setOpen(false);
       } catch (error) {
@@ -80,6 +88,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       }
     },
     [
+      appId,
       appMetadataId,
       canSubmitAppStore,
       setOpen,

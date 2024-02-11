@@ -163,6 +163,7 @@ export const ClientInformationPage = (props: {
             <Redirects
               actionId={signInAction?.id!}
               teamId={teamID}
+              appId={appID}
               canEdit={isEnoughPermissions}
             />
           )}
