@@ -91,13 +91,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             max_verifications: values.maxVerifications,
           },
           context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: GetActionsDocument,
-              variables: { app_id: appId },
-              context: { headers: { team_id: teamId } },
-            },
-          ],
+          refetchQueries: [GetActionsDocument],
           awaitRefetchQueries: true,
         });
 
@@ -137,6 +131,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
     [
       insertActionQuery,
+      generateExternalNullifier,
       appId,
       teamId,
       reset,

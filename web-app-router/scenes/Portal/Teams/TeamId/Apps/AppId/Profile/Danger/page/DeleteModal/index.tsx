@@ -38,11 +38,19 @@ export const DeleteModal = (props: DeleteModalProps) => {
         },
         context: { headers: { team_id: teamId } },
       });
-      toast.success("App deleted", { toastId: "app_deleted" });
+      toast.update("deleting_app", {
+        type: "success",
+        render: "App deleted",
+        autoClose: 5000,
+      });
       router.replace(`/teams/${teamId}/apps`);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete app", { toastId: "failed_to_delete_app" });
+      toast.update("deleting_app", {
+        type: "error",
+        render: "Failed to delete app",
+        autoClose: 5000,
+      });
     }
   };
 

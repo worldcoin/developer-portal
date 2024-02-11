@@ -120,18 +120,18 @@ export const Form = () => {
             variant={TYPOGRAPHY.R4}
             className="text-gray-400 row-start-2 col-start-2"
           >
-            Once upon a time we will send you an email with current updates
-            about Worldcoin for developers
+            Once in a while we will send you an email with current updates about
+            World ID for developers
           </Typography>
         </div>
       </div>
 
       <DecoratedButton
         type="submit"
-        className="mt-2 max-w-[180px] justify-self-center"
+        className="mt-2 w-[180px] justify-self-center"
         disabled={!isValid || isSubmitting}
       >
-        Create team
+        <Typography variant={TYPOGRAPHY.M3}>Create team</Typography>
       </DecoratedButton>
     </form>
   );
