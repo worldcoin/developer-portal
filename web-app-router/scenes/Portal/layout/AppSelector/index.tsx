@@ -29,7 +29,7 @@ const Placeholder = (props: { name: string }) => {
     return (hash << 5) - hash + char.charCodeAt(0);
   }, 0);
   const hue1 = ((hash * 7) % 256) % 360; // Hash the ASCII value and limit it to 360
-  const solidColor = `hsl(${hue1}, 100%, 50%)`;
+  const solidColor = `hsl(${hue1}, 100%, 35%)`;
 
   return (
     <div
