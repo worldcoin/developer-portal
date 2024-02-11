@@ -125,7 +125,6 @@ select_permissions:
         - id
         - logo_img_url
         - name
-        - review_message
         - showcase_img_urls
         - verification_status
       filter: {}
