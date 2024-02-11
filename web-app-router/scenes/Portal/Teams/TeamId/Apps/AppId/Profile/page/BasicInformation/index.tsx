@@ -21,6 +21,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import { useAtom } from "jotai";
 import { viewModeAtom } from "../../layout";
+import { checkUserPermissions } from "@/lib/utils";
 
 const schema = yup.object({
   name: yup
@@ -45,14 +46,11 @@ export const BasicInformation = (props: {
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+    return checkUserPermissions(user, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [user, teamId]);
 
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {

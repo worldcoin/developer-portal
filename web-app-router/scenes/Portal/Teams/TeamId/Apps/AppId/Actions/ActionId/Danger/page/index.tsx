@@ -1,10 +1,5 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { DocsIcon } from "@/components/Icons/DocsIcon";
-import Link from "next/link";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import ErrorComponent from "next/error";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 import { ActionsHeader } from "../../Common/ActionsHeader";

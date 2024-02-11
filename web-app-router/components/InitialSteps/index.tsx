@@ -36,7 +36,11 @@ export const InitialSteps = (props: {
         </Typography>
       </div>
 
-      <div className={clsx("border-grey-200 border rounded-2xl shadow-button")}>
+      <div
+        className={clsx(
+          "border-grey-200 border rounded-2xl shadow-button mt-4",
+        )}
+      >
         {props.steps.map((step) => step)}
       </div>
 

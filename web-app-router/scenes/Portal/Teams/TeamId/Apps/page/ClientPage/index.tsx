@@ -16,10 +16,10 @@ export const ClientPage = () => {
 
   return (
     <Fragment>
-      <SizingWrapper gridClassName="h-full flex justify-center items-center">
+      <SizingWrapper gridClassName="h-full flex justify-center items-center -mt-10">
         <InitialSteps
           title="Build your first project"
-          description="Simple guide will help you"
+          description="Welcome to World ID! Let's get started by creating your first app."
           steps={[
             <Step
               key={`apps-tutorial-step-1`}
@@ -30,8 +30,8 @@ export const ClientPage = () => {
                   <PlusCircleIcon />
                 </IconFrame>
               }
-              title="Add your app"
-              description="Begin by listing your app"
+              title="Create an app"
+              description="Begin by creating your app"
               buttonText="Start"
             />,
 
@@ -43,8 +43,8 @@ export const ClientPage = () => {
                   <UserStoryIcon />
                 </IconFrame>
               }
-              title="Create incognito action"
-              description="Allow user to verify as a unique person"
+              title="Create an incognito action"
+              description="Allow user to verify as a unique human"
               buttonText="Create"
               disabled
             />,
@@ -57,8 +57,8 @@ export const ClientPage = () => {
                   <TestTubeIcon />
                 </IconFrame>
               }
-              title="Test it hard!"
-              description="Test your app in simulator"
+              title="Test it!"
+              description="Test your app in the simulator"
               buttonText="Test"
               disabled
             />,

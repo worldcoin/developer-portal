@@ -1,13 +1,8 @@
-"use client";
-
 import { ReactNode } from "react";
 import { Tabs, Tab } from "@/components/Tabs";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 export const ProfileLayout = (props: { children: ReactNode }) => {
-  const { user } = useUser();
-
   return (
     <div>
       <div className="bg-grey-50 border-b border-grey-100">

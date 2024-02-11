@@ -1,0 +1,5 @@
+mutation DeleteInvite($inviteId: String!) {
+  delete_invite_by_pk(id: $inviteId) {
+    id
+  }
+}

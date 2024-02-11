@@ -4,7 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useResetClientSecretMutation } from "./graphql/client/reset-secret.generated";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { toast } from "react-toastify";
 import { LockIcon } from "@/components/Icons/LockIcon";
@@ -14,6 +14,10 @@ import { useFetchSignInActionQuery } from "./graphql/client/fetch-sign-in-action
 import Error from "next/error";
 import { LinksForm } from "./Links";
 import Skeleton from "react-loading-skeleton";
+import { Auth0SessionUser } from "@/lib/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { checkUserPermissions } from "@/lib/utils";
+import { Role_Enum } from "@/graphql/graphql";
 
 export const ClientInformationPage = (props: {
   appID: string;
@@ -21,6 +25,14 @@ export const ClientInformationPage = (props: {
 }) => {
   const { appID, teamID } = props;
   const [clientSecret, setClientSecret] = useState<string>("");
+  const { user } = useUser() as Auth0SessionUser;
+
+  const isEnoughPermissions = useMemo(() => {
+    return checkUserPermissions(user, teamID ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [user, teamID]);
 
   const { data, loading: fetchingAction } = useFetchSignInActionQuery({
     variables: { app_id: appID },
@@ -103,7 +115,8 @@ export const ClientInformationPage = (props: {
                   <div
                     className={clsx(
                       "grid grid-cols-1fr/auto justify-items-end gap-x-3",
-                      { "pr-4": clientSecret !== "" },
+                      { hidden: !isEnoughPermissions },
+                      { "pr-4": clientSecret !== "" }
                     )}
                   >
                     <DecoratedButton
@@ -151,13 +164,18 @@ export const ClientInformationPage = (props: {
               actionId={signInAction?.id!}
               teamId={teamID}
               appId={appID}
+              canEdit={isEnoughPermissions}
             />
           )}
         </div>
         {fetchingAction ? (
           <Skeleton height={150} />
         ) : (
-          <LinksForm signInAction={signInAction!} teamId={teamID} />
+          <LinksForm
+            signInAction={signInAction!}
+            teamId={teamID}
+            canEdit={isEnoughPermissions}
+          />
         )}
       </div>
     );

@@ -15,13 +15,15 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import posthog from "posthog-js";
+import clsx from "clsx";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
   appId: string;
   teamId: string;
+  canEdit: boolean;
 }) {
-  const { actionId, appId, teamId } = props;
+  const { actionId, appId, teamId, canEdit } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   const { data, loading } = useRedirectsQuery({
@@ -109,10 +111,12 @@ export const Redirects = memo(function Redirects(props: {
           placeholder="https://"
           currentValue={redirect.redirect_uri}
           className="h-14"
+          disabled={!canEdit}
           addOnRight={
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => deleteRedirect(redirect.id)}
             >
               <CloseIcon />
@@ -141,10 +145,12 @@ export const Redirects = memo(function Redirects(props: {
           currentValue=""
           placeholder="https://"
           className="h-14"
+          disabled={!canEdit}
           addOnRight={
             <Button
               type="button"
               className="pr-2"
+              disabled={!canEdit}
               onClick={() => setAddRedirectFormShown(false)}
             >
               <CloseIcon />
@@ -158,7 +164,7 @@ export const Redirects = memo(function Redirects(props: {
       <DecoratedButton
         type="button"
         variant="secondary"
-        className="w-fit text-sm h-12"
+        className={clsx("w-fit text-sm h-12", { hidden: !canEdit })}
         onClick={() => setAddRedirectFormShown(true)}
       >
         <Typography variant={TYPOGRAPHY.M3}>Add another</Typography>

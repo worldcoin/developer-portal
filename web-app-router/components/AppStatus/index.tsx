@@ -1,6 +1,7 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
+import { twMerge } from "tailwind-merge";
 
 export type StatusVariant =
   | "unverified"
@@ -10,6 +11,8 @@ export type StatusVariant =
 
 type StatusProps = {
   status: StatusVariant;
+  className?: string;
+  typography?: TYPOGRAPHY;
 };
 
 const statusMessageMap = {
@@ -19,12 +22,12 @@ const statusMessageMap = {
   verified: "Verified",
 };
 
-export const Status = (props: StatusProps) => {
-  const { status } = props;
+export const AppStatus = (props: StatusProps) => {
+  const { status, className, typography = TYPOGRAPHY.S3 } = props;
 
   const statusStyles = {
     unverified: {
-      normal: "bg-grey-100 text-grey-900",
+      normal: "bg-grey-100 text-grey-500",
     },
     awaiting_review: {
       normal: "bg-system-warning-100 text-system-warning-700",
@@ -38,15 +41,16 @@ export const Status = (props: StatusProps) => {
   };
   return (
     <div
-      className={clsx(
-        "px-3 py-1 rounded-3xl flex gap-x-1.5 items-center",
-        statusStyles[status].normal,
+      className={twMerge(
+        clsx(
+          "px-3 py-1 rounded-3xl flex gap-x-1.5 items-center",
+          statusStyles[status]?.normal,
+          className,
+        ),
       )}
     >
       {status === "verified" && <CheckmarkBadge className="w-4 h-auto" />}
-      <Typography variant={TYPOGRAPHY.S3}>
-        {statusMessageMap[status]}
-      </Typography>
+      <Typography variant={typography}>{statusMessageMap[status]}</Typography>
     </div>
   );
 };
