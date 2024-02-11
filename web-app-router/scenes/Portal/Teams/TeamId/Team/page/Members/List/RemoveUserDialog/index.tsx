@@ -46,6 +46,7 @@ export const RemoveUserDialog = (props: {
         },
 
         refetchQueries: [FetchMembershipsDocument],
+        awaitRefetchQueries: true,
       });
 
       toast.success(`User ${props.name} has been removed from the team.`);
