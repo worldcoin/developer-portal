@@ -20,7 +20,7 @@ const config: PermissionsConfig = {
   "Create & Edit incognito actions": {
     Owner: true,
     Admin: true,
-    Member: false,
+    Member: true,
   },
   "Delete incognito actions": {
     Owner: true,
@@ -102,11 +102,6 @@ const config: PermissionsConfig = {
     Admin: true,
     Member: false,
   },
-  "Delete Sign in with WorldID": {
-    Owner: true,
-    Admin: true,
-    Member: false,
-  },
 };
 
 export const PermissionsDialog = () => {
@@ -147,7 +142,7 @@ export const PermissionsDialog = () => {
             <div
               className={clsx(
                 "grid grid-cols-4 justify-items-center items-center rounded-lg",
-                { "bg-grey-100": index % 2 === 0 },
+                { "bg-grey-100": index % 2 === 0 }
               )}
               key={permission}
             >
