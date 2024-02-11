@@ -14,19 +14,33 @@ import { Auth0SessionUser } from "@/lib/types";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { DOCS_URL } from "@/lib/constants";
 import Link from "next/link";
-import { CSSProperties, Fragment } from "react";
+import { CSSProperties, Fragment, useCallback } from "react";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
 import { HelpNav } from "./HelpNav";
+import posthog from "posthog-js";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user } = useUser() as Auth0SessionUser;
   const nameFirstLetter = user?.name?.charAt(0).toUpperCase();
-  const { teamId } = useParams() as { teamId?: string };
+  const { teamId, appId, actionId } = useParams() as {
+    teamId?: string;
+    appId?: string;
+    actionId?: string;
+  };
+
+  const trackDocsClicked = useCallback(() => {
+    posthog.capture("docs_clicked", {
+      teamId: teamId,
+      appId: appId,
+      actionId: actionId,
+      location: "top_nav_bar",
+    });
+  }, [actionId, appId, teamId]);
 
   return (
     <div
@@ -38,10 +52,9 @@ export const LoggedUserNav = () => {
         } as CSSProperties
       }
     >
-      {/* FIXME: update url for Help */}
       <HelpNav />
 
-      <Button href={DOCS_URL}>
+      <Button href={DOCS_URL} onClick={trackDocsClicked}>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
           Docs
         </Typography>

@@ -1,3 +1,4 @@
+"use client";
 import { Disclosure } from "@headlessui/react";
 import React, { useCallback } from "react";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
@@ -9,18 +10,30 @@ import { Button } from "@/components/Button";
 import { toast } from "react-toastify";
 import { CodeBlock } from "@/components/CodeBlock";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import posthog from "posthog-js";
+import { useParams } from "next/navigation";
 
 type CodeDisplayComponentProps = {
   buttonText: string;
   panelText: string;
+  type: string;
 };
 
 export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
-  const { buttonText, panelText } = props;
+  const { buttonText, panelText, type } = props;
+  const params = useParams();
+
   const copyAction = useCallback(() => {
     navigator.clipboard.writeText(panelText);
     toast.success("Copied to clipboard");
-  }, [panelText]);
+
+    posthog.capture("code_copied", {
+      app_id: params?.appId,
+      team_id: params?.teamId,
+      action_id: params?.actionId,
+      type: type,
+    });
+  }, [panelText, params, type]);
 
   return (
     <div className="w-full">

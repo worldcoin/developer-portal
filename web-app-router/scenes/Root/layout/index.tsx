@@ -8,6 +8,12 @@ import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Provider } from "jotai";
 import { Slide, ToastContainer } from "react-toastify";
+import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
+import dynamic from "next/dynamic";
+
+const PostHogPageView = dynamic(() => import("../providers/PostHogPageView"), {
+  ssr: false,
+});
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
@@ -39,11 +45,16 @@ export const RootLayout = ({
         />
 
         <UserProvider>
-          <ApolloWrapper>
-            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
-              <Provider>{children}</Provider>
-            </SkeletonTheme>
-          </ApolloWrapper>
+          <WithPostHogIdentifier>
+            <ApolloWrapper>
+              <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
+                <Provider>
+                  <PostHogPageView />
+                  {children}
+                </Provider>
+              </SkeletonTheme>
+            </ApolloWrapper>
+          </WithPostHogIdentifier>
         </UserProvider>
       </body>
     </html>

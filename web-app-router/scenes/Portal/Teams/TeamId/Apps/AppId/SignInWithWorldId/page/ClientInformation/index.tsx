@@ -147,7 +147,11 @@ export const ClientInformationPage = (props: {
           {fetchingAction ? (
             <Skeleton count={2} />
           ) : (
-            <Redirects actionId={signInAction?.id!} teamId={teamID} />
+            <Redirects
+              actionId={signInAction?.id!}
+              teamId={teamID}
+              appId={appID}
+            />
           )}
         </div>
         {fetchingAction ? (

@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { urls } from "@/lib/urls";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
+import posthog from "posthog-js";
 
 const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
 const BUILD_TYPES = ["staging", "production"] as const;
@@ -104,6 +105,13 @@ export const CreateAppDialog = (props: DialogProps) => {
 
           props.onClose(false);
           reset(defaultValues);
+
+          posthog.capture("app_creation_successful", {
+            team_id: teamId,
+            app_id: data.insert_app_one?.id,
+            environment: values.build,
+            engine: values.verification,
+          });
           router.push(
             urls.app({ team_id: teamId, app_id: data.insert_app_one?.id }),
           );
@@ -111,6 +119,12 @@ export const CreateAppDialog = (props: DialogProps) => {
 
         onError: () => {
           toast.error("Error while creating app");
+
+          posthog.capture("app_creation_failed", {
+            team_id: teamId,
+            environment: values.build,
+            engine: values.verification,
+          });
         },
       });
     },

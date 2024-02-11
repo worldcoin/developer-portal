@@ -81,7 +81,7 @@ export function Signup(props: SignupProps) {
       checkSession();
 
       const { returnTo } = await response.json();
-      posthog.capture("signup-success");
+      posthog.capture("signup-success", { returnTo }); // We use this to get Team ID in SQL
       router.push(returnTo); // NOTE: We don't use enterApp because the return url may cause an infinite cycle
     },
     [checkSession, props.invite?.id, router]
