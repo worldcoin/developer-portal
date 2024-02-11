@@ -51,7 +51,7 @@ export const EditRoleDialog = (props: {
 }) => {
   const [isOpened, setIsOpened] = useAtom(editRoleDialogAtom);
   const [permissionsOpened, setPermissionsOpened] = useAtom(
-    permissionsDialogAtom,
+    permissionsDialogAtom
   );
   const { teamId } = useParams() as { teamId: string };
 
@@ -61,7 +61,7 @@ export const EditRoleDialog = (props: {
         label: key,
         value,
       })),
-    [],
+    []
   );
 
   const defaultValues = useMemo(() => {
@@ -94,7 +94,7 @@ export const EditRoleDialog = (props: {
     if (defaultValues) {
       reset(defaultValues);
     }
-  }, [defaultValues, props.membership, reset]);
+  }, [defaultValues, reset]);
 
   const [editRole] = useEditRoleMutation({
     context: { headers: { team_id: teamId } },
@@ -135,7 +135,7 @@ export const EditRoleDialog = (props: {
 
       setIsOpened(false);
     },
-    [editRole, props.membership, setIsOpened],
+    [editRole, props.membership, setIsOpened]
   );
 
   return (
