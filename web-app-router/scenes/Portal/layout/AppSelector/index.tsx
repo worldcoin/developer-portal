@@ -24,9 +24,19 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 const Placeholder = (props: { name: string }) => {
+  // Hash function I made up to create entropy
+  const hash = props.name.split("").reduce((hash, char) => {
+    return (hash << 5) - hash + char.charCodeAt(0);
+  }, 0);
+  const hue1 = ((hash * 7) % 256) % 360; // Hash the ASCII value and limit it to 360
+  const gradientColor = `linear-gradient(180deg, hsl(${hue1}, 100%, 50%), hsl(${hue1}, 100%, 50%))`;
+
   return (
-    <div className="w-6 h-6 flex justify-center items-center bg-grey-100 rounded-lg">
-      <div className="text-grey-500 text-xs">{props.name[0]}</div>
+    <div
+      className="w-6 h-6 flex justify-center items-center rounded-lg"
+      style={{ backgroundImage: gradientColor }}
+    >
+      <div className="text-grey-0 text-xs">{props.name[0]}</div>
     </div>
   );
 };
