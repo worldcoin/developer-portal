@@ -36,18 +36,13 @@ export const ActionDangerZoneContent = (props: {
   }, [teamId, user?.hasura.memberships]);
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
-    useDeleteActionMutation({});
+    useDeleteActionMutation({ context: { headers: { team_id: teamId } } });
 
   const deleteAction = useCallback(async () => {
     try {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
-        refetchQueries: [
-          {
-            query: GetActionsDocument,
-            variables: { app_id: action.app_id },
-          },
-        ],
+        refetchQueries: [GetActionsDocument],
         awaitRefetchQueries: true,
       });
       if (result instanceof Error) {
