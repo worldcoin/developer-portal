@@ -9,9 +9,13 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
-import { GetSingleActionDocument } from "../page/graphql/client/get-single-action.generated";
+import {
+  GetSingleActionDocument,
+  GetSingleActionQuery,
+} from "../page/graphql/client/get-single-action.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
+import { EngineType } from "@/lib/types";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -27,13 +31,7 @@ export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
 type UpdateActionProps = {
   teamId: string;
-  action: {
-    id: string;
-    name: string;
-    description: string;
-    action: string;
-    max_verifications: number;
-  };
+  action: GetSingleActionQuery["action"][0];
 };
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
@@ -132,23 +130,25 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           }
           className=" text-grey-400 h-16"
         />
-        <Controller
-          name="maxVerifications"
-          control={control}
-          render={({ field }) => {
-            return (
-              <MaxVerificationsSelector
-                value={field.value}
-                onChange={field.onChange}
-                errors={errors.maxVerifications}
-                showCustomInput
-                className="w-full " // border is 2 px
-                label="Max verifications per user"
-                helperText="The number of verifications the same person can do for this action"
-              />
-            );
-          }}
-        />
+        {action.app.engine !== EngineType.OnChain && (
+          <Controller
+            name="maxVerifications"
+            control={control}
+            render={({ field }) => {
+              return (
+                <MaxVerificationsSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                  errors={errors.maxVerifications}
+                  showCustomInput
+                  className="w-full " // border is 2 px
+                  label="Max verifications per user"
+                  helperText="The number of verifications the same person can do for this action"
+                />
+              );
+            }}
+          />
+        )}
 
         <div className="w-full flex justify-start">
           <DecoratedButton

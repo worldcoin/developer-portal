@@ -19,7 +19,6 @@ type ActionsPageProps = {
   searchParams: Record<string, string> | null | undefined;
 };
 
-// TODO: Ad TWK Lausanne font
 export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
@@ -114,8 +113,8 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                     <TestTubeIcon />
                   </IconFrame>
                 }
-                title="Test it hard!"
-                description="Test your app in simulator"
+                title="Test it!"
+                description="Test your app in the simulator"
                 buttonText="Test"
                 disabled
               />,

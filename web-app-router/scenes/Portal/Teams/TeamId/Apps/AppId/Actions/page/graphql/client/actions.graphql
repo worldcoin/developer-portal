@@ -21,5 +21,8 @@ query GetActions($app_id: String!) {
       nullifier_hash
       uses
     }
+    app {
+      engine
+    }
   }
 }

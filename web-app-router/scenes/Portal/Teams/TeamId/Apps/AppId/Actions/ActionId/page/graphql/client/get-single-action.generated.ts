@@ -20,6 +20,7 @@ export type GetSingleActionAndNullifiersQuery = {
       nullifier_hash: string;
       uses?: number | null;
     }>;
+    app: { __typename?: "app"; engine: string };
   }>;
 };
 
@@ -32,6 +33,9 @@ export const GetSingleActionAndNullifiersDocument = gql`
         updated_at
         nullifier_hash
         uses
+      }
+      app {
+        engine
       }
     }
   }
