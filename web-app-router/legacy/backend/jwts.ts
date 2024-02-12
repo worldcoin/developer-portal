@@ -7,7 +7,7 @@
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
-import { JwtConfig } from "@/legacy/lib/types";
+import { JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
@@ -34,6 +34,28 @@ if (!GENERAL_SECRET_KEY) {
 }
 
 // ANCHOR: -----------------HASURA JWTs--------------------------
+
+/**
+ * Generates a 1-min JWT for the `reviewer` role (only for internal use from Next.js API)
+ * @returns
+ */
+export const generateReviewerJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "reviewer_account",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["reviewer"],
+      "x-hasura-default-role": "reviewer",
+    },
+  };
+
+  const token = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
+    .setIssuer(JWT_ISSUER)
+    .setExpirationTime("1m")
+    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
+
+  return token;
+};
 
 /**
  * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
@@ -219,6 +241,8 @@ export const generateOIDCJWT = async ({
       likely_human:
         verification_level === VerificationLevel.Orb ? "strong" : "weak",
       credential_type: verification_level,
+      warning:
+        "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",
     },
     "https://id.worldcoin.org/v1": {
       verification_level,

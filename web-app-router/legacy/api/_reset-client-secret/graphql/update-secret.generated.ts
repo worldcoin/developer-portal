@@ -4,24 +4,26 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetMembershipsQueryVariables = Types.Exact<{
-  team_id: Types.Scalars["String"];
+export type UpdateSecretMutationVariables = Types.Exact<{
+  app_id: Types.Scalars["String"];
+  hashed_secret: Types.Scalars["String"];
 }>;
 
-export type GetMembershipsQuery = {
-  __typename?: "query_root";
-  membership: Array<{
-    __typename?: "membership";
-    user: { __typename?: "user"; email?: string | null };
-  }>;
+export type UpdateSecretMutation = {
+  __typename?: "mutation_root";
+  update_action?: {
+    __typename?: "action_mutation_response";
+    affected_rows: number;
+  } | null;
 };
 
-export const GetMembershipsDocument = gql`
-  query GetMemberships($team_id: String!) {
-    membership(where: { team_id: { _eq: $team_id } }) {
-      user {
-        email
-      }
+export const UpdateSecretDocument = gql`
+  mutation UpdateSecret($app_id: String!, $hashed_secret: String!) {
+    update_action(
+      where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
+      _set: { client_secret: $hashed_secret }
+    ) {
+      affected_rows
     }
   }
 `;
@@ -43,19 +45,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetMemberships(
-      variables: GetMembershipsQueryVariables,
+    UpdateSecret(
+      variables: UpdateSecretMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetMembershipsQuery> {
+    ): Promise<UpdateSecretMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetMembershipsQuery>(
-            GetMembershipsDocument,
+          client.request<UpdateSecretMutation>(
+            UpdateSecretDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetMemberships",
-        "query",
+        "UpdateSecret",
+        "mutation",
       );
     },
   };

@@ -22,7 +22,7 @@ export type ImageGetAllUnverifiedImagesResponse = {
  * @param req
  * @param res
  */
-export const handleGetUnverifiedImages = async (
+export const handleGetAllUnverifiedImages = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {

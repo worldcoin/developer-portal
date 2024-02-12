@@ -26,11 +26,6 @@ const nextConfig = {
       },
     ],
   },
-  publicRuntimeConfig: Object.fromEntries(
-    Object.entries(process.env).filter(([key]) =>
-      key.startsWith("NEXT_PUBLIC_"),
-    ),
-  ),
 
   async redirects() {
     return [

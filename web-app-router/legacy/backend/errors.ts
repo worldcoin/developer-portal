@@ -113,14 +113,14 @@ export function errorOIDCResponse(
 
 export function errorHasuraQuery({
   res,
-  code,
-  detail,
+  code = "internal_api_error",
+  detail = "Something went wrong.",
   req,
 }: {
   res: NextApiResponse;
   req: NextApiRequest;
-  code: string;
-  detail: string;
+  code?: string;
+  detail?: string;
 }) {
   logger.error(detail, { req, error: { code } });
 

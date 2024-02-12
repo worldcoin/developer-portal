@@ -106,6 +106,25 @@ actions:
       - role: api_key
       - role: user
     comment: Generates a Signed URL to upload images
+  - name: verify_app
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/images/_verify_app'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+      request_transform:
+        method: POST
+        query_params:
+          app_id: '{{$body.input.app_id}}'
+          is_reviewer_app_store_approved: '{{$body.input.is_reviewer_app_store_approved}}'
+          is_reviewer_world_app_approved: '{{$body.input.is_reviewer_world_app_approved}}'
+          reviewer_name: '{{$body.input.reviewer_name}}'
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: reviewer
+    comment: Verify an App
 custom_types:
   enums: []
   input_objects:
@@ -121,4 +140,5 @@ custom_types:
     - name: ImageGetAllUnverifiedImagesOutput
     - name: PresignedPostOutput
     - name: DeleteImageOutput
+    - name: VerifyAppOutput
   scalars: []

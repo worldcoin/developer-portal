@@ -18,7 +18,7 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const handleUploadImage = async (
+export const handleImageUpload = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {

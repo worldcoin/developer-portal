@@ -4,30 +4,26 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetMembershipQueryVariables = Types.Exact<{
-  team_id: Types.Scalars["String"];
-  user_id: Types.Scalars["String"];
+export type UpdateSecretMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
+  hashed_secret: Types.Scalars["String"];
 }>;
 
-export type GetMembershipQuery = {
-  __typename?: "query_root";
-  team: Array<{ __typename?: "team"; id: string }>;
+export type UpdateSecretMutation = {
+  __typename?: "mutation_root";
+  update_action?: {
+    __typename?: "action_mutation_response";
+    affected_rows: number;
+  } | null;
 };
 
-export const GetMembershipDocument = gql`
-  query GetMembership($team_id: String!, $user_id: String!, $app_id: String!) {
-    team(
-      where: {
-        id: { _eq: $team_id }
-        memberships: {
-          user_id: { _eq: $user_id }
-          role: { _in: [ADMIN, OWNER] }
-        }
-        apps: { id: { _eq: $app_id } }
-      }
+export const UpdateSecretDocument = gql`
+  mutation UpdateSecret($app_id: String!, $hashed_secret: String!) {
+    update_action(
+      where: { app_id: { _eq: $app_id }, action: { _eq: "" } }
+      _set: { client_secret: $hashed_secret }
     ) {
-      id
+      affected_rows
     }
   }
 `;
@@ -49,18 +45,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    GetMembership(
-      variables: GetMembershipQueryVariables,
+    UpdateSecret(
+      variables: UpdateSecretMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<GetMembershipQuery> {
+    ): Promise<UpdateSecretMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetMembershipQuery>(GetMembershipDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "GetMembership",
-        "query"
+          client.request<UpdateSecretMutation>(
+            UpdateSecretDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "UpdateSecret",
+        "mutation"
       );
     },
   };

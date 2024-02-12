@@ -134,3 +134,7 @@ export const verifyHashedSecret = (
 
   return generated_secret === hashed_secret;
 };
+
+export const getFileExtension = (filename: string): string => {
+  return filename.slice(filename.lastIndexOf("."));
+};

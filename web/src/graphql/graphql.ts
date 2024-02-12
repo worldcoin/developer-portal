@@ -819,6 +819,33 @@ export type Api_Key_Aggregate = {
   nodes: Array<Api_Key>;
 };
 
+export type Api_Key_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Api_Key_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Api_Key_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Api_Key_Aggregate_Bool_Exp_Count>;
+};
+
+export type Api_Key_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Api_Key_Select_Column_Api_Key_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+  filter?: InputMaybe<Api_Key_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Api_Key_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Api_Key_Select_Column_Api_Key_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+  filter?: InputMaybe<Api_Key_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Api_Key_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Api_Key_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+  filter?: InputMaybe<Api_Key_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "api_key" */
 export type Api_Key_Aggregate_Fields = {
   __typename?: "api_key_aggregate_fields";
@@ -831,6 +858,20 @@ export type Api_Key_Aggregate_Fields = {
 export type Api_Key_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Api_Key_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** order by aggregate values of table "api_key" */
+export type Api_Key_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Api_Key_Max_Order_By>;
+  min?: InputMaybe<Api_Key_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "api_key" */
+export type Api_Key_Arr_Rel_Insert_Input = {
+  data: Array<Api_Key_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Api_Key_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "api_key". All fields are combined with a logical 'AND'. */
@@ -877,6 +918,16 @@ export type Api_Key_Max_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
+/** order by max() on columns of table "api_key" */
+export type Api_Key_Max_Order_By = {
+  api_key?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Api_Key_Min_Fields = {
   __typename?: "api_key_min_fields";
@@ -886,6 +937,16 @@ export type Api_Key_Min_Fields = {
   name?: Maybe<Scalars["String"]>;
   team_id?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
+};
+
+/** order by min() on columns of table "api_key" */
+export type Api_Key_Min_Order_By = {
+  api_key?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "api_key" */
@@ -937,6 +998,18 @@ export enum Api_Key_Select_Column {
   TeamId = "team_id",
   /** column name */
   UpdatedAt = "updated_at",
+}
+
+/** select "api_key_aggregate_bool_exp_bool_and_arguments_columns" columns of table "api_key" */
+export enum Api_Key_Select_Column_Api_Key_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsActive = "is_active",
+}
+
+/** select "api_key_aggregate_bool_exp_bool_or_arguments_columns" columns of table "api_key" */
+export enum Api_Key_Select_Column_Api_Key_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsActive = "is_active",
 }
 
 /** input type for updating data in table "api_key" */
@@ -4085,9 +4158,6 @@ export type Mutation_RootUpdate_User_ManyArgs = {
 /** mutation root */
 export type Mutation_RootVerify_AppArgs = {
   app_id: Scalars["String"];
-  is_reviewer_app_store_approved: Scalars["Boolean"];
-  is_reviewer_world_app_approved: Scalars["Boolean"];
-  reviewer_name: Scalars["String"];
 };
 
 /** columns and relationships of "nullifier" */
@@ -5808,6 +5878,10 @@ export type Subscription_RootUser_StreamArgs = {
 export type Team = {
   __typename?: "team";
   /** An array relationship */
+  api_keys: Array<Api_Key>;
+  /** An aggregate relationship */
+  api_keys_aggregate: Api_Key_Aggregate;
+  /** An array relationship */
   apps: Array<App>;
   /** An aggregate relationship */
   apps_aggregate: App_Aggregate;
@@ -5819,6 +5893,24 @@ export type Team = {
   memberships_aggregate: Membership_Aggregate;
   name?: Maybe<Scalars["String"]>;
   updated_at: Scalars["timestamptz"];
+};
+
+/** columns and relationships of "team" */
+export type TeamApi_KeysArgs = {
+  distinct_on?: InputMaybe<Array<Api_Key_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Api_Key_Order_By>>;
+  where?: InputMaybe<Api_Key_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamApi_Keys_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Api_Key_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Api_Key_Order_By>>;
+  where?: InputMaybe<Api_Key_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -5883,6 +5975,8 @@ export type Team_Bool_Exp = {
   _and?: InputMaybe<Array<Team_Bool_Exp>>;
   _not?: InputMaybe<Team_Bool_Exp>;
   _or?: InputMaybe<Array<Team_Bool_Exp>>;
+  api_keys?: InputMaybe<Api_Key_Bool_Exp>;
+  api_keys_aggregate?: InputMaybe<Api_Key_Aggregate_Bool_Exp>;
   apps?: InputMaybe<App_Bool_Exp>;
   apps_aggregate?: InputMaybe<App_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -5901,6 +5995,7 @@ export enum Team_Constraint {
 
 /** input type for inserting data into table "team" */
 export type Team_Insert_Input = {
+  api_keys?: InputMaybe<Api_Key_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<App_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   id?: InputMaybe<Scalars["String"]>;
@@ -5952,6 +6047,7 @@ export type Team_On_Conflict = {
 
 /** Ordering options when selecting data from "team". */
 export type Team_Order_By = {
+  api_keys_aggregate?: InputMaybe<Api_Key_Aggregate_Order_By>;
   apps_aggregate?: InputMaybe<App_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
