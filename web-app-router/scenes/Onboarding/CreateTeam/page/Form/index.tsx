@@ -96,7 +96,7 @@ export const Form = () => {
           {/* TODO: add link */}
           <Typography variant={TYPOGRAPHY.R3}>
             I agree with{" "}
-            <Link href="#" className="underline">
+            <Link href="/tos" className="underline">
               Terms & Conditions
             </Link>{" "}
             <span className="text-system-error-600">*</span>
