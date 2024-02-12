@@ -23,7 +23,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     id: params.appId ?? "",
   });
 
-  const isOnChainApp = app?.[0].engine === EngineType.OnChain;
+  const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
     <div>

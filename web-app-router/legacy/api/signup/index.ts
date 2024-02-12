@@ -37,6 +37,7 @@ import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Membership, Role_Enum } from "@/graphql/graphql";
 import { isEmailUser } from "@/api/helpers/is-email-user";
+import { captureEvent } from "@/services/posthogClient";
 
 export type SignupResponse = { returnTo: string };
 
@@ -242,6 +243,16 @@ export const handleSignup = withApiAuthRequired(
     if (!user) {
       return errorResponse(res, 500, "Failed to signup", undefined, null, req);
     }
+
+    await captureEvent({
+      event: "signup_success",
+      distinctId:
+        insertMembershipResult.insert_membership_one.user.posthog_id ?? "",
+      properties: {
+        team_id: insertMembershipResult.insert_membership_one.team_id,
+        invited: !!invite_id,
+      },
+    });
 
     await updateSession(req, res, {
       ...session,

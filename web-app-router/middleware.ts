@@ -132,3 +132,5 @@ export default withMiddlewareAuthRequired(async function middleware(
 
   return response;
 });
+
+export const config = { matcher: ["/teams", "/teams/:path*", "/create-team"] };
