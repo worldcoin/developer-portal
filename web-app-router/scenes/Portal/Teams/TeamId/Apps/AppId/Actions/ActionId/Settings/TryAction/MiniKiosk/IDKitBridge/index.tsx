@@ -106,7 +106,13 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         }
         break;
     }
-  }, [idKitVerificationState, intervalId, setScreen]);
+  }, [
+    connectionTimeout,
+    idKitVerificationState,
+    intervalId,
+    resetKiosk,
+    setScreen,
+  ]);
 
   useEffect(() => {
     if (connectorURI) {

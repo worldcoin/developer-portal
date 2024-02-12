@@ -56,11 +56,13 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     setConnectionTimeout(true);
   }, [reset]);
 
+  // Reset kiosk if the action changes
   useEffect(() => {
     if (!action) {
       setScreen(KioskScreen.InvalidRequest);
     }
-  }, [action, setScreen]);
+    resetKiosk();
+  }, [action, resetKiosk, setScreen]);
 
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
@@ -96,7 +98,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         }
       }
     },
-    [setScreen],
+    [action?.action, appId],
   );
 
   useEffect(() => {
