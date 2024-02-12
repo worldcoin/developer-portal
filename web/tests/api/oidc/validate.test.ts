@@ -1,16 +1,17 @@
 import { createMocks } from "node-mocks-http";
-import { OIDCErrorCodes } from "src/backend/oidc";
-import handleOIDCValidate from "src/pages/api/v1/oidc/validate";
+import { OIDCErrorCodes } from "@/legacy/backend/oidc";
+import handleOIDCValidate from "@/pages/api/v1/oidc/validate";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const requestReturnFn = jest.fn();
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
     }),
-  }))
+  })),
 );
 
 beforeEach(() => {
@@ -44,7 +45,7 @@ beforeEach(() => {
 
 describe("/api/v1/oidc/validate", () => {
   test("can validate app and redirect_uri", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: {
         app_id: "app_0123456789",
@@ -63,7 +64,7 @@ describe("/api/v1/oidc/validate", () => {
   });
 
   test("invalid app_id", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: {
         app_id: "app_invalid",
@@ -94,7 +95,7 @@ describe("/api/v1/oidc/validate", () => {
   });
 
   test("invalid redirect_uri", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: {
         app_id: "app_0123456789",

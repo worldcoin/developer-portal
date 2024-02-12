@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleOIDCAuthorize from "src/pages/api/v1/oidc/authorize";
+import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
@@ -9,8 +9,9 @@ import { testGetDefaultApp } from "../test-utils";
 import fetchMock from "jest-fetch-mock";
 import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
 import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
-import { OIDCErrorCodes } from "src/backend/oidc";
+import { OIDCErrorCodes } from "@/legacy/backend/oidc";
 import { createHash } from "crypto";
+import { NextApiRequest, NextApiResponse } from "next";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -43,16 +44,16 @@ const validParams = (app_id: string, pkce = false) =>
           code_challenge_method: "S256",
         }
       : {}),
-  } as Record<string, string>);
+  }) as Record<string, string>;
 
 // TODO: Add additional test cases
 describe("/api/v1/oidc/authorize", () => {
   test("can get an auth code", async () => {
     const dbQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;",
     );
     const app_id = dbQuery.rows[0].app_id;
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +80,7 @@ describe("/api/v1/oidc/authorize", () => {
     const params = validParams(app_id);
     delete params.redirect_uri;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -100,7 +101,7 @@ describe("/api/v1/oidc/authorize", () => {
   test("invalid `redirect_uri` is rejected", async () => {
     const app_id = await testGetDefaultApp();
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -123,10 +124,10 @@ describe("/api/v1/oidc/authorize", () => {
 
   test("can get an auth code with PKCE", async () => {
     const dbQuery = await integrationDBExecuteQuery(
-      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;"
+      "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;",
     );
     const app_id = dbQuery.rows[0].app_id;
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -149,7 +150,7 @@ describe("/api/v1/oidc/authorize", () => {
     const code = res._getJSONData().code;
 
     const { rows } = await integrationDBExecuteQuery(
-      `SELECT * FROM public.auth_code WHERE auth_code = '${code}' LIMIT 1;`
+      `SELECT * FROM public.auth_code WHERE auth_code = '${code}' LIMIT 1;`,
     );
     const { code_challenge, code_challenge_method } = rows[0];
 

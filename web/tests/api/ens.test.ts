@@ -1,12 +1,13 @@
 import { createMocks } from "node-mocks-http";
-import handleENS from "src/pages/api/_ens";
+import handleENS from "@/pages/api/_ens";
+import { NextApiRequest, NextApiResponse } from "next";
 
 // FIXME
 describe("/api/_ens", () => {
   test("fetch ENS records and store them", async () => {});
   test("does not overwrite if ENS records are not obtained", async () => {});
   test("endpoint is only accessible with specific token (Hasura)", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
     });
 

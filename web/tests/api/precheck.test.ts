@@ -1,6 +1,7 @@
 import { createMocks } from "node-mocks-http";
-import handlePrecheck from "../../src/pages/api/v1/precheck/[app_id]";
-import { Nullifier } from "src/graphql/graphql";
+import handlePrecheck from "@/pages/api/v1/precheck/[app_id]";
+import { Nullifier } from "@/graphql/graphql";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const requestReturnFn = jest.fn();
 
@@ -42,17 +43,17 @@ const exampleValidRequestPayload = {
 };
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
     }),
-  }))
+  })),
 );
 
 describe("/api/v1/precheck/[app_id]", () => {
   test("can fetch precheck response verified", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: exampleValidRequestPayload,
@@ -89,7 +90,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("can fetch precheck response unverified", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: exampleValidRequestPayload,
@@ -130,7 +131,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response with nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
@@ -163,7 +164,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response without nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: { ...exampleValidRequestPayload, nullifier_hash: undefined },
@@ -194,7 +195,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response with external_nullifier=null", async () => {
     // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: { ...exampleValidRequestPayload, external_nullifier: null },
@@ -227,7 +228,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("requires external_nullifier when action is not provided", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: {
@@ -248,7 +249,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("precheck with nullifier and below max number of verifications", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
@@ -281,7 +282,7 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("precheck with nullifier and max number of verifications met", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
       body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
@@ -316,7 +317,7 @@ describe("/api/v1/precheck/[app_id]", () => {
 
 describe("/api/v1/precheck/[action_id] [error cases]", () => {
   test("non-existent action", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       query: { app_id: "app_id_do_not_exist" },
       body: exampleValidRequestPayload,
@@ -332,7 +333,7 @@ describe("/api/v1/precheck/[action_id] [error cases]", () => {
 
     expect(res._getStatusCode()).toBe(404);
     expect(res._getJSONData()).toEqual(
-      expect.objectContaining({ code: "not_found" })
+      expect.objectContaining({ code: "not_found" }),
     );
   });
 });

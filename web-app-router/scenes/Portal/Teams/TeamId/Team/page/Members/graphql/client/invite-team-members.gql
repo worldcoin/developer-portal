@@ -1,5 +1,0 @@
-mutation InviteTeamMembers($emails: [String!]) {
-  invite_team_members(emails: $emails) {
-    emails
-  }
-}

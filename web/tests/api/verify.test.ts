@@ -1,9 +1,10 @@
 import fetchMock from "jest-fetch-mock";
 import { when } from "jest-when";
 import { createMocks } from "node-mocks-http";
-import { NullifierModel } from "src/lib/models";
-import handleVerify from "src/pages/api/v1/verify/[app_id]";
+import { NullifierModel } from "@/legacy/lib/models";
+import handleVerify from "@/pages/api/v1/verify/[app_id]";
 import { semaphoreProofParamsMock } from "./__mocks__/proof.mock";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const validPayload = {
   ...semaphoreProofParamsMock,
@@ -54,13 +55,13 @@ const nullifierInsertResponse = () => ({
 const requestReturnFn = jest.fn();
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
       mutate: requestReturnFn,
     }),
-  }))
+  })),
 );
 
 beforeAll(() => {
@@ -76,7 +77,7 @@ beforeEach(() => {
           action_id: expect.stringMatching(/^action_[A-Za-z0-9_]+$/),
           nullifier_hash: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
         }),
-      })
+      }),
     )
     .mockResolvedValue(nullifierInsertResponse())
     .calledWith(expect.anything())
@@ -86,7 +87,7 @@ beforeEach(() => {
 // TODO: Finish these test cases
 describe("/api/v1/verify", () => {
   test("can verify proof", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
@@ -106,13 +107,13 @@ describe("/api/v1/verify", () => {
         nullifier_hash:
           "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
         action: "verify",
-      })
+      }),
     );
   });
 
   test("can verify staging proof", async () => {});
   test("can verify with empty action", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload, action: "" },
       query: { app_id: "app_staging_112233445566778" },
@@ -128,7 +129,7 @@ describe("/api/v1/verify", () => {
             nullifier_hash: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
             merkle_root: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
           }),
-        })
+        }),
       )
       .mockResolvedValue(nullifierInsertResponse())
       .calledWith(expect.anything())
@@ -146,7 +147,7 @@ describe("/api/v1/verify", () => {
         nullifier_hash:
           "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
         action: "",
-      })
+      }),
     );
   });
 
@@ -163,7 +164,7 @@ describe("/api/v1/verify", () => {
     ];
 
     for (const payload of payloads) {
-      const { req, res } = createMocks({
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
         method: "POST",
         body: payload,
         query: { app_id: "app_staging_112233445566778" },
@@ -183,7 +184,7 @@ describe("/api/v1/verify", () => {
           nullifier_hash:
             "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
           action: "verify",
-        })
+        }),
       );
     }
   });
@@ -193,7 +194,7 @@ describe("/api/verify [error cases]", () => {
   test("action inactive or not found", async () => {});
   test("on-chain actions cannot be verified", async () => {});
   test("prevent duplicates (uniqueness check)", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
@@ -212,12 +213,12 @@ describe("/api/verify [error cases]", () => {
       expect.objectContaining({
         code: "max_verifications_reached",
         detail: "This person has already verified for this action.",
-      })
+      }),
     );
   });
 
   test("cannot verify if reached max number of verifications", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
@@ -239,14 +240,14 @@ describe("/api/verify [error cases]", () => {
         code: "max_verifications_reached",
         detail:
           "This person has already verified for this action the maximum number of times (2).",
-      })
+      }),
     );
   });
   test("cannot verify without required parameters", async () => {});
   test("parameter parsing error", async () => {});
   test("throws error if proof is valid but nullifier cannot be inserted", async () => {});
   test("invalid merkle root", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
@@ -266,11 +267,11 @@ describe("/api/verify [error cases]", () => {
         detail:
           "The provided Merkle root is invalid. User appears to be unverified.",
         attribute: null,
-      })
+      }),
     );
   });
   test("invalid proof", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
@@ -290,7 +291,7 @@ describe("/api/verify [error cases]", () => {
         detail:
           "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
         attribute: null,
-      })
+      }),
     );
   });
 });

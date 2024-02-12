@@ -5,7 +5,7 @@ import {
   integrationDBTearDown,
 } from "./setup";
 import { getAPIUserClient } from "./test-utils";
-import { getAPIServiceClient } from "@/backend/graphql";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -14,7 +14,7 @@ describe("redirect model", () => {
   test("allows valid URLs", async () => {
     const client = await getAPIServiceClient();
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT id FROM "public"."action" LIMIT 1;'
+      'SELECT id FROM "public"."action" LIMIT 1;',
     );
     const action_id = rows[0].id;
     const insertRedirectMutation = gql`
@@ -44,7 +44,7 @@ describe("redirect model", () => {
       });
       expect(response.errors).toBeUndefined();
       expect(response.data?.insert_redirect_one.redirect_uri).toEqual(
-        redirect_uri
+        redirect_uri,
       );
     }
   });
@@ -52,7 +52,7 @@ describe("redirect model", () => {
   test("prevent invalid URLs", async () => {
     const client = await getAPIUserClient();
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT id FROM "public"."action" LIMIT 1;'
+      'SELECT id FROM "public"."action" LIMIT 1;',
     );
     const action_id = rows[0].id;
     const insertRedirectMutation = gql`
@@ -93,7 +93,7 @@ describe("redirect model", () => {
   test("URLs must be over HTTPs unless localhost", async () => {
     const client = await getAPIUserClient();
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT id FROM "public"."action" LIMIT 1;'
+      'SELECT id FROM "public"."action" LIMIT 1;',
     );
     const action_id = rows[0].id;
     const insertRedirectMutation = gql`

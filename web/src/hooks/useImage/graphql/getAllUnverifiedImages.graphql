@@ -1,7 +1,0 @@
-query GetAllUnverifiedImagesQuery($app_id: String!) {
-  get_all_unverified_images(app_id: $app_id) {
-    logo_img_url
-    hero_image_url
-    showcase_img_urls
-  }
-}

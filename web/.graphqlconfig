@@ -1,6 +1,6 @@
 {
   "name": "hasura",
-  "schemaPath": "src/graphql/graphql.schema.json",
+  "schemaPath": "graphql/graphql.schema.json",
   "extensions": {
     "endpoints": {
       "hasura": {
