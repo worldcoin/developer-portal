@@ -21,8 +21,9 @@ query GetActions($app_id: String!) {
       nullifier_hash
       uses
     }
-    app {
-      engine
-    }
+  }
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    engine
   }
 }

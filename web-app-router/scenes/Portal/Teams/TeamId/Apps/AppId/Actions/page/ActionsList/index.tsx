@@ -24,8 +24,9 @@ type ActionRow = {
 export const ActionsList = (props: {
   actions: GetActionsQuery["action"];
   className: string;
+  engineType?: string;
 }) => {
-  const { actions, className } = props;
+  const { actions, className, engineType } = props;
   const pathName = usePathname() ?? "";
   const router = useRouter();
 
@@ -36,8 +37,8 @@ export const ActionsList = (props: {
   const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
 
   const isOnChainApp = useMemo(() => {
-    return actions[0].app.engine === EngineType.OnChain;
-  }, [actions]);
+    return engineType === EngineType.OnChain;
+  }, [engineType]);
 
   const { register, control } = useForm<{ actionSearch: string }>({
     mode: "onChange",

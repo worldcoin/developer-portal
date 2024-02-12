@@ -32,6 +32,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   });
 
   const showList = data?.action && data?.action?.length > 0;
+  const engineType = data?.app[0]?.engine;
 
   if (!loading && !data) {
     return (
@@ -50,6 +51,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         ) : (
           <ActionsList
             actions={data?.action!}
+            engineType={engineType}
             className={clsx({ hidden: !showList || createAction })}
           />
         )}
@@ -65,6 +67,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         ) : (
           <CreateActionModal
             className={clsx({ hidden: !createAction })}
+            engineType={engineType}
             firstAction={data?.action.length === 0} // Due to the refetch query completing this value will be updated to 1
           />
         )}

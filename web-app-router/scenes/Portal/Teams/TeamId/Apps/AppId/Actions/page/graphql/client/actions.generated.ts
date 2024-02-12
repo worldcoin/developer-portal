@@ -31,8 +31,8 @@ export type GetActionsQuery = {
       nullifier_hash: string;
       uses?: number | null;
     }>;
-    app: { __typename?: "app"; engine: string };
   }>;
+  app: Array<{ __typename?: "app"; id: string; engine: string }>;
 };
 
 export const GetActionsDocument = gql`
@@ -59,9 +59,10 @@ export const GetActionsDocument = gql`
         nullifier_hash
         uses
       }
-      app {
-        engine
-      }
+    }
+    app(where: { id: { _eq: $app_id } }) {
+      id
+      engine
     }
   }
 `;
