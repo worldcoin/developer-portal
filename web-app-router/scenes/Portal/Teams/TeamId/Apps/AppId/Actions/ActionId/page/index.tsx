@@ -39,7 +39,7 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
         <div className="grid gap-y-2 max-w-[1180px] w-full py-10">
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
           <hr className="my-5 w-full text-grey-200 border-dashed" />
-          <div className="w-full grid-cols-2 grid items-start justify-between gap-x-32">
+          <div className="w-full md:grid-cols-2 grid items-start justify-between gap-x-32 gap-y-10 grid-cols-1">
             <ActionStatsGraph />
             {loading ? (
               <div>
