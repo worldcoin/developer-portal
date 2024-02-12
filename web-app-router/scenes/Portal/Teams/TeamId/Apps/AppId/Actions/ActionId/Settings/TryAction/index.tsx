@@ -8,6 +8,7 @@ import { useState } from "react";
 import clsx from "clsx";
 import { CodeBlock } from "./CodeBlock";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { EngineType } from "@/lib/types";
 
 type TryActionProps = {
   action: {
@@ -21,7 +22,9 @@ type TryActionProps = {
 
 export const TryAction = (props: TryActionProps) => {
   const { action } = props;
-  const [showCode, setShowCode] = useState(false);
+  const [showCode, setShowCode] = useState(
+    action.app.engine === EngineType.OnChain,
+  );
 
   return (
     <div className="h-full gap-y-5 grid grid-rows-auto/1fr items-start lg:w-[480px]">
@@ -36,6 +39,7 @@ export const TryAction = (props: TryActionProps) => {
             className={clsx(
               "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
               { "border border-grey-200": !showCode },
+              { hidden: action.app.engine === EngineType.OnChain },
             )}
           >
             <QRIcon

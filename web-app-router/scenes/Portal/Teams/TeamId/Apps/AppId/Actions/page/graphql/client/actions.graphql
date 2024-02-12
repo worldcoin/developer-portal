@@ -22,4 +22,8 @@ query GetActions($app_id: String!) {
       uses
     }
   }
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    engine
+  }
 }

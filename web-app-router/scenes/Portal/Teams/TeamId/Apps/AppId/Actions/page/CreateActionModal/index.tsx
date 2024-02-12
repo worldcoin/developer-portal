@@ -22,6 +22,7 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import posthog from "posthog-js";
+import { EngineType } from "@/lib/types";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -38,10 +39,11 @@ export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
 type CreateActionModalProps = {
   className?: string;
   firstAction?: boolean;
+  engineType?: string;
 };
 
 export const CreateActionModal = (props: CreateActionModalProps) => {
-  const { className, firstAction } = props;
+  const { className, firstAction, engineType } = props;
   const pathname = usePathname() ?? "";
   const params = useParams();
   const router = useRouter();
@@ -222,22 +224,24 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                 </button>
               }
             />
-            <Controller
-              name="maxVerifications"
-              control={control}
-              render={({ field }) => {
-                return (
-                  <MaxVerificationsSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    errors={errors.maxVerifications}
-                    showCustomInput
-                    label="Max verifications per user"
-                    helperText="The number of verifications the same person can do for this action"
-                  />
-                );
-              }}
-            />
+            {engineType !== EngineType.OnChain && (
+              <Controller
+                name="maxVerifications"
+                control={control}
+                render={({ field }) => {
+                  return (
+                    <MaxVerificationsSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      errors={errors.maxVerifications}
+                      showCustomInput
+                      label="Max verifications per user"
+                      helperText="The number of verifications the same person can do for this action"
+                    />
+                  );
+                }}
+              />
+            )}
 
             <div className="w-full flex justify-end">
               <DecoratedButton

@@ -51,7 +51,7 @@ export const ActionRow = (props: {
       <Typography variant={TYPOGRAPHY.R4}>{uses}</Typography>
     </div>,
     <div key={`${key}_3`} className="w-full flex justify-end px-2">
-      <DetailsMenu path={`${pathName}/${action.id}`} />
+      <DetailsMenu path={pathName} />
     </div>,
   ];
 };

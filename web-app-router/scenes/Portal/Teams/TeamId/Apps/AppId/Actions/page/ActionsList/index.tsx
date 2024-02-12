@@ -13,14 +13,20 @@ import { Input } from "@/components/Input";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { GetActionsQuery } from "../graphql/client/actions.generated";
+import { EngineType } from "@/lib/types";
 
 type ActionRow = {
   cells: ReactNode[];
   id: string;
 };
 
-export const ActionsList = (props: { actions: any; className: string }) => {
-  const { actions, className } = props;
+export const ActionsList = (props: {
+  actions: GetActionsQuery["action"];
+  className: string;
+  engineType?: string;
+}) => {
+  const { actions, className, engineType } = props;
   const pathName = usePathname() ?? "";
   const router = useRouter();
 
@@ -29,6 +35,10 @@ export const ActionsList = (props: { actions: any; className: string }) => {
   const [totalResultsCount, setTotalResultsCount] = useState(actions.length);
   const rowsPerPageOptions = [10, 20]; // Rows per page options
   const headers = [<span key={0}>Name</span>, <span key={1}>Uses</span>, null];
+
+  const isOnChainApp = useMemo(() => {
+    return engineType === EngineType.OnChain;
+  }, [engineType]);
 
   const { register, control } = useForm<{ actionSearch: string }>({
     mode: "onChange",
@@ -59,13 +69,15 @@ export const ActionsList = (props: { actions: any; className: string }) => {
       setCurrentPage(1);
       const fieldsToSearch = ["name", "description", "action"] as const;
 
-      filteredActions = filteredActions.filter((action: any) => {
-        return fieldsToSearch.some((field) => {
-          return action[field]
-            ?.toLowerCase()
-            .includes(actionsSearch.toLowerCase());
-        });
-      });
+      filteredActions = filteredActions.filter(
+        (action: GetActionsQuery["action"][0]) => {
+          return fieldsToSearch.some((field) => {
+            return action[field]
+              ?.toLowerCase()
+              .includes(actionsSearch.toLowerCase());
+          });
+        },
+      );
     }
 
     setTotalResultsCount(filteredActions.length);
@@ -73,13 +85,28 @@ export const ActionsList = (props: { actions: any; className: string }) => {
     const endIndex = startIndex + rowsPerPage;
     const paginatedActions = filteredActions.slice(startIndex, endIndex);
 
-    return paginatedActions.map((action: any, index: number) => {
-      return {
-        cells: ActionRow({ action: action, key: index, pathName: pathName }),
-        id: action.id,
-      };
-    });
-  }, [actions, actionsSearch, currentPage, pathName, rowsPerPage]);
+    return paginatedActions.map(
+      (action: GetActionsQuery["action"][0], index: number) => {
+        return {
+          cells: ActionRow({
+            action: action,
+            key: index,
+            pathName: isOnChainApp
+              ? `${pathName}/${action.id}/settings`
+              : `${pathName}/${action.id}`,
+          }),
+          id: action.id,
+        };
+      },
+    );
+  }, [
+    actions,
+    actionsSearch,
+    currentPage,
+    isOnChainApp,
+    pathName,
+    rowsPerPage,
+  ]);
 
   return (
     <div
@@ -133,7 +160,11 @@ export const ActionsList = (props: { actions: any; className: string }) => {
                     row={rowData.cells}
                     key={index}
                     handleOnClick={() =>
-                      router.push(`${pathName}/${rowData.id}`)
+                      router.push(
+                        isOnChainApp
+                          ? `${pathName}/${rowData.id}/settings`
+                          : `${pathName}/${rowData.id}`,
+                      )
                     }
                     className="cursor-pointer"
                   />

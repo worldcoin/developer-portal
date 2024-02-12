@@ -5,6 +5,7 @@ import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-singl
 import { ActionsHeader } from "../Common/ActionsHeader";
 import Skeleton from "react-loading-skeleton";
 import { ActionStatsGraph } from "./ActionStatsGraph";
+import { EngineType } from "@/lib/types";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -30,6 +31,8 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
         title="Action not found"
       ></ErrorComponent>
     );
+  } else if (data?.action[0]?.app.engine === EngineType.OnChain) {
+    return <ErrorComponent statusCode={401} title="No Access"></ErrorComponent>;
   } else {
     return (
       <div className="w-full h-full flex flex-col items-center ">
