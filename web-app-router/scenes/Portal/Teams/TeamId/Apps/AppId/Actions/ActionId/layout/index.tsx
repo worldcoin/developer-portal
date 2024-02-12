@@ -35,7 +35,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
     id: params.appId ?? "",
   });
 
-  const isOnChainApp = app?.[0].engine === EngineType.OnChain;
+  const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
     <div className="h-full w-full">

@@ -13,6 +13,7 @@ import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import posthog from "posthog-js";
 
 const testProofSchema = yup.object({
   signal: yup.string().optional(),
@@ -138,7 +139,11 @@ export const Debugger = (props: DebuggerProps) => {
       if (res.status !== 200) {
         setStatus(Status.ERROR);
         setMessage(messages.NOT_VERIFIED);
-        // posthog.capture("debugger-verify-failed");
+        posthog.capture("debugger-verify-failed", {
+          app_id: appID,
+          action_id: action.id,
+          environment: action.app?.is_staging ? "staging" : "production",
+        });
         return;
       }
 
@@ -146,10 +151,20 @@ export const Debugger = (props: DebuggerProps) => {
       setStatus(Status.SUCCESS);
       if (response.status === "on-chain") {
         setMessage(messages.SUCCESS_ONCHAIN);
-        // posthog.capture("debugger-verify-success", { environment: "on-chain" });
+        posthog.capture("debugger-verify-success", {
+          app_id: appID,
+          action_id: action.id,
+          environment: action.app?.is_staging ? "staging" : "production",
+          engine: "on-chain",
+        });
       } else {
         setMessage(messages.SUCCESS_PENDING);
-        // posthog.capture("debugger-verify-success", { environment: "cloud" });
+        posthog.capture("debugger-verify-success", {
+          app_id: appID,
+          action_id: action.id,
+          environment: action.app?.is_staging ? "staging" : "production",
+          engine: "cloud",
+        });
       }
     } catch (err) {
       setStatus(Status.ERROR);

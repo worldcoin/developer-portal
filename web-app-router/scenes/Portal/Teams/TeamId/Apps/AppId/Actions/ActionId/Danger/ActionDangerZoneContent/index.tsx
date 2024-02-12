@@ -54,7 +54,7 @@ export const ActionDangerZoneContent = (props: {
       return toast.error("Unable to delete action");
     }
     toast.success(`${action?.name} was deleted.`);
-  }, [action.id, action?.name, action?.app_id, deleteActionQuery, router]);
+  }, [action.id, action?.name, deleteActionQuery, router]);
 
   return (
     <div>
