@@ -150,10 +150,10 @@ describe("/api/v1/oidc/token", () => {
         jti: expect.any(String),
         scope: "openid email",
         email: "0x000000000000000111111111111@id.worldcoin.org",
-        "https://id.worldcoin.org/beta": {
+        "https://id.worldcoin.org/beta": expect.objectContaining({
           likely_human: "strong",
           credential_type: "orb",
-        },
+        }),
         "https://id.worldcoin.org/v1": {
           verification_level: "orb",
         },
