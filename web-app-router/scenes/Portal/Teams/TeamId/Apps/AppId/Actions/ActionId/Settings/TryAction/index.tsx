@@ -24,7 +24,7 @@ export const TryAction = (props: TryActionProps) => {
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <div className="h-full gap-y-5 grid grid-rows-auto/1fr items-start md:w-[480px]">
+    <div className="h-full gap-y-5 grid grid-rows-auto/1fr items-start lg:w-[480px]">
       <div className="grid grid-cols-2 justify-between w-full items-center">
         <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
           Try it out

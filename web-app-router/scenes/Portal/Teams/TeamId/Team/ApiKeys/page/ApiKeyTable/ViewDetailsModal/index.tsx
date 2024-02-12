@@ -94,7 +94,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
       <DialogPanel>
-        <div className="max-w-[580px] min-w-96 grid grid-cols-1 gap-y-8 justify-items-center w-full">
+        <div className="max-w-[580px]  grid grid-cols-1 gap-y-8 justify-items-center w-full">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>

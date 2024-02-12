@@ -104,7 +104,10 @@ export const ApiKeyRow = (props: {
         </Typography>
       </td>
 
-      <td className="group break-all max-w-96 pr-3" key={`api_key${index}_2`}>
+      <td
+        className="group break-all max-w-96 pr-3 w-auto"
+        key={`api_key${index}_2`}
+      >
         <Typography
           variant={TYPOGRAPHY.R3}
           as="div"
@@ -140,7 +143,9 @@ export const ApiKeyRow = (props: {
       <td>
         <div
           key={`api_key_${index}_5`}
-          className="w-full flex justify-end px-2"
+          className={clsx("w-full flex justify-end px-2", {
+            hidden: !isEnoughPermissions,
+          })}
         >
           <Dropdown>
             <DropdownButton>
@@ -156,30 +161,27 @@ export const ApiKeyRow = (props: {
                   <Typography variant={TYPOGRAPHY.R4}>Edit Key</Typography>
                 </div>
               </DropdownItem>
-              {isEnoughPermissions && (
-                <DropdownItem
-                  className="hover:bg-grey-50"
-                  onClick={() => resetAPIKey(apiKey.id)}
-                >
-                  <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                    <KeyIcon className="text-grey-400 w-5" />
-                    <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
-                  </div>
-                </DropdownItem>
-              )}
-              {isEnoughPermissions && (
-                <DropdownItem
-                  className="text-system-error-600 hover:bg-grey-50"
-                  onClick={() => openDeleteKeyModal(apiKey)}
-                >
-                  <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                    <TrashIcon className="w-5" />
-                    <Typography as="div" variant={TYPOGRAPHY.R4}>
-                      Remove key
-                    </Typography>
-                  </div>
-                </DropdownItem>
-              )}
+              <DropdownItem
+                className="hover:bg-grey-50"
+                onClick={() => resetAPIKey(apiKey.id)}
+              >
+                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
+                  <KeyIcon className="text-grey-400 w-5" />
+                  <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
+                </div>
+              </DropdownItem>
+
+              <DropdownItem
+                className="text-system-error-600 hover:bg-grey-50"
+                onClick={() => openDeleteKeyModal(apiKey)}
+              >
+                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
+                  <TrashIcon className="w-5" />
+                  <Typography as="div" variant={TYPOGRAPHY.R4}>
+                    Remove key
+                  </Typography>
+                </div>
+              </DropdownItem>
             </DropdownItems>
           </Dropdown>
         </div>

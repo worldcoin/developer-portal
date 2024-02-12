@@ -92,11 +92,9 @@ export const Form = () => {
       <div className="grid gap-y-8 p-6 border border-grey-200 rounded-xl">
         <div className="grid grid-cols-auto/1fr gap-x-3">
           <Checkbox register={register("termsAndConditions")} />
-
-          {/* TODO: add link */}
           <Typography variant={TYPOGRAPHY.R3}>
             I agree with{" "}
-            <Link href="#" className="underline">
+            <Link href="/tos" className="underline">
               Terms & Conditions
             </Link>{" "}
             <span className="text-system-error-600">*</span>

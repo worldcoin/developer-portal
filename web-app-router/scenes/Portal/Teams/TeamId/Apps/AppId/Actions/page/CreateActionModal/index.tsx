@@ -20,6 +20,7 @@ import { Link } from "@/components/Link";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import posthog from "posthog-js";
 
 const createActionSchema = yup.object({
@@ -141,7 +142,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
     [
       insertActionQuery,
-      generateExternalNullifier,
       appId,
       teamId,
       reset,
@@ -160,92 +160,97 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   return (
     <div
       className={clsx(
-        "fixed inset-0 w-full bg-white flex justify-center pt-10 overflow-auto",
+        "fixed inset-0 w-full bg-white grid justify-center",
         className,
       )}
     >
-      <div className="absolute top-0 w-full px-24 py-5 grid grid-cols-2 border-b-[1px] border-grey-100 bg-white">
-        <div className="grid grid-cols-[auto_auto_1fr] gap-3 w-full items-center">
-          <Link href={pathname}>
-            <CloseIcon />
-          </Link>
-          <div className="border-r-[1px] border-grey-200 h-full"></div>
-          <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
-            Create an incognito action
-          </Typography>
-        </div>
-        <div className="flex justify-end ">
-          <LoggedUserNav />
-        </div>
-      </div>
-      <div className="w-screen p-10 overflow-auto grid items-center justify-center min-h-full">
-        <form
-          onSubmit={handleSubmit(submit)}
-          className="grid grid-cols-1 gap-6"
-        >
-          <Typography className="mb-2" variant={TYPOGRAPHY.H6}>
-            Create an incognito action
-          </Typography>
-          <Input
-            register={register("name")}
-            errors={errors.name}
-            label="Name"
-            placeholder="Anonymous Vote #12"
-            required
-            className="w-136"
-          />
-          <Input
-            register={register("description")}
-            errors={errors.description}
-            label="Short Description"
-            placeholder="Cast your vote on proposal #102"
-            helperText="Tell your users what the action is about. Shown in the World App."
-            required
-            className="w-136"
-          />
-          <Input
-            register={register("action")}
-            errors={errors.action}
-            label="Identifier"
-            helperText="This is the value you will use in IDKit and any API calls."
-            placeholder="A short description of your action"
-            required
-            addOnRight={
-              <button className="px-1" type="button" onClick={copyAction}>
-                <CopyIcon />
-              </button>
-            }
-            className="w-136"
-          />
-          <Controller
-            name="maxVerifications"
-            control={control}
-            render={({ field }) => {
-              return (
-                <MaxVerificationsSelector
-                  value={field.value}
-                  onChange={field.onChange}
-                  errors={errors.maxVerifications}
-                  showCustomInput
-                  className="w-136" // border is 2px
-                  label="Max verifications per user"
-                  helperText="The number of verifications the same person can do for this action"
-                />
-              );
-            }}
-          />
+      <div className="grid grid-rows-auto/1fr items-center h-[100dvh] w-[100dvw]">
+        <SizingWrapper gridClassName="bg-grey-0 z-10 border-b">
+          <header className="w-full flex justify-between items-center min-h-9 py-4 border-grey-100">
+            <div className="flex gap-3 w-full items-center">
+              <Link href={pathname}>
+                <CloseIcon />
+              </Link>
+              <span className="text-grey-200">|</span>
+              <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
+                Create an incognito action
+              </Typography>
+            </div>
 
-          <div className="w-full flex justify-end">
-            <DecoratedButton
-              variant="primary"
-              type="submit"
-              disabled={!isValid || loading}
-              className="px-10 py-3"
-            >
-              <Typography variant={TYPOGRAPHY.R3}>Create Action</Typography>
-            </DecoratedButton>
-          </div>
-        </form>
+            <div className="flex justify-end ">
+              <LoggedUserNav />
+            </div>
+          </header>
+        </SizingWrapper>
+
+        <SizingWrapper
+          gridClassName="overflow-y-auto no-scrollbar"
+          className="flex justify-center items-center"
+        >
+          <form
+            onSubmit={handleSubmit(submit)}
+            className="grid grid-cols-1 gap-6 w-full max-w-[580px] py-10"
+          >
+            <Typography className="mb-2" variant={TYPOGRAPHY.H6}>
+              Create an incognito action
+            </Typography>
+            <Input
+              register={register("name")}
+              errors={errors.name}
+              label="Name"
+              placeholder="Anonymous Vote #12"
+              required
+            />
+            <Input
+              register={register("description")}
+              errors={errors.description}
+              label="Short Description"
+              placeholder="Cast your vote on proposal #102"
+              helperText="Tell your users what the action is about. Shown in the World App."
+              required
+            />
+            <Input
+              register={register("action")}
+              errors={errors.action}
+              label="Identifier"
+              helperText="This is the value you will use in IDKit and any API calls."
+              placeholder="A short description of your action"
+              required
+              addOnRight={
+                <button className="px-1" type="button" onClick={copyAction}>
+                  <CopyIcon />
+                </button>
+              }
+            />
+            <Controller
+              name="maxVerifications"
+              control={control}
+              render={({ field }) => {
+                return (
+                  <MaxVerificationsSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    errors={errors.maxVerifications}
+                    showCustomInput
+                    label="Max verifications per user"
+                    helperText="The number of verifications the same person can do for this action"
+                  />
+                );
+              }}
+            />
+
+            <div className="w-full flex justify-end">
+              <DecoratedButton
+                variant="primary"
+                type="submit"
+                disabled={!isValid || loading}
+                className="px-10 py-3"
+              >
+                <Typography variant={TYPOGRAPHY.R3}>Create Action</Typography>
+              </DecoratedButton>
+            </div>
+          </form>
+        </SizingWrapper>
       </div>
     </div>
   );

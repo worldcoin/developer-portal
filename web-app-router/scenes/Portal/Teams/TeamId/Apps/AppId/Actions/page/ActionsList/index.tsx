@@ -98,7 +98,7 @@ export const ActionsList = (props: { actions: any; className: string }) => {
             revealing their identity
           </Typography>
         </div>
-        <div className="grid grid-cols-1fr/auto w-full justify-between items-center mt-5 gap-x-2">
+        <div className="grid md:grid-cols-1fr/auto w-full justify-between items-center mt-5 gap-x-2 grid-cols-1 gap-y-2">
           <Input
             register={register("actionSearch")}
             label=""

@@ -173,7 +173,7 @@ export const Debugger = (props: DebuggerProps) => {
   );
   return (
     <form
-      className="w-full grid-cols-1fr/auto grid items-start justify-between gap-x-32"
+      className="w-full sm:grid-cols-1fr/auto grid items-start justify-between gap-x-32 gap-y-10 grid-cols-1"
       onSubmit={handleSubmit(submit)}
     >
       <div className="w-full grid gap-y-6">
@@ -203,7 +203,7 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="w-full grid gap-y-6 md:min-w-[480px]">
+      <div className="w-full grid gap-y-6 lg:min-w-[480px]">
         <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(
