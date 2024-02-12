@@ -4,15 +4,13 @@ import {
   InMemoryCache,
   NormalizedCacheObject,
 } from "@apollo/client";
+
 import { setContext } from "@apollo/client/link/context";
-import getConfig from "next/config";
 import { generateReviewerJWT, generateServiceJWT } from "@/legacy/backend/jwts";
 import { GraphQLClient } from "graphql-request";
 
-const { publicRuntimeConfig } = getConfig();
-
 const httpLink = createHttpLink({
-  uri: publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
 });
 
 /**
@@ -46,7 +44,7 @@ export const getAPIServiceClient = async (): Promise<
  * @returns
  */
 export const getAPIServiceGraphqlClient = async () => {
-  return new GraphQLClient(publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL, {
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
     },
@@ -60,7 +58,7 @@ export const getAPIServiceGraphqlClient = async () => {
  * @returns
  */
 export const getAPIReviewerGraphqlClient = async () => {
-  return new GraphQLClient(publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL, {
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
     headers: {
       authorization: `Bearer ${await generateReviewerJWT()}`,
     },
