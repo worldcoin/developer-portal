@@ -15,7 +15,7 @@ export type FetchUserQuery = {
     id: string;
     name: string;
     email?: string | null;
-    team: { __typename?: "team"; id: string; name?: string | null };
+    team?: { __typename?: "team"; id: string; name?: string | null } | null;
   }>;
 };
 

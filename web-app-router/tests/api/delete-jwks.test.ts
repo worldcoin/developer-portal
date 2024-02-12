@@ -1,7 +1,7 @@
 import { createMocks } from "node-mocks-http";
 import handleDeleteJWKS from "@/pages/api/_delete-jwks";
 import { when } from "jest-when";
-import { logger } from "@/lib/logger";
+import { logger } from "@/legacy/lib/logger";
 import { NextApiRequest, NextApiResponse } from "next";
 
 let consoleInfoSpy: jest.SpyInstance;

@@ -19,7 +19,7 @@ export type CreateUserAndDeleteInviteMutation = {
   user?: {
     __typename?: "user";
     id: string;
-    team_id: string;
+    team_id?: string | null;
     ironclad_id: string;
     posthog_id?: string | null;
     world_id_nullifier?: string | null;

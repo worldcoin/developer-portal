@@ -16,7 +16,7 @@ export type GetUserAndTeamMembershipsQuery = {
     id: string;
     name: string;
     email?: string | null;
-    team: { __typename?: "team"; id: string; name?: string | null };
+    team?: { __typename?: "team"; id: string; name?: string | null } | null;
   }>;
   membership: Array<{
     __typename?: "membership";
