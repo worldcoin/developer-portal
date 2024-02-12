@@ -141,7 +141,7 @@ export const handleInvite = async (
       invitingUser.name || invitingUser.email || "Someone",
     );
 
-    const team = DOMPurify.sanitize(invitingUser.team.name || "their team");
+    const team = DOMPurify.sanitize(invitingUser.team?.name || "their team");
 
     const to = DOMPurify.sanitize(invite.email);
 

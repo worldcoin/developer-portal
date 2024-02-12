@@ -120,6 +120,11 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]>;
 };
 
+export type VerifyAppOutput = {
+  __typename?: "VerifyAppOutput";
+  success?: Maybe<Scalars["Boolean"]>;
+};
+
 /** Boolean expression to compare columns of type "_text". All fields are combined with logical 'AND'. */
 export type _Text_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["_text"]>;
@@ -3770,6 +3775,8 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  /** Verify an App */
+  verify_app?: Maybe<VerifyAppOutput>;
 };
 
 /** mutation root */
@@ -4442,6 +4449,14 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootVerify_AppArgs = {
+  app_id: Scalars["String"];
+  is_reviewer_app_store_approved: Scalars["Boolean"];
+  is_reviewer_world_app_approved: Scalars["Boolean"];
+  reviewer_name: Scalars["String"];
 };
 
 /** columns and relationships of "nullifier" */
@@ -6533,8 +6548,8 @@ export type User = {
   name: Scalars["String"];
   posthog_id?: Maybe<Scalars["String"]>;
   /** An object relationship */
-  team: Team;
-  team_id: Scalars["String"];
+  team?: Maybe<Team>;
+  team_id?: Maybe<Scalars["String"]>;
   updated_at: Scalars["timestamptz"];
   world_id_nullifier?: Maybe<Scalars["String"]>;
 };

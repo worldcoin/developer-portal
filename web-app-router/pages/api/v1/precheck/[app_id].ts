@@ -1,11 +1,9 @@
 import { ApolloError, gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-
 import {
   canVerifyForAction,
   validateRequestSchema,
 } from "@/legacy/backend/utils";
-
 import {
   ActionModel,
   AppMetadataModel,
@@ -13,11 +11,12 @@ import {
   NullifierModel,
 } from "@/legacy/lib/models";
 import { NextApiRequest, NextApiResponse } from "next";
-import { CanUserVerifyType, EngineType } from "@/lib/types";
+import { CanUserVerifyType, EngineType } from "@/legacy/lib/types";
 import { runCors } from "@/legacy/backend/cors";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import * as yup from "yup";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { getCDNImageUrl } from "@/lib/utils";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -211,6 +210,10 @@ export default async function handlePrecheck(
   }
   const app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
+  // If a image is present it should store it's relative path and extension ie logo.png
+  const logo_img_url = verified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
+    : "";
   // Prevent breaking changes
   const app: _App = {
     __typename: rawAppValues.__typename,
@@ -219,7 +222,7 @@ export default async function handlePrecheck(
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
     name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
-    verified_app_logo: verified_app_metadata?.logo_img_url ?? "",
+    verified_app_logo: logo_img_url,
     actions: rawAppValues.actions,
   };
   // ANCHOR: If the action doesn't exist, create it
