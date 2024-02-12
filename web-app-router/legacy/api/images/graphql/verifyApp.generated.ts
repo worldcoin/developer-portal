@@ -43,23 +43,23 @@ export const VerifyAppDocument = gql`
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
-  operationType?: string
+  operationType?: string,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
-  _operationType
+  _operationType,
 ) => action();
 
 export function getSdk(
   client: GraphQLClient,
-  withWrapper: SdkFunctionWrapper = defaultWrapper
+  withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
     verifyApp(
       variables: VerifyAppMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders
+      requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<VerifyAppMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
@@ -68,7 +68,7 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "verifyApp",
-        "mutation"
+        "mutation",
       );
     },
   };

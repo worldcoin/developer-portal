@@ -16,7 +16,7 @@ import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
 const HASURA_GRAPHQL_JWT_SECRET: JwtConfig = JSON.parse(
-  process.env.HASURA_GRAPHQL_JWT_SECRET || ""
+  process.env.HASURA_GRAPHQL_JWT_SECRET || "",
 );
 
 if (!JWT_ISSUER) {
@@ -29,7 +29,7 @@ if (!HASURA_GRAPHQL_JWT_SECRET) {
 
 if (!GENERAL_SECRET_KEY) {
   throw new Error(
-    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!"
+    "Improperly configured. `GENERAL_SECRET_KEY` env var must be set!",
   );
 }
 
@@ -85,7 +85,7 @@ export const generateServiceJWT = async (): Promise<string> => {
 export const _generateJWT = async (
   payload: Record<string, any>,
   expiration: string | number = "1h",
-  key: string = HASURA_GRAPHQL_JWT_SECRET.key
+  key: string = HASURA_GRAPHQL_JWT_SECRET.key,
 ): Promise<string> => {
   const token = await new jose.SignJWT(payload)
     .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
@@ -115,7 +115,7 @@ export const getUserJWTPayload = (user_id: string, team_id: string) => ({
 export const generateUserJWT = async (
   user_id: string,
   team_id: string,
-  expiration: number = dayjs().add(7, "day").unix()
+  expiration: number = dayjs().add(7, "day").unix(),
 ) => {
   const payload = getUserJWTPayload(user_id, team_id);
   const token = await _generateJWT(payload, expiration);
@@ -191,7 +191,7 @@ export const verifySignUpJWT = async (token: string) => {
     Buffer.from(GENERAL_SECRET_KEY),
     {
       issuer: JWT_ISSUER,
-    }
+    },
   );
   const { sub } = payload;
   if (!sub) {
@@ -279,7 +279,7 @@ export const generateOIDCJWT = async ({
 };
 
 export const verifyOIDCJWT = async (
-  token: string
+  token: string,
 ): Promise<jose.JWTPayload> => {
   const { kid } = jose.decodeProtectedHeader(token);
 
@@ -298,7 +298,7 @@ export const verifyOIDCJWT = async (
     await jose.importJWK(public_jwk, "RS256"),
     {
       issuer: JWT_ISSUER,
-    }
+    },
   );
 
   return payload;

@@ -37,7 +37,7 @@ const schema = yup.object({
  */
 export const handleVerifyApp = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) => {
   if (!process.env.ASSETS_S3_BUCKET_NAME) {
     logger.error("AWS Bucket Name is not set.");
@@ -92,7 +92,7 @@ export const handleVerifyApp = async (
 
   const reviewer_client = await getAPIReviewerGraphqlClient();
   const { app: appMetadata } = await getAppMetadataSDK(
-    reviewer_client
+    reviewer_client,
   ).GetAppMetadata({
     app_id: app_id as string,
   });
@@ -108,7 +108,7 @@ export const handleVerifyApp = async (
   }
 
   const awaitingReviewAppMetadata = app.app_metadata.find(
-    (metadata) => metadata.verification_status === "awaiting_review"
+    (metadata) => metadata.verification_status === "awaiting_review",
   );
 
   if (!awaitingReviewAppMetadata) {
@@ -121,7 +121,7 @@ export const handleVerifyApp = async (
   }
 
   const verifiedAppMetadata = app.app_metadata.find(
-    (metadata) => metadata.verification_status === "verified"
+    (metadata) => metadata.verification_status === "verified",
   );
 
   const s3Client = new S3Client({
@@ -137,11 +137,11 @@ export const handleVerifyApp = async (
     new ListObjectsCommand({
       Bucket: bucketName,
       Prefix: destinationPrefix,
-    })
+    }),
   );
 
   const verifiedImageKeysToDelete = listObjectsResponse.Contents?.map(
-    (object) => object.Key
+    (object) => object.Key,
   );
 
   if (verifiedImageKeysToDelete && verifiedImageKeysToDelete.length > 0) {
@@ -158,8 +158,8 @@ export const handleVerifyApp = async (
               },
             ],
           },
-        })
-      )
+        }),
+      ),
     );
     await Promise.all(expirePromises);
   }
@@ -176,8 +176,8 @@ export const handleVerifyApp = async (
         Bucket: bucketName,
         CopySource: `${bucketName}/${sourcePrefix}${currentLogoImgName}`,
         Key: `${destinationPrefix}${newLogoImgName}`,
-      })
-    )
+      }),
+    ),
   );
 
   const currentHeroImgName = awaitingReviewAppMetadata.hero_image_url;
@@ -189,16 +189,16 @@ export const handleVerifyApp = async (
         Bucket: bucketName,
         CopySource: `${bucketName}/${sourcePrefix}${currentHeroImgName}`,
         Key: `${destinationPrefix}${newHeroImgName}`,
-      })
-    )
+      }),
+    ),
   );
 
   const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
   const showcaseFileTypes = showcaseImgUrls.map((url: string) =>
-    getFileExtension(url)
+    getFileExtension(url),
   );
   const showcaseImgUUIDs = showcaseImgUrls.map(
-    (_: string, index: number) => randomUUID() + showcaseFileTypes[index]
+    (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
   );
   const showcaseCopyPromises = showcaseImgUrls.map(
     (key: string, index: number) => {
@@ -207,9 +207,9 @@ export const handleVerifyApp = async (
           Bucket: bucketName,
           CopySource: `${bucketName}/${sourcePrefix}${key}`,
           Key: `${destinationPrefix}${showcaseImgUUIDs[index]}`,
-        })
+        }),
       );
-    }
+    },
   );
   copyPromises.push(...showcaseCopyPromises);
   await Promise.all(copyPromises);

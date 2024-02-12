@@ -15,7 +15,7 @@ import { JSDOM } from "jsdom";
 
 export const handleInvite = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) => {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -66,7 +66,7 @@ export const handleInvite = async (
 
   try {
     query = await getUserAndTeamMembershipsSdk(
-      client
+      client,
     ).GetUserAndTeamMemberships({
       team_id: teamId,
       user_id: userId,
@@ -81,7 +81,7 @@ export const handleInvite = async (
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
-      { userId, teamId }
+      { userId, teamId },
     );
     return errorHasuraQuery({
       res,
@@ -93,7 +93,7 @@ export const handleInvite = async (
 
   const alreadyExistingEmails = emails.filter((email: string) => {
     return query?.membership?.some(
-      (membership) => membership.user.email === email
+      (membership) => membership.user.email === email,
     );
   });
 
@@ -138,7 +138,7 @@ export const handleInvite = async (
     const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login?invite_id=${invite.id}`;
 
     const inviter = DOMPurify.sanitize(
-      invitingUser.name || invitingUser.email || "Someone"
+      invitingUser.name || invitingUser.email || "Someone",
     );
 
     const team = DOMPurify.sanitize(invitingUser.team.name || "their team");
@@ -156,7 +156,7 @@ export const handleInvite = async (
           team,
           inviteLink: link,
         },
-      })
+      }),
     );
   }
 

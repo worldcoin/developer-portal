@@ -18,7 +18,7 @@ import { logger } from "@/lib/logger";
  */
 export const handleSecretReset = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) => {
   if (!protectInternalEndpoint(req, res)) {
     return;
@@ -66,7 +66,7 @@ export const handleSecretReset = async (
 
   // ANCHOR: Make sure the user can perform this client reset
   const { team: teamMembershipQuery } = await getMembershipSdk(
-    client
+    client,
   ).GetMembership({
     user_id,
     team_id,
@@ -84,7 +84,7 @@ export const handleSecretReset = async (
 
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
   const { update_action: updateResponse } = await updateSecretSDK(
-    client
+    client,
   ).UpdateSecret({
     app_id,
     hashed_secret,
