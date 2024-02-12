@@ -15,7 +15,7 @@ module.exports = {
     },
   ],
   generates: {
-    "src/graphql/graphql.schema.json": {
+    "graphql/graphql.schema.json": {
       plugins: ["introspection"],
     },
   },

@@ -1,12 +1,16 @@
-import { fetchActiveJWK, generateJWK, retrieveJWK } from "src/backend/jwks";
-import { createKMSKey, getKMSClient } from "src/backend/kms";
+import {
+  fetchActiveJWK,
+  generateJWK,
+  retrieveJWK,
+} from "@/legacy/backend/jwks";
+import { createKMSKey, getKMSClient } from "@/legacy/backend/kms";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
   integrationDBTearDown,
 } from "./setup";
 
-jest.mock("src/backend/kms", () => {
+jest.mock("legacy/backend/kms", () => {
   return {
     getKMSClient: jest.fn(),
     createKMSKey: jest.fn(),
@@ -14,7 +18,9 @@ jest.mock("src/backend/kms", () => {
   };
 });
 
-jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+jest.mock("legacy/backend/kms", () =>
+  require("tests/api/__mocks__/kms.mock.ts"),
+);
 
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -22,7 +28,7 @@ beforeEach(integrationDBTearDown);
 describe("jwks management", () => {
   it("can retrieve existing jwks", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT * FROM "public"."jwks" LIMIT 1;'
+      'SELECT * FROM "public"."jwks" LIMIT 1;',
     );
 
     const jwk = await retrieveJWK(rows[0].id);
@@ -32,13 +38,13 @@ describe("jwks management", () => {
 
   it("throws error if the jwk is not found", async () => {
     await expect(retrieveJWK("non-existing-jwk")).rejects.toThrowError(
-      "JWK not found."
+      "JWK not found.",
     );
   });
 
   it("fetches an active jwk", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT * FROM "public"."jwks" LIMIT 1;'
+      'SELECT * FROM "public"."jwks" LIMIT 1;',
     );
 
     const jwk = await fetchActiveJWK();
@@ -47,7 +53,7 @@ describe("jwks management", () => {
 
   it("does not rotate a jwk with more than 7 days to expire", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT * FROM "public"."jwks" WHERE "expires_at" > NOW() + INTERVAL \'7 days\' LIMIT 1;'
+      'SELECT * FROM "public"."jwks" WHERE "expires_at" > NOW() + INTERVAL \'7 days\' LIMIT 1;',
     );
 
     const jwk = await fetchActiveJWK();
@@ -56,7 +62,7 @@ describe("jwks management", () => {
 
   it("rotates a jwk with less than 7 days to expire", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'UPDATE "public"."jwks" SET "expires_at" = NOW() + INTERVAL \'6 days\' WHERE "id" = (SELECT id FROM "public"."jwks" LIMIT 1) RETURNING "id";'
+      'UPDATE "public"."jwks" SET "expires_at" = NOW() + INTERVAL \'6 days\' WHERE "id" = (SELECT id FROM "public"."jwks" LIMIT 1) RETURNING "id";',
     );
 
     const jwk = await fetchActiveJWK();
@@ -90,7 +96,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvzV3R48ve50etEd4BtryHzo1x1h1tC1poHkS
     (createKMSKey as jest.Mock).mockReturnValue({});
 
     await expect(generateJWK()).rejects.toThrowError(
-      "Unable to create KMS key."
+      "Unable to create KMS key.",
     );
   });
 });

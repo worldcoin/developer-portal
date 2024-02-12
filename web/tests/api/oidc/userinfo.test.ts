@@ -1,14 +1,17 @@
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { createMocks } from "node-mocks-http";
-import { generateOIDCJWT } from "src/backend/jwts";
-import { OIDCScopes } from "src/backend/oidc";
+import { generateOIDCJWT } from "@/legacy/backend/jwts";
+import { OIDCScopes } from "@/legacy/backend/oidc";
 
-import handleOIDCUserinfo from "src/pages/api/v1/oidc/userinfo";
+import handleOIDCUserinfo from "@/pages/api/v1/oidc/userinfo";
+import { NextApiRequest, NextApiResponse } from "next";
 
-jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+jest.mock("legacy/backend/kms", () =>
+  require("tests/api/__mocks__/kms.mock.ts"),
+);
 
-jest.mock("src/backend/jwks", () =>
-  require("tests/api/__mocks__/jwks.mock.ts")
+jest.mock("legacy/backend/jwks", () =>
+  require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
 describe("/api/v1/oidc/userinfo", () => {
@@ -25,7 +28,7 @@ describe("/api/v1/oidc/userinfo", () => {
     // Ensure we're actually generating a JWT
     expect(jwt).toMatch(/^[\w-]*\.[\w-]*\.[\w-]*$/);
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: `Bearer ${jwt}`,

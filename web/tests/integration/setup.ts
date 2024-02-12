@@ -10,18 +10,18 @@ export const integrationDBSetup = async () => {
   // Reset database
   const resetDB = fs.readFileSync(
     path.resolve(__dirname, "./db/resetdb.sql"),
-    "utf8"
+    "utf8",
   );
   await pool.query(resetDB);
 
   // Seed database
   const seedFiles: string[] = fs.readdirSync(
-    path.resolve(__dirname, "./db/default")
+    path.resolve(__dirname, "./db/default"),
   );
   for (const file of seedFiles) {
     const seedQuery = fs.readFileSync(
       path.resolve(__dirname, `./db/default/${file}`),
-      "utf8"
+      "utf8",
     );
     await pool.query(seedQuery);
   }
@@ -33,7 +33,7 @@ export const integrationDBTearDown = async () => {
 
 export const integrationDBExecuteQuery = async (
   query: string,
-  values?: any[]
+  values?: any[],
 ) => {
   pool = new Pool();
   const response = await pool.query(query, values);

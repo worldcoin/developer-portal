@@ -1,5 +1,0 @@
-query GetAppByTeamId($team_id: String!) {
-  app(where: { team: { id: { _eq: $team_id } } }, limit: 1) {
-    id
-  }
-}

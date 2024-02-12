@@ -1,5 +1,0 @@
-mutation DeleteKey($id: String!) {
-  delete_api_key_by_pk(id: $id) {
-    id
-  }
-}

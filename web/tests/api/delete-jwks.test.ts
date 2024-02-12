@@ -1,23 +1,26 @@
 import { createMocks } from "node-mocks-http";
-import handleDeleteJWKS from "src/pages/api/_delete-jwks";
+import handleDeleteJWKS from "@/pages/api/_delete-jwks";
 import { when } from "jest-when";
-import { logger } from "src/lib/logger";
+import { logger } from "@/legacy/lib/logger";
+import { NextApiRequest, NextApiResponse } from "next";
 
 let consoleInfoSpy: jest.SpyInstance;
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
       mutate: mutateReturnFn,
     }),
-  }))
+  })),
 );
 
-jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+jest.mock("legacy/backend/kms", () =>
+  require("tests/api/__mocks__/kms.mock.ts"),
+);
 
 beforeEach(() => {
   consoleInfoSpy = jest
@@ -32,7 +35,7 @@ afterEach(() => {
 
 describe("/api/v1/_delete-jwks", () => {
   test("endpoint is only accessible with specific token (Hasura)", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
     });
 
@@ -47,7 +50,7 @@ describe("/api/v1/_delete-jwks", () => {
   });
 
   test("will not delete jwks if none are expired", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -68,16 +71,16 @@ describe("/api/v1/_delete-jwks", () => {
     expect(consoleInfoSpy).toHaveBeenCalledTimes(2);
     expect(consoleInfoSpy).toHaveBeenNthCalledWith(
       1,
-      "Starting deletion of expired jwks."
+      "Starting deletion of expired jwks.",
     );
     expect(consoleInfoSpy).toHaveBeenNthCalledWith(
       2,
-      "Deleted 0 expired jwks."
+      "Deleted 0 expired jwks.",
     );
   });
 
   test("will delete all jwks if past expiration date", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -107,11 +110,11 @@ describe("/api/v1/_delete-jwks", () => {
     expect(consoleInfoSpy).toHaveBeenCalledTimes(2);
     expect(consoleInfoSpy).toHaveBeenNthCalledWith(
       1,
-      "Starting deletion of expired jwks."
+      "Starting deletion of expired jwks.",
     );
     expect(consoleInfoSpy).toHaveBeenNthCalledWith(
       2,
-      "Deleted 1 expired jwks."
+      "Deleted 1 expired jwks.",
     );
   });
 });

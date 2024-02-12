@@ -1,5 +1,5 @@
-import { canVerifyForAction } from "src/backend/utils";
-import { uriHasJS, validateUrl } from "src/lib/utils";
+import { canVerifyForAction } from "@/legacy/backend/utils";
+import { uriHasJS, validateUrl } from "@/lib/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
@@ -14,8 +14,8 @@ describe("canVerifyForAction()", () => {
     expect(
       canVerifyForAction(
         { nullifier_hash: "nil_1", uses: Math.random() * 10 },
-        0
-      )
+        0,
+      ),
     ).toBe(true);
   });
 

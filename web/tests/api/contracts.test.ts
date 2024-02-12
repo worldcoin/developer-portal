@@ -1,22 +1,23 @@
 import { createMocks } from "node-mocks-http";
-import handleContracts from "src/pages/api/v1/contracts";
+import handleContracts from "@/pages/api/v1/contracts";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
       mutate: mutateReturnFn,
     }),
-  }))
+  })),
 );
 
 describe("/api/v1/contracts", () => {
   test("can obtain semaphore contracts", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "GET",
     });
 

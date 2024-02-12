@@ -1,5 +1,3 @@
-import handleGraphQL from "src/pages/api/v1/graphql";
-
 // FIXME
 describe("/api/v1/graphql", () => {
   test("API key is handled", async () => {});

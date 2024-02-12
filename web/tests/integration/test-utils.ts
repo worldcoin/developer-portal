@@ -7,10 +7,10 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
-import { getAPIServiceClient } from "src/backend/graphql";
-import { generateAPIKeyJWT, generateUserJWT } from "src/backend/jwts";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
 import { integrationDBExecuteQuery } from "./setup";
-import { generateHashedSecret } from "src/backend/utils";
+import { generateHashedSecret } from "@/legacy/backend/utils";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -20,7 +20,7 @@ const httpLink = createHttpLink({
 
 export const testGetDefaultApp = async () => {
   const response = await integrationDBExecuteQuery(
-    "SELECT * FROM app limit 1;"
+    "SELECT * FROM app limit 1;",
   );
   return response.rows[0].id;
 };
