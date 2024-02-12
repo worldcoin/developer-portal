@@ -1,0 +1,9 @@
+query FetchUser($userId: String!, $teamId: String!) {
+  membership(
+    where: {
+      _and: [{ user_id: { _eq: $userId } }, { team_id: { _eq: $teamId } }]
+    }
+  ) {
+    role
+  }
+}

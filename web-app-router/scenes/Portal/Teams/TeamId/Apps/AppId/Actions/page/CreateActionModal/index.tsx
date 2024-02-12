@@ -21,6 +21,7 @@ import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import posthog from "posthog-js";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -92,26 +93,22 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             max_verifications: values.maxVerifications,
           },
           context: { headers: { team_id: teamId } },
-          refetchQueries: [
-            {
-              query: GetActionsDocument,
-              variables: { app_id: appId },
-              context: { headers: { team_id: teamId } },
-            },
-          ],
+          refetchQueries: [GetActionsDocument],
           awaitRefetchQueries: true,
         });
 
         if (result instanceof Error) {
           throw result;
         }
-        // TODO: Turn on Posthog
-        // posthog.capture("action_created", {
-        //   name: values.name,
-        //   app_id: currentApp.id,
-        //   action_id: values.action,
-        // });
         const action_id = result.data?.insert_action_one?.id;
+
+        posthog.capture("action_created", {
+          name: values.name,
+          app_id: appId,
+          action_id: action_id,
+          is_first_action: firstAction,
+        });
+
         reset();
         if (firstAction) {
           router.replace(`${pathname}/${action_id}/settings`);
@@ -120,6 +117,13 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           router.replace(pathname);
         }
       } catch (error) {
+        posthog.capture("action_creation_failed", {
+          name: values.name,
+          app_id: appId,
+          is_first_action: firstAction,
+          error: error,
+        });
+
         if (
           (error as ApolloError).graphQLErrors[0].extensions.code ===
           "constraint-violation"
@@ -129,7 +133,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             message: "This action already exists.",
           });
           return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+            "An action with this identifier already exists for this app. Please change the 'action' identifier."
           );
         }
         return toast.error("Error occurred while creating action.");
@@ -145,7 +149,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       router,
       pathname,
       setError,
-    ],
+    ]
   );
 
   const copyAction = useCallback(() => {
@@ -157,7 +161,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     <div
       className={clsx(
         "fixed inset-0 w-full bg-white grid justify-center",
-        className,
+        className
       )}
     >
       <div className="grid grid-rows-auto/1fr items-center h-[100dvh] w-[100dvw]">

@@ -41,14 +41,17 @@ export const InviteMembersDialog = memo(function InviteMembersDialog(props: {
         }
 
         toast.success("Members invited");
-        posthog.capture("teammate_invite_success");
+        posthog.capture("teammate_invite_success", { team_id: team_id });
         reset();
         onClose();
       },
 
       onError: () => {
         toast.error("Cannot invite members, please try again");
-        posthog.capture("teammate_invite_failed", { error: error });
+        posthog.capture("teammate_invite_failed", {
+          team_id: team_id,
+          error: error,
+        });
       },
     });
 

@@ -18,6 +18,7 @@ import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useAtom } from "jotai";
 import { viewModeAtom } from "../../../layout";
+import { checkUserPermissions } from "@/lib/utils";
 
 const schema = yup.object().shape({
   world_app_description: yup
@@ -55,15 +56,13 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     useUpdateAppStoreInfoMutation({});
 
   const isEditable = appMetadata?.verification_status === "unverified";
+
   const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+    return checkUserPermissions(user, teamId, [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [teamId, user]);
 
   const parseDescription = (stringifiedDescription: string) => {
     if (stringifiedDescription) {

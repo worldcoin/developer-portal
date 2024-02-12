@@ -11,6 +11,10 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 
 import { useMemo, useState } from "react";
 import { DeleteModal } from "./DeleteModal";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Auth0SessionUser } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
 
 type AppProfileDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -22,6 +26,14 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const { user } = useUser() as Auth0SessionUser;
+
+  const isEnoughPermissions = useMemo(() => {
+    return checkUserPermissions(user, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [user, teamId]);
 
   const { data, loading } = useFetchAppMetadataQuery({
     variables: {
@@ -90,7 +102,9 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
             type="button"
             variant="danger"
             onClick={() => setOpenDeleteModal(true)}
-            className="bg-system-error-100 w-fit "
+            className={clsx("bg-system-error-100 w-fit ", {
+              hidden: !isEnoughPermissions,
+            })}
           >
             <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
           </DecoratedButton>

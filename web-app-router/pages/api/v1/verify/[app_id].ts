@@ -23,7 +23,7 @@ import {
 } from "@worldcoin/idkit-core";
 
 import * as yup from "yup";
-import { captureEvent } from "@/legacy/services/posthogClient";
+import { captureEvent } from "@/services/posthogClient";
 
 const schema = yup.object({
   action: yup
@@ -164,9 +164,11 @@ export default async function handleVerify(
   if (error || !success) {
     await captureEvent({
       event: "action_verify_failed",
-      distinctId: app.id,
+      distinctId: action.id,
       properties: {
         action_id: action.id,
+        app_id: app.id,
+        environment: app.is_staging ? "staging" : "production",
         error: error,
       },
     });
@@ -230,14 +232,17 @@ export default async function handleVerify(
           req,
         );
       }
+
       await captureEvent({
         event: "action_verify_success",
-        distinctId: app.id,
+        distinctId: action.id,
         properties: {
           action_id: action.id,
-          error: error,
+          app_id: app.id,
+          environment: app.is_staging ? "staging" : "production",
         },
       });
+
       res.status(200).json({
         uses: 1,
         success: true,

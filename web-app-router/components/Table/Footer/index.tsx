@@ -7,6 +7,7 @@ import {
   SelectOption,
   SelectOptions,
 } from "@/components/Select";
+import { twMerge } from "tailwind-merge";
 
 type FooterProps = {
   totalResults: number;
@@ -15,6 +16,7 @@ type FooterProps = {
   rowsPerPage: number;
   handlePageChange: (page: number) => void;
   handleRowsPerPageChange: (rowsPerPage: number) => void;
+  className?: string;
 };
 
 export const Footer: React.FC<FooterProps> = ({
@@ -24,11 +26,19 @@ export const Footer: React.FC<FooterProps> = ({
   rowsPerPage,
   handlePageChange,
   handleRowsPerPageChange,
+  className,
 }) => {
   const pageCount = Math.max(1, Math.ceil(totalResults / rowsPerPage));
 
   return (
-    <div className="sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-grey-100">
+    <div
+      className={twMerge(
+        clsx(
+          "sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-grey-100",
+          className,
+        ),
+      )}
+    >
       <div className="text-grey-400">{totalResults} results</div>
       <div className="flex items-center justify-center gap-x-4">
         <Button
@@ -38,7 +48,8 @@ export const Footer: React.FC<FooterProps> = ({
           className={clsx(
             "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
             {
-              "disabled:opacity-50 cursor-not-allowed": currentPage === 1,
+              "disabled:opacity-50 disabled:cursor-not-allowed":
+                currentPage === 1,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage !== 1,
             },
@@ -60,7 +71,7 @@ export const Footer: React.FC<FooterProps> = ({
           className={clsx(
             "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
             {
-              "disabled:opacity-50 cursor-not-allowed":
+              "disabled:opacity-50 disabled:cursor-not-allowed":
                 currentPage === pageCount,
               "hover:border-grey-700 hover:text-border-grey-700":
                 currentPage < pageCount,
@@ -69,7 +80,8 @@ export const Footer: React.FC<FooterProps> = ({
         >
           <CaretIcon
             className={clsx("-rotate-90 text-grey-400 h-4 w-4", {
-              "group-hover:text-grey-700": currentPage !== 1,
+              "group-hover:text-grey-700 group-disabled:group-hover:text-grey-400":
+                currentPage >= 1,
             })}
           />
         </Button>

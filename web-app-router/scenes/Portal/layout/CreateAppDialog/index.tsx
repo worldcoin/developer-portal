@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { urls } from "@/lib/urls";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
+import posthog from "posthog-js";
 
 const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
 const BUILD_TYPES = ["staging", "production"] as const;
@@ -104,13 +105,29 @@ export const CreateAppDialog = (props: DialogProps) => {
 
           props.onClose(false);
           reset(defaultValues);
+
+          posthog.capture("app_creation_successful", {
+            team_id: teamId,
+            app_id: data.insert_app_one?.id,
+            environment: values.build,
+            engine: values.verification,
+          });
           router.push(
-            urls.app({ team_id: teamId, app_id: data.insert_app_one?.id }),
+            urls.actions({
+              team_id: teamId,
+              app_id: data.insert_app_one?.id ?? "",
+            }),
           );
         },
 
         onError: () => {
           toast.error("Error while creating app");
+
+          posthog.capture("app_creation_failed", {
+            team_id: teamId,
+            environment: values.build,
+            engine: values.verification,
+          });
         },
       });
     },
@@ -180,7 +197,10 @@ export const CreateAppDialog = (props: DialogProps) => {
                             <fieldset className="absolute inset-x-0 bottom-0 top-[-12px] border border-grey-200 rounded-lg pointer-events-none">
                               <legend className="text-grey-400 ml-4 px-0.5">
                                 <Typography variant={TYPOGRAPHY.R4}>
-                                  Category
+                                  Category{" "}
+                                  <span className="text-system-error-500">
+                                    *
+                                  </span>
                                 </Typography>
                               </legend>
                             </fieldset>
@@ -222,14 +242,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("build")}
                     option={{ value: "staging", label: "Staging" }}
-                    description="Pre-release environment for code changes"
+                    description="Development environment for testing and debugging."
                     stampText="Recommended"
                   />
 
                   <RadioCard
                     register={register("build")}
                     option={{ value: "production", label: "Production" }}
-                    description="Live environment accessible to end-users"
+                    description="Live environment accessible to verified user. Use a World ID compatible app to verify."
                   />
                 </div>
               </div>
@@ -241,14 +261,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "cloud", label: "Cloud" }}
-                    description="Pre-release environment for code changes"
+                    description={`Verify your proofs using our public API endpoint. Also choose this if you're using Sign in With World ID.`}
                     stampText="Easiest"
                   />
 
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "on-chain", label: "On-chain" }}
-                    description="Live environment accessible to end-users"
+                    description="Use World ID and validate your proofs via a transaction on the blockchain."
                   />
                 </div>
               </div>

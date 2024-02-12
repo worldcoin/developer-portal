@@ -1,0 +1,7 @@
+query FetchInvites($teamId: String!) {
+  invite(where: { team_id: { _eq: $teamId } }) {
+    id
+    email
+    expires_at
+  }
+}
