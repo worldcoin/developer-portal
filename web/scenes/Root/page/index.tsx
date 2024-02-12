@@ -10,7 +10,7 @@ export const RootPage = async () => {
     return redirect("/login");
   }
 
-  const team_id = user.hasura.memberships[0].team?.id;
+  const team_id = user.hasura?.memberships[0].team?.id;
 
   if (!team_id) {
     return redirect("/profile");
