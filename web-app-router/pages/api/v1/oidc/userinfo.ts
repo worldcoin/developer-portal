@@ -6,7 +6,7 @@ import { errorResponse } from "@/legacy/backend/errors";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) {
   await runCors(req, res);
 
@@ -26,6 +26,7 @@ export default async function handler(
     const response: Record<string, any> = {
       sub: payload.sub,
       "https://id.worldcoin.org/beta": payload["https://id.worldcoin.org/beta"],
+      "https://id.worldcoin.org/v1": payload["https://id.worldcoin.org/v1"],
     };
     const scopes = (payload.scope as string)?.toString().split(" ");
 
@@ -47,7 +48,7 @@ export default async function handler(
       "invalid_token",
       "Token is invalid or expired.",
       "token",
-      req,
+      req
     );
   }
 }

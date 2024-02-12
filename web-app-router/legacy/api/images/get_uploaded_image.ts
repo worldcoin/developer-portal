@@ -22,9 +22,9 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const handleGetUploadedImage = async (
+export const handleImageGet = async (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
@@ -77,7 +77,7 @@ export const handleGetUploadedImage = async (
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client,
+      client
     ).CheckUserInApp({
       team_id: teamId,
       app_id: app_id,
@@ -125,7 +125,7 @@ export const handleGetUploadedImage = async (
       "internal_server_error",
       "Unable to get uploaded image",
       null,
-      req,
+      req
     );
   }
 };

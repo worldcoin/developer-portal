@@ -18,9 +18,9 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
-export const handleUploadImage = async (
+export const handleImageUpload = async (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => {
   try {
     if (!protectInternalEndpoint(req, res)) {
@@ -83,7 +83,7 @@ export const handleUploadImage = async (
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client,
+      client
     ).CheckUserInApp({
       team_id: teamId,
       app_id: app_id,

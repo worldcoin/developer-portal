@@ -4,11 +4,12 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type FetchUserQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+export type GetUserAndTeamMembershipsQueryVariables = Types.Exact<{
+  team_id: Types.Scalars["String"];
+  user_id: Types.Scalars["String"];
 }>;
 
-export type FetchUserQuery = {
+export type GetUserAndTeamMembershipsQuery = {
   __typename?: "query_root";
   user: Array<{
     __typename?: "user";
@@ -17,17 +18,34 @@ export type FetchUserQuery = {
     email?: string | null;
     team: { __typename?: "team"; id: string; name?: string | null };
   }>;
+  membership: Array<{
+    __typename?: "membership";
+    user: { __typename?: "user"; email?: string | null };
+  }>;
 };
 
-export const FetchUserDocument = gql`
-  query FetchUser($id: String!) {
-    user(where: { id: { _eq: $id } }) {
+export const GetUserAndTeamMembershipsDocument = gql`
+  query GetUserAndTeamMemberships($team_id: String!, $user_id: String!) {
+    user(
+      where: {
+        id: { _eq: $user_id }
+        memberships: {
+          team_id: { _eq: $team_id }
+          role: { _in: [OWNER, ADMIN] }
+        }
+      }
+    ) {
       id
       name
       email
       team {
         id
         name
+      }
+    }
+    membership(where: { team_id: { _eq: $team_id } }) {
+      user {
+        email
       }
     }
   }
@@ -50,17 +68,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
-    FetchUser(
-      variables: FetchUserQueryVariables,
+    GetUserAndTeamMemberships(
+      variables: GetUserAndTeamMembershipsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders
-    ): Promise<FetchUserQuery> {
+    ): Promise<GetUserAndTeamMembershipsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchUserQuery>(FetchUserDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "FetchUser",
+          client.request<GetUserAndTeamMembershipsQuery>(
+            GetUserAndTeamMembershipsDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders }
+          ),
+        "GetUserAndTeamMemberships",
         "query"
       );
     },

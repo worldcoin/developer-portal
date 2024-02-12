@@ -64,33 +64,33 @@ export const GetUnverifiedImagesDocument = gql`
 export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
-  operationType?: string,
+  operationType?: string
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
-  _operationType,
+  _operationType
 ) => action();
 
 export function getSdk(
   client: GraphQLClient,
-  withWrapper: SdkFunctionWrapper = defaultWrapper,
+  withWrapper: SdkFunctionWrapper = defaultWrapper
 ) {
   return {
     GetUnverifiedImages(
       variables: GetUnverifiedImagesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
+      requestHeaders?: GraphQLClientRequestHeaders
     ): Promise<GetUnverifiedImagesQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
           client.request<GetUnverifiedImagesQuery>(
             GetUnverifiedImagesDocument,
             variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
+            { ...requestHeaders, ...wrappedRequestHeaders }
           ),
         "GetUnverifiedImages",
-        "query",
+        "query"
       );
     },
   };

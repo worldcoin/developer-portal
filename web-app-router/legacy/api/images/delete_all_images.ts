@@ -25,7 +25,7 @@ export type DeleteAllImagesResponse = {
  */
 export const handleDeleteAllImages = async (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => {
   throw new Error("Not implemented yet.");
 
