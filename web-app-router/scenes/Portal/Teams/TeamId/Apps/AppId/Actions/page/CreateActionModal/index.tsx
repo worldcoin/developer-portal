@@ -141,7 +141,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
     [
       insertActionQuery,
-      generateExternalNullifier,
       appId,
       teamId,
       reset,

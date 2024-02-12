@@ -8,8 +8,10 @@ import {
 import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
+import { LockIcon } from "@/components/Icons/LockIcon";
 import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { SubtractIcon } from "@/components/Icons/SubtractIcon";
+import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   DISCORD_URL,
@@ -129,6 +131,40 @@ export const HelpNav = () => {
               <GithubIcon className="text-grey-900 w-5" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
                 GitHub Issues
+              </Typography>
+            </Button>
+          </div>
+        </DropdownItem>
+        <hr className="my-2 mb-3 w-full text-grey-200 border-1" />
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="text-grey-400 pb-2.5 px-4"
+        >
+          References
+        </Typography>
+        <DropdownItem className="hover:bg-grey-50 px-4">
+          <div>
+            <Button
+              href={WORLDCOIN_STATUS_URL}
+              onClick={() => trackHelpClick("worldcoin_status")}
+              className="grid grid-cols-auto/1fr items-center gap-x-2"
+            >
+              <LockIcon className="w-4 h-4" />
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
+                Worldcoin Status
+              </Typography>
+            </Button>
+          </div>
+        </DropdownItem>
+        <DropdownItem className="hover:bg-grey-50 px-4">
+          <div>
+            <Button
+              href={"/tos"}
+              className="grid grid-cols-auto/1fr items-center gap-x-2"
+            >
+              <WorldcoinIcon className="w-4 h-4" />
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
+                Terms of service
               </Typography>
             </Button>
           </div>
