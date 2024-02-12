@@ -140,7 +140,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     return NextResponse.redirect(
       new URL(
         invite_id ? urls.createTeam({ invite_id }) : urls.createTeam(),
-        req.url,
+        process.env.NEXT_PUBLIC_APP_URL,
       ).toString(),
       307,
     );
