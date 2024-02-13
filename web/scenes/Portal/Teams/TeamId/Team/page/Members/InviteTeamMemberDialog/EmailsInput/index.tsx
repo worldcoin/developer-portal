@@ -4,7 +4,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 
-import { memo, useCallback, useState, KeyboardEvent, FocusEvent } from "react";
+import { FocusEvent, KeyboardEvent, memo, useCallback, useState } from "react";
 import { emailsInputAtom } from "..";
 
 export interface EmailsInputProps {
@@ -76,7 +76,7 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
     <label
       className={clsx(
         className,
-        "flex flex-wrap items-center gap-1 min-h-12 p-2 text-neutral-primary outline-0 bg-grey-0 border border-grey-200 rounded-xl",
+        "flex min-h-12 flex-wrap items-center gap-1 rounded-xl border border-grey-200 bg-grey-0 p-2 text-grey-900 outline-0",
         { "shadow-input": focused },
         { "": !focused },
         { "": emails.length === 0 },
@@ -85,7 +85,7 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
       {emails.map((email) => (
         <div
           key={email}
-          className="flex items-center gap-x-2 h-8 px-2 bg-blue-50 text-blue-500 rounded-full"
+          className="flex h-8 items-center gap-x-2 rounded-full bg-blue-50 px-2 text-blue-500"
           onClick={(e) => e.preventDefault()}
         >
           <Typography variant={TYPOGRAPHY.M4}>{email}</Typography>
@@ -104,9 +104,9 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
 
       <input
         className={clsx(
-          "grow h-8 px-2 bg-transparent outline-none",
-          "text-grey-900 text-base leading-[1.5] font-normal font-gta",
-          "placeholder:text-grey-400 placeholder:text-base placeholder:leading-[1.5] placeholder:font-normal placeholder:font-gta",
+          "h-8 grow bg-transparent px-2 outline-none",
+          "font-gta text-base font-normal leading-[1.5] text-grey-900",
+          "placeholder:font-gta placeholder:text-base placeholder:font-normal placeholder:leading-[1.5] placeholder:text-grey-400",
           {
             "w-5": !focused && emails.length === 0,
           },

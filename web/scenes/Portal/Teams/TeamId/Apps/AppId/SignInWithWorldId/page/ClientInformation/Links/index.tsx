@@ -1,14 +1,14 @@
-import { memo, useCallback } from "react";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
-import { useUpdateSignInActionMutation } from "../graphql/client/update-sign-in-action.generated";
-import { SignInActionQuery } from "../../graphql/server/fetch-signin.generated";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { toast } from "react-toastify";
+import { Input } from "@/components/Input";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
+import { memo, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { SignInActionQuery } from "../../graphql/server/fetch-signin.generated";
+import { useUpdateSignInActionMutation } from "../graphql/client/update-sign-in-action.generated";
 
 const schema = yup.object({
   privacy_policy_uri: yup.string().url("Must be a valid URL").optional(),
@@ -92,7 +92,7 @@ export const LinksForm = memo(function LinksForm(props: {
 
       <DecoratedButton
         type="submit"
-        className={clsx("w-fit text-sm h-12", { hidden: !canEdit })}
+        className={clsx("h-12 w-fit text-sm", { hidden: !canEdit })}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>

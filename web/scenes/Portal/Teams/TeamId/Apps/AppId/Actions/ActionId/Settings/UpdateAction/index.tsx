@@ -1,21 +1,18 @@
 "use client";
-import { Input } from "@/components/Input";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
-import { useCallback } from "react";
-import { toast } from "react-toastify";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
-import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
-import {
-  GetSingleActionDocument,
-  GetSingleActionQuery,
-} from "../page/graphql/client/get-single-action.generated";
+import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
 import { EngineType } from "@/lib/types";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useCallback } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
+import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
+import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
+import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 
 const updateActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -91,10 +88,10 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   }, [watch]);
 
   return (
-    <div className="w-full grid min-h-full items-start">
+    <div className="grid min-h-full w-full items-start">
       <form
         onSubmit={handleSubmit(submit)}
-        className="gap-y-5 w-full grid grid-cols-1"
+        className="grid w-full grid-cols-1 gap-y-5"
       >
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Settings
@@ -128,7 +125,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               <CopyIcon />
             </button>
           }
-          className=" text-grey-400 h-16"
+          className=" h-16 text-grey-400"
         />
         {action.app.engine !== EngineType.OnChain && (
           <Controller
@@ -150,12 +147,12 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           />
         )}
 
-        <div className="w-full flex justify-start">
+        <div className="flex w-full justify-start">
           <DecoratedButton
             variant="primary"
             type="submit"
             disabled={!isValid || loading}
-            className="px-6 py-3 mt-4"
+            className="mt-4 px-6 py-3"
           >
             <Typography variant={TYPOGRAPHY.R4} className="text-white">
               Save Changes

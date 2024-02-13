@@ -1,19 +1,18 @@
-import { Dialog } from "@/components/Dialog";
-import { DialogPanel } from "@/components/DialogPanel";
-import { DialogOverlay } from "@/components/DialogOverlay";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Input } from "@/components/Input";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
-import { useDeleteAppMutation } from "./graphql/client/delete-app.generated";
+import { Input } from "@/components/Input";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import * as yup from "yup";
+import { useDeleteAppMutation } from "./graphql/client/delete-app.generated";
 
 type DeleteModalProps = {
   openDeleteModal: boolean;
@@ -74,17 +73,17 @@ export const DeleteModal = (props: DeleteModalProps) => {
   return (
     <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
       <DialogOverlay />
-      <DialogPanel className="rounded-x bg-white mx-auto w-5 grid gap-y-6">
+      <DialogPanel className="rounded-x mx-auto grid w-5 gap-y-6 bg-white">
         <CircleIconContainer variant={"error"}>
           <AlertIcon />
         </CircleIconContainer>
-        <div className="grid place-items-center w-full gap-y-5">
+        <div className="grid w-full place-items-center gap-y-5">
           <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
             Are you sure?
           </Typography>
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center"
+            className="text-center text-grey-500"
           >
             The{" "}
             <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
@@ -93,7 +92,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
             App will be deleted, along with all of its actions, configurations
             and statistics.
           </Typography>
-          <div className="grid grid-cols-auto/1fr bg-system-error-50 px-3 py-2 rounded-lg gap-x-1 items-center">
+          <div className="grid grid-cols-auto/1fr items-center gap-x-1 rounded-lg bg-system-error-50 px-3 py-2">
             <WarningErrorIcon className=" text-system-error-600" />
             <Typography
               variant={TYPOGRAPHY.B4}
@@ -104,7 +103,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
           </div>
         </div>
         <form
-          className="w-full grid gap-y-7"
+          className="grid w-full gap-y-7"
           onSubmit={handleSubmit(deleteApp)}
         >
           <Input
@@ -121,7 +120,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
             }
             errors={errors.app_name}
           />
-          <div className="grid grid-cols-2 gap-x-5 w-full">
+          <div className="grid w-full grid-cols-2 gap-x-5">
             <DecoratedButton
               type="submit"
               variant="danger"

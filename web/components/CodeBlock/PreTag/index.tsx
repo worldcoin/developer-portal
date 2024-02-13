@@ -1,5 +1,5 @@
-import { memo, ReactNode } from "react";
 import clsx from "clsx";
+import { memo, ReactNode } from "react";
 
 export const PreTag = memo(function PreTag(props: {
   className?: string;
@@ -10,12 +10,12 @@ export const PreTag = memo(function PreTag(props: {
   return (
     <pre
       className={clsx(
-        "grid relative items-center p-4 transition-colors overflow-x-auto",
-        "bg-neutral-muted/30 border border-neutral-muted rounded-lg",
+        "relative grid items-center overflow-x-auto p-4 transition-colors",
+        "rounded-lg border border-[#f0edf9] bg-[#f0edf9]/30",
         { "py-16": props.loading },
-        { "bg-neutral-muted/20 border-primary": props.theme === "neutral" },
-        { "bg-danger/5 border-danger": props.theme === "error" },
-        { "bg-success/5 border-success": props.theme === "success" },
+        { "border-primary bg-[#f0edf9]/20": props.theme === "neutral" },
+        { "border-danger bg-system-error-700/5": props.theme === "error" },
+        { "border-success bg-system-success-700/5": props.theme === "success" },
         props.className,
       )}
     >
@@ -23,7 +23,7 @@ export const PreTag = memo(function PreTag(props: {
 
       {props.loading && (
         <div className="grid justify-center">
-          <div className="grid gap-x-2 grid-cols-auto/1fr items-center">
+          <div className="grid grid-cols-auto/1fr items-center gap-x-2">
             <span className="font-medium">Awaiting request</span>
           </div>
         </div>

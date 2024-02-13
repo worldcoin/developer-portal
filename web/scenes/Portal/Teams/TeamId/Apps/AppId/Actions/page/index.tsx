@@ -1,18 +1,18 @@
 "use client";
 
-import { CreateActionModal } from "./CreateActionModal";
-import { useGetActionsQuery } from "./graphql/client/actions.generated";
-import { ActionsList } from "./ActionsList";
-import clsx from "clsx";
-import { InitialSteps } from "@/components/InitialSteps";
 import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
 import { TestTubeIcon } from "@/components/Icons/TestTubeIcon";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
-import { Step } from "@/components/InitialSteps/Step";
+import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
+import { Step } from "@/components/InitialSteps/Step";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import clsx from "clsx";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
-import { SizingWrapper } from "@/components/SizingWrapper";
+import { ActionsList } from "./ActionsList";
+import { CreateActionModal } from "./CreateActionModal";
+import { useGetActionsQuery } from "./graphql/client/actions.generated";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -58,7 +58,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         {loading ? (
           <div
             className={clsx(
-              "grid justify-center w-full bg-white fixed inset-0 items-center",
+              "fixed inset-0 grid w-full items-center justify-center bg-white",
               {
                 hidden: !createAction,
               },

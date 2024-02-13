@@ -45,15 +45,15 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
   return (
     <label
       className={clsx(
-        "w-full p-8 rounded-xl border-[1px] border-dashed border-blue-150  grid justify-items-center gap-y-4",
+        "grid w-full justify-items-center gap-y-4 rounded-xl border-[1px]  border-dashed border-blue-150 p-8",
         {
-          "hover:bg-blue-50 hover:border-solid hover:border-blue-500 cursor-pointer":
+          "cursor-pointer hover:border-solid hover:border-blue-500 hover:bg-blue-50":
             !disabled,
         },
         {
-          "bg-blue-50 border-solid border-blue-500": !disabled && isDragActive,
+          "border-solid border-blue-500 bg-blue-50": !disabled && isDragActive,
         },
-        { "opacity-50 cursor-not-allowed": disabled },
+        { "cursor-not-allowed opacity-50": disabled },
       )}
       {...getRootProps()}
     >

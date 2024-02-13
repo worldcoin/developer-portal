@@ -3,12 +3,11 @@ import { Table } from "@/components/Table";
 import { Body } from "@/components/Table/Body";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
-import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { ApiKeyRow } from "./ApiKeyRow";
-import { ViewDetailsModal } from "./ViewDetailsModal";
-import { useResetApiKeyMutation } from "./ApiKeyRow/graphql/client/reset-api-key.generated";
 import { DeleteKeyModal } from "./DeleteKeyModal";
+import { ViewDetailsModal } from "./ViewDetailsModal";
 
 type ApiKeysTableProps = {
   teamId?: string;
@@ -94,7 +93,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
   }, [apiKeys, currentPage, rowsPerPage, openViewDetails]);
 
   return (
-    <div className="w-full overflow-auto no-scrollbar pb-16">
+    <div className="no-scrollbar w-full overflow-auto pb-16">
       <ViewDetailsModal
         teamId={teamId}
         isOpen={showViewDetailsModal}

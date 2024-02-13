@@ -6,13 +6,13 @@ import "server-only";
  * * Hasura authentication
  * * Developer Portal authentication
  */
-import { randomUUID } from "crypto";
-import dayjs from "dayjs";
-import * as jose from "jose";
 import { retrieveJWK } from "@/api/helpers/jwks";
 import { getKMSClient, signJWTWithKMSKey } from "@/api/helpers/kms";
 import { OIDCScopes } from "@/api/helpers/oidc";
-import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import { randomUUID } from "crypto";
+import dayjs from "dayjs";
+import * as jose from "jose";
 
 export interface JwtConfig {
   key: string;

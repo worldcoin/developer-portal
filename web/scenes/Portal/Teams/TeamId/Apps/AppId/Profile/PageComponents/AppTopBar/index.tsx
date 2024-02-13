@@ -1,33 +1,33 @@
 "use client";
 
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Environment } from "./Environment";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "../../graphql/client/fetch-app-metadata.generated";
-import { useAtom } from "jotai";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-import { toast } from "react-toastify";
-import * as yup from "yup";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { useCallback, useMemo, useState } from "react";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { LogoImageUpload } from "./LogoImageUpload";
-import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
-import { VersionSwitcher } from "./VersionSwitcher";
-import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import { Auth0SessionUser } from "@/lib/types";
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
 } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
-import ErrorComponent from "next/error";
-import { SubmitAppModal } from "./SubmitAppModal";
-import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAtom } from "jotai";
+import ErrorComponent from "next/error";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import {
+  FetchAppMetadataDocument,
+  FetchAppMetadataQuery,
+} from "../../graphql/client/fetch-app-metadata.generated";
+import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout";
+import { Environment } from "./Environment";
+import { LogoImageUpload } from "./LogoImageUpload";
+import { SubmitAppModal } from "./SubmitAppModal";
+import { VersionSwitcher } from "./VersionSwitcher";
+import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 
 type AppTopBarProps = {
   appId: string;
@@ -261,7 +261,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
-      <div className="grid grid-cols-auto/1fr/auto gap-x-8 items-center">
+      <div className="grid grid-cols-auto/1fr/auto items-center gap-x-8">
         <ReviewMessageDialog
           message={appMetaData.review_message}
           metadataId={appMetaData.id}
@@ -274,7 +274,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           logoFile={appMetaData.logo_img_url}
         />
         <div className="grid grid-cols-1 gap-y-1">
-          <div className="flex flex-row gap-x-3 items-center">
+          <div className="flex flex-row items-center gap-x-3">
             <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
             <AppStatus
               status={appMetaData.verification_status as StatusVariant}
@@ -286,14 +286,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
           />
         </div>
         {isEnoughPermissions && (
-          <div className="grid grid-cols-auto/1fr gap-x-3 items-center">
+          <div className="grid grid-cols-auto/1fr items-center gap-x-3">
             {app.verified_app_metadata.length > 0 && (
               <VersionSwitcher app={app} />
             )}
             {isEditable ? (
               <DecoratedButton
                 type="submit"
-                className="px-6 py-3 h-12"
+                className="h-12 px-6 py-3"
                 disabled={viewMode === "verified"}
                 onClick={submitForReview}
               >
@@ -304,7 +304,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             ) : app?.app_metadata?.length === 0 ? (
               <DecoratedButton
                 type="submit"
-                className="px-6 py-3 h-12"
+                className="h-12 px-6 py-3"
                 onClick={createNewDraft}
               >
                 <Typography variant={TYPOGRAPHY.M3}>
@@ -314,7 +314,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             ) : (
               <DecoratedButton
                 type="submit"
-                className="px-6 py-3 h-12"
+                className="h-12 px-6 py-3"
                 disabled={removeLoading}
                 onClick={removeFromReview}
               >

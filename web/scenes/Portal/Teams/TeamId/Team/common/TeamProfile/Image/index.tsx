@@ -1,12 +1,12 @@
 "use client";
 
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { colorAtom } from "@/scenes/Portal/layout";
 import clsx from "clsx";
+import { useAtom } from "jotai";
+import NextImage from "next/image";
 import { CSSProperties, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import NextImage from "next/image";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useAtom } from "jotai";
-import { colorAtom } from "@/scenes/Portal/layout";
 
 export const Image = (props: {
   className?: string;
@@ -27,7 +27,7 @@ export const Image = (props: {
       }
       className={twMerge(
         clsx(
-          "h-full w-full rounded-2xl overflow-hidden flex justify-center items-center bg-[var(--color-100)] text-[var(--color-500)]",
+          "flex size-full items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-100)] text-[var(--color-500)]",
           props.className,
         ),
       )}

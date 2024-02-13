@@ -1,6 +1,6 @@
+import { selectContext } from "@/components/Select";
 import { Listbox, ListboxButtonProps } from "@headlessui/react";
 import { useContext } from "react";
-import { selectContext } from "@/components/Select";
 import { twMerge } from "tailwind-merge";
 
 type SelectButtonProps<T> = Omit<ListboxButtonProps<"button">, "className"> & {

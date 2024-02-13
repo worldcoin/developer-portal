@@ -1,23 +1,23 @@
 "use client";
 
 import {
-  Chart as ChartJS,
   CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
   ChartData,
   ChartDataset,
+  Chart as ChartJS,
+  ChartOptions,
   Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
   ScriptableContext,
+  Title,
+  Tooltip,
 } from "chart.js";
 
-import { Line } from "react-chartjs-2";
 import { useMemo } from "react";
+import { Line } from "react-chartjs-2";
 
 export type ChartProps = {
   data: { y: Array<ChartDataset<"line">>; x: string[] };

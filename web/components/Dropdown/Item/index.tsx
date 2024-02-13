@@ -10,7 +10,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
   return (
     <Menu.Item
       className={twMerge(
-        "px-4 py-2.5 leading-5 text-14 cursor-pointer",
+        "cursor-pointer px-4 py-2.5 text-14 leading-5",
         className,
       )}
       {...otherProps}

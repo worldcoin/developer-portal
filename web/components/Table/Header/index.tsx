@@ -6,7 +6,7 @@ type HeaderProps = {
 
 export const Header: React.FC<HeaderProps> = ({ headers }) => {
   return (
-    <thead className="h-full sticky top-0 bg-white">
+    <thead className="sticky top-0 h-full bg-white">
       <tr>
         {headers.map((header, index) => (
           <th

@@ -1,6 +1,14 @@
 "use client";
 
+import { DOCS_URL } from "@/lib/constants";
+import { Auth0SessionUser } from "@/lib/types";
+import { colorAtom } from "@/scenes/Portal/layout";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useAtom } from "jotai";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import posthog from "posthog-js";
+import { CSSProperties, Fragment, useCallback } from "react";
 import { Button } from "../Button";
 import {
   Dropdown,
@@ -9,19 +17,11 @@ import {
   DropdownItems,
 } from "../Dropdown";
 import { LogoutIcon } from "../Icons/LogoutIcon";
-import { TYPOGRAPHY, Typography } from "../Typography";
-import { Auth0SessionUser } from "@/lib/types";
-import { UserCircleIcon } from "../Icons/UserCircleIcon";
-import { DOCS_URL } from "@/lib/constants";
-import Link from "next/link";
-import { CSSProperties, Fragment, useCallback } from "react";
-import { colorAtom } from "@/scenes/Portal/layout";
-import { useAtom } from "jotai";
-import { useParams } from "next/navigation";
-import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
+import { UserCircleIcon } from "../Icons/UserCircleIcon";
+import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
+import { TYPOGRAPHY, Typography } from "../Typography";
 import { HelpNav } from "./HelpNav";
-import posthog from "posthog-js";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -62,7 +62,7 @@ export const LoggedUserNav = () => {
 
       <Dropdown>
         <DropdownButton>
-          <div className="h-6 w-6 text-xs flex justify-center items-center bg-[var(--color-100)] rounded-full transition-colors duration-300">
+          <div className="flex size-6 items-center justify-center rounded-full bg-[var(--color-100)] text-xs transition-colors duration-300">
             <Typography
               variant={TYPOGRAPHY.M5}
               className="text-[var(--color-500)] transition-colors duration-500"
@@ -72,11 +72,11 @@ export const LoggedUserNav = () => {
           </div>
         </DropdownButton>
 
-        <DropdownItems className="max-w-[200px] mt-2">
+        <DropdownItems className="mt-2 max-w-[200px]">
           <Typography
             as="div"
             variant={TYPOGRAPHY.R4}
-            className="truncate max-w-full px-4 py-2.5 text-grey-400"
+            className="max-w-full truncate px-4 py-2.5 text-grey-400"
           >
             {user?.email}
           </Typography>
@@ -101,7 +101,7 @@ export const LoggedUserNav = () => {
               <Typography
                 as="div"
                 variant={TYPOGRAPHY.R4}
-                className="truncate max-w-full px-4 py-2.5 text-grey-400"
+                className="max-w-full truncate px-4 py-2.5 text-grey-400"
               >
                 {teamId}
               </Typography>
@@ -135,7 +135,7 @@ export const LoggedUserNav = () => {
               href="/api/auth/logout"
               className="grid grid-cols-auto/1fr items-center gap-x-2 text-system-error-600"
             >
-              <LogoutIcon className="w-4 h-4" />
+              <LogoutIcon className="size-4" />
               <Typography variant={TYPOGRAPHY.R4}>Log out</Typography>
             </a>
           </DropdownItem>

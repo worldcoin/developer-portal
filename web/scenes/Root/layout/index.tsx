@@ -1,21 +1,27 @@
-import type { Metadata } from "next";
-import { Rubik } from "next/font/google";
-import "@/styles/globals.css";
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
+import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
+import "@/styles/globals.css";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { Provider } from "jotai";
+import type { Metadata } from "next";
+import dynamic from "next/dynamic";
+import { IBM_Plex_Mono, Rubik } from "next/font/google";
 import { CSSProperties } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { Provider } from "jotai";
 import { Slide, ToastContainer } from "react-toastify";
-import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
-import dynamic from "next/dynamic";
 
 const PostHogPageView = dynamic(() => import("../providers/PostHogPageView"), {
   ssr: false,
 });
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  style: ["normal"],
+  weight: ["400", "600"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -33,6 +39,7 @@ export const RootLayout = ({
       style={
         {
           "--font-rubik": rubik.style.fontFamily,
+          "--font-mono": ibmPlexMono.style.fontFamily,
         } as CSSProperties
       }
     >

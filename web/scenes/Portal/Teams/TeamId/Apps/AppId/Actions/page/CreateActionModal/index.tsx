@@ -1,28 +1,28 @@
 "use client";
 
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { Input } from "@/components/Input";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
-import { useCallback, useEffect } from "react";
-import slugify from "slugify";
-import { ApolloError } from "@apollo/client";
-import { toast } from "react-toastify";
-import { generateExternalNullifier } from "@/lib/hashing";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { useInsertActionMutation } from "./graphql/insert-action.generated";
-import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
-import clsx from "clsx";
+import { Input } from "@/components/Input";
 import { Link } from "@/components/Link";
-import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import posthog from "posthog-js";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { generateExternalNullifier } from "@/lib/hashing";
 import { EngineType } from "@/lib/types";
+import { ApolloError } from "@apollo/client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import posthog from "posthog-js";
+import { useCallback, useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import slugify from "slugify";
+import * as yup from "yup";
+import { GetActionsDocument } from "../graphql/client/actions.generated";
+import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
+import { useInsertActionMutation } from "./graphql/insert-action.generated";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -162,14 +162,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   return (
     <div
       className={clsx(
-        "fixed inset-0 w-full bg-white grid justify-center",
+        "fixed inset-0 grid w-full justify-center bg-white",
         className,
       )}
     >
-      <div className="grid grid-rows-auto/1fr items-center h-[100dvh] w-[100dvw]">
+      <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr items-center">
         <SizingWrapper gridClassName="bg-grey-0 z-10 border-b">
-          <header className="w-full flex justify-between items-center min-h-9 py-4 border-grey-100">
-            <div className="flex gap-3 w-full items-center">
+          <header className="flex min-h-9 w-full items-center justify-between border-grey-100 py-4">
+            <div className="flex w-full items-center gap-3">
               <Link href={pathname}>
                 <CloseIcon />
               </Link>
@@ -187,11 +187,11 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
 
         <SizingWrapper
           gridClassName="overflow-y-auto no-scrollbar"
-          className="flex justify-center items-center"
+          className="flex items-center justify-center"
         >
           <form
             onSubmit={handleSubmit(submit)}
-            className="grid grid-cols-1 gap-6 w-full max-w-[580px] py-10"
+            className="grid w-full max-w-[580px] grid-cols-1 gap-6 py-10"
           >
             <Typography className="mb-2" variant={TYPOGRAPHY.H6}>
               Create an incognito action
@@ -243,7 +243,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               />
             )}
 
-            <div className="w-full flex justify-end">
+            <div className="flex w-full justify-end">
               <DecoratedButton
                 variant="primary"
                 type="submit"

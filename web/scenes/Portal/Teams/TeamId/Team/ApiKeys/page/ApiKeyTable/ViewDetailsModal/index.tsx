@@ -1,19 +1,19 @@
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
 import { Input } from "@/components/Input";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
-import { toast } from "react-toastify";
-import { useUpdateKeyMutation } from "./graphql/client/update-key.generated";
 import { Switcher } from "@/components/Switch";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { memo, useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
+import { useUpdateKeyMutation } from "./graphql/client/update-key.generated";
 
 const schema = yup.object().shape({
   name: yup.string().required("A key name is required"),
@@ -78,7 +78,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
         <span className="">
           API key{" "}
           <span className="inline-flex">
-            <b className="truncate max-w-20 ">{values.name}</b>
+            <b className="max-w-20 truncate ">{values.name}</b>
           </span>{" "}
           was updated
         </span>,
@@ -94,17 +94,17 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
       <DialogPanel>
-        <div className="max-w-[580px]  grid grid-cols-1 gap-y-8 justify-items-center w-full">
+        <div className="grid  w-full max-w-[580px] grid-cols-1 justify-items-center gap-y-8">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
-          <div className="grid gap-y-4 w-full justify-items-center">
+          <div className="grid w-full justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Edit API Key
             </Typography>
           </div>
           <form
-            className="grid gap-y-10 w-full"
+            className="grid w-full gap-y-10"
             onSubmit={handleSubmit(submit)}
           >
             <Input
@@ -118,7 +118,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
               control={control}
               name="isActive"
               render={({ field }) => (
-                <div className="grid grid-cols-auto/1fr gap-x-4 items-start justify-items-start rounded-xl border border-grey-200 p-4">
+                <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
                   <Switcher setEnabled={field.onChange} enabled={field.value} />
                   <div className="grid grid-cols-1 gap-y-1">
                     <Typography variant={TYPOGRAPHY.R3}>
@@ -134,7 +134,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
                 </div>
               )}
             />
-            <div className="grid grid-cols-2 w-full gap-x-4">
+            <div className="grid w-full grid-cols-2 gap-x-4">
               <DecoratedButton
                 type="button"
                 variant="secondary"

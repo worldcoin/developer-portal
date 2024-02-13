@@ -1,12 +1,12 @@
+import { restAPIRequest } from "@/lib/frontend-api";
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
+import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { Connected } from "./Connected";
 import { IDKitBridge } from "./IDKitBridge";
 import { KioskError } from "./KioskError";
 import { Success } from "./Success";
 import { Waiting } from "./Waiting";
-import { restAPIRequest } from "@/lib/frontend-api";
-import clsx from "clsx";
 
 type ProofResponse = {
   success: boolean;
@@ -111,7 +111,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   return (
     <div
       className={clsx(
-        "bg-grey-50 border border-grey-100 rounded-3xl h-full items-center grid",
+        "grid h-full items-center rounded-3xl border border-grey-100 bg-grey-50",
         {
           "bg-system-success-50": screen === KioskScreen.Success,
           "bg-system-error-50":
@@ -123,7 +123,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         },
       )}
     >
-      <div className="grow grid grid-rows-auto/1fr/auto items-center justify-center">
+      <div className="grid grow grid-rows-auto/1fr/auto items-center justify-center">
         {!action && (
           <KioskError title="This request is invalid." reset={resetKiosk} />
         )}

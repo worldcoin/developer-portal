@@ -1,10 +1,10 @@
-import { ReactNode } from "react";
-import { Header } from "./Header";
-import { atom } from "jotai";
-import { getSession } from "@auth0/nextjs-auth0";
-import { Auth0SessionUser } from "@/lib/types";
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
+import { Auth0SessionUser } from "@/lib/types";
+import { getSession } from "@auth0/nextjs-auth0";
+import { atom } from "jotai";
+import { ReactNode } from "react";
 import { Color } from "../Profile/types";
+import { Header } from "./Header";
 
 export const colorAtom = atom<Color | null>(null);
 
@@ -14,7 +14,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
   const initialColor = calculateColorFromString(user?.name ?? user?.email);
 
   return (
-    <div className="min-h-[100dvh] grid grid-rows-auto/1fr">
+    <div className="grid min-h-[100dvh] grid-rows-auto/1fr">
       <Header color={initialColor} />
       {props.children}
     </div>

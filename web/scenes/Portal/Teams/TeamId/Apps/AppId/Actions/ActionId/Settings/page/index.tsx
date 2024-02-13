@@ -1,10 +1,10 @@
 "use client";
-import { UpdateActionForm } from "../UpdateAction";
-import { TryAction } from "../TryAction";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
-import { ActionsHeader } from "../../Common/ActionsHeader";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
+import { ActionsHeader } from "../../Common/ActionsHeader";
+import { TryAction } from "../TryAction";
+import { UpdateActionForm } from "../UpdateAction";
+import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -34,11 +34,11 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
     );
   } else {
     return (
-      <div className="w-full h-full flex flex-col items-center ">
-        <div className="grid gap-y-2 max-w-[1180px] w-full py-10">
+      <div className="flex size-full flex-col items-center ">
+        <div className="grid w-full max-w-[1180px] gap-y-2 py-10">
           <ActionsHeader actionId={actionID} teamId={teamId} appId={appId} />
-          <hr className="my-5 w-full text-grey-200 border-dashed" />
-          <div className="w-full md:grid-cols-1fr/auto grid items-start justify-between gap-x-32 gap-y-10 grid-cols-1">
+          <hr className="my-5 w-full border-dashed text-grey-200" />
+          <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
             {loading ? (
               <Skeleton count={4} />
             ) : (

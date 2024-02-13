@@ -6,10 +6,10 @@ import { ReactNode } from "react";
 
 export const LoginLayout = (props: { children: ReactNode }) => {
   return (
-    <div className="w-full min-h-[100dvh] grid grid-rows-auto/1fr">
+    <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
       <header className="border-b border-grey-100">
         <SizingWrapper>
-          <div className="flex justify-between items-center py-2.5">
+          <div className="flex items-center justify-between py-2.5">
             <WorldcoinIcon />
 
             <DecoratedButton

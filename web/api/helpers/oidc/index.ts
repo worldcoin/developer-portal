@@ -1,13 +1,13 @@
-import "server-only";
-import crypto from "crypto";
-import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
+import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import crypto from "crypto";
+import "server-only";
 
 import {
-  getSdk as FetchAppSecretQuerySdk,
   FetchAppSecretQuery,
+  getSdk as FetchAppSecretQuerySdk,
 } from "./graphql/fetch-app-secret-query.generated";
 
 import {
@@ -15,11 +15,11 @@ import {
   FetchOidcAppQuery,
 } from "./graphql/fetch-oidc-app.generated";
 
-import {
-  getSdk as InsertAuthCodeSdk,
-  InsertAuthCodeMutation,
-} from "./graphql/insert-auth-code.generated";
 import { getAPIServiceGraphqlClient } from "../graphql";
+import {
+  InsertAuthCodeMutation,
+  getSdk as InsertAuthCodeSdk,
+} from "./graphql/insert-auth-code.generated";
 
 export const OIDCResponseTypeMapping = {
   code: OIDCResponseType.Code,

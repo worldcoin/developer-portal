@@ -24,17 +24,17 @@ import {
 } from "./graphql/fetch-invite.generated";
 
 import {
-  getSdk as InsertMembershipSdk,
   InsertMembershipMutation,
+  getSdk as InsertMembershipSdk,
 } from "./graphql/insert-membership.generated";
 
+import { Role_Enum } from "@/graphql/graphql";
+import { logger } from "@/lib/logger";
+import { Auth0User } from "@/lib/types";
+import { urls } from "@/lib/urls";
+import { isEmailUser } from "../helpers/is-email-user";
 import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
-import { Auth0User } from "@/lib/types";
-import { logger } from "@/lib/logger";
-import { urls } from "@/lib/urls";
-import { Role_Enum } from "@/graphql/graphql";
-import { isEmailUser } from "../helpers/is-email-user";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();

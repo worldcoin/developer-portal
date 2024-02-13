@@ -1,10 +1,10 @@
-import { ReactNode } from "react";
-import { Tabs, Tab } from "@/components/Tabs";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { Tab, Tabs } from "@/components/Tabs";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
+import { ReactNode } from "react";
+import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
 
 type Params = {
   teamId?: string;

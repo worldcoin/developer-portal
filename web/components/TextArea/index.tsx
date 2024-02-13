@@ -36,7 +36,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "border-[1px] text-grey-700 rounded-lg bg-grey-0 px-2 text-sm",
+    "rounded-lg border-[1px] bg-grey-0 px-2 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
@@ -49,7 +49,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full",
+    "peer h-full bg-transparent p-2 focus:outline-none focus:ring-0",
     {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
@@ -58,7 +58,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   );
 
   const labelClassNames = clsx(
-    "text-sm ml-2 px-[2px] peer-focus:text-blue-500",
+    "ml-2 px-[2px] text-sm peer-focus:text-blue-500",
     {
       "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
         !errors && !disabled,
@@ -73,7 +73,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     <div className={"inline-grid font-gta"}>
       <fieldset
         className={twMerge(
-          clsx("grid grid-cols-auto/1fr/auto group pb-2", parentClassNames),
+          clsx("group grid grid-cols-auto/1fr/auto pb-2", parentClassNames),
           typeof className === "string" ? className : undefined,
         )}
       >
@@ -100,7 +100,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
           {label} {required && <span className="text-system-error-500">*</span>}
         </legend>
       </fieldset>
-      <div className={clsx("flex flex-col w-full px-2")}>
+      <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
           <p className="mt-2 text-xs text-grey-500">{helperText}</p>
         )}

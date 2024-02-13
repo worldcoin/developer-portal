@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
 export const TeamLogo = (props: {
   src: string | undefined | null;
@@ -13,7 +13,7 @@ export const TeamLogo = (props: {
     <div>
       {src && (
         <Image
-          className="w-12 h-12"
+          className="size-12"
           src={src}
           alt="team logo"
           onError={() => setSrc(null)}
@@ -21,8 +21,8 @@ export const TeamLogo = (props: {
       )}
 
       {!src && (
-        <div className="w-12 h-12 bg-grey-100 flex justify-center items-center rounded-lg">
-          <span className="text-grey-400 text-14 uppercase">
+        <div className="flex size-12 items-center justify-center rounded-lg bg-grey-100">
+          <span className="text-14 uppercase text-grey-400">
             {props.name[0]}
           </span>
         </div>

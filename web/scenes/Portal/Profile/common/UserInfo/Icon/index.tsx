@@ -1,9 +1,9 @@
-import { CSSProperties, HTMLAttributes } from "react";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
-import { twMerge } from "tailwind-merge";
 import { colorAtom } from "@/scenes/Portal/layout";
+import clsx from "clsx";
 import { useAtom } from "jotai";
+import { CSSProperties, HTMLAttributes } from "react";
+import { twMerge } from "tailwind-merge";
 
 export type IconProps = Omit<HTMLAttributes<HTMLElement>, "color"> & {
   name: string | undefined | null;
@@ -17,7 +17,7 @@ export const Icon = (props: IconProps) => {
     <div
       className={twMerge(
         clsx(
-          "relative w-[72px] h-[72px] flex justify-center items-center transition-opacity duration-300",
+          "relative flex h-[72px] w-[72px] items-center justify-center transition-opacity duration-300",
           className,
         ),
       )}
@@ -31,8 +31,8 @@ export const Icon = (props: IconProps) => {
     >
       <div
         className={clsx(
-          "absolute inset-0 shadow-[0_0_0_1px_var(--color-500)_inset] rounded-full animate-pulse transition-opacity duration-300",
-          { "opacity-0 pointer-events-none": name && color },
+          "absolute inset-0 animate-pulse rounded-full shadow-[0_0_0_1px_var(--color-500)_inset] transition-opacity duration-300",
+          { "pointer-events-none opacity-0": name && color },
         )}
       />
       <svg
@@ -182,7 +182,7 @@ export const Icon = (props: IconProps) => {
       <Typography
         variant={TYPOGRAPHY.M2}
         className={clsx(
-          "relative transition-[color,opacity] duration-500 uppercase",
+          "relative uppercase transition-[color,opacity] duration-500",
           {
             "opacity-0": !name || !color,
           },

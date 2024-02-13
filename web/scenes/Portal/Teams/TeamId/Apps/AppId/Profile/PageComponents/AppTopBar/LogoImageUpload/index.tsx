@@ -1,26 +1,25 @@
+import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { EditIcon } from "@/components/Icons/EditIcon";
+import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { getCDNImageUrl } from "@/lib/utils";
+import clsx from "clsx";
 import { useAtom } from "jotai";
+import Image from "next/image";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
+import { useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
   verifiedImagesAtom,
   viewModeAtom,
 } from "../../../layout";
-import Image from "next/image";
-import { useMemo, useRef } from "react";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
-import clsx from "clsx";
-import { EditIcon } from "@/components/Icons/EditIcon";
-import { Button } from "@/components/Button";
-import { Dialog } from "@/components/Dialog";
-import { DialogPanel } from "@/components/DialogPanel";
-import { ChangeEvent, useState } from "react";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { toast } from "react-toastify";
-import { useImage } from "../../../hook/use-image";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
-import { getCDNImageUrl } from "@/lib/utils";
 
 type LogoImageUploadProps = {
   appId: string;
@@ -117,36 +116,36 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   return (
     <div
       className={clsx(
-        "bg-blue-100 rounded-2xl h-20 w-20 items-center flex justify-center relative",
+        "relative flex size-20 items-center justify-center rounded-2xl bg-blue-100",
       )}
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
-        <DialogPanel className="bg-white max-w-[440px] grid gap-y-10">
-          <div className="grid grid-cols-1fr/auto justify-between w-full">
+        <DialogPanel className="grid max-w-[440px] gap-y-10 bg-white">
+          <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
               type="button"
               onClick={() => setShowDialog(false)}
-              className="rounded-full bg-grey-100 hover:bg-grey-200 h-7 w-7 flex items-center justify-center"
+              className="flex size-7 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200"
             >
-              <CloseIcon className="w-4 h-4" />
+              <CloseIcon className="size-4" />
             </Button>
           </div>
-          <div className="border rounded-xl p-6 border-grey-200 grid gap-y-6">
+          <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
             {unverifiedImages?.logo_img_url ? (
               <div>
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="rounded-lg w-28 h-28 object-contain"
+                  className="size-28 rounded-lg object-contain"
                   width={500}
                   height={500}
                 />
               </div>
             ) : (
-              <div className="bg-blue-100 h-24 w-24 flex items-center justify-center rounded-2xl">
-                <WorldcoinIcon className="w-10 h-10 text-blue-500" />
+              <div className="flex size-24 items-center justify-center rounded-2xl bg-blue-100">
+                <WorldcoinIcon className="size-10 text-blue-500" />
               </div>
             )}
             <input
@@ -157,7 +156,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               onChange={handleFileInput}
               style={{ display: "none" }}
             />
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-90">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
               Image requirements
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
@@ -165,7 +164,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               shows the logo’s final display size.
             </Typography>
           </div>
-          <div className="grid grid-cols-2 gap-x-4 w-full">
+          <div className="grid w-full grid-cols-2 gap-x-4">
             <DecoratedButton
               type="button"
               variant="secondary"
@@ -193,22 +192,22 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           <Image
             alt="logo"
             src={unverifiedImages?.logo_img_url}
-            className="h-20 w-20"
+            className="size-20"
             width={500}
             height={500}
           />
         ) : (
-          <WorldcoinIcon className="w-10 h-10 text-blue-500" />
+          <WorldcoinIcon className="size-10 text-blue-500" />
         ))}
       <Button
         type="button"
         onClick={() => setShowDialog(true)}
         className={clsx(
-          "absolute -bottom-2 -right-2 p-2 bg-white rounded-full border-2 border-grey-200 text-grey-500 hover:bg-grey-50",
+          "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
           { hidden: !editable || viewMode === "verified" },
         )}
       >
-        <EditIcon className="w-3 h-3 " />
+        <EditIcon className="size-3" />
       </Button>
     </div>
   );

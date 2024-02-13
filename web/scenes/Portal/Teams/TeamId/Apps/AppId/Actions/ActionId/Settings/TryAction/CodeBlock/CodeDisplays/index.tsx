@@ -1,17 +1,17 @@
 "use client";
-import { Disclosure } from "@headlessui/react";
-import React, { useCallback } from "react";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
-import { MinusIcon } from "@/components/Icons/MinusIcon";
+import { Button } from "@/components/Button";
+import { CodeBlock } from "@/components/CodeBlock";
 import { DisclosureButton } from "@/components/DisclosureButton";
 import { DisclosurePanel } from "@/components/DisclosurePanel";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { Button } from "@/components/Button";
-import { toast } from "react-toastify";
-import { CodeBlock } from "@/components/CodeBlock";
+import { MinusIcon } from "@/components/Icons/MinusIcon";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import posthog from "posthog-js";
+import { Disclosure } from "@headlessui/react";
 import { useParams } from "next/navigation";
+import posthog from "posthog-js";
+import { useCallback } from "react";
+import { toast } from "react-toastify";
 
 type CodeDisplayComponentProps = {
   buttonText: string;
@@ -41,32 +41,32 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
         {({ open }) => (
           <>
             <DisclosureButton isOpen={open}>
-              <div className="w-full justify-between flex px-8 py-5 items-center">
+              <div className="flex w-full items-center justify-between px-8 py-5">
                 <p className="font-[550]">{buttonText}</p>
                 {open ? (
-                  <MinusIcon className="h-4 w-4 text-grey-900" />
+                  <MinusIcon className="size-4 text-grey-900" />
                 ) : (
-                  <PlusIcon className="h-3 w-3 text-grey-900" />
+                  <PlusIcon className="size-3 text-grey-900" />
                 )}
               </div>
             </DisclosureButton>
             <DisclosurePanel
-              className="text-gray-500 px-8 pb-4 max-w-full"
+              className="max-w-full px-8 pb-4 text-gray-500"
               isOpen={open}
             >
-              <div className="w-full justify-items-end grid">
+              <div className="grid w-full justify-items-end">
                 <CodeBlock
                   code={panelText}
                   language="javascript"
                   theme={"neutral"}
-                  className="text-xs text-grey-700 w-full "
+                  className="w-full text-xs text-grey-700 "
                 />
                 <Button
                   type="button"
                   onClick={copyAction}
                   className="flex gap-x-2 pt-2 text-grey-400 hover:text-grey-900"
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="size-4" />
                   <Typography variant={TYPOGRAPHY.R5} className="text-xs">
                     Copy
                   </Typography>

@@ -1,27 +1,27 @@
 "use client";
 import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { AppStatus } from "./AppStatus";
-import { CategorySelector } from "./Category";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import { useAtom } from "jotai";
 import { viewModeAtom } from "../../layout";
-import { checkUserPermissions } from "@/lib/utils";
+import { AppStatus } from "./AppStatus";
+import { CategorySelector } from "./Category";
+import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 
 const schema = yup.object({
   name: yup
@@ -125,7 +125,7 @@ export const BasicInformation = (props: {
   );
 
   return (
-    <div className="grid grid-cols-1fr/auto max-w-[580px]">
+    <div className="grid max-w-[580px] grid-cols-1fr/auto">
       <div className="">
         <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
           <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
@@ -165,7 +165,7 @@ export const BasicInformation = (props: {
               <Button
                 type="button"
                 onClick={copyId}
-                className="text-grey-900 pr-2"
+                className="pr-2 text-grey-900"
               >
                 <CopyIcon />
               </Button>
@@ -175,7 +175,7 @@ export const BasicInformation = (props: {
           <DecoratedButton
             type="submit"
             variant="primary"
-            className=" mr-5 w-40 h-12"
+            className=" mr-5 h-12 w-40"
             disabled={
               !isEditable || !isEnoughPermissions || !isDirty || !isValid
             }

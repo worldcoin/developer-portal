@@ -1,24 +1,24 @@
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Input } from "@/components/Input";
 import { TextArea } from "@/components/TextArea";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { DescriptionSubFields } from "../../../types";
-import { useCallback, useEffect, useMemo } from "react";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { Input } from "@/components/Input";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { useAtom } from "jotai";
 import { viewModeAtom } from "../../../layout";
-import { checkUserPermissions } from "@/lib/utils";
+import { DescriptionSubFields } from "../../../types";
+import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
 
 const schema = yup.object().shape({
   world_app_description: yup
@@ -217,7 +217,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         </div>
         <DecoratedButton
           type="submit"
-          className="w-40 h-12"
+          className="h-12 w-40"
           disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
         >
           <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>

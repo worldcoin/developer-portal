@@ -1,7 +1,7 @@
 import { Button, CommonButtonProps } from "@/components/Button";
-import { memo } from "react";
-import clsx from "clsx";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
+import clsx from "clsx";
+import { memo } from "react";
 import { twMerge } from "tailwind-merge";
 
 type DecoratedButtonProps = CommonButtonProps & {
@@ -57,7 +57,7 @@ export const DecoratedButton = memo(function DecoratedButton(
       disabled={disabled}
       className={twMerge(
         clsx(
-          "px-6 py-2.5 rounded-xl border font-medium relative font-gta flex items-center justify-center",
+          "relative flex items-center justify-center rounded-xl border px-6 py-2.5 font-gta font-medium",
           { [buttonStyles[variant].normal]: !disabled && !loading },
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,
@@ -68,14 +68,14 @@ export const DecoratedButton = memo(function DecoratedButton(
       {...restProps}
     >
       <div
-        className={clsx("gap-2 flex items-center justify-center", {
-          "before:absolute before:inset-0 before:rounded-[11px] before:shadow-[0_0_0_1px_rgba(255,255,255,.1)_inset] before:pointer-events-none":
+        className={clsx("flex items-center justify-center gap-2", {
+          "before:pointer-events-none before:absolute before:inset-0 before:rounded-[11px] before:shadow-[0_0_0_1px_rgba(255,255,255,.1)_inset]":
             variant === "primary",
         })}
       >
         {icon}
         {props.children}
-        {showArrowRight && <ArrowRightIcon className="w-6 h-6" />}
+        {showArrowRight && <ArrowRightIcon className="size-6" />}
       </div>
     </Button>
   );

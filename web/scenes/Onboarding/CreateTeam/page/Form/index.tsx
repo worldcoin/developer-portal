@@ -1,17 +1,17 @@
 "use client";
 
+import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useRouter } from "next/navigation";
-import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
   teamName: yup.string().required("Please enter a team name"),
@@ -90,7 +90,7 @@ export const Form = (props: {
         errors={errors.teamName}
       />
 
-      <div className="grid gap-y-8 p-6 border border-grey-200 rounded-xl">
+      <div className="grid gap-y-8 rounded-xl border border-grey-200 p-6">
         <div className="grid grid-cols-auto/1fr gap-x-3">
           <Checkbox register={register("termsAndConditions")} />
           <Typography variant={TYPOGRAPHY.R3}>
@@ -110,14 +110,14 @@ export const Form = (props: {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="row-start-1 col-start-2"
+            className="col-start-2 row-start-1"
           >
             I want to receive product updates
           </Typography>
 
           <Typography
             variant={TYPOGRAPHY.R4}
-            className="text-gray-400 row-start-2 col-start-2"
+            className="col-start-2 row-start-2 text-gray-400"
           >
             Once in a while we will send you an email with current updates about
             World ID for developers

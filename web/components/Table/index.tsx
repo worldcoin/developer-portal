@@ -7,7 +7,7 @@ type TableProps = {
 
 export const Table: React.FC<TableProps> = ({ children, footer }) => {
   return (
-    <div className="w-full h-full">
+    <div className="size-full">
       <table className="min-w-full divide-y divide-grey-100">{children}</table>
       {footer}
     </div>

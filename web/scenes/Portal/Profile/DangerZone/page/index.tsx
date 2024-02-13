@@ -1,11 +1,11 @@
 "use client";
 
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { useState } from "react";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
-import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 
 export const DangerZone = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -16,12 +16,12 @@ export const DangerZone = () => {
         <SizingWrapper className="grid gap-y-8">
           <UserInfo />
 
-          <div className="border-b border-grey-200 border-dashed" />
+          <div className="border-b border-dashed border-grey-200" />
         </SizingWrapper>
 
         <SizingWrapper className="py-8">
           <div className="grid gap-y-8">
-            <div className="grid gap-y-3 w-full max-w-[580px]">
+            <div className="grid w-full max-w-[580px] gap-y-3">
               <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
                 Danger zone
               </Typography>
@@ -36,7 +36,7 @@ export const DangerZone = () => {
                 type="button"
                 onClick={() => setOpen(true)}
                 variant="danger"
-                className="py-3 mt-7 max-w-44"
+                className="mt-7 max-w-44 py-3"
               >
                 Delete account
               </DecoratedButton>

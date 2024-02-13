@@ -1,19 +1,19 @@
 "use client";
 
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { UserAddIcon } from "@/components/Icons/UserAddIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
-import { useCallback } from "react";
-import { EmailsInput } from "./EmailsInput";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { FetchInvitesDocument } from "../List/graphql/client/fetch-invites.generated";
+import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { EmailsInput } from "./EmailsInput";
 
 export const inviteTeamMemberDialogAtom = atom(false);
 export const emailsInputAtom = atom<string[]>([]);
@@ -51,8 +51,8 @@ export const InviteTeamMemberDialog = () => {
     <Dialog open={isOpened} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-10 max-w-[580px] justify-items-center">
-        <div className="grid gap-y-4 w-full justify-items-center">
+      <DialogPanel className="grid max-w-[580px] justify-items-center gap-y-10">
+        <div className="grid w-full justify-items-center gap-y-4">
           <CircleIconContainer variant="info">
             <UserAddIcon />
           </CircleIconContainer>
@@ -75,7 +75,7 @@ export const InviteTeamMemberDialog = () => {
           className="w-full"
         />
 
-        <div className="w-full grid grid-cols-2 gap-x-4">
+        <div className="grid w-full grid-cols-2 gap-x-4">
           <DecoratedButton type="button" variant="secondary" onClick={onClose}>
             Cancel
           </DecoratedButton>

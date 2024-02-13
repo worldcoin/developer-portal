@@ -1,41 +1,41 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import {
-  FetchMembershipsQuery,
-  useFetchMembershipsQuery,
-} from "./graphql/client/fetch-members.generated";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { UserLogo } from "./UserLogo";
-import { Role_Enum } from "@/graphql/graphql";
 import {
   Dropdown,
   DropdownButton,
   DropdownItem,
   DropdownItems,
 } from "@/components/Dropdown";
-import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
-import { Footer } from "@/components/Table/Footer";
 import { EditUserIcon } from "@/components/Icons/EditUserIcon";
+import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
+import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { Footer } from "@/components/Table/Footer";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import dayjs from "dayjs";
+import { useAtom } from "jotai";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
+import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
+import { PermissionsDialog } from "./PermissionsDialog";
+import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
+import { UserLogo } from "./UserLogo";
+import { useDeleteInviteMutation } from "./graphql/client/delete-invite.generated";
 import {
   FetchInvitesDocument,
   useFetchInvitesQuery,
 } from "./graphql/client/fetch-invites.generated";
-import dayjs from "dayjs";
-import Skeleton from "react-loading-skeleton";
-import { useAtom } from "jotai";
-import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
-import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
-import { PermissionsDialog } from "./PermissionsDialog";
-import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
-import { toast } from "react-toastify";
-import { SendIcon } from "@/components/Icons/SendIcon";
-import { useDeleteInviteMutation } from "./graphql/client/delete-invite.generated";
+import {
+  FetchMembershipsQuery,
+  useFetchMembershipsQuery,
+} from "./graphql/client/fetch-members.generated";
+import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -240,29 +240,29 @@ export const List = (props: { search?: string }) => {
     <div>
       <div className="grid grid-cols-[1fr_1fr_auto]">
         {membersToRender.length > 0 && (
-          <div className="contents leading-4 text-12 text-grey-400">
+          <div className="contents text-12 leading-4 text-grey-400">
             <Typography
               variant={TYPOGRAPHY.R5}
-              className="py-3 border-b border-grey-100"
+              className="border-b border-grey-100 py-3"
             >
               Member
             </Typography>
 
             <Typography
               variant={TYPOGRAPHY.R5}
-              className="py-3 border-b border-grey-100"
+              className="border-b border-grey-100 py-3"
             >
               Role
             </Typography>
 
-            <div className="py-3 border-b border-grey-100" />
+            <div className="border-b border-grey-100 py-3" />
 
             {membersToRender.map((membership) => {
               const isInviteRow = membership.id.startsWith("inv_");
 
               return (
                 <div key={membership.user.id} className="contents">
-                  <div className="flex items-center gap-x-4 px-2 py-4 border-b border-grey-100">
+                  <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
                     <UserLogo src={""} name={membership.user.name ?? ""} />
 
                     <div className="grid gap-y-0.5">
@@ -282,13 +282,13 @@ export const List = (props: { search?: string }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center py-4 leading-5 text-14 text-grey-500 border-b border-grey-100">
+                  <div className="flex items-center border-b border-grey-100 py-4 text-14 leading-5 text-grey-500">
                     <Typography variant={TYPOGRAPHY.R4}>
                       {roleName[membership.role]}
                     </Typography>
 
                     {isInviteRow && (
-                      <div className="mx-auto py-1 px-3 rounded-full bg-system-warning-100">
+                      <div className="mx-auto rounded-full bg-system-warning-100 px-3 py-1">
                         <Typography
                           variant={TYPOGRAPHY.S3}
                           className="text-system-warning-500"
@@ -299,7 +299,7 @@ export const List = (props: { search?: string }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center px-2 py-4 border-b border-grey-100">
+                  <div className="flex items-center border-b border-grey-100 px-2 py-4">
                     <Dropdown>
                       <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
                         <MoreVerticalIcon className="text-grey-900" />
@@ -310,7 +310,7 @@ export const List = (props: { search?: string }) => {
                           <DropdownItem
                             as="button"
                             onClick={() => onEditUser(membership)}
-                            className=" grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                            className=" grid w-full grid-cols-auto/1fr items-center gap-x-2 transition-colors hover:bg-grey-100"
                           >
                             <EditUserIcon className="text-grey-400" />
 
@@ -327,7 +327,7 @@ export const List = (props: { search?: string }) => {
                           <DropdownItem
                             as="button"
                             onClick={() => resendInvite(membership)}
-                            className="grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                            className="grid w-full grid-cols-auto/1fr items-center gap-x-2 transition-colors hover:bg-grey-100"
                           >
                             <SendIcon className="text-grey-400" />
 
@@ -345,7 +345,7 @@ export const List = (props: { search?: string }) => {
                                 ? cancelInvite(membership)
                                 : onRemoveUser(membership)
                             }
-                            className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-2 hover:bg-grey-100 transition-colors w-full"
+                            className="grid w-full grid-cols-auto/1fr items-center gap-x-2 text-system-error-600 transition-colors hover:bg-grey-100"
                           >
                             <TrashIcon />
 
@@ -373,7 +373,7 @@ export const List = (props: { search?: string }) => {
       )}
 
       {membersToRender.length === 0 && props.search && (
-        <div className="w-full h-[240px] border border-grey-200 rounded-2xl flex justify-center items-center">
+        <div className="flex h-[240px] w-full items-center justify-center rounded-2xl border border-grey-200">
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
             No results
           </Typography>

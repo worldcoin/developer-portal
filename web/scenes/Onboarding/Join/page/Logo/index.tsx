@@ -15,7 +15,7 @@ export const Logo = (props: {
   return (
     <div
       className={twMerge(
-        clsx("w-20 h-20 rounded-2xl overflow-hidden", props.className),
+        clsx("size-20 overflow-hidden rounded-2xl", props.className),
       )}
     >
       {image && (
@@ -24,13 +24,13 @@ export const Logo = (props: {
           src={image}
           alt="Team logo"
           onError={() => setImage(null)}
-          className="w-full h-full object-contain"
+          className="size-full object-contain"
           width={80}
           height={80}
         />
       )}
 
-      {!image && <WorldcoinBlueprintIcon className="w-full h-full" />}
+      {!image && <WorldcoinBlueprintIcon className="size-full" />}
     </div>
   );
 };

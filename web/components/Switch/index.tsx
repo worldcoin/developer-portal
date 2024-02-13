@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import { Switch } from "@headlessui/react";
+import clsx from "clsx";
 
 type SwitchProps = {
   enabled: boolean;
@@ -31,8 +31,8 @@ export const Switcher = (props: SwitchProps) => {
             "translate-x-[1.1rem]": enabled,
             "translate-x-[.15rem]": !enabled,
           },
-          "inline-block h-[20px] w-[20px] transform rounded-full bg-white transition",
-          "after:content-[''] after:absolute after:top-1/2 after:left-1/2 after:w-[17px] after:h-[17px] after:rounded-full after:-translate-x-1/2 after:-translate-y-1/2 after:bg-gradient-to-b from-[#D3D4D645] to-white ",
+          "inline-block size-[20px] rounded-full bg-white transition",
+          "from-[#D3D4D645] to-white after:absolute after:left-1/2 after:top-1/2 after:size-[17px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:bg-gradient-to-b after:content-[''] ",
         )}
       />
     </Switch>

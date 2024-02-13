@@ -1,38 +1,36 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { UserEditIcon } from "@/components/Icons/UserEditIcon";
-import { atom, useAtom } from "jotai";
-import { Notification } from "@/components/Notification";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Link } from "@/components/Link";
-import { Controller, useForm } from "react-hook-form";
 import { Input } from "@/components/Input";
-import * as yup from "yup";
-import { Role_Enum } from "@/graphql/graphql";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { Notification } from "@/components/Notification";
 import {
   Select,
   SelectButton,
   SelectOption,
   SelectOptions,
 } from "@/components/Select";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { atom, useAtom } from "jotai";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { permissionsDialogAtom } from "../PermissionsDialog";
 import {
   FetchMembershipsDocument,
   FetchMembershipsQuery,
 } from "../graphql/client/fetch-members.generated";
-import { useCallback, useEffect, useMemo } from "react";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
-import { useParams } from "next/navigation";
-import { toast } from "react-toastify";
-import { Button } from "@/components/Button";
-import { permissionsDialogAtom } from "../PermissionsDialog";
-import clsx from "clsx";
 
 export const editRoleDialogAtom = atom(false);
 
@@ -142,8 +140,8 @@ export const EditRoleDialog = (props: {
     <Dialog open={isOpened} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="max-w-[580px] grid gap-y-10">
-        <div className="grid gap-y-4 justify-items-center">
+      <DialogPanel className="grid max-w-[580px] gap-y-10">
+        <div className="grid justify-items-center gap-y-4">
           <CircleIconContainer variant="info">
             <UserEditIcon />
           </CircleIconContainer>
@@ -168,12 +166,12 @@ export const EditRoleDialog = (props: {
           </Notification>
         </div>
 
-        <form onSubmit={handleSubmit(submit)} className="grid gap-y-10 w-full">
+        <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-10">
           <div className="grid grid-cols-2 gap-x-4">
             <Input
               disabled
               register={register("email")}
-              className="py-1 px-2"
+              className="px-2 py-1"
             />
 
             <Controller
@@ -182,7 +180,7 @@ export const EditRoleDialog = (props: {
               render={({ field }) => {
                 return (
                   <div className="relative">
-                    <fieldset className="absolute inset-x-0 bottom-0 -top-3 pointer-events-none border rounded-lg">
+                    <fieldset className="pointer-events-none absolute inset-x-0 -top-3 bottom-0 rounded-lg border">
                       <legend className="ml-3.5 px-0.5">
                         <Typography
                           variant={TYPOGRAPHY.R4}
@@ -194,7 +192,7 @@ export const EditRoleDialog = (props: {
                     </fieldset>
 
                     <Select value={field.value} onChange={field.onChange}>
-                      <SelectButton className="flex justify-between items-center w-full h-full">
+                      <SelectButton className="flex size-full items-center justify-between">
                         <Typography variant={TYPOGRAPHY.R3}>
                           {field.value?.label}
                         </Typography>
@@ -207,7 +205,7 @@ export const EditRoleDialog = (props: {
                           <SelectOption
                             key={`edit-role-option-${index}`}
                             value={option}
-                            className="hover:bg-grey-100 transition-colors w-full h-full"
+                            className="size-full transition-colors hover:bg-grey-100"
                           >
                             {option.label}
                           </SelectOption>
@@ -220,7 +218,7 @@ export const EditRoleDialog = (props: {
             />
           </div>
 
-          <div className="grid grid-cols-2 w-full gap-x-4 items-center">
+          <div className="grid w-full grid-cols-2 items-center gap-x-4">
             <DecoratedButton
               type="button"
               onClick={onClose}

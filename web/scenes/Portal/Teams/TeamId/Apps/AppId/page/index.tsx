@@ -1,20 +1,20 @@
 "use client";
 
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { AppStatsGraph } from "./AppStatsGraph";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import dayjs from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-import { QuickAction } from "./QuickAction";
-import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
+import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
+import { UserCardIcon } from "@/components/Icons/UserCardIcon";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
-import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
-import { UserCardIcon } from "@/components/Icons/UserCardIcon";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useMemo } from "react";
+import { AppStatsGraph } from "./AppStatsGraph";
+import { QuickAction } from "./QuickAction";
 import { useGetVerificationDataQuery } from "./graphql/client/get-verification-data.generated";
 
 dayjs.extend(advancedFormat);
@@ -83,7 +83,7 @@ export const AppIdPage = (props: {
       <div className="grid gap-y-6">
         <Typography variant={TYPOGRAPHY.H7}>Quick actions</Typography>
 
-        <div className="grid gap-y-4 lg:grid-cols-3 gap-x-6">
+        <div className="grid gap-x-6 gap-y-4 lg:grid-cols-3">
           <QuickAction
             icon={<MultiplePlusIcon />}
             title="Create an action"
@@ -100,7 +100,7 @@ export const AppIdPage = (props: {
 
           {verificationStatus !== VerificationStatus.Verified && (
             <QuickAction
-              icon={<CheckmarkBadge className="w-[22px] h-[22px]" />}
+              icon={<CheckmarkBadge className="size-[22px]" />}
               title="Get your app verified"
               description="Display a verified app badge"
               href={urls.appProfile({ team_id: teamId, app_id: appId })}

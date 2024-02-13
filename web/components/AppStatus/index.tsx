@@ -1,6 +1,6 @@
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { twMerge } from "tailwind-merge";
 
 export type StatusVariant =
@@ -43,13 +43,13 @@ export const AppStatus = (props: StatusProps) => {
     <div
       className={twMerge(
         clsx(
-          "px-3 py-1 rounded-3xl flex gap-x-1.5 items-center",
+          "flex items-center gap-x-1.5 rounded-3xl px-3 py-1",
           statusStyles[status]?.normal,
           className,
         ),
       )}
     >
-      {status === "verified" && <CheckmarkBadge className="w-4 h-auto" />}
+      {status === "verified" && <CheckmarkBadge className="h-auto w-4" />}
       <Typography variant={typography}>{statusMessageMap[status]}</Typography>
     </div>
   );

@@ -1,4 +1,3 @@
-import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { ArrowUpIcon } from "@/components/Icons/ArrowUpIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
@@ -12,12 +11,9 @@ export const StatCard = (props: {
 }) => {
   return (
     <div>
-      <div className="grid grid-cols-auto/1fr gap-x-1 items-center">
+      <div className="grid grid-cols-auto/1fr items-center gap-x-1">
         <div
-          className={clsx(
-            "w-1.5 h-1.5 rounded-[1px]",
-            props.mainColorClassName,
-          )}
+          className={clsx("size-1.5 rounded-[1px]", props.mainColorClassName)}
         />
 
         <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
@@ -39,7 +35,7 @@ export const StatCard = (props: {
         >
           <div
             className={clsx(
-              "w-4 h-4 flex items-center justify-center rounded-full",
+              "flex size-4 items-center justify-center rounded-full",
               {
                 "bg-system-success-50 text-system-success-500":
                   props.changePercentage > 0,
@@ -50,14 +46,14 @@ export const StatCard = (props: {
             )}
           >
             <ArrowUpIcon
-              className={clsx("w-3 h-3", {
+              className={clsx("size-3", {
                 "rotate-180": props.changePercentage < 0,
                 hidden: props.changePercentage === 0,
               })}
             />
 
             <div
-              className={clsx("w-2 h-2 rounded-full bg-grey-500", {
+              className={clsx("size-2 rounded-full bg-grey-500", {
                 hidden: props.changePercentage !== 0,
               })}
             />

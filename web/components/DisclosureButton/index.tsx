@@ -10,8 +10,8 @@ export const DisclosureButton = (props: {
   return (
     <Disclosure.Button
       className={clsx(
-        "bg-grey-50  border-grey-100 w-full flex ",
-        { "rounded-t-xl border-t border-r border-l": isOpen },
+        "flex  w-full border-grey-100 bg-grey-50 ",
+        { "rounded-t-xl border-l border-r border-t": isOpen },
         { "rounded-xl border hover:bg-grey-100": !isOpen },
         props.className,
       )}

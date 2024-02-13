@@ -4,6 +4,8 @@ import "server-only";
  * Contains all functions for interacting with Amazon KMS
  */
 
+import { retrieveJWK } from "@/api/helpers/jwks";
+import { logger } from "@/lib/logger";
 import {
   CreateKeyCommand,
   DescribeKeyCommand,
@@ -14,8 +16,6 @@ import {
   SignCommand,
 } from "@aws-sdk/client-kms";
 import { base64url } from "jose";
-import { retrieveJWK } from "@/api/helpers/jwks";
-import { logger } from "@/lib/logger";
 
 export type CreateKeyResult =
   | {

@@ -1,19 +1,19 @@
-import { useCallback } from "react";
-import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogPanel } from "@/components/DialogPanel";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import { Dialog, DialogProps } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Auth0SessionUser } from "@/lib/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useCallback } from "react";
+import { toast } from "react-toastify";
 import {
   FetchMembershipsDocument,
   FetchMembershipsQuery,
 } from "../graphql/client/fetch-memberships.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 import { useLeaveTeamMutation } from "./graphql/client/leave-team.generated";
-import { toast } from "react-toastify";
 
 type LeaveTeamDialogProps = DialogProps & {
   team?: FetchMembershipsQuery["memberships"][0]["team"];
@@ -54,7 +54,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="w-[28rem] grid gap-y-8">
+      <DialogPanel className="grid w-[28rem] gap-y-8">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -64,7 +64,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
             Are you sure?
           </Typography>
 
-          <p className="leading-6 font-500 text-16 text-center text-grey-500">
+          <p className="text-center text-16 font-medium leading-6 text-grey-500">
             If you choose to leave the{" "}
             <span className="font-medium text-grey-900">{team?.name}</span>{" "}
             team, you will need to be invited again in order to rejoin if you
@@ -72,7 +72,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 w-full gap-x-4 mt-2">
+        <div className="mt-2 grid w-full grid-cols-2 gap-x-4">
           <DecoratedButton
             type="button"
             variant="danger"

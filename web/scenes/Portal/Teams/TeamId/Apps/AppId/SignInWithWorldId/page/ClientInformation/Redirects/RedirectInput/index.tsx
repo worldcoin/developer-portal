@@ -1,11 +1,11 @@
 "use client";
+import { validateUrl } from "@/lib/utils";
+import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { InputHTMLAttributes, memo } from "react";
 import { useForm } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { validateUrl } from "@/lib/utils";
 
 interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
@@ -55,7 +55,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
   });
 
   const parentClassNames = clsx(
-    "border-[1px] text-grey-700 rounded-lg bg-grey-0 px-2 text-sm",
+    "rounded-lg border-[1px] bg-grey-0 px-2 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors.url && !disabled,
@@ -69,7 +69,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
   );
 
   const inputClassNames = clsx(
-    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full w-full",
+    "peer size-full bg-transparent p-2 focus:outline-none focus:ring-0",
     {
       "placeholder:text-grey-400": !errors.url,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
@@ -85,7 +85,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
     <form onSubmit={handleSave}>
       <fieldset
         className={twMerge(
-          clsx("grid grid-cols-1fr/auto group", parentClassNames),
+          clsx("group grid grid-cols-1fr/auto", parentClassNames),
           typeof className === "string" ? className : undefined,
         )}
       >
@@ -99,7 +99,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
         />
         <div className="flex items-center">{addOnRight && addOnRight}</div>
       </fieldset>
-      <div className={clsx("flex flex-col w-full px-2")}>
+      <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
           <p className="mt-2 text-xs text-grey-500">{helperText}</p>
         )}
