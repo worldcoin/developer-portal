@@ -59,6 +59,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     setError,
     watch,
     reset,
+    setFocus,
   } = useForm<NewActionFormValues>({
     resolver: yupResolver(createActionSchema),
     mode: "onChange",
@@ -67,6 +68,10 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
   });
   const [insertActionQuery, { loading }] = useInsertActionMutation({});
+
+  useEffect(() => {
+    setFocus("name");
+  }, [setFocus]);
 
   useEffect(() => {
     const subscription = watch((value, { name }) => {
@@ -166,7 +171,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         className,
       )}
     >
-      <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr items-center">
+      <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr">
         <SizingWrapper gridClassName="bg-grey-0 z-10 border-b">
           <header className="flex min-h-9 w-full items-center justify-between border-grey-100 py-4">
             <div className="flex w-full items-center gap-3">

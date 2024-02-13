@@ -31,15 +31,17 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
           setIsOpen={setShowCreateKeyModal}
         />
         {!loading && apiKeys?.length === 0 ? (
-          <div className="grid grid-cols-1 justify-items-center gap-y-5">
-            <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="text-center text-grey-500"
-            >
-              Create a secure API key to seamlessly <br />
-              manage your team&apos;s World ID apps
-            </Typography>
+          <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
+            <div className="gap-y-5 grid justify-items-center ">
+              <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
+              <Typography
+                variant={TYPOGRAPHY.R3}
+                className="text-center text-grey-500"
+              >
+                Create a secure API key to seamlessly <br />
+                manage your team&apos;s World ID apps
+              </Typography>
+            </div>
             <DecoratedButton
               type="button"
               onClick={() => setShowCreateKeyModal(true)}
