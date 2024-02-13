@@ -3,7 +3,7 @@ import { ActionIdSettingsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Ac
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Settions" }),
+  title: generateMetaTitle({ left: "Settings" }),
 };
 
 export default ActionIdSettingsPage;
