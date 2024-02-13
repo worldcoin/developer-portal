@@ -23,7 +23,6 @@ const generateCsp = () => {
       values: [
         "'self'",
         `'nonce-${nonce}'`,
-        "strict-dynamic'",
         ...(isDev ? ["'unsafe-eval'"] : []),
         "https://cookie-cdn.cookiepro.com",
         "https://app.posthog.com",
