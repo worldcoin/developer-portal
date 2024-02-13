@@ -41,7 +41,10 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");
-    return NextResponse.redirect(new URL("/login", req.url), 307);
+    return NextResponse.redirect(
+      new URL("/login", process.env.NEXT_PUBLIC_APP_URL),
+      307,
+    );
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -86,7 +89,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), req.url).toString(),
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
     }
@@ -101,7 +104,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       );
 
       return NextResponse.redirect(
-        new URL(urls.logout(), req.url).toString(),
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
     }
@@ -128,7 +131,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), req.url).toString(),
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
     }
@@ -262,7 +265,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), req.url).toString(),
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
     }
@@ -277,7 +280,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
             team_id: teamId,
           })
         : urls.profile(),
-      req.url,
+      process.env.NEXT_PUBLIC_APP_URL,
     ),
     307,
   );
