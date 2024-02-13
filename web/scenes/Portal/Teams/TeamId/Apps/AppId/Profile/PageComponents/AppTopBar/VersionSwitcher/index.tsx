@@ -8,9 +8,9 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useAtom } from "jotai";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../../layout";
+import { viewModeAtom } from "../../../layout/ImagesProvider";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];
@@ -27,12 +27,6 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
 
     return `${month}.${day}.${year}`;
   }, [app?.verified_app_metadata]);
-
-  useEffect(() => {
-    if (app?.app_metadata.length === 0) {
-      setMode("verified");
-    }
-  }, [app?.app_metadata.length, setMode]);
 
   return (
     <Dropdown>

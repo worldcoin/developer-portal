@@ -16,9 +16,8 @@ import { toast } from "react-toastify";
 import { useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
-  verifiedImagesAtom,
   viewModeAtom,
-} from "../../../layout";
+} from "../../../layout/ImagesProvider";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
@@ -31,14 +30,14 @@ type LogoImageUploadProps = {
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const { appId, appMetadataId, teamId, editable, logoFile } = props;
   const [showDialog, setShowDialog] = useState(false);
+  const [verifiedImageError, setVerifiedImageError] = useState(false);
+  const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [verifiedImages] = useAtom(verifiedImagesAtom);
-  const [disabled] = useState(false);
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
+    useImage();
 
   const handleUpload = () => {
     imageInputRef.current?.click();
@@ -57,16 +56,19 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       try {
         await validateImageDimensions(file, 500, 500);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
+
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
           teamId,
           imageType,
         );
+
         setUnverifiedImages({
           ...unverifiedImages,
           logo_img_url: imageUrl,
         });
+
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
         await updateLogoMutation({
           variables: {
@@ -75,11 +77,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           },
           context: { headers: { team_id: teamId } },
         });
+
         toast.update("upload_toast", {
           type: "success",
           render: "Image uploaded successfully",
           autoClose: 5000,
         });
+
         setShowDialog(false);
       } catch (error) {
         console.error(error);
@@ -138,7 +142,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="size-28 rounded-lg object-contain"
+                  className="size-28 rounded-2xl object-contain"
                   width={500}
                   height={500}
                 />
@@ -186,7 +190,17 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         </DialogPanel>
       </Dialog>
-      {viewMode === "verified" && <img src={verifiedImageURL} alt="logo" />}
+      {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
+      {viewMode === "verified" &&
+        (verifiedImageError ? (
+          <WorldcoinIcon className="size-10 text-blue-500" />
+        ) : (
+          <img
+            src={verifiedImageURL}
+            alt="logo"
+            onError={() => setVerifiedImageError(true)}
+          />
+        ))}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
           <Image

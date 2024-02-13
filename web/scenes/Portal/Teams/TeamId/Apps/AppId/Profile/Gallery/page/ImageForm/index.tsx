@@ -16,7 +16,10 @@ import {
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useImage } from "../../../hook/use-image";
-import { unverifiedImageAtom, viewModeAtom } from "../../../layout";
+import {
+  unverifiedImageAtom,
+  viewModeAtom,
+} from "../../../layout/ImagesProvider";
 import { ImageDisplay } from "./ImageDisplay";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";

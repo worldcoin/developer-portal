@@ -18,7 +18,7 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../layout";
+import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppStatus } from "./AppStatus";
 import { CategorySelector } from "./Category";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";

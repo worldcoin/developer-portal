@@ -5,14 +5,8 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
-import { atom } from "jotai";
 import { ReactNode } from "react";
-
-type Images = {
-  logo_img_url?: string;
-  hero_image_url?: string;
-  showcase_image_urls?: string[] | null;
-};
+import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
   teamId?: string;
@@ -24,20 +18,6 @@ type AppProfileLayout = {
   params: Params;
   children: ReactNode;
 };
-
-export const viewModeAtom = atom<"unverified" | "verified">("unverified");
-export const showReviewStatusAtom = atom<boolean>(true);
-
-export const unverifiedImageAtom = atom<Images>({
-  logo_img_url: "",
-  hero_image_url: "",
-  showcase_image_urls: null,
-});
-export const verifiedImagesAtom = atom<Images>({
-  logo_img_url: "",
-  hero_image_url: "",
-  showcase_image_urls: null,
-});
 
 export const AppProfileLayout = async (props: AppProfileLayout) => {
   const params = props.params;
@@ -97,7 +77,11 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
           </Tabs>
         </SizingWrapper>
       </div>
-      <SizingWrapper>{props.children}</SizingWrapper>
+      <SizingWrapper>
+        <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
+          {props.children}
+        </ImagesProvider>
+      </SizingWrapper>
     </div>
   );
 };

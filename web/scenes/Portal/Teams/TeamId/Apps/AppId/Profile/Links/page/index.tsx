@@ -7,8 +7,7 @@ import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
+import { viewModeAtom } from "../../layout/ImagesProvider";
 import { LinksForm } from "./LinksForm";
 
 type AppProfileLinksProps = {
@@ -19,27 +18,12 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
-  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
 
   const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
-  });
-
-  const { loading: loadingImages } = useFetchImagesQuery({
-    variables: {
-      id: appId,
-    },
-    context: { headers: { team_id: teamId } },
-    onCompleted: (data) => {
-      setUnverifiedImages({
-        logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-        hero_image_url: data?.unverified_images?.hero_image_url ?? "",
-        showcase_image_urls: data?.unverified_images?.showcase_img_urls,
-      });
-    },
   });
 
   const app = data?.app[0];
@@ -57,7 +41,7 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
   } else {
     return (
       <div className={clsx("grid gap-y-4 py-8")}>
-        {loading || loadingImages ? (
+        {loading ? (
           <Skeleton count={2} height={50} />
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
