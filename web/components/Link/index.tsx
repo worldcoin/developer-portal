@@ -33,6 +33,7 @@ export const Link = memo(function Link(props: CommonLinkProps) {
       {!external && (
         <NextLink
           href={href ?? "!#"}
+          prefetch={false}
           className={clsx("leading-none", className)}
           {...restProps}
         >
