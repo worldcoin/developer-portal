@@ -52,6 +52,7 @@ const generateCsp = () => {
         "https://app.posthog.com",
         "https://cookie-cdn.cookiepro.com",
         "https://pactsafe.io",
+        "https://worldcoin.pactsafe.io",
         "https://bridge.worldcoin.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
       ],
@@ -133,4 +134,6 @@ export default withMiddlewareAuthRequired(async function middleware(
   return response;
 });
 
-export const config = { matcher: ["/teams", "/teams/:path*", "/create-team"] };
+export const config = {
+  matcher: ["/teams/:path*", "/create-team", "/profile"],
+};

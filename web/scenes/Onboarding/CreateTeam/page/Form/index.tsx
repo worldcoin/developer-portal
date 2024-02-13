@@ -6,12 +6,11 @@ import { Input } from "@/components/Input";
 import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { useRouter } from "next/navigation";
 import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
-import { useSearchParams } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 
 const schema = yup.object({
@@ -27,10 +26,12 @@ const schema = yup.object({
 
 type FormValues = yup.InferType<typeof schema>;
 
-export const Form = () => {
+export const Form = (props: {
+  searchParams: Record<string, string> | null | undefined;
+}) => {
+  const { searchParams } = props;
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const invite_id = searchParams?.get("invite_id");
+  const invite_id = searchParams?.invite_id;
   const { checkSession } = useUser();
 
   const {
