@@ -1,12 +1,12 @@
-import { CopyIcon } from "@/components/Icons/CopyIcon";
-import QRCode from "react-qr-code";
-import clsx from "clsx";
-import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import posthog from "posthog-js";
+import clsx from "clsx";
 import { useParams } from "next/navigation";
+import posthog from "posthog-js";
+import { memo, useCallback, useState } from "react";
+import QRCode from "react-qr-code";
 
 export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
@@ -34,11 +34,11 @@ export const Waiting = memo(function Waiting(props: {
 
   return (
     <div className="grid gap-y-6">
-      <div className="flex flex-col items-center portrait:py-12 landscape:py-6 bg-white p-10 rounded-2xl gap-y-5 shadow-qrCode">
+      <div className="flex flex-col items-center gap-y-5 rounded-2xl bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
         {qrData && (
           <QRCode
             size={180}
-            className="h-auto max-w-full w-full "
+            className="h-auto w-full max-w-full "
             value={qrData}
           />
         )}
@@ -49,7 +49,7 @@ export const Waiting = memo(function Waiting(props: {
           type="button"
           onClick={handleCopy}
           disabled={!qrData}
-          className="font-medium text-14 flex flex-row items-center"
+          className="flex flex-row items-center text-14 font-medium"
         >
           <CopyIcon
             className={clsx("mr-2 font-[500]", copied && "text-grey-900")}

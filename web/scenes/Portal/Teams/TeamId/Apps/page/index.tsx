@@ -1,9 +1,9 @@
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
-import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { ClientPage } from "./ClientPage";
+import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
 
 export const AppsPage = async () => {
   const session = await getSession();

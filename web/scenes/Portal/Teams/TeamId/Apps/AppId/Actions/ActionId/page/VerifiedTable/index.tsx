@@ -1,12 +1,12 @@
 "use client";
 import { Table } from "@/components/Table";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { VerifiedRow } from "./VerifiedRow";
+import { Body } from "@/components/Table/Body";
 import { Footer } from "@/components/Table/Footer";
 import { Header } from "@/components/Table/Header";
-import { Body } from "@/components/Table/Body";
 import { Row } from "@/components/Table/Row";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { VerifiedRow } from "./VerifiedRow";
 
 export type NullifierItem = {
   id: string;
@@ -109,18 +109,18 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
 
   return (
-    <div className="flex items-center justify-end w-full">
-      <div className="w-full grid gap-y-6">
-        <div className="flex justify-start items-center gap-x-2">
+    <div className="flex w-full items-center justify-end">
+      <div className="grid w-full gap-y-6">
+        <div className="flex items-center justify-start gap-x-2">
           <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
           <Typography
             variant={TYPOGRAPHY.R5}
-            className="bg-grey-100 w-8 py-1 text-center rounded-xl"
+            className="w-8 rounded-xl bg-grey-100 py-1 text-center"
           >
             {nullifiers.length}
           </Typography>
         </div>
-        <div className="w-full overflow-auto no-scrollbar">
+        <div className="no-scrollbar w-full overflow-auto">
           <Table
             footer={
               <Footer

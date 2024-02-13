@@ -1,12 +1,12 @@
-import clsx from "clsx";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { Button } from "@/components/Button";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import {
   Select,
   SelectButton,
   SelectOption,
   SelectOptions,
 } from "@/components/Select";
+import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
 type FooterProps = {
@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({
     <div
       className={twMerge(
         clsx(
-          "sticky bottom-0 bg-white w-full grid grid-cols-3 text-xs items-center justify-between gap-x-4 py-4 border-t-[1px] border-grey-100",
+          "sticky bottom-0 grid w-full grid-cols-3 items-center justify-between gap-x-4 border-t-[1px] border-grey-100 bg-white py-4 text-xs",
           className,
         ),
       )}
@@ -46,22 +46,22 @@ export const Footer: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={clsx(
-            "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
+            "group flex size-8 cursor-pointer items-center justify-center rounded-lg border border-grey-200",
             {
-              "disabled:opacity-50 disabled:cursor-not-allowed":
+              "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === 1,
-              "hover:border-grey-700 hover:text-border-grey-700":
+              "hover:text-border-grey-700 hover:border-grey-700":
                 currentPage !== 1,
             },
           )}
         >
           <CaretIcon
-            className={clsx("rotate-90 text-grey-400 h-4 w-4", {
+            className={clsx("size-4 rotate-90 text-grey-400", {
               "group-hover:text-grey-700": currentPage !== 1,
             })}
           />
         </Button>
-        <div className="w-8 h-8 text-center border flex items-center justify-center rounded-lg border-grey-200 text-grey-900">
+        <div className="flex size-8 items-center justify-center rounded-lg border border-grey-200 text-center text-grey-900">
           {currentPage}
         </div>
         <Button
@@ -69,17 +69,17 @@ export const Footer: React.FC<FooterProps> = ({
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === pageCount}
           className={clsx(
-            "w-8 h-8 border flex items-center justify-center group rounded-lg border-grey-200 cursor-pointer",
+            "group flex size-8 cursor-pointer items-center justify-center rounded-lg border border-grey-200",
             {
-              "disabled:opacity-50 disabled:cursor-not-allowed":
+              "disabled:cursor-not-allowed disabled:opacity-50":
                 currentPage === pageCount,
-              "hover:border-grey-700 hover:text-border-grey-700":
+              "hover:text-border-grey-700 hover:border-grey-700":
                 currentPage < pageCount,
             },
           )}
         >
           <CaretIcon
-            className={clsx("-rotate-90 text-grey-400 h-4 w-4", {
+            className={clsx("size-4 -rotate-90 text-grey-400", {
               "group-hover:text-grey-700 group-disabled:group-hover:text-grey-400":
                 currentPage >= 1,
             })}
@@ -112,18 +112,18 @@ const PaginationSelect = (props: {
     >
       <SelectButton
         className={clsx(
-          "text-left items-center text-xs",
-          "grid grid-cols-1fr/auto border-grey-200 border rounded-lg px-2 text-grey-700 h-8 w-20",
+          "items-center text-left text-xs",
+          "grid h-8 w-20 grid-cols-1fr/auto rounded-lg border border-grey-200 px-2 text-grey-700",
           className,
         )}
       >
         {rowsPerPageOptions[value] ?? value.toString()}
-        <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700 w-4 h-4" />
+        <CaretIcon className="ml-2 size-4 text-grey-400 group-hover:text-grey-700" />
       </SelectButton>
 
       <SelectOptions
         className={clsx(
-          "mt-1 text-xs focus:ring-0 focus:outline-none max-h-24 mb-2",
+          "mb-2 mt-1 max-h-24 text-xs focus:outline-none focus:ring-0",
         )}
       >
         {rowsPerPageOptions.map((option, index) => (

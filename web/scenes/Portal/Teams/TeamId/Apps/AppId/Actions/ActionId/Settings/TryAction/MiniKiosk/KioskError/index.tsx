@@ -1,8 +1,8 @@
-import { memo, useMemo } from "react";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { memo, useMemo } from "react";
 
 export const KioskError = memo(function KioskError(props: {
   buttonText?: string;
@@ -20,11 +20,11 @@ export const KioskError = memo(function KioskError(props: {
   }, [description]);
 
   return (
-    <div className="grid text-center justify-items-center gap-y-6">
-      <div className="grid gap-y-4 px-12 justify-items-center">
-        <div className="font-rubik grid gap-y-2 leading-[1.2]">
+    <div className="grid justify-items-center gap-y-6 text-center">
+      <div className="grid justify-items-center gap-y-4 px-12">
+        <div className="grid gap-y-2 font-rubik leading-[1.2]">
           <CircleIconContainer variant="error">
-            <CloseIcon className="h-4 w-4 text-system-error-500" />
+            <CloseIcon className="size-4 text-system-error-500" />
           </CircleIconContainer>
         </div>
         <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>

@@ -1,35 +1,33 @@
 "use client";
 
+import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { LoggedUserNav } from "@/components/LoggedUserNav";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
-import { Controller, useForm } from "react-hook-form";
-import * as yup from "yup";
-import { Image } from "./Image";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { LoggedUserNav } from "@/components/LoggedUserNav";
 import {
   Select,
   SelectButton,
   SelectOption,
   SelectOptions,
 } from "@/components/Select";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { RadioCard } from "./RadioCard";
-import { useCallback, useMemo } from "react";
-import { Button } from "@/components/Button";
-import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
-import { useParams } from "next/navigation";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
+import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
+import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
+import { useCallback, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
+import { RadioCard } from "./RadioCard";
+import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
 
 const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
 const BUILD_TYPES = ["staging", "production"] as const;
@@ -142,10 +140,10 @@ export const CreateAppDialog = (props: DialogProps) => {
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel className={clsx("fixed inset-0 p-0", props.className)}>
-        <div className="grid grid-rows-auto/1fr items-center h-[100dvh]">
+        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
           <SizingWrapper gridClassName="bg-grey-0 z-10">
-            <header className="w-full flex justify-between items-center min-h-9 py-4">
-              <div className="flex gap-3 w-full items-center">
+            <header className="flex min-h-9 w-full items-center justify-between py-4">
+              <div className="flex w-full items-center gap-3">
                 <Button type="button" onClick={onClose}>
                   <CloseIcon />
                 </Button>
@@ -165,11 +163,11 @@ export const CreateAppDialog = (props: DialogProps) => {
 
           <SizingWrapper
             gridClassName="overflow-y-auto no-scrollbar"
-            className="flex justify-center items-start"
+            className="flex items-start justify-center"
           >
             <form
               onSubmit={handleSubmit(submit)}
-              className="w-full max-w-[580px] justify-self-center grid gap-y-10 py-10"
+              className="grid w-full max-w-[580px] gap-y-10 justify-self-center py-10"
             >
               <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
 
@@ -189,13 +187,13 @@ export const CreateAppDialog = (props: DialogProps) => {
                     return (
                       <div>
                         <Select onChange={field.onChange}>
-                          <SelectButton className="w-full grid grid-cols-1fr/auto items-center text-start relative py-3">
+                          <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
                             <Typography variant={TYPOGRAPHY.R3}>
                               {field.value ?? "Select a category"}
                             </Typography>
 
-                            <fieldset className="absolute inset-x-0 bottom-0 top-[-12px] border border-grey-200 rounded-lg pointer-events-none">
-                              <legend className="text-grey-400 ml-4 px-0.5">
+                            <fieldset className="pointer-events-none absolute inset-x-0 bottom-0 top-[-12px] rounded-lg border border-grey-200">
+                              <legend className="ml-4 px-0.5 text-grey-400">
                                 <Typography variant={TYPOGRAPHY.R4}>
                                   Category{" "}
                                   <span className="text-system-error-500">
@@ -213,7 +211,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                               <SelectOption
                                 key={`create-app-category-${category}-${i}`}
                                 value={category}
-                                className="hover:bg-grey-100 transition"
+                                className="transition hover:bg-grey-100"
                               >
                                 {category}
                               </SelectOption>
@@ -276,7 +274,7 @@ export const CreateAppDialog = (props: DialogProps) => {
               <DecoratedButton
                 type="submit"
                 variant="primary"
-                className="py-3 justify-self-end"
+                className="justify-self-end py-3"
                 disabled={!isValid || isSubmitting}
               >
                 Create app

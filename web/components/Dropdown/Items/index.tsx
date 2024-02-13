@@ -29,7 +29,7 @@ export const DropdownItems = (props: DropdownItemsProps) => {
         >
           <Menu.Items
             className={twMerge(
-              "min-h-0 py-1 bg-grey-0 border border-grey-100 rounded-12 shadow-lg overflow-y-auto",
+              "min-h-0 overflow-y-auto rounded-12 border border-grey-100 bg-grey-0 py-1 shadow-lg",
               className,
             )}
           >

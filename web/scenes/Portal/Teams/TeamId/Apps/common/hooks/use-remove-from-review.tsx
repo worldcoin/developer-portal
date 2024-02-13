@@ -1,8 +1,8 @@
+import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { FetchAppMetadataDocument } from "../../AppId/Profile/graphql/client/fetch-app-metadata.generated";
-import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
-import { useParams } from "next/navigation";
 import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
+import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
 
 export const useRemoveFromReview = (props: { metadataId: string }) => {
   const { teamId, appId } = useParams() as { teamId: string; appId: string };

@@ -1,23 +1,23 @@
 "use client";
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useResetClientSecretMutation } from "./graphql/client/reset-secret.generated";
-import { useCallback, useMemo, useState } from "react";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
-import { toast } from "react-toastify";
-import { LockIcon } from "@/components/Icons/LockIcon";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
+import Error from "next/error";
+import { useCallback, useMemo, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
+import { LinksForm } from "./Links";
 import { Redirects } from "./Redirects";
 import { useFetchSignInActionQuery } from "./graphql/client/fetch-sign-in-action.generated";
-import Error from "next/error";
-import { LinksForm } from "./Links";
-import Skeleton from "react-loading-skeleton";
-import { Auth0SessionUser } from "@/lib/types";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { checkUserPermissions } from "@/lib/utils";
-import { Role_Enum } from "@/graphql/graphql";
+import { useResetClientSecretMutation } from "./graphql/client/reset-secret.generated";
 
 export const ClientInformationPage = (props: {
   appID: string;
@@ -70,8 +70,8 @@ export const ClientInformationPage = (props: {
     return <Error statusCode={404} title="Action not found" />;
   } else {
     return (
-      <div className="w-full gap-y-10 grid pt-5 pb-10">
-        <div className="gap-y-5 grid">
+      <div className="grid w-full gap-y-10 pb-10 pt-5">
+        <div className="grid gap-y-5">
           <div className="grid gap-y-3">
             <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
@@ -82,7 +82,7 @@ export const ClientInformationPage = (props: {
           {fetchingAction ? (
             <Skeleton count={2} />
           ) : (
-            <div className="grid gap-y-2 w-full">
+            <div className="grid w-full gap-y-2">
               <Input
                 placeholder={appID}
                 label="Client ID"
@@ -94,7 +94,7 @@ export const ClientInformationPage = (props: {
                     className="pr-4"
                     onClick={() => copyToClipboard("Client ID", appID)}
                   >
-                    <CopyIcon className="w-5 h-5 text-grey-900" />
+                    <CopyIcon className="size-5 text-grey-900" />
                   </Button>
                 }
               />
@@ -106,7 +106,7 @@ export const ClientInformationPage = (props: {
                 helperText="Save the generated client secret. You won't be able to see it again."
                 addOnLeft={
                   clientSecret == "" ? (
-                    <LockIcon className="pl-1 w-8 text-grey-400" />
+                    <LockIcon className="w-8 pl-1 text-grey-400" />
                   ) : (
                     <></>
                   )
@@ -135,7 +135,7 @@ export const ClientInformationPage = (props: {
                           copyToClipboard("Client secret", clientSecret)
                         }
                       >
-                        <CopyIcon className="w-5 h-5 text-grey-900" />
+                        <CopyIcon className="size-5 text-grey-900" />
                       </Button>
                     )}
                   </div>

@@ -1,26 +1,26 @@
 "use client";
 
-import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { Color, colors } from "@/scenes/Portal/Profile/types";
-import { Input } from "@/components/Input";
-import { useForm, useWatch, Controller } from "react-hook-form";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useEffect } from "react";
+import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { useAtom } from "jotai";
-import { colorAtom } from "../../layout";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Auth0SessionUser } from "@/lib/types";
+import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import {
   FetchUserDocument,
   useFetchUserQuery,
 } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
+import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
+import { Color, colors } from "@/scenes/Portal/Profile/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useAtom } from "jotai";
+import { useCallback, useEffect } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
-import { Auth0SessionUser } from "@/lib/types";
+import * as yup from "yup";
+import { colorAtom } from "../../layout";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -101,21 +101,21 @@ export const ProfilePage = () => {
         <SizingWrapper className="grid gap-y-8">
           <UserInfo name={name} />
 
-          <div className="border-b border-grey-200 border-dashed" />
+          <div className="border-b border-dashed border-grey-200" />
         </SizingWrapper>
       </div>
 
       <SizingWrapper>
-        <div className="grid gap-y-8 m-auto py-8">
+        <div className="m-auto grid gap-y-8 py-8">
           <Typography as="h1" variant={TYPOGRAPHY.H7}>
             Profile settings
           </Typography>
 
           <form
-            className="grid gap-y-8 max-w-[36.25rem]"
+            className="grid max-w-[36.25rem] gap-y-8"
             onSubmit={handleSubmit(submit)}
           >
-            <section className="p-6 border border-grey-200 rounded-12">
+            <section className="rounded-12 border border-grey-200 p-6">
               <Typography as="h2" variant={TYPOGRAPHY.R3}>
                 Avatar color
               </Typography>
@@ -123,7 +123,7 @@ export const ProfilePage = () => {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.R4}
-                className="max-w-[22.5rem] mt-3 mb-6 text-grey-500"
+                className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
               >
                 Assigning colors randomly is the default, but feel free to
                 switch them if it`s necessary or preferred

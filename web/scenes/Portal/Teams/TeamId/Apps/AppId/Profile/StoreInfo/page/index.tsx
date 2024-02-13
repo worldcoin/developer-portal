@@ -1,16 +1,16 @@
 "use client";
 
-import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { useAtom } from "jotai";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-import { AppTopBar } from "../../PageComponents/AppTopBar";
-import Error from "next/error";
 import clsx from "clsx";
-import { UpdateStoreInfoForm } from "./UpdateStoreInfoForm";
+import { useAtom } from "jotai";
+import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
+import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout";
+import { UpdateStoreInfoForm } from "./UpdateStoreInfoForm";
 
 type AppProfileStoreInfoProps = {
   params: Record<string, string> | null | undefined;
@@ -61,14 +61,14 @@ export const AppProfileStoreInfoPage = ({
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div className={clsx("py-8 gap-y-4 grid")}>
+      <div className={clsx("grid gap-y-4 py-8")}>
         {loading || imageLoading ? (
           <Skeleton count={2} height={50} />
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
         )}
-        <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <div className="grid grid-cols-1 max-w-[600px]">
+        <hr className="my-5 w-full border-dashed text-grey-200" />
+        <div className="grid max-w-[600px] grid-cols-1">
           {loading ? (
             <FormSkeleton count={4} />
           ) : (

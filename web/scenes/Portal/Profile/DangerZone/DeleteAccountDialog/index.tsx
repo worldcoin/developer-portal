@@ -7,15 +7,15 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Input } from "@/components/Input";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Auth0SessionUser } from "@/lib/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useDeleteAccountMutation } from "./graphql/client/delete-account.generated";
-import { toast } from "react-toastify";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 
 const DELETE_WORD = "DELETE";
 
@@ -69,7 +69,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 max-w-[400px]">
+      <DialogPanel className="grid max-w-[400px] gap-y-8">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -81,13 +81,13 @@ export const DeleteAccountDialog = (props: DialogProps) => {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center"
+            className="text-center text-grey-500"
           >
             Your account will be deleted, along with all apps and data. You will
             be removed from teams.
           </Typography>
 
-          <div className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center px-3 py-2 bg-system-error-50 rounded-lg">
+          <div className="grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center rounded-lg bg-system-error-50 px-3 py-2 text-system-error-600">
             <AlertIcon />
 
             <Typography variant={TYPOGRAPHY.B4}>
@@ -98,7 +98,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid gap-y-10 mt-2 w-full"
+          className="mt-2 grid w-full gap-y-10"
         >
           <Input
             register={register("confirmation")}

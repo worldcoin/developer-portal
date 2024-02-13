@@ -1,6 +1,6 @@
 import { Dialog, DialogProps } from "@/components/Dialog";
-import { DialogPanel } from "@/components/DialogPanel";
 import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
 
 type CreateTeamDialogProps = DialogProps & {};
 

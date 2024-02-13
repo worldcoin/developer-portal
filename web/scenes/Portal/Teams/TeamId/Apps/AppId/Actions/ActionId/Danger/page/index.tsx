@@ -1,9 +1,9 @@
 "use client";
-import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
 import ErrorComponent from "next/error";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
-import { ActionsHeader } from "../../Common/ActionsHeader";
 import Skeleton from "react-loading-skeleton";
+import { ActionsHeader } from "../../Common/ActionsHeader";
+import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
+import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -31,10 +31,10 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     );
   } else {
     return (
-      <div className="w-full h-full flex flex-col items-center ">
-        <div className="grid gap-y-2 w-full py-10">
+      <div className="flex size-full flex-col items-center ">
+        <div className="grid w-full gap-y-2 py-10">
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
-          <hr className="my-5 w-full text-grey-200 border-dashed" />
+          <hr className="my-5 w-full border-dashed text-grey-200" />
           {loading ? (
             <Skeleton height={150} />
           ) : (

@@ -15,7 +15,7 @@ export const RadioCard = (
     <label
       className={twMerge(
         clsx(
-          "px-6 py-5 border border-grey-100 hover:border-blue-500 transition-colors rounded-lg grid gap-y-3 cursor-pointer",
+          "grid cursor-pointer gap-y-3 rounded-lg border border-grey-100 px-6 py-5 transition-colors hover:border-blue-500",
           props.className,
         ),
       )}
@@ -33,7 +33,7 @@ export const RadioCard = (
           <Typography
             as="div"
             variant={TYPOGRAPHY.M5}
-            className="text-blue-500 bg-blue-100 rounded-full py-0.5 px-2"
+            className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-500"
           >
             {props.stampText}
           </Typography>

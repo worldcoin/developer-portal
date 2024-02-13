@@ -1,20 +1,20 @@
 "use client";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import { useAtom } from "jotai";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
+import Error from "next/error";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { AppTopBar } from "../../PageComponents/AppTopBar";
-import clsx from "clsx";
-import Error from "next/error";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout";
 
-import { useMemo, useState } from "react";
-import { DeleteModal } from "./DeleteModal";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
+import { useMemo, useState } from "react";
+import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -72,7 +72,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   } else {
     return (
       <div
-        className={clsx("py-8 gap-y-4 grid", {
+        className={clsx("grid gap-y-4 py-8", {
           hidden: loading || loadingImages,
         })}
       >
@@ -84,8 +84,8 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
           setOpenDeleteModal={setOpenDeleteModal}
         />
         <AppTopBar appId={appId} teamId={teamId} app={app} />
-        <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <div className="w-1/2 grid grid-cols-1 gap-y-10">
+        <hr className="my-5 w-full border-dashed text-grey-200" />
+        <div className="grid w-1/2 grid-cols-1 gap-y-10">
           <div className="grid gap-y-2">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
               Danger Zone
@@ -102,7 +102,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
             type="button"
             variant="danger"
             onClick={() => setOpenDeleteModal(true)}
-            className={clsx("bg-system-error-100 w-fit ", {
+            className={clsx("w-fit bg-system-error-100 ", {
               hidden: !isEnoughPermissions,
             })}
           >

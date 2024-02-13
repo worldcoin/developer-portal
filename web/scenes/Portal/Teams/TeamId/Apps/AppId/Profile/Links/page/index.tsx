@@ -1,15 +1,15 @@
 "use client";
+import clsx from "clsx";
 import { useAtom } from "jotai";
+import Error from "next/error";
+import { useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
+import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-import Error from "next/error";
-import { AppTopBar } from "../../PageComponents/AppTopBar";
-import clsx from "clsx";
 import { LinksForm } from "./LinksForm";
-import { useMemo } from "react";
-import Skeleton from "react-loading-skeleton";
-import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 
 type AppProfileLinksProps = {
   params: Record<string, string> | null | undefined;
@@ -56,14 +56,14 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div className={clsx("py-8 gap-y-4 grid")}>
+      <div className={clsx("grid gap-y-4 py-8")}>
         {loading || loadingImages ? (
           <Skeleton count={2} height={50} />
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
         )}
-        <hr className="my-5 w-full text-grey-200 border-dashed" />
-        <div className="grid grid-cols-1 max-w-[580px]">
+        <hr className="my-5 w-full border-dashed text-grey-200" />
+        <div className="grid max-w-[580px] grid-cols-1">
           {loading ? (
             <FormSkeleton count={3} />
           ) : (

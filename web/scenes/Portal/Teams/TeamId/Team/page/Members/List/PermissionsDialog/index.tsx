@@ -116,19 +116,19 @@ export const PermissionsDialog = () => {
     >
       <DialogOverlay />
 
-      <DialogPanel className="w-full max-w-[1056px] grid gap-y-8">
-        <header className="w-full flex justify-start">
+      <DialogPanel className="grid w-full max-w-[1056px] gap-y-8">
+        <header className="flex w-full justify-start">
           <Button
             type="button"
             onClick={() => setIsOpened(false)}
-            className="w-8 h-8 flex justify-center items-center rounded-full bg-grey-100"
+            className="flex size-8 items-center justify-center rounded-full bg-grey-100"
           >
             <ArrowRightIcon className="rotate-180" />
           </Button>
         </header>
 
-        <div className="grid w-full max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-4 justify-items-center items-center mb-5">
+        <div className="grid max-h-[70vh] w-full overflow-y-auto">
+          <div className="mb-5 grid grid-cols-4 items-center justify-items-center">
             <Typography variant={TYPOGRAPHY.H6} className="w-full text-start">
               Permissions list
             </Typography>
@@ -141,14 +141,14 @@ export const PermissionsDialog = () => {
           {Object.entries(config).map(([permission, roles], index) => (
             <div
               className={clsx(
-                "grid grid-cols-4 justify-items-center items-center rounded-lg",
+                "grid grid-cols-4 items-center justify-items-center rounded-lg",
                 { "bg-grey-100": index % 2 === 0 },
               )}
               key={permission}
             >
               <Typography
                 variant={TYPOGRAPHY.R4}
-                className="text-grey-500 text-start w-full pl-5 py-3"
+                className="w-full py-3 pl-5 text-start text-grey-500"
               >
                 {permission}
               </Typography>

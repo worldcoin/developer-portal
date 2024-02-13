@@ -1,8 +1,8 @@
-import { LayersIconFrame } from "@/components/LayersIconFrame";
-import { Logo } from "./Logo";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { LayersIconFrame } from "@/components/LayersIconFrame";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Link from "next/link";
+import { Logo } from "./Logo";
 
 export const JoinPage = () => {
   const tempTeamData = {
@@ -11,7 +11,7 @@ export const JoinPage = () => {
   };
 
   return (
-    <div className="w-full min-h-[100dvh] flex justify-center items-center">
+    <div className="flex min-h-[100dvh] w-full items-center justify-center">
       <div className="grid max-w-[360px] gap-y-6">
         <LayersIconFrame>
           <Logo src={tempTeamData.logo} />
@@ -24,7 +24,7 @@ export const JoinPage = () => {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center"
+            className="text-center text-grey-500"
           >
             To join this team you need to create account on Worldcoin Developer
             Portal
@@ -36,14 +36,14 @@ export const JoinPage = () => {
           Join team
         </DecoratedButton>
 
-        <p className="text-xs leading-[1.3] font-gta text-grey-500 text-center">
+        <p className="text-center font-gta text-xs leading-[1.3] text-grey-500">
           By signing up, you are creating Developer Portal account and agree to
           Worldcoin`s{" "}
-          <Link className="underline text-grey-900" href="#">
+          <Link className="text-grey-900 underline" href="#">
             User terms
           </Link>{" "}
           and{" "}
-          <Link className="underline text-grey-900" href="#">
+          <Link className="text-grey-900 underline" href="#">
             Privacy notice
           </Link>
         </p>

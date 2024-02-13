@@ -1,13 +1,13 @@
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useCallback } from "react";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import {
   Select,
   SelectButton,
-  SelectOptions,
   SelectOption,
+  SelectOptions,
 } from "@/components/Select";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
+import { useCallback } from "react";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
@@ -26,7 +26,7 @@ export const CategorySelector = (props: {
     props;
 
   const parentClassNames = clsx(
-    "border-[1px] text-grey-700 rounded-lg bg-grey-0 text-sm",
+    "rounded-lg border-[1px] bg-grey-0 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
@@ -36,7 +36,7 @@ export const CategorySelector = (props: {
     },
   );
   const selectorClassNames = clsx(
-    "peer focus:outline-none focus:ring-0 bg-transparent py-1.5 h-full",
+    "peer h-full bg-transparent py-1.5 focus:outline-none focus:ring-0",
     {
       "text-grey-400": !errors && !value,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400 ":
@@ -67,7 +67,7 @@ export const CategorySelector = (props: {
     >
       <div className={"inline-grid font-gta"}>
         <fieldset
-          className={twMerge(clsx("grid group pb-2 w-full", parentClassNames))}
+          className={twMerge(clsx("group grid w-full pb-2", parentClassNames))}
         >
           <SelectButton
             className={clsx(
@@ -89,7 +89,7 @@ export const CategorySelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 text-sm focus:ring-0 focus:outline-none max-h-40",
+              "mt-3 max-h-40 text-sm focus:outline-none focus:ring-0",
             )}
           >
             {Categories.map((_, index) => (
@@ -110,7 +110,7 @@ export const CategorySelector = (props: {
             <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>
           </legend>
         </fieldset>
-        <div className={clsx("flex flex-col w-full px-2")}>
+        <div className={clsx("flex w-full flex-col px-2")}>
           {helperText && (
             <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
               {helperText}

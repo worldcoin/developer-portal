@@ -1,6 +1,5 @@
 import { Button, CommonButtonProps } from "@/components/Button";
 import { ArrowUpIcon } from "@/components/Icons/ArrowUpIcon";
-import { UserAddIcon } from "@/components/Icons/UserAddIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { ReactNode } from "react";
@@ -19,14 +18,14 @@ export const QuickAction = (
     <Button
       className={twMerge(
         clsx(
-          "p-6 grid grid-cols-1fr/auto justify-between items-center border border-grey-200 hover:border-blue-500 rounded-2xl group transition-colors",
+          "group grid grid-cols-1fr/auto items-center justify-between rounded-2xl border border-grey-200 p-6 transition-colors hover:border-blue-500",
           className,
         ),
       )}
       {...buttonProps}
     >
       <div className="grid grid-cols-auto/1fr gap-x-4">
-        <div className="row-span-2 h-12 w-12 rounded-full flex justify-center items-center bg-blue-100 text-blue-500">
+        <div className="row-span-2 flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-500">
           {props.icon}
         </div>
 
@@ -36,14 +35,14 @@ export const QuickAction = (
 
         <Typography
           variant={TYPOGRAPHY.R5}
-          className="text-grey-500 self-start"
+          className="self-start text-grey-500"
         >
           {props.description}
         </Typography>
       </div>
-      <div className="h-full flex items-end">
-        <div className="w-6 h-6 border border-grey-200 rounded-full flex justify-center items-center group-hover:border-blue-500 transition-colors">
-          <ArrowUpIcon className="rotate-45 group-hover:text-blue-500 transition-colors text-grey-400" />
+      <div className="flex h-full items-end">
+        <div className="flex size-6 items-center justify-center rounded-full border border-grey-200 transition-colors group-hover:border-blue-500">
+          <ArrowUpIcon className="rotate-45 text-grey-400 transition-colors group-hover:text-blue-500" />
         </div>
       </div>
     </Button>

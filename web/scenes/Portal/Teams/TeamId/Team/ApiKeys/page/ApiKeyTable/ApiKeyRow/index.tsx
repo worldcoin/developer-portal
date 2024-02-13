@@ -1,7 +1,4 @@
 "use client";
-import { formatDistanceToNowStrict } from "date-fns";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
 import {
   Dropdown,
   DropdownButton,
@@ -9,20 +6,23 @@ import {
   DropdownItems,
 } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { formatDistanceToNowStrict } from "date-fns";
+import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
 
-import { Status } from "./Status";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { ApolloError } from "@apollo/client";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
-import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
 import { toast } from "react-toastify";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import { ApolloError } from "@apollo/client";
+import { Status } from "./Status";
+import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -93,25 +93,25 @@ export const ApiKeyRow = (props: {
   );
 
   return (
-    <tr className={clsx("hover:bg-grey-25 text-grey-500 text-xs w-full")}>
-      <td key={`api_key_${index}_1`} className="px-2 group py-4 w-auto">
+    <tr className={clsx("w-full text-xs text-grey-500 hover:bg-grey-25")}>
+      <td key={`api_key_${index}_1`} className="group w-auto px-2 py-4">
         <Typography
           variant={TYPOGRAPHY.R3}
           as="div"
-          className="truncate max-w-44"
+          className="max-w-44 truncate"
         >
           {apiKey.name}
         </Typography>
       </td>
 
       <td
-        className="group break-all max-w-96 pr-3 w-auto"
+        className="group w-auto max-w-96 break-all pr-3"
         key={`api_key${index}_2`}
       >
         <Typography
           variant={TYPOGRAPHY.R3}
           as="div"
-          className=" text-grey-500 grid grid-cols-auto/1fr gap-x-4 justify-start items-center justify-items-start overflow-wrap break-word py-2"
+          className="overflow-wrap break-word grid grid-cols-auto/1fr items-center justify-start justify-items-start gap-x-4 py-2 text-grey-500"
         >
           <Typography variant={TYPOGRAPHY.R4}>
             {secretKey ?? "api_" + btoa(apiKey.id).substring(0, 15) + "..."}
@@ -121,7 +121,7 @@ export const ApiKeyRow = (props: {
             variant="secondary"
             onClick={copyKey}
             className={clsx(
-              "py-2 px-5 rounded-lg opacity-0 transition-opacity duration-300 whitespace-nowrap",
+              "whitespace-nowrap rounded-lg px-5 py-2 opacity-0 transition-opacity duration-300",
               { "group-hover:opacity-100": secretKey },
             )}
           >
@@ -143,7 +143,7 @@ export const ApiKeyRow = (props: {
       <td>
         <div
           key={`api_key_${index}_5`}
-          className={clsx("w-full flex justify-end px-2", {
+          className={clsx("flex w-full justify-end px-2", {
             hidden: !isEnoughPermissions,
           })}
         >
@@ -156,8 +156,8 @@ export const ApiKeyRow = (props: {
                 className="hover:bg-grey-50"
                 onClick={() => openViewDetails(apiKey)}
               >
-                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                  <EditIcon className="text-grey-400 w-5" />
+                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
+                  <EditIcon className="w-5 text-grey-400" />
                   <Typography variant={TYPOGRAPHY.R4}>Edit Key</Typography>
                 </div>
               </DropdownItem>
@@ -165,8 +165,8 @@ export const ApiKeyRow = (props: {
                 className="hover:bg-grey-50"
                 onClick={() => resetAPIKey(apiKey.id)}
               >
-                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
-                  <KeyIcon className="text-grey-400 w-5" />
+                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
+                  <KeyIcon className="w-5 text-grey-400" />
                   <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
                 </div>
               </DropdownItem>
@@ -175,7 +175,7 @@ export const ApiKeyRow = (props: {
                 className="text-system-error-600 hover:bg-grey-50"
                 onClick={() => openDeleteKeyModal(apiKey)}
               >
-                <div className="grid grid-cols-auto/1fr items-center justify-between w-full gap-x-2">
+                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
                   <TrashIcon className="w-5" />
                   <Typography as="div" variant={TYPOGRAPHY.R4}>
                     Remove key

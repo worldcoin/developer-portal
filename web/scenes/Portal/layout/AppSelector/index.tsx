@@ -12,17 +12,16 @@ import {
   useFetchAppsQuery,
 } from "./graphql/client/fetch-apps.generated";
 
-import { useParams } from "next/navigation";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { createAppDialogOpenedAtom } from "../Header";
-import { useAtom } from "jotai";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
 import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback } from "react";
+import { createAppDialogOpenedAtom } from "../Header";
 
 const colors = [
   "bg-blue-400",
@@ -60,11 +59,11 @@ const Placeholder = (props: { name: string }) => {
   return (
     <div
       className={clsx(
-        "w-6 h-6 flex justify-center items-center rounded-lg",
+        "flex size-6 items-center justify-center rounded-lg",
         solidColor,
       )}
     >
-      <div className="text-grey-0 text-xs">{props.name[0]}</div>
+      <div className="text-xs text-grey-0">{props.name[0]}</div>
     </div>
   );
 };
@@ -116,8 +115,8 @@ export const AppSelector = () => {
               {value?.app_metadata[0].name ?? "Select app"}
             </Typography>
 
-            <div className="border border-grey-200 rounded-full flex justify-center items-center p-[3px]">
-              <CaretIcon className="w-3 h-3" />
+            <div className="flex items-center justify-center rounded-full border border-grey-200 p-[3px]">
+              <CaretIcon className="size-3" />
             </div>
           </div>
         )}
@@ -146,7 +145,7 @@ export const AppSelector = () => {
 
         <SelectOption value={null}>
           <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
-            <PlusCircleIcon className="text-gray-500 w-4 h-4" />
+            <PlusCircleIcon className="size-4 text-gray-500" />
 
             <Typography variant={TYPOGRAPHY.R4}>Create new app</Typography>
           </div>

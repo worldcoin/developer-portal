@@ -1,20 +1,20 @@
 "use client";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
-import { Dialog } from "@/components/Dialog";
-import { useCallback, useMemo, useState } from "react";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { Role_Enum } from "@/graphql/graphql";
+import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
 
 export const ActionDangerZoneContent = (props: {
   action: GetSingleActionQuery["action"][0];
@@ -60,17 +60,17 @@ export const ActionDangerZoneContent = (props: {
     <div>
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
-        <DialogPanel className="rounded-x bg-white mx-auto w-5 grid gap-y-6">
+        <DialogPanel className="rounded-x mx-auto grid w-5 gap-y-6 bg-white">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>
-          <div className="grid place-items-center px-2 w-full gap-y-5">
+          <div className="grid w-full place-items-center gap-y-5 px-2">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Are you sure?
             </Typography>
             <Typography
               variant={TYPOGRAPHY.R3}
-              className="text-grey-500 text-center"
+              className="text-center text-grey-500"
             >
               Are you sure you want to proceed with deleting this action? Please
               be aware that this action is irreversible, and all associated data
@@ -99,7 +99,7 @@ export const ActionDangerZoneContent = (props: {
         </DialogPanel>
       </Dialog>
 
-      <div className="w-1/2 grid grid-cols-1 gap-y-10">
+      <div className="grid w-1/2 grid-cols-1 gap-y-10">
         <div className="grid gap-y-2">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
             Danger Zone
@@ -114,7 +114,7 @@ export const ActionDangerZoneContent = (props: {
           variant="danger"
           onClick={() => setOpenDeleteModal(true)}
           disabled={deleteActionLoading || !isEnoughPermissions}
-          className="bg-system-error-100 w-40 "
+          className="w-40 bg-system-error-100 "
         >
           <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>
         </DecoratedButton>

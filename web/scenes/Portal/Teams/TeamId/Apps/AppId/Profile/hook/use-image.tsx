@@ -1,6 +1,6 @@
+import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
-import { toast } from "react-toastify";
 
 export const useImage = () => {
   const [getUploadedImage] = useGetUploadedImageLazyQuery();

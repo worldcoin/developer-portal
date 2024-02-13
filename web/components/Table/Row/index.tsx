@@ -12,7 +12,7 @@ export const Row = (props: RowProps) => {
   return (
     <tr
       className={clsx(
-        "hover:bg-grey-25 text-grey-500 text-xs w-full",
+        "w-full text-xs text-grey-500 hover:bg-grey-25",
         className,
       )}
       onClick={props.handleOnClick}

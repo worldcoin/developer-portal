@@ -1,15 +1,15 @@
 "use client";
 
+import Link, { LinkProps } from "next/link";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { HTMLAttributes, useMemo } from "react";
 import { tv } from "tailwind-variants";
-import Link, { LinkProps } from "next/link";
-import { useSelectedLayoutSegment, useSearchParams } from "next/navigation";
 
 const tab = tv({
   base: "block px-1 py-3 leading-4",
   variants: {
     active: {
-      true: "text-grey-900 cursor-default",
+      true: "cursor-default text-grey-900",
       false: "text-grey-500",
     },
     underlined: {

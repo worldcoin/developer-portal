@@ -5,8 +5,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 
 export const LoginPage = () => (
-  <div className="w-full h-full flex items-center justify-center">
-    <div className="grid gap-y-10 max-w-[360px]">
+  <div className="flex size-full items-center justify-center">
+    <div className="grid max-w-[360px] gap-y-10">
       <LayersIconFrame>
         <WorldcoinBlueprintIcon />
       </LayersIconFrame>
@@ -19,7 +19,7 @@ export const LoginPage = () => (
         <Typography
           as="p"
           variant={TYPOGRAPHY.R3}
-          className="text-grey-500 text-center"
+          className="text-center text-grey-500"
         >
           The Worldcoin Protocol will enable a new class of applications built
           on top of prof of personhood

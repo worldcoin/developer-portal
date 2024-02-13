@@ -14,7 +14,7 @@ export const Checkbox = (
     <label
       className={twMerge(
         clsx(
-          "h-6 w-6 relative rounded-md ",
+          "relative size-6 rounded-md ",
           { "opacity-50": props.disabled },
           props.className,
         ),
@@ -24,12 +24,12 @@ export const Checkbox = (
         disabled={props.disabled}
         {...props.register}
         type="checkbox"
-        className="hidden peer"
+        className="peer hidden"
       />
-      <div className="w-full h-full absolute rounded-md inset-0 z-10 pointer-events-none shadow-[0px_0px_0px_1px_inset] shadow-grey-300 peer-checked:shadow-grey-100/20 transition-colors" />
+      <div className="pointer-events-none absolute inset-0 z-10 size-full rounded-md shadow-[0px_0px_0px_1px_inset] shadow-grey-300 transition-colors peer-checked:shadow-grey-100/20" />
 
-      <div className="cursor-pointer absolute inset-0 flex justify-center items-center bg-grey-900 invisible opacity-0 peer-checked:visible peer-checked:opacity-100 rounded-md transition-[visibility,opacity]">
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-grey-0/10 to-transparent" />
+      <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-md bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-grey-0/10 to-transparent" />
         <CheckIcon size="16" className="text-grey-0" />
       </div>
     </label>

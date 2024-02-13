@@ -1,14 +1,14 @@
 "use client";
 
-import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
-import { useCallback, useMemo } from "react";
-import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { Button } from "@/components/Button";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
-import { useAtom } from "jotai";
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { showReviewStatusAtom } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Profile/layout";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useCallback, useMemo } from "react";
 import { reviewMessageDialogOpenedAtom } from "../ReviewMessageDialog";
 
 type ReviewStatusProps = {
@@ -61,14 +61,14 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
     <div
       className={clsx(
         statusStyles[status]?.normal,
-        "grid grid-cols-auto/1fr/auto items-center px-0 pl-5 rounded-lg gap-x-3",
+        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-0 pl-5",
         className,
       )}
     >
       {status === "changes_requested" ? (
         <AlertIcon className="text-system-warning-500" />
       ) : (
-        <CheckmarkBadge className="text-system-success-500 w-5" />
+        <CheckmarkBadge className="w-5 text-system-success-500" />
       )}
       <Typography variant={TYPOGRAPHY.R4}>{formattedMessage}</Typography>
 
@@ -76,7 +76,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
         type="button"
         onClick={onClick}
         className={clsx(
-          "px-6 py-3 h-12 grid grid-cols-1fr/auto gap-x-2 items-center",
+          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 px-6 py-3",
           {
             "text-system-warning-600 hover:text-system-warning-700":
               status === "changes_requested",

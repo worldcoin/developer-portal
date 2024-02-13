@@ -1,6 +1,6 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
@@ -33,7 +33,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
 
   return (
     <div>
-      <div className="h-full w-full grid grid-rows-auto/1fr">
+      <div className="grid size-full grid-rows-auto/1fr">
         <div className="border-b border-grey-100">
           <SizingWrapper variant="nav">
             <Tabs className="m-auto font-gta">

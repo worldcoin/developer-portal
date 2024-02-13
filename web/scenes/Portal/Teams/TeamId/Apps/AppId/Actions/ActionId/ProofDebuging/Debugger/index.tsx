@@ -1,19 +1,19 @@
 "use client";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
-import { TextArea } from "@/components/TextArea";
-import { useCallback, useEffect, useState } from "react";
-import JSON5 from "json5";
-import clsx from "clsx";
-import { Input } from "@/components/Input";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { Input } from "@/components/Input";
+import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
+import JSON5 from "json5";
 import posthog from "posthog-js";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
 
 const testProofSchema = yup.object({
   signal: yup.string().optional(),
@@ -188,10 +188,10 @@ export const Debugger = (props: DebuggerProps) => {
   );
   return (
     <form
-      className="w-full sm:grid-cols-1fr/auto grid items-start justify-between gap-x-32 gap-y-10 grid-cols-1"
+      className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 sm:grid-cols-1fr/auto"
       onSubmit={handleSubmit(submit)}
     >
-      <div className="w-full grid gap-y-6">
+      <div className="grid w-full gap-y-6">
         <Typography variant={TYPOGRAPHY.H7}>Output parameters</Typography>
         <div className="grid gap-y-8">
           <Input
@@ -218,14 +218,14 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="w-full grid gap-y-6 lg:min-w-[480px]">
+      <div className="grid w-full gap-y-6 lg:min-w-[480px]">
         <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(
-            "w-full h-80 bg-grey-50 border border-grey-100 flex flex-col items-center justify-center rounded-lg",
+            "flex h-80 w-full flex-col items-center justify-center rounded-lg border border-grey-100 bg-grey-50",
             {
-              "bg-system-success-50 border-0": status === Status.SUCCESS,
-              "bg-system-error-50 border-0": status === Status.ERROR,
+              "border-0 bg-system-success-50": status === Status.SUCCESS,
+              "border-0 bg-system-error-50": status === Status.ERROR,
             },
           )}
         >
@@ -240,12 +240,12 @@ export const Debugger = (props: DebuggerProps) => {
           >
             {status === Status.IDLE && <WorldcoinIcon />}
             {status === Status.SUCCESS && <CheckIcon size="28" />}
-            {status === Status.ERROR && <CloseIcon className="w-5 h-5" />}
+            {status === Status.ERROR && <CloseIcon className="size-5" />}
           </CircleIconContainer>
-          <div className="flex flex-col items-center gap-y-5 mt-8 px-12 text-center">
+          <div className="mt-8 flex flex-col items-center gap-y-5 px-12 text-center">
             <Typography
               variant={TYPOGRAPHY.R4}
-              className={clsx("text-grey-400 text-sm", {
+              className={clsx("text-sm text-grey-400", {
                 "text-system-error-600": status === Status.ERROR,
                 "text-system-success-600": status === Status.SUCCESS,
               })}

@@ -1,19 +1,19 @@
 "use client";
-import { TeamProfile } from "../../common/TeamProfile";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Input } from "@/components/Input";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { useForm } from "react-hook-form";
+import { Input } from "@/components/Input";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { useParams } from "next/navigation";
 import { useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { TeamProfile } from "../../common/TeamProfile";
 import {
   FetchTeamDocument,
   useFetchTeamQuery,
 } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
-import { useParams } from "next/navigation";
 import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
-import { toast } from "react-toastify";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -72,14 +72,14 @@ export const TeamSettingsPage = () => {
     <div>
       <TeamProfile />
 
-      <div className="grid gap-y-8 m-auto py-8">
+      <div className="m-auto grid gap-y-8 py-8">
         <Typography as="h1" variant={TYPOGRAPHY.H7}>
           Profile settings
         </Typography>
       </div>
 
       <form
-        className="grid gap-y-8 max-w-[36.25rem]"
+        className="grid max-w-[36.25rem] gap-y-8"
         onSubmit={handleSubmit(submit)}
       >
         <Input

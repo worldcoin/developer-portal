@@ -164,7 +164,7 @@ export const Redirects = memo(function Redirects(props: {
       <DecoratedButton
         type="button"
         variant="secondary"
-        className={clsx("w-fit text-sm h-12", { hidden: !canEdit })}
+        className={clsx("h-12 w-fit text-sm", { hidden: !canEdit })}
         onClick={() => setAddRedirectFormShown(true)}
       >
         <Typography variant={TYPOGRAPHY.M3}>Add another</Typography>

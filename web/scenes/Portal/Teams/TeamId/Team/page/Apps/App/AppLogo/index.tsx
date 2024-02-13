@@ -1,7 +1,7 @@
-import { useState } from "react";
-import Image from "next/image";
 import { StatusVariant } from "@/components/AppStatus";
 import { getCDNImageUrl } from "@/lib/utils";
+import Image from "next/image";
+import { useState } from "react";
 
 export const AppLogo = (props: {
   src: string | undefined | null;
@@ -19,7 +19,7 @@ export const AppLogo = (props: {
     <div>
       {src && props.verification_status === "verified" && (
         <Image
-          className="w-16 h-16"
+          className="size-16"
           src={src}
           alt="team logo"
           onError={() => setSrc(null)}
@@ -27,8 +27,8 @@ export const AppLogo = (props: {
       )}
 
       {!src && (
-        <div className="w-16 h-16 bg-grey-100 flex justify-center items-center rounded-lg">
-          <span className="text-grey-400 text-14 uppercase">
+        <div className="flex size-16 items-center justify-center rounded-lg bg-grey-100">
+          <span className="text-14 uppercase text-grey-400">
             {props.name[0]}
           </span>
         </div>

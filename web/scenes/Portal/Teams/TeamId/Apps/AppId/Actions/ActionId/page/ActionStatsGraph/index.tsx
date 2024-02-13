@@ -2,17 +2,17 @@
 
 import { atom, useAtom } from "jotai";
 
+import { Chart, ChartProps } from "@/components/Chart";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { ChartData } from "chart.js";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import tz from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { Chart, ChartProps } from "@/components/Chart";
-import { Timespan, TimespanSelector } from "./TimespanSelector";
-import { StatCard } from "./StatCard";
-import { ChartData } from "chart.js";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
+import { StatCard } from "./StatCard";
+import { Timespan, TimespanSelector } from "./TimespanSelector";
 import {
   FetchActionStatsQuery,
   useFetchActionStatsQuery,
@@ -184,8 +184,8 @@ export const ActionStatsGraph = () => {
 
   return (
     <div className="grid gap-y-6">
-      <div className="md:flex justify-between items-center ">
-        <div className="flex gap-x-6 items-center">
+      <div className="items-center justify-between md:flex ">
+        <div className="flex items-center gap-x-6">
           <StatCard
             mainColorClassName="bg-blue-500"
             title="Verifications"
@@ -193,7 +193,7 @@ export const ActionStatsGraph = () => {
             changePercentage={verificationPercentageChange}
           />
 
-          <div className="w-px h-6 bg-grey-200" />
+          <div className="h-6 w-px bg-grey-200" />
 
           <StatCard
             mainColorClassName="bg-[#00C3B6]"
@@ -211,13 +211,13 @@ export const ActionStatsGraph = () => {
       )}
 
       {loading && (
-        <div className="w-full aspect-[1180/350] rounded-2xl relative">
-          <Skeleton className="w-full h-full absolute inset-0 rounded-2xl" />
+        <div className="relative aspect-[1180/350] w-full rounded-2xl">
+          <Skeleton className="absolute inset-0 size-full rounded-2xl" />
         </div>
       )}
 
       {!loading && !formattedData && (
-        <div className="w-full aspect-[1180/350] grid gap-y-1 justify-center content-center justify-items-center border border-grey-200 rounded-2xl pointer-events-none select-none">
+        <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
             No data available yet
           </Typography>

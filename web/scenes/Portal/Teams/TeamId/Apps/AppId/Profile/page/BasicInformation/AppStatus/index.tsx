@@ -10,7 +10,7 @@ export const AppStatus = (props: {
   const { disabled, status, setStatus } = props;
 
   return (
-    <div className="grid grid-cols-auto/1fr/auto border-[1px] rounded-xl p-5 gap-x-4">
+    <div className="grid grid-cols-auto/1fr/auto gap-x-4 rounded-xl border-[1px] p-5">
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
       <div className="grid gap-y-2 ">
         <Typography variant={TYPOGRAPHY.R3}>Activate the QR code</Typography>
@@ -20,15 +20,15 @@ export const AppStatus = (props: {
       </div>
       <div
         className={clsx(
-          "grid grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1 h-fit ",
+          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1 ",
           {
-            "text-system-success-500 bg-system-success-50": status,
-            "text-grey-400 bg-gray-50": !status,
+            "bg-system-success-50 text-system-success-500": status,
+            "bg-gray-50 text-grey-400": !status,
           },
         )}
       >
         <div
-          className={clsx("rounded-full w-2 h-2", {
+          className={clsx("size-2 rounded-full", {
             "bg-system-success-500": status,
             "bg-grey-400": !status,
           })}

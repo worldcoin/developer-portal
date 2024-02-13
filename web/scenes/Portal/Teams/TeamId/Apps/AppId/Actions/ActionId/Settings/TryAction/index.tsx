@@ -3,12 +3,12 @@
 import { Button } from "@/components/Button";
 import { CodeIcon } from "@/components/Icons/CodeIcon";
 import { QRIcon } from "@/components/Icons/QRIcon";
-import { MiniKiosk } from "./MiniKiosk";
-import { useState } from "react";
-import clsx from "clsx";
-import { CodeBlock } from "./CodeBlock";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
+import clsx from "clsx";
+import { useState } from "react";
+import { CodeBlock } from "./CodeBlock";
+import { MiniKiosk } from "./MiniKiosk";
 
 type TryActionProps = {
   action: {
@@ -27,23 +27,23 @@ export const TryAction = (props: TryActionProps) => {
   );
 
   return (
-    <div className="h-full gap-y-5 grid grid-rows-auto/1fr items-start lg:w-[480px]">
-      <div className="grid grid-cols-2 justify-between w-full items-center">
+    <div className="grid h-full grid-rows-auto/1fr items-start gap-y-5 lg:w-[480px]">
+      <div className="grid w-full grid-cols-2 items-center justify-between">
         <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
           Try it out
         </Typography>
-        <div className="w-full justify-end flex gap-x-4">
+        <div className="flex w-full justify-end gap-x-4">
           <Button
             type="button"
             onClick={() => setShowCode(false)}
             className={clsx(
-              "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
+              "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
               { "border border-grey-200": !showCode },
               { hidden: action.app.engine === EngineType.OnChain },
             )}
           >
             <QRIcon
-              className={clsx(" h-4 w-4", {
+              className={clsx("size-4", {
                 "text-blue-500": !showCode,
                 "text-grey-700": showCode,
               })}
@@ -53,12 +53,12 @@ export const TryAction = (props: TryActionProps) => {
             type="button"
             onClick={() => setShowCode(true)}
             className={clsx(
-              "w-11 h-11 bg-white rounded-xl shadow-button hover:bg-grey-50 justify-center items-center flex",
+              "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
               { "border border-grey-200": showCode },
             )}
           >
             <CodeIcon
-              className={clsx(" h-4 w-4", {
+              className={clsx("size-4", {
                 "text-blue-500 ": showCode,
                 "text-grey-700": !showCode,
               })}
@@ -66,7 +66,7 @@ export const TryAction = (props: TryActionProps) => {
           </Button>
         </div>
       </div>
-      <div className="h-full w-full">
+      <div className="size-full">
         {showCode ? (
           <CodeBlock
             appId={action.app_id}

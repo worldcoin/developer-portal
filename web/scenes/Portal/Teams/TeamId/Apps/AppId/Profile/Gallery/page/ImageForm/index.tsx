@@ -1,25 +1,25 @@
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { ImageDropZone } from "@/components/ImageDropZone";
-import { unverifiedImageAtom, viewModeAtom } from "../../../layout";
-import { useAtom } from "jotai";
-import { ImageDisplay } from "./ImageDisplay";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Button } from "@/components/Button";
-import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
+import { TrashIcon } from "@/components/Icons/TrashIcon";
+import { UploadIcon } from "@/components/Icons/UploadIcon";
+import { ImageDropZone } from "@/components/ImageDropZone";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useCallback, useMemo } from "react";
-import { toast } from "react-toastify";
 import { useImage } from "../../../hook/use-image";
+import { unverifiedImageAtom, viewModeAtom } from "../../../layout";
+import { ImageDisplay } from "./ImageDisplay";
+import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import clsx from "clsx";
-import { UploadIcon } from "@/components/Icons/UploadIcon";
-import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 
 type ImageFormTypes = {
   appId: string;
@@ -313,7 +313,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           uploadImage={uploadImage}
           imageType={"hero_image"}
         >
-          <UploadIcon className="h-12 w-12 text-blue-500" />
+          <UploadIcon className="size-12 text-blue-500" />
           <div className="gap-y-2">
             <div className="text-center">
               <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
@@ -331,19 +331,19 @@ export const ImageForm = (props: ImageFormTypes) => {
         </ImageDropZone>
       )}
       {heroImage && (
-        <div className="relative w-fit h-fit">
+        <div className="relative size-fit">
           <ImageDisplay
             src={heroImage}
             type={viewMode}
             width={400}
             height={300}
-            className="w-40 h-auto rounded-lg"
+            className="h-auto w-40 rounded-lg"
           />
           <Button
             type="button"
             onClick={deleteHeroImage}
             className={clsx(
-              "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
+              "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
               {
                 hidden: !isEnoughPermissions || !isEditable,
               },
@@ -371,7 +371,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
           imageType={nextShowcaseImgName}
         >
-          <UploadIcon className="h-12 w-12 text-blue-500" />
+          <UploadIcon className="size-12 text-blue-500" />
           <div className="gap-y-2">
             <div className="text-center">
               <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
@@ -391,19 +391,19 @@ export const ImageForm = (props: ImageFormTypes) => {
       <div className="grid grid-cols-3">
         {showcaseImgUrls &&
           showcaseImgUrls.map((url: string, index: number) => (
-            <div className="relative w-fit h-fit" key={index}>
+            <div className="relative size-fit" key={index}>
               <ImageDisplay
                 src={url}
                 type={viewMode}
                 width={640}
                 height={360}
-                className="w-40 h-auto rounded-lg"
+                className="h-auto w-40 rounded-lg"
               />
               <Button
                 type="button"
                 onClick={() => deleteShowcaseImage(url)}
                 className={clsx(
-                  "bg-grey-100 hover:bg-grey-200 h-8 w-8 flex items-center justify-center rounded-full absolute -top-3 -right-3",
+                  "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
                   {
                     hidden: !isEnoughPermissions || !isEditable,
                   },

@@ -43,31 +43,31 @@ export const Typography = <T extends ElementType = "span">(
     <Component
       className={twMerge(
         clsx(className, {
-          "text-2xl leading-[1.3] font-medium font-twk":
+          "font-twk text-2xl font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H6,
-          "text-lg leading-[1.3] font-medium font-twk":
+          "font-twk text-lg font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H7,
 
-          "text-2xl leading-[1.5] font-medium font-gta":
+          "font-gta text-2xl font-medium leading-[1.5]":
             variant === TYPOGRAPHY.M2,
-          "text-base leading-[1.5] font-medium font-gta":
+          "font-gta text-base font-medium leading-[1.5]":
             variant === TYPOGRAPHY.M3,
-          "text-sm leading-[1.4] font-medium font-gta":
+          "font-gta text-sm font-medium leading-[1.4]":
             variant === TYPOGRAPHY.M4,
-          "text-xs leading-[1.3] font-medium font-gta":
+          "font-gta text-xs font-medium leading-[1.3]":
             variant === TYPOGRAPHY.M5,
 
-          "text-base leading-[1.5] font-normal font-gta":
+          "font-gta text-base font-normal leading-[1.5]":
             variant === TYPOGRAPHY.R3,
-          "text-sm leading-[1.4] font-normal font-gta":
+          "font-gta text-sm font-normal leading-[1.4]":
             variant === TYPOGRAPHY.R4,
-          "text-xs leading-[1.3] font-normal font-gta":
+          "font-gta text-xs font-normal leading-[1.3]":
             variant === TYPOGRAPHY.R5,
 
-          "text-xs leading-[1.3] font-normal font-rubik":
+          "font-rubik text-xs font-normal leading-[1.3]":
             variant === TYPOGRAPHY.B4,
 
-          "text-sm leading-[1.4] font-medium font-rubik":
+          "font-rubik text-sm font-medium leading-[1.4]":
             variant === TYPOGRAPHY.S3,
         }),
       )}
