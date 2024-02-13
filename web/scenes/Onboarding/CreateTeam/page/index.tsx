@@ -3,9 +3,14 @@ import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Form } from "./Form";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Suspense } from "react";
 
-export const CreateTeamPage = () => {
+type CreateTeamPage = {
+  params: Record<string, string> | null | undefined;
+  searchParams: Record<string, string> | null | undefined;
+};
+
+export const CreateTeamPage = (props: CreateTeamPage) => {
+  const { searchParams } = props;
   return (
     <SizingWrapper>
       <div className="flex justify-center items-center h-full">
@@ -18,9 +23,7 @@ export const CreateTeamPage = () => {
             Create your first team
           </Typography>
 
-          <Suspense>
-            <Form />
-          </Suspense>
+          <Form searchParams={searchParams} />
         </div>
       </div>
     </SizingWrapper>
