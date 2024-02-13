@@ -23,6 +23,7 @@ const generateCsp = () => {
       values: [
         "'self'",
         `'nonce-${nonce}'`,
+        "strict-dynamic'",
         ...(isDev ? ["'unsafe-eval'"] : []),
         "https://cookie-cdn.cookiepro.com",
         "https://app.posthog.com",
@@ -134,6 +135,4 @@ export default withMiddlewareAuthRequired(async function middleware(
   return response;
 });
 
-export const config = {
-  matcher: ["/profile/:path?", "/teams/:path*", "/create-team/:path?"],
-};
+export const config = { matcher: ["/teams", "/teams/:path*", "/create-team", "/profile"] };
