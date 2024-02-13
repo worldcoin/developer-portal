@@ -4,10 +4,19 @@ import { ComponentProps, PropsWithChildren, memo, useMemo } from "react";
 
 export type CommonLinkProps = PropsWithChildren<
   Omit<ComponentProps<"a">, "ref">
->;
+> & {
+  prefetch?: boolean;
+};
 
 export const Link = memo(function Link(props: CommonLinkProps) {
-  const { href, target, children, className, ...restProps } = props;
+  const {
+    href,
+    target,
+    children,
+    className,
+    prefetch = false,
+    ...restProps
+  } = props;
 
   const external = useMemo(() => {
     if (!href) {
@@ -33,7 +42,7 @@ export const Link = memo(function Link(props: CommonLinkProps) {
       {!external && (
         <NextLink
           href={href ?? "!#"}
-          prefetch={false}
+          prefetch={prefetch}
           className={clsx("leading-none", className)}
           {...restProps}
         >
