@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -23,7 +24,10 @@ export const Header = (props: { color: Color | null }) => {
         variant="nav"
       >
         <div className="grid grid-cols-auto/1fr gap-x-8">
-          <WorldcoinIcon />
+          <Button href="/">
+            <WorldcoinIcon />
+          </Button>
+
           <AppSelector />
         </div>
 
