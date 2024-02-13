@@ -6,15 +6,15 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Input } from "@/components/Input";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { FetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useDeleteTeamMutation } from "./graphql/client/delete-team.generated";
-import { toast } from "react-toastify";
-import { FetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
-import { useRouter } from "next/navigation";
 
 type DeleteTeamDialogProps = DialogProps & {
   team: FetchTeamQuery["team_by_pk"];
@@ -74,7 +74,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 max-w-[400px]">
+      <DialogPanel className="grid max-w-[400px] gap-y-8">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -86,17 +86,17 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center"
+            className="text-center text-grey-500"
           >
             The{" "}
-            <span className="font-medium text-gray-900 select-none">
+            <span className="select-none font-medium text-gray-900">
               {team?.name}
             </span>{" "}
             will be deleted, along with all of its apps, actions, configurations
             and statistics.
           </Typography>
 
-          <div className="text-system-error-600 grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center px-3 py-2 bg-system-error-50 rounded-lg">
+          <div className="grid grid-cols-auto/1fr items-center gap-x-1 justify-self-center rounded-lg bg-system-error-50 px-3 py-2 text-system-error-600">
             <AlertIcon />
 
             <Typography variant={TYPOGRAPHY.B4}>
@@ -107,7 +107,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid gap-y-10 mt-2 w-full"
+          className="mt-2 grid w-full gap-y-10"
         >
           <Input
             register={register("confirmation")}

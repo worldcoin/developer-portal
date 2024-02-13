@@ -14,7 +14,7 @@ export const DialogPanel = (props: DialogPanelProps) => {
   return (
     <Dialog.Panel
       className={twMerge(
-        "relative grid justify-items-center p-7 bg-grey-0 rounded-20 min-w-[25rem]",
+        "relative grid min-w-[25rem] justify-items-center rounded-20 bg-grey-0 p-7",
         className,
       )}
       {...otherProps}

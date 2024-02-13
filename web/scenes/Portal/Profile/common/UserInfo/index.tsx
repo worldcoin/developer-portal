@@ -1,12 +1,12 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 import { Icon } from "@/scenes/Portal/Profile/layout/UserInfo/Icon";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import Skeleton from "react-loading-skeleton";
 import { twMerge } from "tailwind-merge";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 
 export type UserInfoProps = {
   name?: string;

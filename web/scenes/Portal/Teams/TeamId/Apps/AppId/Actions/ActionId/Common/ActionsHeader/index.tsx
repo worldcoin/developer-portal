@@ -3,12 +3,12 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import Link from "next/link";
-import { memo, useCallback } from "react";
-import { useGetActionNameQuery } from "./graphql/client/get-action-name.generated";
-import Skeleton from "react-loading-skeleton";
 import { urls } from "@/lib/urls";
+import Link from "next/link";
 import posthog from "posthog-js";
+import { memo, useCallback } from "react";
+import Skeleton from "react-loading-skeleton";
+import { useGetActionNameQuery } from "./graphql/client/get-action-name.generated";
 
 export const ActionsHeader = memo(function ActionsHeader(props: {
   actionId?: string;
@@ -39,16 +39,16 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
     <div className="w-full">
       <div>
         <Link href={redirect} className="flex flex-row items-center gap-x-2">
-          <CaretIcon className="h-3 w-3 text-grey-400 rotate-90" />
+          <CaretIcon className="size-3 rotate-90 text-grey-400" />
           <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
             Back to Incognito Actions
           </Typography>
         </Link>
       </div>
-      <div className="w-full flex justify-between items-center">
+      <div className="flex w-full items-center justify-between">
         <Typography
           variant={TYPOGRAPHY.H6}
-          className="text-grey-900 capitalize"
+          className="capitalize text-grey-900"
         >
           {loading ? <Skeleton width={200} /> : name}
         </Typography>
@@ -56,7 +56,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
         <DecoratedButton
           variant="secondary"
           href="https://docs.worldcoin.org/id/incognito-actions"
-          className="text-grey-700 py-3 px-7 "
+          className="px-7 py-3 text-grey-700 "
           onClick={trackDocsClicked}
         >
           <DocsIcon />

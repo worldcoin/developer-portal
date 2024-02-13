@@ -13,14 +13,14 @@ type EnvironmentProps = {
 export const Environment = (props: EnvironmentProps) => {
   const { environment, engine } = props;
   return (
-    <div className="flex flex-row gap-x-4 items-center ">
-      <div className="py-1 rounded-3xl">
+    <div className="flex flex-row items-center gap-x-4 ">
+      <div className="rounded-3xl py-1">
         <div className="flex flex-row gap-x-2">
           {environment === "production" && (
-            <StartUpIcon className="w-4 h-auto text-system-success-300 " />
+            <StartUpIcon className="h-auto w-4 text-system-success-300 " />
           )}
           {environment === "staging" && (
-            <SmartPhoneIcon className="w-4 h-auto text-system-warning-500" />
+            <SmartPhoneIcon className="h-auto w-4 text-system-warning-500" />
           )}
 
           <Typography
@@ -34,10 +34,10 @@ export const Environment = (props: EnvironmentProps) => {
           </Typography>
         </div>
       </div>
-      <div className="w-px h-4 bg-grey-200"></div>
+      <div className="h-4 w-px bg-grey-200"></div>
       <div className="flex flex-row gap-x-2 text-blue-500">
-        {engine === "cloud" && <CloudIcon className="w-4 h-auto" />}
-        {engine === "on-chain" && <LinkIcon className="w-4 h-auto" />}
+        {engine === "cloud" && <CloudIcon className="h-auto w-4" />}
+        {engine === "on-chain" && <LinkIcon className="h-auto w-4" />}
         <Typography variant={TYPOGRAPHY.R4} className="capitalize">
           {engine}
         </Typography>

@@ -1,13 +1,13 @@
-import { ReactNode } from "react";
-import { Tabs, Tab } from "@/components/Tabs";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
-import { Auth0SessionUser, EngineType } from "@/lib/types";
+import { ReactNode } from "react";
 import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 
 type Params = {
   teamId?: string;
@@ -38,8 +38,8 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
   const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
-    <div className="h-full w-full">
-      <div className="bg-grey-50 border-b border-grey-100">
+    <div className="size-full">
+      <div className="border-b border-grey-100 bg-grey-50">
         <SizingWrapper variant="nav">
           <Tabs className="m-auto font-gta">
             {!isOnChainApp && (

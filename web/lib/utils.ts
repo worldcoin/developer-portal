@@ -1,13 +1,13 @@
-import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
-import {
-  ORB_SEQUENCER_STAGING,
-  ORB_SEQUENCER,
-  PHONE_SEQUENCER_STAGING,
-  PHONE_SEQUENCER,
-} from "./constants";
-import { VerificationLevel } from "@worldcoin/idkit-core";
-import { Auth0SessionUser } from "./types";
 import { Role_Enum } from "@/graphql/graphql";
+import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import {
+  ORB_SEQUENCER,
+  ORB_SEQUENCER_STAGING,
+  PHONE_SEQUENCER,
+  PHONE_SEQUENCER_STAGING,
+} from "./constants";
+import { Auth0SessionUser } from "./types";
 
 // Sequencer mapping
 export const sequencerMapping: Record<

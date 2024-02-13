@@ -1,20 +1,20 @@
 "use client";
-import { Table } from "@/components/Table";
-import { Body } from "@/components/Table/Body";
-import { Row } from "@/components/Table/Row";
-import { Footer } from "@/components/Table/Footer";
-import { Header } from "@/components/Table/Header";
-import { ReactNode, useMemo, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { ActionRow } from "./ActionRow";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
+import { Table } from "@/components/Table";
+import { Body } from "@/components/Table/Body";
+import { Footer } from "@/components/Table/Footer";
+import { Header } from "@/components/Table/Header";
+import { Row } from "@/components/Table/Row";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { EngineType } from "@/lib/types";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { ReactNode, useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { GetActionsQuery } from "../graphql/client/actions.generated";
-import { EngineType } from "@/lib/types";
+import { ActionRow } from "./ActionRow";
 
 type ActionRow = {
   cells: ReactNode[];
@@ -111,12 +111,12 @@ export const ActionsList = (props: {
   return (
     <div
       className={clsx(
-        "flex items-center justify-center w-full py-10 max-h-full",
+        "flex max-h-full w-full items-center justify-center py-10",
         className,
       )}
     >
-      <div className=" w-full grid gap-y-5">
-        <div className="grid gap-2 text-grey-900 font-[550]">
+      <div className=" grid w-full gap-y-5">
+        <div className="grid gap-2 font-[550] text-grey-900">
           <Typography variant={TYPOGRAPHY.H6} className="text-2xl">
             Incognito Actions
           </Typography>
@@ -125,7 +125,7 @@ export const ActionsList = (props: {
             revealing their identity
           </Typography>
         </div>
-        <div className="grid md:grid-cols-1fr/auto w-full justify-between items-center mt-5 gap-x-2 grid-cols-1 gap-y-2">
+        <div className="mt-5 grid w-full grid-cols-1 items-center justify-between gap-2 md:grid-cols-1fr/auto">
           <Input
             register={register("actionSearch")}
             label=""

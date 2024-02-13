@@ -1,6 +1,6 @@
-import "server-only";
-import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import "server-only";
 
 export function errorResponse(params: {
   statusCode: number;

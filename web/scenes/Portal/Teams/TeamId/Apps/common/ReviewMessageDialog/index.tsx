@@ -8,9 +8,9 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useRemoveFromReview } from "../hooks/use-remove-from-review";
-import { useRouter } from "next/navigation";
 
 export const reviewMessageDialogOpenedAtom = atom<boolean>(false);
 
@@ -49,38 +49,35 @@ export const ReviewMessageDialog = (props: {
     <Dialog onClose={closeModal} open={isOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="max-w-[500px] grid gap-y-8">
+      <DialogPanel className="grid max-w-[500px] gap-y-8">
         <CircleIconContainer variant={"error"}>
-          <CloseIcon
-            className="h-5 w-5 text-system-error-600"
-            strokeWidth={3}
-          />
+          <CloseIcon className="size-5 text-system-error-600" strokeWidth={3} />
         </CircleIconContainer>
 
-        <div className="grid gap-y-4 w-full items-center justify-center">
+        <div className="grid w-full items-center justify-center gap-y-4">
           <Typography
             variant={TYPOGRAPHY.H6}
-            className="text-grey-900 text-center"
+            className="text-center text-grey-900"
           >
             App was rejected
           </Typography>
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-grey-500 text-center "
+            className="text-center text-grey-500 "
           >
             Unfortunately, your app was evaluated by our team, and it was
             rejected for the following reason
           </Typography>
         </div>
 
-        <div className="border border-grey-200 rounded-lg px-5 py-4 bg-grey-25 w-full">
+        <div className="w-full rounded-lg border border-grey-200 bg-grey-25 px-5 py-4">
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
             {message}
           </Typography>
         </div>
 
-        <div className="grid grid-cols-2 w-full gap-x-4">
+        <div className="grid w-full grid-cols-2 gap-x-4">
           <DecoratedButton
             type="button"
             variant="secondary"

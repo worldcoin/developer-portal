@@ -1,12 +1,12 @@
-import { ReactNode } from "react";
-import { Tabs, Tab } from "@/components/Tabs";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { atom } from "jotai";
+import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
-import { Auth0SessionUser } from "@/lib/types";
+import { atom } from "jotai";
+import { ReactNode } from "react";
 
 type Images = {
   logo_img_url?: string;
@@ -50,7 +50,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
   return (
     <div>
-      <div className="bg-grey-50 border-b border-grey-100">
+      <div className="border-b border-grey-100 bg-grey-50">
         <SizingWrapper variant="nav">
           <Tabs className="m-auto font-gta">
             <Tab

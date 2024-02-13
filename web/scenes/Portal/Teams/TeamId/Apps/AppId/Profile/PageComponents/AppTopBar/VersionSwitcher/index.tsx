@@ -1,16 +1,16 @@
-import { useAtom } from "jotai";
-import { viewModeAtom } from "../../../layout";
 import {
   Dropdown,
   DropdownButton,
   DropdownItem,
   DropdownItems,
 } from "@/components/Dropdown";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
-import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useAtom } from "jotai";
 import { useEffect, useMemo } from "react";
+import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
+import { viewModeAtom } from "../../../layout";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];
@@ -38,19 +38,19 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
     <Dropdown>
       <DropdownButton
         disabled={app?.app_metadata.length === 0}
-        className="bg-grey-0 text-grey-700 border-grey-200 shadow-button px-4 py-2.5 rounded-xl border  flex items-center justify-center"
+        className="flex items-center justify-center rounded-xl border border-grey-200 bg-grey-0 px-4  py-2.5 text-grey-700 shadow-button"
       >
         <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
           {viewMode === "verified" ? "Approved version" : "Current version"}
         </Typography>
-        {app?.app_metadata.length > 0 && <CaretIcon className="w-4 h-4 ml-2" />}
+        {app?.app_metadata.length > 0 && <CaretIcon className="ml-2 size-4" />}
       </DropdownButton>
       <DropdownItems className="mt-2">
         <DropdownItem
           onClick={() => setMode("unverified")}
-          className="hover:bg-grey-50 pl-1 py-1"
+          className="py-1 pl-1 hover:bg-grey-50"
         >
-          <div className="grid grid-cols-1fr/auto items-center w-full">
+          <div className="grid w-full grid-cols-1fr/auto items-center">
             <Typography
               variant={TYPOGRAPHY.R3}
               className="max-w-full px-4 py-2.5 text-grey-900"
@@ -58,15 +58,15 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
               Current version
             </Typography>
             {viewMode === "unverified" && (
-              <CheckIcon size="16" className="w-3 h-3 ml-2" />
+              <CheckIcon size="16" className="ml-2 size-3" />
             )}
           </div>
         </DropdownItem>
         <DropdownItem
           onClick={() => setMode("verified")}
-          className="hover:bg-grey-50 pl-1 py-1"
+          className="py-1 pl-1 hover:bg-grey-50"
         >
-          <div className="grid grid-cols-1fr/auto items-center w-full justify-start">
+          <div className="grid w-full grid-cols-1fr/auto items-center justify-start">
             <Typography
               as="div"
               variant={TYPOGRAPHY.R3}
@@ -75,7 +75,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
               Approved version
             </Typography>
             {viewMode === "verified" && (
-              <CheckIcon size="16" className="w-3 h-3 ml-2" />
+              <CheckIcon size="16" className="ml-2 size-3" />
             )}
             <Typography className="text-grey-500" variant={TYPOGRAPHY.R5}>
               {viewMode !== "verified" && formattedDate}

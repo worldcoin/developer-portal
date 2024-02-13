@@ -1,11 +1,11 @@
-import { ReactNode } from "react";
-import { Tabs, Tab } from "@/components/Tabs";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Tab, Tabs } from "@/components/Tabs";
+import { ReactNode } from "react";
 
 export const ProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div>
-      <div className="bg-grey-50 border-b border-grey-100">
+      <div className="border-b border-grey-100 bg-grey-50">
         <SizingWrapper variant="nav">
           <Tabs className="font-gta">
             <Tab className="py-4" href={`/profile`} segment={null}>

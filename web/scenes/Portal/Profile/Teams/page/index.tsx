@@ -18,12 +18,12 @@ export const TeamsPage = () => {
         <SizingWrapper className="grid gap-y-8">
           <UserInfo />
 
-          <div className="border-b border-grey-200 border-dashed" />
+          <div className="border-b border-dashed border-grey-200" />
         </SizingWrapper>
       </div>
 
       <SizingWrapper>
-        <div className="grid gap-y-8 m-auto py-8">
+        <div className="m-auto grid gap-y-8 py-8">
           <div className="grid grid-cols-[1fr_auto]">
             <Typography as="h1" variant={TYPOGRAPHY.H7}>
               Teams

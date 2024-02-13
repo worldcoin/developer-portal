@@ -10,12 +10,12 @@ export const IconFrame = (props: {
     <div
       className={twMerge(
         clsx(
-          "h-10 w-10 rounded-full flex justify-center items-center relative",
+          "relative flex size-10 items-center justify-center rounded-full",
           props.className,
         ),
       )}
     >
-      <div className="absolute inset-0 rounded-full bg-[radial-gradient(at_top_left,white,transparent)] opacity-30 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(at_top_left,white,transparent)] opacity-30" />
 
       {props.children}
     </div>

@@ -10,9 +10,9 @@ export enum OIDCFlowType {
  * Types referring to Hasura models should be defined in models.ts.
  */
 
-import { NextApiRequest } from "next";
 import { Membership } from "@/graphql/graphql";
 import { UserContext } from "@auth0/nextjs-auth0/client";
+import { NextApiRequest } from "next";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
   body: T;

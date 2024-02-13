@@ -5,9 +5,9 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useDeleteKeyMutation } from "./graphql/client/delete-key.generated";
-import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
 import { toast } from "react-toastify";
+import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
+import { useDeleteKeyMutation } from "./graphql/client/delete-key.generated";
 
 type DeleteKeyModalProps = {
   isOpen: boolean;
@@ -50,18 +50,18 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
     <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="w-full">
       <DialogOverlay />
       <DialogPanel>
-        <div className="max-w-[400px] px-2 grid grid-cols-1 gap-y-8 justify-items-center w-full">
+        <div className="grid w-full max-w-[400px] grid-cols-1 justify-items-center gap-y-8 px-2">
           <CircleIconContainer variant={"error"}>
             <WarningErrorIcon className="w-6" />
           </CircleIconContainer>
-          <div className="grid grid-cols-1 w-full items-center justify-items-center gap-y-4 text-center">
+          <div className="grid w-full grid-cols-1 items-center justify-items-center gap-y-4 text-center">
             <Typography variant={TYPOGRAPHY.H6}>Are you sure?</Typography>
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Are you sure you want to remove{" "}
               <div className="inline-flex">
                 <Typography
                   variant={TYPOGRAPHY.M3}
-                  className="text-grey-900 max-w-52 truncate"
+                  className="max-w-52 truncate text-grey-900"
                 >
                   {name}
                 </Typography>
@@ -69,7 +69,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
               API key? Please be aware that this action is permanent.
             </Typography>
           </div>
-          <div className="grid grid-cols-2 w-full gap-x-3">
+          <div className="grid w-full grid-cols-2 gap-x-3">
             <DecoratedButton
               type="button"
               variant="danger"

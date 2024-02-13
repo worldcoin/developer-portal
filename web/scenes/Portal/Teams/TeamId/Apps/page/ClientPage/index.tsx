@@ -7,9 +7,9 @@ import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Fragment } from "react";
-import { useAtom } from "jotai";
 import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import { useAtom } from "jotai";
+import { Fragment } from "react";
 
 export const ClientPage = () => {
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);

@@ -1,7 +1,7 @@
-import { getSession } from "@auth0/nextjs-auth0";
 import { Auth0SessionUser } from "@/lib/types";
-import { redirect } from "next/navigation";
 import { urls } from "@/lib/urls";
+import { getSession } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
 
 export const TeamsPage = async () => {
   const session = await getSession();

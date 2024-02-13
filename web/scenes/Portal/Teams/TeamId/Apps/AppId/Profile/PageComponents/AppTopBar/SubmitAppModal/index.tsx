@@ -1,20 +1,20 @@
 import { Checkbox } from "@/components/Checkbox";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { useCallback } from "react";
-import { useSubmitAppMutation } from "./graphql/client/submit-app.generated";
-import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
-import { toast } from "react-toastify";
+import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
+import { useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
+import { useSubmitAppMutation } from "./graphql/client/submit-app.generated";
 
 const schema = yup.object().shape({
   is_developer_allow_listing: yup.boolean(),
@@ -105,17 +105,17 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         <CircleIconContainer variant={"info"}>
           <WorldcoinIcon className=" text-blue-500" />
         </CircleIconContainer>
-        <form className="gap-y-10 grid" onSubmit={handleSubmit(submit)}>
-          <div className="grid grid-cols-1 gap-y-4 justify-items-center">
+        <form className="grid gap-y-10" onSubmit={handleSubmit(submit)}>
+          <div className="grid grid-cols-1 justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Submit for Review
             </Typography>
             <Typography
               variant={TYPOGRAPHY.R3}
-              className="flex justify-center items-center text-grey-500"
+              className="flex items-center justify-center text-grey-500"
             >
               Submit your app for review to get the{" "}
-              <span className="inline-flex items-center text-system-success-500 bg-system-success-50 rounded-xl px-2 py-1 mx-1.5 gap-x-1">
+              <span className="mx-1.5 inline-flex items-center gap-x-1 rounded-xl bg-system-success-50 px-2 py-1 text-system-success-500">
                 <CheckmarkBadge className="w-4" />
                 <Typography
                   variant={TYPOGRAPHY.S3}
@@ -127,7 +127,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               badge
             </Typography>
           </div>
-          <div className="grid grid-cols-auto/1fr py-6 px-5 border-[1px] rounded-xl border-grey-200 gap-x-4">
+          <div className="grid grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6">
             <Checkbox register={register("is_developer_allow_listing")} />
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
@@ -140,7 +140,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               </Typography>
             </div>
           </div>
-          <div className="grid grid-cols-2 w-full gap-x-4">
+          <div className="grid w-full grid-cols-2 gap-x-4">
             <DecoratedButton
               type="button"
               variant="secondary"

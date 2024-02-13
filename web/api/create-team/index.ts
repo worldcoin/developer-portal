@@ -1,20 +1,19 @@
+import { errorResponse } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
+import { logger } from "@/lib/logger";
+import { Auth0User } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import {
-  Session,
   getSession,
   updateSession,
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
-import { NextRequest, NextResponse } from "next/server";
-import { urls } from "@/lib/urls";
-import { logger } from "@/lib/logger";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import * as yup from "yup";
-import { Auth0User } from "@/lib/types";
-import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
-import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { errorResponse } from "@/api/helpers/errors";
+import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 
 import {
   InsertTeamMutation,
@@ -31,10 +30,10 @@ import {
   getSdk as getInsertMembershipSdk,
 } from "./graphql/insertMembership.generated";
 
-import { getSdk as getInviteByIdSdk } from "./graphql/getInviteById.generated";
-import { getSdk as createUserAndDeleteInviteSdk } from "./graphql/createUserAndDeleteInvite.generated";
 import { Role_Enum } from "@/graphql/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
+import { getSdk as createUserAndDeleteInviteSdk } from "./graphql/createUserAndDeleteInvite.generated";
+import { getSdk as getInviteByIdSdk } from "./graphql/getInviteById.generated";
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),

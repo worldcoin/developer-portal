@@ -1,7 +1,7 @@
 import {
-  useWorldBridgeStore,
-  VerificationState,
   VerificationLevel,
+  VerificationState,
+  useWorldBridgeStore,
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";

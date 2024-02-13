@@ -1,14 +1,9 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { DocsIcon } from "@/components/Icons/DocsIcon";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { useDebuggerQuery } from "./graphql/client/debugger.generated";
-import { Debugger } from "../Debugger";
-import { Link } from "@/components/Link";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import ErrorComponent from "next/error";
-import { ActionsHeader } from "../../Common/ActionsHeader";
 import Skeleton from "react-loading-skeleton";
+import { ActionsHeader } from "../../Common/ActionsHeader";
+import { Debugger } from "../Debugger";
+import { useDebuggerQuery } from "./graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -40,10 +35,10 @@ export const ActionIdProofDebugingPage = ({
     );
   } else {
     return (
-      <div className="w-full h-full flex flex-col items-center ">
-        <div className="grid gap-y-2 max-w-[1180px] w-full py-10">
+      <div className="flex size-full flex-col items-center ">
+        <div className="grid w-full max-w-[1180px] gap-y-2 py-10">
           <ActionsHeader actionId={actionID} teamId={teamId} appId={appId} />
-          <hr className="my-5 w-full text-grey-200 border-dashed" />
+          <hr className="my-5 w-full border-dashed text-grey-200" />
           {loading ? (
             <div className="grid grid-cols-1fr/auto gap-x-16">
               <Skeleton count={5} />

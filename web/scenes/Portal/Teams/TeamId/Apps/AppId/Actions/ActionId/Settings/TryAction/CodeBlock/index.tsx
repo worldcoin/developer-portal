@@ -1,6 +1,5 @@
-import React from "react";
-import { CodeDisplayComponent } from "./CodeDisplays";
 import { EngineType } from "@/lib/types";
+import { CodeDisplayComponent } from "./CodeDisplays";
 
 type CodeBlockProps = {
   appId: string;
@@ -100,7 +99,7 @@ const verifyProof = async (proof) => {
     "https://github.com/worldcoin/world-id-onchain-template";
 
   return (
-    <div className="w-full max-w-full grid gap-y-5">
+    <div className="grid w-full max-w-full gap-y-5">
       <CodeDisplayComponent
         buttonText="Install ID Kit"
         type="install"

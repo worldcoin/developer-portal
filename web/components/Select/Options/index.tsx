@@ -1,7 +1,7 @@
-import { Listbox, ListboxOptionsProps, Transition } from "@headlessui/react";
-import { FloatingPortal } from "@floating-ui/react";
-import { useContext, Fragment } from "react";
 import { selectContext } from "@/components/Select";
+import { FloatingPortal } from "@floating-ui/react";
+import { Listbox, ListboxOptionsProps, Transition } from "@headlessui/react";
+import { Fragment, useContext } from "react";
 import { twMerge } from "tailwind-merge";
 
 type SelectOptionsProps = Omit<ListboxOptionsProps<"ul">, "className"> & {
@@ -29,7 +29,7 @@ export const SelectOptions = (props: SelectOptionsProps) => {
         >
           <Listbox.Options
             className={twMerge(
-              "min-h-0 py-1 bg-grey-0 border border-grey-200 rounded-12 shadow-lg overflow-y-auto",
+              "min-h-0 overflow-y-auto rounded-12 border border-grey-200 bg-grey-0 py-1 shadow-lg",
               className,
             )}
           >

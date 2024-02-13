@@ -1,18 +1,18 @@
 "use client";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
+import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { Input } from "@/components/Input";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
-import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
 import { toast } from "react-toastify";
+import * as yup from "yup";
+import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
+import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
 
 const schema = yup.object().shape({
   name: yup.string().required("A key name is required"),
@@ -69,12 +69,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="z-100">
-        <div className="max-w-[580px] grid grid-cols-1 gap-y-10 justify-items-center">
+      <DialogPanel className="z-[100]">
+        <div className="grid max-w-[580px] grid-cols-1 justify-items-center gap-y-10">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
-          <div className="grid gap-y-4 w-full justify-items-center">
+          <div className="grid w-full justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Create a new API key
             </Typography>
@@ -84,7 +84,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             </Typography>
           </div>
           <form
-            className="w-full grid gap-y-10"
+            className="grid w-full gap-y-10"
             onSubmit={handleSubmit(submit)}
           >
             <Input
@@ -94,7 +94,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               errors={errors.name}
               placeholder="Staging_key"
             />
-            <div className="grid grid-cols-2 w-full gap-x-4">
+            <div className="grid w-full grid-cols-2 gap-x-4">
               <DecoratedButton
                 type="button"
                 variant="secondary"

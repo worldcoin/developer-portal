@@ -1,8 +1,8 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import { NullifierItem } from "../index";
 
-import Image from "next/image";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import Image from "next/image";
 
 export const VerifiedRow = (props: {
   nullifier: NullifierItem;
@@ -17,7 +17,7 @@ export const VerifiedRow = (props: {
   return [
     <div
       key={`nullifier_${key}_1`}
-      className="flex flex-row items-center gap-x-3 px-2 group py-3"
+      className="group flex flex-row items-center gap-x-3 px-2 py-3"
     >
       <Image src={`/avatars/${logo}`} alt="user" width={40} height={40} />
       <div className="text-grey-900">
@@ -26,7 +26,7 @@ export const VerifiedRow = (props: {
         </Typography>
       </div>
     </div>,
-    <div key={`nullifier_${key}_2`} className="text-grey-500 w-12">
+    <div key={`nullifier_${key}_2`} className="w-12 text-grey-500">
       <Typography variant={TYPOGRAPHY.R4}>{nullifier.uses}</Typography>
     </div>,
     <div key={`nullifier_${key}_3`} className="text-grey-500">

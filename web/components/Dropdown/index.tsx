@@ -1,6 +1,6 @@
+import { autoUpdate, size, useFloating } from "@floating-ui/react";
 import { Menu, MenuProps } from "@headlessui/react";
-import { useFloating, autoUpdate, size } from "@floating-ui/react";
-import { createContext, CSSProperties, useMemo } from "react";
+import { CSSProperties, createContext, useMemo } from "react";
 
 export * from "./Button";
 export * from "./Item";

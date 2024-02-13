@@ -1,11 +1,11 @@
 "use client";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DeleteTeamDialog } from "@/scenes/Portal/Teams/TeamId/Team/Danger/page/DeleteTeamDialog";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "../../common/TeamProfile";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
-import { useParams } from "next/navigation";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { DeleteTeamDialog } from "@/scenes/Portal/Teams/TeamId/Team/Danger/page/DeleteTeamDialog";
 
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -26,7 +26,7 @@ export const TeamDangerPage = () => {
     <div>
       <TeamProfile />
 
-      <div className="grid gap-y-8 m-auto py-8">
+      <div className="m-auto grid gap-y-8 py-8">
         <div className="grid gap-y-3">
           <Typography as="h1" variant={TYPOGRAPHY.H7}>
             Danger zone

@@ -1,11 +1,11 @@
 "use client";
 
 import clsx from "clsx";
+import { ReactNode } from "react";
+import { Button } from "../Button";
 import { LogoLinesIcon } from "../Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "../Icons/WorldcoinBlueprintIcon";
 import { Typography, TYPOGRAPHY } from "../Typography";
-import { ReactNode, useState } from "react";
-import { Button } from "../Button";
 
 export enum StepEnum {
   CreateApp,
@@ -20,25 +20,25 @@ export const InitialSteps = (props: {
 }) => {
   return (
     <div
-      className={clsx("grid gap-y-6 place-items-center w-full max-w-[480px]")}
+      className={clsx("grid w-full max-w-[480px] place-items-center gap-y-6")}
     >
       <div className="relative">
         <LogoLinesIcon className="z-0" />
 
-        <WorldcoinBlueprintIcon className="absolute inset-0 m-auto z-10 w-[60px] h-[60px] rounded-2xl" />
+        <WorldcoinBlueprintIcon className="absolute inset-0 z-10 m-auto size-[60px] rounded-2xl" />
       </div>
 
-      <div className="grid place-items-center gap-y-2 grid-cols-1">
+      <div className="grid grid-cols-1 place-items-center gap-y-2">
         <Typography variant={TYPOGRAPHY.H6}>{props.title}</Typography>
 
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500 text-sm">
+        <Typography variant={TYPOGRAPHY.R4} className="text-sm text-grey-500">
           {props.description}
         </Typography>
       </div>
 
       <div
         className={clsx(
-          "border-grey-200 border rounded-2xl shadow-button mt-4",
+          "mt-4 rounded-2xl border border-grey-200 shadow-button",
         )}
       >
         {props.steps.map((step) => step)}

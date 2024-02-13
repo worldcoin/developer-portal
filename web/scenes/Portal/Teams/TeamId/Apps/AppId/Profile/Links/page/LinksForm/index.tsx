@@ -1,21 +1,21 @@
 "use client";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Input } from "@/components/Input";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useCallback, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useEffect, useMemo } from "react";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { Auth0SessionUser } from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import { useUpdateAppLinksInfoMutation } from "./graphql/client/update-app-links.generated";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Input } from "@/components/Input";
-import { checkUserPermissions } from "@/lib/utils";
 
 const schema = yup.object().shape({
   integration_url: yup
@@ -159,7 +159,7 @@ export const LinksForm = (props: LinksFormProps) => {
 
       <DecoratedButton
         type="submit"
-        className="w-40 h-12"
+        className="h-12 w-40"
         disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>

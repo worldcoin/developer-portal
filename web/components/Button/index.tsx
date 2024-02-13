@@ -1,5 +1,5 @@
-import { ComponentProps, memo } from "react";
 import { CommonLinkProps, Link } from "@/components/Link";
+import { ComponentProps, memo } from "react";
 
 export type CommonButtonProps =
   | (ComponentProps<"button"> & {

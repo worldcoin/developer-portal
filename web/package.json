@@ -105,6 +105,7 @@
     "generate:graphql-schema": "graphql-codegen --config graphql-codegen.schema.js",
     "generate:graphql-types": "graphql-codegen --config graphql-codegen.types.js",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "start": "next start",
     "test:api": "jest tests/api",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",

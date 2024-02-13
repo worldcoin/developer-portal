@@ -33,7 +33,7 @@ export const Input = memo(function Input(props: InputInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "border-[1px] text-grey-700 rounded-lg bg-grey-0 px-2 text-sm",
+    "rounded-lg border-[1px] bg-grey-0 px-2 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
@@ -46,7 +46,7 @@ export const Input = memo(function Input(props: InputInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer focus:outline-none focus:ring-0 bg-transparent px-2 py-2 h-full transition-colors placeholder:transition-colors",
+    "peer h-full bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-none focus:ring-0",
     {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
@@ -54,7 +54,7 @@ export const Input = memo(function Input(props: InputInterface) {
     },
   );
 
-  const labelClassNames = clsx("text-sm ml-2 peer-focus:text-blue-500", {
+  const labelClassNames = clsx("ml-2 text-sm peer-focus:text-blue-500", {
     "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
       !errors && !disabled,
     "text-system-error-500 peer-focus:text-system-error-500":
@@ -65,11 +65,11 @@ export const Input = memo(function Input(props: InputInterface) {
   });
 
   return (
-    <div className={"inline-grid font-gta w-full transition-colors"}>
+    <div className={"inline-grid w-full font-gta transition-colors"}>
       <fieldset
         className={twMerge(
           clsx(
-            "grid grid-cols-auto/1fr/auto group pb-2 transition-colors",
+            "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
             parentClassNames,
           ),
           typeof className === "string" ? className : undefined,
@@ -96,7 +96,7 @@ export const Input = memo(function Input(props: InputInterface) {
           </legend>
         )}
       </fieldset>
-      <div className={clsx("flex flex-col w-full px-2")}>
+      <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
           <p className="mt-2 text-xs text-grey-500">{helperText}</p>
         )}
