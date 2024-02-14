@@ -10,7 +10,6 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import ErrorComponent from "next/error";
 import { useEffect, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
 import { useGetActionsQuery } from "./graphql/client/actions.generated";
@@ -49,11 +48,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   } else {
     return (
       <SizingWrapper>
-        {loading ? (
-          <div className={clsx("pt-5", { hidden: createAction })}>
-            <Skeleton count={3} height={50} className="mt-5" />
-          </div>
-        ) : (
+        {!loading && (
           <ActionsList
             actions={data?.action!}
             engineType={engineType}
