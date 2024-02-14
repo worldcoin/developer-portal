@@ -15,58 +15,13 @@ import {
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
+import { Placeholder } from "@/components/PlaceholderImage";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { createAppDialogOpenedAtom } from "../Header";
-
-const colors = [
-  "bg-blue-400",
-  "bg-blue-500",
-  "bg-blue-600",
-  "bg-blue-700",
-  "bg-grey-700",
-  "bg-grey-900",
-  "bg-system-success-400",
-  "bg-system-success-500",
-  "bg-system-success-600",
-  "bg-system-success-700",
-  "bg-system-success-800",
-  "bg-system-success-900",
-  "bg-system-error-500",
-  "bg-system-error-600",
-  "bg-system-error-700",
-  "bg-system-error-800",
-  "bg-system-error-900",
-  "bg-additional-blue-500",
-  "bg-additional-purple-500",
-  "bg-additional-green-500",
-  "bg-additional-sea-500",
-  "bg-additional-orange-500",
-  "bg-additional-pink-500",
-  "bg-additional-lightOrange-500",
-];
-
-const Placeholder = (props: { name: string }) => {
-  // Hash function I made up to create entropy
-  const hash = props.name.split("").reduce((hash, char) => {
-    return (hash << 5) - hash + char.charCodeAt(0);
-  }, 0);
-  const solidColor = colors[Math.abs(hash) % colors.length];
-  return (
-    <div
-      className={clsx(
-        "flex size-6 items-center justify-center rounded-lg",
-        solidColor,
-      )}
-    >
-      <div className="text-xs text-grey-0">{props.name[0]}</div>
-    </div>
-  );
-};
 
 export const AppSelector = () => {
   const router = useRouter();
@@ -109,7 +64,10 @@ export const AppSelector = () => {
       <SelectButton>
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
           <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
-            <Placeholder name={value?.app_metadata[0].name ?? "Select app"} />
+            <Placeholder
+              name={value?.app_metadata[0].name ?? "Select app"}
+              className="size-6 text-xs"
+            />
 
             <Typography variant={TYPOGRAPHY.R4}>
               {value?.app_metadata[0].name ?? "Select app"}
@@ -127,7 +85,10 @@ export const AppSelector = () => {
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
               <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate">
-                <Placeholder name={app?.app_metadata[0].name ?? "Select app"} />
+                <Placeholder
+                  name={app?.app_metadata[0].name ?? "Select app"}
+                  className="size-6 text-xs"
+                />
 
                 <span className="truncate text-grey-900">
                   <Typography

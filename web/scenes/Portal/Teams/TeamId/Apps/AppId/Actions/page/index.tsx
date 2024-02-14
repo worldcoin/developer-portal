@@ -9,7 +9,7 @@ import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import ErrorComponent from "next/error";
-import Skeleton from "react-loading-skeleton";
+import { useEffect, useState } from "react";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
 import { useGetActionsQuery } from "./graphql/client/actions.generated";
@@ -23,6 +23,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
+  const [showList, setShowList] = useState(false);
 
   const { data, loading } = useGetActionsQuery({
     variables: {
@@ -31,7 +32,10 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
     context: { headers: { team_id: teamId } },
   });
 
-  const showList = data?.action && data?.action?.length > 0;
+  useEffect(() => {
+    setShowList((data?.action && data?.action?.length > 0) ?? false);
+  }, [data?.action]);
+
   const engineType = data?.app[0]?.engine;
 
   if (!loading && !data) {
@@ -44,11 +48,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   } else {
     return (
       <SizingWrapper>
-        {loading ? (
-          <div className={clsx("pt-5", { hidden: createAction })}>
-            <Skeleton count={3} height={50} className="mt-5" />
-          </div>
-        ) : (
+        {!loading && (
           <ActionsList
             actions={data?.action!}
             engineType={engineType}

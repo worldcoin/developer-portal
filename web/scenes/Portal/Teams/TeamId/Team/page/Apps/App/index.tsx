@@ -2,13 +2,9 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { Button } from "@/components/Button";
-import { CloudIcon } from "@/components/Icons/CloudIcon";
-import { LinkIcon } from "@/components/Icons/LinkIcon";
-import { SmartPhoneIcon } from "@/components/Icons/SmartPhoneIcon";
-import { StartUpIcon } from "@/components/Icons/StartUp";
+import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import clsx from "clsx";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { FetchAppsQuery } from "../graphql/client/fetch-apps.generated";
@@ -48,29 +44,7 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
         </Typography>
 
         <div className="flex gap-x-4">
-          <div className="flex flex-row gap-x-2 text-grey-400">
-            {environment === "production" && (
-              <StartUpIcon className="h-auto w-4" />
-            )}
-
-            {environment === "staging" && (
-              <SmartPhoneIcon className="h-auto w-4" />
-            )}
-
-            <Typography variant={TYPOGRAPHY.R4} className={clsx("capitalize")}>
-              {environment}
-            </Typography>
-          </div>
-
-          <div className="h-4 w-px bg-grey-200" />
-
-          <div className="flex flex-row gap-x-2 text-grey-400">
-            {app.engine === "cloud" && <CloudIcon className="h-auto w-4" />}
-            {app.engine === "on-chain" && <LinkIcon className="h-auto w-4" />}
-            <Typography variant={TYPOGRAPHY.R4} className="capitalize">
-              {app.engine}
-            </Typography>
-          </div>
+          <Environment environment={environment} engine={app.engine} />
         </div>
       </div>
     </Button>
