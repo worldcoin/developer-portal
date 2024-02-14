@@ -9,7 +9,7 @@ import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -21,6 +21,7 @@ import {
   viewModeAtom,
 } from "../../../layout/ImagesProvider";
 import { ImageDisplay } from "./ImageDisplay";
+import ImageLoader from "./ImageLoader";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 
@@ -40,6 +41,8 @@ const SHOWCASE_IMAGE_NAMES = [
 export const ImageForm = (props: ImageFormTypes) => {
   const { appId, teamId, appMetadataId, appMetadata } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [heroImageUploading, setHeroImageUploading] = useState(false);
+  const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
@@ -173,7 +176,9 @@ export const ImageForm = (props: ImageFormTypes) => {
         toastId: "upload_toast",
         autoClose: false,
       });
-
+      imageType === "hero_image"
+        ? setHeroImageUploading(true)
+        : setShowcaseImageUploading(true);
       try {
         await validateImageDimensions(file, width, height);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
@@ -209,6 +214,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             ...unverifiedImages,
             [`${imageType}_url`]: imageUrl,
           });
+          setHeroImageUploading(false);
         } else if (imageType.startsWith("showcase_img")) {
           const formatted_showcase_img_urls = `{${[
             ...showcaseImgFileNames,
@@ -246,6 +252,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               imageUrl,
             ],
           });
+          setShowcaseImageUploading(false);
         }
 
         toast.update("upload_toast", {
@@ -260,6 +267,9 @@ export const ImageForm = (props: ImageFormTypes) => {
           render: "Error uploading image",
           autoClose: 5000,
         });
+
+        setHeroImageUploading(false);
+        setShowcaseImageUploading(false);
       }
     }
   };
@@ -340,7 +350,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             type={viewMode}
             width={400}
             height={300}
-            className="h-auto w-40 rounded-lg"
+            className="h-auto w-44 rounded-lg"
           />
           <Button
             type="button"
@@ -356,6 +366,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           </Button>
         </div>
       )}
+      {heroImageUploading && <ImageLoader name={"featured_image"} />}
 
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
@@ -400,7 +411,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                 type={viewMode}
                 width={640}
                 height={360}
-                className="h-auto w-40 rounded-lg"
+                className="h-auto w-44 rounded-lg"
               />
               <Button
                 type="button"
@@ -416,6 +427,9 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Button>
             </div>
           ))}
+        {showcaseImageUploading && (
+          <ImageLoader name={`showcase_image_${showcaseImgUrls.length}`} />
+        )}
       </div>
     </form>
   );

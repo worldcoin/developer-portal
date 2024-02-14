@@ -18,6 +18,7 @@ export const ImageDisplay = (props: {
   // Verified images are cached by cloudfront and Next/Image actually causes slower load times.
   if (type === "verified") {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imgSrc}
         alt="verified"
