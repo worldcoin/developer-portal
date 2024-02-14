@@ -9,6 +9,7 @@ import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import ErrorComponent from "next/error";
+import { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
@@ -23,6 +24,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
+  const [showList, setShowList] = useState(false);
 
   const { data, loading } = useGetActionsQuery({
     variables: {
@@ -31,7 +33,11 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
     context: { headers: { team_id: teamId } },
   });
 
-  const showList = data?.action && data?.action?.length > 0;
+  useEffect(() => {
+    setShowList((data?.action && data?.action?.length > 0) ?? false);
+  }, [data?.action]);
+
+  console.log("showList", showList);
   const engineType = data?.app[0]?.engine;
 
   if (!loading && !data) {

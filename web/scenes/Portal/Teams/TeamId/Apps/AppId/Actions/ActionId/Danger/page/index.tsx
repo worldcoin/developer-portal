@@ -38,7 +38,11 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
           {loading ? (
             <Skeleton height={150} />
           ) : (
-            <ActionDangerZoneContent action={action!} teamId={teamId} />
+            <ActionDangerZoneContent
+              action={action!}
+              teamId={teamId}
+              appId={appId}
+            />
           )}
         </div>
       </div>
