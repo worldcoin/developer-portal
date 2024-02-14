@@ -2,6 +2,7 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -23,7 +24,6 @@ import {
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-import { Environment } from "./Environment";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
