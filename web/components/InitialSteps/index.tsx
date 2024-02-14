@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import { ReactNode } from "react";
-import { Button } from "../Button";
 import { LogoLinesIcon } from "../Icons/LogoLines";
 import { WorldcoinBlueprintIcon } from "../Icons/WorldcoinBlueprintIcon";
 import { Typography, TYPOGRAPHY } from "../Typography";
@@ -43,14 +42,6 @@ export const InitialSteps = (props: {
       >
         {props.steps.map((step) => step)}
       </div>
-
-      {/* REVIEW: What exactly should happend on skip tutorial? */}
-      {/* FIXME: Update href/onClick */}
-      <Button href="/profile">
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-          Skip tutorial
-        </Typography>
-      </Button>
     </div>
   );
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
-import { TestTubeIcon } from "@/components/Icons/TestTubeIcon";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
@@ -46,20 +45,6 @@ export const ClientPage = () => {
               title="Create an incognito action"
               description="Allow user to verify as a unique human"
               buttonText="Create"
-              disabled
-            />,
-
-            <Step
-              href="#"
-              key={`apps-tutorial-step-3`}
-              icon={
-                <IconFrame className="bg-additional-orange-500 text-grey-0">
-                  <TestTubeIcon />
-                </IconFrame>
-              }
-              title="Test it!"
-              description="Test your app in the simulator"
-              buttonText="Test"
               disabled
             />,
           ]}

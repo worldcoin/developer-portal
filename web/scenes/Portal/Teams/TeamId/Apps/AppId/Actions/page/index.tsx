@@ -1,11 +1,10 @@
 "use client";
 
-import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
-import { TestTubeIcon } from "@/components/Icons/TestTubeIcon";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
+import { Placeholder } from "@/components/PlaceholderImage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import ErrorComponent from "next/error";
@@ -37,6 +36,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   }, [data?.action]);
 
   const engineType = data?.app[0]?.engine;
+  const appName = data?.app[0]?.app_metadata[0]?.name;
 
   if (!loading && !data) {
     return (
@@ -87,12 +87,15 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                 key={`actions-tutorial-step-1`}
                 href="#"
                 icon={
-                  <IconFrame className="bg-blue-500 text-grey-0">
-                    <PlusCircleIcon />
+                  <IconFrame className="">
+                    <Placeholder
+                      name={appName ?? "Add your app"}
+                      className="size-full rounded-full"
+                    />
                   </IconFrame>
                 }
-                title="Add your app"
-                description="App created"
+                title={appName ?? "Add your app"}
+                description="App created successfully"
                 buttonText="Start"
                 completed
               />,
@@ -104,22 +107,9 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                     <UserStoryIcon />
                   </IconFrame>
                 }
-                title="Create incognito action"
+                title="Create an incognito action"
                 description="Allow user to verify as a unique person"
                 buttonText="Create"
-              />,
-              <Step
-                href="#"
-                key={`actions-tutorial-step-3`}
-                icon={
-                  <IconFrame className="bg-additional-orange-500 text-grey-0">
-                    <TestTubeIcon />
-                  </IconFrame>
-                }
-                title="Test it!"
-                description="Test your app in the simulator"
-                buttonText="Test"
-                disabled
               />,
             ]}
           />
