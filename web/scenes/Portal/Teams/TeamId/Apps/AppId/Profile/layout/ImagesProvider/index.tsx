@@ -1,6 +1,6 @@
 "use client";
 import { atom, useSetAtom } from "jotai";
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 
 type Images = {
