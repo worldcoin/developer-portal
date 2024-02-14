@@ -77,6 +77,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
+    console.log(idKitVerificationState);
     switch (idKitVerificationState) {
       case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
@@ -91,7 +92,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
           clearInterval(intervalId);
         }
 
-        setScreen(KioskScreen.Success);
         break;
 
       case VerificationState.Failed:
@@ -101,8 +101,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         // Prevent connection failure
         if (connectionTimeout) {
           resetKiosk();
-        } else {
-          setScreen(KioskScreen.VerificationError);
         }
         break;
     }
