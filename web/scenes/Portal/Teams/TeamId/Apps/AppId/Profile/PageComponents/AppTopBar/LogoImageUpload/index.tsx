@@ -12,6 +12,7 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { useImage } from "../../../hook/use-image";
 import {
@@ -118,11 +119,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   }, [appId, logoFile, viewMode]);
 
   return (
-    <div
-      className={clsx(
-        "relative flex size-20 items-center justify-center rounded-2xl bg-blue-100",
-      )}
-    >
+    <div className={clsx("relative size-20")}>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
         <DialogPanel className="grid max-w-[440px] gap-y-10 bg-white">
@@ -142,7 +139,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="size-28 rounded-2xl object-contain"
+                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={500}
                   height={500}
                 />
@@ -195,23 +192,31 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         (verifiedImageError ? (
           <WorldcoinIcon className="size-10 text-blue-500" />
         ) : (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={verifiedImageURL}
             alt="logo"
+            className="drop-shadow-lg"
             onError={() => setVerifiedImageError(true)}
           />
         ))}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
-          <Image
-            alt="logo"
-            src={unverifiedImages?.logo_img_url}
-            className="size-20"
-            width={500}
-            height={500}
-          />
+          unverifiedImages?.logo_img_url === "loading" ? (
+            <Skeleton className="size-20" />
+          ) : (
+            <Image
+              alt="logo"
+              src={unverifiedImages?.logo_img_url}
+              className="size-20 rounded-2xl drop-shadow-lg"
+              width={500}
+              height={500}
+            />
+          )
         ) : (
-          <WorldcoinIcon className="size-10 text-blue-500" />
+          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
+            <WorldcoinIcon className="size-10  text-blue-500" />
+          </div>
         ))}
       <Button
         type="button"

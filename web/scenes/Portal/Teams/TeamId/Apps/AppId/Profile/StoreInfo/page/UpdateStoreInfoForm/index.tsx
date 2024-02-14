@@ -188,7 +188,6 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <TextArea
             label="How it works"
             rows={5}
-            required
             errors={errors.description_how_it_works}
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="How do users interact with World ID in your app?"
@@ -197,7 +196,6 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <TextArea
             label="How to connect"
             rows={5}
-            required
             errors={errors.description_connect}
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="Explain, if required, how users should set up this app to start using World ID."
@@ -206,10 +204,9 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <Input
             label="World App Description"
             maxLength={50}
-            required
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Short description for display in the app"
+            placeholder="Short description to be shown in the World App about your app"
             register={register("world_app_description")}
             addOnRight={
               <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
