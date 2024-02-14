@@ -31,7 +31,10 @@ export const InitialSteps = (props: {
       <div className="grid grid-cols-1 place-items-center gap-y-2">
         <Typography variant={TYPOGRAPHY.H6}>{props.title}</Typography>
 
-        <Typography variant={TYPOGRAPHY.R4} className="text-sm text-grey-500">
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="text-center text-sm text-grey-500"
+        >
           {props.description}
         </Typography>
       </div>

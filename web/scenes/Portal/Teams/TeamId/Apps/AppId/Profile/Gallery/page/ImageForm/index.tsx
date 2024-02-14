@@ -402,7 +402,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           </div>
         </ImageDropZone>
       )}
-      <div className="grid grid-cols-3">
+      <div className="grid gap-y-4 md:grid-cols-3">
         {showcaseImgUrls &&
           showcaseImgUrls.map((url: string, index: number) => (
             <div className="relative size-fit" key={index}>
