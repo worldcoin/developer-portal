@@ -13,7 +13,7 @@ export const viewModeAtom = atom<"unverified" | "verified">("unverified");
 export const showReviewStatusAtom = atom<boolean>(true);
 
 export const unverifiedImageAtom = atom<Images>({
-  logo_img_url: "",
+  logo_img_url: "loading",
   hero_image_url: "",
   showcase_image_urls: null,
 });
