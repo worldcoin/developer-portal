@@ -236,7 +236,7 @@ export const CreateAppDialog = (props: DialogProps) => {
               <div className="grid gap-y-6">
                 <Typography variant={TYPOGRAPHY.H7}>Build</Typography>
 
-                <div className="grid grid-cols-2 gap-x-2">
+                <div className="grid gap-2 md:grid-cols-2">
                   <RadioCard
                     register={register("build")}
                     option={{ value: "staging", label: "Staging" }}
@@ -255,7 +255,7 @@ export const CreateAppDialog = (props: DialogProps) => {
               <div className="grid gap-y-6">
                 <Typography variant={TYPOGRAPHY.H7}>Verification</Typography>
 
-                <div className="grid grid-cols-2 gap-x-2">
+                <div className="grid gap-2 md:grid-cols-2">
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "cloud", label: "Cloud" }}
