@@ -280,7 +280,7 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const showcaseImgUrls = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
-      return appMetadata?.showcase_img_urls.map((url: string) => {
+      return appMetadata?.showcase_img_urls?.map((url: string) => {
         return getCDNImageUrl(appId, url);
       });
     } else {

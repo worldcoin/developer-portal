@@ -119,7 +119,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   }, [appId, logoFile, viewMode]);
 
   return (
-    <div className={clsx("relative size-20")}>
+    <div className={clsx("relative flex size-20 items-center justify-center")}>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
         <DialogPanel className="grid max-w-[440px] gap-y-10 bg-white">
@@ -190,7 +190,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
       {viewMode === "verified" &&
         (verifiedImageError ? (
-          <WorldcoinIcon className="size-10 text-blue-500" />
+          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
+            <WorldcoinIcon className="size-10  text-blue-500" />
+          </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
