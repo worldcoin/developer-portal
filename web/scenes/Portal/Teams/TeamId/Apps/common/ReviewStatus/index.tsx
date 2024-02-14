@@ -5,10 +5,10 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { showReviewStatusAtom } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Profile/layout";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
+import { showReviewStatusAtom } from "../../AppId/Profile/layout/ImagesProvider";
 import { reviewMessageDialogOpenedAtom } from "../ReviewMessageDialog";
 
 type ReviewStatusProps = {

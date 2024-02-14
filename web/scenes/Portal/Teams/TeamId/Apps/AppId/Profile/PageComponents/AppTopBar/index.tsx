@@ -13,9 +13,9 @@ import {
 import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import ErrorComponent from "next/error";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import {
@@ -23,7 +23,7 @@ import {
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
@@ -92,9 +92,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
 
-  const [_showReviewMessage, setShowReviewMessage] = useAtom(
-    reviewMessageDialogOpenedAtom,
-  );
+  useEffect(() => {
+    if (app?.app_metadata.length === 0) {
+      setViewMode("verified");
+    }
+  }, [app?.app_metadata.length, setViewMode]);
+
+  const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
 
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
@@ -110,7 +114,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   });
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -169,18 +173,20 @@ export const AppTopBar = (props: AppTopBarProps) => {
           app_website_url: appMetaData.app_website_url,
           source_code_url: appMetaData.source_code_url,
           integration_url: appMetaData.integration_url,
-          logo_img_url: `logo_img.${_getImageEndpoint(
-            appMetaData.logo_img_url,
-          )}`,
-          hero_image_url: `hero_image.${_getImageEndpoint(
-            appMetaData.hero_image_url,
-          )}`,
-          showcase_img_urls: `{${appMetaData.showcase_img_urls
-            ?.map(
-              (img: string, index: number) =>
-                `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
-            )
-            .join(",")}}`,
+          logo_img_url: appMetaData.logo_img_url
+            ? `logo_img.${_getImageEndpoint(appMetaData.logo_img_url)}`
+            : "",
+          hero_image_url: appMetaData.hero_image_url
+            ? `hero_image.${_getImageEndpoint(appMetaData.hero_image_url)}`
+            : "",
+          showcase_img_urls: appMetaData.hero_image_url
+            ? `{${appMetaData.showcase_img_urls
+                ?.map(
+                  (img: string, index: number) =>
+                    `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
+                )
+                .join(",")}}`
+            : null,
           verification_status: "unverified",
         },
         context: { headers: { team_id: teamId } },
@@ -287,9 +293,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
         </div>
         {isEnoughPermissions && (
           <div className="grid grid-cols-auto/1fr items-center gap-x-3">
-            {app.verified_app_metadata.length > 0 && (
-              <VersionSwitcher app={app} />
-            )}
+            {app.verified_app_metadata.length > 0 &&
+              app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
             {isEditable ? (
               <DecoratedButton
                 type="submit"

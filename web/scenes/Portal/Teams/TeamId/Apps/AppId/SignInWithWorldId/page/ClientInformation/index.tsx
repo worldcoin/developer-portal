@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CopyCheckIcon } from "@/components/Icons/CopyCheckIcon";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
@@ -25,6 +26,7 @@ export const ClientInformationPage = (props: {
 }) => {
   const { appID, teamID } = props;
   const [clientSecret, setClientSecret] = useState<string>("");
+  const [isCopied, setIsCopied] = useState<boolean>(false);
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -62,8 +64,12 @@ export const ClientInformationPage = (props: {
   }, [resetClientSecretMutation]);
 
   const copyToClipboard = (fieldName: string, fieldValue: string) => {
+    setIsCopied(true);
     navigator.clipboard.writeText(fieldValue);
     toast.success(`${fieldName} copied to clipboard`);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 4000);
   };
 
   if (!fetchingAction && !signInAction) {
@@ -94,7 +100,11 @@ export const ClientInformationPage = (props: {
                     className="pr-4"
                     onClick={() => copyToClipboard("Client ID", appID)}
                   >
-                    <CopyIcon className="size-5 text-grey-900" />
+                    {isCopied ? (
+                      <CopyCheckIcon className={clsx("size-5 text-grey-900")} />
+                    ) : (
+                      <CopyIcon className="size-5 text-grey-900" />
+                    )}
                   </Button>
                 }
               />

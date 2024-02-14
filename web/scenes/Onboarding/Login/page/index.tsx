@@ -22,7 +22,7 @@ export const LoginPage = () => (
           className="text-center text-grey-500"
         >
           The Worldcoin Protocol will enable a new class of applications built
-          on top of prof of personhood
+          on top of proof of personhood
         </Typography>
       </div>
 

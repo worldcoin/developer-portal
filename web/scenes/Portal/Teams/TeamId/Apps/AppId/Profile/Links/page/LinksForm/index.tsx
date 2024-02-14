@@ -20,7 +20,7 @@ import { useUpdateAppLinksInfoMutation } from "./graphql/client/update-app-links
 const schema = yup.object().shape({
   integration_url: yup
     .string()
-    .url("Must be a valid URL")
+    .url("Must be a valid https:// URL")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
       message: "Link must be a valid HTTPS URL",
       excludeEmptyString: true,
@@ -28,7 +28,7 @@ const schema = yup.object().shape({
     .required("This field is required"),
   app_website_url: yup
     .string()
-    .url("Must be a valid URL")
+    .url("Must be a valid https:// URL")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
       message: "Link must be a valid HTTPS URL",
       excludeEmptyString: true,
@@ -36,7 +36,7 @@ const schema = yup.object().shape({
     .optional(),
   source_code_url: yup
     .string()
-    .url("Must be a valid URL")
+    .url("Must be a valid https:// URL")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
       message: "Link must be a valid HTTPS URL",
       excludeEmptyString: true,

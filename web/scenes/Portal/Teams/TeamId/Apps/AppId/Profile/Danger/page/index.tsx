@@ -1,19 +1,17 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
-import { useAtom } from "jotai";
-import Error from "next/error";
-import { AppTopBar } from "../../PageComponents/AppTopBar";
-import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout";
-
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import Error from "next/error";
 import { useMemo, useState } from "react";
+import { AppTopBar } from "../../PageComponents/AppTopBar";
+import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
@@ -25,7 +23,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [_, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -40,20 +37,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
       id: appId,
     },
     context: { headers: { team_id: teamId } },
-  });
-
-  const { loading: loadingImages } = useFetchImagesQuery({
-    variables: {
-      id: appId,
-    },
-    context: { headers: { team_id: teamId } },
-    onCompleted: (data) => {
-      setUnverifiedImages({
-        logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-        hero_image_url: data?.unverified_images?.hero_image_url ?? "",
-        showcase_image_urls: data?.unverified_images?.showcase_img_urls,
-      });
-    },
   });
 
   const app = data?.app[0];
@@ -73,7 +56,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return (
       <div
         className={clsx("grid gap-y-4 py-8", {
-          hidden: loading || loadingImages,
+          hidden: loading,
         })}
       >
         <DeleteModal

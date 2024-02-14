@@ -16,7 +16,7 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../../layout";
+import { viewModeAtom } from "../../../layout/ImagesProvider";
 import { DescriptionSubFields } from "../../../types";
 import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
 
@@ -206,7 +206,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             maxLength={50}
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Short description for display in the app"
+            placeholder="Short description to be shown in the World App about your app"
             register={register("world_app_description")}
             addOnRight={
               <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">

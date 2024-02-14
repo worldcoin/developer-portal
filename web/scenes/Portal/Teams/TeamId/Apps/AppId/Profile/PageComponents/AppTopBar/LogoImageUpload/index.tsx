@@ -12,13 +12,13 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
-  verifiedImagesAtom,
   viewModeAtom,
-} from "../../../layout";
+} from "../../../layout/ImagesProvider";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
@@ -31,14 +31,14 @@ type LogoImageUploadProps = {
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const { appId, appMetadataId, teamId, editable, logoFile } = props;
   const [showDialog, setShowDialog] = useState(false);
+  const [verifiedImageError, setVerifiedImageError] = useState(false);
+  const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [verifiedImages] = useAtom(verifiedImagesAtom);
-  const [disabled] = useState(false);
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
+    useImage();
 
   const handleUpload = () => {
     imageInputRef.current?.click();
@@ -57,16 +57,19 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       try {
         await validateImageDimensions(file, 500, 500);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
+
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
           teamId,
           imageType,
         );
+
         setUnverifiedImages({
           ...unverifiedImages,
           logo_img_url: imageUrl,
         });
+
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
         await updateLogoMutation({
           variables: {
@@ -75,11 +78,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           },
           context: { headers: { team_id: teamId } },
         });
+
         toast.update("upload_toast", {
           type: "success",
           render: "Image uploaded successfully",
           autoClose: 5000,
         });
+
         setShowDialog(false);
       } catch (error) {
         console.error(error);
@@ -114,11 +119,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   }, [appId, logoFile, viewMode]);
 
   return (
-    <div
-      className={clsx(
-        "relative flex size-20 items-center justify-center rounded-2xl bg-blue-100",
-      )}
-    >
+    <div className={clsx("relative size-20")}>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
         <DialogPanel className="grid max-w-[440px] gap-y-10 bg-white">
@@ -138,7 +139,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="size-28 rounded-lg object-contain"
+                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={500}
                   height={500}
                 />
@@ -186,18 +187,36 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         </DialogPanel>
       </Dialog>
-      {viewMode === "verified" && <img src={verifiedImageURL} alt="logo" />}
+      {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
+      {viewMode === "verified" &&
+        (verifiedImageError ? (
+          <WorldcoinIcon className="size-10 text-blue-500" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={verifiedImageURL}
+            alt="logo"
+            className="drop-shadow-lg"
+            onError={() => setVerifiedImageError(true)}
+          />
+        ))}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
-          <Image
-            alt="logo"
-            src={unverifiedImages?.logo_img_url}
-            className="size-20"
-            width={500}
-            height={500}
-          />
+          unverifiedImages?.logo_img_url === "loading" ? (
+            <Skeleton className="size-20" />
+          ) : (
+            <Image
+              alt="logo"
+              src={unverifiedImages?.logo_img_url}
+              className="size-20 rounded-2xl drop-shadow-lg"
+              width={500}
+              height={500}
+            />
+          )
         ) : (
-          <WorldcoinIcon className="size-10 text-blue-500" />
+          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
+            <WorldcoinIcon className="size-10  text-blue-500" />
+          </div>
         ))}
       <Button
         type="button"
