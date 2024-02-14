@@ -37,7 +37,6 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
     setShowList((data?.action && data?.action?.length > 0) ?? false);
   }, [data?.action]);
 
-  console.log("showList", showList);
   const engineType = data?.app[0]?.engine;
 
   if (!loading && !data) {
