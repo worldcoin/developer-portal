@@ -46,5 +46,5 @@ export const ImagesProvider = (props: {
     },
   });
 
-  return <div>{props.children}</div>;
+  return <Fragment>{props.children}</Fragment>;
 };
