@@ -29,7 +29,11 @@ export const AppLogo = (props: {
         />
       )}
 
-      {!src && <Placeholder name={props.name} className="size-16" />}
+      {!src && (
+        <div>
+          <Placeholder name={props.name} className="size-16 shadow-image" />
+        </div>
+      )}
     </div>
   );
 };
