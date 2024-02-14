@@ -32,7 +32,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
         />
         {!loading && apiKeys?.length === 0 ? (
           <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
-            <div className="gap-y-5 grid justify-items-center ">
+            <div className="grid justify-items-center gap-y-5 ">
               <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
               <Typography
                 variant={TYPOGRAPHY.R3}
