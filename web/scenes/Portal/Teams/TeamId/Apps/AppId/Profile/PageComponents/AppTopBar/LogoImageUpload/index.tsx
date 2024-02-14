@@ -139,7 +139,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
-                  className="size-28 rounded-2xl object-contain"
+                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={500}
                   height={500}
                 />
@@ -196,6 +196,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           <img
             src={verifiedImageURL}
             alt="logo"
+            className="drop-shadow-lg"
             onError={() => setVerifiedImageError(true)}
           />
         ))}
@@ -207,7 +208,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <Image
               alt="logo"
               src={unverifiedImages?.logo_img_url}
-              className="size-20 rounded-2xl"
+              className="size-20 rounded-2xl drop-shadow-lg"
               width={500}
               height={500}
             />
