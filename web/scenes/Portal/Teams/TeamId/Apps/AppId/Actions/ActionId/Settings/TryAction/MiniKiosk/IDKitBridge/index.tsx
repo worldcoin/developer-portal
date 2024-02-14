@@ -77,7 +77,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
-    console.log(idKitVerificationState);
     switch (idKitVerificationState) {
       case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
