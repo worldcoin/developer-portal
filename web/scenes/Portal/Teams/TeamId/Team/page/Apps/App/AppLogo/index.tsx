@@ -1,4 +1,5 @@
 import { StatusVariant } from "@/components/AppStatus";
+import { Placeholder } from "@/components/PlaceholderImage";
 import { getCDNImageUrl } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
@@ -21,18 +22,14 @@ export const AppLogo = (props: {
         <Image
           className="size-16"
           src={src}
+          width={500}
+          height={500}
           alt="team logo"
           onError={() => setSrc(null)}
         />
       )}
 
-      {!src && (
-        <div className="flex size-16 items-center justify-center rounded-lg bg-grey-100">
-          <span className="text-14 uppercase text-grey-400">
-            {props.name[0]}
-          </span>
-        </div>
-      )}
+      {!src && <Placeholder name={props.name} className="size-16" />}
     </div>
   );
 };

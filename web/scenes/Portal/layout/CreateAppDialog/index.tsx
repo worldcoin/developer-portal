@@ -101,7 +101,6 @@ export const CreateAppDialog = (props: DialogProps) => {
             toast.error("Failed to create app");
           }
 
-          props.onClose(false);
           reset(defaultValues);
 
           posthog.capture("app_creation_successful", {
@@ -116,6 +115,7 @@ export const CreateAppDialog = (props: DialogProps) => {
               app_id: data.insert_app_one?.id ?? "",
             }),
           );
+          props.onClose(false);
         },
 
         onError: () => {
