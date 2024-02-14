@@ -32,7 +32,7 @@ export const CategorySelector = (props: {
         !errors && !disabled,
       "border-system-error-500 text-system-error-500 ": errors && !disabled,
       "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-300 border-grey-200": disabled,
+      "bg-grey-50 text-grey-400 border-grey-200": disabled,
     },
   );
   const selectorClassNames = clsx(

@@ -160,7 +160,7 @@ export const BasicInformation = (props: {
           <Input
             label="ID"
             disabled
-            placeholder={appId}
+            value={appId}
             addOnRight={
               <Button
                 type="button"
@@ -171,7 +171,7 @@ export const BasicInformation = (props: {
               </Button>
             }
           />
-          <Input label="Publisher" disabled placeholder={teamName} />
+          <Input label="Publisher" disabled value={teamName} />
           <DecoratedButton
             type="submit"
             variant="primary"
