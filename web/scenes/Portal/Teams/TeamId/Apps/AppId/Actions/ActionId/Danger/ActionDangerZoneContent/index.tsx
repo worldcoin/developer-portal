@@ -19,8 +19,9 @@ import { useDeleteActionMutation } from "./graphql/client/delete-action.generate
 export const ActionDangerZoneContent = (props: {
   action: GetSingleActionQuery["action"][0];
   teamId?: string;
+  appId?: string;
 }) => {
-  const { action, teamId } = props;
+  const { action, appId, teamId } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const router = useRouter();
   const { user } = useUser() as Auth0SessionUser;
@@ -36,13 +37,20 @@ export const ActionDangerZoneContent = (props: {
   }, [teamId, user?.hasura.memberships]);
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
-    useDeleteActionMutation({ context: { headers: { team_id: teamId } } });
+    useDeleteActionMutation();
 
   const deleteAction = useCallback(async () => {
     try {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
-        refetchQueries: [GetActionsDocument],
+        context: { headers: { team_id: teamId } },
+        refetchQueries: [
+          {
+            query: GetActionsDocument,
+            variables: { app_id: appId },
+            context: { headers: { team_id: teamId } },
+          },
+        ],
         awaitRefetchQueries: true,
       });
       if (result instanceof Error) {
@@ -54,13 +62,13 @@ export const ActionDangerZoneContent = (props: {
       return toast.error("Unable to delete action");
     }
     toast.success(`${action?.name} was deleted.`);
-  }, [action.id, action?.name, deleteActionQuery, router]);
+  }, [action.id, action?.name, appId, deleteActionQuery, router, teamId]);
 
   return (
     <div>
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
-        <DialogPanel className="rounded-x mx-auto grid w-5 gap-y-6 bg-white">
+        <DialogPanel className="z-50 mx-auto grid w-5 gap-y-6 rounded-xl bg-white">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>
