@@ -91,7 +91,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
           clearInterval(intervalId);
         }
 
-        setScreen(KioskScreen.Success);
         break;
 
       case VerificationState.Failed:
@@ -101,8 +100,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         // Prevent connection failure
         if (connectionTimeout) {
           resetKiosk();
-        } else {
-          setScreen(KioskScreen.VerificationError);
         }
         break;
     }

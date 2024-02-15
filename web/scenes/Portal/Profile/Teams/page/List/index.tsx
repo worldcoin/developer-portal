@@ -8,6 +8,7 @@ import {
   DropdownItems,
 } from "@/components/Dropdown";
 
+import { Button } from "@/components/Button";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { ExchangeIcon } from "@/components/Icons/ExchangeIcon";
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
@@ -15,6 +16,7 @@ import { LogoutIcon } from "@/components/Icons/LogoutIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { DeleteTeamDialog } from "@/scenes/Portal/Profile/Teams/page/DeleteTeamDialog";
 import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
@@ -85,7 +87,10 @@ export const List = () => {
 
         {data?.memberships.map((membership) => (
           <div key={membership.team.id} className="contents">
-            <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
+            <Button
+              href={urls.teams({ team_id: membership.team.id })}
+              className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4"
+            >
               <TeamLogo
                 src={""}
                 name={
@@ -100,7 +105,7 @@ export const List = () => {
                     "" /*FIXME: team.name must be non nullable*/
                 }
               </Typography>
-            </div>
+            </Button>
 
             <Typography
               variant={TYPOGRAPHY.R4}
