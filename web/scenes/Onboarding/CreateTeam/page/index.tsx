@@ -42,13 +42,13 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
   return (
     <SizingWrapper>
       <div className="flex h-full items-center justify-center">
-        <div className="grid w-full max-w-[580px] gap-y-10">
+        <div className="grid w-full max-w-[580px] gap-y-8">
           <LayersIconFrame>
             <WorldcoinBlueprintIcon />
           </LayersIconFrame>
 
           <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
-            {hasMemberships ? "Create a team" : "Create your first team"}
+            {hasMemberships ? "Create a new team" : "Create your first team"}
           </Typography>
 
           <Form hasMemberships={hasMemberships} />

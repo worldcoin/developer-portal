@@ -1,14 +1,19 @@
 "use client";
 
+import { TeamSwitch } from "@/components/LoggedUserNav/TeamSwitch";
+import { TeamLogo } from "@/components/LoggedUserNav/TeamSwitch/TeamLogo";
+import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
+import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { CSSProperties, Fragment, useCallback } from "react";
+import { CSSProperties, Fragment, useCallback, useMemo } from "react";
 import { Button } from "../Button";
 import {
   Dropdown,
@@ -22,9 +27,6 @@ import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { HelpNav } from "./HelpNav";
-import { TeamSwitch } from "@/components/LoggedUserNav/TeamSwitch";
-import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
-import { TeamLogo } from "@/components/LoggedUserNav/TeamSwitch/TeamLogo";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -35,6 +37,10 @@ export const LoggedUserNav = () => {
     appId?: string;
     actionId?: string;
   };
+
+  const hasOwnerPermission = useMemo(() => {
+    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
+  }, [user, teamId]);
 
   const trackDocsClicked = useCallback(() => {
     posthog.capture("docs_clicked", {
@@ -134,16 +140,17 @@ export const LoggedUserNav = () => {
                   <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
                 </Link>
               </DropdownItem>
-
-              <DropdownItem>
-                <Link
-                  href={`/teams/${teamId}/settings`}
-                  className="grid grid-cols-auto/1fr items-center gap-x-2"
-                >
-                  <SettingsIcon className="text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
-                </Link>
-              </DropdownItem>
+              {hasOwnerPermission && (
+                <DropdownItem>
+                  <Link
+                    href={`/teams/${teamId}/settings`}
+                    className="grid grid-cols-auto/1fr items-center gap-x-2"
+                  >
+                    <SettingsIcon className="text-grey-400" />
+                    <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
+                  </Link>
+                </DropdownItem>
+              )}
 
               <hr className="my-1 border-grey-200" />
             </Fragment>

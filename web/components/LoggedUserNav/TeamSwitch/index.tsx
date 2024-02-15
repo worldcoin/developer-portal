@@ -5,11 +5,13 @@ import {
   DropdownItems,
 } from "@/components/Dropdown";
 
+import { Button } from "@/components/Button";
 import { AddCircleIcon } from "@/components/Icons/AddCircleIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { useFetchTeamsQuery } from "@/components/LoggedUserNav/TeamSwitch/graphql/client/fetch-teams.generated";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Link from "next/link";
 import { TeamLogo } from "./TeamLogo";
@@ -59,9 +61,12 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
           ))}
 
           <DropdownItem>
-            <div className="grid grid-cols-auto/1fr items-center gap-x-2">
+            <Button
+              href={urls.createTeam()}
+              className="grid grid-cols-auto/1fr items-center gap-x-2"
+            >
               <AddCircleIcon className="size-4 text-grey-400" /> Create new team
-            </div>
+            </Button>
           </DropdownItem>
         </DropdownItems>
       </Dropdown>
