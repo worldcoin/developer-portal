@@ -267,7 +267,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
-      <div className="grid grid-cols-auto/1fr/auto items-center gap-x-8">
+      <div className="grid items-center gap-y-4 md:grid-cols-auto/1fr/auto md:gap-x-8">
         <ReviewMessageDialog
           message={appMetaData.review_message}
           metadataId={appMetaData.id}

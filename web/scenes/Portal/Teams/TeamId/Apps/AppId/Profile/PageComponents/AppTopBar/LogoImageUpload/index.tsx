@@ -11,6 +11,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
@@ -32,6 +33,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const { appId, appMetadataId, teamId, editable, logoFile } = props;
   const [showDialog, setShowDialog] = useState(false);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
+  const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -39,7 +41,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost, validateImageDimensions } =
     useImage();
-
+  const router = useRouter();
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
@@ -84,7 +86,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           render: "Image uploaded successfully",
           autoClose: 5000,
         });
-
+        // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
+        // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
+        if (isSecondUpload) {
+          window.location.reload();
+        } else {
+          setIsSecondUpload(true);
+        }
         setShowDialog(false);
       } catch (error) {
         console.error(error);
