@@ -22,6 +22,9 @@ import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { HelpNav } from "./HelpNav";
+import { TeamSwitch } from "@/components/LoggedUserNav/TeamSwitch";
+import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
+import { TeamLogo } from "@/components/LoggedUserNav/TeamSwitch/TeamLogo";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -41,6 +44,16 @@ export const LoggedUserNav = () => {
       location: "top_nav_bar",
     });
   }, [actionId, appId, teamId]);
+
+  const teamRes = useFetchTeamQuery({
+    context: { headers: { team_id: teamId ?? "_" } },
+    variables: !teamId
+      ? undefined
+      : {
+          id: teamId,
+        },
+    skip: !teamId,
+  });
 
   return (
     <div
@@ -91,19 +104,25 @@ export const LoggedUserNav = () => {
             </Link>
           </DropdownItem>
 
-          <hr className="border-grey-200" />
+          <hr className="my-1 border-grey-200" />
 
-          {teamId && (
+          {teamRes.data?.team && (
             <Fragment>
-              <hr className="border-grey-200" />
-
               {/* FIXME: create proper team name component */}
               <Typography
                 as="div"
                 variant={TYPOGRAPHY.R4}
-                className="max-w-full truncate px-4 py-2.5 text-grey-400"
+                className="grid max-w-full grid-cols-auto/1fr items-center gap-x-2 truncate px-4 py-2.5 text-grey-400"
               >
-                {teamId}
+                <TeamLogo
+                  src={""}
+                  name={
+                    teamRes.data?.team.name ??
+                    "" /*FIXME: team.name must be non nullable*/
+                  }
+                />
+
+                {teamRes.data?.team.name}
               </Typography>
 
               <DropdownItem>
@@ -126,9 +145,17 @@ export const LoggedUserNav = () => {
                 </Link>
               </DropdownItem>
 
-              <hr className="border-grey-200" />
+              <hr className="my-1 border-grey-200" />
             </Fragment>
           )}
+
+          <DropdownItem>
+            <div>
+              <TeamSwitch selectedTeamId={teamId} />
+            </div>
+          </DropdownItem>
+
+          <hr className="my-1 border-grey-200" />
 
           <DropdownItem>
             <a
