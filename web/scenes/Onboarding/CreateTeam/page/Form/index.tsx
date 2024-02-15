@@ -33,7 +33,8 @@ export const Form = (props: { hasMemberships: boolean }) => {
           otherwise: (schema) => schema.notRequired(),
         }),
 
-        productUpdates: yup.boolean().optional(),
+        // FIXME: Return when we have product updates
+        // productUpdates: yup.boolean().optional(),
       }),
     [props.hasMemberships],
   );
@@ -108,7 +109,8 @@ export const Form = (props: { hasMemberships: boolean }) => {
             </Typography>
           </div>
 
-          <div className="grid grid-cols-auto/1fr gap-x-3 gap-y-1">
+          {/* FIXME: Return when we have product updates */}
+          {/* <div className="grid grid-cols-auto/1fr gap-x-3 gap-y-1">
             <Checkbox
               register={register("productUpdates")}
               className="col-start-1 row-start-1"
@@ -128,7 +130,7 @@ export const Form = (props: { hasMemberships: boolean }) => {
               Once in a while we will send you an email with current updates
               about World ID for developers
             </Typography>
-          </div>
+          </div> */}
         </div>
       )}
 
