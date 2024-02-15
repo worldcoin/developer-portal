@@ -10,7 +10,7 @@ interface TextAreaInterface
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  label: string;
+  label: React.ReactNode;
   placeholder?: string;
   helperText?: string;
   addOn?: React.ReactElement;

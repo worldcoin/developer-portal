@@ -171,9 +171,15 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
             App description
           </Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Describe your app integration to possible users
-          </Typography>
+          <div className="grid gap-y-1">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              Describe your app integration to possible users
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+              <span className="text-sm text-system-error-500">*</span> Indicates
+              the field is required to submit for review
+            </Typography>
+          </div>
         </div>
         <div className="grid gap-y-5">
           <TextArea
@@ -186,7 +192,12 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             register={register("description_overview")}
           />
           <TextArea
-            label="How it works"
+            label={
+              <>
+                <span>How it works</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             rows={5}
             errors={errors.description_how_it_works}
             disabled={!isEditable || !isEnoughPermissions}
@@ -194,15 +205,25 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             register={register("description_how_it_works")}
           />
           <TextArea
-            label="How to connect"
+            label={
+              <>
+                <span>How to connect</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             rows={5}
             errors={errors.description_connect}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Explain, if required, how users should set up this app to start using World ID."
+            placeholder="Explain how users should set up this app to start using World ID."
             register={register("description_connect")}
           />
           <Input
-            label="World App Description"
+            label={
+              <>
+                <span>World App Description</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             maxLength={50}
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
