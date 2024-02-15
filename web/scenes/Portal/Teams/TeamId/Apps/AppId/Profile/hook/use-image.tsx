@@ -2,6 +2,13 @@ import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
 
+export class ImageValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImageValidationError";
+  }
+}
+
 export const useImage = () => {
   const [getUploadedImage] = useGetUploadedImageLazyQuery();
   const getImage = async (
@@ -39,12 +46,22 @@ export const useImage = () => {
           if (file.size <= 250 * 1024) {
             resolve();
           } else {
-            toast.error(`Image size must be under 250KB`);
-            reject(`Image size must be under 250KB`);
+            toast("Image size must be under 250KB", {
+              toastId: "ImageValidationError",
+              type: "error",
+            });
+            reject(new ImageValidationError(`Image size must be under 250KB`));
           }
         } else {
-          toast.error(`Image dimensions must be ${width}x${height}`);
-          reject(`Image dimensions must be ${width}x${height}`);
+          toast(`Image dimensions must be ${width}x${height}`, {
+            toastId: "ImageValidationError",
+            type: "error",
+          });
+          reject(
+            new ImageValidationError(
+              `Image dimensions must be ${width}x${height}`,
+            ),
+          );
         }
       };
       img.onerror = () => {

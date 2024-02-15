@@ -15,7 +15,7 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useImage } from "../../../hook/use-image";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
   viewModeAtom,
@@ -172,15 +172,19 @@ export const ImageForm = (props: ImageFormTypes) => {
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
-      toast.info("Uploading image", {
-        toastId: "upload_toast",
-        autoClose: false,
-      });
+
       imageType === "hero_image"
         ? setHeroImageUploading(true)
         : setShowcaseImageUploading(true);
       try {
         await validateImageDimensions(file, width, height);
+
+        toast.info("Uploading image", {
+          toastId: "upload_toast",
+          autoClose: false,
+        });
+        toast.dismiss("ImageValidationError");
+
         await uploadViaPresignedPost(file, appId, teamId, imageType);
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -262,11 +266,15 @@ export const ImageForm = (props: ImageFormTypes) => {
         });
       } catch (error) {
         console.error(error);
-        toast.update("upload_toast", {
-          type: "error",
-          render: "Error uploading image",
-          autoClose: 5000,
-        });
+        if (error instanceof ImageValidationError) {
+          toast.dismiss("upload_toast");
+        } else {
+          toast.update("upload_toast", {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        }
 
         setHeroImageUploading(false);
         setShowcaseImageUploading(false);

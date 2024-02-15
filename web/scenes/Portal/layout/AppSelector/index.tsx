@@ -61,7 +61,7 @@ export const AppSelector = () => {
         b: FetchAppsQuery["app"][number],
       ) => a?.id === b?.id}
     >
-      <SelectButton>
+      <SelectButton className="px-0">
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
           <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
             <Placeholder

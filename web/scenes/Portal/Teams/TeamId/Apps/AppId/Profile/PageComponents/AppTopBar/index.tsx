@@ -109,6 +109,18 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   }, [app, viewMode]);
 
+  const isSubmitFormValid = useMemo(() => {
+    const description = JSON.parse(
+      appMetaData.description ? appMetaData.description : "{}",
+    );
+    try {
+      submitSchema.validateSync({ ...appMetaData, ...description });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }, [appMetaData]);
+
   const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
     metadataId: appMetaData.id,
   });
@@ -299,7 +311,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               <DecoratedButton
                 type="submit"
                 className="h-12 px-6 py-3"
-                disabled={viewMode === "verified"}
+                disabled={viewMode === "verified" || !isSubmitFormValid}
                 onClick={submitForReview}
               >
                 <Typography variant={TYPOGRAPHY.M3}>
