@@ -100,6 +100,12 @@ export const CreateAppDialog = (props: DialogProps) => {
           if (!data.insert_app_one) {
             toast.error("Failed to create app");
           }
+          const redirect = urls.actions({
+            team_id: teamId,
+            app_id: data.insert_app_one?.id ?? "",
+          });
+
+          router.prefetch(redirect);
 
           reset(defaultValues);
 
@@ -109,12 +115,7 @@ export const CreateAppDialog = (props: DialogProps) => {
             environment: values.build,
             engine: values.verification,
           });
-          router.push(
-            urls.actions({
-              team_id: teamId,
-              app_id: data.insert_app_one?.id ?? "",
-            }),
-          );
+          router.push(redirect);
           props.onClose(false);
         },
 
