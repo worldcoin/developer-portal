@@ -1,10 +1,10 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { getSdk as getCreateInvitesSdk } from "@/legacy/api/_invite-team-members/graphql/createInvite.generated";
-import { sendEmail } from "@/legacy/lib/send-email";
+import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
+import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
+import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { logger } from "@/legacy/lib/logger";
+import { sendEmail } from "@/legacy/lib/send-email";
+import { NextApiRequest, NextApiResponse } from "next";
 import {
   GetUserAndTeamMembershipsQuery,
   getSdk as getUserAndTeamMembershipsSdk,
@@ -135,7 +135,7 @@ export const handleInvite = async (
 
   const promises = [];
   for (const invite of createInvitesRes.invites?.returning) {
-    const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login?invite_id=${invite.id}`;
+    const link = `${process.env.NEXT_PUBLIC_APP_URL}/join?invite_id=${invite.id}`;
 
     const inviter = DOMPurify.sanitize(
       invitingUser.name || invitingUser.email || "Someone",

@@ -28,7 +28,6 @@ export const ReviewMessageDialog = (props: {
   });
 
   const closeModal = useCallback(() => {
-    console.log({ loading });
     if (loading) {
       return;
     }

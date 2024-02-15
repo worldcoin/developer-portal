@@ -1,10 +1,8 @@
 import { errorResponse } from "@/api/helpers/errors";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
-import { Auth0User } from "@/lib/types";
-import { urls } from "@/lib/urls";
+import { Auth0SessionUser, Auth0User } from "@/lib/types";
 import {
   getSession,
   updateSession,
@@ -15,29 +13,31 @@ import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
+import { getAPIServiceGraphqlClient } from "../helpers/graphql";
+import { isEmailUser } from "../helpers/is-email-user";
+
 import {
   InsertTeamMutation,
   getSdk as getInsertTeamSdk,
-} from "./graphql/insertTeam.generated";
-
-import {
-  InsertUserMutation,
-  getSdk as getInsertUserSdk,
-} from "./graphql/insertUser.generated";
+} from "./graphql/insert-team.generated";
 
 import {
   InsertMembershipMutation,
   getSdk as getInsertMembershipSdk,
-} from "./graphql/insertMembership.generated";
+} from "./graphql/insert-membership.generated";
+
+import {
+  InsertUserMutation,
+  getSdk as getInsertUserSdk,
+} from "./graphql/insert-user.generated";
 
 import { Role_Enum } from "@/graphql/graphql";
-import { isEmailUser } from "../helpers/is-email-user";
-import { getSdk as createUserAndDeleteInviteSdk } from "./graphql/createUserAndDeleteInvite.generated";
-import { getSdk as getInviteByIdSdk } from "./graphql/getInviteById.generated";
+
+import { urls } from "@/lib/urls";
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),
-  invite_id: yup.string().strict().nullable(),
+  hasMemberships: yup.boolean(),
 });
 
 export type CreateTeamBody = yup.InferType<typeof schema>;
@@ -60,7 +60,16 @@ export type CreateTeamResponse =
 
 export const POST = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
-  const auth0User = session?.user as Auth0User;
+  const auth0User = session?.user as Auth0User | Auth0SessionUser["user"];
+
+  if (!auth0User) {
+    return errorResponse({
+      statusCode: 401,
+      code: "unauthorized",
+      req,
+    });
+  }
+
   let body = await req.json();
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
@@ -72,8 +81,74 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { team_name, invite_id } = parsedParams;
+  const { team_name, hasMemberships } = parsedParams;
 
+  // ANCHOR: Sending acceptance
+  let ironCladUserId: string | null = null;
+
+  if (!hasMemberships) {
+    const ironcladActivityApi = new IroncladActivityApi();
+    ironCladUserId = crypto.randomUUID();
+
+    try {
+      const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
+      const headersList = nextHeaders();
+      let headers: Record<string, string> = {};
+
+      headersList.forEach((v, k) => {
+        headers[k] = v;
+      });
+
+      const { os } = parse(headersList.get("user-agent") ?? "");
+
+      await ironcladActivityApi.sendAcceptance(ironCladUserId, {
+        addr:
+          headersList.get("x-forwarded-for") ??
+          headersList.get("x-real-ip") ??
+          "",
+        pau: `${url.origin}/signup`,
+        pad: url.host,
+        pap: url.pathname,
+        hn: url.hostname,
+        bl: headersList.get("accept-language") ?? "",
+        os,
+      });
+    } catch (error) {
+      logger.error("Failed to send acceptance", { error });
+
+      return errorResponse({
+        statusCode: 500,
+        code: "Failed to send acceptance",
+        detail: undefined,
+        attribute: null,
+        req,
+      });
+    }
+  }
+
+  const client = await getAPIServiceGraphqlClient();
+
+  // ANCHOR: Insert team
+  let insertedTeam: InsertTeamMutation["insert_team_one"] | null = null;
+
+  try {
+    const { insert_team_one } = await getInsertTeamSdk(client).InsertTeam({
+      team_name,
+    });
+
+    insertedTeam = insert_team_one;
+  } catch (error) {
+    logger.error("Error while inserting team on create team:", { error });
+
+    return errorResponse({
+      statusCode: 500,
+      code: "server_error",
+      detail: "Failed to create team",
+      req,
+    });
+  }
+
+  // ANCHOR: Insert user
   let nullifier_hash: string | undefined = undefined;
 
   if (!isEmailUser(auth0User)) {
@@ -81,187 +156,94 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     nullifier_hash = nullifier;
   }
 
-  const ironcladActivityApi = new IroncladActivityApi();
-  const ironCladUserId = crypto.randomUUID();
+  let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
 
-  try {
-    const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
-    const headersList = nextHeaders();
-    let headers: Record<string, string> = {};
-
-    headersList.forEach((v, k) => {
-      headers[k] = v;
-    });
-
-    const { os } = parse(headersList.get("user-agent") ?? "");
-
-    await ironcladActivityApi.sendAcceptance(ironCladUserId, {
-      addr:
-        headersList.get("x-forwarded-for") ??
-        headersList.get("x-real-ip") ??
-        "",
-      pau: `${url.origin}/signup`,
-      pad: url.host,
-      pap: url.pathname,
-      hn: url.hostname,
-      bl: headersList.get("accept-language") ?? "",
-      os,
-    });
-  } catch (error) {
-    logger.error("Failed to send acceptance", { error });
-
-    return errorResponse({
-      statusCode: 500,
-      code: "Failed to send acceptance",
-      detail: undefined,
-      attribute: null,
-      req,
-    });
-  }
-
-  const client = await getAPIServiceGraphqlClient();
-
-  let user:
-    | NonNullable<InsertMembershipMutation["insert_membership_one"]>["user"]
-    | null = null;
-
-  let insertMembershipResult: InsertMembershipMutation | null = null;
-
-  if (invite_id) {
-    const { invite } = await getInviteByIdSdk(client).GetInviteById({
-      id: invite_id,
-    });
-
-    if (!invite || new Date(invite.expires_at) <= new Date()) {
-      return errorResponse({
-        statusCode: 400,
-        code: "invalid_invite",
-        req,
-      });
-    }
-
-    const { user: createdUser } = await createUserAndDeleteInviteSdk(
-      client,
-    ).CreateUserAndDeleteInvite({
-      team_id: invite.team.id,
-      ironclad_id: ironCladUserId,
-      nullifier: nullifier_hash ?? "",
-      invite_id: invite.id,
-      auth0Id: auth0User.sub,
-      name: auth0User.name ?? "",
-      email: auth0User.email,
-    });
-
-    insertMembershipResult = await getInsertMembershipSdk(
-      client,
-    ).InsertMembership({
-      team_id: invite.team.id,
-      user_id: createdUser?.id ?? "",
-      role: Role_Enum.Member,
-    });
-
-    if (
-      !insertMembershipResult.insert_membership_one?.team_id ||
-      !insertMembershipResult.insert_membership_one?.user
-    ) {
-      logger.error(
-        "Failed to insert membership while creating account from invite",
-      );
-
-      return errorResponse({
-        statusCode: 500,
-        code: "Failed to signup",
-        req,
-      });
-    }
-
-    user = insertMembershipResult.insert_membership_one.user;
-  } else {
-    let insertTeamResult: InsertTeamMutation | null = null;
-
+  if (!hasMemberships) {
     try {
-      insertTeamResult = await getInsertTeamSdk(client).InsertTeam({
-        team_name,
-      });
-
-      if (!insertTeamResult?.insert_team_one?.id) {
-        throw new Error("Failed to insert team");
-      }
-    } catch (error) {
-      logger.error("Error while inserting team on signup:", { error });
-
-      return errorResponse({
-        statusCode: 500,
-        code: "Failed to signup",
-        req,
-      });
-    }
-
-    let insertUserResult: InsertUserMutation | null = null;
-
-    try {
-      insertUserResult = await getInsertUserSdk(client).InsertUser({
+      const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
         user_data: {
-          name: auth0User.name,
-          auth0Id: auth0User.sub,
-          team_id: insertTeamResult.insert_team_one.id,
           ironclad_id: ironCladUserId,
+          auth0Id: auth0User.sub,
+          name: auth0User.name ?? "",
+
           ...(nullifier_hash ? { world_id_nullifier: nullifier_hash } : {}),
 
           ...(auth0User.email_verified && auth0User.email
             ? { email: auth0User.email }
             : {}),
+
+          team_id: insertedTeam?.id,
         },
       });
 
-      if (!insertUserResult?.insert_user_one?.id) {
-        throw new Error("Failed to insert user");
-      }
+      insertedUser = insert_user_one;
     } catch (error) {
-      logger.error("Error while inserting user on signup:", { error });
+      logger.error("Error while inserting user on create team:", { error });
 
       return errorResponse({
         statusCode: 500,
-        code: "Failed to signup",
+        code: "server_error",
+        detail: "Failed to create team",
         req,
       });
     }
+  }
 
-    insertMembershipResult = await getInsertMembershipSdk(
+  // ANCHOR: Insert membership
+  let insertedMembership:
+    | InsertMembershipMutation["insert_membership_one"]
+    | null = null;
+
+  try {
+    const user_id = hasMemberships
+      ? (auth0User as Auth0SessionUser["user"])?.hasura.id
+      : insertedUser?.id;
+
+    if (!insertedTeam?.id) {
+      throw new Error("Team id is null");
+    }
+
+    if (!user_id) {
+      throw new Error("User id is null");
+    }
+
+    const { insert_membership_one } = await getInsertMembershipSdk(
       client,
     ).InsertMembership({
-      team_id: insertTeamResult.insert_team_one.id,
-      user_id: insertUserResult.insert_user_one.id,
+      team_id: insertedTeam?.id,
+      user_id,
       role: Role_Enum.Owner,
     });
 
-    if (
-      !insertMembershipResult.insert_membership_one?.team_id ||
-      !insertMembershipResult.insert_membership_one.user
-    ) {
-      return errorResponse({
-        statusCode: 500,
-        code: "Failed to signup",
-        req,
-      });
-    }
+    insertedMembership = insert_membership_one;
+  } catch (error) {
+    logger.error("Error while inserting membership on create team:", { error });
 
-    user = insertMembershipResult.insert_membership_one.user;
-  }
-
-  if (!user) {
     return errorResponse({
       statusCode: 500,
-      code: "Failed to signup",
+      code: "server_error",
+      detail: "Failed to create team",
       req,
     });
   }
 
-  const res = NextResponse.json({
-    returnTo: urls.app({
-      team_id: insertMembershipResult.insert_membership_one.team_id,
-    }),
+  // NOTE: we will insert membership in any case, if there is no membership, definitely there is some issue
+  if (!insertedMembership) {
+    return errorResponse({
+      statusCode: 500,
+      code: "server_error",
+      detail: "Failed to create team",
+      req,
+    });
+  }
+
+  const user = insertedMembership.user;
+
+  const returnTo = urls[hasMemberships ? "teams" : "app"]({
+    team_id: insertedMembership.team_id,
   });
+
+  const res = NextResponse.json({ returnTo });
 
   await updateSession(req, res, {
     ...session,

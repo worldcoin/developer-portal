@@ -1,12 +1,13 @@
 "use client";
 
-import { List } from "@/scenes/Portal/Profile/Teams/page/List";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { CreateTeamDialog } from "@/scenes/Portal/Profile/Teams/page/CreateTeamDIalog";
-import { useState } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { urls } from "@/lib/urls";
+import { CreateTeamDialog } from "@/scenes/Portal/Profile/Teams/page/CreateTeamDIalog";
+import { List } from "@/scenes/Portal/Profile/Teams/page/List";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
+import { useState } from "react";
 
 export const TeamsPage = () => {
   const [isOpenCreateTeamDialog, setIsOpenCreateTeamDialog] =
@@ -30,9 +31,8 @@ export const TeamsPage = () => {
             </Typography>
 
             <DecoratedButton
-              type="button"
               variant="primary"
-              onClick={() => setIsOpenCreateTeamDialog(true)}
+              href={urls.createTeam()}
               className="py-3"
             >
               Create new team

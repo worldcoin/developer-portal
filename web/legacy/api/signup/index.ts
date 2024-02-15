@@ -1,8 +1,8 @@
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
-import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 import {
   InsertTeamMutation,
@@ -19,10 +19,10 @@ import {
   getSdk as getInsertMembershipSdk,
 } from "./graphql/insertMembership.generated";
 
-import { getSdk as getInviteByIdSdk } from "@/legacy/api/signup/graphql/getInviteById.generated";
 import { getSdk as createUserAndDeleteInviteSdk } from "@/legacy/api/signup/graphql/createUserAndDeleteInvite.generated";
-import requestIp from "request-ip";
+import { getSdk as getInviteByIdSdk } from "@/legacy/api/signup/graphql/getInviteById.generated";
 import { parse } from "next-useragent";
+import requestIp from "request-ip";
 
 import {
   Session,
@@ -31,12 +31,12 @@ import {
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
 
-import { Auth0User } from "@/lib/types";
-import { urls } from "@/legacy/lib/urls";
-import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
-import { logger } from "@/lib/logger";
-import { Membership, Role_Enum } from "@/graphql/graphql";
 import { isEmailUser } from "@/api/helpers/is-email-user";
+import { Role_Enum } from "@/graphql/graphql";
+import { IroncladActivityApi } from "@/legacy/lib/ironclad-activity-api";
+import { urls } from "@/legacy/lib/urls";
+import { logger } from "@/lib/logger";
+import { Auth0User } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
 
 export type SignupResponse = { returnTo: string };
