@@ -1,43 +1,37 @@
+import { Role_Enum } from "@/graphql/graphql";
+import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
+import { logger } from "@/lib/logger";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { parse } from "next-useragent";
+import { headers as nextHeaders } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
+import { errorResponse } from "../helpers/errors";
+import { getAPIServiceGraphqlClient } from "../helpers/graphql";
+import { isEmailUser } from "../helpers/is-email-user";
+import { validateRequestSchema } from "../helpers/validate-request-schema";
+
 import {
   getSession,
   updateSession,
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
-import { parse } from "next-useragent";
-import { headers as nextHeaders } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-import * as yup from "yup";
-import { validateRequestSchema } from "../helpers/validate-request-schema";
-
-import { logger } from "@/lib/logger";
-import { errorResponse } from "../helpers/errors";
-import { getAPIServiceGraphqlClient } from "../helpers/graphql";
-
-import {
-  DeleteInviteMutation,
-  getSdk as getDeleteInviteSdk,
-} from "./graphql/delete-invite.generated";
 
 import {
   GetInviteByIdQuery,
   getSdk as getInviteByIdSdk,
-} from "./graphql/getInviteById.generated";
+} from "./graphql/get-invite-by-id.generated";
 
 import {
   InsertMembershipMutation,
-  getSdk as getInsertMembershipSdk,
-} from "./graphql/insertMembership.generated";
-
-import { Role_Enum } from "@/graphql/graphql";
-import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
-import { isEmailUser } from "../helpers/is-email-user";
+  getSdk as getInsertMembershipAndDeleteInviteSdk,
+} from "./graphql/insert-membership-and-delete-invite.generated";
 
 import {
   InsertUserMutation,
   getSdk as getInsertUserSdk,
-} from "./graphql/insertUser.generated";
+} from "./graphql/insert-user.generated";
 
 const schema = yup.object({
   invite_id: yup.string().strict().required(),
@@ -192,15 +186,19 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       throw new Error("User id is null");
     }
 
-    const { insert_membership_one } = await getInsertMembershipSdk(
-      client,
-    ).InsertMembership({
-      team_id: inviteData.team.id,
-      user_id: insertedUser?.id,
-      role: Role_Enum.Member,
-    });
+    const { insert_membership_one, delete_invite_by_pk } =
+      await getInsertMembershipAndDeleteInviteSdk(client).InsertMembership({
+        team_id: inviteData.team.id,
+        user_id: insertedUser?.id,
+        role: Role_Enum.Member,
+        invite_id,
+      });
 
     insertedMembership = insert_membership_one;
+
+    if (!delete_invite_by_pk?.id) {
+      throw new Error("Failed to delete invite");
+    }
   } catch (error) {
     logger.error("Error while inserting membership on join team:", { error });
 
@@ -219,31 +217,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       detail: "Failed to join team",
       req,
     });
-  }
-
-  // ANCHOR: Delete invite
-  let deletedInviteData: DeleteInviteMutation["delete_invite_by_pk"] | null =
-    null;
-
-  if (inviteData && invite_id) {
-    try {
-      const { delete_invite_by_pk } = await getDeleteInviteSdk(
-        client,
-      ).DeleteInvite({
-        invite_id,
-      });
-
-      deletedInviteData = delete_invite_by_pk;
-    } catch (error) {
-      logger.error("Error while deleting invite on join team:", { error });
-
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to join team",
-        req,
-      });
-    }
   }
 
   const user = insertedMembership.user;

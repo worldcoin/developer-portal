@@ -8,6 +8,7 @@ export type InsertMembershipMutationVariables = Types.Exact<{
   team_id: Types.Scalars["String"];
   user_id?: Types.InputMaybe<Types.Scalars["String"]>;
   role?: Types.InputMaybe<Types.Role_Enum>;
+  invite_id: Types.Scalars["String"];
 }>;
 
 export type InsertMembershipMutation = {
@@ -30,6 +31,7 @@ export type InsertMembershipMutation = {
       }>;
     };
   } | null;
+  delete_invite_by_pk?: { __typename?: "invite"; id: string } | null;
 };
 
 export const InsertMembershipDocument = gql`
@@ -37,6 +39,7 @@ export const InsertMembershipDocument = gql`
     $team_id: String!
     $user_id: String
     $role: role_enum
+    $invite_id: String!
   ) {
     insert_membership_one(
       object: { team_id: $team_id, user_id: $user_id, role: $role }
@@ -58,6 +61,9 @@ export const InsertMembershipDocument = gql`
       }
       team_id
       role
+    }
+    delete_invite_by_pk(id: $invite_id) {
+      id
     }
   }
 `;
