@@ -169,7 +169,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     insertedUser = insert_user_one;
   } catch (error) {
-    logger.error("Error while inserting user on create-team:", { error });
+    logger.error("Error while inserting user on join team:", { error });
 
     return errorResponse({
       statusCode: 500,
@@ -202,7 +202,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     insertedMembership = insert_membership_one;
   } catch (error) {
-    logger.error("Error while inserting membership on create-team:", { error });
+    logger.error("Error while inserting membership on join team:", { error });
 
     return errorResponse({
       statusCode: 500,
@@ -235,7 +235,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
       deletedInviteData = delete_invite_by_pk;
     } catch (error) {
-      logger.error("Error while deleting invite on create-team:", { error });
+      logger.error("Error while deleting invite on join team:", { error });
 
       return errorResponse({
         statusCode: 500,
