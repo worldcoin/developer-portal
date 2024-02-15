@@ -225,7 +225,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                             variant={TYPOGRAPHY.R5}
                             className="text-system-error-500"
                           >
-                            {errors.category?.message} qwer
+                            {errors.category?.message}
                           </Typography>
                         )}
                       </div>
