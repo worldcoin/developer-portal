@@ -27,7 +27,7 @@ export const LoginPage = () => (
       </div>
 
       <div className="grid gap-y-4">
-        <DecoratedButton href={urls.login()} className="py-4">
+        <DecoratedButton href={urls.api.authLogin()} className="py-4">
           Create an account
         </DecoratedButton>
 

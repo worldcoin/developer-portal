@@ -13,7 +13,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <WorldcoinIcon />
 
             <DecoratedButton
-              href={urls.login()}
+              href={urls.api.authLogin()}
               variant="secondary"
               className="rounded-lg"
             >

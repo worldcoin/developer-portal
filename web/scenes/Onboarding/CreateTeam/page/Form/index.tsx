@@ -9,30 +9,37 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import * as yup from "yup";
 
-const schema = yup.object({
-  teamName: yup.string().required("Please enter a team name"),
-
-  termsAndConditions: yup
-    .boolean()
-    .isTrue("Please, accept terms and conditions")
-    .required("Please, accept terms and conditions"),
-
-  productUpdates: yup.boolean().optional(),
-});
-
-type FormValues = yup.InferType<typeof schema>;
-
-export const Form = (props: {
-  searchParams: Record<string, string> | null | undefined;
-}) => {
-  const { searchParams } = props;
+export const Form = (props: { hasMemberships: boolean }) => {
   const router = useRouter();
-  const invite_id = searchParams?.invite_id;
   const { checkSession } = useUser();
+
+  const schema = useMemo(
+    () =>
+      yup.object({
+        hasMemberships: yup.boolean().default(props.hasMemberships),
+        teamName: yup.string().required("Please enter a team name"),
+
+        termsAndConditions: yup.boolean().when("hasMemberships", {
+          is: false,
+          then: (schema) =>
+            schema
+              .isTrue("Please, accept terms and conditions")
+              .required("Please, accept terms and conditions"),
+          otherwise: (schema) => schema.notRequired(),
+        }),
+
+        // FIXME: Return when we have product updates
+        // productUpdates: yup.boolean().optional(),
+      }),
+    [props.hasMemberships],
+  );
+
+  type FormValues = yup.InferType<typeof schema>;
 
   const {
     register,
@@ -47,7 +54,7 @@ export const Form = (props: {
     async (values: FormValues) => {
       const body: CreateTeamBody = {
         team_name: values.teamName,
-        invite_id,
+        hasMemberships: values.hasMemberships,
       };
 
       let data: CreateTeamResponse | null = null;
@@ -65,8 +72,7 @@ export const Form = (props: {
 
         data = await res.json();
       } catch (error) {
-        // TODO: handle error
-        return console.error("Something went wrong while creating a team");
+        return toast.error("Something went wrong");
       }
 
       if (!data || !data.returnTo) {
@@ -76,7 +82,7 @@ export const Form = (props: {
       await checkSession();
       router.push(data.returnTo);
     },
-    [checkSession, invite_id, router],
+    [checkSession, router],
   );
 
   return (
@@ -90,40 +96,43 @@ export const Form = (props: {
         errors={errors.teamName}
       />
 
-      <div className="grid gap-y-8 rounded-xl border border-grey-200 p-6">
-        <div className="grid grid-cols-auto/1fr gap-x-3">
-          <Checkbox register={register("termsAndConditions")} />
-          <Typography variant={TYPOGRAPHY.R3}>
-            I agree with{" "}
-            <Link href="/tos" className="underline">
-              Terms & Conditions
-            </Link>{" "}
-            <span className="text-system-error-600">*</span>
-          </Typography>
+      {!props.hasMemberships && (
+        <div className="grid gap-y-8 rounded-xl border border-grey-200 p-6">
+          <div className="grid grid-cols-auto/1fr gap-x-3">
+            <Checkbox register={register("termsAndConditions")} />
+            <Typography variant={TYPOGRAPHY.R3}>
+              I agree with{" "}
+              <Link href="/tos" className="underline">
+                Terms & Conditions
+              </Link>{" "}
+              <span className="text-system-error-600">*</span>
+            </Typography>
+          </div>
+
+          {/* FIXME: Return when we have product updates */}
+          {/* <div className="grid grid-cols-auto/1fr gap-x-3 gap-y-1">
+            <Checkbox
+              register={register("productUpdates")}
+              className="col-start-1 row-start-1"
+            />
+
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="col-start-2 row-start-1"
+            >
+              I want to receive product updates
+            </Typography>
+
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="col-start-2 row-start-2 text-gray-400"
+            >
+              Once in a while we will send you an email with current updates
+              about World ID for developers
+            </Typography>
+          </div> */}
         </div>
-
-        <div className="grid grid-cols-auto/1fr gap-x-3 gap-y-1">
-          <Checkbox
-            register={register("productUpdates")}
-            className="col-start-1 row-start-1"
-          />
-
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="col-start-2 row-start-1"
-          >
-            I want to receive product updates
-          </Typography>
-
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="col-start-2 row-start-2 text-gray-400"
-          >
-            Once in a while we will send you an email with current updates about
-            World ID for developers
-          </Typography>
-        </div>
-      </div>
+      )}
 
       <DecoratedButton
         type="submit"

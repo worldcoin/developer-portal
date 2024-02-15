@@ -137,7 +137,7 @@ const config: Config = {
       gridTemplateRows: gridTemplates,
 
       fontFamily: {
-        gta: ["GTAmerica", ...defaultTheme.fontFamily.sans],
+        gta: ["GT America", ...defaultTheme.fontFamily.sans],
         rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
         twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
