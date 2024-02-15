@@ -5,7 +5,7 @@ export enum OIDCFlowType {
   Token = "token",
 }
 
-import { InsertMembershipMutation } from "@/api/create-team/graphql/insertMembership.generated";
+import { InsertMembershipMutation } from "@/api/create-team/graphql/insert-membership.generated";
 /**
  * This file contains the main types for both the frontend and backend.
  * Types referring to Hasura models should be defined in models.ts.
