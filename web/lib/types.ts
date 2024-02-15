@@ -5,12 +5,12 @@ export enum OIDCFlowType {
   Token = "token",
 }
 
+import { InsertMembershipMutation } from "@/api/create-team/graphql/insertMembership.generated";
 /**
  * This file contains the main types for both the frontend and backend.
  * Types referring to Hasura models should be defined in models.ts.
  */
 
-import { Membership } from "@/graphql/graphql";
 import { UserContext } from "@auth0/nextjs-auth0/client";
 import { NextApiRequest } from "next";
 
@@ -110,16 +110,9 @@ export enum LoginErrorCode {
 }
 
 export type Auth0SessionUser = Omit<UserContext, "user"> & {
-  user?: UserContext["user"] & {
-    hasura: {
-      auth0Id: string;
-      email?: string;
-      id: string;
-      memberships: Array<
-        Pick<Membership, "role"> & Partial<Pick<Membership, "team">>
-      >;
-      name: string;
-      posthog_id?: string;
-    };
+  user?: Auth0User & {
+    hasura: NonNullable<
+      InsertMembershipMutation["insert_membership_one"]
+    >["user"];
   };
 };

@@ -1,11 +1,11 @@
 import {
-  withMiddlewareAuthRequired,
   getSession,
+  withMiddlewareAuthRequired,
 } from "@auth0/nextjs-auth0/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
-import { checkUserPermissions } from "./lib/utils";
 import { Auth0SessionUser } from "./lib/types";
+import { checkUserPermissions } from "./lib/utils";
 
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
@@ -135,5 +135,5 @@ export default withMiddlewareAuthRequired(async function middleware(
 });
 
 export const config = {
-  matcher: ["/teams/:path*", "/create-team", "/profile"],
+  matcher: ["/teams/:path*", "/create-team", "/profile", "/join-callback"],
 };

@@ -36,14 +36,17 @@ const roleName: Record<Role_Enum, string> = {
 export const List = () => {
   const { user } = useUser() as Auth0SessionUser;
 
-  const membershipsQueryRes = useFetchMembershipsQuery({
+  const { data } = useFetchMembershipsQuery({
     context: { headers: { team_id: "_" } },
     variables: !user?.hasura
       ? undefined
       : {
-          user_id: user?.hasura.id,
+          user_id: user?.hasura?.id,
         },
     skip: !user?.hasura,
+
+    // NOTE: Set manually no-cache because it returns cached data after creating a new team
+    fetchPolicy: "no-cache",
   });
 
   const [teamForEdit, setTeamForEdit] = useState<
@@ -80,7 +83,7 @@ export const List = () => {
           <div className="border-b border-grey-100 py-3" />
         </div>
 
-        {membershipsQueryRes.data?.memberships.map((membership) => (
+        {data?.memberships.map((membership) => (
           <div key={membership.team.id} className="contents">
             <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
               <TeamLogo
