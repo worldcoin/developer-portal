@@ -135,7 +135,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     return errorResponse({
       statusCode: 500,
-      code: "Failed to join team",
+      code: "server_error",
+      detail: "Failed to join team",
       req,
     });
   }
@@ -172,7 +173,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     return errorResponse({
       statusCode: 500,
-      code: "Failed to join team",
+      code: "server_error",
+      detail: "Failed to join team",
       req,
     });
   }
@@ -204,7 +206,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     return errorResponse({
       statusCode: 500,
-      code: "Failed to join team",
+      code: "server_error",
+      detail: "Failed to join team",
       req,
     });
   }
@@ -212,7 +215,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
   if (!insertedMembership) {
     return errorResponse({
       statusCode: 500,
-      code: "Failed to join team",
+      code: "server_error",
+      detail: "Failed to join team",
       req,
     });
   }
@@ -235,7 +239,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
       return errorResponse({
         statusCode: 500,
-        code: "Failed to join team",
+        code: "server_error",
+        detail: "Failed to join team",
         req,
       });
     }
