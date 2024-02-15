@@ -89,7 +89,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
         // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
         if (isSecondUpload) {
-          console.log("here");
           window.location.reload();
         } else {
           setIsSecondUpload(true);
