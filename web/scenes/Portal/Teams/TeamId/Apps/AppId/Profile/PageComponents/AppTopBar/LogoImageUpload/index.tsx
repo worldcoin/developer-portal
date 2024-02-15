@@ -39,8 +39,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
+  const {
+    resizeFile,
+    getImage,
+    uploadViaPresignedPost,
+    validateImageAspectRatio,
+  } = useImage();
   const router = useRouter();
   const handleUpload = () => {
     imageInputRef.current?.click();
@@ -54,15 +58,18 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       try {
-        await validateImageDimensions(file, 512, 512);
+        // Aspect ratio of 1:1
+        await validateImageAspectRatio(file, 1, 1);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
           autoClose: false,
         });
+
+        const resizedImage = await resizeFile(file, 512, 512, file.type);
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -177,8 +184,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               Image requirements
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Upload a PNG or JPG image smaller than 250 kb. The preview box
-              shows the logo’s final display size.
+              Upload a PNG or JPG image smaller than 250 kb. Required aspect
+              ratio 1:1. The preview box shows the logo’s final display size.
             </Typography>
           </div>
           <div className="grid w-full grid-cols-2 gap-x-4">

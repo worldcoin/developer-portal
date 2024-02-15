@@ -47,8 +47,12 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
+  const {
+    resizeFile,
+    getImage,
+    uploadViaPresignedPost,
+    validateImageAspectRatio,
+  } = useImage();
 
   const showcaseImgFileNames = useMemo(
     () => appMetadata?.showcase_img_urls ?? [],
@@ -177,7 +181,24 @@ export const ImageForm = (props: ImageFormTypes) => {
         ? setHeroImageUploading(true)
         : setShowcaseImageUploading(true);
       try {
-        await validateImageDimensions(file, width, height);
+        // Aspect Ratio
+        let aspectRatioWidth, aspectRatioHeight;
+        if (width === 1920 && height === 1080) {
+          aspectRatioWidth = 16;
+          aspectRatioHeight = 9;
+        } else if (width === 1600 && height === 1200) {
+          aspectRatioWidth = 4;
+          aspectRatioHeight = 3;
+        } else {
+          throw new Error("Invalid aspect ratio");
+        }
+        await validateImageAspectRatio(
+          file,
+          aspectRatioWidth,
+          aspectRatioHeight,
+        );
+
+        const resizedImage = await resizeFile(file, width, height, file.type);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
@@ -185,7 +206,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         });
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
@@ -346,7 +367,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required size ${1600}x${1200}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 4:3. \nRecommended size: ${1600}x${1200}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -405,7 +426,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required size ${1920}x${1080}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 16:9. Recommended size: ${1920}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>
