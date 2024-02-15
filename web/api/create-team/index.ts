@@ -19,17 +19,17 @@ import { isEmailUser } from "../helpers/is-email-user";
 import {
   InsertTeamMutation,
   getSdk as getInsertTeamSdk,
-} from "./graphql/insertTeam.generated";
+} from "./graphql/insert-team.generated";
 
 import {
   InsertMembershipMutation,
   getSdk as getInsertMembershipSdk,
-} from "./graphql/insertMembership.generated";
+} from "./graphql/insert-membership.generated";
 
 import {
   InsertUserMutation,
   getSdk as getInsertUserSdk,
-} from "./graphql/insertUser.generated";
+} from "./graphql/insert-user.generated";
 
 import { Role_Enum } from "@/graphql/graphql";
 
