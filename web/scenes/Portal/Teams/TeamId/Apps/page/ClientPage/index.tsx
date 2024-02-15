@@ -38,7 +38,7 @@ export const ClientPage = () => {
               key={`apps-tutorial-step-2`}
               href="?createAction=true"
               icon={
-                <IconFrame className="bg-additional-purple-500 text-grey-0">
+                <IconFrame className="bg-grey-100 text-grey-500">
                   <UserStoryIcon />
                 </IconFrame>
               }
