@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
@@ -90,11 +91,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             fileName: `${imageType}.${saveFileType}`,
           },
           context: { headers: { team_id: teamId } },
+          refetchQueries: [FetchAppMetadataDocument],
         });
 
         toast.update("upload_toast", {
           type: "success",
-          render: "Image uploaded successfully",
+          render: "Image uploaded and saved",
           autoClose: 5000,
         });
         // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
@@ -131,6 +133,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         fileName: "",
       },
       context: { headers: { team_id: teamId } },
+      refetchQueries: [FetchAppMetadataDocument],
     });
   };
 

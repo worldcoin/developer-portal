@@ -282,11 +282,12 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         toast.update("upload_toast", {
           type: "success",
-          render: "Image uploaded successfully",
+          render: "Image uploaded and saved",
           autoClose: 5000,
         });
       } catch (error) {
         console.error(error);
+
         if (error instanceof ImageValidationError) {
           toast.dismiss("upload_toast");
         } else {

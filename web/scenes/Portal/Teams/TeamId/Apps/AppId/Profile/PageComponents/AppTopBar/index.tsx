@@ -142,8 +142,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
   const hasRequiredImagesForAppStore = useMemo(() => {
-    return (appMetaData?.logo_img_url && appMetaData?.hero_image_url) !== "";
-  }, [appMetaData.logo_img_url, appMetaData.hero_image_url]);
+    return (
+      appMetaData?.hero_image_url !== "" &&
+      appMetaData?.showcase_img_urls?.length > 0
+    );
+  }, [appMetaData.hero_image_url, appMetaData?.showcase_img_urls]);
 
   const submitForReview = useCallback(async () => {
     if (appMetaData?.verification_status !== "unverified") return;
