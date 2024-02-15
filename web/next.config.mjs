@@ -8,7 +8,7 @@ const cdnURLObject = new URL(
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  
+
   images: {
     // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
     remotePatterns: [
