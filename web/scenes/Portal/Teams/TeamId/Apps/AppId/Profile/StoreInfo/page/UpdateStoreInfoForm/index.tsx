@@ -168,9 +168,19 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     <div className="grid grid-cols-1fr/auto">
       <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-            App description
-          </Typography>
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+              App description
+            </Typography>
+            {isDirty && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="text-system-error-500"
+              >
+                Warning: You have unsaved changes
+              </Typography>
+            )}
+          </div>
           <div className="grid gap-y-1">
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Describe your app integration to possible users
@@ -181,6 +191,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             </Typography>
           </div>
         </div>
+
         <div className="grid gap-y-5">
           <TextArea
             label="Overview"

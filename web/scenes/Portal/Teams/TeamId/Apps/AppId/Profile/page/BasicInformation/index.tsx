@@ -128,7 +128,17 @@ export const BasicInformation = (props: {
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
       <div className="">
         <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
-          <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
+            {isDirty && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="text-system-error-500"
+              >
+                Warning: You have unsaved changes
+              </Typography>
+            )}
+          </div>
           <AppStatus
             status={status}
             setStatus={setStatus}

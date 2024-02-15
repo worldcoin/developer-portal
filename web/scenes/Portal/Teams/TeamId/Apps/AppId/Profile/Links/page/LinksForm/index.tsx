@@ -130,7 +130,14 @@ export const LinksForm = (props: LinksFormProps) => {
 
   return (
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
-      <Typography variant={TYPOGRAPHY.H7}>Links</Typography>
+      <div className="grid gap-y-2">
+        <Typography variant={TYPOGRAPHY.H7}>Links</Typography>
+        {isDirty && (
+          <Typography variant={TYPOGRAPHY.R4} className="text-system-error-500">
+            Warning: You have unsaved changes
+          </Typography>
+        )}
+      </div>
 
       <div className="grid gap-y-5">
         <Input

@@ -23,10 +23,23 @@ export const useRemoveFromReview = (props: { metadataId: string }) => {
         verification_status: "unverified",
       },
       context: { headers: { team_id: teamId } },
-      refetchQueries: [FetchAppMetadataDocument, GetVerificationDataDocument],
+      refetchQueries: [
+        FetchAppMetadataDocument,
+        {
+          query: GetVerificationDataDocument,
+          variables: { id: appId },
+          context: { headers: { team_id: teamId } },
+        },
+      ],
       awaitRefetchQueries: true,
     });
-  }, [loading, props.metadataId, updateAppVerificationStatusMutation, teamId]);
+  }, [
+    loading,
+    props.metadataId,
+    updateAppVerificationStatusMutation,
+    appId,
+    teamId,
+  ]);
 
   return { removeFromReview, loading };
 };
