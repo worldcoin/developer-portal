@@ -19,6 +19,7 @@ import {
 import { viewModeAtom } from "../../../layout/ImagesProvider";
 import { DescriptionSubFields } from "../../../types";
 import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
+import { RemainingCharacters } from "./RemainingCharacters";
 
 const schema = yup.object().shape({
   world_app_description: yup
@@ -126,9 +127,6 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     description,
   ]);
 
-  const worldAppDescription = watch("world_app_description");
-  const remainingCharacters = 50 - (worldAppDescription?.length || 0);
-
   const submit = useCallback(
     async (data: StoreInfoFormValues) => {
       if (updatingInfo) return;
@@ -197,8 +195,15 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             label="Overview"
             required
             rows={5}
+            maxLength={1500}
             errors={errors.description_overview}
             disabled={!isEditable || !isEnoughPermissions}
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_overview")}
+                maxChars={1500}
+              />
+            }
             placeholder="Describe the project for the users who would like to try your integration"
             register={register("description_overview")}
           />
@@ -210,8 +215,15 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
               </>
             }
             rows={5}
+            maxLength={1500}
             errors={errors.description_how_it_works}
             disabled={!isEditable || !isEnoughPermissions}
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_how_it_works")}
+                maxChars={1500}
+              />
+            }
             placeholder="How do users interact with World ID in your app?"
             register={register("description_how_it_works")}
           />
@@ -223,10 +235,17 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
               </>
             }
             rows={5}
+            maxLength={1500}
             errors={errors.description_connect}
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="Explain how users should set up this app to start using World ID."
             register={register("description_connect")}
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_connect")}
+                maxChars={1500}
+              />
+            }
           />
           <Input
             label={
@@ -241,9 +260,10 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             placeholder="Short description to be shown in the World App about your app"
             register={register("world_app_description")}
             addOnRight={
-              <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                {remainingCharacters}
-              </Typography>
+              <RemainingCharacters
+                worldAppDescription={watch("world_app_description")}
+                maxChars={50}
+              />
             }
           />
         </div>

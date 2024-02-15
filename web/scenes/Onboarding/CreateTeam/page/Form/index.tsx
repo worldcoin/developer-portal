@@ -101,10 +101,14 @@ export const Form = (props: { hasMemberships: boolean }) => {
           <div className="grid grid-cols-auto/1fr gap-x-3">
             <Checkbox register={register("termsAndConditions")} />
             <Typography variant={TYPOGRAPHY.R3}>
-              I agree with{" "}
+              I agree with the{" "}
               <Link href="/tos" className="underline">
                 Terms & Conditions
               </Link>{" "}
+              and{" "}
+              <Link href="/privacy-statement" className="underline">
+                Privacy Policy
+              </Link>
               <span className="text-system-error-600">*</span>
             </Typography>
           </div>
