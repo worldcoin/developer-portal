@@ -67,11 +67,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       maxVerifications: 1,
     },
   });
+
   const [insertActionQuery, { loading }] = useInsertActionMutation({});
 
   useEffect(() => {
     setFocus("name");
-  }, [setFocus]);
+  }, [setFocus, firstAction]);
 
   useEffect(() => {
     const subscription = watch((value, { name }) => {
@@ -118,6 +119,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
 
         reset();
         if (firstAction) {
+          router.prefetch(`${pathname}/${action_id}/settings`);
           router.replace(`${pathname}/${action_id}/settings`);
         } else {
           router.prefetch(pathname);

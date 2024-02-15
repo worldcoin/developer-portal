@@ -25,5 +25,8 @@ query GetActions($app_id: String!) {
   app(where: { id: { _eq: $app_id } }) {
     id
     engine
+    app_metadata {
+      name
+    }
   }
 }

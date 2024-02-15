@@ -12,7 +12,7 @@ export const Dialog = (props: DialogProps) => {
   return (
     <DialogBase
       className={twMerge(
-        "fixed inset-0 flex items-center justify-center overflow-y-auto",
+        "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto",
         typeof className === "string" ? className : undefined,
       )}
       {...otherProps}

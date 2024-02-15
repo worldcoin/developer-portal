@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 
 const colors = [
   "bg-blue-400",
@@ -32,16 +33,20 @@ export const Placeholder = (props: { name: string; className?: string }) => {
   const hash = props.name.split("").reduce((hash, char) => {
     return (hash << 5) - hash + char.charCodeAt(0);
   }, 0);
+
   const solidColor = colors[Math.abs(hash) % colors.length];
+
   return (
     <div
-      className={clsx(
-        "flex items-center justify-center rounded-lg",
-        solidColor,
-        props.className,
+      className={twMerge(
+        clsx(
+          "flex items-center justify-center rounded-lg",
+          solidColor,
+          props.className,
+        ),
       )}
     >
-      <div className=" text-grey-0">{props.name[0]}</div>
+      <p className="text-grey-0">{props.name[0]}</p>
     </div>
   );
 };
