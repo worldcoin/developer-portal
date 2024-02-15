@@ -380,7 +380,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             type={viewMode}
             width={400}
             height={300}
-            className="h-auto w-44 rounded-lg"
+            className="h-[132px] w-44 rounded-lg"
           />
           <Button
             type="button"
@@ -403,11 +403,11 @@ export const ImageForm = (props: ImageFormTypes) => {
           Showcase images
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Upload up to 3 images to showcase your application in work. It will be
-          displayed at the top of your app’s detail page in the App Store
+          Upload up to 3 images to showcase your application. These images will
+          be displayed at the top of your app’s detail page in the App Store
         </Typography>
       </div>
-      {showcaseImgUrls?.length < 3 && (
+      {showcaseImgUrls?.length < 3 && isEditable && isEnoughPermissions && (
         <ImageDropZone
           width={1920}
           height={1080}
@@ -441,7 +441,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                 type={viewMode}
                 width={640}
                 height={360}
-                className="h-auto w-44 rounded-lg"
+                className="h-[99px] w-44 rounded-lg"
               />
               <Button
                 type="button"

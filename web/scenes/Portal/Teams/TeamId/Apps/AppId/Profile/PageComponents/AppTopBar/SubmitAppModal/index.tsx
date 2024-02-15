@@ -58,7 +58,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       try {
         if (values.is_developer_allow_listing && !canSubmitAppStore) {
           toast.error(
-            "You must have a featured image and showcase images to list on the App Store",
+            "Featured and showcase images are required for an app store listing",
           );
           return;
         }

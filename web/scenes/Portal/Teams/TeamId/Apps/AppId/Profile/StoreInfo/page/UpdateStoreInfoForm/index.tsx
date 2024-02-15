@@ -190,7 +190,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           </div>
         </div>
 
-        <div className="grid gap-y-5">
+        <div className="grid gap-y-7">
           <TextArea
             label="Overview"
             required
@@ -204,7 +204,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
                 maxChars={1500}
               />
             }
-            placeholder="Describe the project for the users who would like to try your integration"
+            placeholder="Give an overview of your app to potential users. What does it do? Why should they use it?"
             register={register("description_overview")}
           />
           <TextArea
@@ -238,7 +238,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             maxLength={1500}
             errors={errors.description_connect}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Explain how users should set up this app to start using World ID."
+            placeholder="Explain any setup users need to complete before using World ID with this app."
             register={register("description_connect")}
             addOn={
               <RemainingCharacters

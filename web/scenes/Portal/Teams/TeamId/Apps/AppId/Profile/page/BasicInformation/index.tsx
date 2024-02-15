@@ -84,8 +84,9 @@ export const BasicInformation = (props: {
     reset({
       name: appMetaData.name,
       category: appMetaData.category,
+      status: app.status === "active",
     });
-  }, [viewMode, appMetaData?.name, appMetaData?.category, reset]);
+  }, [viewMode, appMetaData?.name, appMetaData?.category, app.status, reset]);
 
   const copyId = () => {
     navigator.clipboard.writeText(appId);

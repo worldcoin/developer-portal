@@ -92,12 +92,12 @@ const config: PermissionsConfig = {
     Admin: false,
     Member: false,
   },
-  "View Sign in with WorldID": {
+  "View Sign in with World ID": {
     Owner: true,
     Admin: true,
     Member: true,
   },
-  "Create & Edit Sign in with WorldID": {
+  "Create & Edit Sign in with World ID": {
     Owner: true,
     Admin: true,
     Member: false,

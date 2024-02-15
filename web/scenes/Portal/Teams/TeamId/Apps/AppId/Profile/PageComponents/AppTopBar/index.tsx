@@ -111,7 +111,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isSubmitFormValid = useMemo(() => {
     const description = JSON.parse(
-      appMetaData.description ? appMetaData.description : "{}",
+      appMetaData?.description ? appMetaData.description : "{}",
     );
     try {
       submitSchema.validateSync({ ...appMetaData, ...description });
@@ -122,7 +122,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [appMetaData]);
 
   const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
-    metadataId: appMetaData.id,
+    metadataId: appMetaData?.id,
   });
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
@@ -152,7 +152,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (appMetaData?.verification_status !== "unverified") return;
     try {
       const description = JSON.parse(
-        appMetaData.description ? appMetaData.description : "{}",
+        appMetaData?.description ? appMetaData.description : "{}",
       );
       await submitSchema.validate(
         { ...appMetaData, ...description },
@@ -194,7 +194,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           hero_image_url: appMetaData.hero_image_url
             ? `hero_image.${_getImageEndpoint(appMetaData.hero_image_url)}`
             : "",
-          showcase_img_urls: appMetaData.hero_image_url
+          showcase_img_urls: appMetaData.showcase_img_urls
             ? `{${appMetaData.showcase_img_urls
                 ?.map(
                   (img: string, index: number) =>
@@ -310,6 +310,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           <div className="grid grid-cols-auto/1fr items-center gap-x-3">
             {app.verified_app_metadata.length > 0 &&
               app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
+
             {isEditable ? (
               <DecoratedButton
                 type="submit"
@@ -317,7 +318,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 disabled={viewMode === "verified" || !isSubmitFormValid}
                 onClick={submitForReview}
               >
-                <Typography variant={TYPOGRAPHY.M3}>
+                <Typography
+                  variant={TYPOGRAPHY.M3}
+                  className="whitespace-nowrap"
+                >
                   Submit for review
                 </Typography>
               </DecoratedButton>

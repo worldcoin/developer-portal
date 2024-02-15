@@ -224,7 +224,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           <img
             src={verifiedImageURL}
             alt="logo"
-            className="drop-shadow-lg"
+            className="rounded-2xl drop-shadow-lg"
             onError={() => setVerifiedImageError(true)}
           />
         ))}

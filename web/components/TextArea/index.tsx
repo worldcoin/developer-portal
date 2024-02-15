@@ -43,7 +43,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     },
     {
       "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-300 border-grey-200": disabled,
+      "bg-grey-50 text-grey-400 border-grey-200": disabled,
     },
   );
   const inputClassNames = clsx(

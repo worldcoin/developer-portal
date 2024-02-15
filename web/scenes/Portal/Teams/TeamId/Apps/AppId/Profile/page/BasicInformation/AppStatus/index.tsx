@@ -13,9 +13,9 @@ export const AppStatus = (props: {
     <div className="grid grid-cols-auto/1fr/auto gap-x-4 rounded-xl border-[1px] p-5">
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
       <div className="grid gap-y-2 ">
-        <Typography variant={TYPOGRAPHY.R3}>Activate the QR code</Typography>
+        <Typography variant={TYPOGRAPHY.R3}>Activate the App</Typography>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-          Show QR code in your app for users to try it out
+          Enables users to verify with World ID for this App
         </Typography>
       </div>
       <div
