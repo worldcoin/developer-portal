@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/use-image";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
   viewModeAtom,
@@ -52,12 +52,16 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
-      toast.info("Uploading image", {
-        toastId: "upload_toast",
-        autoClose: false,
-      });
+
       try {
-        await validateImageDimensions(file, 500, 500);
+        await validateImageDimensions(file, 512, 512);
+
+        toast.info("Uploading image", {
+          toastId: "upload_toast",
+          autoClose: false,
+        });
+        toast.dismiss("ImageValidationError");
+
         await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
@@ -96,11 +100,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         setShowDialog(false);
       } catch (error) {
         console.error(error);
-        toast.update("upload_toast", {
-          type: "error",
-          render: "Error uploading image",
-          autoClose: 5000,
-        });
+        if (error instanceof ImageValidationError) {
+          toast.dismiss("upload_toast");
+        } else {
+          toast.update("upload_toast", {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        }
       }
     }
   };
@@ -148,8 +156,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
                   className="size-28 rounded-2xl object-contain drop-shadow-lg"
-                  width={500}
-                  height={500}
+                  width={512}
+                  height={512}
                 />
               </div>
             ) : (
@@ -219,8 +227,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               alt="logo"
               src={unverifiedImages?.logo_img_url}
               className="size-20 rounded-2xl drop-shadow-lg"
-              width={500}
-              height={500}
+              width={512}
+              height={512}
             />
           )
         ) : (
