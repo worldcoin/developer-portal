@@ -14,11 +14,14 @@ type DropdownContextValue = {
 
 export const dropdownContext = createContext({} as DropdownContextValue);
 
-type DropdownProps<T> = MenuProps<"div">;
+type DropdownProps<T> = MenuProps<"div"> & {
+  placement?: "bottom-end" | "left-start";
+};
 
 export const Dropdown = <T,>(props: DropdownProps<T>) => {
+  const { placement = "bottom-end", ...otherProps } = props;
   const { refs, floatingStyles } = useFloating({
-    placement: "bottom-end",
+    placement,
     strategy: "fixed",
     whileElementsMounted: autoUpdate,
     middleware: [
@@ -45,7 +48,7 @@ export const Dropdown = <T,>(props: DropdownProps<T>) => {
 
   return (
     <dropdownContext.Provider value={dropdownContextValue}>
-      <Menu {...props} />
+      <Menu {...otherProps} />
     </dropdownContext.Provider>
   );
 };

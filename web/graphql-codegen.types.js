@@ -108,6 +108,31 @@ module.exports = {
       },
     },
 
+    "components/client": {
+      documents: [
+        "components/**/client/**/*.graphql",
+        "components/**/client/**/*.gql",
+      ],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-react-apollo",
+      ],
+      config: {
+        withMutationFn: true,
+      },
+    },
+
     app: {
       documents: ["app/**/*.graphql", "app/**/*.gql"],
       preset: "near-operation-file",
