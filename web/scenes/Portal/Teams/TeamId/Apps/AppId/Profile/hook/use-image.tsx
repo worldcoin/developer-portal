@@ -1,6 +1,37 @@
+import Resizer from "react-image-file-resizer";
 import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
+
+export class ImageValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImageValidationError";
+  }
+}
+
+export const resizeFile = (
+  file: File,
+  width: number,
+  height: number,
+  fileType: string,
+): Promise<File> =>
+  new Promise((resolve) => {
+    Resizer.imageFileResizer(
+      file,
+      width,
+      height,
+      fileType === "image/png" ? "png" : "jpeg",
+      100,
+      0,
+      (uri) => {
+        resolve(uri as File);
+      },
+      "file",
+      width,
+      height,
+    );
+  });
 
 export const useImage = () => {
   const [getUploadedImage] = useGetUploadedImageLazyQuery();
@@ -25,7 +56,7 @@ export const useImage = () => {
     return imageUrl;
   };
 
-  const validateImageDimensions = (
+  const validateImageAspectRatio = (
     file: File,
     width: number,
     height: number,
@@ -35,16 +66,29 @@ export const useImage = () => {
       const img = new window.Image();
       img.onload = () => {
         URL.revokeObjectURL(url); // Clean up the URL object
-        if (img.naturalWidth === width && img.naturalHeight === height) {
+        const imageAspectRatio = img.naturalWidth / img.naturalHeight;
+        const targetAspectRatio = width / height;
+        if (Math.abs(imageAspectRatio - targetAspectRatio) < 0.01) {
+          // Allow a small error margin
           if (file.size <= 250 * 1024) {
             resolve();
           } else {
-            toast.error(`Image size must be under 250KB`);
-            reject(`Image size must be under 250KB`);
+            toast("Image size must be under 250KB", {
+              toastId: "ImageValidationError",
+              type: "error",
+            });
+            reject(new ImageValidationError(`Image size must be under 250KB`));
           }
         } else {
-          toast.error(`Image dimensions must be ${width}x${height}`);
-          reject(`Image dimensions must be ${width}x${height}`);
+          toast(`Image must have an aspect ratio of ${width}:${height}`, {
+            toastId: "ImageValidationError",
+            type: "error",
+          });
+          reject(
+            new ImageValidationError(
+              `Image must have an aspect ratio of ${width}:${height}`,
+            ),
+          );
         }
       };
       img.onerror = () => {
@@ -96,8 +140,9 @@ export const useImage = () => {
   };
 
   return {
+    resizeFile,
     getImage,
-    validateImageDimensions,
+    validateImageAspectRatio,
     uploadViaPresignedPost,
   };
 };

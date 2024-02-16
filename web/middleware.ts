@@ -62,6 +62,7 @@ const generateCsp = () => {
       values: [
         "'self'",
         "blob:", // Used to enforce image width and height
+        "data:",
         "https://world-id-public.s3.amazonaws.com",
         "https://worldcoin.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),

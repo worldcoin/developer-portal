@@ -10,7 +10,7 @@ import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -29,6 +29,7 @@ const schema = yup.object({
     .required("App name is required")
     .max(50, "App name cannot exceed 50 characters"),
   category: yup.string().optional(),
+  status: yup.boolean().optional(),
 });
 
 export type BasicInformationFormValues = yup.Asserts<typeof schema>;
@@ -41,7 +42,6 @@ export const BasicInformation = (props: {
 }) => {
   const { appId, teamId, app, teamName } = props;
   const [viewMode] = useAtom(viewModeAtom);
-  const [status, setStatus] = useState(app.status === "active");
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
   const { user } = useUser() as Auth0SessionUser;
 
@@ -75,6 +75,7 @@ export const BasicInformation = (props: {
     defaultValues: {
       name: appMetaData.name,
       category: appMetaData.category,
+      status: app.status === "active",
     },
   });
 
@@ -83,8 +84,9 @@ export const BasicInformation = (props: {
     reset({
       name: appMetaData.name,
       category: appMetaData.category,
+      status: app.status === "active",
     });
-  }, [viewMode, appMetaData?.name, appMetaData?.category, reset]);
+  }, [viewMode, appMetaData?.name, appMetaData?.category, app.status, reset]);
 
   const copyId = () => {
     navigator.clipboard.writeText(appId);
@@ -95,11 +97,12 @@ export const BasicInformation = (props: {
     async (data: BasicInformationFormValues) => {
       if (loading) return;
       try {
+        const { status, ...formData } = data;
         const result = await updateAppInfoMutation({
           variables: {
             app_id: appId,
             app_metadata_id: appMetaData.id,
-            input: { ...data },
+            input: formData,
             status: status ? "active" : "inactive",
           },
           context: { headers: { team_id: teamId } },
@@ -128,11 +131,29 @@ export const BasicInformation = (props: {
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
       <div className="">
         <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
-          <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
-          <AppStatus
-            status={status}
-            setStatus={setStatus}
-            disabled={!isEditable || !isEnoughPermissions}
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7}>Basic Information</Typography>
+            {isDirty && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="text-system-error-500"
+              >
+                Warning: You have unsaved changes
+              </Typography>
+            )}
+          </div>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => {
+              return (
+                <AppStatus
+                  status={field.value ?? false}
+                  setStatus={field.onChange}
+                  disabled={!isEditable || !isEnoughPermissions}
+                />
+              );
+            }}
           />
           <Input
             register={register("name")}

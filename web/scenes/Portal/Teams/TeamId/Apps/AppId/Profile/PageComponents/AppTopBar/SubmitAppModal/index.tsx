@@ -58,7 +58,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       try {
         if (values.is_developer_allow_listing && !canSubmitAppStore) {
           toast.error(
-            "You must have a featured image and showcase images to list on the App Store",
+            "Featured and showcase images are required for an app store listing",
           );
           return;
         }
@@ -127,19 +127,24 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               badge
             </Typography>
           </div>
-          <div className="grid grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6">
-            <Checkbox register={register("is_developer_allow_listing")} />
+          <label
+            htmlFor="is_developer_allow_listing"
+            className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
+          >
+            <Checkbox
+              id="is_developer_allow_listing"
+              register={register("is_developer_allow_listing")}
+            />
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
                 Allow App Store listing
               </Typography>
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-                Once you submit your app for review, it can be placed in
-                Worldcoin App Store, if it’s chosen to be displayed by the
-                Worldcoin team.
+                Once you submit your app for review, it may be showcased in
+                Worldcoin App Store. Not all apps will be displayed.
               </Typography>
             </div>
-          </div>
+          </label>
           <div className="grid w-full grid-cols-2 gap-x-4">
             <DecoratedButton
               type="button"

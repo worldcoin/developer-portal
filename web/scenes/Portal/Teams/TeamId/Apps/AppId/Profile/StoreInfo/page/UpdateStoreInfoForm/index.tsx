@@ -19,6 +19,7 @@ import {
 import { viewModeAtom } from "../../../layout/ImagesProvider";
 import { DescriptionSubFields } from "../../../types";
 import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
+import { RemainingCharacters } from "./RemainingCharacters";
 
 const schema = yup.object().shape({
   world_app_description: yup
@@ -126,9 +127,6 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     description,
   ]);
 
-  const worldAppDescription = watch("world_app_description");
-  const remainingCharacters = 50 - (worldAppDescription?.length || 0);
-
   const submit = useCallback(
     async (data: StoreInfoFormValues) => {
       if (updatingInfo) return;
@@ -168,50 +166,104 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     <div className="grid grid-cols-1fr/auto">
       <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-            App description
-          </Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Describe your app integration to possible users
-          </Typography>
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+              App description
+            </Typography>
+            {isDirty && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="text-system-error-500"
+              >
+                Warning: You have unsaved changes
+              </Typography>
+            )}
+          </div>
+          <div className="grid gap-y-1">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              Describe your app integration to possible users
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+              <span className="text-sm text-system-error-500">*</span> Indicates
+              the field is required to submit for review
+            </Typography>
+          </div>
         </div>
-        <div className="grid gap-y-5">
+
+        <div className="grid gap-y-7">
           <TextArea
             label="Overview"
             required
             rows={5}
+            maxLength={1500}
             errors={errors.description_overview}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Describe the project for the users who would like to try your integration"
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_overview")}
+                maxChars={1500}
+              />
+            }
+            placeholder="Give an overview of your app to potential users. What does it do? Why should they use it?"
             register={register("description_overview")}
           />
           <TextArea
-            label="How it works"
+            label={
+              <>
+                <span>How it works</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             rows={5}
+            maxLength={1500}
             errors={errors.description_how_it_works}
             disabled={!isEditable || !isEnoughPermissions}
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_how_it_works")}
+                maxChars={1500}
+              />
+            }
             placeholder="How do users interact with World ID in your app?"
             register={register("description_how_it_works")}
           />
           <TextArea
-            label="How to connect"
+            label={
+              <>
+                <span>How to connect</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             rows={5}
+            maxLength={1500}
             errors={errors.description_connect}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Explain, if required, how users should set up this app to start using World ID."
+            placeholder="Explain any setup users need to complete before using World ID with this app."
             register={register("description_connect")}
+            addOn={
+              <RemainingCharacters
+                worldAppDescription={watch("description_connect")}
+                maxChars={1500}
+              />
+            }
           />
           <Input
-            label="World App Description"
+            label={
+              <>
+                <span>World App Description</span>{" "}
+                <span style={{ color: "red" }}>*</span>
+              </>
+            }
             maxLength={50}
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="Short description to be shown in the World App about your app"
             register={register("world_app_description")}
             addOnRight={
-              <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                {remainingCharacters}
-              </Typography>
+              <RemainingCharacters
+                worldAppDescription={watch("world_app_description")}
+                maxChars={50}
+              />
             }
           />
         </div>

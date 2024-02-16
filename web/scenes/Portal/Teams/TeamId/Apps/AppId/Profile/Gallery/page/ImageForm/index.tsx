@@ -15,7 +15,7 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useImage } from "../../../hook/use-image";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
   viewModeAtom,
@@ -47,8 +47,12 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
+  const {
+    resizeFile,
+    getImage,
+    uploadViaPresignedPost,
+    validateImageAspectRatio,
+  } = useImage();
 
   const showcaseImgFileNames = useMemo(
     () => appMetadata?.showcase_img_urls ?? [],
@@ -172,16 +176,37 @@ export const ImageForm = (props: ImageFormTypes) => {
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
-      toast.info("Uploading image", {
-        toastId: "upload_toast",
-        autoClose: false,
-      });
+
       imageType === "hero_image"
         ? setHeroImageUploading(true)
         : setShowcaseImageUploading(true);
       try {
-        await validateImageDimensions(file, width, height);
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        // Aspect Ratio
+        let aspectRatioWidth, aspectRatioHeight;
+        if (width === 1920 && height === 1080) {
+          aspectRatioWidth = 16;
+          aspectRatioHeight = 9;
+        } else if (width === 1600 && height === 1200) {
+          aspectRatioWidth = 4;
+          aspectRatioHeight = 3;
+        } else {
+          throw new Error("Invalid aspect ratio");
+        }
+        await validateImageAspectRatio(
+          file,
+          aspectRatioWidth,
+          aspectRatioHeight,
+        );
+
+        const resizedImage = await resizeFile(file, width, height, file.type);
+
+        toast.info("Uploading image", {
+          toastId: "upload_toast",
+          autoClose: false,
+        });
+        toast.dismiss("ImageValidationError");
+
+        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
@@ -257,16 +282,21 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         toast.update("upload_toast", {
           type: "success",
-          render: "Image uploaded successfully",
+          render: "Image uploaded and saved",
           autoClose: 5000,
         });
       } catch (error) {
         console.error(error);
-        toast.update("upload_toast", {
-          type: "error",
-          render: "Error uploading image",
-          autoClose: 5000,
-        });
+
+        if (error instanceof ImageValidationError) {
+          toast.dismiss("upload_toast");
+        } else {
+          toast.update("upload_toast", {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        }
 
         setHeroImageUploading(false);
         setShowcaseImageUploading(false);
@@ -338,7 +368,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required size ${1600}x${1200}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 4:3. \nRecommended size: ${1600}x${1200}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -350,7 +380,7 @@ export const ImageForm = (props: ImageFormTypes) => {
             type={viewMode}
             width={400}
             height={300}
-            className="h-auto w-44 rounded-lg"
+            className="h-[132px] w-44 rounded-lg"
           />
           <Button
             type="button"
@@ -373,11 +403,11 @@ export const ImageForm = (props: ImageFormTypes) => {
           Showcase images
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Upload up to 3 images to showcase your application in work. It will be
-          displayed at the top of your app’s detail page in the App Store
+          Upload up to 3 images to showcase your application. These images will
+          be displayed at the top of your app’s detail page in the App Store
         </Typography>
       </div>
-      {showcaseImgUrls?.length < 3 && (
+      {showcaseImgUrls?.length < 3 && isEditable && isEnoughPermissions && (
         <ImageDropZone
           width={1920}
           height={1080}
@@ -397,7 +427,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required size ${1920}x${1080}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 16:9. Recommended size: ${1920}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -411,7 +441,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                 type={viewMode}
                 width={640}
                 height={360}
-                className="h-auto w-44 rounded-lg"
+                className="h-[99px] w-44 rounded-lg"
               />
               <Button
                 type="button"

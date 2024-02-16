@@ -15,7 +15,8 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { useImage } from "../../../hook/use-image";
+import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
 import {
   unverifiedImageAtom,
   viewModeAtom,
@@ -39,8 +40,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageDimensions } =
-    useImage();
+  const {
+    resizeFile,
+    getImage,
+    uploadViaPresignedPost,
+    validateImageAspectRatio,
+  } = useImage();
   const router = useRouter();
   const handleUpload = () => {
     imageInputRef.current?.click();
@@ -52,13 +57,20 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
-      toast.info("Uploading image", {
-        toastId: "upload_toast",
-        autoClose: false,
-      });
+
       try {
-        await validateImageDimensions(file, 500, 500);
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        // Aspect ratio of 1:1
+        await validateImageAspectRatio(file, 1, 1);
+
+        toast.info("Uploading image", {
+          toastId: "upload_toast",
+          autoClose: false,
+        });
+
+        const resizedImage = await resizeFile(file, 512, 512, file.type);
+        toast.dismiss("ImageValidationError");
+
+        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -79,11 +91,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             fileName: `${imageType}.${saveFileType}`,
           },
           context: { headers: { team_id: teamId } },
+          refetchQueries: [FetchAppMetadataDocument],
         });
 
         toast.update("upload_toast", {
           type: "success",
-          render: "Image uploaded successfully",
+          render: "Image uploaded and saved",
           autoClose: 5000,
         });
         // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
@@ -96,11 +109,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         setShowDialog(false);
       } catch (error) {
         console.error(error);
-        toast.update("upload_toast", {
-          type: "error",
-          render: "Error uploading image",
-          autoClose: 5000,
-        });
+        if (error instanceof ImageValidationError) {
+          toast.dismiss("upload_toast");
+        } else {
+          toast.update("upload_toast", {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        }
       }
     }
   };
@@ -116,6 +133,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         fileName: "",
       },
       context: { headers: { team_id: teamId } },
+      refetchQueries: [FetchAppMetadataDocument],
     });
   };
 
@@ -148,8 +166,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                   src={unverifiedImages?.logo_img_url}
                   alt="Uploaded"
                   className="size-28 rounded-2xl object-contain drop-shadow-lg"
-                  width={500}
-                  height={500}
+                  width={512}
+                  height={512}
                 />
               </div>
             ) : (
@@ -169,8 +187,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               Image requirements
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Upload a PNG or JPG image smaller than 250 kb. The preview box
-              shows the logo’s final display size.
+              Upload a PNG or JPG image smaller than 250 kb. Required aspect
+              ratio 1:1. The preview box shows the logo’s final display size.
             </Typography>
           </div>
           <div className="grid w-full grid-cols-2 gap-x-4">
@@ -206,7 +224,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           <img
             src={verifiedImageURL}
             alt="logo"
-            className="drop-shadow-lg"
+            className="rounded-2xl drop-shadow-lg"
             onError={() => setVerifiedImageError(true)}
           />
         ))}
@@ -219,8 +237,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               alt="logo"
               src={unverifiedImages?.logo_img_url}
               className="size-20 rounded-2xl drop-shadow-lg"
-              width={500}
-              height={500}
+              width={512}
+              height={512}
             />
           )
         ) : (

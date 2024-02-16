@@ -1,20 +1,22 @@
-import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { NextApiRequest, NextApiResponse } from "next";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { getAPIReviewerGraphqlClient } from "@/legacy/backend/graphql";
 import { getSdk as getAppMetadataSDK } from "@/legacy/api/images/graphql/getAppMetadata.generated";
 import { getSdk as verifyAppSDK } from "@/legacy/api/images/graphql/verifyApp.generated";
-import { getFileExtension } from "@/legacy/backend/utils";
-import * as yup from "yup";
-import { validateRequestSchema } from "@/legacy/backend/utils";
-
+import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
+import { getAPIReviewerGraphqlClient } from "@/legacy/backend/graphql";
 import {
-  S3Client,
+  getFileExtension,
+  protectInternalEndpoint,
+  validateRequestSchema,
+} from "@/legacy/backend/utils";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
+
+import { logger } from "@/lib/logger";
+import {
+  CopyObjectCommand,
   ListObjectsCommand,
   PutObjectTaggingCommand,
-  CopyObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
-import { logger } from "@/lib/logger";
 import { randomUUID } from "crypto";
 
 export type VerifyAppResponse = {
@@ -124,6 +126,21 @@ export const handleVerifyApp = async (
     (metadata) => metadata.verification_status === "verified",
   );
 
+  // Check if app is allowed to be app store and world app approved
+  if (
+    (is_reviewer_app_store_approved || is_reviewer_world_app_approved) &&
+    (awaitingReviewAppMetadata?.hero_image_url === "" ||
+      !awaitingReviewAppMetadata.showcase_img_urls)
+  ) {
+    return errorHasuraQuery({
+      res,
+      req,
+      detail:
+        "Hero and showcase images are required for app store and world app approval",
+      code: "invalid_approval_permissions",
+    });
+  }
+
   const s3Client = new S3Client({
     region: process.env.ASSETS_S3_REGION,
   });
@@ -180,44 +197,50 @@ export const handleVerifyApp = async (
     ),
   );
 
-  const currentHeroImgName = awaitingReviewAppMetadata.hero_image_url;
-  const heroFileType = getFileExtension(currentHeroImgName);
-  const newHeroImgName = randomUUID() + heroFileType;
-  copyPromises.push(
-    s3Client.send(
-      new CopyObjectCommand({
-        Bucket: bucketName,
-        CopySource: `${bucketName}/${sourcePrefix}${currentHeroImgName}`,
-        Key: `${destinationPrefix}${newHeroImgName}`,
-      }),
-    ),
-  );
-
-  const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
-  const showcaseFileTypes = showcaseImgUrls.map((url: string) =>
-    getFileExtension(url),
-  );
-  const showcaseImgUUIDs = showcaseImgUrls.map(
-    (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
-  );
-  const showcaseCopyPromises = showcaseImgUrls.map(
-    (key: string, index: number) => {
-      return s3Client.send(
+  const currentHeroImgName = awaitingReviewAppMetadata?.hero_image_url;
+  let newHeroImgName: string = "";
+  if (currentHeroImgName) {
+    const heroFileType = getFileExtension(currentHeroImgName);
+    newHeroImgName = randomUUID() + heroFileType;
+    copyPromises.push(
+      s3Client.send(
         new CopyObjectCommand({
           Bucket: bucketName,
-          CopySource: `${bucketName}/${sourcePrefix}${key}`,
-          Key: `${destinationPrefix}${showcaseImgUUIDs[index]}`,
+          CopySource: `${bucketName}/${sourcePrefix}${currentHeroImgName}`,
+          Key: `${destinationPrefix}${newHeroImgName}`,
         }),
-      );
-    },
-  );
-  copyPromises.push(...showcaseCopyPromises);
+      ),
+    );
+  }
+
+  const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
+  let showcaseImgUUIDs: string[] | null = null;
+  if (showcaseImgUrls) {
+    const showcaseFileTypes = showcaseImgUrls.map((url: string) =>
+      getFileExtension(url),
+    );
+    showcaseImgUUIDs = showcaseImgUrls.map(
+      (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
+    );
+    const showcaseCopyPromises = showcaseImgUrls.map(
+      (key: string, index: number) => {
+        return s3Client.send(
+          new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${sourcePrefix}${key}`,
+            Key: `${destinationPrefix}${showcaseImgUUIDs?.[index]}`,
+          }),
+        );
+      },
+    );
+    copyPromises.push(...showcaseCopyPromises);
+  }
   await Promise.all(copyPromises);
 
   // Update app metadata unverified to reflect new verified images, change verification_status to verified, verified_at, reviewed_by etc.
-  const stringifiedShowcaseImgUrls = `{${showcaseImgUUIDs
-    .map((url: string) => `"${url}"`)
-    .join(",")}}`;
+  const stringifiedShowcaseImgUrls = showcaseImgUUIDs
+    ? `{${showcaseImgUUIDs.map((url: string) => `"${url}"`).join(",")}}`
+    : null;
 
   const updateAppMetadata = await verifyAppSDK(reviewer_client).verifyApp({
     idToVerify: awaitingReviewAppMetadata.id,

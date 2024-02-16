@@ -10,11 +10,10 @@ interface TextAreaInterface
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  label: string;
+  label: React.ReactNode;
   placeholder?: string;
   helperText?: string;
   addOn?: React.ReactElement;
-  addOnPosition?: "left" | "right";
   className?: string;
   rows?: number;
 }
@@ -29,7 +28,6 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     className,
     errors,
     addOn,
-    addOnPosition,
     disabled,
     rows,
     ...restProps
@@ -45,7 +43,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     },
     {
       "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-300 border-grey-200": disabled,
+      "bg-grey-50 text-grey-400 border-grey-200": disabled,
     },
   );
   const inputClassNames = clsx(
@@ -73,14 +71,10 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     <div className={"inline-grid font-gta"}>
       <fieldset
         className={twMerge(
-          clsx("group grid grid-cols-auto/1fr/auto pb-2", parentClassNames),
+          clsx("group relative grid pb-2", parentClassNames),
           typeof className === "string" ? className : undefined,
         )}
       >
-        <div className="flex items-center">
-          {addOn && addOnPosition === "left" && addOn}
-        </div>
-
         <textarea
           {...register}
           {...restProps}
@@ -92,8 +86,8 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
           aria-invalid={errors ? "true" : "false"}
         />
 
-        <div className="flex items-center">
-          {addOn && addOnPosition === "right" && addOn}
+        <div className="absolute inset-y-0 bottom-3 right-2 flex items-end pr-2">
+          {addOn && addOn}
         </div>
 
         <legend className={labelClassNames}>

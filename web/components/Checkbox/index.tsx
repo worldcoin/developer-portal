@@ -25,6 +25,7 @@ export const Checkbox = (
         {...props.register}
         type="checkbox"
         className="peer hidden"
+        id={props?.id}
       />
       <div className="pointer-events-none absolute inset-0 z-10 size-full rounded-md shadow-[0px_0px_0px_1px_inset] shadow-grey-300 transition-colors peer-checked:shadow-grey-100/20" />
 
