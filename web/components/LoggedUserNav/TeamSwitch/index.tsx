@@ -40,7 +40,7 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
           </div>
 
           {teamsQueryRes.data?.teams.map((team) => (
-            <DropdownItem key={team.id}>
+            <DropdownItem key={team.id} className="hover:bg-grey-50">
               <Link
                 href={`/teams/${team.id}`}
                 className="grid grid-cols-auto/1fr/auto items-center gap-x-2"
@@ -61,7 +61,7 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
             </DropdownItem>
           ))}
 
-          <DropdownItem>
+          <DropdownItem className="hover:bg-grey-50">
             <Button
               href={urls.createTeam()}
               className="grid grid-cols-auto/1fr items-center gap-x-2"
