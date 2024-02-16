@@ -1,18 +1,14 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { Role_Enum } from "@/graphql/graphql";
 import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
-import {
-  getSession,
-  updateSession,
-  withApiAuthRequired,
-} from "@auth0/nextjs-auth0";
+import { urls } from "@/lib/urls";
 import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
 
@@ -31,9 +27,16 @@ import {
   getSdk as getInsertUserSdk,
 } from "./graphql/insert-user.generated";
 
-import { Role_Enum } from "@/graphql/graphql";
+import {
+  getSession,
+  updateSession,
+  withApiAuthRequired,
+} from "@auth0/nextjs-auth0";
 
-import { urls } from "@/lib/urls";
+import {
+  FetchUserQuery,
+  getSdk as getFetchUserSdk,
+} from "./graphql/fetch-user.generated";
 
 const schema = yup.object({
   team_name: yup.string().strict().required(),
@@ -70,6 +73,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
+  const hasuraUserId = (auth0User as Auth0SessionUser["user"])?.hasura?.id;
   let body = await req.json();
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
@@ -148,6 +152,28 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
+  // ANCHOR: Fetch user
+  let fetchedUser: FetchUserQuery["user_by_pk"] | null = null;
+
+  if (hasuraUserId && !hasMemberships) {
+    try {
+      const { user_by_pk } = await getFetchUserSdk(client).FetchUser({
+        userId: hasuraUserId,
+      });
+
+      fetchedUser = user_by_pk;
+    } catch (error) {
+      logger.error("Error while fetching user on create team:", { error });
+
+      return errorResponse({
+        statusCode: 500,
+        code: "server_error",
+        detail: "Failed to create team",
+        req,
+      });
+    }
+  }
+
   // ANCHOR: Insert user
   let nullifier_hash: string | undefined = undefined;
 
@@ -158,7 +184,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
 
-  if (!hasMemberships) {
+  if (!hasMemberships && !fetchedUser) {
     try {
       const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
         user_data: {
@@ -195,9 +221,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     | null = null;
 
   try {
-    const user_id = hasMemberships
-      ? (auth0User as Auth0SessionUser["user"])?.hasura.id
-      : insertedUser?.id;
+    const user_id = hasMemberships ? hasuraUserId : insertedUser?.id;
 
     if (!insertedTeam?.id) {
       throw new Error("Team id is null");
