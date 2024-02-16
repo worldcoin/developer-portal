@@ -151,9 +151,9 @@ export const CreateAppDialog = (props: DialogProps) => {
             </div>
           </SizingWrapper>
         </header>
-        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
+        <div className="grid h-[90dvh] w-full grid-rows-auto/1fr items-center">
           <SizingWrapper
-            gridClassName="overflow-y-auto no-scrollbar"
+            gridClassName="overflow-y-auto"
             className="flex items-start justify-center"
           >
             <form
