@@ -54,8 +54,8 @@ export const AppIdPage = (props: {
   );
 
   return (
-    <SizingWrapper className="flex flex-col gap-y-10 py-5">
-      <div className="grid gap-y-5">
+    <SizingWrapper className="flex flex-col gap-y-10 py-10">
+      <div className="grid gap-y-3">
         {verificationData && (
           <ReviewStatus
             status={

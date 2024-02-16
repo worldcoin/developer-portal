@@ -17,7 +17,7 @@ export const SignInWithWorldIdPage = async (
 
   return (
     <div className="size-full">
-      <div className="grid grid-cols-1 gap-x-7 gap-y-4 py-6 md:grid-cols-auto/1fr/auto">
+      <div className="grid grid-cols-1 items-center gap-x-7 gap-y-4 py-6 md:grid-cols-auto/1fr/auto">
         <Image
           src="/passport.png"
           alt="passport"
@@ -25,7 +25,7 @@ export const SignInWithWorldIdPage = async (
           height={100}
           className="h-auto w-16"
         />
-        <div className="grid items-center justify-items-start gap-y-0">
+        <div className="grid h-fit items-center justify-items-start gap-y-2">
           <Typography variant={TYPOGRAPHY.H6}>Sign in with World ID</Typography>
           <Typography as="p" variant={TYPOGRAPHY.R3} className=" text-grey-500">
             Let users sign in to your app with their World ID using OpenID

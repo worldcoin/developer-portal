@@ -46,7 +46,7 @@ export const Placeholder = (props: { name: string; className?: string }) => {
         ),
       )}
     >
-      <p className="text-grey-0">{props.name[0]}</p>
+      <p className="capitalize text-grey-0">{props.name[0]}</p>
     </div>
   );
 };

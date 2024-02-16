@@ -217,7 +217,7 @@ export const AppStatsGraph = () => {
         <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
             {engine === EngineType.OnChain
-              ? "Analytics are not available for on-chain apps yet."
+              ? "Analytics are not available for on-chain apps yet"
               : "No data available yet"}
           </Typography>
 

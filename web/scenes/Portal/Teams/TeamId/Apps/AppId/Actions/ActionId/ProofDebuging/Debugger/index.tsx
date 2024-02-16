@@ -1,8 +1,10 @@
 "use client";
+import { Button } from "@/components/Button";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { OutgoingLinkIcon } from "@/components/Icons/OutgoingLink";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { Input } from "@/components/Input";
 import { TextArea } from "@/components/TextArea";
@@ -43,14 +45,14 @@ const messages = {
   ),
   INVALID_JSON: (
     <>
-      Your <b>Verification Response</b> is not a valid <b>JSON</b> string
+      Your <b>verification Response</b> is not a valid <b>JSON</b> string
     </>
   ),
 
   MISSING_ATTR: (attr: string) => (
     <>
-      Invalid <b>Verification Response</b>, missing required <b>{attr}</b>{" "}
-      attribute
+      Invalid <b>verification response</b>:<br></br>
+      <b>{attr}</b> must be specified
     </>
   ),
 
@@ -202,9 +204,10 @@ export const Debugger = (props: DebuggerProps) => {
           />
           <TextArea
             register={register("verification_response")}
-            helperText="These are the parameters you get from the JS widget"
+            helperText="These are the parameters you get from IdKit"
             label="Verification response"
             rows={8}
+            required
             errors={errors?.verification_response}
             placeholder={exampleVR}
             className="py-1"
@@ -218,7 +221,7 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="grid w-full gap-y-6 lg:min-w-[480px]">
+      <div className="grid w-full gap-y-6 lg:min-w-[480px] lg:max-w-[480px]">
         <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(
@@ -252,14 +255,27 @@ export const Debugger = (props: DebuggerProps) => {
             >
               {message}
             </Typography>
-            <DecoratedButton
-              type="submit"
-              variant="secondary"
-              className="w-60 text-grey-700 disabled:text-grey-300"
-              disabled={!isDirty || !isValid}
-            >
-              <Typography variant={TYPOGRAPHY.M3}>Validate Proof</Typography>
-            </DecoratedButton>
+            <div className="grid gap-y-2">
+              <DecoratedButton
+                type="submit"
+                variant="secondary"
+                className="w-60 text-grey-700 disabled:text-grey-300"
+                disabled={!isDirty || !isValid}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>Validate Proof</Typography>
+              </DecoratedButton>
+              {action.app?.is_staging && (
+                <Button
+                  href="https://simulator.worldcoin.org/"
+                  className="flex w-full items-center justify-center gap-x-1"
+                >
+                  <Typography variant={TYPOGRAPHY.R5} className="text-blue-500">
+                    Open Simulator
+                  </Typography>
+                  <OutgoingLinkIcon className="size-3 text-blue-500" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
