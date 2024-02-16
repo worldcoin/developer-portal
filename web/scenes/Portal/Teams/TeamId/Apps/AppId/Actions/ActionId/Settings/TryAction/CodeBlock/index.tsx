@@ -11,7 +11,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier, engine } = props;
 
   const idKitWidgetCodeString = `
-// (Required in Next - IDKitWidget must be run on client)
+// (Required in Next.js - IDKitWidget must be run on client)
 "use client"
 import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
 
@@ -24,6 +24,8 @@ const verifyProof = async (proof) => {
 const onSuccess = () => {
   console.log("Success")
 };
+
+// ...
 
 <IDKitWidget
     app_id="${appId}"
