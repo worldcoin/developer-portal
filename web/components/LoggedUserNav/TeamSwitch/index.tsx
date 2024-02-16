@@ -22,6 +22,7 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
   const teamsQueryRes = useFetchTeamsQuery({
     context: { headers: { team_id: "_" } },
     skip: !user?.hasura,
+    fetchPolicy: "cache-and-network", // NOTE: To make it refetch after create-team
   });
 
   return (
