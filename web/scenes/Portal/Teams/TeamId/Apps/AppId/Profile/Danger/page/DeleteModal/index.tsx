@@ -7,6 +7,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { FetchAppsDocument } from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -31,12 +32,16 @@ export const DeleteModal = (props: DeleteModalProps) => {
     toast.info("Deleting app", { toastId: "deleting_app" });
     try {
       setOpenDeleteModal(false);
+
       await deleteAppMutation({
         variables: {
           id: appId,
         },
         context: { headers: { team_id: teamId } },
+        refetchQueries: [FetchAppsDocument],
+        awaitRefetchQueries: true,
       });
+
       toast.update("deleting_app", {
         type: "success",
         render: "App deleted",

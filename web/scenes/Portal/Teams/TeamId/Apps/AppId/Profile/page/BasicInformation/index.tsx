@@ -1,4 +1,5 @@
 "use client";
+import { CategorySelector } from "@/components/Category";
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
@@ -13,7 +14,6 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { CategorySelector } from "@/components/Category";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -60,7 +60,7 @@ export const BasicInformation = (props: {
     }
   }, [app, viewMode]);
 
-  const isEditable = appMetaData.verification_status === "unverified";
+  const isEditable = appMetaData?.verification_status === "unverified";
 
   const {
     register,
@@ -72,8 +72,8 @@ export const BasicInformation = (props: {
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      name: appMetaData.name,
-      category: appMetaData.category,
+      name: appMetaData?.name,
+      category: appMetaData?.category,
       status: app.status === "active",
     },
   });
@@ -81,11 +81,11 @@ export const BasicInformation = (props: {
   // Used to update the fields when view mode is change
   useEffect(() => {
     reset({
-      name: appMetaData.name,
-      category: appMetaData.category,
+      name: appMetaData?.name,
+      category: appMetaData?.category,
       status: app.status === "active",
     });
-  }, [viewMode, appMetaData?.name, appMetaData?.category, app.status, reset]);
+  }, [viewMode, appMetaData?.name, appMetaData?.category, app?.status, reset]);
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
@@ -95,7 +95,7 @@ export const BasicInformation = (props: {
         const result = await updateAppInfoMutation({
           variables: {
             app_id: appId,
-            app_metadata_id: appMetaData.id,
+            app_metadata_id: appMetaData?.id,
             input: formData,
             status: status ? "active" : "inactive",
           },
@@ -118,7 +118,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData.id, loading, status, teamId, updateAppInfoMutation],
+    [appId, appMetaData?.id, loading, teamId, updateAppInfoMutation],
   );
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 import clsx from "clsx";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 
@@ -14,11 +14,18 @@ export const ImageDisplay = (props: {
 }) => {
   const { src, type, className, width, height } = props;
   const [imgSrc, setImgSrc] = useState<string>(src);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setIsLoading(true);
   }, [type, src]);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setIsLoading(false);
+    }
+  }, [src]);
 
   const handleError = () => {
     toast.error("Image failed to load");
@@ -29,14 +36,14 @@ export const ImageDisplay = (props: {
     setIsLoading(false);
   };
 
-  // Verified images are cached by cloudfront and Next/Image actually causes slower load times.
   if (type === "verified") {
     // Note: We use img since cloudfront auto caches the image and we want to avoid a second cache from Next/image.
-    // eslint-disable-next-line @next/next/no-img-element
     return (
       <div className={(clsx("relative"), className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
+          ref={imgRef}
           alt="verified"
           className={clsx({ "absolute opacity-0": isLoading }, className)}
           onError={handleError}
