@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { CategorySelector } from "@/components/Category";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
@@ -18,7 +19,6 @@ import { useCallback, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { CategorySelector } from "../../../../components/Category";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { RadioCard } from "./RadioCard";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";

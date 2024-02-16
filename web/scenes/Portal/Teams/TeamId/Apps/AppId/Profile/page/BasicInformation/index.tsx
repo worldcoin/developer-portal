@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { CategorySelector } from "../../../../../../../../../components/Category";
+import { CategorySelector } from "@/components/Category";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
