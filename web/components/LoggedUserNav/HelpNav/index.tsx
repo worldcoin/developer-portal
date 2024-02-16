@@ -147,13 +147,12 @@ export const HelpNav = () => {
         <DropdownItem className="px-4 hover:bg-grey-50">
           <div>
             <Button
-              href={WORLDCOIN_STATUS_URL}
-              onClick={() => trackHelpClick("worldcoin_status")}
+              href={"/privacy-statement"}
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <LockIcon className="size-4" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
-                Worldcoin Status
+                Privacy Policy
               </Typography>
             </Button>
           </div>

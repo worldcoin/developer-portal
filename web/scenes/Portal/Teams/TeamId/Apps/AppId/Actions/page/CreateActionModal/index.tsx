@@ -161,11 +161,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     ],
   );
 
-  const copyAction = useCallback(() => {
-    navigator.clipboard.writeText(watch("action"));
-    toast.success("Copied to clipboard");
-  }, [watch]);
-
   return (
     <div
       className={clsx(
