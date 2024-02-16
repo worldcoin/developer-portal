@@ -242,6 +242,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                       onChange={field.onChange}
                       errors={errors.maxVerifications}
                       showCustomInput
+                      required
                       label="Max verifications per user"
                       helperText="The number of verifications the same person can do for this action"
                     />

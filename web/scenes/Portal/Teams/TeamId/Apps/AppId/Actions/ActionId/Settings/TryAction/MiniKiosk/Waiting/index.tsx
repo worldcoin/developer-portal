@@ -33,8 +33,8 @@ export const Waiting = memo(function Waiting(props: {
   }, [qrData, params, setCopied]);
 
   return (
-    <div className="grid gap-y-6">
-      <div className="flex flex-col items-center gap-y-5 rounded-2xl bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
+    <div className="grid gap-y-6 p-4">
+      <div className="flex flex-col items-center gap-y-5 rounded-[10px] bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
         {qrData && (
           <QRCode
             size={180}
@@ -67,6 +67,14 @@ export const Waiting = memo(function Waiting(props: {
         >
           <Typography variant={TYPOGRAPHY.M3}>Test in simulator</Typography>
         </DecoratedButton>
+      )}
+      {!showSimulator && (
+        <Typography
+          variant={TYPOGRAPHY.M3}
+          className="text-center text-grey-700"
+        >
+          Scan with World App
+        </Typography>
       )}
     </div>
   );

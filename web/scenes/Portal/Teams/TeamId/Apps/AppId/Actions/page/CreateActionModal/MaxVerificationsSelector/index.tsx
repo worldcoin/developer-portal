@@ -27,6 +27,7 @@ export const MaxVerificationsSelector = (props: {
   errors?: FieldError;
   label: string;
   helperText?: string;
+  required?: boolean;
 }) => {
   const {
     value,
@@ -36,6 +37,7 @@ export const MaxVerificationsSelector = (props: {
     helperText,
     showCustomInput,
     className,
+    required,
   } = props;
   const [input, setInput] = useState("");
 
@@ -55,7 +57,7 @@ export const MaxVerificationsSelector = (props: {
         true,
     },
   );
-  const labelClassNames = clsx("ml-2 px-[2px] peer-focus:text-blue-500", {
+  const labelClassNames = clsx("ml-4 px-[2px] peer-focus:text-blue-500", {
     "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700": !errors,
     "text-system-error-500 peer-focus:text-system-error-500": errors,
   });
@@ -134,7 +136,8 @@ export const MaxVerificationsSelector = (props: {
             )}
           </SelectOptions>
           <legend className={labelClassNames}>
-            <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>
+            <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>{" "}
+            {required && <span className="text-system-error-500">*</span>}
           </legend>
         </fieldset>
         <div className={clsx("flex w-full flex-col px-2")}>

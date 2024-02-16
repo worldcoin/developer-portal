@@ -4,16 +4,9 @@ import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
-import {
-  Select,
-  SelectButton,
-  SelectOption,
-  SelectOptions,
-} from "@/components/Select";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
@@ -25,6 +18,7 @@ import { useCallback, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { CategorySelector } from "../../../../components/Category";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { RadioCard } from "./RadioCard";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
@@ -186,49 +180,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   name="category"
                   render={({ field }) => {
                     return (
-                      <div>
-                        <Select onChange={field.onChange}>
-                          <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
-                            <Typography variant={TYPOGRAPHY.R3}>
-                              {field.value ?? "Select a category"}
-                            </Typography>
-
-                            <fieldset className="pointer-events-none absolute inset-x-0 bottom-0 top-[-12px] rounded-lg border border-grey-200">
-                              <legend className="ml-4 px-0.5 text-grey-400">
-                                <Typography variant={TYPOGRAPHY.R4}>
-                                  Category{" "}
-                                  <span className="text-system-error-500">
-                                    *
-                                  </span>
-                                </Typography>
-                              </legend>
-                            </fieldset>
-
-                            <CaretIcon />
-                          </SelectButton>
-
-                          <SelectOptions className="mt-2">
-                            {CATEGORIES.map((category, i) => (
-                              <SelectOption
-                                key={`create-app-category-${category}-${i}`}
-                                value={category}
-                                className="transition hover:bg-grey-100"
-                              >
-                                {category}
-                              </SelectOption>
-                            ))}
-                          </SelectOptions>
-                        </Select>
-
-                        {errors.category?.message && (
-                          <Typography
-                            variant={TYPOGRAPHY.R5}
-                            className="text-system-error-500"
-                          >
-                            {errors.category?.message}
-                          </Typography>
-                        )}
-                      </div>
+                      <CategorySelector
+                        disabled={isSubmitting}
+                        value={field.value}
+                        onChange={field.onChange}
+                        errors={errors.category}
+                        required
+                        label="Category"
+                      />
                     );
                   }}
                 />

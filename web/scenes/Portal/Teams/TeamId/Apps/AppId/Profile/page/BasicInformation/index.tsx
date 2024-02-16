@@ -14,13 +14,13 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { CategorySelector } from "../../../../../../../../../components/Category";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppStatus } from "./AppStatus";
-import { CategorySelector } from "./Category";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 
 const schema = yup.object({

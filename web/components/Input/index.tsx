@@ -33,7 +33,7 @@ export const Input = memo(function Input(props: InputInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 px-2 md:text-sm text-grey-700 text-base",
+    "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
