@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@/components/Button";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { Input } from "@/components/Input";
-import { Link } from "@/components/Link";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -174,23 +174,22 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       )}
     >
       <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr">
-        <SizingWrapper gridClassName="bg-grey-0 z-10 border-b">
-          <header className="flex min-h-9 w-full items-center justify-between border-grey-100 py-4">
-            <div className="flex w-full items-center gap-3">
-              <Link href={pathname}>
-                <CloseIcon />
-              </Link>
-              <span className="text-grey-200">|</span>
-              <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
-                Create an incognito action
-              </Typography>
-            </div>
-
-            <div className="flex justify-end ">
+        <header className="max-h-[56px] w-full border-b border-grey-100 py-4">
+          <SizingWrapper>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-3">
+                <Button href={pathname} className="flex">
+                  <CloseIcon className="size-4" />
+                </Button>
+                <span className="text-grey-200">|</span>
+                <Typography variant={TYPOGRAPHY.M4}>
+                  Create an incognito action
+                </Typography>
+              </div>
               <LoggedUserNav />
             </div>
-          </header>
-        </SizingWrapper>
+          </SizingWrapper>
+        </header>
 
         <SizingWrapper
           gridClassName="overflow-y-auto no-scrollbar"
@@ -226,9 +225,10 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               placeholder="A short description of your action"
               required
               addOnRight={
-                <button className="px-1" type="button" onClick={copyAction}>
-                  <CopyIcon />
-                </button>
+                <CopyButton
+                  fieldName="Action identifier"
+                  fieldValue={watch("action")}
+                />
               }
             />
             {engineType !== EngineType.OnChain && (

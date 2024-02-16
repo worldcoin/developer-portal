@@ -1,8 +1,6 @@
 "use client";
-import { Button } from "@/components/Button";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { CopyCheckIcon } from "@/components/Icons/CopyCheckIcon";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -26,7 +24,6 @@ export const ClientInformationPage = (props: {
 }) => {
   const { appID, teamID } = props;
   const [clientSecret, setClientSecret] = useState<string>("");
-  const [isCopied, setIsCopied] = useState<boolean>(false);
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -63,15 +60,6 @@ export const ClientInformationPage = (props: {
     }
   }, [resetClientSecretMutation]);
 
-  const copyToClipboard = (fieldName: string, fieldValue: string) => {
-    setIsCopied(true);
-    navigator.clipboard.writeText(fieldValue);
-    toast.success(`${fieldName} copied to clipboard`);
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 4000);
-  };
-
   if (!fetchingAction && !signInAction) {
     return <Error statusCode={404} title="Action not found" />;
   } else {
@@ -95,17 +83,7 @@ export const ClientInformationPage = (props: {
                 disabled
                 className="h-16"
                 addOnRight={
-                  <Button
-                    type="button"
-                    className="pr-4"
-                    onClick={() => copyToClipboard("Client ID", appID)}
-                  >
-                    {isCopied ? (
-                      <CopyCheckIcon className={clsx("size-5 text-grey-900")} />
-                    ) : (
-                      <CopyIcon className="size-5 text-grey-900" />
-                    )}
-                  </Button>
+                  <CopyButton fieldName="Client ID" fieldValue={appID} />
                 }
               />
               <Input
@@ -138,15 +116,10 @@ export const ClientInformationPage = (props: {
                       Reset
                     </DecoratedButton>
                     {clientSecret !== "" && (
-                      <Button
-                        type="button"
-                        className=""
-                        onClick={() =>
-                          copyToClipboard("Client secret", clientSecret)
-                        }
-                      >
-                        <CopyIcon className="size-5 text-grey-900" />
-                      </Button>
+                      <CopyButton
+                        fieldName="Client secret"
+                        fieldValue={clientSecret}
+                      />
                     )}
                   </div>
                 }

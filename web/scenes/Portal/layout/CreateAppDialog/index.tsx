@@ -135,27 +135,23 @@ export const CreateAppDialog = (props: DialogProps) => {
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel className={clsx("fixed inset-0 p-0", props.className)}>
-        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
-          <SizingWrapper gridClassName="bg-grey-0 z-10">
-            <header className="flex min-h-9 w-full items-center justify-between py-4">
-              <div className="flex w-full items-center gap-3">
-                <Button type="button" onClick={onClose}>
-                  <CloseIcon />
+        <header className="max-h-[56px] w-full border-b border-grey-100 py-4">
+          <SizingWrapper>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-3">
+                <Button type="button" onClick={onClose} className="flex">
+                  <CloseIcon className="size-4" />
                 </Button>
-
                 <span className="text-grey-200">|</span>
-
-                <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
+                <Typography variant={TYPOGRAPHY.M4}>
                   Create a new app
                 </Typography>
               </div>
-
-              <div className="flex justify-end ">
-                <LoggedUserNav />
-              </div>
-            </header>
+              <LoggedUserNav />
+            </div>
           </SizingWrapper>
-
+        </header>
+        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
           <SizingWrapper
             gridClassName="overflow-y-auto no-scrollbar"
             className="flex items-start justify-center"

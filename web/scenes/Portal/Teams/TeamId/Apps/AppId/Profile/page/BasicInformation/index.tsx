@@ -1,7 +1,6 @@
 "use client";
-import { Button } from "@/components/Button";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -87,11 +86,6 @@ export const BasicInformation = (props: {
       status: app.status === "active",
     });
   }, [viewMode, appMetaData?.name, appMetaData?.category, app.status, reset]);
-
-  const copyId = () => {
-    navigator.clipboard.writeText(appId);
-    toast.success("Copied to clipboard");
-  };
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
@@ -182,15 +176,7 @@ export const BasicInformation = (props: {
             label="ID"
             disabled
             placeholder={appId}
-            addOnRight={
-              <Button
-                type="button"
-                onClick={copyId}
-                className="pr-2 text-grey-900"
-              >
-                <CopyIcon />
-              </Button>
-            }
+            addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
           />
           <Input label="Publisher" disabled placeholder={teamName} />
           <DecoratedButton

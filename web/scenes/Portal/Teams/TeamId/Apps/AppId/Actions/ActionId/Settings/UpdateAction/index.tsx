@@ -1,6 +1,6 @@
 "use client";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
@@ -82,11 +82,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     [updateActionQuery, action.id],
   );
 
-  const copyAction = useCallback(() => {
-    navigator.clipboard.writeText(watch("action"));
-    toast.success("Copied to clipboard");
-  }, [watch]);
-
   return (
     <div className="grid min-h-full w-full items-start">
       <form
@@ -121,9 +116,10 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           placeholder="A short description of your action"
           disabled
           addOnRight={
-            <button className="px-1" type="button" onClick={copyAction}>
-              <CopyIcon />
-            </button>
+            <CopyButton
+              fieldName="Action identifier"
+              fieldValue={watch("action")}
+            />
           }
           className=" h-16 text-grey-400"
         />

@@ -1,6 +1,5 @@
-import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { CopyButton } from "@/components/CopyButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { toast } from "react-toastify";
 import { DetailsMenu } from "../DetailsMenu";
 
 export const ActionRow = (props: {
@@ -18,12 +17,6 @@ export const ActionRow = (props: {
     }
   }
 
-  const copyAction = (event: any) => {
-    event.stopPropagation();
-    navigator.clipboard.writeText(action.action);
-    toast.success("Copied to clipboard");
-  };
-
   return [
     <div
       key={`${key}_1`}
@@ -38,12 +31,11 @@ export const ActionRow = (props: {
         </div>
         <div className="flex items-center gap-x-2 text-grey-500 ">
           <Typography variant={TYPOGRAPHY.R5}>{action.action}</Typography>
-          <button
+          <CopyButton
+            fieldValue={action.action}
+            fieldName="Action identifier"
             className="cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            onClick={copyAction}
-          >
-            <CopyIcon className="size-5 text-grey-500 hover:text-grey-700" />
-          </button>
+          />
         </div>
       </div>
     </div>,
