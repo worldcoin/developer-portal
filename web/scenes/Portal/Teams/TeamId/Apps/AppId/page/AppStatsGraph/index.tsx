@@ -9,6 +9,7 @@ import {
 
 import { Chart, ChartProps } from "@/components/Chart";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { EngineType } from "@/lib/types";
 import { ChartData } from "chart.js";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
@@ -102,6 +103,7 @@ export const AppStatsGraph = () => {
   });
 
   const stats = useMemo(() => data?.app_stats, [data?.app_stats]);
+  const engine = useMemo(() => data?.app?.[0].engine, [data?.app]);
 
   const labelDateFormat = useMemo(() => {
     switch (timespan.value) {
@@ -214,11 +216,15 @@ export const AppStatsGraph = () => {
       {!loading && !formattedData && (
         <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-            No data available yet
+            {engine === EngineType.OnChain
+              ? "Analytics are not available for on-chain apps yet"
+              : "No data available yet"}
           </Typography>
 
           <Typography variant={TYPOGRAPHY.R4} className="text-14 text-grey-400">
-            Your verification numbers will show up here.
+            {engine === EngineType.OnChain
+              ? "Please refer to your smart contract for verification data"
+              : "Your verification numbers will show up here."}
           </Typography>
         </div>
       )}

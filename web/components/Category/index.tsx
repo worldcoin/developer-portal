@@ -20,10 +20,19 @@ export const CategorySelector = (props: {
   errors?: FieldError;
   label: string;
   helperText?: string;
+  required?: boolean;
   disabled: boolean;
 }) => {
-  const { value, onChange, errors, label, helperText, className, disabled } =
-    props;
+  const {
+    value,
+    onChange,
+    errors,
+    label,
+    helperText,
+    className,
+    required,
+    disabled,
+  } = props;
 
   const parentClassNames = clsx(
     "rounded-lg border-[1px] bg-grey-0 text-sm text-grey-700",
@@ -43,7 +52,7 @@ export const CategorySelector = (props: {
         !disabled,
     },
   );
-  const labelClassNames = clsx("ml-2 px-[2px] peer-focus:text-blue-500", {
+  const labelClassNames = clsx("ml-4 px-0.5 peer-focus:text-blue-500", {
     "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
       !errors && !disabled,
     "text-system-error-500 peer-focus:text-system-error-500":
@@ -77,7 +86,7 @@ export const CategorySelector = (props: {
               className,
             )}
           >
-            <Typography variant={TYPOGRAPHY.R4}>
+            <Typography variant={TYPOGRAPHY.R0}>
               {value ?? "Select a category"}
             </Typography>
             <CaretIcon
@@ -107,7 +116,8 @@ export const CategorySelector = (props: {
             ))}
           </SelectOptions>
           <legend className={labelClassNames}>
-            <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>
+            <Typography variant={TYPOGRAPHY.R4}>{label}</Typography>{" "}
+            {required && <span className="text-system-error-500">*</span>}
           </legend>
         </fieldset>
         <div className={clsx("flex w-full flex-col px-2")}>

@@ -1,19 +1,13 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { CategorySelector } from "@/components/Category";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
-import {
-  Select,
-  SelectButton,
-  SelectOption,
-  SelectOptions,
-} from "@/components/Select";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
@@ -141,27 +135,23 @@ export const CreateAppDialog = (props: DialogProps) => {
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel className={clsx("fixed inset-0 p-0", props.className)}>
-        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
-          <SizingWrapper gridClassName="bg-grey-0 z-10">
-            <header className="flex min-h-9 w-full items-center justify-between py-4">
-              <div className="flex w-full items-center gap-3">
-                <Button type="button" onClick={onClose}>
-                  <CloseIcon />
+        <header className="max-h-[56px] w-full border-b border-grey-100 py-4">
+          <SizingWrapper>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-3">
+                <Button type="button" onClick={onClose} className="flex">
+                  <CloseIcon className="size-4" />
                 </Button>
-
                 <span className="text-grey-200">|</span>
-
-                <Typography className="font-[500]" variant={TYPOGRAPHY.R4}>
+                <Typography variant={TYPOGRAPHY.M4}>
                   Create a new app
                 </Typography>
               </div>
-
-              <div className="flex justify-end ">
-                <LoggedUserNav />
-              </div>
-            </header>
+              <LoggedUserNav />
+            </div>
           </SizingWrapper>
-
+        </header>
+        <div className="grid h-[100dvh] grid-rows-auto/1fr items-center">
           <SizingWrapper
             gridClassName="overflow-y-auto no-scrollbar"
             className="flex items-start justify-center"
@@ -186,49 +176,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   name="category"
                   render={({ field }) => {
                     return (
-                      <div>
-                        <Select onChange={field.onChange}>
-                          <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
-                            <Typography variant={TYPOGRAPHY.R3}>
-                              {field.value ?? "Select a category"}
-                            </Typography>
-
-                            <fieldset className="pointer-events-none absolute inset-x-0 bottom-0 top-[-12px] rounded-lg border border-grey-200">
-                              <legend className="ml-4 px-0.5 text-grey-400">
-                                <Typography variant={TYPOGRAPHY.R4}>
-                                  Category{" "}
-                                  <span className="text-system-error-500">
-                                    *
-                                  </span>
-                                </Typography>
-                              </legend>
-                            </fieldset>
-
-                            <CaretIcon />
-                          </SelectButton>
-
-                          <SelectOptions className="mt-2">
-                            {CATEGORIES.map((category, i) => (
-                              <SelectOption
-                                key={`create-app-category-${category}-${i}`}
-                                value={category}
-                                className="transition hover:bg-grey-100"
-                              >
-                                {category}
-                              </SelectOption>
-                            ))}
-                          </SelectOptions>
-                        </Select>
-
-                        {errors.category?.message && (
-                          <Typography
-                            variant={TYPOGRAPHY.R5}
-                            className="text-system-error-500"
-                          >
-                            {errors.category?.message}
-                          </Typography>
-                        )}
-                      </div>
+                      <CategorySelector
+                        disabled={isSubmitting}
+                        value={field.value}
+                        onChange={field.onChange}
+                        errors={errors.category}
+                        required
+                        label="Category"
+                      />
                     );
                   }}
                 />

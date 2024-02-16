@@ -15,6 +15,7 @@ export enum TYPOGRAPHY {
   R3 = "r3",
   R4 = "r4",
   R5 = "r5",
+  R0 = "r0", // Custom typography for input synced with @lisa
 
   S3 = "s3",
 
@@ -57,6 +58,8 @@ export const Typography = <T extends ElementType = "span">(
           "font-gta text-xs font-medium leading-[1.3]":
             variant === TYPOGRAPHY.M5,
 
+          "font-gta text-base font-normal leading-[1.4] md:text-sm":
+            variant === TYPOGRAPHY.R0,
           "font-gta text-base font-normal leading-[1.5]":
             variant === TYPOGRAPHY.R3,
           "font-gta text-sm font-normal leading-[1.4]":

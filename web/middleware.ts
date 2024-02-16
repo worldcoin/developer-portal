@@ -34,6 +34,7 @@ const generateCsp = () => {
         "'self'",
         "https://world-id-public.s3.amazonaws.com",
         "http://world-id-assets.com",
+        "http://staging.world-id-assets.com",
       ],
     },
     {

@@ -14,7 +14,10 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
   actionId?: string;
   teamId?: string;
   appId?: string;
+  learnMoreUrl?: string;
 }) {
+  const { learnMoreUrl = "https://docs.worldcoin.org/id/incognito-actions" } =
+    props;
   const { data, loading } = useGetActionNameQuery({
     variables: { action_id: props.actionId ?? "" },
     context: { headers: { team_id: props.teamId ?? "" } },
@@ -55,7 +58,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
 
         <DecoratedButton
           variant="secondary"
-          href="https://docs.worldcoin.org/id/incognito-actions"
+          href={learnMoreUrl}
           className="px-7 py-3 text-grey-700 "
           onClick={trackDocsClicked}
         >
