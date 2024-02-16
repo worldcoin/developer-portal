@@ -43,7 +43,7 @@ export const Apps = () => {
         {!loading && app && app.length === 0 && (
           <Button
             className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500"
-            href={urls.createApp({ team_id: teamId })}
+            href={urls.apps({ team_id: teamId })}
           >
             <AddCircleIcon className="size-8 text-grey-500 transition-colors group-hover:text-blue-500" />
             <Typography

@@ -6,7 +6,7 @@ export const urls = {
   app: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id || ""}`,
 
-  createApp: (params: { team_id: string }): string =>
+  apps: (params: { team_id: string }): string =>
     `/teams/${params.team_id}/apps`,
 
   appProfile: (params: { team_id: string; app_id: string }): string =>
