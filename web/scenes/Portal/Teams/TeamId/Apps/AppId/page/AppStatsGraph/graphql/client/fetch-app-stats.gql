@@ -9,4 +9,7 @@ query FetchAppStats(
     verifications
     unique_users
   }
+  app(where: { id: { _eq: $appId } }) {
+    engine
+  }
 }
