@@ -20,7 +20,7 @@ export const AppLogo = (props: {
     <div>
       {src && props.verification_status === "verified" && (
         <Image
-          className="size-16"
+          className="size-16 rounded-2xl shadow-image"
           src={src}
           width={500}
           height={500}
@@ -31,7 +31,10 @@ export const AppLogo = (props: {
 
       {!src && (
         <div>
-          <Placeholder name={props.name} className="size-16 shadow-image" />
+          <Placeholder
+            name={props.name}
+            className="size-16 rounded-2xl shadow-image"
+          />
         </div>
       )}
     </div>

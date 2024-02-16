@@ -33,15 +33,15 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
           "border-2 border-grey-300", // Base classes for border and background
           "focus:ring-0 focus:ring-transparent",
           "before:absolute before:inset-0 before:m-auto before:content-['']", // Positioning the pseudo-element
-          "before:size-3 before:rounded-full", // Sizing the pseudo-element to create the white circle
+          "before:rounded-full", // Sizing the pseudo-element to create the white circle
           "checked:before:bg-grey-900",
           {
             "disabled:bg-grey-70": disabled,
             "hover:bg-grey-100 hover:checked:bg-grey-900": !disabled && !errors,
           },
-          "checked:bg-grey-900 checked:bg-gradient-to-b checked:from-white/15 checked:to-transparent",
+          "before:checked:bg-grey-900 before:checked:bg-gradient-to-b before:checked:from-white/15 before:checked:to-transparent",
           "after:absolute after:inset-0 after:m-auto after:content-['']", // Positioning the pseudo-element
-          "after:rounded-full after:checked:size-1.5 checked:after:bg-white",
+          "after:rounded-full after:checked:size-[5px] checked:after:bg-white",
         )}
         disabled={disabled}
       />

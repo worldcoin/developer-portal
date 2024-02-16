@@ -8,10 +8,10 @@ import { ReactNode } from "react";
 export const CreateTeamLayout = (props: { children: ReactNode }) => {
   return (
     <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
-      <header className="border-b border-grey-100 py-4">
+      <header className="max-h-[56px] border-b border-grey-100 py-4">
         <SizingWrapper>
-          <div className="flex items-center justify-between py-2.5">
-            <div className="flex items-center gap-x-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-x-3">
               <Button href="/api/auth/logout" className="flex">
                 <CloseIcon />
               </Button>

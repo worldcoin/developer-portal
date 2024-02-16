@@ -74,7 +74,7 @@ export const TeamSettingsPage = () => {
 
       <div className="m-auto grid gap-y-8 py-8">
         <Typography as="h1" variant={TYPOGRAPHY.H7}>
-          Profile settings
+          Team settings
         </Typography>
       </div>
 
@@ -93,7 +93,6 @@ export const TeamSettingsPage = () => {
           <DecoratedButton
             type="submit"
             variant="primary"
-            className="py-4"
             disabled={!isValid || isSubmitting}
           >
             Save changes
