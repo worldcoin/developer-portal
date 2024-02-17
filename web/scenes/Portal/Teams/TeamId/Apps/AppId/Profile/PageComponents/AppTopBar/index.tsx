@@ -318,12 +318,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
             engine={app.engine}
           />
         </div>
-        {isEnoughPermissions && (
-          <div className="grid grid-cols-auto/1fr items-center gap-x-3">
-            {app.verified_app_metadata.length > 0 &&
-              app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
 
-            {isEditable ? (
+        <div className="grid grid-cols-auto/1fr items-center gap-x-3">
+          {app.verified_app_metadata.length > 0 &&
+            app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
+          {isEnoughPermissions &&
+            (isEditable ? (
               <DecoratedButton
                 type="submit"
                 className="h-12 px-6 py-3"
@@ -358,9 +358,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
                   Remove from review
                 </Typography>
               </DecoratedButton>
-            )}
-          </div>
-        )}
+            ))}
+        </div>
       </div>
     </div>
   );
