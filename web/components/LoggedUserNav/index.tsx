@@ -100,7 +100,7 @@ export const LoggedUserNav = () => {
             {user?.email}
           </Typography>
 
-          <DropdownItem>
+          <DropdownItem className="hover:bg-grey-50">
             <Link
               href="/profile"
               className="grid grid-cols-auto/1fr items-center gap-x-2"
@@ -131,7 +131,7 @@ export const LoggedUserNav = () => {
                 {teamRes.data?.team.name}
               </Typography>
 
-              <DropdownItem>
+              <DropdownItem className="hover:bg-grey-50">
                 <Link
                   href={`/teams/${teamId}`}
                   className="grid grid-cols-auto/1fr items-center gap-x-2"
@@ -141,7 +141,7 @@ export const LoggedUserNav = () => {
                 </Link>
               </DropdownItem>
               {hasOwnerPermission && (
-                <DropdownItem>
+                <DropdownItem className="hover:bg-grey-50">
                   <Link
                     href={`/teams/${teamId}/settings`}
                     className="grid grid-cols-auto/1fr items-center gap-x-2"
@@ -156,7 +156,7 @@ export const LoggedUserNav = () => {
             </Fragment>
           )}
 
-          <DropdownItem>
+          <DropdownItem className="hover:bg-grey-50">
             <div>
               <TeamSwitch selectedTeamId={teamId} />
             </div>
@@ -164,7 +164,7 @@ export const LoggedUserNav = () => {
 
           <hr className="my-1 border-grey-200" />
 
-          <DropdownItem>
+          <DropdownItem className="hover:bg-grey-50">
             <a
               href="/api/auth/logout"
               className="grid grid-cols-auto/1fr items-center gap-x-2 text-system-error-600"

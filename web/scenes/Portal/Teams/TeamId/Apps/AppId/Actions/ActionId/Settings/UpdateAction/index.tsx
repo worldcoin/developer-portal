@@ -104,7 +104,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           errors={errors.description}
           label="Short Description"
           placeholder="Cast your vote on proposal #102"
-          helperText="Tell your users what the action is about. Shown in the World App."
+          helperText="Tell your users what the action is for."
           required
           className="h-16"
         />

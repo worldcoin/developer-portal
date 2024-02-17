@@ -161,11 +161,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     ],
   );
 
-  const copyAction = useCallback(() => {
-    navigator.clipboard.writeText(watch("action"));
-    toast.success("Copied to clipboard");
-  }, [watch]);
-
   return (
     <div
       className={clsx(
@@ -214,7 +209,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               errors={errors.description}
               label="Short Description"
               placeholder="Cast your vote on proposal #102"
-              helperText="Tell your users what the action is about. Shown in the World App."
+              helperText="Tell your users what the action is for."
               required
             />
             <Input

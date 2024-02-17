@@ -68,7 +68,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       console.error(e);
       toast.error("Error team deleting");
     }
-  }, [deleteTeam, team?.id]);
+  }, [deleteTeam, router, team?.id]);
 
   return (
     <Dialog {...props} onClose={onClose}>

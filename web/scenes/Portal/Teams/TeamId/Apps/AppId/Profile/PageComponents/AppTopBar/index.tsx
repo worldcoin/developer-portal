@@ -95,8 +95,18 @@ export const AppTopBar = (props: AppTopBarProps) => {
   useEffect(() => {
     if (app?.app_metadata.length === 0) {
       setViewMode("verified");
+    } else if (
+      app.verified_app_metadata.length === 0 &&
+      viewMode === "verified"
+    ) {
+      setViewMode("unverified");
     }
-  }, [app?.app_metadata.length, setViewMode]);
+  }, [
+    app.app_metadata.length,
+    app.verified_app_metadata.length,
+    setViewMode,
+    viewMode,
+  ]);
 
   const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
 
@@ -146,7 +156,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       appMetaData?.hero_image_url !== "" &&
       appMetaData?.showcase_img_urls?.length > 0
     );
-  }, [appMetaData.hero_image_url, appMetaData?.showcase_img_urls]);
+  }, [appMetaData?.hero_image_url, appMetaData?.showcase_img_urls]);
 
   const submitForReview = useCallback(async () => {
     if (appMetaData?.verification_status !== "unverified") return;
@@ -154,10 +164,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
       const description = JSON.parse(
         appMetaData?.description ? appMetaData.description : "{}",
       );
+
       await submitSchema.validate(
         { ...appMetaData, ...description },
         { abortEarly: false },
       );
+
       setShowSubmitAppModal(true);
     } catch (error) {
       if (error instanceof yup.ValidationError) {
@@ -180,21 +192,21 @@ export const AppTopBar = (props: AppTopBarProps) => {
       await createEditableRowMutation({
         variables: {
           app_id: appId,
-          name: appMetaData.name,
-          description: appMetaData.description,
-          world_app_description: appMetaData.world_app_description,
-          category: appMetaData.category,
-          is_developer_allow_listing: appMetaData.is_developer_allow_listing,
-          app_website_url: appMetaData.app_website_url,
-          source_code_url: appMetaData.source_code_url,
-          integration_url: appMetaData.integration_url,
-          logo_img_url: appMetaData.logo_img_url
+          name: appMetaData?.name,
+          description: appMetaData?.description,
+          world_app_description: appMetaData?.world_app_description,
+          category: appMetaData?.category,
+          is_developer_allow_listing: appMetaData?.is_developer_allow_listing,
+          app_website_url: appMetaData?.app_website_url,
+          source_code_url: appMetaData?.source_code_url,
+          integration_url: appMetaData?.integration_url,
+          logo_img_url: appMetaData?.logo_img_url
             ? `logo_img.${_getImageEndpoint(appMetaData.logo_img_url)}`
             : "",
-          hero_image_url: appMetaData.hero_image_url
+          hero_image_url: appMetaData?.hero_image_url
             ? `hero_image.${_getImageEndpoint(appMetaData.hero_image_url)}`
             : "",
-          showcase_img_urls: appMetaData.showcase_img_urls
+          showcase_img_urls: appMetaData?.showcase_img_urls
             ? `{${appMetaData.showcase_img_urls
                 ?.map(
                   (img: string, index: number) =>
@@ -232,17 +244,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [
     app,
     appId,
-    appMetaData.app_website_url,
-    appMetaData.category,
-    appMetaData.description,
-    appMetaData.hero_image_url,
-    appMetaData.integration_url,
-    appMetaData.is_developer_allow_listing,
-    appMetaData.logo_img_url,
-    appMetaData.name,
-    appMetaData.showcase_img_urls,
-    appMetaData.source_code_url,
-    appMetaData.world_app_description,
+    appMetaData?.app_website_url,
+    appMetaData?.category,
+    appMetaData?.description,
+    appMetaData?.hero_image_url,
+    appMetaData?.integration_url,
+    appMetaData?.is_developer_allow_listing,
+    appMetaData?.logo_img_url,
+    appMetaData?.name,
+    appMetaData?.showcase_img_urls,
+    appMetaData?.source_code_url,
+    appMetaData?.world_app_description,
     createEditableRowMutation,
     fetchImagesQuery,
     setUnverifiedImages,
@@ -306,12 +318,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
             engine={app.engine}
           />
         </div>
-        {isEnoughPermissions && (
-          <div className="grid grid-cols-auto/1fr items-center gap-x-3">
-            {app.verified_app_metadata.length > 0 &&
-              app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
 
-            {isEditable ? (
+        <div className="grid grid-cols-auto/1fr items-center gap-x-3">
+          {app.verified_app_metadata.length > 0 &&
+            app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
+          {isEnoughPermissions &&
+            (isEditable ? (
               <DecoratedButton
                 type="submit"
                 className="h-12 px-6 py-3"
@@ -346,9 +358,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
                   Remove from review
                 </Typography>
               </DecoratedButton>
-            )}
-          </div>
-        )}
+            ))}
+        </div>
       </div>
     </div>
   );

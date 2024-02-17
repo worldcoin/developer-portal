@@ -21,7 +21,7 @@ export const Apps = () => {
     if (data) {
       refetch();
     }
-  }, [teamId]);
+  }, [data, refetch, teamId]);
 
   const app = data?.app;
 

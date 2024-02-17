@@ -14,7 +14,9 @@ import { Footer } from "@/components/Table/Footer";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -74,14 +76,9 @@ export const List = (props: { search?: string }) => {
     });
   }, [fetchUser, teamId, user?.hasura.id]);
 
-  // TODO: Use checkUserPermissions helper instead
   const isEnoughPermissions = useMemo(() => {
-    if (!fetchUserResult) {
-      return false;
-    }
-
-    return fetchUserResult?.membership?.[0]?.role === Role_Enum.Owner;
-  }, [fetchUserResult]);
+    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
+  }, [user, teamId]);
 
   const { data } = useFetchMembershipsQuery({
     variables: {
@@ -299,7 +296,12 @@ export const List = (props: { search?: string }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center border-b border-grey-100 px-2 py-4">
+                  <div
+                    className={clsx(
+                      "flex items-center border-b border-grey-100 px-2 py-4",
+                      { hidden: !isEnoughPermissions },
+                    )}
+                  >
                     <Dropdown>
                       <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
                         <MoreVerticalIcon className="text-grey-900" />

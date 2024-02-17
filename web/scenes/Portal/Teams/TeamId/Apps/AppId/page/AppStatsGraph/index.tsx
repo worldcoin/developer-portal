@@ -103,7 +103,7 @@ export const AppStatsGraph = () => {
   });
 
   const stats = useMemo(() => data?.app_stats, [data?.app_stats]);
-  const engine = useMemo(() => data?.app?.[0].engine, [data?.app]);
+  const engine = useMemo(() => data?.app?.[0]?.engine, [data?.app]);
 
   const labelDateFormat = useMemo(() => {
     switch (timespan.value) {
