@@ -1,13 +1,24 @@
 "use client";
 import { Button } from "@/components/Button";
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownItems,
+} from "@/components/Dropdown";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
+import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { WorldcoinTextLogo } from "@/components/Icons/WorldcoinTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
+import { getCDNImageUrl } from "@/lib/utils";
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
 import clsx from "clsx";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import dayjsRelative from "dayjs/plugin/relativeTime";
+import posthog from "posthog-js";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Connected } from "../Settings/TryAction/MiniKiosk/Connected";
 import { IDKitBridge } from "../Settings/TryAction/MiniKiosk/IDKitBridge";
@@ -15,6 +26,7 @@ import { KioskError } from "../Settings/TryAction/MiniKiosk/KioskError";
 import { Success } from "../Settings/TryAction/MiniKiosk/Success";
 import { Waiting } from "../Settings/TryAction/MiniKiosk/Waiting";
 import { useGetKioskActionQuery } from "./graphql/client/get-kiosk-action.generated";
+dayjs.extend(dayjsRelative);
 
 type ProofResponse = {
   success: boolean;
@@ -38,6 +50,11 @@ export enum KioskScreen {
   InvalidRequest,
 }
 
+interface SuccessParams {
+  timestamp: dayjs.Dayjs; // Assuming timestamp is a Dayjs object based on your usage
+  confirmationCode: string;
+}
+
 type ActionIdKioskPageProps = {
   params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
@@ -45,6 +62,10 @@ type ActionIdKioskPageProps = {
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
   const [qrData, setQrData] = useState<string | null>(null);
+  const [resetInterval, setResetInterval] = useState<number>(0);
+  const [successParams, setSuccessParams] = useState<SuccessParams | null>(
+    null,
+  );
   const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
   const [connectionTimeout, setConnectionTimeout] = useState<boolean>(true);
   const { reset } = useWorldBridgeStore();
@@ -59,6 +80,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
 
   const action = data?.action[0];
   const logo = data?.app_metadata[0]?.logo_img_url;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const resetKiosk = useCallback(() => {
     setScreen(KioskScreen.Waiting);
@@ -66,7 +88,34 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
     setQrData(null);
     setProofResult(null);
     setConnectionTimeout(true);
+
+    // Clear the timer when resetKiosk is called manually
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, [reset]);
+
+  useEffect(() => {
+    if (screen === KioskScreen.Success && resetInterval > 0) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      if (resetInterval === 0) {
+        return;
+      }
+
+      timerRef.current = setTimeout(() => {
+        resetKiosk();
+      }, resetInterval);
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      };
+    }
+  }, [screen, resetInterval, resetKiosk]);
 
   // Reset kiosk if the action changes
   useEffect(() => {
@@ -99,8 +148,22 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         }
       }
       if (response?.success) {
+        posthog.capture("kiosk-verification-success", {
+          action: action?.action,
+          app_id: appId,
+        });
         setScreen(KioskScreen.Success);
+        setSuccessParams({
+          timestamp: dayjs(response.created_at),
+          confirmationCode:
+            response.nullifier_hash?.slice(-5).toLocaleUpperCase() ?? "",
+        });
       } else {
+        posthog.capture("kiosk-verification-failed", {
+          action: action?.action,
+          app_id: appId,
+          code: response?.code,
+        });
         if (response?.code === "max_verifications_reached") {
           setScreen(KioskScreen.AlreadyVerified);
         } else if (response?.code === "invalid_merkle_root") {
@@ -119,7 +182,9 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
       setProofResult(null);
     }
   }, [proofResult, verifyProof]);
-
+  if (!loading && !action?.kiosk_enabled) {
+    return <div>Kiosk not Enabled</div>;
+  }
   return (
     <div className={clsx("fixed inset-0 grid w-full justify-center bg-white")}>
       <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr">
@@ -138,16 +203,77 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
             <WorldcoinTextLogo className="h-6" />
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center gap-x-4 pr-6">
-            <div className="font-rubik text-14 font-medium">{action?.name}</div>
+            <Dropdown>
+              <DropdownButton className="grid grid-cols-1fr/auto px-3 font-rubik text-14 font-medium">
+                Reset after verified
+                <CaretIcon className="ml-1" />
+              </DropdownButton>
+              <DropdownItems className="mt-2 grid justify-start">
+                <Typography
+                  variant={TYPOGRAPHY.R3}
+                  className="border-b border-grey-100 p-3 text-start"
+                >
+                  Choose a time interval
+                </Typography>
+                <DropdownItem
+                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
+                  onClick={() => setResetInterval(30000)}
+                >
+                  <div>
+                    <Typography variant={TYPOGRAPHY.R3} className="text-start">
+                      30 seconds
+                    </Typography>
+                    {resetInterval === 30000 && (
+                      <CheckIcon size="16" className="ml-2 size-3" />
+                    )}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
+                  onClick={() => setResetInterval(60000)}
+                >
+                  <div>
+                    <Typography variant={TYPOGRAPHY.R3}>1 minute</Typography>
+                    {resetInterval === 60000 && (
+                      <CheckIcon size="16" className="ml-2 size-3" />
+                    )}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
+                  onClick={() => setResetInterval(300000)}
+                >
+                  <div>
+                    <Typography variant={TYPOGRAPHY.R3}>5 minutes</Typography>
+                    {resetInterval === 300000 && (
+                      <CheckIcon size="16" className="ml-2 size-3" />
+                    )}
+                  </div>
+                </DropdownItem>
+                <DropdownItem
+                  className="grid w-full grid-cols-1fr/auto items-center px-3 py-1 hover:bg-grey-50"
+                  onClick={() => setResetInterval(0)}
+                >
+                  <div>
+                    <Typography variant={TYPOGRAPHY.R3}>Never</Typography>
+                    {resetInterval === 0 && (
+                      <CheckIcon size="16" className="ml-2 size-3" />
+                    )}
+                  </div>
+                </DropdownItem>
+              </DropdownItems>
+            </Dropdown>
             {logo && (
-              <Image
-                src={logo}
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={getCDNImageUrl(appId, logo) ?? ""}
                 alt="logo"
                 width={200}
                 height={200}
-                className="size-11 rounded-full"
+                className="size-8 rounded-full"
               />
             )}
+            <div className="font-rubik text-14 font-medium">{action?.name}</div>
           </div>
         </header>
         {loading ? ( // TODO
@@ -170,7 +296,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
             )}
           >
             <div className="grid w-full items-center justify-items-center gap-y-5">
-              <Typography variant={TYPOGRAPHY.H4} className="text-center">
+              <Typography variant={TYPOGRAPHY.H4} className="pt-5 text-center">
                 World ID Kiosk Verification
               </Typography>
               {action?.description && (
@@ -204,7 +330,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                 <Waiting
                   qrData={qrData}
                   showSimulator={false}
-                  qrCodeSize={300}
+                  qrCodeSize={280}
                 />
               )}
               {screen === KioskScreen.Connected && (
@@ -255,6 +381,17 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                   buttonText="Retry"
                   reset={resetKiosk}
                 />
+              )}
+              {screen === KioskScreen.Success && successParams && (
+                <div className="grid grid-cols-1">
+                  <Typography variant={TYPOGRAPHY.R3}>
+                    <b>Confirmed At:</b>{" "}
+                    {successParams?.timestamp.fromNow() ?? "recently"}
+                  </Typography>
+                  <Typography variant={TYPOGRAPHY.R3}>
+                    <b>Confirmation ID:</b> {successParams.confirmationCode}
+                  </Typography>
+                </div>
               )}
             </div>
           </div>

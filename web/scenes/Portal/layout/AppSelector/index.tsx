@@ -20,7 +20,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -77,10 +77,25 @@ export const AppSelector = () => {
       <SelectButton className={clsx({ hidden: !appId })}>
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
           <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
-            <Placeholder
-              name={value?.app_metadata[0].name ?? "Select app"}
-              className="size-6 text-xs"
-            />
+            {value?.verified_app_metadata?.[0]?.logo_img_url ? (
+              // CDN urls should not use Next Image
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={
+                  getCDNImageUrl(
+                    appId ?? "",
+                    value?.verified_app_metadata?.[0]?.logo_img_url,
+                  ) ?? ""
+                }
+                alt="app logo"
+                className="size-6 rounded-lg"
+              />
+            ) : (
+              <Placeholder
+                name={value?.app_metadata[0].name ?? "Select app"}
+                className="size-6 text-xs"
+              />
+            )}
 
             <Typography variant={TYPOGRAPHY.R4}>
               {value?.app_metadata[0].name ?? "Select app"}
@@ -98,11 +113,25 @@ export const AppSelector = () => {
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
               <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate">
-                <Placeholder
-                  name={app?.app_metadata[0].name ?? "Select app"}
-                  className="size-6 text-xs"
-                />
-
+                {app?.verified_app_metadata?.[0]?.logo_img_url ? (
+                  // CDN urls should not use Next Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={
+                      getCDNImageUrl(
+                        app.id,
+                        app?.verified_app_metadata?.[0]?.logo_img_url,
+                      ) ?? ""
+                    }
+                    alt="app logo"
+                    className="size-6 rounded-lg"
+                  />
+                ) : (
+                  <Placeholder
+                    name={app?.app_metadata[0].name ?? "Select app"}
+                    className="size-6 text-xs"
+                  />
+                )}
                 <span className="truncate text-grey-900">
                   <Typography
                     variant={selected ? TYPOGRAPHY.M4 : TYPOGRAPHY.R4}
