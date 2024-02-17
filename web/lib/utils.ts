@@ -29,7 +29,7 @@ export const sequencerMapping: Record<
  * @param candidate
  * @returns
  */
-export const validateUrl = (candidate: string): boolean => {
+export const validateUrl = (candidate: string, isStaging: boolean): boolean => {
   let parsedUrl;
   try {
     parsedUrl = new URL(candidate);
@@ -43,6 +43,9 @@ export const validateUrl = (candidate: string): boolean => {
   if (!isLocalhost) {
     return isHttps;
   }
+
+  // If the URL is localhost, we only allow it if we're in a staging environment
+  if (!isStaging) return false;
 
   const localhostRegex =
     /^https?:\/\/localhost(:[0-9]+)?(\/[^\s?]*)(\\?[^\s]*)?$/;
