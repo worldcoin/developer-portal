@@ -11,9 +11,10 @@ import QRCode from "react-qr-code";
 export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
   showSimulator: boolean;
+  qrCodeSize?: number;
 }) {
   const [copied, setCopied] = useState(false);
-  const { qrData, showSimulator } = props;
+  const { qrData, showSimulator, qrCodeSize } = props;
   const params = useParams();
 
   const handleCopy = useCallback(() => {
@@ -37,7 +38,7 @@ export const Waiting = memo(function Waiting(props: {
       <div className="flex flex-col items-center gap-y-5 rounded-[10px] bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
         {qrData && (
           <QRCode
-            size={180}
+            size={qrCodeSize}
             className="h-auto w-full max-w-full "
             value={qrData}
           />

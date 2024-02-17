@@ -142,7 +142,11 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         )}
 
         {screen === KioskScreen.Waiting && (
-          <Waiting qrData={qrData} showSimulator={action.app.is_staging} />
+          <Waiting
+            qrData={qrData}
+            showSimulator={action.app.is_staging}
+            qrCodeSize={180}
+          />
         )}
         {screen === KioskScreen.Connected && <Connected reset={resetKiosk} />}
         {screen === KioskScreen.Success && <Success reset={resetKiosk} />}
