@@ -26,11 +26,19 @@ export const Link = memo(function Link(props: CommonLinkProps) {
     return href.startsWith("http") || href.startsWith("mailto");
   }, [href]);
 
+  const apiUrl = useMemo(() => {
+    if (!href) {
+      return false;
+    }
+
+    return href.startsWith("/api");
+  }, [href]);
+
   return (
     <>
-      {external && (
+      {(external || apiUrl) && (
         <a
-          target={target ?? "_blank"}
+          target={target ?? apiUrl ? "_self" : "_blank"}
           href={href ?? "!#"}
           className={clsx("leading-none", className)}
           {...restProps}
@@ -39,7 +47,7 @@ export const Link = memo(function Link(props: CommonLinkProps) {
         </a>
       )}
 
-      {!external && (
+      {!external && !apiUrl && (
         <NextLink
           href={href ?? "!#"}
           prefetch={prefetch}

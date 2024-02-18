@@ -1,4 +1,5 @@
 import { loginCallback } from "@/api/login-callback";
+import { urls } from "@/lib/urls";
 
 import {
   AppRouteHandlerFnContext,
@@ -11,14 +12,13 @@ import {
 
 import { NextRequest, NextResponse } from "next/server";
 
-export const auth0 = handleAuth({
+export const GET = handleAuth({
   login: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
-    const invite_id = req.nextUrl.searchParams.get("invite_id");
+    const invite_id = req.nextUrl.searchParams.get("invite_id") ?? undefined;
+    const returnTo = req.nextUrl.searchParams.get("returnTo") ?? undefined;
 
     return handleLogin(req, ctx, {
-      returnTo: invite_id
-        ? `/api/auth/login-callback?invite_id=${invite_id}`
-        : "/api/auth/login-callback",
+      returnTo: urls.api.loginCallback({ invite_id, returnTo }),
     });
   },
 
@@ -27,7 +27,7 @@ export const auth0 = handleAuth({
   // TODO: Add delete account handler
 
   logout: handleLogout({
-    returnTo: "/login",
+    returnTo: urls.login(),
   }),
 
   onError: (_req: NextRequest, error: HandlerError) => {

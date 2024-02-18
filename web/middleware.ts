@@ -5,6 +5,7 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
 import { Auth0SessionUser } from "./lib/types";
+import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
 
 const cdnURLObject = new URL(
@@ -115,27 +116,35 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
   return false;
 };
 
-export default withMiddlewareAuthRequired(async function middleware(
-  request: NextRequest,
-) {
-  const redirect = await checkRouteRolesRestrictions(request);
-  if (redirect) {
-    return redirect;
-  }
-  const { csp, nonce } = generateCsp();
-  const headers = new Headers(request.headers);
+export default withMiddlewareAuthRequired({
+  middleware: async function middleware(request: NextRequest) {
+    const redirect = await checkRouteRolesRestrictions(request);
 
-  headers.set("x-nonce", nonce);
-  headers.set("content-security-policy", csp);
+    if (redirect) {
+      return redirect;
+    }
 
-  const response = NextResponse.next({ request: { headers } });
+    const { csp, nonce } = generateCsp();
+    const headers = new Headers(request.headers);
+    headers.set("x-nonce", nonce);
+    headers.set("content-security-policy", csp);
+    const response = NextResponse.next({ request: { headers } });
+    response.headers.set("content-security-policy", csp);
+    response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+    return response;
+  },
 
-  response.headers.set("content-security-policy", csp);
-  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-
-  return response;
+  returnTo: (req) =>
+    urls.api.loginCallback({
+      returnTo: req.nextUrl.pathname,
+    }),
 });
 
 export const config = {
-  matcher: ["/teams/:path*", "/create-team", "/profile", "/join-callback"],
+  matcher: [
+    "/teams/:path*",
+    "/create-team",
+    "/profile/:path*",
+    "/join-callback",
+  ],
 };
