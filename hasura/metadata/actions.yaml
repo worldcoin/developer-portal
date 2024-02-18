@@ -29,6 +29,26 @@ actions:
     permissions:
       - role: user
       - role: api_key
+  - name: get_app_review_images
+    definition:
+      kind: ""
+      handler: '{{NEXT_API_URL}}/images/_get_app_review_images'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+      request_transform:
+        method: GET
+        query_params:
+          app_id: '{{$body.input.app_id}}'
+        request_headers:
+          add_headers: {}
+          remove_headers:
+            - content-type
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: reviewer
+    comment: Used by the reviewer to get in review app images
   - name: get_uploaded_image
     definition:
       kind: ""
@@ -141,4 +161,5 @@ custom_types:
     - name: PresignedPostOutput
     - name: DeleteImageOutput
     - name: VerifyAppOutput
+    - name: ImageGetAppReviewImagesOutput
   scalars: []
