@@ -5,8 +5,8 @@ import {
   NormalizedCacheObject,
 } from "@apollo/client";
 
-import { setContext } from "@apollo/client/link/context";
 import { generateReviewerJWT, generateServiceJWT } from "@/legacy/backend/jwts";
+import { setContext } from "@apollo/client/link/context";
 import { GraphQLClient } from "graphql-request";
 
 const httpLink = createHttpLink({
