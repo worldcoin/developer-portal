@@ -12,6 +12,7 @@ import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { WorldcoinTextLogo } from "@/components/Icons/WorldcoinTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
+import { KioskScreen } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
 import clsx from "clsx";
@@ -36,18 +37,6 @@ type ProofResponse = {
   detail?: string;
   attribute?: string;
 };
-
-export enum KioskScreen {
-  Waiting,
-  Connected,
-  AlreadyVerified,
-  VerificationRejected,
-  ConnectionError,
-  Success,
-  InvalidIdentity,
-  VerificationError,
-  InvalidRequest,
-}
 
 interface SuccessParams {
   timestamp: dayjs.Dayjs; // Assuming timestamp is a Dayjs object based on your usage

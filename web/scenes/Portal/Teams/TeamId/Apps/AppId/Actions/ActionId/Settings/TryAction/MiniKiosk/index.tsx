@@ -1,4 +1,5 @@
 import { restAPIRequest } from "@/lib/frontend-api";
+import { KioskScreen } from "@/lib/types";
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
@@ -17,18 +18,6 @@ type ProofResponse = {
   detail?: string;
   attribute?: string;
 };
-
-export enum KioskScreen {
-  Waiting,
-  Connected,
-  AlreadyVerified,
-  VerificationRejected,
-  ConnectionError,
-  Success,
-  InvalidIdentity,
-  VerificationError,
-  InvalidRequest,
-}
 
 type MiniKioskProps = {
   action: {

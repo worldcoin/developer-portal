@@ -1,3 +1,4 @@
+import { KioskScreen } from "@/lib/types";
 import {
   VerificationLevel,
   VerificationState,
@@ -5,7 +6,6 @@ import {
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";
-import { KioskScreen } from "../../../Settings/TryAction/MiniKiosk";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
