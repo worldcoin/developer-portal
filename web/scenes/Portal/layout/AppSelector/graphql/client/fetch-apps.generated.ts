@@ -12,6 +12,10 @@ export type FetchAppsQuery = {
     __typename?: "app";
     id: string;
     app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
+    verified_app_metadata: Array<{
+      __typename?: "app_metadata";
+      logo_img_url: string;
+    }>;
   }>;
 };
 
@@ -21,6 +25,11 @@ export const FetchAppsDocument = gql`
       id
       app_metadata {
         name
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+      ) {
+        logo_img_url
       }
     }
   }

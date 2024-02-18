@@ -1,7 +1,7 @@
 "use client";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../../Common/ActionsHeader";
+import { ActionsHeader } from "../../Components/ActionsHeader";
 import { Debugger } from "../Debugger";
 import { useDebuggerQuery } from "./graphql/client/debugger.generated";
 

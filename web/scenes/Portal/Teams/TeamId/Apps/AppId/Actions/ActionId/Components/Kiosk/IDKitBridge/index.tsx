@@ -1,3 +1,4 @@
+import { KioskScreen } from "@/lib/types";
 import {
   VerificationLevel,
   VerificationState,
@@ -5,13 +6,13 @@ import {
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";
-import { KioskScreen } from "..";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
   action: string;
   action_description: string;
   connectionTimeout: boolean;
+  verificationLevel?: VerificationLevel;
   setScreen: (screen: KioskScreen) => void;
   setQrData: (qrData: string) => void;
   setProofResult: (result: any) => void;
@@ -22,6 +23,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const {
     connectionTimeout,
+    verificationLevel,
     setScreen,
     setQrData,
     setProofResult,
@@ -45,7 +47,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       app_id: props.app_id,
       action: props.action,
       bridge_url,
-      verification_level: VerificationLevel.Device,
+      verification_level: verificationLevel ?? VerificationLevel.Device,
       action_description: props.action_description,
     })
       .then(() => {
@@ -73,6 +75,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
     props.action,
     props.action_description,
     props.app_id,
+    verificationLevel,
   ]);
 
   // Change the shown screen based on current verificationState and errorCode

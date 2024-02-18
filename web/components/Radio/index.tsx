@@ -1,23 +1,24 @@
 "use client";
 
 import clsx from "clsx";
-import React, { memo } from "react";
+import React, { InputHTMLAttributes, memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
-export type RadioProps = {
-  register: UseFormRegisterReturn;
+export interface RadioProps extends InputHTMLAttributes<HTMLInputElement> {
+  register?: UseFormRegisterReturn;
   required?: boolean;
   label?: string;
   disabled?: boolean;
   value: string;
   errors?: FieldError;
   className?: string;
-};
+}
 
 export const Radio: React.FC<RadioProps> = memo(function Radio(
   props: RadioProps,
 ) {
-  const { register, label, disabled, value, className, errors } = props;
+  const { register, label, disabled, value, className, errors, ...restProps } =
+    props;
 
   // Note we use 2 pseudo elements plus the input to form the border, inner ring and white circle.
   return (
@@ -27,6 +28,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
         {...register}
         value={value}
         id={value}
+        {...restProps}
         className={clsx(
           "bg-white after:size-[12px] after:shadow-[0_1px_1.4px_rgba(0,0,0,0.12)]", // Drop shadow with blur of 2.4 and 12% opacity
           "peer scale-125",

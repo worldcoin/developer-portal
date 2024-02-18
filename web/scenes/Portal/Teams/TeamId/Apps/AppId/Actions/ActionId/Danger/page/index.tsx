@@ -1,7 +1,7 @@
 "use client";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../../Common/ActionsHeader";
+import { ActionsHeader } from "../../Components/ActionsHeader";
 import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 

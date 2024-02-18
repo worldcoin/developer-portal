@@ -23,7 +23,7 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   return (
     <Button
       href={urls.app({ team_id: teamId, app_id: app.id })}
-      className="relative grid justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500"
+      className="relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500"
     >
       <AppStatus
         status={metadata.verification_status as StatusVariant}
@@ -38,12 +38,12 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
         verification_status={metadata.verification_status as StatusVariant}
       />
 
-      <div className="grid gap-y-1">
-        <Typography variant={TYPOGRAPHY.M3} className="text-center">
+      <div className="grid max-w-[200px] justify-center gap-y-1">
+        <Typography variant={TYPOGRAPHY.M3} className="truncate text-center">
           {metadata.name}
         </Typography>
 
-        <div className="flex gap-x-4">
+        <div className="flex items-center justify-center gap-x-4">
           <Environment environment={environment} engine={app.engine} />
         </div>
       </div>

@@ -68,6 +68,16 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
               <Typography variant={TYPOGRAPHY.R4}>Proof debugging</Typography>
             </Tab>
 
+            {!isOnChainApp && (
+              <Tab
+                className="py-4"
+                href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/kiosk`}
+                segment={"kiosk"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Kiosk</Typography>
+              </Tab>
+            )}
+
             {isEnoughPermissions && (
               <Tab
                 className="py-4"
