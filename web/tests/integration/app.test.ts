@@ -6,10 +6,10 @@ import {
   integrationDBTearDown,
 } from "./setup";
 
-import { getAPIClient, getAPIUserClient } from "./test-utils";
-import { createMocks } from "node-mocks-http";
 import { handleSecretReset } from "@/legacy/api/_reset-client-secret";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { getAPIClient, getAPIUserClient } from "./test-utils";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
