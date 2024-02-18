@@ -233,6 +233,13 @@ export const List = (props: { search?: string }) => {
     [deleteInvite, deleteInviteMutationLoading, isEnoughPermissions],
   );
 
+  const isCurrentMember = useCallback(
+    (membership: (typeof membersToRender)[number]) => {
+      return membership.user.id === user?.hasura.id;
+    },
+    [user?.hasura.id],
+  );
+
   return (
     <div>
       <div className="grid grid-cols-[1fr_1fr_auto]">
@@ -296,14 +303,21 @@ export const List = (props: { search?: string }) => {
                     )}
                   </div>
 
-                  <div
-                    className={clsx(
-                      "flex items-center border-b border-grey-100 px-2 py-4",
-                      { hidden: !isEnoughPermissions },
-                    )}
-                  >
+                  <div className="flex items-center border-b border-grey-100 px-2 py-4">
                     <Dropdown>
-                      <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
+                      <DropdownButton
+                        disabled={
+                          !isEnoughPermissions || isCurrentMember(membership)
+                        }
+                        className={clsx(
+                          "rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100",
+                          {
+                            "pointer-events-none invisible":
+                              !isEnoughPermissions ||
+                              isCurrentMember(membership),
+                          },
+                        )}
+                      >
                         <MoreVerticalIcon className="text-grey-900" />
                       </DropdownButton>
 

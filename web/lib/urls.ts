@@ -48,9 +48,40 @@ export const urls = {
   privacyStatement: (): "/privacy-statement" => "/privacy-statement",
 
   api: {
+    loginCallback: (params?: {
+      invite_id?: string | null;
+      returnTo?: string | null;
+    }) => {
+      const searchParams = new URLSearchParams();
+
+      if (params?.invite_id) {
+        searchParams.append("invite_id", params.invite_id);
+      }
+
+      if (params?.returnTo) {
+        searchParams.append("returnTo", params.returnTo);
+      }
+
+      return `/api/auth/login-callback?${searchParams.toString()}`;
+    },
+
     joinCallback: (): "/api/join-callback" => "/api/join-callback",
 
-    authLogin: (params?: { invite_id: string }): string =>
-      `/api/auth/login${params?.invite_id ? `?invite_id=${params.invite_id}` : ""}`,
+    authLogin: (params?: {
+      invite_id?: string | null;
+      returnTo?: string | null;
+    }): string => {
+      const searchParams = new URLSearchParams();
+
+      if (params?.invite_id) {
+        searchParams.append("invite_id", params.invite_id);
+      }
+
+      if (params?.returnTo) {
+        searchParams.append("returnTo", params.returnTo);
+      }
+
+      return `/api/auth/login?${searchParams.toString()}`;
+    },
   },
 };
