@@ -88,10 +88,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       });
 
       toast.success("Team deleted!");
-
       const membershipsCount = fetchMembershipsResult.data?.membership.length;
-
-      console.log("membershipsCount", membershipsCount);
 
       if (typeof membershipsCount === "number" && membershipsCount === 0) {
         return router.push(urls.createTeam());
