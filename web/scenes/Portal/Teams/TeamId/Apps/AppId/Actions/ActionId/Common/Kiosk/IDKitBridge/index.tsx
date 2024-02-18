@@ -5,7 +5,7 @@ import {
 } from "@worldcoin/idkit-core";
 
 import { memo, useEffect, useState } from "react";
-import { KioskScreen } from "..";
+import { KioskScreen } from "../../../Settings/TryAction/MiniKiosk";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;

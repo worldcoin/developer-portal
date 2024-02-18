@@ -2,11 +2,11 @@ import { restAPIRequest } from "@/lib/frontend-api";
 import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
-import { Connected } from "./Connected";
-import { IDKitBridge } from "./IDKitBridge";
-import { KioskError } from "./KioskError";
-import { Success } from "./Success";
-import { Waiting } from "./Waiting";
+import { Connected } from "../../../Common/Kiosk/Connected";
+import { IDKitBridge } from "../../../Common/Kiosk/IDKitBridge";
+import { KioskError } from "../../../Common/Kiosk/KioskError";
+import { Success } from "../../../Common/Kiosk/Success";
+import { Waiting } from "../../../Common/Kiosk/Waiting";
 
 type ProofResponse = {
   success: boolean;
