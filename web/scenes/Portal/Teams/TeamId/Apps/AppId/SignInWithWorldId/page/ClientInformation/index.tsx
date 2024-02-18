@@ -37,7 +37,9 @@ export const ClientInformationPage = (props: {
     variables: { app_id: appID },
     context: { headers: { team_id: teamID } },
   });
+
   const signInAction = data?.action[0];
+  const isStaging = data?.app[0]?.is_staging;
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
     variables: { app_id: appID },
@@ -146,6 +148,7 @@ export const ClientInformationPage = (props: {
             <Redirects
               actionId={signInAction?.id!}
               teamId={teamID}
+              isStaging={isStaging ?? false}
               appId={appID}
               canEdit={isEnoughPermissions}
             />

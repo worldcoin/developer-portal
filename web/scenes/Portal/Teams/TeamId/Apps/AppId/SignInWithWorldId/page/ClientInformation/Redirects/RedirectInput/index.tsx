@@ -2,7 +2,7 @@
 import { validateUrl } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { InputHTMLAttributes, memo } from "react";
+import { InputHTMLAttributes, memo, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import * as yup from "yup";
@@ -14,19 +14,9 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   helperText?: string;
   addOnRight?: React.ReactElement;
   className?: string;
+  isStaging: boolean;
   handleChange: (value: string) => void;
 }
-
-const schema = yup.object({
-  url: yup
-    .string()
-    .required("A valid url is required")
-    .test("is-url", "Must be a valid URL", (value) => {
-      return value != null ? validateUrl(value) : true;
-    }),
-});
-
-type UrlFormValues = yup.InferType<typeof schema>;
 
 export const RedirectInput = memo(function Input(props: InputInterface) {
   const {
@@ -37,9 +27,24 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
     className,
     addOnRight,
     disabled,
+    isStaging,
     handleChange,
-    ...restProps
   } = props;
+
+  const schema = useMemo(
+    () =>
+      yup.object({
+        url: yup
+          .string()
+          .required("A valid url is required")
+          .test("is-url", "Must be a valid URL", (value) => {
+            return value != null ? validateUrl(value, isStaging) : true;
+          }),
+      }),
+    [isStaging],
+  );
+
+  type UrlFormValues = yup.InferType<typeof schema>;
 
   const {
     register,

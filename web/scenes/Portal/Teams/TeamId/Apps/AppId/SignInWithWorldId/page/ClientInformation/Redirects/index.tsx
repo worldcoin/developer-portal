@@ -1,29 +1,30 @@
 "use client";
 
+import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
+import posthog from "posthog-js";
+import { memo, useCallback, useState } from "react";
+import { toast } from "react-toastify";
+import { RedirectInput } from "./RedirectInput";
+import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.generated";
 import {
   RedirectsDocument,
   useRedirectsQuery,
 } from "./graphql/client/fetch-redirect.generated";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { memo, useCallback, useState } from "react";
-import { RedirectInput } from "./RedirectInput";
 import { useInsertRedirectMutation } from "./graphql/client/insert-redirect.generated";
 import { useUpdateRedirectMutation } from "./graphql/client/update-redirect.generated";
-import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.generated";
-import { toast } from "react-toastify";
-import { Button } from "@/components/Button";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import posthog from "posthog-js";
-import clsx from "clsx";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
   appId: string;
+  isStaging: boolean;
   teamId: string;
   canEdit: boolean;
 }) {
-  const { actionId, appId, teamId, canEdit } = props;
+  const { actionId, appId, isStaging, teamId, canEdit } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
   const { data, loading } = useRedirectsQuery({
@@ -111,6 +112,7 @@ export const Redirects = memo(function Redirects(props: {
           placeholder="https://"
           currentValue={redirect.redirect_uri}
           className="h-14"
+          isStaging={isStaging}
           disabled={!canEdit}
           addOnRight={
             <Button
@@ -145,6 +147,7 @@ export const Redirects = memo(function Redirects(props: {
           currentValue=""
           placeholder="https://"
           className="h-14"
+          isStaging={isStaging}
           disabled={!canEdit}
           addOnRight={
             <Button
