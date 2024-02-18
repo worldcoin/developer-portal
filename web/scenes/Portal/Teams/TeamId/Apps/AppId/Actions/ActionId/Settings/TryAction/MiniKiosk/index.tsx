@@ -1,12 +1,17 @@
 import { restAPIRequest } from "@/lib/frontend-api";
-import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
+import { KioskScreen } from "@/lib/types";
+import {
+  ISuccessResult,
+  VerificationLevel,
+  useWorldBridgeStore,
+} from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
-import { Connected } from "./Connected";
-import { IDKitBridge } from "./IDKitBridge";
-import { KioskError } from "./KioskError";
-import { Success } from "./Success";
-import { Waiting } from "./Waiting";
+import { Connected } from "../../../Components/Kiosk/Connected";
+import { IDKitBridge } from "../../../Components/Kiosk/IDKitBridge";
+import { KioskError } from "../../../Components/Kiosk/KioskError";
+import { Success } from "../../../Components/Kiosk/Success";
+import { Waiting } from "../../../Components/Kiosk/Waiting";
 
 type ProofResponse = {
   success: boolean;
@@ -17,18 +22,6 @@ type ProofResponse = {
   detail?: string;
   attribute?: string;
 };
-
-export enum KioskScreen {
-  Waiting,
-  Connected,
-  AlreadyVerified,
-  VerificationRejected,
-  ConnectionError,
-  Success,
-  InvalidIdentity,
-  VerificationError,
-  InvalidRequest,
-}
 
 type MiniKioskProps = {
   action: {
@@ -44,6 +37,9 @@ export const MiniKiosk = (props: MiniKioskProps) => {
   const [qrData, setQrData] = useState<string | null>(null);
   const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
   const [connectionTimeout, setConnectionTimeout] = useState<boolean>(true);
+  const [kioskVerificationLevel, setKioskVerificationLevel] =
+    useState<VerificationLevel>(VerificationLevel.Device);
+
   const { reset } = useWorldBridgeStore();
   const { action } = props;
   const appId = action.app_id as `app_${string}`;
@@ -55,6 +51,14 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     setProofResult(null);
     setConnectionTimeout(true);
   }, [reset]);
+
+  const resetKioskAndUpdateVerificationLevel = useCallback(
+    (newVerificationLevel: VerificationLevel) => {
+      setKioskVerificationLevel(newVerificationLevel);
+      resetKiosk();
+    },
+    [resetKiosk],
+  );
 
   // Reset kiosk if the action changes
   useEffect(() => {
@@ -133,6 +137,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
             app_id={appId}
             action={action.action}
             action_description={action.description}
+            verificationLevel={kioskVerificationLevel}
             setScreen={setScreen}
             setQrData={setQrData}
             setProofResult={setProofResult}
@@ -142,7 +147,15 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         )}
 
         {screen === KioskScreen.Waiting && (
-          <Waiting qrData={qrData} showSimulator={action.app.is_staging} />
+          <Waiting
+            qrData={qrData}
+            verificationLevel={kioskVerificationLevel}
+            resetKioskAndUpdateVerificationLevel={
+              resetKioskAndUpdateVerificationLevel
+            }
+            showSimulator={action.app.is_staging}
+            qrCodeSize={180}
+          />
         )}
         {screen === KioskScreen.Connected && <Connected reset={resetKiosk} />}
         {screen === KioskScreen.Success && <Success reset={resetKiosk} />}
@@ -177,7 +190,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         {screen === KioskScreen.InvalidIdentity && (
           <KioskError
             title="Not verified"
-            description="Person is not verified with World ID. They can visit an orb to verify."
+            description="User has not been verified by an orb. Please try again after verifying."
             buttonText="New verification"
             reset={resetKiosk}
           />

@@ -1,0 +1,19 @@
+query GetKioskAction($action_id: String!, $app_id: String!) {
+  action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
+    id
+    app_id
+    action
+    description
+    name
+    max_verifications
+    kiosk_enabled
+  }
+  app_metadata(
+    where: {
+      app_id: { _eq: $app_id }
+      verification_status: { _eq: "verified" }
+    }
+  ) {
+    logo_img_url
+  }
+}

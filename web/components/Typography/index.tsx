@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 
 // NOTE: these namings come from Figma
 export enum TYPOGRAPHY {
+  H4 = "h4",
   H6 = "h6",
   H7 = "h7",
 
@@ -44,6 +45,8 @@ export const Typography = <T extends ElementType = "span">(
     <Component
       className={twMerge(
         clsx(className, {
+          "font-twk text-4xl font-medium leading-[1.3]":
+            variant === TYPOGRAPHY.H4,
           "font-twk text-2xl font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H6,
           "font-twk text-lg font-medium leading-[1.3]":

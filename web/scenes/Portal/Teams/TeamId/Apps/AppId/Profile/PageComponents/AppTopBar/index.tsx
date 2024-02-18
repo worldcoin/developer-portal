@@ -306,9 +306,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
           editable={isEditable && isEnoughPermissions}
           logoFile={appMetaData.logo_img_url}
         />
-        <div className="grid grid-cols-1 gap-y-1">
+        <div className="grid max-w-[300px] grid-cols-1 gap-y-1 md:max-w-[500px]">
           <div className="flex flex-row items-center gap-x-3">
-            <Typography variant={TYPOGRAPHY.H6}>{appMetaData.name}</Typography>
+            <Typography variant={TYPOGRAPHY.H6} className="truncate">
+              {appMetaData.name}
+            </Typography>
             <AppStatus
               status={appMetaData.verification_status as StatusVariant}
             />

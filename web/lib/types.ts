@@ -116,3 +116,15 @@ export type Auth0SessionUser = Omit<UserContext, "user"> & {
     >["user"];
   };
 };
+
+export enum KioskScreen {
+  Waiting,
+  Connected,
+  AlreadyVerified,
+  VerificationRejected,
+  ConnectionError,
+  Success,
+  InvalidIdentity,
+  VerificationError,
+  InvalidRequest,
+}

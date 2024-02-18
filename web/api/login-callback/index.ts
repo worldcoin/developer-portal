@@ -271,7 +271,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
-  const teamId = user?.memberships[0].team.id;
+  const teamId = user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const returnTo = req.nextUrl.searchParams.get("returnTo");
 
@@ -281,6 +281,10 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
   if (!returnTo && teamId) {
     url = urls.teams({ team_id: teamId });
+  }
+
+  if (!returnTo && !teamId) {
+    url = urls.createTeam();
   }
 
   const res = NextResponse.redirect(

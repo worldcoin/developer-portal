@@ -2,18 +2,29 @@ import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { memo, useCallback, useState } from "react";
 import QRCode from "react-qr-code";
+import { VerificationLevelPicker } from "../VerificationLevelPicker";
 
 export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
   showSimulator: boolean;
+  qrCodeSize?: number;
+  verificationLevel?: VerificationLevel;
+  resetKioskAndUpdateVerificationLevel?: (value: VerificationLevel) => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const { qrData, showSimulator } = props;
+  const {
+    qrData,
+    showSimulator,
+    qrCodeSize,
+    verificationLevel,
+    resetKioskAndUpdateVerificationLevel,
+  } = props;
   const params = useParams();
 
   const handleCopy = useCallback(() => {
@@ -37,7 +48,7 @@ export const Waiting = memo(function Waiting(props: {
       <div className="flex flex-col items-center gap-y-5 rounded-[10px] bg-white p-10 shadow-qrCode portrait:py-12 landscape:py-6">
         {qrData && (
           <QRCode
-            size={180}
+            size={qrCodeSize}
             className="h-auto w-full max-w-full "
             value={qrData}
           />
@@ -59,23 +70,36 @@ export const Waiting = memo(function Waiting(props: {
           </Typography>
         </Button>
       </div>
-      {showSimulator && (
-        <DecoratedButton
-          href="https://simulator.worldcoin.org/"
-          variant="secondary"
-          className="w-full py-4"
-        >
-          <Typography variant={TYPOGRAPHY.M3}>Test in simulator</Typography>
-        </DecoratedButton>
-      )}
-      {!showSimulator && (
-        <Typography
-          variant={TYPOGRAPHY.M3}
-          className="text-center text-grey-700"
-        >
-          Scan with World App
-        </Typography>
-      )}
+      <div className="grid gap-y-2">
+        {/* If we want to show a verification level picker */}
+        {verificationLevel && resetKioskAndUpdateVerificationLevel && (
+          <VerificationLevelPicker
+            resetKioskAndUpdateVerificationLevel={
+              resetKioskAndUpdateVerificationLevel
+            }
+            verificationLevel={verificationLevel}
+          />
+        )}
+
+        {showSimulator && (
+          <DecoratedButton
+            href="https://simulator.worldcoin.org/"
+            variant="secondary"
+            className="w-full py-3"
+          >
+            <Typography variant={TYPOGRAPHY.M3}>Test in simulator</Typography>
+          </DecoratedButton>
+        )}
+
+        {!showSimulator && (
+          <Typography
+            variant={TYPOGRAPHY.M3}
+            className="text-center text-grey-700"
+          >
+            Scan using the World App
+          </Typography>
+        )}
+      </div>
     </div>
   );
 });
