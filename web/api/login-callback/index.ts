@@ -271,7 +271,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
-  const teamId = user?.memberships[0].team.id;
+  const teamId = user?.memberships[0]?.team.id;
 
   const res = NextResponse.redirect(
     new URL(
@@ -279,7 +279,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         ? urls.app({
             team_id: teamId,
           })
-        : urls.profile(),
+        : urls.createTeam(),
       process.env.NEXT_PUBLIC_APP_URL,
     ),
     307,
