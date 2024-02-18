@@ -14,7 +14,11 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
 import { KioskScreen } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
-import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
+import {
+  ISuccessResult,
+  VerificationLevel,
+  useWorldBridgeStore,
+} from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
@@ -47,6 +51,7 @@ type ActiveKioskPageProps = {
   params: Record<string, string> | null | undefined;
   data: GetKioskActionQuery;
   toggleKiosk: (value: boolean) => void;
+  verificationLevel?: VerificationLevel;
 };
 export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
@@ -185,7 +190,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
           <div className="z-[100] flex w-1/3 flex-col items-center justify-end md:flex-row md:gap-x-4 md:pr-6">
             <Dropdown>
-              <DropdownButton className="grid grid-cols-1fr/auto px-3 font-rubik text-xs font-medium md:text-base">
+              <DropdownButton className="grid grid-cols-1fr/auto px-3 font-rubik text-xs font-medium md:text-sm">
                 Reset Interval
                 <CaretIcon className="ml-1" />
               </DropdownButton>
@@ -297,6 +302,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
                 setProofResult={setProofResult}
                 resetKiosk={resetKiosk}
                 connectionTimeout={connectionTimeout}
+                verificationLevel={props.verificationLevel}
               />
             )}
 
@@ -338,7 +344,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
             {screen === KioskScreen.InvalidIdentity && (
               <KioskError
                 title="Not verified"
-                description="Person is not verified with World ID. They can visit an orb to verify."
+                description="User has not been verified by an orb. Please try again after verifying."
                 buttonText="New verification"
                 reset={resetKiosk}
               />

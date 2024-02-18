@@ -1,9 +1,11 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
 import { ActionsHeader } from "../Common/ActionsHeader";
+import { VerificationLevelPicker } from "../Common/Kiosk/VerificationLevelPicker";
 import { ActiveKioskPage } from "./ActiveKiosk";
 import {
   GetKioskActionDocument,
@@ -17,6 +19,8 @@ type ActionIdKioskPageProps = {
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const { params } = props;
   const [showKiosk, setShowKiosk] = useState(false);
+  const [kioskVerificationLevel, setKioskVerificationLevel] =
+    useState<VerificationLevel>(VerificationLevel.Device);
 
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
@@ -60,6 +64,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
           params={params}
           data={data}
           toggleKiosk={setShowKiosk}
+          verificationLevel={kioskVerificationLevel}
         />
       )}
       <div className="grid w-full grid-cols-1fr/auto items-start justify-start gap-y-5">
@@ -90,7 +95,13 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                 {kioskAction?.kiosk_enabled ? "Enabled" : "Disabled"}
               </span>
             </Typography>
-
+            {kioskAction?.kiosk_enabled && (
+              <VerificationLevelPicker
+                verificationLevel={kioskVerificationLevel}
+                resetKioskAndUpdateVerificationLevel={setKioskVerificationLevel}
+                className="justify-start"
+              />
+            )}
             {!kioskAction?.kiosk_enabled ? (
               <DecoratedButton
                 type="button"
