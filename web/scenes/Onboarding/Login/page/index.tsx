@@ -1,44 +1,87 @@
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
 import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { logger } from "@/lib/logger";
+import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { getSession } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
+import {
+  FetchMembershipsQuery,
+  getSdk as getFetchMembershipsSdk,
+} from "./graphql/server/fetch-memberships.generated";
 
-export const LoginPage = () => (
-  <div className="flex size-full items-center justify-center">
-    <div className="grid max-w-[360px] gap-y-10">
-      <LayersIconFrame>
-        <WorldcoinBlueprintIcon />
-      </LayersIconFrame>
+export const LoginPage = async () => {
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
 
-      <div className="grid gap-y-3">
-        <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
-          World ID is now generally available
-        </Typography>
+  if (user) {
+    const client = await getAPIServiceGraphqlClient();
 
-        <Typography
-          as="p"
-          variant={TYPOGRAPHY.R3}
-          className="text-center text-grey-500"
-        >
-          The Worldcoin Protocol will enable a new class of applications built
-          on top of proof of personhood
-        </Typography>
-      </div>
+    let membership: FetchMembershipsQuery["membership"] | null = null;
 
-      <div className="grid gap-y-4">
-        <DecoratedButton href={urls.api.authLogin()} className="py-4">
-          Create an account
-        </DecoratedButton>
+    try {
+      const data = await getFetchMembershipsSdk(client).FetchMemberships({
+        userId: user?.hasura.id,
+      });
 
-        <DecoratedButton
-          variant="secondary"
-          className="py-4"
-          href="https://docs.worldcoin.org"
-        >
-          Explore Docs
-        </DecoratedButton>
+      membership = data.membership;
+    } catch (error) {
+      logger.error(
+        "Error fetching memberships on login page with active session",
+        { error },
+      );
+
+      return redirect(urls.logout());
+    }
+
+    if (membership?.length > 0) {
+      return redirect(urls.apps({ team_id: membership[0].team_id }));
+    }
+
+    if (membership?.length === 0) {
+      return redirect(urls.createTeam());
+    }
+  }
+
+  return (
+    <div className="flex size-full items-center justify-center">
+      <div className="grid max-w-[360px] gap-y-10">
+        <LayersIconFrame>
+          <WorldcoinBlueprintIcon />
+        </LayersIconFrame>
+
+        <div className="grid gap-y-3">
+          <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
+            World ID is now generally available
+          </Typography>
+
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.R3}
+            className="text-center text-grey-500"
+          >
+            The Worldcoin Protocol will enable a new class of applications built
+            on top of proof of personhood
+          </Typography>
+        </div>
+
+        <div className="grid gap-y-4">
+          <DecoratedButton href={urls.api.authLogin()} className="py-4">
+            Create an account
+          </DecoratedButton>
+
+          <DecoratedButton
+            variant="secondary"
+            className="py-4"
+            href="https://docs.worldcoin.org"
+          >
+            Explore Docs
+          </DecoratedButton>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
