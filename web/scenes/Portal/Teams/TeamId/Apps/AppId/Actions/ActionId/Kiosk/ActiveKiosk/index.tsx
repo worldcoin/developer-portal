@@ -259,7 +259,12 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
                 className="size-8 rounded-full"
               />
             )}
-            <div className="font-rubik text-14 font-medium">{action?.name}</div>
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="max-w-[100px] truncate"
+            >
+              {action?.name}
+            </Typography>
           </div>
         </header>
 
