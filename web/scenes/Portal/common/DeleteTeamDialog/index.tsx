@@ -71,7 +71,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const submit = useCallback(async () => {
     if (!team?.id || !user?.hasura?.id) {
-      return toast.error("Error team deleting. Try later");
+      return toast.error("Error deleting team. Try again later");
     }
 
     try {
