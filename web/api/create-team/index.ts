@@ -33,14 +33,9 @@ import {
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
 
-import {
-  FetchUserQuery,
-  getSdk as getFetchUserSdk,
-} from "./graphql/fetch-user.generated";
-
 const schema = yup.object({
   team_name: yup.string().strict().required(),
-  hasMemberships: yup.boolean(),
+  hasUser: yup.boolean(),
 });
 
 export type CreateTeamBody = yup.InferType<typeof schema>;
@@ -85,12 +80,12 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { team_name, hasMemberships } = parsedParams;
+  const { team_name, hasUser } = parsedParams;
 
   // ANCHOR: Sending acceptance
   let ironCladUserId: string | null = null;
 
-  if (!hasMemberships) {
+  if (!hasUser) {
     const ironcladActivityApi = new IroncladActivityApi();
     ironCladUserId = crypto.randomUUID();
 
@@ -152,28 +147,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
-  // ANCHOR: Fetch user
-  let fetchedUser: FetchUserQuery["user_by_pk"] | null = null;
-
-  if (hasuraUserId && !hasMemberships) {
-    try {
-      const { user_by_pk } = await getFetchUserSdk(client).FetchUser({
-        userId: hasuraUserId,
-      });
-
-      fetchedUser = user_by_pk;
-    } catch (error) {
-      logger.error("Error while fetching user on create team:", { error });
-
-      return errorResponse({
-        statusCode: 500,
-        code: "server_error",
-        detail: "Failed to create team",
-        req,
-      });
-    }
-  }
-
   // ANCHOR: Insert user
   let nullifier_hash: string | undefined = undefined;
 
@@ -184,7 +157,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
 
-  if (!hasMemberships && !fetchedUser) {
+  if (!hasUser) {
     try {
       const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
         user_data: {
@@ -221,7 +194,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     | null = null;
 
   try {
-    const user_id = hasMemberships ? hasuraUserId : insertedUser?.id;
+    const user_id = hasUser ? hasuraUserId : insertedUser?.id;
 
     if (!insertedTeam?.id) {
       throw new Error("Team id is null");
@@ -263,7 +236,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   const user = insertedMembership.user;
 
-  const returnTo = urls[hasMemberships ? "teams" : "app"]({
+  const returnTo = urls[hasUser ? "teams" : "app"]({
     team_id: insertedMembership.team_id,
   });
 

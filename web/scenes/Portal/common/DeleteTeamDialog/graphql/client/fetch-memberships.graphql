@@ -1,5 +1,5 @@
 query FetchMemberships($userId: String!) {
   membership(where: { user_id: { _eq: $userId } }) {
-    team_id
+    id
   }
 }

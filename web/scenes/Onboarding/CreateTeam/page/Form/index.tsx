@@ -14,17 +14,17 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
-export const Form = (props: { hasMemberships: boolean }) => {
+export const Form = (props: { hasUser: boolean }) => {
   const router = useRouter();
   const { checkSession } = useUser();
 
   const schema = useMemo(
     () =>
       yup.object({
-        hasMemberships: yup.boolean().default(props.hasMemberships),
+        hasUser: yup.boolean().default(props.hasUser),
         teamName: yup.string().required("Please enter a team name"),
 
-        termsAndConditions: yup.boolean().when("hasMemberships", {
+        termsAndConditions: yup.boolean().when("hasUser", {
           is: false,
           then: (schema) =>
             schema
@@ -36,7 +36,7 @@ export const Form = (props: { hasMemberships: boolean }) => {
         // FIXME: Return when we have product updates
         // productUpdates: yup.boolean().optional(),
       }),
-    [props.hasMemberships],
+    [props.hasUser],
   );
 
   type FormValues = yup.InferType<typeof schema>;
@@ -54,7 +54,7 @@ export const Form = (props: { hasMemberships: boolean }) => {
     async (values: FormValues) => {
       const body: CreateTeamBody = {
         team_name: values.teamName,
-        hasMemberships: values.hasMemberships,
+        hasUser: values.hasUser,
       };
 
       let data: CreateTeamResponse | null = null;
@@ -96,7 +96,7 @@ export const Form = (props: { hasMemberships: boolean }) => {
         errors={errors.teamName}
       />
 
-      {!props.hasMemberships && (
+      {!props.hasUser && (
         <div className="grid gap-y-8 rounded-xl border border-grey-200 p-6">
           <div className="grid grid-cols-auto/1fr gap-x-3">
             <Checkbox register={register("termsAndConditions")} />
