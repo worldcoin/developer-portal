@@ -10,9 +10,9 @@ import { getSession } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { Form } from "./Form";
 import {
-  FetchMembershipsQuery,
+  FetchUserQuery,
   getSdk as getFetchMembershipsSdk,
-} from "./graphql/server/fetch-membersips.generated";
+} from "./graphql/server/fetch-user.generated";
 
 type CreateTeamPage = {
   params: Record<string, string> | null | undefined;
@@ -28,16 +28,15 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
 
   const client = await getAPIServiceGraphqlClient();
 
-  let data: FetchMembershipsQuery | null = null;
+  let data: FetchUserQuery | null = null;
 
   if (user.hasura?.id) {
-    data = await getFetchMembershipsSdk(client).FetchMemberships({
+    data = await getFetchMembershipsSdk(client).FetchUser({
       userId: user.hasura.id,
     });
   }
 
-  const hasMemberships =
-    Boolean(data) && data!.membership && data!.membership.length > 0;
+  const hasUser = Boolean(data) && Boolean(data!.user_by_pk?.id);
 
   return (
     <SizingWrapper>
@@ -48,10 +47,10 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
           </LayersIconFrame>
 
           <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">
-            {hasMemberships ? "Create a new team" : "Create your first team"}
+            {hasUser ? "Create a new team" : "Create your first team"}
           </Typography>
 
-          <Form hasMemberships={hasMemberships} />
+          <Form hasUser={hasUser} />
         </div>
       </div>
     </SizingWrapper>

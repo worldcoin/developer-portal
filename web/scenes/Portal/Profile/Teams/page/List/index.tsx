@@ -17,10 +17,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { DeleteTeamDialog } from "@/scenes/Portal/Profile/Teams/page/DeleteTeamDialog";
 import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
+import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useState } from "react";
 import {
@@ -192,9 +192,12 @@ export const List = () => {
       </div>
 
       <DeleteTeamDialog
-        //team={teamForDelete}
         open={!!teamForDelete}
         onClose={() => setTeamForDelete(undefined)}
+        team={{
+          id: teamForDelete?.id,
+          name: teamForDelete?.name,
+        }}
       />
 
       <EditTeamDialog

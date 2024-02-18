@@ -7,22 +7,31 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { FetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { FetchMembershipsDocument } from "../../Profile/Teams/page/graphql/client/fetch-memberships.generated";
 import { useDeleteTeamMutation } from "./graphql/client/delete-team.generated";
+import { useFetchMembershipsLazyQuery } from "./graphql/client/fetch-memberships.generated";
 
 type DeleteTeamDialogProps = DialogProps & {
-  team: FetchTeamQuery["team_by_pk"];
+  team: {
+    id: string | null | undefined;
+    name: string | null | undefined;
+  };
 };
 
 export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const { team } = props;
   const router = useRouter();
+  const path = usePathname();
+  const { user } = useUser() as Auth0SessionUser;
 
   const schema = useMemo(() => {
     return yup.object({
@@ -52,23 +61,60 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const [deleteTeam] = useDeleteTeamMutation({
     context: { headers: { team_id: team?.id } },
+    refetchQueries: [FetchMembershipsDocument],
+  });
+
+  const [fetchMemberships] = useFetchMembershipsLazyQuery({
+    context: { headers: { team_id: team?.id } },
+    fetchPolicy: "no-cache",
   });
 
   const submit = useCallback(async () => {
-    if (!team?.id) return;
+    if (!team?.id || !user?.hasura?.id) {
+      return toast.error("Error team deleting. Try later");
+    }
+
     try {
       await deleteTeam({
         variables: {
           id: team?.id,
         },
       });
+
+      const fetchMembershipsResult = await fetchMemberships({
+        variables: {
+          userId: user.hasura.id,
+        },
+      });
+
       toast.success("Team deleted!");
-      router.push("/teams");
+
+      const membershipsCount = fetchMembershipsResult.data?.membership.length;
+
+      console.log("membershipsCount", membershipsCount);
+
+      if (typeof membershipsCount === "number" && membershipsCount === 0) {
+        return router.push(urls.createTeam());
+      }
+
+      if (path !== urls.profileTeams()) {
+        return router.push(urls.profileTeams());
+      }
+
+      onClose();
     } catch (e) {
       console.error(e);
       toast.error("Error team deleting");
     }
-  }, [deleteTeam, router, team?.id]);
+  }, [
+    deleteTeam,
+    fetchMemberships,
+    onClose,
+    path,
+    router,
+    team?.id,
+    user?.hasura.id,
+  ]);
 
   return (
     <Dialog {...props} onClose={onClose}>

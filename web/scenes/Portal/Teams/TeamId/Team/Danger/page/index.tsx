@@ -1,7 +1,7 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { DeleteTeamDialog } from "@/scenes/Portal/Teams/TeamId/Team/Danger/page/DeleteTeamDialog";
+import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "../../common/TeamProfile";
@@ -54,9 +54,12 @@ export const TeamDangerPage = () => {
       </div>
 
       <DeleteTeamDialog
-        team={fetchTeamQueryRes.data.team_by_pk}
         open={isOpenDeleteDialog}
         onClose={() => setIsOpenDeleteDialog(false)}
+        team={{
+          id: fetchTeamQueryRes.data.team_by_pk?.id,
+          name: fetchTeamQueryRes.data.team_by_pk?.name,
+        }}
       />
     </div>
   );

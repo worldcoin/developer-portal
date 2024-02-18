@@ -1,4 +1,4 @@
-/* eslint-disable import/no-relative-parent-imports -- auto generated file */
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient } from "graphql-request";
