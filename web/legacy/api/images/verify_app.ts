@@ -126,6 +126,21 @@ export const handleVerifyApp = async (
     (metadata) => metadata.verification_status === "verified",
   );
 
+  // Check if app is allowed to be app store and world app approved
+  if (
+    (is_reviewer_app_store_approved || is_reviewer_world_app_approved) &&
+    (awaitingReviewAppMetadata?.hero_image_url === "" ||
+      !awaitingReviewAppMetadata.showcase_img_urls)
+  ) {
+    return errorHasuraQuery({
+      res,
+      req,
+      detail:
+        "Hero and showcase images are required for app store and world app approval",
+      code: "invalid_approval_permissions",
+    });
+  }
+
   const s3Client = new S3Client({
     region: process.env.ASSETS_S3_REGION,
   });
