@@ -10,7 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
-import { GetActionNameDocument } from "../../Common/ActionsHeader/graphql/client/get-action-name.generated";
+import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 

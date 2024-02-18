@@ -24,11 +24,11 @@ import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Connected } from "../../Common/Kiosk/Connected";
-import { IDKitBridge } from "../../Common/Kiosk/IDKitBridge";
-import { KioskError } from "../../Common/Kiosk/KioskError";
-import { Success } from "../../Common/Kiosk/Success";
-import { Waiting } from "../../Common/Kiosk/Waiting";
+import { Connected } from "../../Components/Kiosk/Connected";
+import { IDKitBridge } from "../../Components/Kiosk/IDKitBridge";
+import { KioskError } from "../../Components/Kiosk/KioskError";
+import { Success } from "../../Components/Kiosk/Success";
+import { Waiting } from "../../Components/Kiosk/Waiting";
 import { GetKioskActionQuery } from "../graphql/client/get-kiosk-action.generated";
 dayjs.extend(dayjsRelative);
 

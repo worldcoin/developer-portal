@@ -25,12 +25,14 @@ export const ActionRow = (props: {
       <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 uppercase text-blue-500 ">
         <Typography variant={TYPOGRAPHY.M3}>{action.name[0]}</Typography>
       </div>
-      <div>
-        <div className="text-sm text-grey-900">
+      <div className="max-w-[150px] md:max-w-[400px]">
+        <div className="truncate text-sm text-grey-900">
           <Typography variant={TYPOGRAPHY.R4}>{action.name}</Typography>
         </div>
-        <div className="flex items-center gap-x-2 text-grey-500 ">
-          <Typography variant={TYPOGRAPHY.R5}>{action.action}</Typography>
+        <div className="flex items-center gap-x-2 truncate text-grey-500">
+          <Typography variant={TYPOGRAPHY.R5} className="truncate">
+            {action.action}
+          </Typography>
           <CopyButton
             fieldValue={action.action}
             fieldName="Action identifier"

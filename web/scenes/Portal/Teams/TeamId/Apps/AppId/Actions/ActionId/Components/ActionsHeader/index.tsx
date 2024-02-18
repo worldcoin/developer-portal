@@ -39,7 +39,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
 
   const name = data?.action[0]?.name ?? "";
   return (
-    <div className="w-full">
+    <div className="grid w-full gap-y-2">
       <div>
         <Link href={redirect} className="flex flex-row items-center gap-x-2">
           <CaretIcon className="size-3 rotate-90 text-grey-400" />
@@ -48,10 +48,10 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
           </Typography>
         </Link>
       </div>
-      <div className="flex w-full items-center justify-between">
+      <div className="grid w-full items-center justify-between gap-y-3 md:grid-cols-1fr/auto">
         <Typography
           variant={TYPOGRAPHY.H6}
-          className="capitalize text-grey-900"
+          className="max-w-[400px] truncate capitalize text-grey-900 md:max-w-[750px]"
         >
           {loading ? <Skeleton width={200} /> : name}
         </Typography>

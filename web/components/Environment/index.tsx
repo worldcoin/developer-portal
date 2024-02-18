@@ -38,7 +38,10 @@ export const Environment = (props: EnvironmentProps) => {
       <div className="flex flex-row gap-x-2 text-blue-500">
         {engine === "cloud" && <CloudIcon className="h-auto w-4" />}
         {engine === "on-chain" && <LinkIcon className="h-auto w-4" />}
-        <Typography variant={TYPOGRAPHY.R4} className="capitalize">
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="whitespace-nowrap capitalize"
+        >
           {engine}
         </Typography>
       </div>

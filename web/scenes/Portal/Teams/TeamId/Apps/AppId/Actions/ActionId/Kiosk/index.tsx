@@ -4,8 +4,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
-import { ActionsHeader } from "../Common/ActionsHeader";
-import { VerificationLevelPicker } from "../Common/Kiosk/VerificationLevelPicker";
+import { ActionsHeader } from "../Components/ActionsHeader";
+import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
 import { ActiveKioskPage } from "./ActiveKiosk";
 import {
   GetKioskActionDocument,
@@ -67,7 +67,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
           verificationLevel={kioskVerificationLevel}
         />
       )}
-      <div className="grid w-full grid-cols-1fr/auto items-start justify-start gap-y-5">
+      <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
         <div
           className={clsx("grid max-w-[480px] gap-y-10", {
             hidden: showKiosk,

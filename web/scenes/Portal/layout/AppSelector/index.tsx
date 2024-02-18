@@ -74,9 +74,9 @@ export const AppSelector = () => {
         b: FetchAppsQuery["app"][number],
       ) => a?.id === b?.id}
     >
-      <SelectButton className={clsx({ hidden: !appId })}>
+      <SelectButton className={clsx({ hidden: !appId }, "px-0")}>
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
-          <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
+          <div className="grid max-w-[400px] grid-cols-auto/1fr/auto items-center gap-x-2 md:max-w-[200px]">
             {value?.verified_app_metadata?.[0]?.logo_img_url ? (
               // CDN urls should not use Next Image
               // eslint-disable-next-line @next/next/no-img-element
@@ -97,7 +97,7 @@ export const AppSelector = () => {
               />
             )}
 
-            <Typography variant={TYPOGRAPHY.R4}>
+            <Typography variant={TYPOGRAPHY.R4} className="truncate">
               {value?.app_metadata[0].name ?? "Select app"}
             </Typography>
 
