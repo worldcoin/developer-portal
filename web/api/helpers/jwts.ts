@@ -241,6 +241,8 @@ export const generateOIDCJWT = async ({
       likely_human:
         verification_level === VerificationLevel.Orb ? "strong" : "weak",
       credential_type: verification_level,
+      warning:
+        "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",
     },
     "https://id.worldcoin.org/v1": {
       verification_level,
