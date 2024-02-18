@@ -5,7 +5,7 @@ import {
   useWorldBridgeStore,
 } from "@worldcoin/idkit-core";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
@@ -19,7 +19,7 @@ interface IDKitBridgeProps {
   resetKiosk: () => void;
 }
 
-export const IDKitBridge = (props: IDKitBridgeProps) => {
+export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const {
     connectionTimeout,
@@ -127,4 +127,4 @@ export const IDKitBridge = (props: IDKitBridgeProps) => {
   }, [result, setProofResult]);
 
   return <></>;
-};
+});
