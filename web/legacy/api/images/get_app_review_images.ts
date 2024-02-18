@@ -5,17 +5,25 @@ import {
   errorResponse,
 } from "@/legacy/backend/errors";
 import { getAPIReviewerGraphqlClient } from "@/legacy/backend/graphql";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import {
+  protectInternalEndpoint,
+  validateRequestSchema,
+} from "@/legacy/backend/utils";
 import { logger } from "@/lib/logger";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 export type ImageGetAppReviewImagesOutput = {
   logo_img_url?: string;
   hero_image_url?: string;
   showcase_img_urls?: string[];
 };
+
+const schema = yup.object({
+  app_id: yup.string().strict().required(),
+});
 
 /**
  * Used when a reviewer is reviewing an app
@@ -59,16 +67,21 @@ export const handleGetAppReviewImages = async (
         { role: body.session_variables["x-hasura-role"] };
       return errorHasuraQuery({ res, req });
     }
+    const { isValid, parsedParams } = await validateRequestSchema({
+      value: req.query,
+      schema,
+    });
 
-    const app_id = req.query.app_id;
-    if (!app_id) {
+    if (!isValid || !parsedParams) {
       return errorHasuraQuery({
-        res,
         req,
-        detail: "app_id must be set.",
-        code: "required",
+        res,
+        detail: "Invalid request params.",
+        code: "invalid_request",
       });
     }
+
+    const { app_id } = parsedParams;
 
     // Anchor: Get relative paths for images from the database
     const client = await getAPIReviewerGraphqlClient();
@@ -98,7 +111,9 @@ export const handleGetAppReviewImages = async (
     // Anchor: Get Signed URLS for images
     const objectKey = `unverified/${app_id}/`;
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
+    const urlExpiration = 7200;
     const urlPromises = [];
+
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey + app.logo_img_url,
@@ -106,9 +121,11 @@ export const handleGetAppReviewImages = async (
 
     if (app.logo_img_url) {
       urlPromises.push(
-        getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
-          logo_img_url: url,
-        })),
+        getSignedUrl(s3Client, command, { expiresIn: urlExpiration }).then(
+          (url) => ({
+            logo_img_url: url,
+          }),
+        ),
       );
     }
 
@@ -120,7 +137,7 @@ export const handleGetAppReviewImages = async (
             Bucket: bucketName,
             Key: objectKey + app.hero_image_url,
           }),
-          { expiresIn: 7200 },
+          { expiresIn: urlExpiration },
         ).then((url) => ({ hero_image_url: url })),
       );
     }
@@ -133,7 +150,7 @@ export const handleGetAppReviewImages = async (
             Bucket: bucketName,
             Key: objectKey + key,
           }),
-          { expiresIn: 7200 },
+          { expiresIn: urlExpiration },
         ),
       );
       const showcaseUrls = await Promise.all(showcaseUrlPromises);
