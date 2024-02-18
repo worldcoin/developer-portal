@@ -272,16 +272,23 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   }
 
   const teamId = user?.memberships[0]?.team.id;
+  let url: string = urls.profile();
+  const returnTo = req.nextUrl.searchParams.get("returnTo");
+
+  if (returnTo) {
+    url = returnTo;
+  }
+
+  if (!returnTo && teamId) {
+    url = urls.teams({ team_id: teamId });
+  }
+
+  if (!returnTo && !teamId) {
+    url = urls.createTeam();
+  }
 
   const res = NextResponse.redirect(
-    new URL(
-      teamId
-        ? urls.app({
-            team_id: teamId,
-          })
-        : urls.createTeam(),
-      process.env.NEXT_PUBLIC_APP_URL,
-    ),
+    new URL(url, process.env.NEXT_PUBLIC_APP_URL),
     307,
   );
 
