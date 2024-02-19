@@ -19,6 +19,7 @@ export type FetchMembershipsQuery = {
       name: string;
       email?: string | null;
       id: string;
+      world_id_nullifier?: string | null;
     };
   }>;
 };
@@ -32,6 +33,7 @@ export const FetchMembershipsDocument = gql`
         name
         email
         id
+        world_id_nullifier
       }
     }
   }

@@ -14,6 +14,7 @@ import {
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
+import { getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -38,11 +39,11 @@ type FormValues = {
 
 export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const { team, ...otherProps } = props;
-
   const { user } = useUser() as Auth0SessionUser;
 
-  const membersQueryRes = useFetchMembersQuery({
+  const { data } = useFetchMembersQuery({
     context: { headers: { team_id: team?.id } },
+
     variables:
       !team || !user?.hasura
         ? undefined
@@ -50,8 +51,18 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
             user_id: user?.hasura.id,
             team_id: team.id,
           },
+
     skip: !team || !user?.hasura,
   });
+
+  const getName = useCallback((member: FetchMembersQuery["members"][0]) => {
+    return (
+      member.user.name ||
+      member.user?.email ||
+      getNullifierName(member.user?.world_id_nullifier) ||
+      "Anonymous User"
+    );
+  }, []);
 
   const [transferMembership] = useTransferOwnershipMutation({
     context: { headers: { team_id: team?.id } },
@@ -137,7 +148,8 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                         </span>
                       ) : (
                         <span>
-                          {field.value.user.name} ({field.value.user.email})
+                          {getName(member)}{" "}
+                          {member.user.email && `(${member.user.email})`}
                         </span>
                       )}
                     </Typography>
@@ -152,13 +164,14 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   </SelectButton>
 
                   <SelectOptions className="mt-2">
-                    {membersQueryRes.data?.members.map((member, i) => (
+                    {data?.members.map((member) => (
                       <SelectOption
                         key={member.id}
                         className="transition hover:bg-grey-100"
                         value={member}
                       >
-                        {member.user.name} ({member.user.email})
+                        {getName(member)}{" "}
+                        {member.user.email && `(${member.user.email})`}
                       </SelectOption>
                     ))}
                   </SelectOptions>
