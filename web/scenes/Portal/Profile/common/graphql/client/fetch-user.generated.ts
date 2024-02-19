@@ -10,7 +10,13 @@ export type FetchUserQueryVariables = Types.Exact<{
 
 export type FetchUserQuery = {
   __typename?: "query_root";
-  user?: { __typename?: "user"; id: string; name: string } | null;
+  user?: {
+    __typename?: "user";
+    id: string;
+    name: string;
+    email?: string | null;
+    world_id_nullifier?: string | null;
+  } | null;
 };
 
 export const FetchUserDocument = gql`
@@ -18,6 +24,8 @@ export const FetchUserDocument = gql`
     user: user_by_pk(id: $user_id) {
       id
       name
+      email
+      world_id_nullifier
     }
   }
 `;

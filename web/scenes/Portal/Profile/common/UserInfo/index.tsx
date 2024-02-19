@@ -1,6 +1,7 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Auth0SessionUser } from "@/lib/types";
 import { useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 import { Icon } from "@/scenes/Portal/Profile/layout/UserInfo/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -10,19 +11,18 @@ import { twMerge } from "tailwind-merge";
 
 export type UserInfoProps = {
   name?: string;
-  //email: string | undefined | null;
   className?: string;
 };
 
 export const UserInfo = (props: UserInfoProps) => {
-  const { user } = useUser();
-  const userHasura = user?.hasura as { id: string } | undefined;
+  const { user } = useUser() as Auth0SessionUser;
+  const userHasura = user?.hasura;
   const userId = userHasura?.id;
 
   const userQueryRes = useFetchUserQuery({
     variables: !userId ? undefined : { user_id: userId },
     context: {
-      headers: { team_id: "team_b0b7af3f49ea4b6106332f7b6dd5b708___" },
+      headers: { team_id: "_" },
     },
     skip: !userId,
   });
@@ -49,7 +49,11 @@ export const UserInfo = (props: UserInfoProps) => {
         </Typography>
 
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          {!userQueryRes.data?.user ? <Skeleton width={200} /> : user!.email}
+          {!userQueryRes.data?.user ? (
+            <Skeleton width={200} />
+          ) : (
+            userQueryRes.data.user.email || null
+          )}
         </Typography>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
+import { getNullifierName } from "@/lib/utils";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import {
   FetchUserDocument,
@@ -35,7 +36,7 @@ type FormValues = yup.InferType<typeof schema>;
 export const ProfilePage = () => {
   const { user } = useUser() as Auth0SessionUser;
 
-  const { data } = useFetchUserQuery({
+  const { data, loading } = useFetchUserQuery({
     context: { headers: { team_id: "_" } },
     variables: user?.hasura ? { user_id: user?.hasura.id } : undefined,
     skip: !user?.hasura,
@@ -52,14 +53,30 @@ export const ProfilePage = () => {
     control,
     handleSubmit,
     formState: { isValid, errors, isSubmitting },
+
+    resetField,
   } = useForm<FormValues>({
-    values: {
+    defaultValues: {
       color: color ?? colors["pink"],
-      name: data?.user?.name ?? "",
     },
+
     resolver: yupResolver(schema),
     mode: "onChange",
   });
+
+  useEffect(() => {
+    if (!data || loading) {
+      return;
+    }
+
+    resetField("name", {
+      defaultValue:
+        data?.user?.name ||
+        data?.user?.email ||
+        getNullifierName(data?.user?.world_id_nullifier) ||
+        "Anonymous User",
+    });
+  }, [data, loading, resetField]);
 
   const selectedColor = useWatch({ control, name: "color" });
   const name = useWatch({ control, name: "name" });

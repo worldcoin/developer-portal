@@ -49,6 +49,7 @@ select_permissions:
         - id
         - is_subscribed
         - name
+        - world_id_nullifier
       filter:
         _or:
           - id:
