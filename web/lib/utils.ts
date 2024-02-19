@@ -94,5 +94,5 @@ export const checkUserPermissions = (
 
 export const getNullifierName = (nullifier: string | undefined | null) => {
   if (!nullifier) return null;
-  return `Anonymous User | ...${nullifier.slice(-5)}`;
+  return `${nullifier.slice(0, 6)}...${nullifier.slice(-4)}`;
 };
