@@ -85,6 +85,7 @@ const config: Config = {
           },
 
           lightOrange: {
+            100: "#FFF7F0",
             500: "#FFA048",
           },
 

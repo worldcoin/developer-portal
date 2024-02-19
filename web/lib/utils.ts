@@ -91,3 +91,8 @@ export const checkUserPermissions = (
   }
   return validRoles.includes(membership?.role);
 };
+
+export const getNullifierName = (nullifier: string | undefined | null) => {
+  if (!nullifier) return null;
+  return `Anonymous User | ...${nullifier.slice(-5)}`;
+};

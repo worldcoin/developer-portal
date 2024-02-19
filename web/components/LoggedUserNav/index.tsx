@@ -6,7 +6,8 @@ import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fet
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions, getNullifierName } from "@/lib/utils";
+import { useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
@@ -30,8 +31,9 @@ import { HelpNav } from "./HelpNav";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
-  const { user } = useUser() as Auth0SessionUser;
-  const nameFirstLetter = user?.name?.charAt(0).toUpperCase();
+  const { user: auth0User } = useUser() as Auth0SessionUser;
+  const userId = auth0User?.hasura?.id;
+
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
     appId?: string;
@@ -39,8 +41,27 @@ export const LoggedUserNav = () => {
   };
 
   const hasOwnerPermission = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
-  }, [user, teamId]);
+    return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
+  }, [auth0User, teamId]);
+
+  const { data } = useFetchUserQuery({
+    variables: !userId ? undefined : { user_id: userId },
+    context: {
+      headers: { team_id: "_" },
+    },
+    skip: !userId,
+  });
+
+  const name = useMemo(
+    () =>
+      data?.user?.name ||
+      data?.user?.email ||
+      getNullifierName(data?.user?.world_id_nullifier) ||
+      "Anonymous User",
+    [data?.user?.email, data?.user?.name, data?.user?.world_id_nullifier],
+  );
+
+  const nameFirstLetter = useMemo(() => name[0].toUpperCase(), [name]);
 
   const trackDocsClicked = useCallback(() => {
     posthog.capture("docs_clicked", {
@@ -97,7 +118,7 @@ export const LoggedUserNav = () => {
             variant={TYPOGRAPHY.R4}
             className="max-w-full truncate px-4 py-2.5 text-grey-400"
           >
-            {user?.email}
+            {name}
           </Typography>
 
           <DropdownItem className="hover:bg-grey-50">

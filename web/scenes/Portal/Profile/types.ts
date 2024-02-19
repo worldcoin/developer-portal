@@ -32,6 +32,11 @@ type AdditionalColors = {
     500: string;
   };
 
+  lightOrange: {
+    100: string;
+    500: string;
+  };
+
   pink: {
     100: string;
     500: string;
