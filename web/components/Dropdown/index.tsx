@@ -16,10 +16,11 @@ export const dropdownContext = createContext({} as DropdownContextValue);
 
 type DropdownProps<T> = MenuProps<"div"> & {
   placement?: "bottom-end" | "left-start";
+  zIndex?: number;
 };
 
 export const Dropdown = <T,>(props: DropdownProps<T>) => {
-  const { placement = "bottom-end", ...otherProps } = props;
+  const { placement = "bottom-end", zIndex = 0, ...otherProps } = props;
   const { refs, floatingStyles } = useFloating({
     placement,
     strategy: "fixed",
@@ -31,6 +32,7 @@ export const Dropdown = <T,>(props: DropdownProps<T>) => {
             minWidth: `${rects.reference.width}px`,
             maxWidth: `${availableWidth}px`,
             maxHeight: `${availableHeight}px`,
+            zIndex: `${zIndex}`,
           });
         },
       }),

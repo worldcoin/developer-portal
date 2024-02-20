@@ -19,4 +19,8 @@ query GetVerificationData($id: String!) {
       verification_status
     }
   }
+
+  hasApp: app_by_pk(id: $id) {
+    id
+  }
 }

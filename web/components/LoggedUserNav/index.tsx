@@ -100,7 +100,7 @@ export const LoggedUserNav = () => {
         </Typography>
       </Button>
 
-      <Dropdown>
+      <Dropdown zIndex={60}>
         <DropdownButton>
           <div className="flex size-6 items-center justify-center rounded-full bg-[var(--color-100)] text-xs transition-colors duration-300">
             <Typography
