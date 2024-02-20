@@ -1,4 +1,5 @@
 import { PostHog } from "posthog-node";
+import "server-only";
 
 interface CaptureEventParams {
   event: string;
