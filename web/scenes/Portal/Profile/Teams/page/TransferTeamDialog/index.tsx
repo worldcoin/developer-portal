@@ -126,7 +126,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
               return (
                 <Select
                   by={(a, b) => a?.id === b?.id}
-                  value={field.value}
+                  value={field.value ?? null}
                   onChange={field.onChange}
                 >
                   <SelectButton className="relative grid w-full grid-cols-1fr/auto items-center py-3 text-start">
