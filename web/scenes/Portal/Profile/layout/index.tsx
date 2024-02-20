@@ -1,5 +1,6 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { ReactNode } from "react";
 
 export const ProfileLayout = (props: { children: ReactNode }) => {
@@ -9,15 +10,15 @@ export const ProfileLayout = (props: { children: ReactNode }) => {
         <SizingWrapper variant="nav">
           <Tabs className="font-gta">
             <Tab className="py-4" href={`/profile`} segment={null}>
-              User profile
+              <Typography variant={TYPOGRAPHY.R4}>User profile</Typography>
             </Tab>
 
             <Tab className="py-4" href={`/profile/teams`} segment={"teams"}>
-              Teams
+              <Typography variant={TYPOGRAPHY.R4}>Teams</Typography>
             </Tab>
 
             <Tab className="py-4" href={`/profile/danger`} segment={"danger"}>
-              Danger zone
+              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>

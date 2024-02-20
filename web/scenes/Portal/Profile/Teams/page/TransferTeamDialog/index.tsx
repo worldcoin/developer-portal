@@ -35,7 +35,7 @@ type TransferTeamDialogProps = DialogProps & {
 };
 
 type FormValues = {
-  member: FetchMembersQuery["members"][0];
+  member: FetchMembersQuery["members"][0] | null;
 };
 
 export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
@@ -75,6 +75,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     formState: { isValid, isSubmitting },
   } = useForm<FormValues>({
     mode: "onChange",
+    defaultValues: { member: null },
   });
 
   const member = useWatch({ control, name: "member" });
@@ -91,8 +92,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const submit = useCallback(
     async (values: FormValues) => {
-      if (!user?.hasura) return;
-      if (!userMembershipId) return;
+      if (!user?.hasura || !values.member || !userMembershipId) return;
 
       try {
         await transferMembership({
