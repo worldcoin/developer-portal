@@ -62,13 +62,13 @@ export const List = () => {
 
   return (
     <>
-      <div className="grid grid-cols-[1fr_1fr_auto]">
-        <div className="contents text-12 leading-4 text-grey-400">
+      <div className="grid grid-cols-[1fr_1fr_auto] ">
+        <div className="contents text-12 leading-4 text-grey-400 ">
           <Typography
             variant={TYPOGRAPHY.R5}
             className="border-b border-grey-100 py-3"
           >
-            Member
+            Team
           </Typography>
 
           <Typography
@@ -82,10 +82,10 @@ export const List = () => {
         </div>
 
         {data?.memberships.map((membership) => (
-          <div key={membership.team.id} className="contents">
+          <div key={membership.team.id} className="group contents">
             <Button
               href={urls.teams({ team_id: membership.team.id })}
-              className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4"
+              className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50"
             >
               <TeamLogo
                 src={""}
@@ -105,12 +105,12 @@ export const List = () => {
 
             <Typography
               variant={TYPOGRAPHY.R4}
-              className="flex items-center border-b border-grey-100 px-2 py-4 text-14 leading-5 text-grey-500"
+              className="flex items-center border-b border-grey-100 px-2 py-4 text-14 leading-5 text-grey-500 group-hover:bg-grey-50"
             >
               {roleName[membership.role]}
             </Typography>
 
-            <div className="flex items-center border-b border-grey-100 px-2 py-4">
+            <div className="flex items-center border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50">
               <Dropdown>
                 <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
                   <MoreVerticalIcon />
