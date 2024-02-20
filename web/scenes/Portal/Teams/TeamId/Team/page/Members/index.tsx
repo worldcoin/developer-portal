@@ -51,6 +51,7 @@ export const Members = (props: { teamId: string }) => {
       <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-2 md:grid-cols-1fr/auto">
         <Input
           register={register("search")}
+          type="search"
           label=""
           addOnLeft={<MagnifierIcon className="text-grey-400" />}
           placeholder="Search member by name or email"
