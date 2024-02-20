@@ -5,7 +5,7 @@ import {
   useWorldBridgeStore,
 } from "@worldcoin/idkit-core";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
@@ -21,6 +21,8 @@ interface IDKitBridgeProps {
 
 export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
   const {
     connectionTimeout,
     verificationLevel,
@@ -51,26 +53,38 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       action_description: props.action_description,
     })
       .then(() => {
-        const intervalId = setInterval(
-          () =>
-            pollForUpdates().catch((error) => {
-              setIntervalId(null);
-              clearInterval(intervalId);
-            }),
-          3000,
-        );
+        intervalIdRef.current = setInterval(() => {
+          (async () => {
+            try {
+              await pollForUpdates();
+            } catch (error) {
+              console.error("Error polling for updates:", error);
+              clearInterval(intervalIdRef.current);
+              intervalIdRef.current = undefined;
+            }
+          })();
+        }, 3000);
 
         setIntervalId(intervalId);
       })
       .catch((error) => {
         if (process.env.NODE_ENV === "development") {
+          console.log("Error creating client");
           console.error(error);
         }
       });
+    // Cleanup function using ref
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = undefined;
+      }
+    };
   }, [
     bridge_url,
     createClient,
     idKitVerificationState,
+    intervalId,
     pollForUpdates,
     props.action,
     props.action_description,
