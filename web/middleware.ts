@@ -13,9 +13,6 @@ const cdnURLObject = new URL(
     "https://world-id-assets.com",
 );
 const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
-
-const publicAppURL = process.env.NEXT_PUBLIC_APP_URL;
-
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
@@ -133,9 +130,6 @@ export default withMiddlewareAuthRequired({
     headers.set("content-security-policy", csp);
     const response = NextResponse.next({ request: { headers } });
     response.headers.set("content-security-policy", csp);
-    if (publicAppURL) {
-      response.headers.set("Access-Control-Allow-Origin", publicAppURL);
-    }
     response.headers.set("Permissions-Policy", "clipboard-write=(self)");
     return response;
   },
