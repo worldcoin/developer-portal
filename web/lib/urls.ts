@@ -41,6 +41,9 @@ export const urls = {
   teams: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}`,
 
+  teamSettings: (params: { team_id: string }): string =>
+    `/teams/${params.team_id}/settings`,
+
   profile: (): "/profile" => "/profile",
   profileTeams: (): "/profile/teams" => "/profile/teams",
 

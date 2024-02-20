@@ -7,6 +7,7 @@ query FetchMembers($user_id: String!, $team_id: String!) {
       id
       name
       email
+      world_id_nullifier
     }
   }
 }

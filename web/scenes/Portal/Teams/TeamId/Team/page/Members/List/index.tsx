@@ -14,7 +14,7 @@ import { Footer } from "@/components/Table/Footer";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions, getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -264,17 +264,23 @@ export const List = (props: { search?: string }) => {
             {membersToRender.map((membership) => {
               const isInviteRow = membership.id.startsWith("inv_");
 
+              const name =
+                membership?.user?.name ||
+                membership?.user?.email ||
+                getNullifierName(membership?.user?.world_id_nullifier) ||
+                "Anonymous User";
+
               return (
                 <div key={membership.user.id} className="contents">
                   <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
-                    <UserLogo src={""} name={membership.user.name ?? ""} />
+                    <UserLogo src={""} name={name} />
 
                     <div className="grid gap-y-0.5">
                       <Typography
                         variant={TYPOGRAPHY.R3}
                         className="text-grey-900"
                       >
-                        {membership.user.name ?? ""}
+                        {name}
                       </Typography>
 
                       <Typography

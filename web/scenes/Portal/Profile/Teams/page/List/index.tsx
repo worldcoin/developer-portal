@@ -17,7 +17,6 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
@@ -51,9 +50,6 @@ export const List = () => {
     fetchPolicy: "no-cache",
   });
 
-  const [teamForEdit, setTeamForEdit] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
   const [teamForTransfer, setTeamForTransfer] = useState<
     FetchMembershipsQuery["memberships"][0]["team"] | undefined
   >();
@@ -133,7 +129,9 @@ export const List = () => {
                   {(membership.role === Role_Enum.Owner ||
                     membership.role === Role_Enum.Admin) && (
                     <DropdownItem
-                      onClick={() => setTeamForEdit(membership.team)}
+                      as="a"
+                      href={urls.teamSettings({ team_id: membership.team.id })}
+                      className="flex"
                     >
                       <div className="flex items-center gap-x-2">
                         <EditIcon className="size-4 text-grey-400" />
@@ -198,12 +196,6 @@ export const List = () => {
           id: teamForDelete?.id,
           name: teamForDelete?.name,
         }}
-      />
-
-      <EditTeamDialog
-        //team={teamForEdit}
-        open={!!teamForEdit}
-        onClose={() => setTeamForEdit(undefined)}
       />
 
       <LeaveTeamDialog

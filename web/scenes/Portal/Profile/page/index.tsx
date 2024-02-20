@@ -18,7 +18,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import { useCallback, useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { colorAtom } from "../../layout";
@@ -53,7 +53,7 @@ export const ProfilePage = () => {
     control,
     handleSubmit,
     formState: { isValid, errors, isSubmitting },
-
+    watch,
     resetField,
   } = useForm<FormValues>({
     defaultValues: {
@@ -78,8 +78,8 @@ export const ProfilePage = () => {
     });
   }, [data, loading, resetField]);
 
-  const selectedColor = useWatch({ control, name: "color" });
-  const name = useWatch({ control, name: "name" });
+  const selectedColor = watch("color");
+  const name = watch("name");
 
   useEffect(() => {
     setColor(selectedColor);
