@@ -4,6 +4,7 @@ query FetchMe {
     name
     email
     world_id_nullifier
+    posthog_id
 
     memberships {
       role
