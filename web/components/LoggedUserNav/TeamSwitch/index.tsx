@@ -27,7 +27,7 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
 
   return (
     <div className="-mx-4 -my-2.5">
-      <Dropdown placement="left-start">
+      <Dropdown placement="left-start" zIndex={60}>
         <DropdownButton>
           <div className="grid grid-cols-auto/1fr items-center gap-x-2 px-4 py-2.5">
             <LoginSquareIcon className="size-4 text-grey-400" /> Switch team
@@ -62,12 +62,15 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
           ))}
 
           <DropdownItem className="hover:bg-grey-50">
-            <Button
-              href={urls.createTeam()}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
-            >
-              <AddCircleIcon className="size-4 text-grey-400" /> Create new team
-            </Button>
+            <div>
+              <Button
+                href={urls.createTeam()}
+                className="grid grid-cols-auto/1fr items-center gap-x-2"
+              >
+                <AddCircleIcon className="size-4 text-grey-400" /> Create new
+                team
+              </Button>
+            </div>
           </DropdownItem>
         </DropdownItems>
       </Dropdown>

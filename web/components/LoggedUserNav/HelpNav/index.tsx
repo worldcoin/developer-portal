@@ -40,7 +40,7 @@ export const HelpNav = () => {
   );
 
   return (
-    <Dropdown>
+    <Dropdown zIndex={60}>
       <DropdownButton>
         <div className=" flex items-center justify-center">
           <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">

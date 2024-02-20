@@ -4,8 +4,8 @@ import { Button } from "@/components/Button";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { atom, useAtom } from "jotai";
-import { useHydrateAtoms } from "jotai/utils";
+import { atom, useAtom, useSetAtom } from "jotai";
+import { useEffect } from "react";
 import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
@@ -14,8 +14,12 @@ import { CreateAppDialog } from "../CreateAppDialog";
 export const createAppDialogOpenedAtom = atom(false);
 
 export const Header = (props: { color: Color | null }) => {
-  useHydrateAtoms([[colorAtom, props.color]]);
+  const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
+
+  useEffect(() => {
+    setColor(props.color);
+  }, [props.color, setColor]);
 
   return (
     <header className="p-4">
