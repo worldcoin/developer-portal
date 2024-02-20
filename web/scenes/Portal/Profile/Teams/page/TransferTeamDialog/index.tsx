@@ -35,7 +35,7 @@ type TransferTeamDialogProps = DialogProps & {
 };
 
 type FormValues = {
-  member: FetchMembersQuery["members"][0] | null;
+  member: FetchMembersQuery["members"][0] | undefined;
 };
 
 export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
@@ -56,11 +56,11 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     skip: !team || !user?.hasura,
   });
 
-  const getName = useCallback((member: FetchMembersQuery["members"][0]) => {
+  const getName = useCallback((member?: FetchMembersQuery["members"][0]) => {
     return (
-      member.user.name ||
-      member.user?.email ||
-      getNullifierName(member.user?.world_id_nullifier) ||
+      member?.user.name ||
+      member?.user?.email ||
+      getNullifierName(member?.user?.world_id_nullifier) ||
       "Anonymous User"
     );
   }, []);
@@ -75,7 +75,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     formState: { isValid, isSubmitting },
   } = useForm<FormValues>({
     mode: "onChange",
-    defaultValues: { member: null },
+    defaultValues: { member: undefined },
   });
 
   const member = useWatch({ control, name: "member" });
@@ -163,7 +163,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                       ) : (
                         <span>
                           {getName(member)}{" "}
-                          {member.user.email && `(${member.user.email})`}
+                          {member?.user.email && `(${member?.user.email})`}
                         </span>
                       )}
                     </Typography>
