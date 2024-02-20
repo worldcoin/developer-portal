@@ -15,6 +15,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions, getNullifierName } from "@/lib/utils";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -34,10 +35,9 @@ import {
   useFetchInvitesQuery,
 } from "./graphql/client/fetch-invites.generated";
 import {
-  FetchMembershipsQuery,
-  useFetchMembershipsQuery,
-} from "./graphql/client/fetch-members.generated";
-import { useFetchUserLazyQuery } from "./graphql/client/fetch-user.generated";
+  FetchTeamMembersQuery,
+  useFetchTeamMembersQuery,
+} from "./graphql/client/fetch-team-members.generated";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -46,41 +46,24 @@ const roleName: Record<Role_Enum, string> = {
 };
 
 export const List = (props: { search?: string }) => {
-  const { user } = useUser() as Auth0SessionUser;
+  const { user: auth0User } = useUser() as Auth0SessionUser;
   const { teamId } = useParams() as { teamId: string };
   const [, setIsRemoveDialogOpened] = useAtom(removeUserDialogAtom);
   const [, setIsEditRoleDialogOpened] = useAtom(editRoleDialogAtom);
 
   const [userToRemove, setUserToRemove] = useState<
-    FetchMembershipsQuery["membership"][number]["user"] | null
+    FetchTeamMembersQuery["membership"][number]["user"] | null
   >(null);
 
   const [userToEditRole, setUserToEditRole] = useState<
-    FetchMembershipsQuery["membership"][number] | null
+    FetchTeamMembersQuery["membership"][number] | null
   >(null);
 
-  const [fetchUser, { data: fetchUserResult }] = useFetchUserLazyQuery({
-    context: { headers: { team_id: teamId } },
-  });
-
-  useEffect(() => {
-    if (!user?.hasura.id) {
-      return;
-    }
-
-    fetchUser({
-      variables: {
-        userId: user?.hasura.id,
-        teamId,
-      },
-    });
-  }, [fetchUser, teamId, user?.hasura.id]);
-
   const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
-  }, [user, teamId]);
+    return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
+  }, [auth0User, teamId]);
 
-  const { data } = useFetchMembershipsQuery({
+  const { data, client } = useFetchTeamMembersQuery({
     variables: {
       teamId: teamId,
     },
@@ -94,6 +77,15 @@ export const List = (props: { search?: string }) => {
     },
     context: { headers: { team_id: teamId } },
   });
+
+  // NOTE: refetch me query to update session in case user role was changed
+  useEffect(() => {
+    if (!data || !client) {
+      return;
+    }
+
+    client.refetchQueries({ include: [FetchMeDocument] });
+  }, [client, data]);
 
   const memberships = useMemo(() => {
     const formatttedInvites = fetchInvitesData?.invite
@@ -109,7 +101,7 @@ export const List = (props: { search?: string }) => {
               name: invite.email,
               email: invite.email,
             },
-          }) as FetchMembershipsQuery["membership"][number],
+          }) as FetchTeamMembersQuery["membership"][number],
       );
 
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
@@ -235,9 +227,9 @@ export const List = (props: { search?: string }) => {
 
   const isCurrentMember = useCallback(
     (membership: (typeof membersToRender)[number]) => {
-      return membership.user.id === user?.hasura.id;
+      return membership.user.id === auth0User?.hasura.id;
     },
-    [user?.hasura.id],
+    [auth0User?.hasura.id],
   );
 
   return (

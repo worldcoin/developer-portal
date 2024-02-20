@@ -5,15 +5,12 @@ import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
-import { getNullifierName } from "@/lib/utils";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
-import {
-  FetchUserDocument,
-  useFetchUserQuery,
-} from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/Portal/Profile/types";
+import { useMeQuery } from "@/scenes/common/me-query/client";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
@@ -34,16 +31,15 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
-  const { user } = useUser() as Auth0SessionUser;
+  const { user: auth0User } = useUser() as Auth0SessionUser;
 
-  const { data, loading } = useFetchUserQuery({
+  const { user, loading } = useMeQuery({
     context: { headers: { team_id: "_" } },
-    variables: user?.hasura ? { user_id: user?.hasura.id } : undefined,
-    skip: !user?.hasura,
   });
 
   const [updateUser] = useUpdateUserMutation({
     context: { headers: { team_id: "_" } },
+    refetchQueries: [FetchMeDocument],
   });
 
   const [color, setColor] = useAtom(colorAtom);
@@ -65,18 +61,14 @@ export const ProfilePage = () => {
   });
 
   useEffect(() => {
-    if (!data || loading) {
+    if (!user || loading) {
       return;
     }
 
     resetField("name", {
-      defaultValue:
-        data?.user?.name ||
-        data?.user?.email ||
-        getNullifierName(data?.user?.world_id_nullifier) ||
-        "Anonymous User",
+      defaultValue: user.nameToDisplay,
     });
-  }, [data, loading, resetField]);
+  }, [loading, resetField, user]);
 
   const selectedColor = watch("color");
   const name = watch("name");
@@ -87,20 +79,19 @@ export const ProfilePage = () => {
 
   const submit = useCallback(
     async (values: FormValues) => {
-      if (!user?.hasura) {
+      if (!auth0User?.hasura) {
         return;
       }
 
       try {
         await updateUser({
           variables: {
-            user_id: user?.hasura.id,
+            user_id: auth0User?.hasura.id,
             input: {
               name: values.name,
               // TODO: pass color
             },
           },
-          refetchQueries: [FetchUserDocument],
         });
 
         toast.success("Your profile was successfully updated");
@@ -109,7 +100,7 @@ export const ProfilePage = () => {
         toast.error("Error updating profile");
       }
     },
-    [updateUser, user?.hasura],
+    [updateUser, auth0User?.hasura],
   );
 
   return (

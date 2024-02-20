@@ -9,42 +9,47 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import {
-  FetchMembershipsDocument,
-  FetchMembershipsQuery,
-} from "../graphql/client/fetch-memberships.generated";
 import { useLeaveTeamMutation } from "./graphql/client/leave-team.generated";
 
+import {
+  FetchMeDocument,
+  FetchMeQuery,
+} from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+
 type LeaveTeamDialogProps = DialogProps & {
-  team?: FetchMembershipsQuery["memberships"][0]["team"];
+  team?: FetchMeQuery["user"][0]["memberships"][0]["team"];
 };
 
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
   const { team, ...otherProps } = props;
-
-  const { user } = useUser() as Auth0SessionUser;
+  const { user: auth0User } = useUser() as Auth0SessionUser;
 
   const [leaveTeam, leaveTeamMutationRes] = useLeaveTeamMutation({
     context: { headers: { team_id: team?.id } },
   });
 
   const submit = useCallback(async () => {
-    if (!team || !user?.hasura) return;
+    if (!team || !auth0User?.hasura) {
+      return;
+    }
+
     try {
       await leaveTeam({
         variables: {
-          user_id: user.hasura.id,
+          user_id: auth0User.hasura.id,
           team_id: team?.id,
         },
-        refetchQueries: [FetchMembershipsDocument],
+
+        refetchQueries: [FetchMeDocument],
       });
+
       toast.success("Team leaved!");
       props.onClose(true);
     } catch (e) {
       console.error(e);
       toast.error("Error team leaving");
     }
-  }, [props, leaveTeam, team, user?.hasura]);
+  }, [props, leaveTeam, team, auth0User?.hasura]);
 
   if (!team) {
     return null;

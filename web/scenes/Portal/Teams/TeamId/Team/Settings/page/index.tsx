@@ -2,6 +2,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -57,7 +58,7 @@ export const TeamSettingsPage = () => {
               name: values.name,
             },
           },
-          refetchQueries: [FetchTeamDocument],
+          refetchQueries: [FetchTeamDocument, FetchMeDocument],
         });
         toast.success("Your team was successfully updated");
       } catch (error) {

@@ -15,14 +15,14 @@ import {
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { getNullifierName } from "@/lib/utils";
+import {
+  FetchMeDocument,
+  FetchMeQuery,
+} from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import {
-  FetchMembershipsDocument,
-  FetchMembershipsQuery,
-} from "../graphql/client/fetch-memberships.generated";
 import {
   FetchMembersQuery,
   useFetchMembersQuery,
@@ -31,7 +31,7 @@ import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-members
 import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
-  team?: FetchMembershipsQuery["memberships"][0]["team"];
+  team?: FetchMeQuery["user"][0]["memberships"][0]["team"];
 };
 
 type FormValues = {
@@ -100,7 +100,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
             id: values.member.id,
             user_member_id: userMembershipId,
           },
-          refetchQueries: [FetchMembershipsDocument],
+          refetchQueries: [FetchMeDocument],
         });
 
         toast.success("Ownership transferred!");
