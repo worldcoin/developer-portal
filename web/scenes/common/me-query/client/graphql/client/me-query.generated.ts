@@ -14,6 +14,7 @@ export type FetchMeQuery = {
     name: string;
     email?: string | null;
     world_id_nullifier?: string | null;
+    posthog_id?: string | null;
     memberships: Array<{
       __typename?: "membership";
       role: Types.Role_Enum;
@@ -29,6 +30,7 @@ export const FetchMeDocument = gql`
       name
       email
       world_id_nullifier
+      posthog_id
       memberships {
         role
         team {

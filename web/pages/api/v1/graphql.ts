@@ -1,11 +1,11 @@
-import { gql } from "@apollo/client";
+import { errorUnauthenticated } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
-import { errorUnauthenticated } from "@/legacy/backend/errors";
-import { NextApiRequest, NextApiResponse } from "next";
 import { verifyHashedSecret } from "@/legacy/backend/utils";
+import { gql } from "@apollo/client";
 import { getSession } from "@auth0/nextjs-auth0";
 import dayjs from "dayjs";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handleGraphQL(
   req: NextApiRequest,
@@ -85,7 +85,7 @@ export default async function handleGraphQL(
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
     const session = await getSession(req, res);
     let token: string | null = null;
-    if (session?.user.hasura.id && team_id) {
+    if (session?.user.hasura?.id && team_id) {
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
         team_id ?? "",
