@@ -28,6 +28,7 @@ import {
   getSdk as getInsertMembershipAndDeleteInviteSdk,
 } from "./graphql/insert-membership-and-delete-invite.generated";
 
+import { captureEvent } from "@/services/posthogClient";
 import {
   InsertUserMutation,
   getSdk as getInsertUserSdk,
@@ -162,6 +163,15 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
 
     insertedUser = insert_user_one;
+
+    await captureEvent({
+      event: "signup_success",
+      distinctId: insert_user_one?.posthog_id ?? "",
+      properties: {
+        team_id: inviteData.team.id,
+        invited: true,
+      },
+    });
   } catch (error) {
     logger.error("Error while inserting user on join team:", { error });
 
