@@ -6,9 +6,9 @@ import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fet
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, getNullifierName } from "@/lib/utils";
-import { useFetchUserQuery } from "@/scenes/Portal/Profile/common/graphql/client/fetch-user.generated";
+import { checkUserPermissions } from "@/lib/utils";
 import { colorAtom } from "@/scenes/Portal/layout";
+import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import Link from "next/link";
@@ -32,7 +32,6 @@ import { HelpNav } from "./HelpNav";
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const userId = auth0User?.hasura?.id;
 
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
@@ -40,28 +39,18 @@ export const LoggedUserNav = () => {
     actionId?: string;
   };
 
+  const { user } = useMeQuery({
+    context: { headers: { team_id: "_" } },
+  });
+
   const hasOwnerPermission = useMemo(() => {
     return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
   }, [auth0User, teamId]);
 
-  const { data } = useFetchUserQuery({
-    variables: !userId ? undefined : { user_id: userId },
-    context: {
-      headers: { team_id: "_" },
-    },
-    skip: !userId,
-  });
-
-  const name = useMemo(
-    () =>
-      data?.user?.name ||
-      data?.user?.email ||
-      getNullifierName(data?.user?.world_id_nullifier) ||
-      "Anonymous User",
-    [data?.user?.email, data?.user?.name, data?.user?.world_id_nullifier],
+  const nameFirstLetter = useMemo(
+    () => user.nameToDisplay[0].toLocaleUpperCase(),
+    [user.nameToDisplay],
   );
-
-  const nameFirstLetter = useMemo(() => name[0].toUpperCase(), [name]);
 
   const trackDocsClicked = useCallback(() => {
     posthog.capture("docs_clicked", {
@@ -118,7 +107,7 @@ export const LoggedUserNav = () => {
             variant={TYPOGRAPHY.R4}
             className="max-w-full truncate px-4 py-2.5 text-grey-400"
           >
-            {name}
+            {user.nameToDisplay}
           </Typography>
 
           <DropdownItem className="hover:bg-grey-50">

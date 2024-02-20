@@ -1,18 +1,11 @@
-"use client";
-
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { CreateTeamDialog } from "@/scenes/Portal/Profile/Teams/page/CreateTeamDIalog";
 import { List } from "@/scenes/Portal/Profile/Teams/page/List";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
-import { useState } from "react";
 
 export const TeamsPage = () => {
-  const [isOpenCreateTeamDialog, setIsOpenCreateTeamDialog] =
-    useState<boolean>(false);
-
   return (
     <>
       <div className="pt-9">
@@ -41,11 +34,6 @@ export const TeamsPage = () => {
 
           <List />
         </div>
-
-        <CreateTeamDialog
-          open={isOpenCreateTeamDialog}
-          onClose={setIsOpenCreateTeamDialog}
-        />
       </SizingWrapper>
     </>
   );

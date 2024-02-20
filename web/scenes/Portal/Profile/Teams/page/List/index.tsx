@@ -15,17 +15,13 @@ import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { LogoutIcon } from "@/components/Icons/LogoutIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useMeQuery } from "@/scenes/common/me-query/client";
+import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
-import {
-  FetchMembershipsQuery,
-  useFetchMembershipsQuery,
-} from "../graphql/client/fetch-memberships.generated";
 import { TeamLogo } from "./TeamLogo";
 
 const roleName: Record<Role_Enum, string> = {
@@ -34,31 +30,16 @@ const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Owner]: "Owner",
 };
 
+type Team = FetchMeQuery["user"][0]["memberships"][0]["team"];
+
 export const List = () => {
-  const { user } = useUser() as Auth0SessionUser;
+  const [teamForTransfer, setTeamForTransfer] = useState<Team | undefined>();
+  const [teamForDelete, setTeamForDelete] = useState<Team | undefined>();
+  const [teamForLeave, setTeamForLeave] = useState<Team | undefined>();
 
-  const { data } = useFetchMembershipsQuery({
+  const { user } = useMeQuery({
     context: { headers: { team_id: "_" } },
-    variables: !user?.hasura
-      ? undefined
-      : {
-          user_id: user?.hasura?.id,
-        },
-    skip: !user?.hasura,
-
-    // NOTE: Set manually no-cache because it returns cached data after creating a new team
-    fetchPolicy: "no-cache",
   });
-
-  const [teamForTransfer, setTeamForTransfer] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
-  const [teamForDelete, setTeamForDelete] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
-  const [teamForLeave, setTeamForLeave] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
 
   return (
     <>
@@ -81,7 +62,7 @@ export const List = () => {
           <div className="border-b border-grey-100 py-3" />
         </div>
 
-        {data?.memberships.map((membership) => (
+        {user?.memberships?.map((membership) => (
           <div key={membership.team.id} className="group contents">
             <Button
               href={urls.teams({ team_id: membership.team.id })}

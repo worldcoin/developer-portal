@@ -30,11 +30,11 @@ export const FetchMeDocument = gql`
       email
       world_id_nullifier
       memberships {
+        role
         team {
           id
           name
         }
-        role
       }
     }
   }
