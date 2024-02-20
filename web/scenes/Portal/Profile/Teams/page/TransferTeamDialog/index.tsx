@@ -26,6 +26,7 @@ import {
   FetchMembersQuery,
   useFetchMembersQuery,
 } from "./graphql/client/fetch-members.generated";
+import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-membership.generated";
 import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
@@ -67,17 +68,30 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const member = useWatch({ control, name: "member" });
 
+  const { data: userMembership } = useFetchUserMembershipQuery({
+    context: { headers: { team_id: team?.id } },
+    variables: {
+      user_id: user?.hasura.id ?? "",
+      team_id: team?.id ?? "",
+    },
+  });
+
+  const userMembershipId = userMembership?.members[0]?.id;
+
   const submit = useCallback(
     async (values: FormValues) => {
       if (!user?.hasura) return;
+      if (!userMembershipId) return;
+
       try {
         await transferMembership({
           variables: {
             id: values.member.id,
-            user_id: user?.hasura.id,
+            user_member_id: userMembershipId,
           },
           refetchQueries: [FetchMembershipsDocument],
         });
+
         toast.success("Ownership transferred!");
         props.onClose(true);
       } catch (e) {
@@ -85,7 +99,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
         toast.error("Error ownership transferring");
       }
     },
-    [props, transferMembership, user?.hasura],
+    [props, transferMembership, user?.hasura, userMembershipId],
   );
 
   return (
