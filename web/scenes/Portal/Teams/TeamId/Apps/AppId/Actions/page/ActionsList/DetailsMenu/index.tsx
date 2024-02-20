@@ -14,15 +14,13 @@ export const DetailsMenu = (props: { path: string }) => {
       >
         <ElementsIcon />
       </Menu.Button>
-      <Menu.Items className="absolute right-0 mt-1 origin-top-right rounded-lg border border-grey-100 bg-white py-2 pl-2  pr-10 shadow-button ring-0  hover:bg-grey-50 focus:outline-none">
+      <Menu.Items className="absolute right-0 mt-1 origin-top-right rounded-xl border border-grey-100 bg-white px-4 py-3 pr-10 ring-0 drop-shadow-sm hover:bg-grey-50 focus:outline-none">
         <Menu.Item>
           {({ active }) => (
-            <div className="flex size-full cursor-pointer flex-row items-center gap-2">
-              <button>
-                <EditIcon className="text-grey-400" />
-              </button>
+            <div className="flex size-full cursor-pointer flex-row items-center gap-2 ">
+              <EditIcon className="text-grey-400" />
               <Link className="text-grey-900" href={path}>
-                <Typography variant={TYPOGRAPHY.R4}>View Details</Typography>
+                <Typography variant={TYPOGRAPHY.R4}>View details</Typography>
               </Link>
             </div>
           )}

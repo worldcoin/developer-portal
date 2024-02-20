@@ -14,35 +14,37 @@ import {
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
+import { getNullifierName } from "@/lib/utils";
+import {
+  FetchMeDocument,
+  FetchMeQuery,
+} from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
-  FetchMembershipsDocument,
-  FetchMembershipsQuery,
-} from "../graphql/client/fetch-memberships.generated";
-import {
   FetchMembersQuery,
   useFetchMembersQuery,
 } from "./graphql/client/fetch-members.generated";
+import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-membership.generated";
 import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
-  team?: FetchMembershipsQuery["memberships"][0]["team"];
+  team?: FetchMeQuery["user"][0]["memberships"][0]["team"];
 };
 
 type FormValues = {
-  member: FetchMembersQuery["members"][0];
+  member: FetchMembersQuery["members"][0] | undefined;
 };
 
 export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const { team, ...otherProps } = props;
-
   const { user } = useUser() as Auth0SessionUser;
 
-  const membersQueryRes = useFetchMembersQuery({
+  const { data } = useFetchMembersQuery({
     context: { headers: { team_id: team?.id } },
+
     variables:
       !team || !user?.hasura
         ? undefined
@@ -50,8 +52,18 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
             user_id: user?.hasura.id,
             team_id: team.id,
           },
+
     skip: !team || !user?.hasura,
   });
+
+  const getName = useCallback((member?: FetchMembersQuery["members"][0]) => {
+    return (
+      member?.user.name ||
+      member?.user?.email ||
+      getNullifierName(member?.user?.world_id_nullifier) ||
+      "Anonymous User"
+    );
+  }, []);
 
   const [transferMembership] = useTransferOwnershipMutation({
     context: { headers: { team_id: team?.id } },
@@ -63,21 +75,34 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     formState: { isValid, isSubmitting },
   } = useForm<FormValues>({
     mode: "onChange",
+    defaultValues: { member: undefined },
   });
 
   const member = useWatch({ control, name: "member" });
 
+  const { data: userMembership } = useFetchUserMembershipQuery({
+    context: { headers: { team_id: team?.id } },
+    variables: {
+      user_id: user?.hasura.id ?? "",
+      team_id: team?.id ?? "",
+    },
+  });
+
+  const userMembershipId = userMembership?.members[0]?.id;
+
   const submit = useCallback(
     async (values: FormValues) => {
-      if (!user?.hasura) return;
+      if (!user?.hasura || !values.member || !userMembershipId) return;
+
       try {
         await transferMembership({
           variables: {
             id: values.member.id,
-            user_id: user?.hasura.id,
+            user_member_id: userMembershipId,
           },
-          refetchQueries: [FetchMembershipsDocument],
+          refetchQueries: [FetchMeDocument],
         });
+
         toast.success("Ownership transferred!");
         props.onClose(true);
       } catch (e) {
@@ -85,7 +110,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
         toast.error("Error ownership transferring");
       }
     },
-    [props, transferMembership, user?.hasura],
+    [props, transferMembership, user?.hasura, userMembershipId],
   );
 
   return (
@@ -137,7 +162,8 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                         </span>
                       ) : (
                         <span>
-                          {field.value.user.name} ({field.value.user.email})
+                          {getName(member)}{" "}
+                          {member?.user.email && `(${member?.user.email})`}
                         </span>
                       )}
                     </Typography>
@@ -152,13 +178,14 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                   </SelectButton>
 
                   <SelectOptions className="mt-2">
-                    {membersQueryRes.data?.members.map((member, i) => (
+                    {data?.members.map((member) => (
                       <SelectOption
                         key={member.id}
                         className="transition hover:bg-grey-100"
                         value={member}
                       >
-                        {member.user.name} ({member.user.email})
+                        {getName(member)}{" "}
+                        {member.user.email && `(${member.user.email})`}
                       </SelectOption>
                     ))}
                   </SelectOptions>

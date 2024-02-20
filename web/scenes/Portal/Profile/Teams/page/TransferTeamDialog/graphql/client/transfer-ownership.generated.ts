@@ -7,34 +7,34 @@ const defaultOptions = {} as const;
 export type TransferOwnershipMutationVariables = Types.Exact<{
   id: Types.Scalars["String"];
   role?: Types.InputMaybe<Types.Role_Enum>;
-  user_id: Types.Scalars["String"];
+  user_member_id: Types.Scalars["String"];
   user_role?: Types.InputMaybe<Types.Role_Enum>;
 }>;
 
 export type TransferOwnershipMutation = {
   __typename?: "mutation_root";
-  update_membership_by_pk?: { __typename?: "membership"; id: string } | null;
-  update_membership?: {
-    __typename?: "membership_mutation_response";
-    affected_rows: number;
-  } | null;
+  transferOwner?: { __typename?: "membership"; id: string } | null;
+  updateUser?: { __typename?: "membership"; id: string } | null;
 };
 
 export const TransferOwnershipDocument = gql`
   mutation TransferOwnership(
     $id: String!
     $role: role_enum = OWNER
-    $user_id: String!
+    $user_member_id: String!
     $user_role: role_enum = ADMIN
   ) {
-    update_membership_by_pk(pk_columns: { id: $id }, _set: { role: $role }) {
+    transferOwner: update_membership_by_pk(
+      pk_columns: { id: $id }
+      _set: { role: $role }
+    ) {
       id
     }
-    update_membership(
-      where: { user_id: { _eq: $user_id } }
+    updateUser: update_membership_by_pk(
+      pk_columns: { id: $user_member_id }
       _set: { role: $user_role }
     ) {
-      affected_rows
+      id
     }
   }
 `;
@@ -58,7 +58,7 @@ export type TransferOwnershipMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      id: // value for 'id'
  *      role: // value for 'role'
- *      user_id: // value for 'user_id'
+ *      user_member_id: // value for 'user_member_id'
  *      user_role: // value for 'user_role'
  *   },
  * });

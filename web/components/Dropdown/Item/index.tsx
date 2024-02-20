@@ -1,11 +1,17 @@
 import { Menu, MenuItemProps } from "@headlessui/react";
+import { ElementType } from "react";
 import { twMerge } from "tailwind-merge";
 
-type DropdownItemProps = Omit<MenuItemProps<"button">, "className"> & {
+type DropdownItemProps<TTag extends ElementType> = Omit<
+  MenuItemProps<TTag>,
+  "className"
+> & {
   className?: string;
 };
 
-export const DropdownItem = (props: DropdownItemProps) => {
+export const DropdownItem = <TTag extends ElementType>(
+  props: DropdownItemProps<TTag>,
+) => {
   const { className, ...otherProps } = props;
   return (
     <Menu.Item

@@ -27,6 +27,7 @@ import {
   getSdk as getInsertUserSdk,
 } from "./graphql/insert-user.generated";
 
+import { captureEvent } from "@/services/posthogClient";
 import {
   getSession,
   updateSession,
@@ -176,6 +177,14 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       insertedUser = insert_user_one;
+
+      await captureEvent({
+        event: "signup_success",
+        distinctId: insert_user_one?.posthog_id ?? "",
+        properties: {
+          team_id: insertedTeam?.id,
+        },
+      });
     } catch (error) {
       logger.error("Error while inserting user on create team:", { error });
 

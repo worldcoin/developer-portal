@@ -38,12 +38,10 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const engineType = data?.app[0]?.engine;
   const appName = data?.app[0]?.app_metadata[0]?.name;
 
-  if (!loading && !data) {
+  // If there's no app then show 404. Tutorial will be if you have an app
+  if (!loading && !data?.app[0]) {
     return (
-      <ErrorComponent
-        statusCode={404}
-        title="Actions not found"
-      ></ErrorComponent>
+      <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
     );
   } else {
     return (

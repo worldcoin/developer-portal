@@ -15,18 +15,13 @@ import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { LogoutIcon } from "@/components/Icons/LogoutIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { EditTeamDialog } from "@/scenes/Portal/Profile/Teams/page/EditTeamDialog";
 import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
 import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
 import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useMeQuery } from "@/scenes/common/me-query/client";
+import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
-import {
-  FetchMembershipsQuery,
-  useFetchMembershipsQuery,
-} from "../graphql/client/fetch-memberships.generated";
 import { TeamLogo } from "./TeamLogo";
 
 const roleName: Record<Role_Enum, string> = {
@@ -35,44 +30,26 @@ const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Owner]: "Owner",
 };
 
+type Team = FetchMeQuery["user"][0]["memberships"][0]["team"];
+
 export const List = () => {
-  const { user } = useUser() as Auth0SessionUser;
+  const [teamForTransfer, setTeamForTransfer] = useState<Team | undefined>();
+  const [teamForDelete, setTeamForDelete] = useState<Team | undefined>();
+  const [teamForLeave, setTeamForLeave] = useState<Team | undefined>();
 
-  const { data } = useFetchMembershipsQuery({
+  const { user } = useMeQuery({
     context: { headers: { team_id: "_" } },
-    variables: !user?.hasura
-      ? undefined
-      : {
-          user_id: user?.hasura?.id,
-        },
-    skip: !user?.hasura,
-
-    // NOTE: Set manually no-cache because it returns cached data after creating a new team
-    fetchPolicy: "no-cache",
   });
-
-  const [teamForEdit, setTeamForEdit] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
-  const [teamForTransfer, setTeamForTransfer] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
-  const [teamForDelete, setTeamForDelete] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
-  const [teamForLeave, setTeamForLeave] = useState<
-    FetchMembershipsQuery["memberships"][0]["team"] | undefined
-  >();
 
   return (
     <>
-      <div className="grid grid-cols-[1fr_1fr_auto]">
-        <div className="contents text-12 leading-4 text-grey-400">
+      <div className="grid grid-cols-[1fr_1fr_auto] ">
+        <div className="contents text-12 leading-4 text-grey-400 ">
           <Typography
             variant={TYPOGRAPHY.R5}
             className="border-b border-grey-100 py-3"
           >
-            Member
+            Team
           </Typography>
 
           <Typography
@@ -85,11 +62,11 @@ export const List = () => {
           <div className="border-b border-grey-100 py-3" />
         </div>
 
-        {data?.memberships.map((membership) => (
-          <div key={membership.team.id} className="contents">
+        {user?.memberships?.map((membership) => (
+          <div key={membership.team.id} className="group contents">
             <Button
               href={urls.teams({ team_id: membership.team.id })}
-              className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4"
+              className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50"
             >
               <TeamLogo
                 src={""}
@@ -109,12 +86,12 @@ export const List = () => {
 
             <Typography
               variant={TYPOGRAPHY.R4}
-              className="flex items-center border-b border-grey-100 px-2 py-4 text-14 leading-5 text-grey-500"
+              className="flex items-center border-b border-grey-100 px-2 py-4 text-14 leading-5 text-grey-500 group-hover:bg-grey-50"
             >
               {roleName[membership.role]}
             </Typography>
 
-            <div className="flex items-center border-b border-grey-100 px-2 py-4">
+            <div className="flex items-center border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50">
               <Dropdown>
                 <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
                   <MoreVerticalIcon />
@@ -133,7 +110,9 @@ export const List = () => {
                   {(membership.role === Role_Enum.Owner ||
                     membership.role === Role_Enum.Admin) && (
                     <DropdownItem
-                      onClick={() => setTeamForEdit(membership.team)}
+                      as="a"
+                      href={urls.teamSettings({ team_id: membership.team.id })}
+                      className="flex"
                     >
                       <div className="flex items-center gap-x-2">
                         <EditIcon className="size-4 text-grey-400" />
@@ -198,12 +177,6 @@ export const List = () => {
           id: teamForDelete?.id,
           name: teamForDelete?.name,
         }}
-      />
-
-      <EditTeamDialog
-        //team={teamForEdit}
-        open={!!teamForEdit}
-        onClose={() => setTeamForEdit(undefined)}
       />
 
       <LeaveTeamDialog

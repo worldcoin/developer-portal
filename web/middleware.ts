@@ -43,6 +43,7 @@ const generateCsp = () => {
       values: [
         "'self'",
         "'unsafe-inline'",
+        "fonts.googleapis.com",
         ...(isDev ? ["'unsafe-inline'"] : []),
       ],
     },

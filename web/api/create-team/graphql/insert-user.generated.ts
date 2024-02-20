@@ -10,13 +10,18 @@ export type InsertUserMutationVariables = Types.Exact<{
 
 export type InsertUserMutation = {
   __typename?: "mutation_root";
-  insert_user_one?: { __typename?: "user"; id: string } | null;
+  insert_user_one?: {
+    __typename?: "user";
+    id: string;
+    posthog_id?: string | null;
+  } | null;
 };
 
 export const InsertUserDocument = gql`
   mutation InsertUser($user_data: user_insert_input!) {
     insert_user_one(object: $user_data) {
       id
+      posthog_id
     }
   }
 `;

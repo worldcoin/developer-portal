@@ -27,9 +27,9 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { permissionsDialogAtom } from "../PermissionsDialog";
 import {
-  FetchMembershipsDocument,
-  FetchMembershipsQuery,
-} from "../graphql/client/fetch-members.generated";
+  FetchTeamMembersDocument,
+  FetchTeamMembersQuery,
+} from "../graphql/client/fetch-team-members.generated";
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
 
 export const editRoleDialogAtom = atom(false);
@@ -45,7 +45,7 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const EditRoleDialog = (props: {
-  membership: FetchMembershipsQuery["membership"][number] | null;
+  membership: FetchTeamMembersQuery["membership"][number] | null;
 }) => {
   const [isOpened, setIsOpened] = useAtom(editRoleDialogAtom);
   const [permissionsOpened, setPermissionsOpened] = useAtom(
@@ -123,7 +123,7 @@ export const EditRoleDialog = (props: {
             role: values.role.value,
           },
 
-          refetchQueries: [FetchMembershipsDocument],
+          refetchQueries: [FetchTeamMembersDocument],
         });
 
         toast.success("Role updated successfully");
