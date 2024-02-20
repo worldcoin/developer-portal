@@ -26,6 +26,7 @@ export type GetVerificationDataQuery = {
       verification_status: string;
     }>;
   } | null;
+  hasApp?: { __typename?: "app"; id: string } | null;
 };
 
 export const GetVerificationDataDocument = gql`
@@ -48,6 +49,9 @@ export const GetVerificationDataDocument = gql`
         review_message
         verification_status
       }
+    }
+    hasApp: app_by_pk(id: $id) {
+      id
     }
   }
 `;
