@@ -1,4 +1,3 @@
-"use server";
 import { PostHog } from "posthog-node";
 
 interface CaptureEventParams {
