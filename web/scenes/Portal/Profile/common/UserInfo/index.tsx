@@ -62,7 +62,7 @@ export const UserInfo = (props: UserInfoProps) => {
         </Typography>
 
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          {!data?.user ? <Skeleton width={200} /> : data.user.email || null}
+          {!data?.user ? <Skeleton width={200} /> : data.user?.email || null}
         </Typography>
       </div>
     </div>
