@@ -68,12 +68,15 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        team:
-          memberships:
-            _and:
-              - team_id:
-                  _eq: X-Hasura-Team-Id
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - role:
-                  _eq: OWNER
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - team:
+              memberships:
+                _and:
+                  - team_id:
+                      _eq: X-Hasura-Team-Id
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - role:
+                      _eq: OWNER
