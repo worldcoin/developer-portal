@@ -1,10 +1,10 @@
+import { errorNotAllowed } from "@/legacy/backend/errors";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { logger } from "@/legacy/lib/logger";
 import { gql } from "@apollo/client";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { errorNotAllowed } from "@/legacy/backend/errors";
-import { logger } from "@/legacy/lib/logger";
 
 /**
  * Updates the cache for the Semaphore contracts through ENS
@@ -30,11 +30,8 @@ export default async function handleENS(
 
   const addresses = [
     "id.worldcoin.eth",
-    "goerli.id.worldcoin.eth",
     "optimism.id.worldcoin.eth",
-    "op-goerli.id.worldcoin.eth",
     "polygon.id.worldcoin.eth",
-    "mumbai.id.worldcoin.eth",
   ];
 
   const updateStatements = {
