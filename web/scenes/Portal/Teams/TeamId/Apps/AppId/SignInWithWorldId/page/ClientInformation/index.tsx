@@ -89,7 +89,11 @@ export const ClientInformationPage = (props: {
                 }
               />
               <Input
-                placeholder={clientSecret == "" ? "Locked" : clientSecret}
+                placeholder={
+                  clientSecret == ""
+                    ? "Locked (reset to generate a new secret)"
+                    : clientSecret
+                }
                 label="Client secret"
                 disabled
                 className="h-16"

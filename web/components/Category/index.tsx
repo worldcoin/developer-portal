@@ -11,7 +11,14 @@ import { useCallback } from "react";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
-const Categories = ["Social", "Gaming", "Business", "Finance", "Productivity"];
+const Categories = [
+  "Social",
+  "Gaming",
+  "Business",
+  "Finance",
+  "Productivity",
+  "Other",
+];
 
 export const CategorySelector = (props: {
   value?: string;
