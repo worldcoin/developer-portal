@@ -1,5 +1,5 @@
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
+import { Unauthorized } from "@/scenes/Unauthorized/page";
 import { getSession } from "@auth0/nextjs-auth0";
 import { TeamProfile } from "../common/TeamProfile";
 import { Apps } from "./Apps";
@@ -21,17 +21,7 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
   );
 
   if (!isTeamMember) {
-    return (
-      <div className="flex h-full items-center justify-center gap-x-2">
-        <Typography variant={TYPOGRAPHY.M2}>401</Typography>
-
-        <div className="h-5 w-px bg-grey-400" />
-
-        <Typography variant={TYPOGRAPHY.H6} className="text-grey-400">
-          You are not a member of this team
-        </Typography>
-      </div>
-    );
+    return <Unauthorized message="You are not a member of this team" />;
   }
 
   return (

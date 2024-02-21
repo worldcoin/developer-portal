@@ -6,4 +6,8 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Unauthorized" }),
 };
 
-export default Unauthorized;
+const UnauthorizedPage = () => {
+  return <Unauthorized className="min-h-[100dvh] w-full" />;
+};
+
+export default UnauthorizedPage;
