@@ -23,7 +23,14 @@ import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.gene
 import { RadioCard } from "./RadioCard";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
 
-const CATEGORIES = ["Social", "Gaming", "Business", "Finance", "Productivity"];
+const CATEGORIES = [
+  "Social",
+  "Gaming",
+  "Business",
+  "Finance",
+  "Productivity",
+  "Other",
+];
 const BUILD_TYPES = ["staging", "production"] as const;
 const VERIFICATION_TYPES = ["cloud", "on-chain"] as const;
 
@@ -215,7 +222,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "cloud", label: "Cloud" }}
-                    description={`Verify your proofs using our public API endpoint. Also choose this if you're using Sign in With World ID.`}
+                    description={`Verify your proofs using our public API endpoint. Also choose this if you're using Sign in with World ID.`}
                     stampText="Easiest"
                   />
 

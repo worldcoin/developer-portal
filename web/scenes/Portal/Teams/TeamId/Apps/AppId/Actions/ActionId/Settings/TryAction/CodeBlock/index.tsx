@@ -11,7 +11,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier, engine } = props;
 
   const idKitWidgetCodeString = `
-// (Required in Next.js - IDKitWidget must be run on client)
+// (If using Next.js - IDKitWidget must be run on client)
 "use client"
 import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
 
@@ -30,14 +30,13 @@ const onSuccess = () => {
 <IDKitWidget
     app_id="${appId}"
     action="${action_identifier}"
-    ${engine === EngineType.OnChain ? "// On-chain only accepts Orb" : "// Choose between Orb or Device"}
+    ${engine === EngineType.OnChain && "// On-chain only accepts Orb verifications"}
     verification_level={VerificationLevel.${engine === EngineType.OnChain ? "Orb" : "Device"}}
     handleVerify={verifyProof}
     onSuccess={onSuccess}>
     {({ open }) => (
       <button
         onClick={open}
-        className="your-button-class"
       >
         Verify with World ID
       </button>
@@ -103,12 +102,12 @@ const verifyProof = async (proof) => {
   return (
     <div className="grid w-full max-w-full gap-y-5">
       <CodeDisplayComponent
-        buttonText="Install ID Kit"
+        buttonText="Install IDKit"
         type="install"
         panelText="npm install @worldcoin/idkit"
       />
       <CodeDisplayComponent
-        buttonText="Usage"
+        buttonText="Usage (React)"
         type="idkit"
         panelText={idKitWidgetCodeString}
       />

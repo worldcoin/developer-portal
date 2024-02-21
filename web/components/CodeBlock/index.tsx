@@ -48,10 +48,10 @@ export const CodeBlock = memo(function CodeBlock(
         style={atomOneLight}
         showInlineLineNumbers
         lineNumberStyle={{
-          padding: "8px 16px",
+          padding: "2px 4px",
           minWidth: "30px",
           boxSizing: "content-box",
-          textAlign: "center",
+          textAlign: "start",
           color: clsx(
             { "#4940e0": props.theme === "neutral" },
             { "#ff5a76": props.theme === "error" },
