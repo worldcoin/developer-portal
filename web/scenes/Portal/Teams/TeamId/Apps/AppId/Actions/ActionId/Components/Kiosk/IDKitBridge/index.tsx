@@ -58,7 +58,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
             try {
               await pollForUpdates();
             } catch (error) {
-              console.error("Error polling for updates:", error);
               clearInterval(intervalIdRef.current);
               intervalIdRef.current = undefined;
             }
@@ -73,13 +72,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
           console.error(error);
         }
       });
-    // Cleanup function using ref
-    return () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-        intervalIdRef.current = undefined;
-      }
-    };
   }, [
     bridge_url,
     createClient,
@@ -91,6 +83,16 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
     props.app_id,
     verificationLevel,
   ]);
+
+  useEffect(() => {
+    // Cleanup function using ref
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = undefined;
+      }
+    };
+  }, []);
 
   // Change the shown screen based on current verificationState and errorCode
   useEffect(() => {
