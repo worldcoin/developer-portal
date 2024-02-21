@@ -29,10 +29,7 @@ export const GetUserAndTeamMembershipsDocument = gql`
     user(
       where: {
         id: { _eq: $user_id }
-        memberships: {
-          team_id: { _eq: $team_id }
-          role: { _in: [OWNER, ADMIN] }
-        }
+        memberships: { team_id: { _eq: $team_id }, role: { _in: [OWNER] } }
       }
     ) {
       id
