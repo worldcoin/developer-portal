@@ -1,5 +1,5 @@
+import { Unauthorized } from "@/components/Unauthorized";
 import { Auth0SessionUser } from "@/lib/types";
-import { Unauthorized } from "@/scenes/Unauthorized/page";
 import { getSession } from "@auth0/nextjs-auth0";
 import { TeamProfile } from "../common/TeamProfile";
 import { Apps } from "./Apps";
