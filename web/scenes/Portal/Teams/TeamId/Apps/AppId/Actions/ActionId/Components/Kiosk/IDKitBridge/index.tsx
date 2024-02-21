@@ -58,7 +58,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
             try {
               await pollForUpdates();
             } catch (error) {
-              console.error("Error polling for updates:", error);
               clearInterval(intervalIdRef.current);
               intervalIdRef.current = undefined;
             }
