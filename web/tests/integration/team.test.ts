@@ -184,12 +184,12 @@ describe("user role", () => {
       `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+    const { rows: memberRoleMemberships } = (await integrationDBExecuteQuery(
       `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
+    const memberRoleUserId = memberRoleMemberships[0].user_id;
+    const memberRoleTeamId = memberRoleMemberships[0].team_id;
 
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
@@ -201,8 +201,42 @@ describe("user role", () => {
         action: { name: "invite_team_members" },
         session_variables: {
           "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
+          "x-hasura-user-id": memberRoleUserId,
+          "x-hasura-team-id": memberRoleTeamId,
+        },
+      },
+    });
+
+    await handleInvite(req, res);
+    const responseData = res._getData();
+    const responseJSON = JSON.parse(responseData);
+    expect(responseJSON.extensions.code).toBe("insufficient_permissions");
+  });
+
+  test("cannot invite team members as admin", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id FROM "public"."team";`,
+    )) as { rows: Array<{ id: string }> };
+
+    const { rows: adminRoleMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'ADMIN' limit 1;`,
+    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+
+    const adminRoleUserId = adminRoleMemberships[0].user_id;
+    const adminRoleMemberId = adminRoleMemberships[0].team_id;
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
+      },
+      body: {
+        input: { emails: ["test@gmail.com"] },
+        action: { name: "invite_team_members" },
+        session_variables: {
+          "x-hasura-role": "user",
+          "x-hasura-user-id": adminRoleUserId,
+          "x-hasura-team-id": adminRoleMemberId,
         },
       },
     });
@@ -253,7 +287,7 @@ describe("user role", () => {
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'ADMIN' limit 1;`,
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'OWNER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
