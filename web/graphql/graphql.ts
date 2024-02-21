@@ -53,6 +53,13 @@ export type ImageGetAllUnverifiedImagesOutput = {
   showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
 };
 
+export type ImageGetAppReviewImagesOutput = {
+  __typename?: "ImageGetAppReviewImagesOutput";
+  hero_image_url?: Maybe<Scalars["String"]>;
+  logo_img_url?: Maybe<Scalars["String"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["Int"]>;
@@ -4891,6 +4898,8 @@ export type Query_Root = {
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
+  /** Used by the reviewer to get in review app images */
+  get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
   /** Gets the uploaded image to display */
   get_uploaded_image?: Maybe<GetUploadedImageOutput>;
   /** fetch data from the table: "invite" */
@@ -5142,6 +5151,10 @@ export type Query_RootCache_By_PkArgs = {
 };
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
+  app_id: Scalars["String"];
+};
+
+export type Query_RootGet_App_Review_ImagesArgs = {
   app_id: Scalars["String"];
 };
 

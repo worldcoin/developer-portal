@@ -1,6 +1,5 @@
-"use client";
-import Error from "next/error";
+import { Unauthorized } from "@/components/Unauthorized";
 
-export const Unauthorized = () => {
-  return <Error statusCode={401} title="Unauthorized" />;
-};
+export const UnauthorizedPage = () => (
+  <Unauthorized className="min-h-[100dvh] w-full" />
+);
