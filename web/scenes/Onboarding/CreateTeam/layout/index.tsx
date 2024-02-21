@@ -1,9 +1,8 @@
-import { Button } from "@/components/Button";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { ReactNode } from "react";
+import { CloseButton } from "./CloseButton";
 
 export const CreateTeamLayout = (props: { children: ReactNode }) => {
   return (
@@ -12,9 +11,7 @@ export const CreateTeamLayout = (props: { children: ReactNode }) => {
         <SizingWrapper>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-3">
-              <Button href="/api/auth/logout" className="flex">
-                <CloseIcon />
-              </Button>
+              <CloseButton />
 
               <span className="text-grey-200">|</span>
 
