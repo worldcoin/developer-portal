@@ -280,7 +280,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   }
 
   if (!returnTo && teamId) {
-    url = urls.teams({ team_id: teamId });
+    url = urls.apps({ team_id: teamId });
   }
 
   if (!returnTo && !teamId) {
