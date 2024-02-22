@@ -1,12 +1,11 @@
 "use client";
 
-import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
-import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import clsx from "clsx";
 import { useAtom } from "jotai";
 import { Fragment } from "react";
 
@@ -25,9 +24,7 @@ export const ClientPage = () => {
               type="button"
               onClick={() => setCreateAppDialogOpen(true)}
               icon={
-                <IconFrame className="bg-blue-500 text-grey-0">
-                  <PlusCircleIcon />
-                </IconFrame>
+                <IconFrame className="bg-blue-500 text-grey-0">1</IconFrame>
               }
               title="Create an app"
               description="Begin by creating your app"
@@ -38,8 +35,8 @@ export const ClientPage = () => {
               key={`apps-tutorial-step-2`}
               href="?createAction=true"
               icon={
-                <IconFrame className="bg-grey-100 text-grey-500">
-                  <UserStoryIcon />
+                <IconFrame className={clsx("bg-grey-100 text-grey-500")}>
+                  2
                 </IconFrame>
               }
               title="Create an incognito action"

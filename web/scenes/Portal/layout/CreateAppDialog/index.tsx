@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { CategorySelector } from "@/components/Category";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
@@ -16,28 +15,19 @@ import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { RadioCard } from "./RadioCard";
 import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
 
-const CATEGORIES = [
-  "Social",
-  "Gaming",
-  "Business",
-  "Finance",
-  "Productivity",
-  "Other",
-];
 const BUILD_TYPES = ["staging", "production"] as const;
 const VERIFICATION_TYPES = ["cloud", "on-chain"] as const;
 
 const createAppSchema = yup.object({
   image: yup.string().required(),
   appName: yup.string().required("This field is required"),
-  category: yup.string().oneOf(CATEGORIES).required("This field is required"),
   build: yup.string().oneOf(BUILD_TYPES).required("This field is required"),
   verification: yup
     .string()
@@ -83,7 +73,6 @@ export const CreateAppDialog = (props: DialogProps) => {
       insertApp({
         variables: {
           name: values.appName,
-          category: values.category,
           is_staging: values.build === "staging",
           engine: values.verification,
         },
@@ -177,23 +166,6 @@ export const CreateAppDialog = (props: DialogProps) => {
                   required
                   errors={errors.appName}
                 />
-
-                <Controller
-                  control={control}
-                  name="category"
-                  render={({ field }) => {
-                    return (
-                      <CategorySelector
-                        disabled={isSubmitting}
-                        value={field.value}
-                        onChange={field.onChange}
-                        errors={errors.category}
-                        required
-                        label="Category"
-                      />
-                    );
-                  }}
-                />
               </div>
 
               <div className="grid gap-y-6">
@@ -203,14 +175,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("build")}
                     option={{ value: "staging", label: "Staging" }}
-                    description="Development environment for testing and debugging."
+                    description="Development environment for testing and debugging. Verify with the simulator"
                     stampText="Recommended"
                   />
 
                   <RadioCard
                     register={register("build")}
                     option={{ value: "production", label: "Production" }}
-                    description="Live environment accessible to verified user. Use a World ID compatible app to verify."
+                    description="Verify real humans. Use World App to verify."
                   />
                 </div>
               </div>
@@ -222,14 +194,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "cloud", label: "Cloud" }}
-                    description={`Verify your proofs using our public API endpoint. Also choose this if you're using Sign in with World ID.`}
+                    description={`Verify your proofs using our public API endpoint.`}
                     stampText="Easiest"
                   />
 
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "on-chain", label: "On-chain" }}
-                    description="Use World ID and validate your proofs via a transaction on the blockchain."
+                    description="Validate and store your proofs on the blockchain."
                   />
                 </div>
               </div>
