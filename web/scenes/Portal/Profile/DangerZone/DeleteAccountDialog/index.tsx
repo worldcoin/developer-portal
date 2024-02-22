@@ -9,8 +9,10 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -30,6 +32,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const DeleteAccountDialog = (props: DialogProps) => {
   const { user } = useUser() as Auth0SessionUser;
+  const router = useRouter();
 
   const {
     register,
@@ -47,7 +50,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
   }, [props, reset]);
 
   const [deleteAccount] = useDeleteAccountMutation({
-    context: { headers: { team_id: "" } },
+    context: { headers: { team_id: "_" } },
   });
 
   const submit = useCallback(async () => {
@@ -58,10 +61,11 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           user_id: user.hasura.id,
         },
       });
-      toast.success("Team leaved!");
+      toast.success("Account Deleted!");
+      window.location.href = urls.logout();
     } catch (e) {
       console.error(e);
-      toast.error("Error account deleting");
+      toast.error("Error deleting account");
     }
   }, [deleteAccount, user?.hasura]);
 
@@ -103,7 +107,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
           <Input
             register={register("confirmation")}
             errors={errors.confirmation}
-            label="To verify, type DELETE below"
+            label="To delete, type DELETE below"
             autoFocus
           />
 

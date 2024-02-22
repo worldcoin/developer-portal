@@ -1,11 +1,12 @@
 "use client";
 
 import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
+import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
-import { Link } from "@/components/Link";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
@@ -102,13 +103,17 @@ export const Form = (props: { hasUser: boolean }) => {
             <Checkbox register={register("termsAndConditions")} />
             <Typography variant={TYPOGRAPHY.R3}>
               I agree with the{" "}
-              <Link href="/tos" className="underline">
+              <Button href={urls.tos()} target="_blank" className="underline">
                 Terms & Conditions
-              </Link>{" "}
+              </Button>{" "}
               and{" "}
-              <Link href="/privacy-statement" className="underline">
+              <Button
+                href={urls.privacyStatement()}
+                target="_blank"
+                className="underline"
+              >
                 Privacy Policy
-              </Link>
+              </Button>
               <span className="text-system-error-600">*</span>
             </Typography>
           </div>

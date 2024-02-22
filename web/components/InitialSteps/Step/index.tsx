@@ -41,7 +41,7 @@ export const Step = (
     >
       {icon}
 
-      <div className="grid grid-cols-1">
+      <div className={clsx("grid grid-cols-1", { "opacity-25": disabled })}>
         <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
           {title}
         </Typography>
@@ -54,7 +54,7 @@ export const Step = (
       {!completed && (
         <DecoratedButton
           variant="primary"
-          className="w-full min-w-[80px] rounded-[.7rem] px-0 py-2.5"
+          className="max-h-[40px] w-full min-w-[80px] rounded-[.7rem] px-0 py-2.5"
           disabled={disabled}
           {...buttonProps}
         >

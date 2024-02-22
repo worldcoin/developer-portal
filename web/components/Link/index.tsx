@@ -38,7 +38,7 @@ export const Link = memo(function Link(props: CommonLinkProps) {
     <>
       {(external || apiUrl) && (
         <a
-          target={target ?? apiUrl ? "_self" : "_blank"}
+          target={target ?? (apiUrl ? "_self" : "_blank")}
           href={href ?? "!#"}
           className={clsx("leading-none", className)}
           {...restProps}
@@ -49,6 +49,7 @@ export const Link = memo(function Link(props: CommonLinkProps) {
 
       {!external && !apiUrl && (
         <NextLink
+          target={target ?? "_self"}
           href={href ?? "!#"}
           prefetch={prefetch}
           className={clsx("leading-none", className)}

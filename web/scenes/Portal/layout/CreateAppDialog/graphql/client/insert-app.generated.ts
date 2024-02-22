@@ -7,7 +7,6 @@ const defaultOptions = {} as const;
 export type InsertAppMutationVariables = Types.Exact<{
   name: Types.Scalars["String"];
   engine: Types.Scalars["String"];
-  category: Types.Scalars["String"];
   is_staging: Types.Scalars["Boolean"];
 }>;
 
@@ -17,16 +16,11 @@ export type InsertAppMutation = {
 };
 
 export const InsertAppDocument = gql`
-  mutation InsertApp(
-    $name: String!
-    $engine: String!
-    $category: String!
-    $is_staging: Boolean!
-  ) {
+  mutation InsertApp($name: String!, $engine: String!, $is_staging: Boolean!) {
     insert_app_one(
       object: {
         engine: $engine
-        app_metadata: { data: { category: $category, name: $name } }
+        app_metadata: { data: { name: $name } }
         name: $name
         is_staging: $is_staging
       }
@@ -55,7 +49,6 @@ export type InsertAppMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      name: // value for 'name'
  *      engine: // value for 'engine'
- *      category: // value for 'category'
  *      is_staging: // value for 'is_staging'
  *   },
  * });

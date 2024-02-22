@@ -86,7 +86,7 @@ export const List = () => {
 
             <Typography
               variant={TYPOGRAPHY.R4}
-              className="flex items-center border-b border-grey-100 px-2 py-4 text-14 leading-5 text-grey-500 group-hover:bg-grey-50"
+              className="flex items-center border-b border-grey-100 py-4 text-14 leading-5 text-grey-500 group-hover:bg-grey-50"
             >
               {roleName[membership.role]}
             </Typography>
