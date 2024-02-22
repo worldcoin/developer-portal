@@ -94,7 +94,7 @@ export const CategorySelector = (props: {
             )}
           >
             <Typography variant={TYPOGRAPHY.R0}>
-              {value === "" ? "Select a category" : value}
+              {value || "Select a category"}
             </Typography>
             <CaretIcon
               className={clsx("ml-2 text-grey-400", {
