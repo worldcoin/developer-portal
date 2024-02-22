@@ -14,7 +14,7 @@ import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -32,6 +32,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
+  const [deleteFinished, setDeleteFinished] = useState(false);
 
   const schema = useMemo(() => {
     return yup.object({
@@ -56,15 +57,17 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const onClose = useCallback(() => {
     reset();
+    setDeleteFinished(false);
     props.onClose(false);
-  }, [props, reset]);
+  }, [props, reset, setDeleteFinished]);
 
   const [deleteTeam] = useDeleteTeamMutation({
     context: { headers: { team_id: team?.id } },
     refetchQueries: [FetchMeDocument],
+    awaitRefetchQueries: true,
   });
 
-  const { user } = useMeQuery({
+  const { user, loading } = useMeQuery({
     context: { headers: { team_id: team?.id } },
   });
 
@@ -81,29 +84,36 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       });
 
       toast.success("Team deleted!");
-      const membershipsCount = user.memberships?.length;
-
-      if (typeof membershipsCount === "number" && membershipsCount === 0) {
-        return router.push(urls.createTeam());
-      }
-
-      if (path !== urls.profileTeams()) {
-        return router.push(urls.profileTeams());
-      }
-
-      onClose();
+      setDeleteFinished(true);
     } catch (e) {
       console.error(e);
       toast.error("Error team deleting");
     }
+  }, [team?.id, auth0User?.hasura?.id, deleteTeam]);
+
+  useEffect(() => {
+    if (!deleteFinished || loading) {
+      return;
+    }
+
+    const membershipsCount = user.memberships?.length;
+
+    if (typeof membershipsCount === "number" && membershipsCount === 0) {
+      return router.push(urls.createTeam());
+    }
+
+    if (path !== urls.profileTeams()) {
+      return router.push(urls.profileTeams());
+    }
+
+    onClose();
   }, [
-    team?.id,
-    auth0User?.hasura?.id,
-    deleteTeam,
-    user.memberships?.length,
-    path,
+    deleteFinished,
+    loading,
     onClose,
+    path,
     router,
+    user.memberships?.length,
   ]);
 
   return (
