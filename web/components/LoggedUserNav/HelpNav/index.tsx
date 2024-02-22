@@ -147,7 +147,8 @@ export const HelpNav = () => {
         <DropdownItem className="px-4 hover:bg-grey-50">
           <div>
             <Button
-              href={"/privacy-statement"}
+              type="submit"
+              onClick={() => window.open("/privacy-statement", "_blank")}
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <LockIcon className="size-4" />
@@ -160,7 +161,8 @@ export const HelpNav = () => {
         <DropdownItem className="px-4 hover:bg-grey-50">
           <div>
             <Button
-              href={"/tos"}
+              type="submit"
+              onClick={() => window.open("/tos", "_blank")}
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <WorldcoinIcon className="size-4" />
