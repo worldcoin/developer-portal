@@ -15,7 +15,7 @@ export const AppStatus = (props: {
       <div className="grid gap-y-2 ">
         <Typography variant={TYPOGRAPHY.R3}>Activate the App</Typography>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-          Enables users to verify with World ID for this App
+          Enables users to verify with World ID for this app
         </Typography>
       </div>
       <div

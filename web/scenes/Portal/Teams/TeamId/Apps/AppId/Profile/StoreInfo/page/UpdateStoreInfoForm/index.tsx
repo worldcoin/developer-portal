@@ -181,7 +181,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           </div>
           <div className="grid gap-y-1">
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Describe your app integration to possible users
+              Describe your app to potential users
             </Typography>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
               <span className="text-sm text-system-error-500">*</span> Indicates
@@ -250,14 +250,14 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
           <Input
             label={
               <>
-                <span>World App Description</span>{" "}
+                <span>World App description</span>{" "}
                 <span style={{ color: "red" }}>*</span>
               </>
             }
             maxLength={50}
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="Short description to be shown in the World App about your app"
+            placeholder="This description will be shown inside of World App."
             register={register("world_app_description")}
             addOnRight={
               <RemainingCharacters

@@ -341,7 +341,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
-          Worldcoin’s App Store, or other display areas of Worldcoin
+          Worldcoin’s app store.
         </Typography>
       </div>
       {!heroImage && (
@@ -406,7 +406,8 @@ export const ImageForm = (props: ImageFormTypes) => {
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           Upload up to 3 images to showcase your application. These images will
-          be displayed at the top of your app’s detail page in the App Store
+          be displayed at the top of your app’s profile page in the app store
+          and should show the integration being used.
         </Typography>
       </div>
       {showcaseImgUrls?.length < 3 && isEditable && isEnoughPermissions && (
