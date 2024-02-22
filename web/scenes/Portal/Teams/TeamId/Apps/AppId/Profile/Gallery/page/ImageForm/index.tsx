@@ -437,7 +437,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       <div className="grid gap-y-4 md:grid-cols-3">
         {showcaseImgUrls &&
           showcaseImgUrls.map((url: string, index: number) => (
-            <div className="relative size-fit" key={index}>
+            <div className="relative size-fit" key={url}>
               <ImageDisplay
                 src={url}
                 type={viewMode}
