@@ -43,7 +43,7 @@ export const HelpNav = () => {
   return (
     <Dropdown zIndex={60}>
       <DropdownButton>
-        <div className=" flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
             Help
           </Typography>
@@ -58,12 +58,12 @@ export const HelpNav = () => {
           Need help with your app?
         </Typography>
 
-        <DropdownItem className="w-full px-4 hover:bg-grey-50">
+        <DropdownItem className="w-full p-0 hover:bg-grey-50">
           <div>
             <Button
               href={WORLDCOIN_PRIVACY_URL}
               onClick={() => trackHelpClick("worldcoin_privacy")}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <SecurityIcon />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -73,12 +73,12 @@ export const HelpNav = () => {
           </div>
         </DropdownItem>
 
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={WORLDCOIN_STATUS_URL}
               onClick={() => trackHelpClick("worldcoin_status")}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <SubtractIcon />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -88,12 +88,12 @@ export const HelpNav = () => {
           </div>
         </DropdownItem>
 
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={FAQ_URL}
               onClick={() => trackHelpClick("faq")}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <HelpIcon className="size-4" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -109,12 +109,12 @@ export const HelpNav = () => {
         >
           Community support
         </Typography>
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={DISCORD_URL}
               onClick={() => trackHelpClick("discord")}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <DiscordIcon className="w-5" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -124,12 +124,12 @@ export const HelpNav = () => {
           </div>
         </DropdownItem>
 
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={GITHUB_ISSUES_URL}
               onClick={() => trackHelpClick("github_issues")}
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <GithubIcon className="w-5 text-grey-900" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -145,12 +145,12 @@ export const HelpNav = () => {
         >
           References
         </Typography>
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={urls.privacyStatement()}
               target="_blank"
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <LockIcon className="size-4" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
@@ -159,12 +159,12 @@ export const HelpNav = () => {
             </Button>
           </div>
         </DropdownItem>
-        <DropdownItem className="px-4 hover:bg-grey-50">
+        <DropdownItem className="p-0 hover:bg-grey-50">
           <div>
             <Button
               href={urls.tos()}
               target="_blank"
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid h-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2"
             >
               <WorldcoinIcon className="size-4" />
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
