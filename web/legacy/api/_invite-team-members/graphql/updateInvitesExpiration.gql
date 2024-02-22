@@ -1,0 +1,11 @@
+mutation UpdateInvitesExpiration($ids: [String!]!, $expires_at: timestamptz!) {
+  invites: update_invite(
+    where: { id: { _in: $ids } }
+    _set: { expires_at: $expires_at }
+  ) {
+    returning {
+      id
+      email
+    }
+  }
+}

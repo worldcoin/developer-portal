@@ -38,6 +38,13 @@ select_permissions:
                   _eq: OWNER
               - user_id:
                   _eq: X-Hasura-User-Id
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - expires_at
+      filter: {}
+      check: null
 delete_permissions:
   - role: service
     permission:

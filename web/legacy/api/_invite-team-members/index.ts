@@ -1,17 +1,28 @@
-import { getSdk as getCreateInvitesSdk } from "@/legacy/api/_invite-team-members/graphql/createInvite.generated";
 import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { logger } from "@/legacy/lib/logger";
 import { sendEmail } from "@/legacy/lib/send-email";
+import dayjs from "dayjs";
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getSdk as getFetchInvitesSdk } from "./graphql/fetchInvites.generated";
+
+import {
+  CreateInvitesMutation,
+  getSdk as getCreateInvitesSdk,
+} from "@/legacy/api/_invite-team-members/graphql/createInvite.generated";
+
 import {
   GetUserAndTeamMembershipsQuery,
   getSdk as getUserAndTeamMembershipsSdk,
 } from "./graphql/getUserAndTeamMemberships.generated";
 
-import createDOMPurify from "dompurify";
-import { JSDOM } from "jsdom";
+import {
+  UpdateInvitesExpirationMutation,
+  getSdk,
+} from "./graphql/updateInvitesExpiration.generated";
 
 export const handleInvite = async (
   req: NextApiRequest,
@@ -106,21 +117,64 @@ export const handleInvite = async (
     });
   }
 
-  const createInvitesRes = await getCreateInvitesSdk(client).CreateInvites({
-    objects: emails.map((email: string) => ({
-      email,
-      team_id: teamId,
-    })),
+  let invites:
+    | NonNullable<UpdateInvitesExpirationMutation["invites"]>["returning"]
+    | NonNullable<CreateInvitesMutation["invites"]>["returning"] = [];
+
+  const fetchInvitesResult = await getFetchInvitesSdk(client).FetchInvites({
+    emails,
   });
 
-  if (
-    !createInvitesRes.invites?.returning ||
-    createInvitesRes.invites?.returning?.length !== emails.length
-  ) {
+  const isResendInvites = fetchInvitesResult?.invite?.length > 0;
+
+  if (isResendInvites) {
+    invites = fetchInvitesResult.invite;
+
+    const updateExpirationResult = await getSdk(client).UpdateInvitesExpiration(
+      {
+        ids: invites.map((invite) => invite.id),
+        expires_at: dayjs().add(7, "days").toISOString(),
+      },
+    );
+
+    if (!updateExpirationResult.invites?.returning) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Some invites could not be updated.",
+        code: "invalid_emails",
+      });
+    }
+  }
+
+  if (!isResendInvites) {
+    const createInvitesRes = await getCreateInvitesSdk(client).CreateInvites({
+      objects: emails.map((email: string) => ({
+        email,
+        team_id: teamId,
+      })),
+    });
+
+    if (
+      !createInvitesRes.invites?.returning ||
+      createInvitesRes.invites?.returning?.length !== emails.length
+    ) {
+      return errorHasuraQuery({
+        res,
+        req,
+        detail: "Some emails could not be invited.",
+        code: "invalid_emails",
+      });
+    }
+
+    invites = createInvitesRes.invites.returning;
+  }
+
+  if (!invites || invites.length === 0) {
     return errorHasuraQuery({
       res,
       req,
-      detail: "Some emails could not be invited.",
+      detail: "No invites to send.",
       code: "invalid_emails",
     });
   }
@@ -134,7 +188,8 @@ export const handleInvite = async (
   });
 
   const promises = [];
-  for (const invite of createInvitesRes.invites?.returning) {
+
+  for (const invite of invites) {
     const link = `${process.env.NEXT_PUBLIC_APP_URL}/join?invite_id=${invite.id}`;
 
     const inviter = DOMPurify.sanitize(
@@ -142,7 +197,6 @@ export const handleInvite = async (
     );
 
     const team = DOMPurify.sanitize(invitingUser.team?.name || "their team");
-
     const to = DOMPurify.sanitize(invite.email);
 
     promises.push(
