@@ -31,7 +31,10 @@ export const Members = (props: { teamId: string }) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
+    return checkUserPermissions(user, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
   }, [user, teamId]);
 
   const { register, control } = useForm({
