@@ -7,6 +7,7 @@ query GetSingleAction($action_id: String!) {
     name
     max_verifications
     app {
+      id
       is_staging
       engine
     }

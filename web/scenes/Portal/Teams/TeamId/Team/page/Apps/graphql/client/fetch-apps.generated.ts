@@ -15,6 +15,7 @@ export type FetchAppsQuery = {
     engine: string;
     app_metadata: Array<{
       __typename?: "app_metadata";
+      id: string;
       name: string;
       logo_img_url: string;
       verification_status: string;
@@ -29,6 +30,7 @@ export const FetchAppsDocument = gql`
       is_staging
       engine
       app_metadata {
+        id
         name
         logo_img_url
         verification_status

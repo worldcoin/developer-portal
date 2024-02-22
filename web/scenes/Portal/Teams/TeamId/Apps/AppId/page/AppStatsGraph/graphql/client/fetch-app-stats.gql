@@ -10,6 +10,7 @@ query FetchAppStats(
     unique_users
   }
   app(where: { id: { _eq: $appId } }) {
+    id
     engine
   }
 }
