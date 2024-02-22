@@ -162,7 +162,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                 <Input
                   register={register("appName")}
                   label="App name"
-                  placeholder="Name will be visible to the users"
+                  placeholder="Display name (ex. Voting app)"
                   required
                   errors={errors.appName}
                 />
