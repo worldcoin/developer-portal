@@ -5,7 +5,7 @@ import {
   useWorldBridgeStore,
 } from "@worldcoin/idkit-core";
 
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef } from "react";
 
 interface IDKitBridgeProps {
   app_id: `app_${string}`;
@@ -20,7 +20,6 @@ interface IDKitBridgeProps {
 }
 
 export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const {
@@ -63,8 +62,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
             }
           })();
         }, 3000);
-
-        setIntervalId(intervalId);
       })
       .catch((error) => {
         if (process.env.NODE_ENV === "development") {
@@ -76,7 +73,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
     bridge_url,
     createClient,
     idKitVerificationState,
-    intervalId,
     pollForUpdates,
     props.action,
     props.action_description,
@@ -106,29 +102,25 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
         break;
 
       case VerificationState.Confirmed:
-        if (intervalId) {
-          clearInterval(intervalId);
+        if (intervalIdRef.current) {
+          clearInterval(intervalIdRef.current);
         }
-
         break;
 
       case VerificationState.Failed:
-        if (intervalId) {
-          clearInterval(intervalId);
+        if (intervalIdRef.current) {
+          clearInterval(intervalIdRef.current);
         }
         // Prevent connection failure
         if (connectionTimeout) {
+          if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+          }
           resetKiosk();
         }
         break;
     }
-  }, [
-    connectionTimeout,
-    idKitVerificationState,
-    intervalId,
-    resetKiosk,
-    setScreen,
-  ]);
+  }, [connectionTimeout, idKitVerificationState, resetKiosk, setScreen]);
 
   useEffect(() => {
     if (connectorURI) {
