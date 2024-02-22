@@ -117,22 +117,26 @@ export const handleInvite = async (
     });
   }
 
-  let invites:
-    | NonNullable<UpdateInvitesExpirationMutation["invites"]>["returning"]
-    | NonNullable<CreateInvitesMutation["invites"]>["returning"] = [];
-
   const fetchInvitesResult = await getFetchInvitesSdk(client).FetchInvites({
     emails,
   });
 
-  const isResendInvites = fetchInvitesResult?.invite?.length > 0;
+  const invitesToUpdate = fetchInvitesResult.invite.filter((invite) => {
+    return emails.includes(invite.email);
+  });
 
-  if (isResendInvites) {
-    invites = fetchInvitesResult.invite;
+  const emailsToCreate = emails.filter((email: string) => {
+    return !invitesToUpdate.some((invite) => invite.email === email);
+  });
 
+  let updatedInvites: NonNullable<
+    UpdateInvitesExpirationMutation["invites"]
+  >["returning"] = [];
+
+  if (invitesToUpdate.length > 0) {
     const updateExpirationResult = await getSdk(client).UpdateInvitesExpiration(
       {
-        ids: invites.map((invite) => invite.id),
+        ids: invitesToUpdate.map((invite) => invite.id),
         expires_at: dayjs().add(7, "days").toISOString(),
       },
     );
@@ -145,11 +149,17 @@ export const handleInvite = async (
         code: "invalid_emails",
       });
     }
+
+    updatedInvites = updateExpirationResult.invites.returning;
   }
 
-  if (!isResendInvites) {
+  let createdInvites: NonNullable<
+    CreateInvitesMutation["invites"]
+  >["returning"] = [];
+
+  if (emailsToCreate.length > 0) {
     const createInvitesRes = await getCreateInvitesSdk(client).CreateInvites({
-      objects: emails.map((email: string) => ({
+      objects: emailsToCreate.map((email: string) => ({
         email,
         team_id: teamId,
       })),
@@ -157,7 +167,7 @@ export const handleInvite = async (
 
     if (
       !createInvitesRes.invites?.returning ||
-      createInvitesRes.invites?.returning?.length !== emails.length
+      createInvitesRes.invites?.returning?.length !== emailsToCreate.length
     ) {
       return errorHasuraQuery({
         res,
@@ -167,8 +177,10 @@ export const handleInvite = async (
       });
     }
 
-    invites = createInvitesRes.invites.returning;
+    createdInvites = createInvitesRes.invites.returning;
   }
+
+  const invites = [...updatedInvites, ...createdInvites];
 
   if (!invites || invites.length === 0) {
     return errorHasuraQuery({
