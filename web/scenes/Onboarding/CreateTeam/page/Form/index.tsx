@@ -103,17 +103,13 @@ export const Form = (props: { hasUser: boolean }) => {
             <Checkbox register={register("termsAndConditions")} />
             <Typography variant={TYPOGRAPHY.R3}>
               I agree with the{" "}
-              <Button
-                type="button"
-                onClick={() => window.open(urls.tos(), "_blank")}
-                className="underline"
-              >
+              <Button href={urls.tos()} target="_blank" className="underline">
                 Terms & Conditions
               </Button>{" "}
               and{" "}
               <Button
-                type="button"
-                onClick={() => window.open(urls.privacyStatement(), "_blank")}
+                href={urls.privacyStatement()}
+                target="_blank"
                 className="underline"
               >
                 Privacy Policy
