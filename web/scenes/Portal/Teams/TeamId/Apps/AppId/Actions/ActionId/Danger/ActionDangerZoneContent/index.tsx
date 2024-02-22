@@ -113,8 +113,9 @@ export const ActionDangerZoneContent = (props: {
             Danger Zone
           </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            This will immediately and permanently delete <b>{action.name}</b>{" "}
-            and its data for everyone. This cannot be undone.
+            This will immediately and permanently delete the action{" "}
+            <b>{action.name}</b> and its data for everyone. This cannot be
+            undone.
           </Typography>
         </div>
         <DecoratedButton

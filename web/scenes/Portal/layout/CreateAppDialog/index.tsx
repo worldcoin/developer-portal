@@ -175,7 +175,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   <RadioCard
                     register={register("build")}
                     option={{ value: "staging", label: "Staging" }}
-                    description="Development environment for testing and debugging. Verify with the simulator"
+                    description="Development environment for testing and debugging. Verify with the simulator."
                     stampText="Recommended"
                   />
 

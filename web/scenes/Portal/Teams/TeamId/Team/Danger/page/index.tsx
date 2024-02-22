@@ -33,7 +33,7 @@ export const TeamDangerPage = () => {
           </Typography>
 
           <p className="max-w-[36.25rem] text-grey-500">
-            This will immediately and permanently delete the{" "}
+            This will immediately and permanently delete the team{" "}
             <span className="font-medium text-gray-900">
               {fetchTeamQueryRes.data.team_by_pk?.name}
             </span>

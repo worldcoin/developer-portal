@@ -108,6 +108,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           required
           className="h-16"
         />
+
         <Input
           register={register("action")}
           errors={errors.action}
@@ -123,6 +124,21 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           }
           className=" h-16 text-grey-400"
         />
+
+        <Input
+          label="App ID"
+          disabled
+          helperText="The App ID associated with this action"
+          placeholder={action.app_id}
+          addOnRight={
+            <CopyButton
+              fieldName="Action identifier"
+              fieldValue={action.app_id}
+            />
+          }
+          className=" h-16 text-grey-400"
+        />
+
         {action.app.engine !== EngineType.OnChain && (
           <Controller
             name="maxVerifications"

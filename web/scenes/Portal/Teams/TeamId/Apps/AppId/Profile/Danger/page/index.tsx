@@ -74,7 +74,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
               Danger Zone
             </Typography>
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              This will immediately and permanently delete{" "}
+              This will immediately and permanently delete the app{" "}
               <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
                 {appMetaData?.name ?? ""}
               </Typography>{" "}
