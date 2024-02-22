@@ -1,7 +1,9 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
-const ImageLoader = (props: { name: string }) => {
+const ImageLoader = (props: { name: string; className?: string }) => {
   const { name } = props;
   const [progress, setProgress] = useState(0);
 
@@ -22,7 +24,14 @@ const ImageLoader = (props: { name: string }) => {
   }, []);
 
   return (
-    <div className="flex h-32 w-44 flex-col items-center justify-center gap-y-2 rounded-lg border border-dashed border-grey-200 px-6">
+    <div
+      className={twMerge(
+        clsx(
+          "flex w-44 flex-col items-center justify-center gap-y-2 rounded-lg border border-dashed border-grey-200 px-6",
+          props.className,
+        ),
+      )}
+    >
       <div className="w-full">
         <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
           {progress}%

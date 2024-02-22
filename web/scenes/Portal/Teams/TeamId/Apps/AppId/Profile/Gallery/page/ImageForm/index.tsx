@@ -396,7 +396,9 @@ export const ImageForm = (props: ImageFormTypes) => {
           </Button>
         </div>
       )}
-      {heroImageUploading && <ImageLoader name={"featured_image"} />}
+      {heroImageUploading && (
+        <ImageLoader name={"featured_image"} className="h-[132px]" />
+      )}
 
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
@@ -458,7 +460,10 @@ export const ImageForm = (props: ImageFormTypes) => {
             </div>
           ))}
         {showcaseImageUploading && (
-          <ImageLoader name={`showcase_image_${showcaseImgUrls.length}`} />
+          <ImageLoader
+            name={`showcase_image_${showcaseImgUrls.length}`}
+            className="h-[99px]"
+          />
         )}
       </div>
     </form>
