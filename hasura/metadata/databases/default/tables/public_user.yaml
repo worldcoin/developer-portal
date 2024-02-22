@@ -56,8 +56,11 @@ select_permissions:
           - id:
               _eq: X-Hasura-User-Id
           - memberships:
-              team_id:
-                _eq: X-Hasura-Team-Id
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:
