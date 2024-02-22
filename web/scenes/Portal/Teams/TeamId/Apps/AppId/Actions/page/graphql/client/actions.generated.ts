@@ -36,7 +36,11 @@ export type GetActionsQuery = {
     __typename?: "app";
     id: string;
     engine: string;
-    app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
+    app_metadata: Array<{
+      __typename?: "app_metadata";
+      id: string;
+      name: string;
+    }>;
   }>;
 };
 
@@ -69,6 +73,7 @@ export const GetActionsDocument = gql`
       id
       engine
       app_metadata {
+        id
         name
       }
     }

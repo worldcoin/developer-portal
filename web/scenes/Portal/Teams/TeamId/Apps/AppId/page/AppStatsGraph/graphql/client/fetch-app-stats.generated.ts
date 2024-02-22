@@ -19,7 +19,7 @@ export type FetchAppStatsQuery = {
     verifications: any;
     unique_users: any;
   }>;
-  app: Array<{ __typename?: "app"; engine: string }>;
+  app: Array<{ __typename?: "app"; id: string; engine: string }>;
 };
 
 export const FetchAppStatsDocument = gql`
@@ -37,6 +37,7 @@ export const FetchAppStatsDocument = gql`
       unique_users
     }
     app(where: { id: { _eq: $appId } }) {
+      id
       engine
     }
   }

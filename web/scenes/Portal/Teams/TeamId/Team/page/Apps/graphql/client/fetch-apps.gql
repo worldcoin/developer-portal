@@ -4,6 +4,7 @@ query FetchApps {
     is_staging
     engine
     app_metadata {
+      id
       name
       logo_img_url
       verification_status

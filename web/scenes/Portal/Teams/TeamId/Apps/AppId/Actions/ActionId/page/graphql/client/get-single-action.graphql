@@ -8,6 +8,7 @@ query GetSingleActionAndNullifiers($action_id: String!) {
       uses
     }
     app {
+      id
       engine
     }
   }

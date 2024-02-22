@@ -18,7 +18,12 @@ export type GetSingleActionQuery = {
     description: string;
     name: string;
     max_verifications: number;
-    app: { __typename?: "app"; is_staging: boolean; engine: string };
+    app: {
+      __typename?: "app";
+      id: string;
+      is_staging: boolean;
+      engine: string;
+    };
   }>;
 };
 
@@ -32,6 +37,7 @@ export const GetSingleActionDocument = gql`
       name
       max_verifications
       app {
+        id
         is_staging
         engine
       }
