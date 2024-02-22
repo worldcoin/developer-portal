@@ -27,19 +27,14 @@ const config: PermissionsConfig = {
     Admin: true,
     Member: false,
   },
-  "View API keys": {
+  "View Sign in with World ID": {
     Owner: true,
     Admin: true,
-    Member: false,
+    Member: true,
   },
-  "Create & Edit API keys": {
+  "Create & Edit Sign in with World ID": {
     Owner: true,
-    Admin: false,
-    Member: false,
-  },
-  "Delete API keys": {
-    Owner: true,
-    Admin: false,
+    Admin: true,
     Member: false,
   },
   "View apps": {
@@ -57,19 +52,29 @@ const config: PermissionsConfig = {
     Admin: false,
     Member: false,
   },
-  "View app metadata": {
+  "View app profile": {
     Owner: true,
     Admin: true,
     Member: true,
   },
-  "Create & Edit app metadata": {
+  "Create & Edit app profile": {
     Owner: true,
     Admin: true,
     Member: false,
   },
-  "Delete app metadata": {
+  "View API keys": {
     Owner: true,
     Admin: true,
+    Member: false,
+  },
+  "Create & Edit API keys": {
+    Owner: true,
+    Admin: false,
+    Member: false,
+  },
+  "Delete API keys": {
+    Owner: true,
+    Admin: false,
     Member: false,
   },
   "View team members & roles": {
@@ -77,9 +82,9 @@ const config: PermissionsConfig = {
     Admin: true,
     Member: true,
   },
-  "Add & Edit team members": {
+  "Invite team members": {
     Owner: true,
-    Admin: false,
+    Admin: true,
     Member: false,
   },
   "Remove team members": {
@@ -90,16 +95,6 @@ const config: PermissionsConfig = {
   "Update team roles": {
     Owner: true,
     Admin: false,
-    Member: false,
-  },
-  "View Sign in with World ID": {
-    Owner: true,
-    Admin: true,
-    Member: true,
-  },
-  "Create & Edit Sign in with World ID": {
-    Owner: true,
-    Admin: true,
     Member: false,
   },
 };
