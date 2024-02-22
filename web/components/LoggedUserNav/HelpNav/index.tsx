@@ -20,6 +20,7 @@ import {
   WORLDCOIN_PRIVACY_URL,
   WORLDCOIN_STATUS_URL,
 } from "@/lib/constants";
+import { urls } from "@/lib/urls";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback } from "react";
@@ -147,8 +148,8 @@ export const HelpNav = () => {
         <DropdownItem className="px-4 hover:bg-grey-50">
           <div>
             <Button
-              type="submit"
-              onClick={() => window.open("/privacy-statement", "_blank")}
+              href={urls.privacyStatement()}
+              target="_blank"
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <LockIcon className="size-4" />
@@ -161,8 +162,8 @@ export const HelpNav = () => {
         <DropdownItem className="px-4 hover:bg-grey-50">
           <div>
             <Button
-              type="submit"
-              onClick={() => window.open("/tos", "_blank")}
+              href={urls.tos()}
+              target="_blank"
               className="grid grid-cols-auto/1fr items-center gap-x-2"
             >
               <WorldcoinIcon className="size-4" />
