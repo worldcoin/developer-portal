@@ -110,7 +110,6 @@ export const ClientInformationPage = (props: {
                     className={clsx(
                       "grid grid-cols-1fr/auto justify-items-end gap-x-3",
                       { hidden: !isEnoughPermissions },
-                      { "pr-4": clientSecret !== "" },
                     )}
                   >
                     <DecoratedButton
