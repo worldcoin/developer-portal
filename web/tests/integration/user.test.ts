@@ -202,4 +202,63 @@ describe("user role", () => {
 
     expect(response.data.user).toEqual([]);
   });
+
+  test("can't select user from a team you are not a part of, with a spoofed team_id header", async () => {
+    const { rows: teams } = (await integrationDBExecuteQuery(
+      `SELECT id, name FROM "public"."team"`,
+    )) as { rows: Array<{ id: string; name: string }> };
+
+    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id, role FROM "public"."membership"`,
+    )) as {
+      rows: Array<{
+        id: string;
+        user_id: string;
+        team_id: string;
+        role: Role_Enum;
+      }>;
+    };
+
+    const query = gql`
+      query FetchUser($id: String!) {
+        user(where: { id: { _eq: $id } }) {
+          id
+          email
+          name
+          auth0Id
+          memberships {
+            id
+            team {
+              id
+              name
+            }
+            role
+          }
+        }
+      }
+    `;
+
+    const userFromTeam0 = teamMemberships.find(
+      (membership) => membership.team_id === teams[0].id,
+    );
+
+    const userFromTeam1 = teamMemberships.find(
+      (membership) => membership.team_id === teams[1].id,
+    );
+
+    const client = await getAPIUserClient({
+      team_id: teams[0].id,
+      user_id: userFromTeam0?.user_id,
+    });
+
+    const response = await client.query({
+      query,
+      variables: {
+        id: userFromTeam1?.user_id,
+      },
+      context: { headers: { team_id: teams[1].id } }, // Pass a malicious header
+    });
+
+    expect(response.data.user).toEqual([]);
+  });
 });
