@@ -1,7 +1,12 @@
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+import {
+  getSession,
+  updateSession,
+  withApiAuthRequired,
+} from "@auth0/nextjs-auth0";
+
 import { NextRequest, NextResponse } from "next/server";
 
-export const POST = async (req: NextRequest) => {
+export const POST = withApiAuthRequired(async (req: NextRequest) => {
   const res = NextResponse.json({ success: true });
   const body = await req.json();
   const user = body.user as Record<string, any>;
@@ -24,4 +29,4 @@ export const POST = async (req: NextRequest) => {
   session = updatedSession;
   await updateSession(req, res, session);
   return res;
-};
+});
