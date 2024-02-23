@@ -76,13 +76,18 @@ export const Tabs = (props: TabsProps) => {
           scrollSnapType: "x mandatory",
           scrollPadding: "0 1.5rem",
           whiteSpace: "nowrap",
+          overscrollBehaviorX: "none",
         }}
         {...otherProps}
       />
 
       {canScrollLeft && (
         <div
-          className="absolute inset-y-0 left-0 flex w-6 items-center bg-gradient-to-r from-grey-0 to-transparent"
+          className="absolute inset-y-0 left-0 flex w-10 items-center justify-center"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 70%, rgba(0,0,0,0) 100%)",
+          }}
           onClick={handleScrollToLeft}
         >
           <ChevronLeftIcon />
@@ -91,7 +96,11 @@ export const Tabs = (props: TabsProps) => {
 
       {canScrollRight && (
         <div
-          className="absolute inset-y-0 right-0 flex w-6 items-center bg-gradient-to-l from-grey-0 to-transparent"
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+          style={{
+            backgroundImage:
+              "linear-gradient(-90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 70%, rgba(0,0,0,0) 100%)",
+          }}
           onClick={handleScrollToRight}
         >
           <ChevronRightIcon />
