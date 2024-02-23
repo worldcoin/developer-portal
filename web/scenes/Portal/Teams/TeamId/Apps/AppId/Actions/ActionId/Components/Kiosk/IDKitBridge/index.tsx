@@ -44,6 +44,11 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       return;
     }
 
+    // Check if any interval currently exists and clear it
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+    }
+
     createClient({
       app_id: props.app_id,
       action: props.action,

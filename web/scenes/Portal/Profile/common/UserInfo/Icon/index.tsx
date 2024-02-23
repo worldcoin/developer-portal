@@ -17,7 +17,7 @@ export const Icon = (props: IconProps) => {
     <div
       className={twMerge(
         clsx(
-          "relative flex h-[72px] w-[72px] items-center justify-center transition-opacity duration-300",
+          "relative flex size-[72px] items-center justify-center transition-opacity duration-300",
           className,
         ),
       )}
