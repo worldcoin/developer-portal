@@ -274,7 +274,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (
-    <div className="grid gap-y-5">
+    <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
       {["changes_requested", "verified"].includes(
         appMetaData.verification_status,
       ) && (
@@ -294,11 +294,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
-      <div className="grid items-center justify-items-center gap-y-4 md:grid-cols-auto/1fr/auto md:justify-items-start md:gap-x-8">
+      <div className="grid items-center justify-items-center gap-y-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-8">
         <ReviewMessageDialog
           message={appMetaData.review_message}
           metadataId={appMetaData.id}
         />
+        <div className="flex w-full justify-end sm:hidden">
+          <AppStatus
+            className=""
+            status={appMetaData.verification_status as StatusVariant}
+          />
+        </div>
         <LogoImageUpload
           appId={appId}
           teamId={teamId}
@@ -306,23 +312,24 @@ export const AppTopBar = (props: AppTopBarProps) => {
           editable={isEditable && isEnoughPermissions}
           logoFile={appMetaData.logo_img_url}
         />
-        <div className="grid grid-cols-1 gap-y-1 md:max-w-[500px]">
-          <div className="flex flex-row items-center gap-x-3">
+        <div className="grid grid-cols-1 gap-y-1 sm:max-w-[500px]">
+          <div className="flex flex-col items-center gap-x-3 sm:flex-row">
             <Typography variant={TYPOGRAPHY.H6} className="truncate">
               {appMetaData.name}
             </Typography>
             <AppStatus
+              className="hidden sm:block"
               status={appMetaData.verification_status as StatusVariant}
             />
           </div>
           <Environment
             environment={app.is_staging ? "staging" : "production"}
             engine={app.engine}
-            className="justify-self-center md:justify-self-start"
+            className="justify-self-center sm:justify-self-start"
           />
         </div>
 
-        <div className="grid grid-cols-auto/1fr items-center gap-x-3">
+        <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
           {app.verified_app_metadata.length > 0 &&
             app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
           {isEnoughPermissions &&

@@ -40,7 +40,7 @@ export const InitialSteps = (props: {
 
       <div
         className={clsx(
-          "mt-4 rounded-2xl border border-grey-200 shadow-button",
+          "mt-4 max-w-[350px] rounded-2xl border border-grey-200 shadow-button md:max-w-full",
         )}
       >
         {props.steps.map((step) => step)}

@@ -7,10 +7,10 @@ export const Connected = memo(function Connected(props: { reset: () => void }) {
 
   return (
     <Fragment>
-      <div className="grid justify-center justify-items-center gap-y-8 px-12 text-center">
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-y-6 text-center">
         <div className="grid gap-y-4">
           <Typography variant={TYPOGRAPHY.H6}>Connected!</Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-neutral">
+          <Typography variant={TYPOGRAPHY.R3}>
             Awaiting confirmation from user
           </Typography>
         </div>
