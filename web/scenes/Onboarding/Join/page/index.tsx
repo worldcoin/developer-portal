@@ -41,8 +41,8 @@ export const JoinPage = async (props: {
             variant={TYPOGRAPHY.R3}
             className="text-center text-grey-500"
           >
-            To join this team you need to create account on Worldcoin Developer
-            Portal
+            To join this team you need to create an account on Worldcoin&apos;
+            Developer Portal
           </Typography>
         </div>
 
@@ -54,8 +54,8 @@ export const JoinPage = async (props: {
         </DecoratedButton>
 
         <p className="text-center font-gta text-xs leading-[1.3] text-grey-500">
-          By signing up, you are creating Developer Portal account and agree to
-          Worldcoin&apos;s{" "}
+          By signing up, you are creating a Developer Portal account and agree
+          to Worldcoin&apos;s{" "}
           <Link
             target="_blank"
             className="text-grey-900 underline"

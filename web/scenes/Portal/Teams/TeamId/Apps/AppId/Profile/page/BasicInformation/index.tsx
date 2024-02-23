@@ -164,6 +164,7 @@ export const BasicInformation = (props: {
               return (
                 <CategorySelector
                   value={field.value}
+                  required
                   disabled={!isEditable || !isEnoughPermissions}
                   onChange={field.onChange}
                   errors={errors.category}
