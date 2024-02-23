@@ -57,11 +57,14 @@ export const UserInfo = (props: UserInfoProps) => {
       </div>
 
       <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H6}>
+        <Typography variant={TYPOGRAPHY.H6} className="max-w-full truncate">
           {!data?.user ? <Skeleton width={200} /> : name}
         </Typography>
 
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="max-w-full truncate text-grey-500"
+        >
           {!data?.user ? <Skeleton width={200} /> : data.user?.email || null}
         </Typography>
       </div>

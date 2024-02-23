@@ -68,7 +68,7 @@ export const ActionDangerZoneContent = (props: {
     <div>
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
-        <DialogPanel className="z-50 mx-auto grid w-5 gap-y-6 rounded-xl bg-white">
+        <DialogPanel className="z-50 mx-auto grid gap-y-6 rounded-xl bg-white md:w-5">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>
@@ -107,26 +107,29 @@ export const ActionDangerZoneContent = (props: {
         </DialogPanel>
       </Dialog>
 
-      <div className="grid w-1/2 grid-cols-1 gap-y-10">
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-            Danger Zone
-          </Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            This will immediately and permanently delete the action{" "}
-            <b>{action.name}</b> and its data for everyone. This cannot be
-            undone.
-          </Typography>
+      <div className="grid w-full grid-cols-1 gap-y-10 md:grid-cols-1fr/auto">
+        <div className="grid max-w-[480px] gap-y-10">
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+              Danger Zone
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              This will immediately and permanently delete the action{" "}
+              <b>{action.name}</b> and its data for everyone. This cannot be
+              undone.
+            </Typography>
+          </div>
+          <DecoratedButton
+            type="button"
+            variant="danger"
+            onClick={() => setOpenDeleteModal(true)}
+            disabled={deleteActionLoading || !isEnoughPermissions}
+            className="w-40 bg-system-error-100 "
+          >
+            <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>
+          </DecoratedButton>
         </div>
-        <DecoratedButton
-          type="button"
-          variant="danger"
-          onClick={() => setOpenDeleteModal(true)}
-          disabled={deleteActionLoading || !isEnoughPermissions}
-          className="w-40 bg-system-error-100 "
-        >
-          <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>
-        </DecoratedButton>
+        <div></div>
       </div>
     </div>
   );

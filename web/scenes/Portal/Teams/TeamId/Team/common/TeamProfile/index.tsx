@@ -45,7 +45,11 @@ export const TeamProfile = (props: { className?: string }) => {
         )}
       </div>
 
-      <Typography as="h1" variant={TYPOGRAPHY.H6} className="self-end">
+      <Typography
+        as="h1"
+        variant={TYPOGRAPHY.H6}
+        className="max-w-full self-end truncate"
+      >
         {data?.team_by_pk?.name ?? <Skeleton className="max-w-[200px]" />}
       </Typography>
 

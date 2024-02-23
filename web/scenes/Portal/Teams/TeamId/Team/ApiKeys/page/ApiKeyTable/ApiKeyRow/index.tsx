@@ -121,8 +121,8 @@ export const ApiKeyRow = (props: {
             variant="secondary"
             onClick={copyKey}
             className={clsx(
-              "whitespace-nowrap rounded-lg px-5 py-2 opacity-0 transition-opacity duration-300",
-              { "group-hover:opacity-100": secretKey },
+              "whitespace-nowrap rounded-lg px-5 py-2 transition-opacity duration-300 md:opacity-0",
+              { "opacity-100 md:group-hover:opacity-100": secretKey },
             )}
           >
             <Typography variant={TYPOGRAPHY.M4}>Copy</Typography>

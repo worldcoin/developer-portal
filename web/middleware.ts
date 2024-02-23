@@ -57,6 +57,7 @@ const generateCsp = () => {
         "https://pactsafe.io",
         "https://worldcoin.pactsafe.io",
         "https://bridge.worldcoin.org",
+        "https://us.i.posthog.com",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
       ],
     },

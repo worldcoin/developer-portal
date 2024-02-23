@@ -48,7 +48,7 @@ export const ReviewMessageDialog = (props: {
     <Dialog onClose={closeModal} open={isOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="grid max-w-[500px] gap-y-8">
+      <DialogPanel className="mx-5 grid max-w-[500px] gap-y-8">
         <CircleIconContainer variant={"error"}>
           <CloseIcon className="size-5 text-system-error-600" strokeWidth={3} />
         </CircleIconContainer>

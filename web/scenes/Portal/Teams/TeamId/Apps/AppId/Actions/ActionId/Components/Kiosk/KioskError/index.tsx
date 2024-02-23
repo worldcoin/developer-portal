@@ -20,8 +20,8 @@ export const KioskError = memo(function KioskError(props: {
   }, [description]);
 
   return (
-    <div className="grid justify-items-center gap-y-6 text-center">
-      <div className="grid justify-items-center gap-y-4 px-12">
+    <div className="flex min-h-[400px] flex-col items-center justify-center gap-y-6 text-center">
+      <div className="grid max-w-[300px] justify-items-center gap-y-4 ">
         <div className="grid gap-y-2 font-rubik leading-[1.2]">
           <CircleIconContainer variant="error">
             <CloseIcon className="size-4 text-system-error-500" />
@@ -37,7 +37,7 @@ export const KioskError = memo(function KioskError(props: {
         <DecoratedButton
           type="button"
           variant="secondary"
-          className="max-w-full px-8"
+          className="h-fit max-w-full px-8"
           color="primary"
           onClick={reset}
         >

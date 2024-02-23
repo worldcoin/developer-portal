@@ -101,7 +101,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="max-w-[580px] gap-y-5">
+      <DialogPanel className="mx-5 max-w-[580px] gap-y-5">
         <CircleIconContainer variant={"info"}>
           <WorldcoinIcon className=" text-blue-500" />
         </CircleIconContainer>
@@ -112,19 +112,21 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             </Typography>
             <Typography
               variant={TYPOGRAPHY.R3}
-              className="flex items-center justify-center text-grey-500"
+              className="flex flex-col items-center justify-center text-grey-500 sm:flex-row"
             >
               Submit your app for review to get the{" "}
-              <span className="mx-1.5 inline-flex items-center gap-x-1 rounded-xl bg-system-success-50 px-2 py-1 text-system-success-500">
-                <CheckmarkBadge className="w-4" />
-                <Typography
-                  variant={TYPOGRAPHY.S3}
-                  className="text-system-success-500"
-                >
-                  Verified
-                </Typography>
-              </span>{" "}
-              badge
+              <span className="flex items-center">
+                <span className="mx-1.5 inline-flex items-center gap-x-1 rounded-xl bg-system-success-50 px-2 py-1 text-system-success-500">
+                  <CheckmarkBadge className="w-4" />
+                  <Typography
+                    variant={TYPOGRAPHY.S3}
+                    className="text-system-success-500"
+                  >
+                    Verified
+                  </Typography>
+                </span>{" "}
+                badge
+              </span>
             </Typography>
           </div>
           <label

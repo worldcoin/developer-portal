@@ -44,7 +44,7 @@ export const List = () => {
   return (
     <>
       <div className="grid grid-cols-[1fr_1fr_auto] ">
-        <div className="contents text-12 leading-4 text-grey-400 ">
+        <div className="contents text-12 leading-4 text-grey-400">
           <Typography
             variant={TYPOGRAPHY.R5}
             className="border-b border-grey-100 py-3"
@@ -63,7 +63,7 @@ export const List = () => {
         </div>
 
         {user?.memberships?.map((membership) => (
-          <div key={membership.team.id} className="group contents">
+          <div key={membership.team.id} className="group contents max-w-full">
             <Button
               href={urls.teams({ team_id: membership.team.id })}
               className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50"
@@ -76,7 +76,10 @@ export const List = () => {
                 }
               />
 
-              <Typography variant={TYPOGRAPHY.R3}>
+              <Typography
+                variant={TYPOGRAPHY.R3}
+                className="max-w-[50px] truncate sm:max-w-[250px] md:max-w-[400px]"
+              >
                 {
                   membership.team.name ??
                     "" /*FIXME: team.name must be non nullable*/

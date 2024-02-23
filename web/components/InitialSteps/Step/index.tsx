@@ -42,7 +42,10 @@ export const Step = (
       {icon}
 
       <div className={clsx("grid grid-cols-1", { "opacity-25": disabled })}>
-        <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+        <Typography
+          variant={TYPOGRAPHY.M3}
+          className="max-w-full truncate text-grey-900"
+        >
           {title}
         </Typography>
 

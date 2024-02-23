@@ -4,16 +4,22 @@ import { SmartPhoneIcon } from "@/components/Icons/SmartPhoneIcon";
 import { StartUpIcon } from "@/components/Icons/StartUp";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 
 type EnvironmentProps = {
   environment: string;
   engine: string;
+  className?: string;
 };
 
 export const Environment = (props: EnvironmentProps) => {
   const { environment, engine } = props;
   return (
-    <div className="flex flex-row items-center gap-x-4 ">
+    <div
+      className={twMerge(
+        clsx("flex flex-row items-center gap-x-4", props.className),
+      )}
+    >
       <div className="rounded-3xl py-1">
         <div className="flex flex-row gap-x-2">
           {environment === "production" && (

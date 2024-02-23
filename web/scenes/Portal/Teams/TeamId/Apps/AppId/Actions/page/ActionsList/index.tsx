@@ -133,7 +133,10 @@ export const ActionsList = (props: {
             className="max-w-136 pt-2 text-base"
             addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
           />
-          <DecoratedButton className="h-12 w-36" href="?createAction=true">
+          <DecoratedButton
+            className="h-12 w-full md:w-36"
+            href="?createAction=true"
+          >
             <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
               New action
             </Typography>

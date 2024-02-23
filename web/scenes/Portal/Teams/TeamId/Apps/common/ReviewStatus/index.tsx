@@ -61,7 +61,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
     <div
       className={clsx(
         statusStyles[status]?.normal,
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-0 pl-5",
+        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-0 py-2 pl-5 sm:py-0",
         className,
       )}
     >

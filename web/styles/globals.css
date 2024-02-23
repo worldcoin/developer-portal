@@ -116,6 +116,14 @@
     0px 12px 16px -4px #191c2014;
 }
 
+/* Add a breakpoint for screens wider than 768px */
+@media (max-width: 768px) {
+  .Toastify__toast {
+    margin-right: 10px;
+    margin-left: 10px;
+  }
+}
+
 .Toastify__toast-body {
   flex: 1;
   display: flex;

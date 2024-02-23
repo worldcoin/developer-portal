@@ -183,7 +183,7 @@ export const AppStatsGraph = () => {
 
   return (
     <div className="grid gap-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-center justify-between gap-y-4 md:flex-row">
         <div className="flex items-center gap-x-6">
           <StatCard
             mainColorClassName="bg-blue-500"
@@ -205,7 +205,16 @@ export const AppStatsGraph = () => {
         <TimespanSelector options={timespans} atom={timespanAtom} />
       </div>
 
-      {formattedData && <Chart data={formattedData} />}
+      {formattedData && (
+        <div className="block sm:hidden">
+          <Chart data={formattedData} options={{ aspectRatio: 580 / 350 }} />
+        </div>
+      )}
+      {formattedData && (
+        <div className="hidden sm:block">
+          <Chart data={formattedData} />
+        </div>
+      )}
 
       {loading && (
         <div className="relative aspect-[1180/350] w-full rounded-2xl">
