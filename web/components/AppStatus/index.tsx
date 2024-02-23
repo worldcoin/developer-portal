@@ -43,7 +43,7 @@ export const AppStatus = (props: StatusProps) => {
     <div
       className={twMerge(
         clsx(
-          "flex items-center gap-x-1.5 whitespace-nowrap rounded-3xl px-3 py-1",
+          "flex flex-row items-center gap-x-1.5 whitespace-nowrap rounded-3xl px-3 py-1",
           statusStyles[status]?.normal,
           className,
         ),

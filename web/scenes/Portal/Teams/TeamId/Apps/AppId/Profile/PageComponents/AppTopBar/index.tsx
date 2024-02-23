@@ -58,7 +58,7 @@ const submitSchema = yup.object().shape({
     .required("World app description is required"),
   logo_img_url: yup.string().required("A logo image is required"),
   hero_image_url: yup.string().optional(),
-  showcase_img_urls: yup.array().optional(),
+  showcase_img_urls: yup.array().nullable().optional(),
   integration_url: yup
     .string()
     .url("Try it out URL is not a valid url")
@@ -124,7 +124,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       appMetaData?.description ? appMetaData.description : "{}",
     );
     try {
-      submitSchema.validateSync({ ...appMetaData, ...description });
+      submitSchema.isValidSync({ ...appMetaData, ...description });
       return true;
     } catch (error) {
       return false;
@@ -318,7 +318,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               {appMetaData.name}
             </Typography>
             <AppStatus
-              className="hidden sm:block"
+              className="hidden sm:flex"
               status={appMetaData.verification_status as StatusVariant}
             />
           </div>
