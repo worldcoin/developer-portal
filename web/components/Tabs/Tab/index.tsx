@@ -32,7 +32,7 @@ type TabProps = HTMLAttributes<HTMLAnchorElement> &
   };
 
 export const Tab = (props: TabProps) => {
-  const { className, children, underlined, ...otherProps } = props;
+  const { className, children, style = {}, underlined, ...otherProps } = props;
   const selectedLayoutSegment = useSelectedLayoutSegment();
 
   const active = useMemo(
@@ -41,7 +41,14 @@ export const Tab = (props: TabProps) => {
   );
 
   return (
-    <Link className={tab({ active, underlined, className })} {...otherProps}>
+    <Link
+      className={tab({ active, underlined, className })}
+      style={{
+        ...style,
+        scrollSnapAlign: "start",
+      }}
+      {...otherProps}
+    >
       {children}
     </Link>
   );
