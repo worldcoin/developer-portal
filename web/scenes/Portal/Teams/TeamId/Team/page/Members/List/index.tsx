@@ -270,14 +270,14 @@ export const List = (props: { search?: string }) => {
                     <div className="grid gap-y-0.5">
                       <Typography
                         variant={TYPOGRAPHY.R3}
-                        className="text-grey-900"
+                        className="max-w-full truncate text-grey-900"
                       >
                         {name}
                       </Typography>
 
                       <Typography
                         variant={TYPOGRAPHY.R4}
-                        className="text-grey-500"
+                        className="max-w-full truncate text-grey-500"
                       >
                         {membership.user.email ?? ""}
                       </Typography>

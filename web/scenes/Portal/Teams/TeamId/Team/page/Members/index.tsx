@@ -58,8 +58,9 @@ export const Members = (props: { teamId: string }) => {
           label=""
           addOnLeft={<MagnifierIcon className="text-grey-400" />}
           placeholder="Search member by name or email"
-          className="max-w-[480px] px-4 py-2"
+          className="max-w-full px-4 py-2 md:max-w-[480px]"
         />
+
         {isEnoughPermissions && (
           <DecoratedButton
             type="button"
