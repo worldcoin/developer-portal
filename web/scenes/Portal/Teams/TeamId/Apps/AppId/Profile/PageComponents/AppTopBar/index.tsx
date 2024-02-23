@@ -294,7 +294,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
-      <div className="grid items-center gap-y-4 md:grid-cols-auto/1fr/auto md:gap-x-8">
+      <div className="grid items-center justify-items-center gap-y-4 md:grid-cols-auto/1fr/auto md:justify-items-start md:gap-x-8">
         <ReviewMessageDialog
           message={appMetaData.review_message}
           metadataId={appMetaData.id}
@@ -306,7 +306,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           editable={isEditable && isEnoughPermissions}
           logoFile={appMetaData.logo_img_url}
         />
-        <div className="grid max-w-[300px] grid-cols-1 gap-y-1 md:max-w-[500px]">
+        <div className="grid grid-cols-1 gap-y-1 md:max-w-[500px]">
           <div className="flex flex-row items-center gap-x-3">
             <Typography variant={TYPOGRAPHY.H6} className="truncate">
               {appMetaData.name}
@@ -318,6 +318,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           <Environment
             environment={app.is_staging ? "staging" : "production"}
             engine={app.engine}
+            className="justify-self-center md:justify-self-start"
           />
         </div>
 

@@ -10,6 +10,7 @@ import { AddCircleIcon } from "@/components/Icons/AddCircleIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { useFetchTeamsQuery } from "@/components/LoggedUserNav/TeamSwitch/graphql/client/fetch-teams.generated";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -52,7 +53,12 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
                   }
                 />
 
-                {team.name}
+                <Typography
+                  variant={TYPOGRAPHY.R4}
+                  className="max-w-[150px] truncate"
+                >
+                  {team.name}
+                </Typography>
 
                 {team.id === props.selectedTeamId && (
                   <CheckmarkCircleIcon className="text-blue-500" />
