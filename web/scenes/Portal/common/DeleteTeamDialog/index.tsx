@@ -87,7 +87,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       setDeleteFinished(true);
     } catch (e) {
       console.error(e);
-      toast.error("Error team deleting");
+      toast.error("Error deleting team");
     }
   }, [team?.id, auth0User?.hasura?.id, deleteTeam]);
 
