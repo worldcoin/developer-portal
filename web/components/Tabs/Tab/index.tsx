@@ -20,7 +20,6 @@ const tab = tv({
     {
       active: true,
       underlined: true,
-      class: "shadow-[0_1px_0_0]",
     },
   ],
 });

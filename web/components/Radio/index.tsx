@@ -33,7 +33,7 @@ export const Radio: React.FC<RadioProps> = memo(function Radio(
           "bg-white after:size-[12px] after:shadow-[0_1px_1.4px_rgba(0,0,0,0.12)]", // Drop shadow with blur of 2.4 and 12% opacity
           "peer scale-125",
           "border-2 border-grey-300", // Base classes for border and background
-          "focus:ring-0 focus:ring-transparent",
+          "focus:outline-none focus:ring-0 focus:ring-transparent",
           "before:absolute before:inset-0 before:m-auto before:content-['']", // Positioning the pseudo-element
           "before:rounded-full", // Sizing the pseudo-element to create the white circle
           "checked:before:bg-grey-900",

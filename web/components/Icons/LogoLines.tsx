@@ -1,12 +1,14 @@
-export const LogoLinesIcon = (props: { className?: string }) => {
+import { ComponentProps } from "react";
+
+export const LogoLinesIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
-      className={props.className}
       width="382"
       height="78"
       viewBox="0 0 382 78"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M146.408 55.5213C146.408 55.5213 96.3853 55.5211 63.1402 55.5213C37.0118 55.5215 1 73.6956 1 73.6956"

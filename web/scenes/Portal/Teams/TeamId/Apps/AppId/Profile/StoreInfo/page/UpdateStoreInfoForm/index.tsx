@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { RemainingCharacters } from "../../../PageComponents/RemainingCharacters";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -19,7 +20,6 @@ import {
 import { viewModeAtom } from "../../../layout/ImagesProvider";
 import { DescriptionSubFields } from "../../../types";
 import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
-import { RemainingCharacters } from "./RemainingCharacters";
 
 const schema = yup.object().shape({
   world_app_description: yup
@@ -200,7 +200,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             disabled={!isEditable || !isEnoughPermissions}
             addOn={
               <RemainingCharacters
-                worldAppDescription={watch("description_overview")}
+                text={watch("description_overview")}
                 maxChars={1500}
               />
             }
@@ -220,7 +220,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             disabled={!isEditable || !isEnoughPermissions}
             addOn={
               <RemainingCharacters
-                worldAppDescription={watch("description_how_it_works")}
+                text={watch("description_how_it_works")}
                 maxChars={1500}
               />
             }
@@ -242,7 +242,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             register={register("description_connect")}
             addOn={
               <RemainingCharacters
-                worldAppDescription={watch("description_connect")}
+                text={watch("description_connect")}
                 maxChars={1500}
               />
             }
@@ -261,7 +261,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             register={register("world_app_description")}
             addOnRight={
               <RemainingCharacters
-                worldAppDescription={watch("world_app_description")}
+                text={watch("world_app_description")}
                 maxChars={50}
               />
             }

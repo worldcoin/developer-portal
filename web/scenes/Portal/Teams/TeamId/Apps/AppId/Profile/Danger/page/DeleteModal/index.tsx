@@ -78,7 +78,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
   return (
     <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
       <DialogOverlay />
-      <DialogPanel className="rounded-x mx-auto grid w-5 gap-y-6 bg-white">
+      <DialogPanel className="mx-auto grid gap-y-6 rounded-xl bg-white md:w-5">
         <CircleIconContainer variant={"error"}>
           <AlertIcon />
         </CircleIconContainer>

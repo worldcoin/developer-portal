@@ -51,7 +51,7 @@ export const Members = (props: { teamId: string }) => {
     <div className="grid gap-y-4">
       <Typography variant={TYPOGRAPHY.H7}>Members</Typography>
 
-      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-2 md:grid-cols-1fr/auto">
+      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-4 md:grid-cols-1fr/auto">
         <Input
           register={register("search")}
           type="search"

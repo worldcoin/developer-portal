@@ -71,9 +71,12 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         )}
 
         <div
-          className={clsx("flex flex-col items-center pt-24", {
-            hidden: showList || createAction || loading,
-          })}
+          className={clsx(
+            "grid size-full items-center justify-items-center overflow-hidden",
+            {
+              hidden: showList || createAction || loading,
+            },
+          )}
         >
           <InitialSteps
             title="Create your first incognito action"
@@ -105,7 +108,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                     <UserStoryIcon />
                   </IconFrame>
                 }
-                title="Create an incognito action"
+                title="Create action"
                 description="Allow user to verify as a unique person"
                 buttonText="Create"
               />,

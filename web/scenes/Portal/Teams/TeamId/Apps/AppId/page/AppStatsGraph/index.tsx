@@ -217,13 +217,13 @@ export const AppStatsGraph = () => {
       )}
 
       {loading && (
-        <div className="relative aspect-[1180/350] w-full rounded-2xl">
-          <Skeleton className="absolute inset-0 size-full rounded-2xl" />
+        <div className="aspect-[580/350] w-full rounded-2xl sm:aspect-[1180/350]">
+          <Skeleton className=" inset-0 size-full rounded-2xl" />
         </div>
       )}
 
       {!loading && !formattedData && (
-        <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
+        <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12 sm:aspect-[1180/350]">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
             {engine === EngineType.OnChain
               ? "Analytics are not available for on-chain apps yet"

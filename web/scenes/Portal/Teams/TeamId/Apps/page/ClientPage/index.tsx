@@ -39,7 +39,7 @@ export const ClientPage = () => {
                   2
                 </IconFrame>
               }
-              title="Create an incognito action"
+              title="Create action"
               description="Allow user to verify as a unique human"
               buttonText="Create"
               disabled
