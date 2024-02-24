@@ -24,7 +24,6 @@ export const InitialSteps = (props: {
       )}
     >
       <div className="relative min-h-[60px] max-w-full">
-        {/* Ensure minimum height to contain the icon */}
         <LogoLinesIcon className="z-0 w-full" />
         <WorldcoinBlueprintIcon className="absolute inset-0 z-10 m-auto size-[60px] rounded-2xl" />
       </div>
