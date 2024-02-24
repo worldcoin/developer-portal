@@ -125,7 +125,7 @@ export const ActionsList = (props: {
             revealing their identity
           </Typography>
         </div>
-        <div className="mt-5 grid w-full grid-cols-1 items-center justify-between gap-2 md:grid-cols-1fr/auto">
+        <div className="mt-5 grid w-full grid-cols-1 items-center justify-between gap-x-2 gap-y-4 md:grid-cols-1fr/auto">
           <Input
             register={register("actionSearch")}
             label=""

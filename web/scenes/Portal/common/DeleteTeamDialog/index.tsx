@@ -173,7 +173,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
               disabled={!isValid || isSubmitting}
               type="submit"
               variant="danger"
-              className="py-3"
+              className="whitespace-nowrap py-3"
             >
               Delete team
             </DecoratedButton>
@@ -182,7 +182,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
               type="button"
               onClick={onClose}
               variant="primary"
-              className="py-3"
+              className="whitespace-nowrap py-3"
               disabled={isSubmitting}
             >
               Keep team

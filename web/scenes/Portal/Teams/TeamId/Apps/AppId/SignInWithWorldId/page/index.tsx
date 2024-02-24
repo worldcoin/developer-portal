@@ -17,7 +17,7 @@ export const SignInWithWorldIdPage = async (
 
   return (
     <div className="size-full py-5">
-      <div className="grid grid-cols-1 items-center justify-center justify-items-center gap-x-7 gap-y-6 rounded-3xl border p-6 md:grid-cols-auto/1fr/auto md:justify-items-start md:border-none md:px-0">
+      <div className="grid grid-cols-1 items-center justify-center justify-items-center gap-x-7 gap-y-6 rounded-3xl border p-8 md:grid-cols-auto/1fr/auto md:justify-items-start md:border-none md:px-0">
         <Image
           src="/passport.png"
           alt="passport"
@@ -27,7 +27,11 @@ export const SignInWithWorldIdPage = async (
         />
         <div className="grid h-fit items-center justify-items-center gap-y-2 md:justify-items-start">
           <Typography variant={TYPOGRAPHY.H6}>Sign in with World ID</Typography>
-          <Typography as="p" variant={TYPOGRAPHY.R3} className=" text-grey-500">
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.R3}
+            className="text-center text-grey-500"
+          >
             Let users sign in to your app with their World ID using OpenID
             Connect (OIDC)
           </Typography>

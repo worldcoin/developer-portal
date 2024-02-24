@@ -72,7 +72,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
 
         <div
           className={clsx(
-            "grid size-full items-center justify-items-center overflow-hidden",
+            "grid size-full items-start justify-items-center overflow-hidden pt-20",
             {
               hidden: showList || createAction || loading,
             },
