@@ -73,7 +73,7 @@ export const LoggedUserNav = () => {
 
   return (
     <div
-      className="flex items-center gap-x-5"
+      className="flex items-center gap-x-3 md:gap-x-5"
       style={
         {
           "--color-100": color?.["100"],
@@ -124,22 +124,16 @@ export const LoggedUserNav = () => {
 
           {teamRes.data?.team && (
             <Fragment>
-              {/* FIXME: create proper team name component */}
-              <Typography
-                as="div"
-                variant={TYPOGRAPHY.R4}
-                className="grid max-w-full grid-cols-auto/1fr items-center gap-x-2 truncate px-4 py-2.5 text-grey-400"
-              >
-                <TeamLogo
-                  src={""}
-                  name={
-                    teamRes.data?.team.name ??
-                    "" /*FIXME: team.name must be non nullable*/
-                  }
-                />
+              <div className="grid w-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2.5">
+                <TeamLogo src={""} name={teamRes.data?.team.name ?? ""} />
 
-                {teamRes.data?.team.name}
-              </Typography>
+                <Typography
+                  variant={TYPOGRAPHY.R4}
+                  className="max-w-full truncate text-grey-400"
+                >
+                  {teamRes.data?.team.name}
+                </Typography>
+              </div>
 
               <DropdownItem className="hover:bg-grey-50">
                 <Link
@@ -150,6 +144,7 @@ export const LoggedUserNav = () => {
                   <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
                 </Link>
               </DropdownItem>
+
               {hasOwnerPermission && (
                 <DropdownItem className="hover:bg-grey-50">
                   <Link
@@ -166,10 +161,8 @@ export const LoggedUserNav = () => {
             </Fragment>
           )}
 
-          <DropdownItem className="hover:bg-grey-50">
-            <div>
-              <TeamSwitch selectedTeamId={teamId} />
-            </div>
+          <DropdownItem as="div" className="p-0 hover:bg-grey-50">
+            <TeamSwitch selectedTeamId={teamId} />
           </DropdownItem>
 
           <hr className="my-1 border-grey-200" />
