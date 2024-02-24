@@ -124,7 +124,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       appMetaData?.description ? appMetaData.description : "{}",
     );
     try {
-      submitSchema.isValidSync({ ...appMetaData, ...description });
+      submitSchema.validateSync({ ...appMetaData, ...description });
       return true;
     } catch (error) {
       return false;
@@ -312,9 +312,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
           editable={isEditable && isEnoughPermissions}
           logoFile={appMetaData.logo_img_url}
         />
-        <div className="grid grid-cols-1 gap-y-1 sm:max-w-[500px]">
+        <div className="grid grid-cols-1 gap-y-1">
           <div className="flex flex-col items-center gap-x-3 sm:flex-row">
-            <Typography variant={TYPOGRAPHY.H6} className="truncate">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className=" max-w-[250px] truncate sm:max-w-[500px]"
+            >
               {appMetaData.name}
             </Typography>
             <AppStatus

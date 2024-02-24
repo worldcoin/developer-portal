@@ -221,7 +221,7 @@ export const Debugger = (props: DebuggerProps) => {
           </DecoratedButton>
         </div>
       </div>
-      <div className="grid w-full gap-y-6 lg:min-w-[480px] lg:max-w-[480px]">
+      <div className="grid w-full gap-y-6 lg:w-[480px]">
         <Typography variant={TYPOGRAPHY.H7}>Results</Typography>
         <div
           className={clsx(

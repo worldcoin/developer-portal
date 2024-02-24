@@ -19,20 +19,22 @@ export const InitialSteps = (props: {
 }) => {
   return (
     <div
-      className={clsx("grid w-full max-w-[480px] place-items-center gap-y-6")}
+      className={clsx(
+        "grid w-full max-w-[480px] items-center  justify-items-center gap-y-6 ",
+      )}
     >
-      <div className="relative">
-        <LogoLinesIcon className="z-0" />
-
+      <div className="relative min-h-[60px] max-w-full">
+        {/* Ensure minimum height to contain the icon */}
+        <LogoLinesIcon className="z-0 w-full" />
         <WorldcoinBlueprintIcon className="absolute inset-0 z-10 m-auto size-[60px] rounded-2xl" />
       </div>
 
-      <div className="grid grid-cols-1 place-items-center gap-y-2">
+      <div className="grid w-full max-w-[320px] grid-cols-1 gap-y-2 text-center md:max-w-full">
         <Typography variant={TYPOGRAPHY.H6}>{props.title}</Typography>
 
         <Typography
           variant={TYPOGRAPHY.R4}
-          className="text-center text-sm text-grey-500"
+          className="px-2 text-center text-sm text-grey-500"
         >
           {props.description}
         </Typography>
@@ -40,7 +42,7 @@ export const InitialSteps = (props: {
 
       <div
         className={clsx(
-          "mt-4 max-w-[350px] rounded-2xl border border-grey-200 shadow-button md:max-w-full",
+          "mt-4 max-w-[320px] rounded-2xl border border-grey-200 shadow-button md:max-w-full",
         )}
       >
         {props.steps.map((step) => step)}

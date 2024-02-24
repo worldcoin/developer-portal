@@ -68,7 +68,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
         />
         <AppTopBar appId={appId} teamId={teamId} app={app} />
         <hr className="my-5 w-full border-dashed text-grey-200" />
-        <div className="grid w-1/2 grid-cols-1 gap-y-10">
+        <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
           <div className="grid gap-y-2">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
               Danger Zone

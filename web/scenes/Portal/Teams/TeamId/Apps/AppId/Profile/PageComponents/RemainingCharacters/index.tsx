@@ -1,15 +1,15 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type RemainingCharactersProps = {
-  worldAppDescription?: string;
+  text?: string;
   maxChars: number;
 };
 
 export const RemainingCharacters: React.FC<RemainingCharactersProps> = ({
-  worldAppDescription,
+  text,
   maxChars,
 }) => {
-  const remainingCharacters = maxChars - (worldAppDescription?.length || 0);
+  const remainingCharacters = maxChars - (text?.length || 0);
 
   return (
     <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -67,6 +68,7 @@ export const BasicInformation = (props: {
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
@@ -156,6 +158,10 @@ export const BasicInformation = (props: {
             disabled={!isEditable || !isEnoughPermissions}
             required
             placeholder="Enter your App Name"
+            maxLength={50}
+            addOnRight={
+              <RemainingCharacters text={watch("name")} maxChars={50} />
+            }
           />
           <Controller
             name="category"
