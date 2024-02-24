@@ -96,3 +96,18 @@ export const getNullifierName = (nullifier: string | undefined | null) => {
   if (!nullifier) return null;
   return `${nullifier.slice(0, 6)}...${nullifier.slice(-4)}`;
 };
+
+export const truncateString = (
+  str: string | undefined | null,
+  length: number,
+) => {
+  if (!str) {
+    return "";
+  }
+
+  if (str.length <= length) {
+    return str;
+  }
+
+  return `${str.slice(0, length)}...`;
+};

@@ -3,7 +3,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions, truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -49,8 +49,9 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     }
   }, [app, viewMode]);
 
-  if (loading) return <div></div>;
-  else if (!app) {
+  if (loading) {
+    return <div></div>;
+  } else if (!app) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
@@ -66,21 +67,26 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
           openDeleteModal={openDeleteModal}
           setOpenDeleteModal={setOpenDeleteModal}
         />
+
         <AppTopBar appId={appId} teamId={teamId} app={app} />
+
         <hr className="my-5 w-full border-dashed text-grey-200" />
+
         <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
           <div className="grid gap-y-2">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
               Danger Zone
             </Typography>
+
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               This will immediately and permanently delete the app{" "}
               <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-                {appMetaData?.name ?? ""}
+                {truncateString(appMetaData?.name, 30)}
               </Typography>{" "}
               and its data for everyone. This cannot be undone.
             </Typography>
           </div>
+
           <DecoratedButton
             type="button"
             variant="danger"

@@ -18,6 +18,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
 }) {
   const { learnMoreUrl = "https://docs.worldcoin.org/id/incognito-actions" } =
     props;
+
   const { data, loading } = useGetActionNameQuery({
     variables: { action_id: props.actionId ?? "" },
     context: { headers: { team_id: props.teamId ?? "" } },
@@ -38,6 +39,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
   }, [props.actionId, props.appId, props.teamId]);
 
   const name = data?.action[0]?.name ?? "";
+
   return (
     <div className="grid w-full gap-y-5 md:gap-y-2">
       <div>
@@ -48,7 +50,8 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
           </Typography>
         </Link>
       </div>
-      <div className="grid w-full grid-cols-1fr/auto items-center justify-between gap-y-3">
+
+      <div className="grid w-full grid-cols-1fr/auto items-center justify-between gap-x-3">
         <Typography
           variant={TYPOGRAPHY.H6}
           className="max-w-[400px] truncate capitalize text-grey-900 md:max-w-[750px]"
@@ -63,6 +66,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
           onClick={trackDocsClicked}
         >
           <DocsIcon />
+
           <Typography variant={TYPOGRAPHY.R3} className="hidden md:block">
             Learn more
           </Typography>

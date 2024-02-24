@@ -24,11 +24,11 @@ export const Header = (props: { color: Color | null }) => {
   return (
     <header>
       <SizingWrapper
-        className="flex w-full items-center justify-between"
+        className="flex w-full items-center justify-between gap-x-4"
         gridClassName="py-4"
         variant="nav"
       >
-        <div className="grid grid-cols-auto/1fr gap-x-8">
+        <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
           <Button href="/">
             <WorldcoinIcon />
           </Button>

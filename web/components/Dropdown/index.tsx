@@ -27,9 +27,9 @@ export const Dropdown = <T,>(props: DropdownProps<T>) => {
     whileElementsMounted: autoUpdate,
     middleware: [
       size({
-        apply({ availableWidth, availableHeight, elements, rects }) {
+        apply({ availableWidth, availableHeight, elements }) {
           Object.assign(elements.floating.style, {
-            minWidth: `${rects.reference.width}px`,
+            minWidth: "0px",
             maxWidth: `${availableWidth}px`,
             maxHeight: `${availableHeight}px`,
             zIndex: `${zIndex}`,

@@ -27,12 +27,14 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
   });
 
   return (
-    <div className="-mx-4 -my-2.5">
+    <div className="w-full">
       <Dropdown placement="left-start" zIndex={60}>
-        <DropdownButton>
-          <div className="grid grid-cols-auto/1fr items-center gap-x-2 px-4 py-2.5">
-            <LoginSquareIcon className="size-4 text-grey-400" /> Switch team
-          </div>
+        <DropdownButton
+          as="button"
+          className="grid w-full grid-cols-auto/1fr items-center justify-items-start gap-x-2 px-4 py-2.5"
+        >
+          <LoginSquareIcon className="size-4 text-grey-400" />
+          <Typography variant={TYPOGRAPHY.R4}>Switch team</Typography>
         </DropdownButton>
 
         <DropdownItems className="relative -left-1 -top-1">
@@ -46,16 +48,11 @@ export const TeamSwitch = (props: { selectedTeamId?: string }) => {
                 href={`/teams/${team.id}`}
                 className="grid grid-cols-auto/1fr/auto items-center gap-x-2"
               >
-                <TeamLogo
-                  src={""}
-                  name={
-                    team.name ?? "" /*FIXME: team.name must be non nullable*/
-                  }
-                />
+                <TeamLogo src={""} name={team.name ?? ""} />
 
                 <Typography
                   variant={TYPOGRAPHY.R4}
-                  className="max-w-[150px] truncate"
+                  className="min-w-[0px] max-w-[150px] truncate"
                 >
                   {team.name}
                 </Typography>

@@ -34,7 +34,9 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
       <div className="flex size-full flex-col items-center ">
         <div className="grid w-full gap-y-2 py-10">
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
+
           <hr className="my-5 w-full border-dashed text-grey-200" />
+
           {loading ? (
             <Skeleton height={150} />
           ) : (

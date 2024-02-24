@@ -101,69 +101,73 @@ export const List = () => {
                 </DropdownButton>
 
                 <DropdownItems>
-                  {false && (
-                    /* FIXME: implement current team identifying */ <DropdownItem>
-                      <div className="flex items-center gap-x-2">
-                        <LoginSquareIcon className="size-4 text-grey-400" />
-                        Switch to team
-                      </div>
-                    </DropdownItem>
-                  )}
+                  <DropdownItem
+                    as="a"
+                    href={urls.teams({ team_id: membership.team.id })}
+                    className="flex items-center gap-x-2 hover:bg-grey-50"
+                  >
+                    <LoginSquareIcon className="size-4 text-grey-400" />
+
+                    <Typography variant={TYPOGRAPHY.R4}>
+                      Switch to team
+                    </Typography>
+                  </DropdownItem>
 
                   {(membership.role === Role_Enum.Owner ||
                     membership.role === Role_Enum.Admin) && (
                     <DropdownItem
                       as="a"
                       href={urls.teamSettings({ team_id: membership.team.id })}
-                      className="flex"
+                      className="flex items-center gap-x-2 hover:bg-grey-50"
                     >
-                      <div className="flex items-center gap-x-2">
-                        <EditIcon className="size-4 text-grey-400" />
-
-                        <Typography variant={TYPOGRAPHY.R4}>
-                          Edit team
-                        </Typography>
-                      </div>
+                      <EditIcon className="size-4 text-grey-400" />
+                      <Typography variant={TYPOGRAPHY.R4}>Edit team</Typography>
                     </DropdownItem>
                   )}
 
                   {membership.role === Role_Enum.Owner && (
                     <DropdownItem
+                      as="button"
+                      type="button"
                       onClick={() => setTeamForTransfer(membership.team)}
+                      className="flex items-center gap-x-2 hover:bg-grey-50"
                     >
-                      <div className="flex items-center gap-x-2">
-                        <ExchangeIcon className="size-4 text-grey-400" />
+                      <ExchangeIcon className="size-4 text-grey-400" />
 
-                        <Typography variant={TYPOGRAPHY.R4}>
-                          Transfer ownership
-                        </Typography>
-                      </div>
+                      <Typography variant={TYPOGRAPHY.R4}>
+                        Transfer ownership
+                      </Typography>
                     </DropdownItem>
                   )}
 
                   {membership.role === Role_Enum.Owner && (
                     <DropdownItem
+                      as="button"
+                      type="button"
+                      className="flex w-full items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
                       onClick={() => setTeamForDelete(membership.team)}
                     >
-                      <div className="flex items-center gap-x-2 text-system-error-600">
-                        <LogoutIcon className="size-4" />
+                      <LogoutIcon className="size-4" />
 
-                        <Typography variant={TYPOGRAPHY.R4}>
-                          Delete team
-                        </Typography>
-                      </div>
+                      <Typography variant={TYPOGRAPHY.R4}>
+                        Delete team
+                      </Typography>
                     </DropdownItem>
                   )}
 
                   {(membership.role === Role_Enum.Admin ||
                     membership.role === Role_Enum.Member) && (
                     <DropdownItem
+                      as="button"
+                      type="button"
+                      className="flex items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
                       onClick={() => setTeamForLeave(membership.team)}
                     >
-                      <div className="flex items-center gap-x-2 text-system-error-600">
-                        <LogoutIcon className="size-4" />
+                      <LogoutIcon className="size-4" />
+
+                      <Typography variant={TYPOGRAPHY.R4}>
                         Leave team
-                      </div>
+                      </Typography>
                     </DropdownItem>
                   )}
                 </DropdownItems>
