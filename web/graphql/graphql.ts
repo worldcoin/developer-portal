@@ -4461,6 +4461,9 @@ export type Mutation_RootUpdate_User_ManyArgs = {
 /** mutation root */
 export type Mutation_RootVerify_AppArgs = {
   app_id: Scalars["String"];
+  is_reviewer_app_store_approved: Scalars["Boolean"];
+  is_reviewer_world_app_approved: Scalars["Boolean"];
+  reviewer_name: Scalars["String"];
 };
 
 /** columns and relationships of "nullifier" */
