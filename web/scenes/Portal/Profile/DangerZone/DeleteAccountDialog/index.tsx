@@ -12,7 +12,6 @@ import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -32,7 +31,6 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const DeleteAccountDialog = (props: DialogProps) => {
   const { user } = useUser() as Auth0SessionUser;
-  const router = useRouter();
 
   const {
     register,
@@ -73,7 +71,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid max-w-[400px] gap-y-8">
+      <DialogPanel className="mx-4 grid max-w-[400px] gap-y-8">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -111,12 +109,12 @@ export const DeleteAccountDialog = (props: DialogProps) => {
             autoFocus
           />
 
-          <div className="grid grid-cols-2 gap-x-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <DecoratedButton
               disabled={!isValid || isSubmitting}
               type="submit"
               variant="danger"
-              className="py-3"
+              className="order-2 py-3 md:order-1"
             >
               Delete profile
             </DecoratedButton>
@@ -125,7 +123,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
               type="button"
               onClick={onClose}
               variant="primary"
-              className="py-3"
+              className="order-1 py-3 md:order-2"
               disabled={isSubmitting}
             >
               Keep profile

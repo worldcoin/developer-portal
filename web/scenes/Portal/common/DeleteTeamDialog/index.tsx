@@ -14,7 +14,7 @@ import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -27,23 +27,21 @@ type DeleteTeamDialogProps = DialogProps & {
   };
 };
 
+const schema = yup.object({
+  confirmation: yup
+    .string()
+    .oneOf(["DELETE"], "Please check if the input is correct")
+    .required("This field is required"),
+});
+
+type FormValues = yup.InferType<typeof schema>;
+
 export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const { team } = props;
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [deleteFinished, setDeleteFinished] = useState(false);
-
-  const schema = useMemo(() => {
-    return yup.object({
-      confirmation: yup
-        .string()
-        .oneOf([team?.name ?? ""], "Please check if the input is correct")
-        .required("This field is required"),
-    });
-  }, [team?.name]);
-
-  type FormValues = yup.InferType<typeof schema>;
 
   const {
     register,
@@ -159,21 +157,17 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             register={register("confirmation")}
             errors={errors.confirmation}
             label={
-              <span className="select-none">
-                To verify, type{" "}
-                <span className="font-medium text-gray-900">{team?.name}</span>{" "}
-                below
-              </span>
+              <span className="select-none">To verify, type DELETE below</span>
             }
             autoFocus
           />
 
-          <div className="grid grid-cols-2 gap-x-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <DecoratedButton
               disabled={!isValid || isSubmitting}
               type="submit"
               variant="danger"
-              className="whitespace-nowrap py-3"
+              className="order-2 whitespace-nowrap py-3 md:order-1"
             >
               Delete team
             </DecoratedButton>
@@ -182,7 +176,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
               type="button"
               onClick={onClose}
               variant="primary"
-              className="whitespace-nowrap py-3"
+              className="order-1 whitespace-nowrap py-3 md:order-2"
               disabled={isSubmitting}
             >
               Keep team

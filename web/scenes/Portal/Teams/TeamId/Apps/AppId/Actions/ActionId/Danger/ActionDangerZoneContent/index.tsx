@@ -8,6 +8,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
@@ -30,6 +31,7 @@ export const ActionDangerZoneContent = (props: {
     const membership = user?.hasura.memberships.find(
       (m) => m.team?.id === teamId,
     );
+
     return (
       membership?.role === Role_Enum.Owner ||
       membership?.role === Role_Enum.Admin
@@ -44,6 +46,7 @@ export const ActionDangerZoneContent = (props: {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
         context: { headers: { team_id: teamId } },
+
         refetchQueries: [
           {
             query: GetActionsDocument,
@@ -51,16 +54,20 @@ export const ActionDangerZoneContent = (props: {
             context: { headers: { team_id: teamId } },
           },
         ],
+
         awaitRefetchQueries: true,
       });
+
       if (result instanceof Error) {
         throw result;
       }
+
       router.replace(`..`);
     } catch (error) {
       console.error(error);
       return toast.error("Unable to delete action");
     }
+
     toast.success(`${action?.name} was deleted.`);
   }, [action.id, action?.name, appId, deleteActionQuery, router, teamId]);
 
@@ -68,14 +75,17 @@ export const ActionDangerZoneContent = (props: {
     <div>
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
-        <DialogPanel className="z-50 mx-auto grid gap-y-6 rounded-xl bg-white md:w-5">
+
+        <DialogPanel className="z-50 mx-4 grid gap-y-6 rounded-xl bg-white md:w-5">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>
+
           <div className="grid w-full place-items-center gap-y-5 px-2">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Are you sure?
             </Typography>
+
             <Typography
               variant={TYPOGRAPHY.R3}
               className="text-center text-grey-500"
@@ -85,11 +95,12 @@ export const ActionDangerZoneContent = (props: {
               will be permanently lost.
             </Typography>
           </div>
-          <div className="grid grid-cols-2 gap-x-5">
+
+          <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="submit"
               variant="danger"
-              className="w-full bg-system-error-100"
+              className="order-2 w-full bg-system-error-100 py-3 md:order-1"
               onClick={deleteAction}
               disabled={deleteActionLoading}
             >
@@ -98,7 +109,7 @@ export const ActionDangerZoneContent = (props: {
 
             <DecoratedButton
               type="submit"
-              className="w-full"
+              className="order-1 w-full py-3 md:order-2"
               onClick={() => setOpenDeleteModal(false)}
             >
               <Typography variant={TYPOGRAPHY.R3}>Keep Action</Typography>
@@ -113,12 +124,16 @@ export const ActionDangerZoneContent = (props: {
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
               Danger Zone
             </Typography>
+
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               This will immediately and permanently delete the action{" "}
-              <b>{action.name}</b> and its data for everyone. This cannot be
-              undone.
+              <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+                {truncateString(action?.name, 30)}
+              </Typography>{" "}
+              and its data for everyone. This cannot be undone.
             </Typography>
           </div>
+
           <DecoratedButton
             type="button"
             variant="danger"
@@ -129,7 +144,6 @@ export const ActionDangerZoneContent = (props: {
             <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>
           </DecoratedButton>
         </div>
-        <div></div>
       </div>
     </div>
   );

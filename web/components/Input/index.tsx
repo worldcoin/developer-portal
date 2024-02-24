@@ -34,12 +34,14 @@ export const Input = memo(function Input(props: InputInterface) {
 
   const parentClassNames = clsx(
     "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
+
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
       "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
         errors && !disabled,
     },
+
     {
       "hover:text-grey-700": !disabled,
       "bg-grey-50 text-grey-400 border-grey-200": disabled,
@@ -47,6 +49,7 @@ export const Input = memo(function Input(props: InputInterface) {
   );
   const inputClassNames = clsx(
     "peer h-full bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-none focus:ring-0",
+
     {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
@@ -72,6 +75,7 @@ export const Input = memo(function Input(props: InputInterface) {
             "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
             parentClassNames,
           ),
+
           typeof className === "string" ? className : undefined,
         )}
       >
@@ -90,16 +94,18 @@ export const Input = memo(function Input(props: InputInterface) {
         <div className="flex items-center">{addOnRight && addOnRight}</div>
 
         {label && (
-          <legend className={labelClassNames}>
+          <legend className={twMerge(clsx("select-none", labelClassNames))}>
             {label}{" "}
             {required && <span className="text-system-error-500">*</span>}
           </legend>
         )}
       </fieldset>
+
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (
           <p className="mt-2 text-xs text-grey-500">{helperText}</p>
         )}
+
         {errors?.message && (
           <p className="mt-2 text-xs text-system-error-500">{errors.message}</p>
         )}
