@@ -290,7 +290,7 @@ export const List = (props: { search?: string }) => {
                     </Typography>
 
                     {isInviteRow && (
-                      <div className="mx-auto rounded-full bg-system-warning-100 px-3 py-1">
+                      <div className="mx-2 rounded-full bg-system-warning-100 px-3 py-1 text-center">
                         <Typography
                           variant={TYPOGRAPHY.S3}
                           className="text-system-warning-500"

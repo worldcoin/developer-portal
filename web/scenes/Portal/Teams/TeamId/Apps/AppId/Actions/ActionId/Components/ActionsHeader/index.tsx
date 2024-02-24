@@ -39,7 +39,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
 
   const name = data?.action[0]?.name ?? "";
   return (
-    <div className="grid w-full gap-y-2">
+    <div className="grid w-full gap-y-5 md:gap-y-2">
       <div>
         <Link href={redirect} className="flex flex-row items-center gap-x-2">
           <CaretIcon className="size-3 rotate-90 text-grey-400" />
@@ -48,7 +48,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
           </Typography>
         </Link>
       </div>
-      <div className="grid w-full items-center justify-between gap-y-3 md:grid-cols-1fr/auto">
+      <div className="grid w-full grid-cols-1fr/auto items-center justify-between gap-y-3">
         <Typography
           variant={TYPOGRAPHY.H6}
           className="max-w-[400px] truncate capitalize text-grey-900 md:max-w-[750px]"
@@ -59,11 +59,13 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
         <DecoratedButton
           variant="secondary"
           href={learnMoreUrl}
-          className="px-7 py-3 text-grey-700 "
+          className="py-3 text-grey-700 md:px-7"
           onClick={trackDocsClicked}
         >
           <DocsIcon />
-          <Typography variant={TYPOGRAPHY.R3}>Learn more</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="hidden md:block">
+            Learn more
+          </Typography>
         </DecoratedButton>
       </div>
     </div>

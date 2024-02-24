@@ -61,14 +61,14 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
     <div
       className={clsx(
         statusStyles[status]?.normal,
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-0 py-2 pl-5 sm:py-0",
+        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-3 py-2 sm:py-0 md:px-5",
         className,
       )}
     >
       {status === "changes_requested" ? (
         <AlertIcon className="text-system-warning-500" />
       ) : (
-        <CheckmarkBadge className="w-5 text-system-success-500" />
+        <CheckmarkBadge className="text-system-success-500" />
       )}
       <Typography variant={TYPOGRAPHY.R4}>{formattedMessage}</Typography>
 
@@ -76,7 +76,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
         type="button"
         onClick={onClick}
         className={clsx(
-          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 px-6 py-3",
+          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 py-3 ",
           {
             "text-system-warning-600 hover:text-system-warning-700":
               status === "changes_requested",

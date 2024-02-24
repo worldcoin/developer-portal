@@ -259,7 +259,7 @@ export const Debugger = (props: DebuggerProps) => {
               <DecoratedButton
                 type="submit"
                 variant="secondary"
-                className="w-60 text-grey-700 disabled:text-grey-300"
+                className="text-grey-700 disabled:text-grey-300 md:w-60"
                 disabled={!isDirty || !isValid}
               >
                 <Typography variant={TYPOGRAPHY.M3}>Validate Proof</Typography>
