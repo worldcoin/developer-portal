@@ -1,0 +1,15 @@
+query FetchApps {
+  app {
+    id
+    app_metadata {
+      id
+      name
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      id
+      logo_img_url
+    }
+  }
+}

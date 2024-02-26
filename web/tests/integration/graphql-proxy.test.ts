@@ -1,4 +1,4 @@
-import { getAPIServiceClient } from "src/backend/graphql";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { integrationDBSetup, integrationDBTearDown } from "./setup";
 
 beforeEach(integrationDBSetup);

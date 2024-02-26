@@ -1,0 +1,151 @@
+@import "react-toastify/dist/ReactToastify.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fonts start */
+
+@font-face {
+  font-display: block;
+  font-family: "GT America";
+  src:
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-webfont.woff2")
+      format("woff2"),
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-webfont.woff")
+      format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-display: block;
+  font-family: "GT America";
+  src:
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-italic-webfont.woff2")
+      format("woff2"),
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-italic-webfont.woff")
+      format("woff");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-display: block;
+  font-family: "GT America";
+  src:
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-medium-webfont.woff2")
+      format("woff2"),
+    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-medium-webfont.woff")
+      format("woff");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://world-id-assets.com/fonts/TWKLausanne-400.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://staging.world-id-assets.com/fonts/TWKLausanne-400.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://world-id-assets.com/fonts/TWKLausanne-550.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TWK Lausanne";
+  src: url("https://staging.world-id-assets.com/fonts/TWKLausanne-550.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fonts end */
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* Begin Toastify overrides */
+
+:root {
+  --toastify-color-info: #4940e0;
+  --toastify-icon-color-info: #4940e0;
+  --toastify-color-success: #00b800;
+  --toastify-icon-color-success: #00b800;
+  --toastify-color-warning: #ff4732;
+  --toastify-icon-color-warning: #ff4732;
+}
+
+.Toastify__toast {
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-color: #ebecef;
+  border-width: 1px;
+  min-height: 50px;
+  font-size: 14px;
+  box-shadow:
+    0px 4px 6px -2px #191c2008,
+    0px 12px 16px -4px #191c2014;
+}
+
+/* Add a breakpoint for screens wider than 768px */
+@media (max-width: 768px) {
+  .Toastify__toast {
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+}
+
+.Toastify__toast-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.Toastify__close-button {
+  align-self: center;
+}
+
+/* End Toastify overrides */
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}

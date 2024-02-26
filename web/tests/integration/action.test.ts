@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { getAPIServiceClient } from "src/backend/graphql";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
@@ -13,7 +13,7 @@ beforeEach(integrationDBTearDown);
 describe("service role", () => {
   test("can select actions", async () => {
     const { rows } = await integrationDBExecuteQuery(
-      'SELECT id FROM "public"."app" WHERE "is_archived" = true LIMIT 1;'
+      'SELECT id FROM "public"."app" WHERE "is_archived" = true LIMIT 1;',
     );
 
     const client = await getAPIServiceClient();
@@ -31,7 +31,7 @@ describe("service role", () => {
     expect(response.data.action[0]).toEqual(
       expect.objectContaining({
         id: expect.stringContaining("action_"),
-      })
+      }),
     );
 
     let signInWithWorldIDCount = 0;
@@ -61,7 +61,7 @@ describe("service role", () => {
       expect(true).toBe(false); // Fail test if above expression doesn't throw
     } catch (e) {
       expect((e as Error).toString()).toEqual(
-        "ApolloError: field 'delete_action' not found in type: 'mutation_root'"
+        "ApolloError: field 'delete_action' not found in type: 'mutation_root'",
       );
     }
   });

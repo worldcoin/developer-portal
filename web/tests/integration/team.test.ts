@@ -1,14 +1,15 @@
-import { getAPIServiceClient } from "src/backend/graphql";
+import { Role_Enum } from "@/graphql/graphql";
+import { handleInvite } from "@/legacy/api/_invite-team-members";
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
 import {
+  integrationDBExecuteQuery,
   integrationDBSetup,
   integrationDBTearDown,
-  integrationDBExecuteQuery,
 } from "./setup";
 import { getAPIClient, getAPIUserClient } from "./test-utils";
-import { gql } from "@apollo/client";
-import { Role_Enum } from "@/graphql/graphql";
-import { createMocks } from "node-mocks-http";
-import { handleInvite } from "@/api/_invite-team-members";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -24,14 +25,14 @@ describe("team model", () => {
 describe("user role", () => {
   test("only authorized roles can update team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id, name FROM "public"."team" limit 1`
+      `SELECT id, name FROM "public"."team" limit 1`,
     )) as { rows: Array<{ id: string; name: string }> };
 
     const nameBeforeUpdate = teams[0].name;
     const team_id = teams[0].id;
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id, role FROM "public"."membership" WHERE "team_id" = '${teams[0].id}'`
+      `SELECT id, user_id, team_id, role FROM "public"."membership" WHERE "team_id" = '${teams[0].id}'`,
     )) as {
       rows: Array<{
         id: string;
@@ -69,13 +70,13 @@ describe("user role", () => {
         // NOTE: revert update changes
         await integrationDBExecuteQuery(
           // update team hasura postgresql query
-          `UPDATE "public"."team" SET "name" = '${nameBeforeUpdate}' WHERE "id" = '${team_id}' RETURNING "name";`
+          `UPDATE "public"."team" SET "name" = '${nameBeforeUpdate}' WHERE "id" = '${team_id}' RETURNING "name";`,
         );
       } else {
         expect(response.data?.update_team?.affected_rows).toEqual(0);
         // Additional SQL query to confirm the team name has not changed
         const { rows: unchangedTeam } = (await integrationDBExecuteQuery(
-          `SELECT name FROM "public"."team" WHERE "id" = '${team_id}'`
+          `SELECT name FROM "public"."team" WHERE "id" = '${team_id}'`,
         )) as { rows: Array<{ name: string }> };
         expect(unchangedTeam[0].name).toEqual(nameBeforeUpdate);
       }
@@ -84,12 +85,12 @@ describe("user role", () => {
 
   test("cannot select another team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     for (const team of teams) {
       const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
       )) as { rows: Array<{ id: string; user_id: string }> };
 
       const client = await getAPIUserClient({
@@ -113,13 +114,13 @@ describe("user role", () => {
 
   test("cannot select another team with an invalid team_id", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     // Test using an team that the user is not a member of
     const { rows: testInvalidTeamMemberships } =
       (await integrationDBExecuteQuery(
-        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' limit 1;`
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' limit 1;`,
       )) as { rows: Array<{ id: string; user_id: string }> };
 
     const testInvalidClient = await getAPIUserClient({
@@ -141,11 +142,11 @@ describe("user role", () => {
 
   test("cannot update another team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
@@ -180,17 +181,17 @@ describe("user role", () => {
 
   test("cannot invite team members as member", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`
+    const { rows: memberRoleMemberships } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
+    const memberRoleUserId = memberRoleMemberships[0].user_id;
+    const memberRoleTeamId = memberRoleMemberships[0].team_id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -200,8 +201,8 @@ describe("user role", () => {
         action: { name: "invite_team_members" },
         session_variables: {
           "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
+          "x-hasura-user-id": memberRoleUserId,
+          "x-hasura-team-id": memberRoleTeamId,
         },
       },
     });
@@ -214,17 +215,17 @@ describe("user role", () => {
 
   test("cannot invite team members to another team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
     const tokenTeamId = teams[1].id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -248,17 +249,17 @@ describe("user role", () => {
 
   test("can invite team members", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'ADMIN' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'OWNER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
     const tokenTeamId = teamMemberships[0].team_id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -284,7 +285,7 @@ describe("user role", () => {
 describe("api_key role", () => {
   test("API Key: cannot select another team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     for (const team of teams) {

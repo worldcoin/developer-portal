@@ -1,0 +1,9 @@
+mutation RemoveUser($userId: String!, $teamId: String!) {
+  delete_membership(
+    where: {
+      _and: [{ user_id: { _eq: $userId } }, { team_id: { _eq: $teamId } }]
+    }
+  ) {
+    affected_rows
+  }
+}

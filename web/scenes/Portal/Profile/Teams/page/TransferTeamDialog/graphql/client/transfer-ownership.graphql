@@ -1,0 +1,19 @@
+mutation TransferOwnership(
+  $id: String!
+  $role: role_enum = OWNER
+  $user_member_id: String!
+  $user_role: role_enum = ADMIN
+) {
+  transferOwner: update_membership_by_pk(
+    pk_columns: { id: $id }
+    _set: { role: $role }
+  ) {
+    id
+  }
+  updateUser: update_membership_by_pk(
+    pk_columns: { id: $user_member_id }
+    _set: { role: $user_role }
+  ) {
+    id
+  }
+}

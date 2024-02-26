@@ -1,11 +1,12 @@
 import { createMocks } from "node-mocks-http";
-import handleGenJWKS from "src/pages/api/_gen-jwks";
+import handleGenJWKS from "@/pages/api/_gen-jwks";
+import { NextApiRequest, NextApiResponse } from "next";
 
 // FIXME
 describe("/api/v1/_gen-jwks", () => {
   test("can generate new JWK", async () => {});
   test("endpoint is only accessible with specific token (Hasura)", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
     });
 

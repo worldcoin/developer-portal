@@ -49,10 +49,18 @@ select_permissions:
         - id
         - is_subscribed
         - name
+        - posthog_id
+        - world_id_nullifier
       filter:
-        memberships:
-          team_id:
-            _eq: X-Hasura-Team-Id
+        _or:
+          - id:
+              _eq: X-Hasura-User-Id
+          - memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - team_id:
+                    _eq: X-Hasura-Team-Id
 update_permissions:
   - role: service
     permission:

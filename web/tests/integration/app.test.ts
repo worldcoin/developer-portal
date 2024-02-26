@@ -6,9 +6,10 @@ import {
   integrationDBTearDown,
 } from "./setup";
 
-import { getAPIClient, getAPIUserClient } from "./test-utils";
+import { handleSecretReset } from "@/legacy/api/_reset-client-secret";
+import { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { handleSecretReset } from "@/api/_reset-client-secret";
+import { getAPIClient, getAPIUserClient } from "./test-utils";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
@@ -16,16 +17,16 @@ beforeEach(integrationDBTearDown);
 describe("user role", () => {
   test("cannot select another team's apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     for (const team of teams) {
       const { rows: teamApps } = (await integrationDBExecuteQuery(
-        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`
+        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`,
       )) as { rows: Array<{ id: string }> };
 
       const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
       )) as { rows: Array<{ id: string; user_id: string }> };
 
       const client = await getAPIUserClient({
@@ -52,11 +53,11 @@ describe("user role", () => {
 
   test("cannot select another team's apps with an invalid team_id", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string }> };
     const client = await getAPIUserClient({
       team_id: teams[1].id,
@@ -76,11 +77,11 @@ describe("user role", () => {
 
   test("cannot select with a completely random ID", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string }> };
     const client = await getAPIUserClient({
       team_id: "random",
@@ -100,11 +101,11 @@ describe("user role", () => {
   // NOTE: making any update mutation to the apps in the team that are different from the token team
   test("cannot update another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
@@ -135,10 +136,10 @@ describe("user role", () => {
 
   test("cannot update another team apps with an invalid team_id", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
@@ -167,11 +168,11 @@ describe("user role", () => {
 
   test("cannot delete another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenUserId = teamMemberships[0].user_id;
@@ -202,11 +203,11 @@ describe("user role", () => {
 
   test("cannot delete another team apps with an invalid team_id", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     // Test invalid team
@@ -236,15 +237,15 @@ describe("user role", () => {
 
   test("cannot reset client secret as a member", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'MEMBER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const { rows: teamApps } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string }> };
 
     // Test invalid role
@@ -252,7 +253,7 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -277,22 +278,22 @@ describe("user role", () => {
 
   test("cannot reset client secret for another team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' AND "role" = 'OWNER' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[1].id}' AND "role" = 'OWNER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const { rows: teamApps } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string }> };
 
     const tokenTeamId = teams[1].id;
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -317,22 +318,22 @@ describe("user role", () => {
 
   test("can reset client secret", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'OWNER' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' AND "role" = 'OWNER' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const { rows: teamApps } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id FROM "public"."app" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string }> };
 
     const tokenTeamId = teams[0].id;
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
@@ -359,12 +360,12 @@ describe("user role", () => {
 describe("api_key role", () => {
   test("API Key: cannot select another team's apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`
+      `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
     for (const team of teams) {
       const { rows: teamApps } = (await integrationDBExecuteQuery(
-        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`
+        `SELECT id FROM "public"."app" WHERE "team_id" = '${team.id}';`,
       )) as { rows: Array<{ id: string }> };
 
       const query = gql`
@@ -386,11 +387,11 @@ describe("api_key role", () => {
   });
   test("API Key: cannot update another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenTeamId = teamMemberships[0].team_id;
@@ -415,11 +416,11 @@ describe("api_key role", () => {
   });
   test("API Key: cannot delete another team's apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`
+      `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
     const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`
+      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
     )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
     const tokenTeamId = teamMemberships[0].team_id;

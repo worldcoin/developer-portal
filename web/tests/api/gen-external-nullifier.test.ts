@@ -1,5 +1,6 @@
 import { createMocks } from "node-mocks-http";
-import handleGenerateHashedActionId from "src/pages/api/_gen-external-nullifier";
+import handleGenerateHashedActionId from "@/pages/api/_gen-external-nullifier";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const HASURA_EVENT_TRIGGER_PAYLOAD = {
   event: {
@@ -49,7 +50,7 @@ const HASURA_EVENT_TRIGGER_PAYLOAD = {
 describe("/api/_gen-hashed-action-id", () => {
   test("generates hashed action ID upon action creation", async () => {});
   test("endpoint is only accessible with specific token (Hasura)", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
     });
 

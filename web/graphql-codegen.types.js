@@ -8,10 +8,10 @@ const prettier = require("prettier");
 
 /** @type {import('@graphql-codegen/cli').CodegenConfig} */
 module.exports = {
-  schema: "src/graphql/graphql.schema.json",
+  schema: "graphql/graphql.schema.json",
   ignoreNoDocuments: true,
   generates: {
-    "src/graphql/graphql.ts": {
+    "graphql/graphql.ts": {
       plugins: [
         {
           add: {
@@ -24,8 +24,8 @@ module.exports = {
       ],
     },
 
-    "src/api": {
-      documents: "src/api/**/*.graphql",
+    "legacy/api": {
+      documents: ["legacy/api/**/*.graphql", "legacy/api/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -44,8 +44,8 @@ module.exports = {
       ],
     },
 
-    "src/helpers/server": {
-      documents: "src/helpers/server/**/*.graphql",
+    api: {
+      documents: ["api/**/*.graphql", "api/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -64,8 +64,30 @@ module.exports = {
       ],
     },
 
-    "src/scenes": {
-      documents: "src/scenes/**/*.graphql",
+    "scenes/server": {
+      documents: ["scenes/**/server/**/*.graphql", "scenes/**/server/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
+      config: {
+        withMutationFn: true,
+      },
+    },
+
+    "scenes/client": {
+      documents: ["scenes/**/client/**/*.graphql", "scenes/**/client/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -86,8 +108,11 @@ module.exports = {
       },
     },
 
-    "src/components": {
-      documents: "src/components/**/*.graphql",
+    "components/client": {
+      documents: [
+        "components/**/client/**/*.graphql",
+        "components/**/client/**/*.gql",
+      ],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -108,8 +133,8 @@ module.exports = {
       },
     },
 
-    "src/hooks": {
-      documents: "src/hooks/**/*.graphql",
+    app: {
+      documents: ["app/**/*.graphql", "app/**/*.gql"],
       preset: "near-operation-file",
       presetConfig: {
         baseTypesPath: "~@/graphql/graphql",
@@ -133,12 +158,13 @@ module.exports = {
 
   hooks: {
     afterAllFileWrite: [
-      (...filePaths) => {
+      async (...filePaths) => {
         for (const path of filePaths) {
           const rawText = fs.readFileSync(path, "utf8");
-          const formattedText = prettier.format(rawText, {
+          const formattedText = await prettier.format(rawText, {
             parser: "typescript",
           });
+
           fs.writeFileSync(path, formattedText);
         }
       },

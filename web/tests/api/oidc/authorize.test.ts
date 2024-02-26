@@ -6,20 +6,23 @@ import {
   OIDCScopes,
   fetchOIDCAppQuery,
   insertAuthCodeQuery,
-} from "src/backend/oidc";
-import { OIDCResponseType } from "src/lib/types";
-import handleOIDCAuthorize from "src/pages/api/v1/oidc/authorize";
+} from "@/legacy/backend/oidc";
+import { OIDCResponseType } from "@/legacy/lib/types";
+import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
 import { jwtVerify } from "jose";
 import { publicJwk } from "../__mocks__/jwk";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
+import { NextApiRequest, NextApiResponse } from "next";
 
-jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+jest.mock("legacy/backend/kms", () =>
+  require("tests/api/__mocks__/kms.mock.ts"),
+);
 
-jest.mock("src/backend/jwks", () =>
-  require("tests/api/__mocks__/jwks.mock.ts")
+jest.mock("legacy/backend/jwks", () =>
+  require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
 const fetchAppQueryResponse = () => ({
@@ -51,13 +54,13 @@ const requestReturnFn = jest.fn();
 const mutateReturnFn = jest.fn();
 
 jest.mock(
-  "src/backend/graphql",
+  "legacy/backend/graphql",
   jest.fn(() => ({
     getAPIServiceClient: () => ({
       query: requestReturnFn,
       mutate: mutateReturnFn,
     }),
-  }))
+  })),
 );
 
 beforeEach(() => {
@@ -65,7 +68,7 @@ beforeEach(() => {
     .calledWith(
       expect.objectContaining({
         query: fetchOIDCAppQuery,
-      })
+      }),
     )
     .mockResolvedValue(fetchAppQueryResponse());
 
@@ -81,7 +84,7 @@ beforeEach(() => {
             action_id: expect.any(String),
           },
         },
-      })
+      }),
     )
     .mockResolvedValue({
       data: {
@@ -124,7 +127,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
     for (const attribute of required_attributes) {
       const body = { ...VALID_REQUEST, [attribute]: undefined };
       delete body[attribute];
-      const { req, res } = createMocks({
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
         method: "POST",
         body,
       });
@@ -144,7 +147,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
   test("openid scope is always required for OIDC requests", async () => {
     const invalid_scopes = ["invalid", "profile%20email", undefined, ""];
     for (const scope of invalid_scopes) {
-      const { req, res } = createMocks({
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
         method: "POST",
         body: { ...VALID_REQUEST, scope },
       });
@@ -167,7 +170,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "code invalid",
     ];
     for (const response_type of invalid_response_types) {
-      const { req, res } = createMocks({
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
         method: "POST",
         body: { ...VALID_REQUEST, response_type },
       });
@@ -191,7 +194,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "https://evil.com",
     ];
     for (const redirect_uri of invalid_redirect_uris) {
-      const { req, res } = createMocks({
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
         method: "POST",
         body: { ...VALID_REQUEST, redirect_uri },
       });
@@ -211,7 +214,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
 
 describe("/api/v1/oidc/authorize [authorization code flow]", () => {
   test("returns an authorization code", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...VALID_REQUEST },
     });
@@ -232,7 +235,7 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
 
 describe("/api/v1/oidc/authorize [implicit flow]", () => {
   test("returns a valid token", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...VALID_REQUEST, response_type: "id_token" },
     });
@@ -290,7 +293,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
 
 describe("/api/v1/oidc/authorize [hybrid flow]", () => {
   test("returns a valid token and authorization code", async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...VALID_REQUEST, response_type: "code id_token" },
     });

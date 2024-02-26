@@ -1,0 +1,9 @@
+query FetchTeam($teamId: String!) {
+  team_by_pk(id: $teamId) {
+    id
+    name
+    memberships {
+      user_id
+    }
+  }
+}

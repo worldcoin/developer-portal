@@ -1,0 +1,17 @@
+query FetchMe {
+  user {
+    id
+    name
+    email
+    world_id_nullifier
+    posthog_id
+
+    memberships {
+      role
+      team {
+        id
+        name
+      }
+    }
+  }
+}

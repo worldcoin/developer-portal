@@ -1,0 +1,8 @@
+mutation ToggleKiosk($id: String!, $kiosk_status: Boolean!) {
+  update_action_by_pk(
+    pk_columns: { id: $id }
+    _set: { kiosk_enabled: $kiosk_status }
+  ) {
+    id
+  }
+}

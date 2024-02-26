@@ -1,5 +1,5 @@
 import { createMocks } from "node-mocks-http";
-import handleOIDCToken from "src/pages/api/v1/oidc/token";
+import handleOIDCToken from "@/pages/api/v1/oidc/token";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
@@ -9,8 +9,11 @@ import { setClientSecret, testGetDefaultApp } from "../test-utils";
 import * as jose from "jose";
 import { publicJwk } from "tests/api/__mocks__/jwk";
 import { createHash } from "crypto";
+import { NextApiRequest, NextApiResponse } from "next";
 
-jest.mock("src/backend/kms", () => require("tests/api/__mocks__/kms.mock.ts"));
+jest.mock("legacy/backend/kms", () =>
+  require("tests/api/__mocks__/kms.mock.ts"),
+);
 
 const pkceChallenge = (code_verifier: string) => {
   return createHash("sha256")
@@ -38,10 +41,10 @@ describe("/api/v1/oidc/token", () => {
         "2030-09-01T00:00:00.000Z",
         "0x000000000000000111111111111",
         '["openid", "email"]',
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -69,12 +72,15 @@ describe("/api/v1/oidc/token", () => {
     // Verify that the auth code is deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
-      [app_id, "83a313c5939399ba017d2381"]
+      [app_id, "83a313c5939399ba017d2381"],
     );
     expect(result.rowCount).toEqual(0);
 
     // Make sure the proper error response is now sent
-    const { req: req2, res: res2 } = createMocks({
+    const { req: req2, res: res2 } = createMocks<
+      NextApiRequest,
+      NextApiResponse
+    >({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -92,7 +98,7 @@ describe("/api/v1/oidc/token", () => {
       expect.objectContaining({
         detail: "Invalid authorization code.",
         code: "invalid_grant",
-      })
+      }),
     );
   });
 
@@ -110,10 +116,10 @@ describe("/api/v1/oidc/token", () => {
         "0x000000000000000111111111111",
         '["openid", "email"]',
         "orb",
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -137,7 +143,7 @@ describe("/api/v1/oidc/token", () => {
       await jose.importJWK(publicJwk, "RS256"),
       {
         issuer: process.env.JWT_ISSUER,
-      }
+      },
     );
 
     expect(payload).toEqual(
@@ -157,7 +163,7 @@ describe("/api/v1/oidc/token", () => {
         "https://id.worldcoin.org/v1": {
           verification_level: "orb",
         },
-      })
+      }),
     );
   });
 
@@ -176,10 +182,10 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -208,7 +214,7 @@ describe("/api/v1/oidc/token", () => {
     // Verify that the auth code is deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
-      [app_id, "83a313c5939399ba017d2381"]
+      [app_id, "83a313c5939399ba017d2381"],
     );
     expect(result.rowCount).toEqual(0);
   });
@@ -228,10 +234,10 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -259,7 +265,7 @@ describe("/api/v1/oidc/token", () => {
     // Verify that the auth code is deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
-      [app_id, "83a313c5939399ba017d2381"]
+      [app_id, "83a313c5939399ba017d2381"],
     );
     expect(result.rowCount).toEqual(0);
   });
@@ -279,10 +285,10 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -309,7 +315,7 @@ describe("/api/v1/oidc/token", () => {
     // Verify that the auth code is not deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
-      [app_id, "83a313c5939399ba017d2381"]
+      [app_id, "83a313c5939399ba017d2381"],
     );
     expect(result.rowCount).toEqual(1);
   });
@@ -327,10 +333,10 @@ describe("/api/v1/oidc/token", () => {
         "2030-09-01T00:00:00.000Z",
         "0x000000000000000111111111111",
         '["openid", "email"]',
-      ]
+      ],
     );
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -358,7 +364,7 @@ describe("/api/v1/oidc/token", () => {
     // Verify that the auth code is not deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
-      [app_id, "83a313c5939399ba017d2381"]
+      [app_id, "83a313c5939399ba017d2381"],
     );
     expect(result.rowCount).toEqual(1);
   });
@@ -378,10 +384,13 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
-      ]
+      ],
     );
 
-    const { req: notPKCEReq, res: NotPKCERes } = createMocks({
+    const { req: notPKCEReq, res: NotPKCERes } = createMocks<
+      NextApiRequest,
+      NextApiResponse
+    >({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -397,10 +406,10 @@ describe("/api/v1/oidc/token", () => {
     await handleOIDCToken(notPKCEReq, NotPKCERes);
 
     expect(
-      NotPKCERes._getHeaders()?.["access-control-allow-origin"]
+      NotPKCERes._getHeaders()?.["access-control-allow-origin"],
     ).toBeUndefined();
 
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -419,7 +428,7 @@ describe("/api/v1/oidc/token", () => {
     expect(res._getHeaders()).toEqual(
       expect.objectContaining({
         "access-control-allow-origin": "*",
-      })
+      }),
     );
   });
 });

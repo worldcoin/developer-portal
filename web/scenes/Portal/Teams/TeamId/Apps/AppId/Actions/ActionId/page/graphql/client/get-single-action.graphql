@@ -1,0 +1,15 @@
+query GetSingleActionAndNullifiers($action_id: String!) {
+  action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
+    id
+    nullifiers {
+      id
+      updated_at
+      nullifier_hash
+      uses
+    }
+    app {
+      id
+      engine
+    }
+  }
+}

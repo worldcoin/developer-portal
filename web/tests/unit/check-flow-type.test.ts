@@ -1,5 +1,5 @@
-import { checkFlowType } from "src/backend/oidc";
-import { OIDCFlowType } from "src/lib/types";
+import { checkFlowType } from "@/legacy/backend/oidc";
+import { OIDCFlowType } from "@/legacy/lib/types";
 
 describe("Check flow type", () => {
   test("Detects authorization code flow", () => {
