@@ -76,6 +76,7 @@ export type Int_Comparison_Exp = {
 export type InviteTeamMembersOutput = {
   __typename?: "InviteTeamMembersOutput";
   emails?: Maybe<Array<Scalars["String"]>>;
+  team_id: Scalars["String"];
 };
 
 export type PresignedPostOutput = {
@@ -4146,6 +4147,7 @@ export type Mutation_RootInsert_User_OneArgs = {
 /** mutation root */
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]>>;
+  team_id: Scalars["String"];
 };
 
 /** mutation root */
