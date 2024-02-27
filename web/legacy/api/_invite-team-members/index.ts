@@ -56,7 +56,8 @@ export const handleInvite = async (
     return errorHasuraQuery({ res, req });
   }
 
-  const teamId = req.body.session_variables["x-hasura-team-id"];
+  const teamId = req.body.input.team_id as string;
+
   if (!teamId) {
     logger.error("teamId must be set in _invite-team-members");
     return errorHasuraQuery({ res, req });
@@ -235,5 +236,5 @@ export const handleInvite = async (
     }
   });
 
-  res.status(200).json({ emails });
+  res.status(200).json({ emails, team_id: teamId });
 };
