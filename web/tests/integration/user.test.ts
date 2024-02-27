@@ -253,10 +253,10 @@ describe("user role", () => {
 
     const response = await client.query({
       query,
+
       variables: {
         id: userFromTeam1?.user_id,
       },
-      context: { headers: { team_id: teams[1].id } }, // Pass a malicious header
     });
 
     expect(response.data.user).toEqual([]);

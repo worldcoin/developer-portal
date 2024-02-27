@@ -1,16 +1,16 @@
+import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
+import { generateHashedSecret } from "@/legacy/backend/utils";
 import {
   ApolloClient,
-  createHttpLink,
-  gql,
   InMemoryCache,
   NormalizedCacheObject,
+  createHttpLink,
+  gql,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import getConfig from "next/config";
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
 import { integrationDBExecuteQuery } from "./setup";
-import { generateHashedSecret } from "@/legacy/backend/utils";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -61,14 +61,11 @@ export const getAPIUserClient = async (params?: {
   team_id: string;
 }): Promise<ApolloClient<NormalizedCacheObject>> => {
   const user_id = params?.user_id ?? "usr_a78f59e547fa5bd3d76bc1a1817c6d89";
-  const team_id = params?.team_id ?? "team_d7cde14f17eda7e0ededba7ded6b4467"; // cspell: disable-line
 
   const authLink = setContext(async (_, { headers }) => ({
     headers: {
       ...headers,
-      authorization: `Bearer ${
-        (await generateUserJWT(user_id, team_id)).token
-      }`,
+      authorization: `Bearer ${(await generateUserJWT(user_id)).token}`,
     },
   }));
 
