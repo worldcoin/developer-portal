@@ -18,7 +18,7 @@ import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.g
 import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
 
 export const ActionDangerZoneContent = (props: {
-  action: GetSingleActionQuery["action"][0];
+  action: GetSingleActionQuery["action_by_pk"];
   teamId?: string;
   appId?: string;
 }) => {
@@ -44,7 +44,7 @@ export const ActionDangerZoneContent = (props: {
   const deleteAction = useCallback(async () => {
     try {
       const result = await deleteActionQuery({
-        variables: { id: action.id ?? "" },
+        variables: { id: action?.id ?? "" },
 
         refetchQueries: [
           {
@@ -67,7 +67,7 @@ export const ActionDangerZoneContent = (props: {
     }
 
     toast.success(`${action?.name} was deleted.`);
-  }, [action.id, action?.name, appId, deleteActionQuery, router]);
+  }, [action?.id, action?.name, appId, deleteActionQuery, router]);
 
   return (
     <div>
