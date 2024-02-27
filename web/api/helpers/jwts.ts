@@ -80,13 +80,12 @@ export const _generateJWT = async (
   return token;
 };
 
-export const getUserJWTPayload = (user_id: string, team_id: string) => ({
+export const getUserJWTPayload = (user_id: string) => ({
   sub: user_id,
   "https://hasura.io/jwt/claims": {
     "x-hasura-allowed-roles": ["user"],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": user_id,
-    "x-hasura-team-id": team_id,
   },
 });
 
@@ -98,10 +97,9 @@ export const getUserJWTPayload = (user_id: string, team_id: string) => ({
  */
 export const generateUserJWT = async (
   user_id: string,
-  team_id: string,
-  expiration: number = dayjs().add(7, "day").unix(),
+  expiration: number = dayjs().add(1, "minute").unix(),
 ) => {
-  const payload = getUserJWTPayload(user_id, team_id);
+  const payload = getUserJWTPayload(user_id);
   const token = await _generateJWT(payload, expiration);
 
   return { token, expiration };
