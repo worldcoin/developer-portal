@@ -24,14 +24,6 @@ export const ProfileLayout = (props: { children: ReactNode }) => {
         </SizingWrapper>
       </div>
 
-      {/*<div className="pt-9">*/}
-      {/*  <SizingWrapper className="grid gap-y-8">*/}
-      {/*    <UserInfo email={user?.email} name={user?.name} />*/}
-
-      {/*    <div className="border-b border-grey-200 border-dashed" />*/}
-      {/*  </SizingWrapper>*/}
-      {/*</div>*/}
-
       {props.children}
     </div>
   );

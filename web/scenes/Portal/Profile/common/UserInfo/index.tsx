@@ -1,11 +1,11 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Icon } from "@/scenes/Portal/Profile/layout/UserInfo/Icon";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import clsx from "clsx";
 import Skeleton from "react-loading-skeleton";
 import { twMerge } from "tailwind-merge";
+import { Icon } from "./Icon";
 
 export type UserInfoProps = {
   name?: string;
