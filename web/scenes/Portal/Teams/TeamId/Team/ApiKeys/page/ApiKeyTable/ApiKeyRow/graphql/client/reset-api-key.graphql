@@ -1,5 +1,5 @@
-mutation ResetAPIKey($id: String!) {
-  reset_api_key(id: $id) {
+mutation ResetAPIKey($id: String!, $team_id: String!) {
+  reset_api_key(id: $id, team_id: $team_id) {
     api_key
   }
 }

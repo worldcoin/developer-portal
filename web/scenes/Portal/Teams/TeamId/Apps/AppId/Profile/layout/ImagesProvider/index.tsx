@@ -35,6 +35,7 @@ export const ImagesProvider = (props: {
   const {} = useFetchImagesQuery({
     variables: {
       id: appId ?? "",
+      team_id: props.teamId ?? "",
     },
 
     onCompleted: (data) => {

@@ -236,5 +236,5 @@ export const handleInvite = async (
     }
   });
 
-  res.status(200).json({ emails, team_id: teamId });
+  res.status(200).json({ emails });
 };

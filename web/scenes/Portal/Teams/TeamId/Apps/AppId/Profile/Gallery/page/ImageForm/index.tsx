@@ -205,7 +205,8 @@ export const ImageForm = (props: ImageFormTypes) => {
         });
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(resizedImage, appId, imageType);
+        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,

@@ -16,7 +16,6 @@ export type InviteTeamMembersMutation = {
   invite_team_members?: {
     __typename?: "InviteTeamMembersOutput";
     emails?: Array<string> | null;
-    team_id: string;
   } | null;
 };
 
@@ -24,7 +23,6 @@ export const InviteTeamMembersDocument = gql`
   mutation InviteTeamMembers($emails: [String!], $team_id: String!) {
     invite_team_members(emails: $emails, team_id: $team_id) {
       emails
-      team_id
     }
   }
 `;

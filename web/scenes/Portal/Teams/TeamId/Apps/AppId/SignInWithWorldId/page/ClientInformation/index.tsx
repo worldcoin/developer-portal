@@ -41,7 +41,7 @@ export const ClientInformationPage = (props: {
   const isStaging = data?.app[0]?.is_staging;
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
-    variables: { app_id: appID },
+    variables: { app_id: appID, team_id: teamID },
   });
 
   const handleReset = useCallback(async () => {

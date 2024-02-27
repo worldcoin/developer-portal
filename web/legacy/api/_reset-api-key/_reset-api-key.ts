@@ -1,12 +1,12 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import {
   generateHashedSecret,
   protectInternalEndpoint,
 } from "@/legacy/backend/utils";
+import { NextApiRequest, NextApiResponse } from "next";
 import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
-import { getSdk as updateAPIKey } from "./graphql/update-api-key.generated";
 import { getSdk as checkUserPermissions } from "./graphql/check-user-permission.generated";
+import { getSdk as updateAPIKey } from "./graphql/update-api-key.generated";
 
 /**
  * Rotates a specific API key.
@@ -35,6 +35,7 @@ export default async function handleAPIKeyReset(
   }
 
   const id = req.body.input.id;
+  const teamId = req.body.input.team_id;
 
   if (!id) {
     return errorHasuraQuery({
@@ -67,7 +68,6 @@ export default async function handleAPIKeyReset(
     });
   }
 
-  const teamId = req.body.session_variables["x-hasura-team-id"];
   if (!teamId) {
     return errorHasuraQuery({
       res,

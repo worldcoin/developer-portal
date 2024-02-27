@@ -54,7 +54,8 @@ export const handleGetAllUnverifiedImages = async (
       });
     }
 
-    const teamId = body.session_variables["x-hasura-team-id"];
+    const teamId = body.input.team_id;
+
     if (!teamId) {
       return errorHasuraQuery({
         res,

@@ -47,6 +47,7 @@ export const useImage = () => {
         app_id: appId,
         image_type: imageType,
         content_type_ending: fileType,
+        team_id: teamId,
       },
     });
 
@@ -106,6 +107,7 @@ export const useImage = () => {
   const uploadViaPresignedPost = async (
     file: File,
     appId: string,
+    teamId: string,
     imageType: string,
   ) => {
     const response = await uploadImage({
@@ -113,6 +115,7 @@ export const useImage = () => {
         app_id: appId,
         image_type: imageType,
         content_type_ending: file.type.split("/")[1],
+        team_id: teamId,
       },
     });
 

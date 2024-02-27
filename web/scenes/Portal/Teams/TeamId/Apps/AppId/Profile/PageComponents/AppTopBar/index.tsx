@@ -223,6 +223,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       await fetchImagesQuery({
         variables: {
           id: appId,
+          team_id: teamId,
         },
 
         onCompleted: (data) => {
@@ -258,6 +259,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     fetchImagesQuery,
     setUnverifiedImages,
     setViewMode,
+    teamId,
   ]);
 
   // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail

@@ -1,5 +1,5 @@
-query FetchImages($id: String!) {
-  unverified_images: get_all_unverified_images(app_id: $id) {
+query FetchImages($id: String!, $team_id: String!) {
+  unverified_images: get_all_unverified_images(app_id: $id, team_id: $team_id) {
     logo_img_url
     hero_image_url
     showcase_img_urls
