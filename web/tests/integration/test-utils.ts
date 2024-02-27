@@ -58,7 +58,6 @@ export const setClientSecret = async (app_id: string) => {
 
 export const getAPIUserClient = async (params?: {
   user_id?: string;
-  team_id: string;
 }): Promise<ApolloClient<NormalizedCacheObject>> => {
   const user_id = params?.user_id ?? "usr_a78f59e547fa5bd3d76bc1a1817c6d89";
 

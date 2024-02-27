@@ -30,7 +30,6 @@ describe("user role", () => {
       )) as { rows: Array<{ id: string; user_id: string }> };
 
       const client = await getAPIUserClient({
-        team_id: team.id,
         user_id: teamMemberships[0].user_id,
       });
 
@@ -56,114 +55,76 @@ describe("user role", () => {
       `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string }> };
-    const client = await getAPIUserClient({
-      team_id: teams[1].id,
-      user_id: teamMemberships[0].user_id,
+    const teamsApps: { [key: string]: Array<{ id: string; team_id: string }> } =
+      {};
+
+    for (const team of teams) {
+      const { rows: user } = (await integrationDBExecuteQuery(
+        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
+      )) as { rows: Array<{ id: string; user_id: string }> };
+
+      const client = await getAPIUserClient({
+        user_id: user[0].user_id,
+      });
+
+      const query = gql(`query ListApps {
+        app(order_by: {created_at: asc}) {
+          id
+          team_id
+        }
+      }`);
+
+      const response = await client.query({ query });
+      teamsApps[team.id] = response.data.app;
+    }
+
+    Object.entries(teamsApps).forEach(([teamId, apps]) => {
+      expect(apps.every((app) => app.team_id === teamId)).toBe(true);
     });
-
-    const query = gql(`query ListApps {
-      app(order_by: {created_at: asc}) {
-        id
-        team_id
-      }
-    }`);
-
-    const response = await client.query({ query });
-    expect(response.data.app.length).toEqual(0);
   });
 
-  test("cannot select with a completely random ID", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team"`,
-    )) as { rows: Array<{ id: string }> };
-
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string }> };
-    const client = await getAPIUserClient({
-      team_id: "random",
-      user_id: teamMemberships[0].user_id,
-    });
-
-    const query = gql(`query ListApps {
-      app(order_by: {created_at: asc}) {
-        id
-        team_id
-      }
-    }`);
-
-    const response = await client.query({ query });
-    expect(response.data.app.length).toEqual(0);
-  });
   // NOTE: making any update mutation to the apps in the team that are different from the token team
   test("cannot update another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+    // NOTE: Record<team_id, member>
+    const users: Record<
+      string,
+      { id: string; user_id: string; team_id: string }
+    > = {};
 
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
+    for (const team of teams) {
+      const { rows: fetchedUsers } = (await integrationDBExecuteQuery(
+        `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
+      )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const client = await getAPIUserClient({
-      user_id: tokenUserId,
-      team_id: tokenTeamId,
-    });
-
-    const query = gql(`mutation UpdateApp($team_id: String!) {
-      update_app(_set: {is_archived: true}, where: {team_id: {_eq: $team_id}}) {
-        affected_rows
-      }
+      users[team.id] = fetchedUsers[0];
     }
-    `);
 
-    const response = await client.mutate({
-      mutation: query,
+    Object.entries(users).forEach(async ([teamId, user]) => {
+      const client = await getAPIUserClient({
+        user_id: user.user_id,
+      });
 
-      variables: {
-        team_id: teams.find((t) => t.id !== tokenTeamId)?.id,
-      },
-    });
-
-    expect(response.data.update_app.affected_rows).toEqual(0);
-  });
-
-  test("cannot update another team apps with an invalid team_id", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`,
-    )) as { rows: Array<{ id: string }> };
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teams[1].id;
-
-    const testInvalidClient = await getAPIUserClient({
-      user_id: tokenUserId,
-      team_id: tokenTeamId,
-    });
-    const query = gql(`mutation UpdateApp($team_id: String!) {
-      update_app(_set: {is_archived: true}, where: {team_id: {_eq: $team_id}}) {
-        affected_rows
+      const query = gql(`mutation UpdateApp($team_id: String!) {
+        update_app(_set: {is_archived: true}, where: {team_id: {_eq: $team_id}}) {
+          affected_rows
+        }
       }
-    }
-    `);
+      `);
 
-    const testInvalidResponse = await testInvalidClient.mutate({
-      mutation: query,
+      const response = await client.mutate({
+        mutation: query,
 
-      variables: {
-        team_id: teams.find((t) => t.id !== tokenTeamId)?.id,
-      },
+        variables: {
+          team_id: teams.find((t) => t.id !== teamId)?.id,
+        },
+      });
+
+      expect(response.data.update_app.affected_rows).toEqual(0);
     });
-    expect(testInvalidResponse.data.update_app.affected_rows).toEqual(0);
   });
 
   test("cannot delete another team apps", async () => {
@@ -171,68 +132,42 @@ describe("user role", () => {
       `SELECT id FROM "public"."team";`,
     )) as { rows: Array<{ id: string }> };
 
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
+    // NOTE: Record<team_id, member>
+    const users: Record<
+      string,
+      { id: string; user_id: string; team_id: string }
+    > = {};
 
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teamMemberships[0].team_id;
+    for (const team of teams) {
+      const { rows: fetchedUsers } = (await integrationDBExecuteQuery(
+        `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
+      )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
 
-    const client = await getAPIUserClient({
-      user_id: tokenUserId,
-      team_id: tokenTeamId,
-    });
-
-    const query = gql(`mutation DeleteApp($team_id: String!) {
-      delete_app(where: {team_id: {_eq: $team_id}}) {
-        affected_rows
-      }
+      users[team.id] = fetchedUsers[0];
     }
-    `);
 
-    const response = await client.mutate({
-      mutation: query,
+    Object.entries(users).forEach(async ([teamId, user]) => {
+      const client = await getAPIUserClient({
+        user_id: user.user_id,
+      });
 
-      variables: {
-        team_id: teams.find((t) => t.id !== tokenTeamId)?.id,
-      },
+      const query = gql(`mutation DeleteApp($team_id: String!) {
+          delete_app(where: {team_id: {_eq: $team_id}}) {
+            affected_rows
+          }
+        }
+        `);
+
+      const response = await client.mutate({
+        mutation: query,
+
+        variables: {
+          team_id: teams.find((t) => t.id !== teamId)?.id,
+        },
+      });
+
+      expect(response.data.delete_app.affected_rows).toEqual(0);
     });
-
-    expect(response.data.delete_app.affected_rows).toEqual(0);
-  });
-
-  test("cannot delete another team apps with an invalid team_id", async () => {
-    const { rows: teams } = (await integrationDBExecuteQuery(
-      `SELECT id FROM "public"."team";`,
-    )) as { rows: Array<{ id: string }> };
-
-    const { rows: teamMemberships } = (await integrationDBExecuteQuery(
-      `SELECT id, user_id, team_id FROM "public"."membership" WHERE "team_id" = '${teams[0].id}' limit 1;`,
-    )) as { rows: Array<{ id: string; user_id: string; team_id: string }> };
-
-    // Test invalid team
-    const tokenUserId = teamMemberships[0].user_id;
-    const tokenTeamId = teams[1].id;
-
-    const query = gql(`mutation DeleteApp($team_id: String!) {
-      delete_app(where: {team_id: {_eq: $team_id}}) {
-        affected_rows
-      }
-    }
-    `);
-
-    const testInvalidClient = await getAPIUserClient({
-      user_id: tokenUserId,
-      team_id: tokenTeamId,
-    });
-
-    const testInvalidResponse = await testInvalidClient.mutate({
-      mutation: query,
-      variables: {
-        team_id: tokenTeamId,
-      },
-    });
-    expect(testInvalidResponse.data.delete_app.affected_rows).toEqual(0);
   });
 
   test("cannot reset client secret as a member", async () => {
@@ -259,12 +194,11 @@ describe("user role", () => {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
       body: {
-        input: { app_id: appId },
+        input: { app_id: appId, team_id: tokenTeamId },
         action: { name: "reset_client_secret" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
         },
       },
     });
@@ -295,16 +229,17 @@ describe("user role", () => {
 
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
+
       headers: {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
+
       body: {
-        input: { app_id: appId },
+        input: { app_id: appId, team_id: tokenTeamId },
         action: { name: "reset_client_secret" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
         },
       },
     });
@@ -339,12 +274,11 @@ describe("user role", () => {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
       body: {
-        input: { app_id: appId },
+        input: { app_id: appId, team_id: tokenTeamId },
         action: { name: "reset_client_secret" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
         },
       },
     });
@@ -385,6 +319,7 @@ describe("api_key role", () => {
       });
     }
   });
+
   test("API Key: cannot update another team apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team";`,
