@@ -38,6 +38,9 @@ COPY . .
 # TODO: Leverage Next.JS standalone output to significantly reduce image size
 RUN pnpm build
 
+# Change ownership of the .next directory to nextjs user
+RUN chown -R nextjs:nodejs /app/.next
+
 USER nextjs
 
 EXPOSE 3000
