@@ -18,9 +18,6 @@ select_permissions:
           app:
             team:
               memberships:
-                _and:
-                  - user_id:
-                      _eq: X-Hasura-User-Id
-                  - team_id:
-                      _eq: X-Hasura-Team-Id
+                user_id:
+                  _eq: X-Hasura-User-Id
       allow_aggregations: true

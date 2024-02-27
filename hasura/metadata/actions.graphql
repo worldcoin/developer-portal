@@ -19,7 +19,10 @@ type Query {
 }
 
 type Mutation {
-  invite_team_members(emails: [String!]): InviteTeamMembersOutput
+  invite_team_members(
+    emails: [String!]
+    team_id: String!
+  ): InviteTeamMembersOutput
 }
 
 type Mutation {
@@ -64,6 +67,7 @@ type ResetAPIOutput {
 
 type InviteTeamMembersOutput {
   emails: [String!]
+  team_id: String!
 }
 
 type PresignedPost {

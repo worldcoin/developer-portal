@@ -42,8 +42,6 @@ insert_permissions:
                   _and:
                     - user_id:
                         _eq: X-Hasura-User-Id
-                    - team_id:
-                        _eq: X-Hasura-Team-Id
                     - _or:
                         - role:
                             _eq: OWNER
@@ -232,8 +230,6 @@ update_permissions:
                   _and:
                     - user_id:
                         _eq: X-Hasura-User-Id
-                    - team_id:
-                        _eq: X-Hasura-Team-Id
                     - _or:
                         - role:
                             _eq: OWNER
@@ -273,8 +269,6 @@ delete_permissions:
                   _and:
                     - user_id:
                         _eq: X-Hasura-User-Id
-                    - team_id:
-                        _eq: X-Hasura-Team-Id
                     - _or:
                         - role:
                             _eq: OWNER
