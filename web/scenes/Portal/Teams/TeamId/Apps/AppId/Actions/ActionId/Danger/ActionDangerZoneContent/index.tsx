@@ -45,13 +45,11 @@ export const ActionDangerZoneContent = (props: {
     try {
       const result = await deleteActionQuery({
         variables: { id: action.id ?? "" },
-        context: { headers: { team_id: teamId } },
 
         refetchQueries: [
           {
             query: GetActionsDocument,
             variables: { app_id: appId },
-            context: { headers: { team_id: teamId } },
           },
         ],
 
@@ -69,7 +67,7 @@ export const ActionDangerZoneContent = (props: {
     }
 
     toast.success(`${action?.name} was deleted.`);
-  }, [action.id, action?.name, appId, deleteActionQuery, router, teamId]);
+  }, [action.id, action?.name, appId, deleteActionQuery, router]);
 
   return (
     <div>

@@ -8,6 +8,7 @@ export type InsertAppMutationVariables = Types.Exact<{
   name: Types.Scalars["String"];
   engine: Types.Scalars["String"];
   is_staging: Types.Scalars["Boolean"];
+  team_id: Types.Scalars["String"];
 }>;
 
 export type InsertAppMutation = {
@@ -16,13 +17,19 @@ export type InsertAppMutation = {
 };
 
 export const InsertAppDocument = gql`
-  mutation InsertApp($name: String!, $engine: String!, $is_staging: Boolean!) {
+  mutation InsertApp(
+    $name: String!
+    $engine: String!
+    $is_staging: Boolean!
+    $team_id: String!
+  ) {
     insert_app_one(
       object: {
         engine: $engine
         app_metadata: { data: { name: $name } }
         name: $name
         is_staging: $is_staging
+        team_id: $team_id
       }
     ) {
       id
@@ -50,6 +57,7 @@ export type InsertAppMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      engine: // value for 'engine'
  *      is_staging: // value for 'is_staging'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */

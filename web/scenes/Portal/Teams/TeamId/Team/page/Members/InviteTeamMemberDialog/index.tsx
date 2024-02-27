@@ -28,14 +28,12 @@ export const InviteTeamMemberDialog = () => {
     setEmails([]);
   }, [setEmails, setIsOpened]);
 
-  const [inviteTeamMembers, { loading }] = useInviteTeamMembersMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [inviteTeamMembers, { loading }] = useInviteTeamMembersMutation();
 
   const handleInvite = useCallback(async () => {
     try {
       await inviteTeamMembers({
-        variables: { emails },
+        variables: { emails, team_id: teamId },
         refetchQueries: [FetchInvitesDocument],
       });
 
@@ -45,7 +43,7 @@ export const InviteTeamMemberDialog = () => {
     }
 
     onClose();
-  }, [emails, inviteTeamMembers, onClose]);
+  }, [emails, inviteTeamMembers, onClose, teamId]);
 
   return (
     <Dialog open={isOpened} onClose={onClose}>

@@ -10,17 +10,17 @@ export type GetSingleActionQueryVariables = Types.Exact<{
 
 export type GetSingleActionQuery = {
   __typename?: "query_root";
-  action: Array<{
+  action_by_pk?: {
     __typename?: "action";
     id: string;
     name: string;
     app_id: string;
-  }>;
+  } | null;
 };
 
 export const GetSingleActionDocument = gql`
   query GetSingleAction($action_id: String!) {
-    action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
+    action_by_pk(id: $action_id) {
       id
       name
       app_id

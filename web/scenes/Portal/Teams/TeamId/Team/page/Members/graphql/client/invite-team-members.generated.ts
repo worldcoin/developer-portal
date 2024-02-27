@@ -8,6 +8,7 @@ export type InviteTeamMembersMutationVariables = Types.Exact<{
   emails?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
+  team_id: Types.Scalars["String"];
 }>;
 
 export type InviteTeamMembersMutation = {
@@ -15,13 +16,15 @@ export type InviteTeamMembersMutation = {
   invite_team_members?: {
     __typename?: "InviteTeamMembersOutput";
     emails?: Array<string> | null;
+    team_id: string;
   } | null;
 };
 
 export const InviteTeamMembersDocument = gql`
-  mutation InviteTeamMembers($emails: [String!]) {
-    invite_team_members(emails: $emails) {
+  mutation InviteTeamMembers($emails: [String!], $team_id: String!) {
+    invite_team_members(emails: $emails, team_id: $team_id) {
       emails
+      team_id
     }
   }
 `;
@@ -44,6 +47,7 @@ export type InviteTeamMembersMutationFn = Apollo.MutationFunction<
  * const [inviteTeamMembersMutation, { data, loading, error }] = useInviteTeamMembersMutation({
  *   variables: {
  *      emails: // value for 'emails'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */

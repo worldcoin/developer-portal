@@ -100,7 +100,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               .digest,
             max_verifications: values.maxVerifications,
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [GetActionsDocument],
           awaitRefetchQueries: true,
         });
@@ -149,16 +149,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [
-      insertActionQuery,
-      appId,
-      teamId,
-      reset,
-      firstAction,
-      router,
-      pathname,
-      setError,
-    ],
+    [insertActionQuery, appId, reset, firstAction, router, pathname, setError],
   );
 
   return (

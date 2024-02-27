@@ -6,6 +6,7 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertKeyMutationVariables = Types.Exact<{
   name: Types.Scalars["String"];
+  teamId: Types.Scalars["String"];
 }>;
 
 export type InsertKeyMutation = {
@@ -22,8 +23,8 @@ export type InsertKeyMutation = {
 };
 
 export const InsertKeyDocument = gql`
-  mutation InsertKey($name: String!) {
-    insert_api_key_one(object: { name: $name }) {
+  mutation InsertKey($name: String!, $teamId: String!) {
+    insert_api_key_one(object: { name: $name, team_id: $teamId }) {
       id
       team_id
       created_at
@@ -52,6 +53,7 @@ export type InsertKeyMutationFn = Apollo.MutationFunction<
  * const [insertKeyMutation, { data, loading, error }] = useInsertKeyMutation({
  *   variables: {
  *      name: // value for 'name'
+ *      teamId: // value for 'teamId'
  *   },
  * });
  */

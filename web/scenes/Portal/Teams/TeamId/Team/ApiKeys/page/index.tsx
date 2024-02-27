@@ -15,10 +15,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   const { params } = props;
   const teamId = params?.teamId;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
-
-  const { data, loading } = useFetchKeysQuery({
-    context: { headers: { team_id: teamId } },
-  });
+  const { data, loading } = useFetchKeysQuery();
 
   const apiKeys = data?.api_key;
   return (

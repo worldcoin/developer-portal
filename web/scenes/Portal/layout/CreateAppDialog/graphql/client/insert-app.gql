@@ -1,10 +1,16 @@
-mutation InsertApp($name: String!, $engine: String!, $is_staging: Boolean!) {
+mutation InsertApp(
+  $name: String!
+  $engine: String!
+  $is_staging: Boolean!
+  $team_id: String!
+) {
   insert_app_one(
     object: {
       engine: $engine
       app_metadata: { data: { name: $name } }
       name: $name
       is_staging: $is_staging
+      team_id: $team_id
     }
   ) {
     id

@@ -29,14 +29,14 @@ export const ImagesProvider = (props: {
   appId?: string;
   teamId?: string;
 }) => {
-  const { appId, teamId } = props;
+  const { appId } = props;
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
 
   const {} = useFetchImagesQuery({
     variables: {
       id: appId ?? "",
     },
-    context: { headers: { team_id: teamId } },
+
     onCompleted: (data) => {
       setUnverifiedImages({
         logo_img_url: data?.unverified_images?.logo_img_url ?? "",

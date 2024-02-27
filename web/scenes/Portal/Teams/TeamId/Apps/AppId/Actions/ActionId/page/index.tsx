@@ -19,7 +19,6 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
 
   const { data, loading } = useGetSingleActionAndNullifiersQuery({
     variables: { action_id: actionId ?? "" },
-    context: { headers: { team_id: teamId } },
   });
 
   const action = data?.action[0];

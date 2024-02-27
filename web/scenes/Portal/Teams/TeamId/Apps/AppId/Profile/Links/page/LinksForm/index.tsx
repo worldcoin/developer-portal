@@ -105,14 +105,13 @@ export const LinksForm = (props: LinksFormProps) => {
             app_website_url: values.app_website_url ?? "",
             source_code_url: values.source_code_url ?? "",
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [
             {
               query: FetchAppMetadataDocument,
               variables: {
                 id: appId,
               },
-              context: { headers: { team_id: teamId } },
             },
           ],
         });
@@ -125,7 +124,7 @@ export const LinksForm = (props: LinksFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [appMetadata?.id, appId, teamId, updateLinksMutation, updatingInfo],
+    [appMetadata?.id, appId, updateLinksMutation, updatingInfo],
   );
 
   return (

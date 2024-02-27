@@ -21,7 +21,6 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
 
   const { data, loading } = useGetActionNameQuery({
     variables: { action_id: props.actionId ?? "" },
-    context: { headers: { team_id: props.teamId ?? "" } },
   });
 
   const redirect = urls.actions({
@@ -38,7 +37,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
     });
   }, [props.actionId, props.appId, props.teamId]);
 
-  const name = data?.action[0]?.name ?? "";
+  const name = data?.action_by_pk?.name ?? "";
 
   return (
     <div className="grid w-full gap-y-5 md:gap-y-2">

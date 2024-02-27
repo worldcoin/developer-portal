@@ -25,29 +25,26 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
   const teamId = params?.teamId as `team_${string}`;
+  const [toggleKiosk] = useToggleKioskMutation();
 
-  const [toggleKiosk] = useToggleKioskMutation({
-    context: { headers: { team_id: teamId } },
-  });
-
-  const { data, loading } = useGetKioskActionQuery({
+  const { data } = useGetKioskActionQuery({
     variables: {
       action_id: actionId,
       app_id: appId,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const handleToggleKiosk = async (status: boolean) => {
     if (!actionId) {
       return;
     }
+
     await toggleKiosk({
       variables: {
         id: actionId,
         kiosk_status: status,
       },
-      context: { headers: { team_id: teamId } },
+
       refetchQueries: [GetKioskActionDocument],
     });
   };

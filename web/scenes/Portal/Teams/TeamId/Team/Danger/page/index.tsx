@@ -11,7 +11,6 @@ import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
   const fetchTeamQueryRes = useFetchTeamQuery({
-    context: { headers: { team_id: teamId } },
     variables: {
       teamId: teamId,
     },

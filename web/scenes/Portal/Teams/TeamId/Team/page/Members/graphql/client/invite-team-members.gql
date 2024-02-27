@@ -1,5 +1,6 @@
-mutation InviteTeamMembers($emails: [String!]) {
-  invite_team_members(emails: $emails) {
+mutation InviteTeamMembers($emails: [String!], $team_id: String!) {
+  invite_team_members(emails: $emails, team_id: $team_id) {
     emails
+    team_id
   }
 }

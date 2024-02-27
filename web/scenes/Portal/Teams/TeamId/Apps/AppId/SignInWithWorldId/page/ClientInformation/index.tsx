@@ -35,7 +35,6 @@ export const ClientInformationPage = (props: {
 
   const { data, loading: fetchingAction } = useFetchSignInActionQuery({
     variables: { app_id: appID },
-    context: { headers: { team_id: teamID } },
   });
 
   const signInAction = data?.action[0];
@@ -43,7 +42,6 @@ export const ClientInformationPage = (props: {
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
     variables: { app_id: appID },
-    context: { headers: { team_id: teamID } },
   });
 
   const handleReset = useCallback(async () => {

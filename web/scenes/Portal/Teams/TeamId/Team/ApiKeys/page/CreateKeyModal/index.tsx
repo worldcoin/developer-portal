@@ -28,9 +28,7 @@ export type CreateKeyFormValues = yup.Asserts<typeof schema>;
 
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
-  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
 
   const {
     register,
@@ -43,10 +41,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
   const submit = async (values: CreateKeyFormValues) => {
     if (creatingKey) return;
+
     try {
       const result = await insertKeyMutation({
         variables: {
           name: values.name,
+          teamId,
         },
         refetchQueries: [FetchKeysDocument],
       });
@@ -102,7 +102,9 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               >
                 Cancel
               </DecoratedButton>
-              <DecoratedButton type="submit">Create new key</DecoratedButton>
+              <DecoratedButton type="submit" disabled={!teamId}>
+                Create new key
+              </DecoratedButton>
             </div>
           </form>
         </div>

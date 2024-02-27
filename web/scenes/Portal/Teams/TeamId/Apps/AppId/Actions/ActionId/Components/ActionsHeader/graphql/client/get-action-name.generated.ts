@@ -10,12 +10,12 @@ export type GetActionNameQueryVariables = Types.Exact<{
 
 export type GetActionNameQuery = {
   __typename?: "query_root";
-  action: Array<{ __typename?: "action"; id: string; name: string }>;
+  action_by_pk?: { __typename?: "action"; id: string; name: string } | null;
 };
 
 export const GetActionNameDocument = gql`
   query GetActionName($action_id: String!) {
-    action(where: { id: { _eq: $action_id } }) {
+    action_by_pk(id: $action_id) {
       id
       name
     }

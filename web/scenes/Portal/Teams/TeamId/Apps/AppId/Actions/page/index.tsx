@@ -21,14 +21,14 @@ type ActionsPageProps = {
 export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
-  const teamId = params?.teamId as `team_${string}`;
   const [showList, setShowList] = useState(false);
 
   const { data, loading } = useGetActionsQuery({
     variables: {
       app_id: appId ?? "",
     },
-    context: { headers: { team_id: teamId } },
+
+    skip: !appId,
   });
 
   useEffect(() => {

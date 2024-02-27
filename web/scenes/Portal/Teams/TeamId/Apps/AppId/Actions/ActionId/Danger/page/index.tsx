@@ -17,10 +17,9 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
 
   const { data, loading } = useGetSingleActionQuery({
     variables: { action_id: actionId ?? "" },
-    context: { headers: { team_id: teamId } },
   });
 
-  const action = data?.action[0];
+  const action = data?.action_by_pk;
 
   if (!loading && !action) {
     return (

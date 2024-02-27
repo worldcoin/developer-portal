@@ -31,7 +31,6 @@ export const Redirects = memo(function Redirects(props: {
     variables: {
       action_id: actionId ?? "",
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const [insertRedirectMutation] = useInsertRedirectMutation();
@@ -46,16 +45,17 @@ export const Redirects = memo(function Redirects(props: {
             action_id: actionId,
             uri: redirect_uri,
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [
             {
               query: RedirectsDocument,
               variables: { action_id: actionId },
-              context: { headers: { team_id: teamId } },
             },
           ],
+
           awaitRefetchQueries: true,
         });
+
         setAddRedirectFormShown(false);
         toast.success("Redirect added!");
 
@@ -83,12 +83,10 @@ export const Redirects = memo(function Redirects(props: {
           variables: {
             id,
           },
-          context: { headers: { team_id: teamId } },
           refetchQueries: [
             {
               query: RedirectsDocument,
               variables: { action_id: actionId },
-              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
@@ -99,11 +97,13 @@ export const Redirects = memo(function Redirects(props: {
         toast.error("Error deleting redirect");
       }
     },
-    [actionId, deleteRedirectMutation, teamId],
+    [actionId, deleteRedirectMutation],
   );
 
   const redirects = data?.redirect;
+
   if (loading) return <div></div>;
+
   return (
     <div className="grid gap-y-5">
       {redirects?.map((redirect) => (
@@ -128,15 +128,19 @@ export const Redirects = memo(function Redirects(props: {
             if (value !== redirect.redirect_uri) {
               updateRedirectMutation({
                 variables: { id: redirect.id, uri: value },
+
                 refetchQueries: [
                   {
                     query: RedirectsDocument,
                     variables: { action_id: actionId },
-                    context: { headers: { team_id: teamId } },
                   },
                 ],
-                context: { headers: { team_id: teamId } },
+
                 awaitRefetchQueries: true,
+
+                onCompleted: () => {
+                  toast.success("Redirect updated!");
+                },
               });
             }
           }}

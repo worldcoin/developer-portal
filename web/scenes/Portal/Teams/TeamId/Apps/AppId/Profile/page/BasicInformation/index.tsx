@@ -101,12 +101,11 @@ export const BasicInformation = (props: {
             input: formData,
             status: status ? "active" : "inactive",
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [
             {
               query: FetchAppMetadataDocument,
               variables: { id: appId },
-              context: { headers: { team_id: teamId } },
             },
           ],
           awaitRefetchQueries: true,
@@ -120,7 +119,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData?.id, loading, teamId, updateAppInfoMutation],
+    [appId, appMetaData?.id, loading, updateAppInfoMutation],
   );
 
   return (

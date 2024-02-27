@@ -32,13 +32,9 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-
-  const { user, loading } = useMeQuery({
-    context: { headers: { team_id: "_" } },
-  });
+  const { user, loading } = useMeQuery();
 
   const [updateUser] = useUpdateUserMutation({
-    context: { headers: { team_id: "_" } },
     refetchQueries: [FetchMeDocument],
   });
 

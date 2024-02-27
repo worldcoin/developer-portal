@@ -35,6 +35,7 @@ export const resizeFile = (
 
 export const useImage = () => {
   const [getUploadedImage] = useGetUploadedImageLazyQuery();
+
   const getImage = async (
     fileType: string, // png, jpeg
     appId: string,
@@ -47,12 +48,14 @@ export const useImage = () => {
         image_type: imageType,
         content_type_ending: fileType,
       },
-      context: { headers: { team_id: teamId } },
     });
+
     const imageUrl = response.data?.get_uploaded_image?.url;
+
     if (!imageUrl) {
       throw new Error("Failed to get presigned URL");
     }
+
     return imageUrl;
   };
 
@@ -103,7 +106,6 @@ export const useImage = () => {
   const uploadViaPresignedPost = async (
     file: File,
     appId: string,
-    teamId: string,
     imageType: string,
   ) => {
     const response = await uploadImage({
@@ -112,7 +114,6 @@ export const useImage = () => {
         image_type: imageType,
         content_type_ending: file.type.split("/")[1],
       },
-      context: { headers: { team_id: teamId } },
     });
 
     if (!response.data?.upload_image?.url) {

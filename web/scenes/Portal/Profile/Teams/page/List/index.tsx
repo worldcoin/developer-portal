@@ -30,16 +30,14 @@ const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Owner]: "Owner",
 };
 
-type Team = FetchMeQuery["user"][0]["memberships"][0]["team"];
+type Team = NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
 
 export const List = () => {
   const [teamForTransfer, setTeamForTransfer] = useState<Team | undefined>();
   const [teamForDelete, setTeamForDelete] = useState<Team | undefined>();
   const [teamForLeave, setTeamForLeave] = useState<Team | undefined>();
 
-  const { user } = useMeQuery({
-    context: { headers: { team_id: "_" } },
-  });
+  const { user } = useMeQuery();
 
   return (
     <>

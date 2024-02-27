@@ -216,7 +216,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
             : null,
           verification_status: "unverified",
         },
-        context: { headers: { team_id: teamId } },
         refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
       });
@@ -225,7 +224,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         variables: {
           id: appId,
         },
-        context: { headers: { team_id: teamId } },
+
         onCompleted: (data) => {
           setUnverifiedImages({
             logo_img_url: data?.unverified_images?.logo_img_url ?? "",
@@ -247,19 +246,18 @@ export const AppTopBar = (props: AppTopBarProps) => {
     appMetaData?.app_website_url,
     appMetaData?.category,
     appMetaData?.description,
-    appMetaData?.hero_image_url,
+    appMetaData.hero_image_url,
     appMetaData?.integration_url,
     appMetaData?.is_developer_allow_listing,
-    appMetaData?.logo_img_url,
+    appMetaData.logo_img_url,
     appMetaData?.name,
-    appMetaData?.showcase_img_urls,
+    appMetaData.showcase_img_urls,
     appMetaData?.source_code_url,
     appMetaData?.world_app_description,
     createEditableRowMutation,
     fetchImagesQuery,
     setUnverifiedImages,
     setViewMode,
-    teamId,
   ]);
 
   // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail

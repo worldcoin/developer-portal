@@ -4,7 +4,9 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type FetchAppsQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type FetchAppsQueryVariables = Types.Exact<{
+  teamId: Types.Scalars["String"];
+}>;
 
 export type FetchAppsQuery = {
   __typename?: "query_root";
@@ -25,8 +27,8 @@ export type FetchAppsQuery = {
 };
 
 export const FetchAppsDocument = gql`
-  query FetchApps {
-    app {
+  query FetchApps($teamId: String!) {
+    app(where: { team_id: { _eq: $teamId } }) {
       id
       app_metadata {
         id
@@ -54,14 +56,12 @@ export const FetchAppsDocument = gql`
  * @example
  * const { data, loading, error } = useFetchAppsQuery({
  *   variables: {
+ *      teamId: // value for 'teamId'
  *   },
  * });
  */
 export function useFetchAppsQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    FetchAppsQuery,
-    FetchAppsQueryVariables
-  >,
+  baseOptions: Apollo.QueryHookOptions<FetchAppsQuery, FetchAppsQueryVariables>,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchAppsQuery, FetchAppsQueryVariables>(

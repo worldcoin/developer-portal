@@ -70,7 +70,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         const resizedImage = await resizeFile(file, 512, 512, file.type);
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+        await uploadViaPresignedPost(resizedImage, appId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -85,12 +85,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         });
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+
         await updateLogoMutation({
           variables: {
             id: appMetadataId,
             fileName: `${imageType}.${saveFileType}`,
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [FetchAppMetadataDocument],
         });
 
@@ -127,12 +128,13 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       ...unverifiedImages,
       logo_img_url: "",
     });
+
     await updateLogoMutation({
       variables: {
         id: appMetadataId,
         fileName: "",
       },
-      context: { headers: { team_id: teamId } },
+
       refetchQueries: [FetchAppMetadataDocument],
     });
   };

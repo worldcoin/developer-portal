@@ -20,14 +20,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     variables: {
       id: appId,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const { data: teamData } = useFetchTeamNameQuery({
     variables: {
       id: teamId,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const app = data?.app[0];

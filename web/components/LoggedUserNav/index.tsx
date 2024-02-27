@@ -39,9 +39,7 @@ export const LoggedUserNav = () => {
     actionId?: string;
   };
 
-  const { user } = useMeQuery({
-    context: { headers: { team_id: "_" } },
-  });
+  const { user } = useMeQuery();
 
   const hasOwnerPermission = useMemo(() => {
     return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
@@ -62,12 +60,12 @@ export const LoggedUserNav = () => {
   }, [actionId, appId, teamId]);
 
   const teamRes = useFetchTeamQuery({
-    context: { headers: { team_id: teamId ?? "_" } },
     variables: !teamId
       ? undefined
       : {
           id: teamId,
         },
+
     skip: !teamId,
   });
 

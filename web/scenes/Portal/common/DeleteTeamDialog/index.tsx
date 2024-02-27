@@ -60,14 +60,11 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   }, [props, reset, setDeleteFinished]);
 
   const [deleteTeam] = useDeleteTeamMutation({
-    context: { headers: { team_id: team?.id } },
     refetchQueries: [FetchMeDocument],
     awaitRefetchQueries: true,
   });
 
-  const { user, loading } = useMeQuery({
-    context: { headers: { team_id: team?.id } },
-  });
+  const { user, loading } = useMeQuery();
 
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {

@@ -42,7 +42,8 @@ export const AppSelector = () => {
   }, [user, teamId]);
 
   const { data, loading, error } = useFetchAppsQuery({
-    context: { headers: { team_id: teamId } },
+    variables: { teamId: teamId! },
+    skip: !teamId,
   });
 
   const onChange = useCallback(

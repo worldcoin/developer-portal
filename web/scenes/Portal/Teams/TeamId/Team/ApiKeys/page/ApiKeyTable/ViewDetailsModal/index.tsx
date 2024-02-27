@@ -68,7 +68,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
           name: values.name,
           is_active: values.isActive ?? false,
         },
-        context: { headers: { team_id: teamId } },
+
         refetchQueries: [FetchKeysDocument],
       });
       if (result instanceof Error) {

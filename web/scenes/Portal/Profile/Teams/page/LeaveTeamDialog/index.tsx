@@ -17,16 +17,13 @@ import {
 } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 
 type LeaveTeamDialogProps = DialogProps & {
-  team?: FetchMeQuery["user"][0]["memberships"][0]["team"];
+  team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
 };
 
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
   const { team, ...otherProps } = props;
   const { user: auth0User } = useUser() as Auth0SessionUser;
-
-  const [leaveTeam, leaveTeamMutationRes] = useLeaveTeamMutation({
-    context: { headers: { team_id: team?.id } },
-  });
+  const [leaveTeam, leaveTeamMutationRes] = useLeaveTeamMutation();
 
   const submit = useCallback(async () => {
     if (!team || !auth0User?.hasura) {

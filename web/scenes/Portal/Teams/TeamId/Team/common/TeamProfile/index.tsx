@@ -21,7 +21,6 @@ export const TeamProfile = (props: { className?: string }) => {
 
     fetchTeam({
       variables: { teamId },
-      context: { headers: { team_id: teamId } },
     });
   }, [fetchTeam, teamId]);
 

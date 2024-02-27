@@ -141,12 +141,11 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             ),
             world_app_description: data.world_app_description ?? "",
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [
             {
               query: FetchAppMetadataDocument,
               variables: { id: appId },
-              context: { headers: { team_id: teamId } },
             },
           ],
         });
@@ -159,7 +158,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         toast.error("Failed to update app information");
       }
     },
-    [updatingInfo, updateAppInfoMutation, appMetadata?.id, teamId, appId],
+    [updatingInfo, updateAppInfoMutation, appMetadata?.id, appId],
   );
 
   return (

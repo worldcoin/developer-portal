@@ -45,9 +45,7 @@ export const ApiKeyRow = (props: {
     return membership?.role === Role_Enum.Owner;
   }, [teamId, user?.hasura.memberships]);
 
-  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
 
   const copyKey = useCallback(() => {
     navigator.clipboard.writeText(secretKey ?? "");

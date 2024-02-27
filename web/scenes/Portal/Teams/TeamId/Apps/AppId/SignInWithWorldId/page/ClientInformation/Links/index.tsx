@@ -24,9 +24,7 @@ export const LinksForm = memo(function LinksForm(props: {
   canEdit: boolean;
 }) {
   const { teamId, signInAction, canEdit } = props;
-  const [updateSignInActionMutation] = useUpdateSignInActionMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [updateSignInActionMutation] = useUpdateSignInActionMutation();
 
   const {
     register,

@@ -94,9 +94,7 @@ export const EditRoleDialog = (props: {
     }
   }, [defaultValues, reset]);
 
-  const [editRole] = useEditRoleMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [editRole] = useEditRoleMutation();
 
   const onClose = useCallback(() => {
     if (permissionsOpened) {
