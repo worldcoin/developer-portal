@@ -1,3 +1,4 @@
+import { deleteAccount } from "@/api/delete-account";
 import { loginCallback } from "@/api/login-callback";
 import { urls } from "@/lib/urls";
 
@@ -24,7 +25,7 @@ export const GET = handleAuth({
 
   callback: handleCallback,
   "login-callback": loginCallback,
-  // TODO: Add delete account handler
+  "delete-account": deleteAccount,
 
   logout: handleLogout({
     returnTo: urls.login(),

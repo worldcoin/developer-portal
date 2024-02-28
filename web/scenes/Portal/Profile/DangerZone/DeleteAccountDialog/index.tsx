@@ -58,7 +58,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
         },
       });
       toast.success("Account Deleted!");
-      window.location.href = urls.logout();
+      window.location.href = urls.api.authDeleteAccount();
     } catch (e) {
       console.error(e);
       toast.error("Error deleting account");

@@ -86,5 +86,8 @@ export const urls = {
 
       return `/api/auth/login?${searchParams.toString()}`;
     },
+
+    authDeleteAccount: (): "/api/auth/delete-account" =>
+      "/api/auth/delete-account",
   },
 };
