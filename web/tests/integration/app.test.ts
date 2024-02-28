@@ -15,7 +15,7 @@ beforeEach(integrationDBSetup);
 beforeEach(integrationDBTearDown);
 
 describe("user role", () => {
-  test("cannot select another team's apps", async () => {
+  test("can select all apps in the team", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
@@ -50,37 +50,29 @@ describe("user role", () => {
     }
   });
 
-  test("cannot select another team's apps with an invalid team_id", async () => {
+  test("cannot see another team's apps", async () => {
     const { rows: teams } = (await integrationDBExecuteQuery(
       `SELECT id FROM "public"."team"`,
     )) as { rows: Array<{ id: string }> };
+    const team = teams[0];
+    const secondTeam = teams[1];
+    const { rows: user } = (await integrationDBExecuteQuery(
+      `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
+    )) as { rows: Array<{ id: string; user_id: string }> };
 
-    const teamsApps: { [key: string]: Array<{ id: string; team_id: string }> } =
-      {};
+    const client = await getAPIUserClient({
+      user_id: user[0].user_id,
+    });
 
-    for (const team of teams) {
-      const { rows: user } = (await integrationDBExecuteQuery(
-        `SELECT id, user_id FROM "public"."membership" WHERE "team_id" = '${team.id}' limit 1;`,
-      )) as { rows: Array<{ id: string; user_id: string }> };
-
-      const client = await getAPIUserClient({
-        user_id: user[0].user_id,
-      });
-
-      const query = gql(`query ListApps {
-        app(order_by: {created_at: asc}) {
+    const query = gql(`query ListApps {
+        app(order_by: {created_at: asc}, where: {team_id: {_eq: "${secondTeam.id}"}}) {
           id
           team_id
         }
       }`);
 
-      const response = await client.query({ query });
-      teamsApps[team.id] = response.data.app;
-    }
-
-    Object.entries(teamsApps).forEach(([teamId, apps]) => {
-      expect(apps.every((app) => app.team_id === teamId)).toBe(true);
-    });
+    const response = await client.query({ query });
+    expect(response.data.app.length).toEqual(0);
   });
 
   // NOTE: making any update mutation to the apps in the team that are different from the token team
