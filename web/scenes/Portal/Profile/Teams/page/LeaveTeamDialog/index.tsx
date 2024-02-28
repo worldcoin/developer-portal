@@ -44,7 +44,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
       props.onClose(true);
     } catch (e) {
       console.error(e);
-      toast.error("Error team leaving");
+      toast.error("Error leaving team");
     }
   }, [props, leaveTeam, team, auth0User?.hasura]);
 
