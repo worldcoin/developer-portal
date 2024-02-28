@@ -158,7 +158,7 @@ export const List = () => {
                     <DropdownItem
                       as="button"
                       type="button"
-                      className="flex items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
+                      className="flex w-full items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
                       onClick={() => setTeamForLeave(membership.team)}
                     >
                       <LogoutIcon className="size-4" />
