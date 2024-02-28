@@ -101,7 +101,6 @@ export const ActionStatsGraph = () => {
       startsAt,
       timeSpan: timespan.value,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const stats = useMemo(() => data?.action_stats, [data?.action_stats]);

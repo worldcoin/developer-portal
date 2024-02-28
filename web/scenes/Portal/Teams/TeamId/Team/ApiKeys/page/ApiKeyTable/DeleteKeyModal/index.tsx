@@ -19,9 +19,7 @@ type DeleteKeyModalProps = {
 
 export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
   const { isOpen, teamId, keyId, name, setIsOpen } = props;
-  const [deleteKeyMutation, { loading }] = useDeleteKeyMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [deleteKeyMutation, { loading }] = useDeleteKeyMutation();
 
   const handleDelete = async () => {
     if (!keyId || loading) {

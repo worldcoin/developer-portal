@@ -6,6 +6,7 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type ResetApiKeyMutationVariables = Types.Exact<{
   id: Types.Scalars["String"];
+  team_id: Types.Scalars["String"];
 }>;
 
 export type ResetApiKeyMutation = {
@@ -14,8 +15,8 @@ export type ResetApiKeyMutation = {
 };
 
 export const ResetApiKeyDocument = gql`
-  mutation ResetAPIKey($id: String!) {
-    reset_api_key(id: $id) {
+  mutation ResetAPIKey($id: String!, $team_id: String!) {
+    reset_api_key(id: $id, team_id: $team_id) {
       api_key
     }
   }
@@ -39,6 +40,7 @@ export type ResetApiKeyMutationFn = Apollo.MutationFunction<
  * const [resetApiKeyMutation, { data, loading, error }] = useResetApiKeyMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */

@@ -1,9 +1,11 @@
+import { Auth0SessionUser } from "@/lib/types";
 import { getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFetchMeQuery } from "./graphql/client/me-query.generated";
 
 export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
+  const { user: auth0User } = useUser() as Auth0SessionUser;
   const [updating, setUpdating] = useState(true);
   const { checkSession } = useUser();
 
@@ -11,10 +13,14 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
     data,
     loading: fetchLoading,
     ...rest
-  } = useFetchMeQuery({ ...options });
+  } = useFetchMeQuery({
+    variables: { userId: auth0User?.hasura?.id! },
+    skip: !auth0User?.hasura?.id,
+    ...options,
+  });
 
   const updateSession = useCallback(async () => {
-    if (!data?.user) {
+    if (!data?.user_by_pk) {
       return;
     }
 
@@ -28,7 +34,7 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
           "Content-Type": "application/json",
         },
 
-        body: JSON.stringify({ user: data.user[0] }),
+        body: JSON.stringify({ user: data.user_by_pk }),
       });
 
       if (!res.ok) {
@@ -46,7 +52,7 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
     }
 
     await checkSession();
-  }, [checkSession, data?.user]);
+  }, [checkSession, data?.user_by_pk]);
 
   useEffect(() => {
     if (!data || fetchLoading) {
@@ -57,7 +63,7 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
     updateSession().then(() => setUpdating(false));
   }, [data, fetchLoading, updateSession]);
 
-  const fetchedUser = useMemo(() => data?.user?.[0], [data?.user]);
+  const fetchedUser = useMemo(() => data?.user_by_pk, [data?.user_by_pk]);
 
   const loading = useMemo(
     () => updating || fetchLoading,

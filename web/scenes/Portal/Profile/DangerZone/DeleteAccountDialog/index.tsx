@@ -47,9 +47,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     props.onClose(false);
   }, [props, reset]);
 
-  const [deleteAccount] = useDeleteAccountMutation({
-    context: { headers: { team_id: "_" } },
-  });
+  const [deleteAccount] = useDeleteAccountMutation();
 
   const submit = useCallback(async () => {
     if (!user?.hasura) return;

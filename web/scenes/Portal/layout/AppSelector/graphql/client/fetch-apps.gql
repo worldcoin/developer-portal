@@ -1,10 +1,11 @@
-query FetchApps {
-  app {
+query FetchApps($teamId: String!) {
+  app(where: { team_id: { _eq: $teamId } }) {
     id
     app_metadata {
       id
       name
     }
+
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
     ) {

@@ -32,8 +32,6 @@ select_permissions:
         team:
           memberships:
             _and:
-              - team_id:
-                  _eq: X-Hasura-Team-Id
               - role:
                   _eq: OWNER
               - user_id:
@@ -55,8 +53,6 @@ delete_permissions:
         team:
           memberships:
             _and:
-              - team_id:
-                  _eq: X-Hasura-Team-Id
               - role:
                   _eq: OWNER
               - user_id:

@@ -2,11 +2,13 @@ query GetUploadedImage(
   $app_id: String!
   $image_type: String!
   $content_type_ending: String!
+  $team_id: String!
 ) {
   get_uploaded_image(
     app_id: $app_id
     image_type: $image_type
     content_type_ending: $content_type_ending
+    team_id: $team_id
   ) {
     url
   }

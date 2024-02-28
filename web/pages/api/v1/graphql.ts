@@ -18,7 +18,6 @@ export default async function handleGraphQL(
   }
 
   const authorization = req.headers["authorization"]?.replace("Bearer ", "");
-  const team_id = req.headers.team_id as string | undefined;
 
   // Strictly set the necessary properties to avoid passing other headers that wreak havoc (e.g. SSL certs collisions)
   const headers = new Headers();
@@ -85,10 +84,10 @@ export default async function handleGraphQL(
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
     const session = await getSession(req, res);
     let token: string | null = null;
-    if (session?.user.hasura?.id && team_id) {
+
+    if (session?.user.hasura?.id) {
       const { token: generatedToken } = await generateUserJWT(
         session.user.hasura.id,
-        team_id ?? "",
         dayjs().add(1, "minute").unix(),
       );
 

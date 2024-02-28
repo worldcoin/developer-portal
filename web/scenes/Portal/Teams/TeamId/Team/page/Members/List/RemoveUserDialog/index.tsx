@@ -29,9 +29,7 @@ export const RemoveUserDialog = (props: {
     formState: { isSubmitting },
   } = useForm();
 
-  const [removeUser] = useRemoveUserMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [removeUser] = useRemoveUserMutation();
 
   const submit = useCallback(async () => {
     if (!props.id || !teamId) {

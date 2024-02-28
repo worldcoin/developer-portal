@@ -31,7 +31,7 @@ import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-members
 import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
-  team?: FetchMeQuery["user"][0]["memberships"][0]["team"];
+  team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
 };
 
 type FormValues = {
@@ -43,8 +43,6 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const { data } = useFetchMembersQuery({
-    context: { headers: { team_id: team?.id } },
-
     variables:
       !team || !user?.hasura
         ? undefined
@@ -65,9 +63,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     );
   }, []);
 
-  const [transferMembership] = useTransferOwnershipMutation({
-    context: { headers: { team_id: team?.id } },
-  });
+  const [transferMembership] = useTransferOwnershipMutation();
 
   const {
     control,
@@ -81,7 +77,6 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const member = useWatch({ control, name: "member" });
 
   const { data: userMembership } = useFetchUserMembershipQuery({
-    context: { headers: { team_id: team?.id } },
     variables: {
       user_id: user?.hasura.id ?? "",
       team_id: team?.id ?? "",

@@ -4,6 +4,7 @@
  * * Hasura authentication
  * * Developer Portal authentication
  */
+import { VerificationLevel } from "@worldcoin/idkit-core";
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
@@ -11,7 +12,6 @@ import { JwtConfig } from "../lib/types";
 import { retrieveJWK } from "./jwks";
 import { getKMSClient, signJWTWithKMSKey } from "./kms";
 import { OIDCScopes } from "./oidc";
-import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
 
 export const JWT_ISSUER = process.env.JWT_ISSUER;
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -96,13 +96,12 @@ export const _generateJWT = async (
   return token;
 };
 
-export const getUserJWTPayload = (user_id: string, team_id: string) => ({
+export const getUserJWTPayload = (user_id: string) => ({
   sub: user_id,
   "https://hasura.io/jwt/claims": {
     "x-hasura-allowed-roles": ["user"],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": user_id,
-    "x-hasura-team-id": team_id,
   },
 });
 
@@ -114,10 +113,9 @@ export const getUserJWTPayload = (user_id: string, team_id: string) => ({
  */
 export const generateUserJWT = async (
   user_id: string,
-  team_id: string,
-  expiration: number = dayjs().add(7, "day").unix(),
+  expiration: number = dayjs().add(1, "minute").unix(),
 ) => {
-  const payload = getUserJWTPayload(user_id, team_id);
+  const payload = getUserJWTPayload(user_id);
   const token = await _generateJWT(payload, expiration);
 
   return { token, expiration };

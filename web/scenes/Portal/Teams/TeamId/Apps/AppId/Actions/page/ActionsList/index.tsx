@@ -130,7 +130,7 @@ export const ActionsList = (props: {
             register={register("actionSearch")}
             label=""
             placeholder="Search actions by name"
-            className="max-w-136 pt-2 text-base"
+            className="max-w-full pt-2 text-base md:max-w-136"
             addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
           />
           <DecoratedButton

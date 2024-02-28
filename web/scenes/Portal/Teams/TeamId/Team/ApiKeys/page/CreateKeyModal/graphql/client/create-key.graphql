@@ -1,5 +1,5 @@
-mutation InsertKey($name: String!) {
-  insert_api_key_one(object: { name: $name }) {
+mutation InsertKey($name: String!, $teamId: String!) {
+  insert_api_key_one(object: { name: $name, team_id: $teamId }) {
     id
     team_id
     created_at

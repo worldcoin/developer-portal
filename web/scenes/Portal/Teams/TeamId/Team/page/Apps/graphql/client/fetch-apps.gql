@@ -1,5 +1,5 @@
-query FetchApps {
-  app {
+query FetchApps($teamId: String!) {
+  app(where: { team_id: { _eq: $teamId } }) {
     id
     is_staging
     engine

@@ -90,14 +90,14 @@ export const ImageForm = (props: ImageFormTypes) => {
           app_metadata_id: appMetadataId,
           hero_image_url: "",
         },
-        context: { headers: { team_id: teamId } },
+
         refetchQueries: [
           {
             query: FetchAppMetadataDocument,
+
             variables: {
               id: appId,
             },
-            context: { headers: { team_id: teamId } },
           },
         ],
       });
@@ -113,7 +113,6 @@ export const ImageForm = (props: ImageFormTypes) => {
     unverifiedImages,
     updateHeroImageMutation,
     appMetadataId,
-    teamId,
     appId,
   ]);
 
@@ -133,16 +132,17 @@ export const ImageForm = (props: ImageFormTypes) => {
           app_metadata_id: appMetadataId,
           showcase_img_urls: formatted_showcase_img_urls,
         },
-        context: { headers: { team_id: teamId } },
+
         refetchQueries: [
           {
             query: FetchAppMetadataDocument,
+
             variables: {
               id: appId,
             },
-            context: { headers: { team_id: teamId } },
           },
         ],
+
         awaitRefetchQueries: true,
       });
 
@@ -161,7 +161,6 @@ export const ImageForm = (props: ImageFormTypes) => {
       showcaseImgFileNames,
       updateShowcaseImagesMutation,
       appMetadataId,
-      teamId,
       appId,
       setUnverifiedImages,
       unverifiedImages,
@@ -207,6 +206,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         toast.dismiss("ImageValidationError");
 
         await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
@@ -221,14 +221,14 @@ export const ImageForm = (props: ImageFormTypes) => {
               app_metadata_id: appMetadataId,
               hero_image_url: `${imageType}.${saveFileType}`,
             },
-            context: { headers: { team_id: teamId } },
+
             refetchQueries: [
               {
                 query: FetchAppMetadataDocument,
+
                 variables: {
                   id: appId,
                 },
-                context: { headers: { team_id: teamId } },
               },
             ],
           });
@@ -253,16 +253,16 @@ export const ImageForm = (props: ImageFormTypes) => {
               app_metadata_id: appMetadataId,
               showcase_img_urls: formatted_showcase_img_urls,
             },
-            context: { headers: { team_id: teamId } },
+
             refetchQueries: [
               {
                 query: FetchAppMetadataDocument,
                 variables: {
                   id: appId,
                 },
-                context: { headers: { team_id: teamId } },
               },
             ],
+
             awaitRefetchQueries: true,
           });
 

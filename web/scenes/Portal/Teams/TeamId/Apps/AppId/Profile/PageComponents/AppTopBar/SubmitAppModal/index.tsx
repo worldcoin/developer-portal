@@ -69,7 +69,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               values?.is_developer_allow_listing ?? false,
             verification_status: "awaiting_review",
           },
-          context: { headers: { team_id: teamId } },
+
           refetchQueries: [FetchAppMetadataDocument],
           awaitRefetchQueries: true,
         });

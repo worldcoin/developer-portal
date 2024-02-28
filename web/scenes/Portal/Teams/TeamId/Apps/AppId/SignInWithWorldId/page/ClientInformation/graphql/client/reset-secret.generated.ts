@@ -6,6 +6,7 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type ResetClientSecretMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
+  team_id: Types.Scalars["String"];
 }>;
 
 export type ResetClientSecretMutation = {
@@ -17,8 +18,8 @@ export type ResetClientSecretMutation = {
 };
 
 export const ResetClientSecretDocument = gql`
-  mutation ResetClientSecret($app_id: String!) {
-    reset_client_secret(app_id: $app_id) {
+  mutation ResetClientSecret($app_id: String!, $team_id: String!) {
+    reset_client_secret(app_id: $app_id, team_id: $team_id) {
       client_secret
     }
   }
@@ -42,6 +43,7 @@ export type ResetClientSecretMutationFn = Apollo.MutationFunction<
  * const [resetClientSecretMutation, { data, loading, error }] = useResetClientSecretMutation({
  *   variables: {
  *      app_id: // value for 'app_id'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */

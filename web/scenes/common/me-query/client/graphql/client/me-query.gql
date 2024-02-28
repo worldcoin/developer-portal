@@ -1,5 +1,5 @@
-query FetchMe {
-  user {
+query FetchMe($userId: String!) {
+  user_by_pk(id: $userId) {
     id
     name
     email

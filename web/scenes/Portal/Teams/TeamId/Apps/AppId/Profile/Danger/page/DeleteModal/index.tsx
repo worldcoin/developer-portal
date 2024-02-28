@@ -50,7 +50,6 @@ export const DeleteModal = (props: DeleteModalProps) => {
           id: appId,
         },
 
-        context: { headers: { team_id: teamId } },
         refetchQueries: [FetchAppsDocument],
         awaitRefetchQueries: true,
       });

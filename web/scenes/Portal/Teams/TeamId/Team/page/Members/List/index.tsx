@@ -67,15 +67,12 @@ export const List = (props: { search?: string }) => {
     variables: {
       teamId: teamId,
     },
-
-    context: { headers: { team_id: teamId } },
   });
 
   const { data: fetchInvitesData } = useFetchInvitesQuery({
     variables: {
       teamId: teamId,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   // NOTE: refetch me query to update session in case user role was changed
@@ -169,9 +166,7 @@ export const List = (props: { search?: string }) => {
   );
 
   const [inviteTeamMembers, { loading: resendMutationLoading }] =
-    useInviteTeamMembersMutation({
-      context: { headers: { team_id: teamId } },
-    });
+    useInviteTeamMembersMutation();
 
   const resendInvite = useCallback(
     async (membership: (typeof membersToRender)[number]) => {
@@ -181,7 +176,7 @@ export const List = (props: { search?: string }) => {
 
       try {
         await inviteTeamMembers({
-          variables: { emails: [membership.user.email] },
+          variables: { emails: [membership.user.email], team_id: teamId },
           refetchQueries: [FetchInvitesDocument],
         });
 
@@ -190,12 +185,11 @@ export const List = (props: { search?: string }) => {
         toast.error("Error inviting team members");
       }
     },
-    [inviteTeamMembers, resendMutationLoading],
+    [inviteTeamMembers, resendMutationLoading, teamId],
   );
 
   const [deleteInvite, { loading: deleteInviteMutationLoading }] =
     useDeleteInviteMutation({
-      context: { headers: { team_id: teamId } },
       refetchQueries: [FetchInvitesDocument],
       awaitRefetchQueries: true,
     });
@@ -227,7 +221,7 @@ export const List = (props: { search?: string }) => {
 
   const isCurrentMember = useCallback(
     (membership: (typeof membersToRender)[number]) => {
-      return membership.user.id === auth0User?.hasura.id;
+      return membership.user?.id === auth0User?.hasura.id;
     },
     [auth0User?.hasura.id],
   );
@@ -263,7 +257,7 @@ export const List = (props: { search?: string }) => {
                 "Anonymous User";
 
               return (
-                <div key={membership.user.id} className="contents">
+                <div key={membership.user?.id} className="contents">
                   <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
                     <UserLogo src={""} name={name} />
 
@@ -279,7 +273,7 @@ export const List = (props: { search?: string }) => {
                         variant={TYPOGRAPHY.R4}
                         className="max-w-full truncate text-grey-500"
                       >
-                        {membership.user.email ?? ""}
+                        {membership.user?.email ?? ""}
                       </Typography>
                     </div>
                   </div>

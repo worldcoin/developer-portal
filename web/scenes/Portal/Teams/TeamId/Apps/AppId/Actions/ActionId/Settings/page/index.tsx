@@ -20,7 +20,6 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
     variables: {
       action_id: actionID ?? "",
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const action = data?.action[0];

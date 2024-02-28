@@ -45,9 +45,7 @@ export const ApiKeyRow = (props: {
     return membership?.role === Role_Enum.Owner;
   }, [teamId, user?.hasura.memberships]);
 
-  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
 
   const copyKey = useCallback(() => {
     navigator.clipboard.writeText(secretKey ?? "");
@@ -59,37 +57,44 @@ export const ApiKeyRow = (props: {
       if (loading) {
         return;
       }
+
       try {
         const result = await resetApiKeyMutation({
           variables: {
             id: apiKeyId,
+            team_id: teamId,
           },
         });
-        if (result instanceof Error) {
+
+        if (result instanceof Error || Boolean(result?.errors)) {
           throw result;
         }
+
         toast.success("API key was reset");
+
         if (!result.data?.reset_api_key?.api_key) {
           throw new Error("No API key returned");
         }
+
         setSecretKey(result.data?.reset_api_key?.api_key);
       } catch (error) {
-        console.error(error);
+        let errorText = "Error occurred while resetting API key.";
+
         if (error instanceof ApolloError) {
           for (let graphQLError of error.graphQLErrors) {
             if (
               graphQLError.message ===
               "User does not have sufficient permissions."
             ) {
-              toast.error("API key must be active to reset.");
+              errorText = "API key must be active to reset.";
             }
           }
-        } else {
-          toast.error("Error occurred while resetting API key.");
         }
+
+        toast.error(errorText);
       }
     },
-    [loading, resetApiKeyMutation],
+    [loading, resetApiKeyMutation, teamId],
   );
 
   return (

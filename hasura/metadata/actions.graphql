@@ -3,7 +3,10 @@ type Mutation {
 }
 
 type Query {
-  get_all_unverified_images(app_id: String!): ImageGetAllUnverifiedImagesOutput
+  get_all_unverified_images(
+    app_id: String!
+    team_id: String!
+  ): ImageGetAllUnverifiedImagesOutput
 }
 
 type Query {
@@ -15,19 +18,23 @@ type Query {
     app_id: String!
     image_type: String!
     content_type_ending: String!
+    team_id: String!
   ): GetUploadedImageOutput
 }
 
 type Mutation {
-  invite_team_members(emails: [String!]): InviteTeamMembersOutput
+  invite_team_members(
+    emails: [String!]
+    team_id: String!
+  ): InviteTeamMembersOutput
 }
 
 type Mutation {
-  reset_api_key(id: String!): ResetAPIOutput
+  reset_api_key(id: String!, team_id: String!): ResetAPIOutput
 }
 
 type Mutation {
-  reset_client_secret(app_id: String!): ResetClientOutput
+  reset_client_secret(app_id: String!, team_id: String!): ResetClientOutput
 }
 
 type Query {
@@ -35,6 +42,7 @@ type Query {
     app_id: String!
     image_type: String!
     content_type_ending: String!
+    team_id: String!
   ): PresignedPostOutput
 }
 

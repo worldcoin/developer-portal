@@ -26,7 +26,6 @@ export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
 
   const fetchTeamQueryRes = useFetchTeamQuery({
-    context: { headers: { team_id: teamId } },
     variables: {
       teamId: teamId,
     },
@@ -44,9 +43,7 @@ export const TeamSettingsPage = () => {
     mode: "onChange",
   });
 
-  const [updateTeam] = useUpdateTeamMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [updateTeam] = useUpdateTeamMutation();
 
   const submit = useCallback(
     async (values: FormValues) => {

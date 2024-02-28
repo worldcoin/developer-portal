@@ -52,7 +52,6 @@ export const CreateAppDialog = (props: DialogProps) => {
 
   const {
     register,
-    control,
     formState: { isValid, errors, isSubmitting },
     handleSubmit,
     reset,
@@ -75,28 +74,22 @@ export const CreateAppDialog = (props: DialogProps) => {
           name: values.appName,
           is_staging: values.build === "staging",
           engine: values.verification,
+          team_id: teamId,
         },
 
-        refetchQueries: [
-          {
-            query: FetchAppsDocument,
-            context: { headers: { team_id: teamId } },
-          },
-        ],
-
-        context: { headers: { team_id: teamId } },
+        refetchQueries: [FetchAppsDocument],
 
         onCompleted: (data) => {
           if (!data.insert_app_one) {
             toast.error("Failed to create app");
           }
+
           const redirect = urls.actions({
             team_id: teamId,
             app_id: data.insert_app_one?.id ?? "",
           });
 
           router.prefetch(redirect);
-
           reset(defaultValues);
 
           posthog.capture("app_creation_successful", {
@@ -105,6 +98,7 @@ export const CreateAppDialog = (props: DialogProps) => {
             environment: values.build,
             engine: values.verification,
           });
+
           router.push(redirect);
           props.onClose(false);
         },

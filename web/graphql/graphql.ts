@@ -4146,16 +4146,19 @@ export type Mutation_RootInsert_User_OneArgs = {
 /** mutation root */
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]>>;
+  team_id: Scalars["String"];
 };
 
 /** mutation root */
 export type Mutation_RootReset_Api_KeyArgs = {
   id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** mutation root */
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** mutation root */
@@ -5152,6 +5155,7 @@ export type Query_RootCache_By_PkArgs = {
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
   app_id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 export type Query_RootGet_App_Review_ImagesArgs = {
@@ -5162,6 +5166,7 @@ export type Query_RootGet_Uploaded_ImageArgs = {
   app_id: Scalars["String"];
   content_type_ending: Scalars["String"];
   image_type: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 export type Query_RootInviteArgs = {
@@ -5308,6 +5313,7 @@ export type Query_RootUpload_ImageArgs = {
   app_id: Scalars["String"];
   content_type_ending: Scalars["String"];
   image_type: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 export type Query_RootUserArgs = {

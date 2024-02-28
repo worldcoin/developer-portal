@@ -14,7 +14,8 @@ export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
 
   const { data, refetch, loading } = useFetchAppsQuery({
-    context: { headers: { team_id: teamId } },
+    variables: { teamId },
+    skip: !teamId,
   });
 
   useEffect(() => {

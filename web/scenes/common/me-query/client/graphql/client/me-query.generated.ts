@@ -4,11 +4,13 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type FetchMeQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type FetchMeQueryVariables = Types.Exact<{
+  userId: Types.Scalars["String"];
+}>;
 
 export type FetchMeQuery = {
   __typename?: "query_root";
-  user: Array<{
+  user_by_pk?: {
     __typename?: "user";
     id: string;
     name: string;
@@ -20,12 +22,12 @@ export type FetchMeQuery = {
       role: Types.Role_Enum;
       team: { __typename?: "team"; id: string; name?: string | null };
     }>;
-  }>;
+  } | null;
 };
 
 export const FetchMeDocument = gql`
-  query FetchMe {
-    user {
+  query FetchMe($userId: String!) {
+    user_by_pk(id: $userId) {
       id
       name
       email
@@ -54,11 +56,12 @@ export const FetchMeDocument = gql`
  * @example
  * const { data, loading, error } = useFetchMeQuery({
  *   variables: {
+ *      userId: // value for 'userId'
  *   },
  * });
  */
 export function useFetchMeQuery(
-  baseOptions?: Apollo.QueryHookOptions<FetchMeQuery, FetchMeQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<FetchMeQuery, FetchMeQueryVariables>,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchMeQuery, FetchMeQueryVariables>(

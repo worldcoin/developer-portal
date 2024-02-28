@@ -50,9 +50,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     },
   });
 
-  const [updateActionQuery, { loading }] = useUpdateActionMutation({
-    context: { headers: { team_id: teamId } },
-  });
+  const [updateActionQuery, { loading }] = useUpdateActionMutation();
 
   const submit = useCallback(
     async (values: NewActionFormValues) => {

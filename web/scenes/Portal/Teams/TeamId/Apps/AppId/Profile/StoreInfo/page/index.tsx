@@ -26,7 +26,6 @@ export const AppProfileStoreInfoPage = ({
     variables: {
       id: appId,
     },
-    context: { headers: { team_id: teamId } },
   });
 
   const app = data?.app[0];

@@ -1,11 +1,11 @@
-import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { NextApiRequest, NextApiResponse } from "next";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
 import { getSdk as checkUserInAppDocumentSDK } from "@/legacy/api/images/graphql/checkUserInApp.generated";
+import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
+import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
+import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { logger } from "@/lib/logger";
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
-import { logger } from "@/lib/logger";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { NextApiRequest, NextApiResponse } from "next";
 
 type RequestQueryParams = {
   app_id: string;
@@ -50,7 +50,8 @@ export const handleImageUpload = async (
       });
     }
 
-    const teamId = body.session_variables["x-hasura-team-id"];
+    const teamId = body.input.team_id;
+
     if (!teamId) {
       return errorHasuraQuery({
         res,

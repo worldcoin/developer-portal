@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
+import { NextApiRequest, NextApiResponse } from "next";
 
 import {
   generateHashedSecret,
@@ -7,9 +7,9 @@ import {
 } from "@/legacy/backend/utils";
 
 import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { getSdk as updateSecretSDK } from "./graphql/update-secret.generated";
-import { getSdk as getMembershipSdk } from "./graphql/get-membership.generated";
 import { logger } from "@/lib/logger";
+import { getSdk as getMembershipSdk } from "./graphql/get-membership.generated";
+import { getSdk as updateSecretSDK } from "./graphql/update-secret.generated";
 
 /**
  * Resets the client secret for an app (OIDC)
@@ -34,7 +34,7 @@ export const handleSecretReset = async (
   }
 
   const user_id = req.body.session_variables["x-hasura-user-id"];
-  const team_id = req.body.session_variables["x-hasura-team-id"];
+  const team_id = req.body.input.team_id;
 
   if (!user_id || !team_id) {
     return errorHasuraQuery({

@@ -52,7 +52,6 @@ describe("user role", () => {
 
     for (const teamMember of teamMemberships) {
       const client = await getAPIUserClient({
-        team_id: team_id,
         user_id: teamMember.user_id,
       });
 
@@ -94,7 +93,6 @@ describe("user role", () => {
       )) as { rows: Array<{ id: string; user_id: string }> };
 
       const client = await getAPIUserClient({
-        team_id: team.id,
         user_id: teamMemberships[0].user_id,
       });
 
@@ -124,17 +122,15 @@ describe("user role", () => {
       )) as { rows: Array<{ id: string; user_id: string }> };
 
     const testInvalidClient = await getAPIUserClient({
-      team_id: teams[0].id,
       user_id: testInvalidTeamMemberships[0].user_id,
     });
 
     const query = gql`
-       query ListTeams {
-         team (where: {id: {_eq: "${teams[0].id}"}}) {
-           id
-         }
-       }
-     `;
+      query ListTeams {
+        team (where: {id: {_eq: "${teams[0].id}"}}) {
+          id
+        }
+      }`;
 
     const response = await testInvalidClient.query({ query });
     expect(response.data.team.length).toEqual(0);
@@ -154,7 +150,6 @@ describe("user role", () => {
 
     const client = await getAPIUserClient({
       user_id: tokenUserId,
-      team_id: tokenTeamId,
     });
 
     const query = gql`
@@ -197,12 +192,11 @@ describe("user role", () => {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
       body: {
-        input: { emails: ["test@gmail.com"] },
+        input: { emails: ["test@gmail.com"], team_id: memberRoleTeamId },
         action: { name: "invite_team_members" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": memberRoleUserId,
-          "x-hasura-team-id": memberRoleTeamId,
         },
       },
     });
@@ -231,12 +225,11 @@ describe("user role", () => {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
       body: {
-        input: { emails: ["test@gmail.com"] },
+        input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
         action: { name: "invite_team_members" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
         },
       },
     });
@@ -265,12 +258,11 @@ describe("user role", () => {
         authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
       },
       body: {
-        input: { emails: ["test@gmail.com"] },
+        input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
         action: { name: "invite_team_members" },
         session_variables: {
           "x-hasura-role": "user",
           "x-hasura-user-id": tokenUserId,
-          "x-hasura-team-id": tokenTeamId,
         },
       },
     });

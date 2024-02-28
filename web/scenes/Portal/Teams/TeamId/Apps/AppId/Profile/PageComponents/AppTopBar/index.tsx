@@ -216,7 +216,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
             : null,
           verification_status: "unverified",
         },
-        context: { headers: { team_id: teamId } },
         refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
       });
@@ -224,8 +223,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
       await fetchImagesQuery({
         variables: {
           id: appId,
+          team_id: teamId,
         },
-        context: { headers: { team_id: teamId } },
+
         onCompleted: (data) => {
           setUnverifiedImages({
             logo_img_url: data?.unverified_images?.logo_img_url ?? "",

@@ -1,5 +1,5 @@
-import { gql } from "@apollo/client";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { gql } from "@apollo/client";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,

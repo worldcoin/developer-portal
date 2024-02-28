@@ -6,6 +6,7 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchImagesQueryVariables = Types.Exact<{
   id: Types.Scalars["String"];
+  team_id: Types.Scalars["String"];
 }>;
 
 export type FetchImagesQuery = {
@@ -19,8 +20,11 @@ export type FetchImagesQuery = {
 };
 
 export const FetchImagesDocument = gql`
-  query FetchImages($id: String!) {
-    unverified_images: get_all_unverified_images(app_id: $id) {
+  query FetchImages($id: String!, $team_id: String!) {
+    unverified_images: get_all_unverified_images(
+      app_id: $id
+      team_id: $team_id
+    ) {
       logo_img_url
       hero_image_url
       showcase_img_urls
@@ -41,6 +45,7 @@ export const FetchImagesDocument = gql`
  * const { data, loading, error } = useFetchImagesQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */
