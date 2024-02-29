@@ -41,7 +41,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");
-    return Response.redirect(
+    return NextResponse.redirect(
       new URL("/login", process.env.NEXT_PUBLIC_APP_URL),
       307,
     );
@@ -88,7 +88,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         error,
       });
 
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
@@ -103,7 +103,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         `Received Auth0 authentication request from an unverified email: ${auth0User.sub}`,
       );
 
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
@@ -130,7 +130,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         error,
       });
 
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
@@ -140,7 +140,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const invite_id = req.nextUrl.searchParams.get("invite_id") as string;
 
   if (!user) {
-    return Response.redirect(
+    return NextResponse.redirect(
       new URL(
         invite_id ? urls.joinCallback({ invite_id }) : urls.createTeam(),
         process.env.NEXT_PUBLIC_APP_URL,
@@ -169,7 +169,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         error,
       });
 
-      return Response.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
     }
 
     if (
@@ -178,12 +178,12 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       new Date(invite.expires_at) <= new Date()
     ) {
       logger.error("Invite not found or team_id is missing.");
-      return Response.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
     }
 
     if (invite.email !== auth0User.email) {
       logger.error("Invite email does not match logged in email");
-      return Response.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
     }
 
     let membership: InsertMembershipMutation["insert_membership_one"] | null =
@@ -207,12 +207,12 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         },
       );
 
-      return Response.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
     }
 
     if (!membership) {
       logger.error("Membership not found after inserting.");
-      return Response.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
     }
 
     try {
@@ -264,7 +264,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         error,
       });
 
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
       );
@@ -287,10 +287,10 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     url = urls.createTeam();
   }
 
-  const res = Response.redirect(
+  const res = NextResponse.redirect(
     new URL(url, process.env.NEXT_PUBLIC_APP_URL),
     307,
-  ) as NextResponse;
+  );
 
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
   await updateSession(req, res, {
