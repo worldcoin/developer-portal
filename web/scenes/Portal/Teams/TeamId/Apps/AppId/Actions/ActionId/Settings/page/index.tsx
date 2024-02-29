@@ -39,7 +39,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
             actionId={actionID}
             teamId={teamId}
             appId={appId}
-            learnMoreUrl="https://docs.worldcoin.org/id/idkit"
+            learnMoreUrl="https://docs.worldcoin.org/quick-start/installation"
           />
           <hr className="my-5 w-full border-dashed text-grey-200" />
           <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">

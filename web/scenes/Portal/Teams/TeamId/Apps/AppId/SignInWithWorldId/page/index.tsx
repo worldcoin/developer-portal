@@ -30,7 +30,7 @@ export const SignInWithWorldIdPage = async (
           <Typography
             as="p"
             variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
+            className="text-center text-grey-500 md:text-start"
           >
             Let users sign in to your app with their World ID using OpenID
             Connect (OIDC)
@@ -52,7 +52,7 @@ export const SignInWithWorldIdPage = async (
             </Typography>
           </DecoratedButton>
           <DecoratedButton
-            href="https://docs.worldcoin.org/id/sign-in"
+            href="https://docs.worldcoin.org/sign-in"
             variant="secondary"
             className="flex h-12 items-center justify-center py-5"
           >

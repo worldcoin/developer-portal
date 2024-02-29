@@ -16,8 +16,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
   appId?: string;
   learnMoreUrl?: string;
 }) {
-  const { learnMoreUrl = "https://docs.worldcoin.org/id/incognito-actions" } =
-    props;
+  const { learnMoreUrl = "https://docs.worldcoin.org/id/cloud" } = props;
 
   const { data, loading } = useGetActionNameQuery({
     variables: { action_id: props.actionId ?? "" },
