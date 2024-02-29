@@ -30,7 +30,7 @@ export const SignInWithWorldIdPage = async (
           <Typography
             as="p"
             variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500"
+            className="text-center text-grey-500 md:text-start"
           >
             Let users sign in to your app with their World ID using OpenID
             Connect (OIDC)
