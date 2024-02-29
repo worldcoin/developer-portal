@@ -21,6 +21,7 @@ mutation CreateUserAndDeleteInvite(
     team_id
     ironclad_id
     posthog_id
+    is_allow_tracking
     world_id_nullifier
     auth0Id
     name

@@ -22,6 +22,7 @@ export type CreateUserAndDeleteInviteMutation = {
     team_id?: string | null;
     ironclad_id: string;
     posthog_id?: string | null;
+    is_allow_tracking?: boolean | null;
     world_id_nullifier?: string | null;
     auth0Id?: string | null;
     name: string;
@@ -54,6 +55,7 @@ export const CreateUserAndDeleteInviteDocument = gql`
       team_id
       ironclad_id
       posthog_id
+      is_allow_tracking
       world_id_nullifier
       auth0Id
       name

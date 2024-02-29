@@ -1,5 +1,6 @@
 "use client";
 
+import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -22,6 +23,7 @@ import { colorAtom } from "../../layout";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
+  isAllowTracking: yup.boolean(),
   color: yup.object<Color>({
     "100": yup.string().required(),
     "500": yup.string().required(),
@@ -64,6 +66,10 @@ export const ProfilePage = () => {
     resetField("name", {
       defaultValue: user.nameToDisplay,
     });
+
+    resetField("isAllowTracking", {
+      defaultValue: user.is_allow_tracking ?? false,
+    });
   }, [loading, resetField, user]);
 
   const selectedColor = watch("color");
@@ -85,6 +91,7 @@ export const ProfilePage = () => {
             user_id: auth0User?.hasura.id,
             input: {
               name: values.name,
+              is_allow_tracking: values.isAllowTracking,
               // TODO: pass color
             },
           },
@@ -152,11 +159,30 @@ export const ProfilePage = () => {
               errors={errors.name}
             />
 
+            <label
+              htmlFor="is_allow_tracking"
+              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
+            >
+              <Checkbox
+                register={register("isAllowTracking")}
+                id="is_allow_tracking"
+              />
+
+              <div className="grid gap-y-2">
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                  Allow analytics
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+                  We collect analytics in the developer portal to help us
+                  provide a better experience to you.
+                </Typography>
+              </div>
+            </label>
             <div>
               <DecoratedButton
                 type="submit"
                 variant="primary"
-                className="py-4"
+                className="max-h-12 py-4"
                 disabled={!isValid || isSubmitting}
               >
                 Save changes

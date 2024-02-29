@@ -14,6 +14,7 @@ export type InsertUserMutation = {
     __typename?: "user";
     id: string;
     posthog_id?: string | null;
+    is_allow_tracking?: boolean | null;
   } | null;
 };
 
@@ -22,6 +23,7 @@ export const InsertUserDocument = gql`
     insert_user_one(object: $user_data) {
       id
       posthog_id
+      is_allow_tracking
     }
   }
 `;
