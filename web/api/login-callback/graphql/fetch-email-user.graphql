@@ -5,6 +5,7 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     name
     auth0Id
     posthog_id
+    is_allow_tracking
     name
     memberships {
       team {
@@ -21,6 +22,7 @@ query FetchEmailUser($auth0Id: String, $email: String) {
     name
     auth0Id
     posthog_id
+    is_allow_tracking
     name
     memberships {
       team {

@@ -6559,6 +6559,7 @@ export type User = {
   email?: Maybe<Scalars["String"]>;
   id: Scalars["String"];
   ironclad_id: Scalars["String"];
+  is_allow_tracking?: Maybe<Scalars["Boolean"]>;
   is_subscribed: Scalars["Boolean"];
   /** An array relationship */
   memberships: Array<Membership>;
@@ -6622,6 +6623,7 @@ export type User_Bool_Exp = {
   email?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   ironclad_id?: InputMaybe<String_Comparison_Exp>;
+  is_allow_tracking?: InputMaybe<Boolean_Comparison_Exp>;
   is_subscribed?: InputMaybe<Boolean_Comparison_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
@@ -6652,6 +6654,7 @@ export type User_Insert_Input = {
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   ironclad_id?: InputMaybe<Scalars["String"]>;
+  is_allow_tracking?: InputMaybe<Scalars["Boolean"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]>;
@@ -6722,6 +6725,7 @@ export type User_Order_By = {
   email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   ironclad_id?: InputMaybe<Order_By>;
+  is_allow_tracking?: InputMaybe<Order_By>;
   is_subscribed?: InputMaybe<Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
@@ -6750,6 +6754,8 @@ export enum User_Select_Column {
   /** column name */
   IroncladId = "ironclad_id",
   /** column name */
+  IsAllowTracking = "is_allow_tracking",
+  /** column name */
   IsSubscribed = "is_subscribed",
   /** column name */
   Name = "name",
@@ -6770,6 +6776,7 @@ export type User_Set_Input = {
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   ironclad_id?: InputMaybe<Scalars["String"]>;
+  is_allow_tracking?: InputMaybe<Scalars["Boolean"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
   posthog_id?: InputMaybe<Scalars["String"]>;
@@ -6793,6 +6800,7 @@ export type User_Stream_Cursor_Value_Input = {
   email?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   ironclad_id?: InputMaybe<Scalars["String"]>;
+  is_allow_tracking?: InputMaybe<Scalars["Boolean"]>;
   is_subscribed?: InputMaybe<Scalars["Boolean"]>;
   name?: InputMaybe<Scalars["String"]>;
   posthog_id?: InputMaybe<Scalars["String"]>;
@@ -6813,6 +6821,8 @@ export enum User_Update_Column {
   Id = "id",
   /** column name */
   IroncladId = "ironclad_id",
+  /** column name */
+  IsAllowTracking = "is_allow_tracking",
   /** column name */
   IsSubscribed = "is_subscribed",
   /** column name */

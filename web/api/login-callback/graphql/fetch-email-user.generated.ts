@@ -18,6 +18,7 @@ export type FetchEmailUserQuery = {
     name: string;
     auth0Id?: string | null;
     posthog_id?: string | null;
+    is_allow_tracking?: boolean | null;
     memberships: Array<{
       __typename?: "membership";
       role: Types.Role_Enum;
@@ -31,6 +32,7 @@ export type FetchEmailUserQuery = {
     name: string;
     auth0Id?: string | null;
     posthog_id?: string | null;
+    is_allow_tracking?: boolean | null;
     memberships: Array<{
       __typename?: "membership";
       role: Types.Role_Enum;
@@ -47,6 +49,7 @@ export const FetchEmailUserDocument = gql`
       name
       auth0Id
       posthog_id
+      is_allow_tracking
       name
       memberships {
         team {
@@ -62,6 +65,7 @@ export const FetchEmailUserDocument = gql`
       name
       auth0Id
       posthog_id
+      is_allow_tracking
       name
       memberships {
         team {

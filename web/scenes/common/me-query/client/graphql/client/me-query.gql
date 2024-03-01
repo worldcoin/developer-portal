@@ -5,6 +5,7 @@ query FetchMe($userId: String!) {
     email
     world_id_nullifier
     posthog_id
+    is_allow_tracking
 
     memberships {
       role

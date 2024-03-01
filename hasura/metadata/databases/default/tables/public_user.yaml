@@ -39,6 +39,7 @@ select_permissions:
         - team_id
         - updated_at
         - world_id_nullifier
+        - is_allow_tracking
       filter: {}
   - role: user
     permission:
@@ -51,6 +52,7 @@ select_permissions:
         - name
         - posthog_id
         - world_id_nullifier
+        - is_allow_tracking
       filter:
         _or:
           - id:
@@ -73,6 +75,7 @@ update_permissions:
     permission:
       columns:
         - name
+        - is_allow_tracking
       filter:
         id:
           _eq: X-Hasura-User-Id

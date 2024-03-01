@@ -12,6 +12,7 @@ mutation InsertMembership(
       name
       auth0Id
       posthog_id
+      is_allow_tracking
       name
       memberships {
         team {

@@ -12,6 +12,7 @@ query FetchNullifierUser($auth0Id: String!, $world_id_nullifier: String!) {
     name
     auth0Id
     posthog_id
+    is_allow_tracking
     name
     memberships {
       team {

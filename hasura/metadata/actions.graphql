@@ -1,5 +1,7 @@
 type Mutation {
-  delete_unverified_images(app_id: String!): DeleteImageOutput
+  delete_unverified_images(
+    app_id: String!
+  ): DeleteImageOutput
 }
 
 type Query {
@@ -10,7 +12,9 @@ type Query {
 }
 
 type Query {
-  get_app_review_images(app_id: String!): ImageGetAppReviewImagesOutput
+  get_app_review_images(
+    app_id: String!
+  ): ImageGetAppReviewImagesOutput
 }
 
 type Query {
@@ -30,11 +34,17 @@ type Mutation {
 }
 
 type Mutation {
-  reset_api_key(id: String!, team_id: String!): ResetAPIOutput
+  reset_api_key(
+    id: String!
+    team_id: String!
+  ): ResetAPIOutput
 }
 
 type Mutation {
-  reset_client_secret(app_id: String!, team_id: String!): ResetClientOutput
+  reset_client_secret(
+    app_id: String!
+    team_id: String!
+  ): ResetClientOutput
 }
 
 type Query {
@@ -117,3 +127,4 @@ type ImageGetAppReviewImagesOutput {
   hero_image_url: String
   showcase_img_urls: [String!]
 }
+

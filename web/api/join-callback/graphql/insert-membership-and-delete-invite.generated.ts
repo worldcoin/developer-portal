@@ -24,6 +24,7 @@ export type InsertMembershipMutation = {
       name: string;
       auth0Id?: string | null;
       posthog_id?: string | null;
+      is_allow_tracking?: boolean | null;
       memberships: Array<{
         __typename?: "membership";
         role: Types.Role_Enum;
@@ -50,6 +51,7 @@ export const InsertMembershipDocument = gql`
         name
         auth0Id
         posthog_id
+        is_allow_tracking
         name
         memberships {
           team {
