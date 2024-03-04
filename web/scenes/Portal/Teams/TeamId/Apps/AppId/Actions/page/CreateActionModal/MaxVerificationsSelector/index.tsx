@@ -100,7 +100,7 @@ export const MaxVerificationsSelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 max-h-32 text-sm focus:outline-none focus:ring-0",
+              "mt-3 max-h-36 text-sm focus:outline-none focus:ring-0",
             )}
           >
             {VerificationOptions.map((option, index) => (

@@ -18,6 +18,7 @@ export const Waiting = memo(function Waiting(props: {
   resetKioskAndUpdateVerificationLevel?: (value: VerificationLevel) => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [buttonColor, setButtonColor] = useState(false);
   const {
     qrData,
     showSimulator,
@@ -41,6 +42,7 @@ export const Waiting = memo(function Waiting(props: {
       .then(() => setCopied(true))
       .then(() => new Promise((resolve) => setTimeout(resolve, 3000)))
       .finally(() => setCopied(false));
+    setButtonColor(true);
   }, [qrData, params, setCopied]);
 
   return (
@@ -84,7 +86,7 @@ export const Waiting = memo(function Waiting(props: {
         {showSimulator && (
           <DecoratedButton
             href="https://simulator.worldcoin.org/"
-            variant="secondary"
+            variant={buttonColor ? "primary" : "secondary"}
             className="w-full py-3"
           >
             <Typography variant={TYPOGRAPHY.M3}>Test in simulator</Typography>
