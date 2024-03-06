@@ -201,6 +201,18 @@ export default async function handleVerify(
       );
     }
 
+    await captureEvent({
+      event: "action_verify_success",
+      distinctId: action.id,
+      properties: {
+        action_id: action.id,
+        app_id: app.id,
+        verification_level: verification_level,
+        environment: app.is_staging ? "staging" : "production",
+        type: nullifier.uses,
+      },
+    });
+
     res.status(200).json({
       success: true,
       uses: nullifier.uses + 1,
@@ -240,6 +252,7 @@ export default async function handleVerify(
           action_id: action.id,
           app_id: app.id,
           environment: app.is_staging ? "staging" : "production",
+          type: "unique",
         },
       });
 
