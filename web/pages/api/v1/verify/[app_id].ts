@@ -1,11 +1,11 @@
-import { ApolloError, gql } from "@apollo/client";
-import { NextApiRequest, NextApiResponse } from "next";
 import {
   errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
 } from "@/legacy/backend/errors";
+import { ApolloError, gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
 
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 
@@ -22,8 +22,8 @@ import {
   VerificationLevel,
 } from "@worldcoin/idkit-core";
 
-import * as yup from "yup";
 import { captureEvent } from "@/services/posthogClient";
+import * as yup from "yup";
 
 const schema = yup.object({
   action: yup
@@ -169,6 +169,7 @@ export default async function handleVerify(
         action_id: action.id,
         app_id: app.id,
         environment: app.is_staging ? "staging" : "production",
+        verification_level: verification_level,
         error: error,
       },
     });
@@ -239,6 +240,7 @@ export default async function handleVerify(
         properties: {
           action_id: action.id,
           app_id: app.id,
+          verification_level: verification_level,
           environment: app.is_staging ? "staging" : "production",
         },
       });
