@@ -16,6 +16,11 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     return NextResponse.json({ success: false }, { status: 500 });
   }
 
+  // Split this out and return a 401: Unauthorized
+  if (session.user.hasura.id != user.id) {
+    return NextResponse.json({ success: false }, { status: 401 });
+  }
+
   const updatedSession = {
     ...session,
     user: {
