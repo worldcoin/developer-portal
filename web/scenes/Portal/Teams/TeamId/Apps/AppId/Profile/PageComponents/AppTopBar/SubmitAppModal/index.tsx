@@ -101,7 +101,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="mx-5 gap-y-5 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-5 md:max-w-[36rem]">
         <CircleIconContainer variant={"info"}>
           <WorldcoinIcon className=" text-blue-500" />
         </CircleIconContainer>
@@ -147,7 +147,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               </Typography>
             </div>
           </label>
-          <div className="grid w-full grid-cols-2 gap-x-4">
+          <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
               variant="secondary"

@@ -189,7 +189,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
             }}
           />
 
-          <div className="mt-2 grid w-full grid-cols-2 gap-x-4">
+          <div className="mt-2 grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
               variant="secondary"

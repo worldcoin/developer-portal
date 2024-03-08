@@ -67,7 +67,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
               API key? Please be aware that this action is permanent.
             </Typography>
           </div>
-          <div className="grid w-full grid-cols-2 gap-x-3">
+          <div className="grid w-full gap-x-3 gap-y-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
               variant="danger"

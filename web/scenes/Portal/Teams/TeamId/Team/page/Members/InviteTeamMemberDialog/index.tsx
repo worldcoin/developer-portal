@@ -83,6 +83,7 @@ export const InviteTeamMemberDialog = () => {
             variant="primary"
             disabled={loading}
             onClick={handleInvite}
+            className="whitespace-nowrap"
           >
             Send invite
           </DecoratedButton>

@@ -10,7 +10,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
 import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { CopyButton } from "@/components/CopyButton";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
@@ -116,22 +116,21 @@ export const ApiKeyRow = (props: {
         <Typography
           variant={TYPOGRAPHY.R3}
           as="div"
-          className="overflow-wrap break-word grid grid-cols-auto/1fr items-center justify-start justify-items-start gap-x-4 py-2 text-grey-500"
+          className="grid grid-cols-auto/1fr items-center justify-start justify-items-start gap-x-4 py-2 text-grey-500"
         >
-          <Typography variant={TYPOGRAPHY.R4}>
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="max-w-[30px] truncate md:max-w-full md:whitespace-normal"
+          >
             {secretKey ?? "api_" + btoa(apiKey.id).substring(0, 15) + "..."}
           </Typography>
-          <DecoratedButton
-            type="button"
-            variant="secondary"
-            onClick={copyKey}
-            className={clsx(
-              "whitespace-nowrap rounded-lg px-5 py-2 transition-opacity duration-300 md:opacity-0",
-              { "opacity-100 md:group-hover:opacity-100": secretKey },
-            )}
-          >
-            <Typography variant={TYPOGRAPHY.M4}>Copy</Typography>
-          </DecoratedButton>
+          <CopyButton
+            fieldValue={secretKey ?? ""}
+            fieldName="API Key"
+            className={clsx("cursor-pointer transition-opacity duration-300 ", {
+              "sm:opacity-0 sm:group-hover:opacity-100": secretKey,
+            })}
+          />
         </Typography>
       </td>
 

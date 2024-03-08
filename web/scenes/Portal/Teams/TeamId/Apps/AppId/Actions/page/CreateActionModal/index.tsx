@@ -169,7 +169,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                 </Button>
                 <span className="text-grey-200">|</span>
                 <Typography variant={TYPOGRAPHY.M4}>
-                  Create an incognito action
+                  Create an action
                 </Typography>
               </div>
               <LoggedUserNav />
