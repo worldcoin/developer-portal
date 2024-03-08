@@ -111,7 +111,7 @@ export const PermissionsDialog = () => {
     >
       <DialogOverlay />
 
-      <DialogPanel className="grid w-full max-w-[1056px] gap-y-8">
+      <DialogPanel className="grid gap-y-8 md:max-w-[66rem]">
         <header className="flex w-full justify-start">
           <Button
             type="button"

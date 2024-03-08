@@ -115,7 +115,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid max-w-[90vw] gap-y-8 sm:min-w-[400px]">
+      <DialogPanel className="grid gap-y-8 md:max-w-[25rem]">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>

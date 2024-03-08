@@ -59,7 +59,7 @@ export const RemoveUserDialog = (props: {
     <Dialog open={isOpened} onClose={setIsOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="grid max-w-[400px] gap-y-8">
+      <DialogPanel className="grid gap-y-8 md:max-w-[25rem]">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>

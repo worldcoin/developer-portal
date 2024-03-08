@@ -45,10 +45,10 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="w-full">
+    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
       <DialogPanel>
-        <div className="grid w-full max-w-[400px] grid-cols-1 justify-items-center gap-y-8 px-2">
+        <div className="grid grid-cols-1 justify-items-center gap-y-8 px-2 md:w-full md:max-w-[25rem]">
           <CircleIconContainer variant={"error"}>
             <WarningErrorIcon className="w-6" />
           </CircleIconContainer>
@@ -67,7 +67,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
               API key? Please be aware that this action is permanent.
             </Typography>
           </div>
-          <div className="grid w-full grid-cols-2 gap-x-3">
+          <div className="grid w-full gap-x-3 gap-y-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
               variant="danger"

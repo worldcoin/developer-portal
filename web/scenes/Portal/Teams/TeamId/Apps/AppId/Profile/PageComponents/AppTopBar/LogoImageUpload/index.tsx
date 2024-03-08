@@ -150,7 +150,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     <div className={clsx("relative flex size-20 items-center justify-center")}>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
-        <DialogPanel className="grid max-w-[440px] gap-y-10 bg-white">
+        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
           <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button

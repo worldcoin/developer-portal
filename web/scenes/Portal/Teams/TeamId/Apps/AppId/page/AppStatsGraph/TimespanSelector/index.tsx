@@ -22,7 +22,7 @@ export const TimespanSelector = <T extends Timespan>(props: {
 
   return (
     <Select value={value} onChange={setValue}>
-      <SelectButton className="min-w-[150px] rounded-lg border border-grey-200 px-4 py-2">
+      <SelectButton className="w-full min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
         {({ value }) => (
           <div className="grid grid-cols-1fr/auto items-center gap-x-2">
             <Typography

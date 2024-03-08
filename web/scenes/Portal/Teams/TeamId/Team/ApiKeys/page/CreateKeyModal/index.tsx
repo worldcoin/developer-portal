@@ -69,8 +69,8 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="z-[100]">
-        <div className="grid max-w-[580px] grid-cols-1 justify-items-center gap-y-10">
+      <DialogPanel className="md:max-w-[36rem]">
+        <div className="grid grid-cols-1 justify-items-center gap-y-10">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
@@ -94,7 +94,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               errors={errors.name}
               placeholder="Staging_key"
             />
-            <div className="grid w-full grid-cols-2 gap-x-4">
+            <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-4">
               <DecoratedButton
                 type="button"
                 variant="secondary"
@@ -102,7 +102,11 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               >
                 Cancel
               </DecoratedButton>
-              <DecoratedButton type="submit" disabled={!teamId}>
+              <DecoratedButton
+                type="submit"
+                disabled={!teamId}
+                className="whitespace-nowrap"
+              >
                 Create new key
               </DecoratedButton>
             </div>

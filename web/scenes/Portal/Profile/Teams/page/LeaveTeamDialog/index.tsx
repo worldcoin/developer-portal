@@ -56,7 +56,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid w-[28rem] gap-y-8">
+      <DialogPanel className="grid gap-y-8 md:max-w-[28rem]">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
