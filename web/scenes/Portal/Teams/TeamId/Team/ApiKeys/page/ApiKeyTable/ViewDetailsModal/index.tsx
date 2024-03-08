@@ -93,16 +93,19 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
+
       <DialogPanel className="md:max-w-[36rem]">
-        <div className="grid grid-cols-1 justify-items-center gap-y-8">
+        <div className="grid w-full grid-cols-1 justify-items-center gap-y-8">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
+
           <div className="grid w-full justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Edit API Key
             </Typography>
           </div>
+
           <form
             className="grid w-full gap-y-10"
             onSubmit={handleSubmit(submit)}
@@ -114,16 +117,19 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
               errors={errors.name}
               placeholder="Staging_key"
             />
+
             <Controller
               control={control}
               name="isActive"
               render={({ field }) => (
                 <div className="grid grid-cols-auto/1fr items-start justify-items-start gap-x-4 rounded-xl border border-grey-200 p-4">
                   <Switcher setEnabled={field.onChange} enabled={field.value} />
+
                   <div className="grid grid-cols-1 gap-y-1">
                     <Typography variant={TYPOGRAPHY.R3}>
                       Activate the API key
                     </Typography>
+
                     <Typography
                       variant={TYPOGRAPHY.R4}
                       className="text-grey-400"
@@ -134,15 +140,23 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
                 </div>
               )}
             />
-            <div className="grid w-full grid-cols-2 gap-x-4">
+
+            <div className="grid w-full grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-2">
               <DecoratedButton
+                className="order-2 md:order-1"
                 type="button"
                 variant="secondary"
                 onClick={() => setIsOpen(false)}
               >
                 Cancel
               </DecoratedButton>
-              <DecoratedButton type="submit">Save Changes</DecoratedButton>
+
+              <DecoratedButton
+                className="order-1 whitespace-nowrap"
+                type="submit"
+              >
+                Save Changes
+              </DecoratedButton>
             </div>
           </form>
         </div>

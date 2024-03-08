@@ -73,8 +73,13 @@ export const InviteTeamMemberDialog = () => {
           className="w-full"
         />
 
-        <div className="grid w-full grid-cols-2 gap-x-4">
-          <DecoratedButton type="button" variant="secondary" onClick={onClose}>
+        <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
+          <DecoratedButton
+            className="order-2 md:order-1"
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+          >
             Cancel
           </DecoratedButton>
 
@@ -83,7 +88,7 @@ export const InviteTeamMemberDialog = () => {
             variant="primary"
             disabled={loading}
             onClick={handleInvite}
-            className="whitespace-nowrap"
+            className="order-1 whitespace-nowrap"
           >
             Send invite
           </DecoratedButton>

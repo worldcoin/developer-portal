@@ -8,7 +8,7 @@ import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 export const TeamsPage = () => {
   return (
     <>
-      <div className="pt-9">
+      <div className="order-1 pt-9">
         <SizingWrapper className="grid gap-y-8">
           <UserInfo />
 
@@ -16,25 +16,27 @@ export const TeamsPage = () => {
         </SizingWrapper>
       </div>
 
-      <SizingWrapper>
-        <div className="m-auto grid gap-y-8 py-8">
-          <div className="grid grid-cols-[1fr_auto]">
-            <Typography as="h1" variant={TYPOGRAPHY.H7}>
-              Teams
-            </Typography>
+      <div className="order-3">
+        <SizingWrapper>
+          <div className="m-auto grid gap-y-8 py-8">
+            <div className="grid grid-cols-[1fr_auto]">
+              <Typography as="h1" variant={TYPOGRAPHY.H7}>
+                Teams
+              </Typography>
 
-            <DecoratedButton
-              variant="primary"
-              href={urls.createTeam()}
-              className="py-3"
-            >
-              Create new team
-            </DecoratedButton>
+              <DecoratedButton
+                variant="primary"
+                href={urls.createTeam()}
+                className="py-3"
+              >
+                Create new team
+              </DecoratedButton>
+            </div>
+
+            <List />
           </div>
-
-          <List />
-        </div>
-      </SizingWrapper>
+        </SizingWrapper>
+      </div>
     </>
   );
 };

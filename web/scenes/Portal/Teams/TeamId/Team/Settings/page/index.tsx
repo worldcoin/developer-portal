@@ -15,6 +15,7 @@ import {
   useFetchTeamQuery,
 } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -67,36 +68,40 @@ export const TeamSettingsPage = () => {
   );
 
   return (
-    <div>
-      <TeamProfile />
+    <>
+      <SizingWrapper gridClassName="order-1">
+        <TeamProfile />
+      </SizingWrapper>
 
-      <div className="m-auto grid gap-y-8 py-8">
-        <Typography as="h1" variant={TYPOGRAPHY.H7}>
-          Team settings
-        </Typography>
-      </div>
-
-      <form
-        className="grid max-w-[36.25rem] gap-y-8"
-        onSubmit={handleSubmit(submit)}
-      >
-        <Input
-          className="-mt-2"
-          label="Display name"
-          register={register("name")}
-          errors={errors.name}
-        />
-
-        <div>
-          <DecoratedButton
-            type="submit"
-            variant="primary"
-            disabled={!isValid || isSubmitting}
-          >
-            Save changes
-          </DecoratedButton>
+      <SizingWrapper gridClassName="order-2">
+        <div className="m-auto grid gap-y-8 py-8">
+          <Typography as="h1" variant={TYPOGRAPHY.H7}>
+            Team settings
+          </Typography>
         </div>
-      </form>
-    </div>
+
+        <form
+          className="grid max-w-[36.25rem] gap-y-8"
+          onSubmit={handleSubmit(submit)}
+        >
+          <Input
+            className="-mt-2"
+            label="Display name"
+            register={register("name")}
+            errors={errors.name}
+          />
+
+          <div>
+            <DecoratedButton
+              type="submit"
+              variant="primary"
+              disabled={!isValid || isSubmitting}
+            >
+              Save changes
+            </DecoratedButton>
+          </div>
+        </form>
+      </SizingWrapper>
+    </>
   );
 };

@@ -12,13 +12,15 @@ export const DangerZone = () => {
 
   return (
     <>
-      <div className="pt-9">
+      <div className="order-1 pt-9">
         <SizingWrapper className="grid gap-y-8">
           <UserInfo />
 
           <div className="border-b border-dashed border-grey-200" />
         </SizingWrapper>
+      </div>
 
+      <div className="order-3">
         <SizingWrapper className="py-8">
           <div className="grid gap-y-8">
             <div className="grid w-full max-w-[580px] gap-y-3">

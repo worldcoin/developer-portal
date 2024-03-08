@@ -69,20 +69,24 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   return (
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
+
       <DialogPanel className="md:max-w-[36rem]">
         <div className="grid grid-cols-1 justify-items-center gap-y-10">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />
           </CircleIconContainer>
+
           <div className="grid w-full justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Create a new API key
             </Typography>
+
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Create a secure API key to seamlessly connect with your World ID
               App.
             </Typography>
           </div>
+
           <form
             className="grid w-full gap-y-10"
             onSubmit={handleSubmit(submit)}
@@ -94,18 +98,21 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
               errors={errors.name}
               placeholder="Staging_key"
             />
-            <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-4">
+
+            <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
               <DecoratedButton
+                className="order-2 md:order-1"
                 type="button"
                 variant="secondary"
                 onClick={() => setIsOpen(false)}
               >
                 Cancel
               </DecoratedButton>
+
               <DecoratedButton
                 type="submit"
                 disabled={!teamId}
-                className="whitespace-nowrap"
+                className="order-1 whitespace-nowrap"
               >
                 Create new key
               </DecoratedButton>

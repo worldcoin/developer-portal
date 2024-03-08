@@ -7,10 +7,12 @@ import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type TeamApiKeysPageProps = {
   params: Record<string, string> | null | undefined;
 };
+
 export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   const { params } = props;
   const teamId = params?.teamId;
@@ -19,56 +21,68 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
 
   const apiKeys = data?.api_key;
   return (
-    <div className="grid grid-cols-1 gap-y-8">
-      <TeamProfile className="w-full" />
-      <div className="grid w-full items-center justify-items-center gap-y-5">
-        <CreateKeyModal
-          teamId={teamId ?? ""}
-          isOpen={showCreateKeyModal}
-          setIsOpen={setShowCreateKeyModal}
-        />
-        {!loading && apiKeys?.length === 0 ? (
-          <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
-            <div className="grid justify-items-center gap-y-5 ">
-              <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
-              <Typography
-                variant={TYPOGRAPHY.R3}
-                className="text-center text-grey-500"
-              >
-                Create a secure API key to seamlessly <br />
-                manage your team&apos;s World ID apps
-              </Typography>
-            </div>
-            <DecoratedButton
-              type="button"
-              onClick={() => setShowCreateKeyModal(true)}
-            >
-              Create new key
-            </DecoratedButton>
-          </div>
-        ) : (
-          <div className="grid w-full gap-y-7">
-            <div className="flex items-center justify-between gap-x-2">
-              <Typography variant={TYPOGRAPHY.H7}>API keys</Typography>
-              {loading ? (
-                <Skeleton width={150} />
-              ) : (
-                <DecoratedButton
-                  type="button"
-                  onClick={() => setShowCreateKeyModal(true)}
+    <>
+      <SizingWrapper gridClassName="order-1">
+        <TeamProfile className="w-full" />
+      </SizingWrapper>
+
+      <SizingWrapper gridClassName="order-2 pt-8">
+        <div className="grid w-full items-center justify-items-center gap-y-5">
+          <CreateKeyModal
+            teamId={teamId ?? ""}
+            isOpen={showCreateKeyModal}
+            setIsOpen={setShowCreateKeyModal}
+          />
+
+          {!loading && apiKeys?.length === 0 ? (
+            <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
+              <div className="grid justify-items-center gap-y-5 ">
+                <Typography variant={TYPOGRAPHY.H6}>
+                  No API keys found
+                </Typography>
+
+                <Typography
+                  variant={TYPOGRAPHY.R3}
+                  className="text-center text-grey-500"
                 >
-                  Create new key
-                </DecoratedButton>
+                  Create a secure API key to seamlessly <br />
+                  manage your team&apos;s World ID apps
+                </Typography>
+              </div>
+
+              <DecoratedButton
+                type="button"
+                onClick={() => setShowCreateKeyModal(true)}
+              >
+                Create new key
+              </DecoratedButton>
+            </div>
+          ) : (
+            <div className="grid w-full gap-y-7">
+              <div className="flex items-center justify-between gap-x-2">
+                <Typography variant={TYPOGRAPHY.H7}>API keys</Typography>
+
+                {loading ? (
+                  <Skeleton width={150} />
+                ) : (
+                  <DecoratedButton
+                    type="button"
+                    onClick={() => setShowCreateKeyModal(true)}
+                  >
+                    Create new key
+                  </DecoratedButton>
+                )}
+              </div>
+
+              {loading ? (
+                <Skeleton count={5} />
+              ) : (
+                <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
               )}
             </div>
-            {loading ? (
-              <Skeleton count={5} />
-            ) : (
-              <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      </SizingWrapper>
+    </>
   );
 };

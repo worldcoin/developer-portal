@@ -9,6 +9,7 @@ import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { LinksForm } from "./LinksForm";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type AppProfileLinksProps = {
   params: Record<string, string> | null | undefined;
@@ -39,25 +40,31 @@ export const AppProfileLinksPage = ({ params }: AppProfileLinksProps) => {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <div className={clsx("grid gap-y-4 py-8")}>
-        {loading ? (
-          <Skeleton count={2} height={50} />
-        ) : (
-          <AppTopBar appId={appId} teamId={teamId} app={app!} />
-        )}
-        <hr className="my-5 w-full border-dashed text-grey-200" />
-        <div className="grid max-w-[580px] grid-cols-1">
+      <>
+        <SizingWrapper gridClassName="order-1 pt-8">
           {loading ? (
-            <FormSkeleton count={3} />
+            <Skeleton count={2} height={50} />
           ) : (
-            <LinksForm
-              appId={appId}
-              teamId={teamId}
-              appMetadata={appMetaData}
-            />
+            <AppTopBar appId={appId} teamId={teamId} app={app!} />
           )}
-        </div>
-      </div>
+
+          <hr className="my-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
+
+        <SizingWrapper gridClassName="order-2 pb-8 pt-4">
+          <div className="grid max-w-[580px] grid-cols-1">
+            {loading ? (
+              <FormSkeleton count={3} />
+            ) : (
+              <LinksForm
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetaData}
+              />
+            )}
+          </div>
+        </SizingWrapper>
+      </>
     );
   }
 };

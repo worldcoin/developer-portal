@@ -68,7 +68,10 @@ export const Tabs = (props: TabsProps) => {
     <div className="relative -mx-6">
       <div
         ref={ref}
-        className={twMerge("flex gap-x-4 overflow-x-scroll px-6", className)}
+        className={twMerge(
+          "flex gap-x-2 overflow-x-scroll md:gap-x-4 md:px-6",
+          className,
+        )}
         style={{
           ...style,
           WebkitOverflowScrolling: "touch",

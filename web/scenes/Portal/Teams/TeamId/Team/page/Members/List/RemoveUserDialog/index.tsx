@@ -76,9 +76,10 @@ export const RemoveUserDialog = (props: {
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="grid w-full grid-cols-2 items-center gap-x-4"
+          className="grid w-full grid-cols-1 items-center gap-2 md:grid-cols-2 md:gap-4"
         >
           <DecoratedButton
+            className="order-2 md:order-1"
             type="submit"
             variant="danger"
             disabled={isSubmitting}
@@ -87,6 +88,7 @@ export const RemoveUserDialog = (props: {
           </DecoratedButton>
 
           <DecoratedButton
+            className="order-1 whitespace-nowrap"
             variant="primary"
             type="button"
             onClick={() => setIsOpened(false)}

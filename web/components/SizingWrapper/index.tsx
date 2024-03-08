@@ -7,15 +7,17 @@ export const SizingWrapper = (props: {
   className?: string;
   gridClassName?: string;
   variant?: "content" | "nav";
+  fullHeight?: boolean;
 }) => {
   return (
     <div
       className={twMerge(
         clsx(
-          "grid size-full grid-cols-[minmax(24px,1fr)_minmax(0,calc(1440px-9vw*2))_minmax(24px,1fr)] ",
+          "grid w-full grid-cols-[minmax(24px,1fr)_minmax(0,calc(1440px-9vw*2))_minmax(24px,1fr)]",
           {
-            " 2xl:grid-cols-[minmax(24px,1fr)_minmax(0,calc(1920px-9vw*2))_minmax(24px,1fr)]":
+            "2xl:grid-cols-[minmax(24px,1fr)_minmax(0,calc(1920px-9vw*2))_minmax(24px,1fr)]":
               props.variant === "nav",
+            "h-full": props.fullHeight,
           },
           props.gridClassName,
         ),
