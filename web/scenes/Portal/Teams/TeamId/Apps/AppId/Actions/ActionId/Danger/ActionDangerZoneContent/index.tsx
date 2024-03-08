@@ -74,7 +74,7 @@ export const ActionDangerZoneContent = (props: {
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
 
-        <DialogPanel className="z-50 mx-4 grid gap-y-6 rounded-xl bg-white md:w-5">
+        <DialogPanel className="grid gap-y-6 md:max-w-[26rem]">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>

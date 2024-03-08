@@ -22,6 +22,7 @@ const config: Config = {
         8: "0.5rem",
         12: "0.75rem",
         20: "1.25em",
+        32: "2em",
       },
 
       boxShadow: {

@@ -49,7 +49,7 @@ export const InviteTeamMemberDialog = () => {
     <Dialog open={isOpened} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid max-w-[580px] justify-items-center gap-y-10">
+      <DialogPanel className="grid justify-items-center gap-y-10 md:max-w-[36rem]">
         <div className="grid w-full justify-items-center gap-y-4">
           <CircleIconContainer variant="info">
             <UserAddIcon />

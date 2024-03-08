@@ -112,7 +112,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid w-[36.25rem] gap-y-8">
+      <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
         <CircleIconContainer variant="info">
           <ExchangeIcon />
         </CircleIconContainer>
