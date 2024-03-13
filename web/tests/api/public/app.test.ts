@@ -1,4 +1,4 @@
-import { GET } from "@/api/public/app/[app_id]/route";
+import { GET } from "@/api/public/app/[app_id]";
 import { NextRequest } from "next/server";
 import { getSdk as getAppMetadataSdk } from "../../../api/public/app/[app_id]/graphql/get-app-metadata.generated";
 

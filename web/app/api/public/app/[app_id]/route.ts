@@ -1,1 +1,1 @@
-export { GET } from "@/api/public/app/[app_id]/route";
+export { GET } from "@/api/public/app/[app_id]";
