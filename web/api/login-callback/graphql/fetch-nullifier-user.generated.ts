@@ -19,6 +19,7 @@ export type FetchNullifierUserQuery = {
     auth0Id?: string | null;
     posthog_id?: string | null;
     is_allow_tracking?: boolean | null;
+    world_id_nullifier?: string | null;
     memberships: Array<{
       __typename?: "membership";
       role: Types.Role_Enum;
@@ -43,6 +44,7 @@ export const FetchNullifierUserDocument = gql`
       auth0Id
       posthog_id
       is_allow_tracking
+      world_id_nullifier
       name
       memberships {
         team {

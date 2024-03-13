@@ -20,6 +20,7 @@ export type InsertMembershipMutation = {
       __typename?: "user";
       id: string;
       email?: string | null;
+      world_id_nullifier?: string | null;
       name: string;
       auth0Id?: string | null;
       posthog_id?: string | null;
@@ -45,6 +46,7 @@ export const InsertMembershipDocument = gql`
       user {
         id
         email
+        world_id_nullifier
         name
         auth0Id
         posthog_id

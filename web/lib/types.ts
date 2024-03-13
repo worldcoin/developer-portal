@@ -128,3 +128,8 @@ export enum KioskScreen {
   VerificationError,
   InvalidRequest,
 }
+
+export enum Connection {
+  Email = "email",
+  Worldcoin = "worldcoin",
+}

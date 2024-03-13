@@ -1,0 +1,6 @@
+mutation AddEmailToUser($id: String!, $email: String!) {
+  update_user_by_pk(pk_columns: { id: $id }, _set: { email: $email }) {
+    id
+    email
+  }
+}

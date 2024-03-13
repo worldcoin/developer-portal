@@ -30,11 +30,12 @@ import {
 
 import { Role_Enum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
-import { Auth0User } from "@/lib/types";
+import { Auth0User, Connection } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
 import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
+import { linkAccounts } from "./link-accounts";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
@@ -57,8 +58,12 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     | null
     | undefined = null;
 
+  const connectionMethod = isEmailUser(auth0User)
+    ? Connection.Email
+    : Connection.Worldcoin;
+
   // ANCHOR: User is authenticated through Sign in with World ID
-  if (!isEmailUser(auth0User)) {
+  if (connectionMethod === Connection.Worldcoin) {
     const nullifier = auth0User.sub.split("|")[2];
 
     try {
@@ -96,7 +101,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   }
 
   // ANCHOR: User is authenticated through email OTP
-  else if (isEmailUser(auth0User)) {
+  if (connectionMethod === Connection.Email) {
     // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
     if (!auth0User.email_verified) {
       logger.error(
@@ -147,6 +152,19 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       ).toString(),
       307,
     );
+  }
+
+  // ANCHOR: Auth0 account linking
+  if (user.world_id_nullifier && user.email && user.auth0Id) {
+    try {
+      await linkAccounts({
+        email: user.email,
+        auth0Id: user.auth0Id,
+        nullifierHash: user.world_id_nullifier,
+      });
+    } catch (error) {
+      logger.error("Error while linking accounts.", { error });
+    }
   }
 
   let invite: InviteQuery["invite"][number] | null = null;
@@ -296,7 +314,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   await updateSession(req, res, {
     ...session,
     user: {
-      ...session.user,
+      ...session?.user,
       hasura: {
         ...user,
       },
