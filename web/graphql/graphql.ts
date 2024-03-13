@@ -2071,6 +2071,161 @@ export type App_Pk_Columns_Input = {
   id: Scalars["String"];
 };
 
+/** columns and relationships of "app_rankings" */
+export type App_Rankings = {
+  __typename?: "app_rankings";
+  country: Scalars["String"];
+  id: Scalars["String"];
+  platform: Scalars["String"];
+  rankings?: Maybe<Scalars["_text"]>;
+};
+
+/** aggregated selection of "app_rankings" */
+export type App_Rankings_Aggregate = {
+  __typename?: "app_rankings_aggregate";
+  aggregate?: Maybe<App_Rankings_Aggregate_Fields>;
+  nodes: Array<App_Rankings>;
+};
+
+/** aggregate fields of "app_rankings" */
+export type App_Rankings_Aggregate_Fields = {
+  __typename?: "app_rankings_aggregate_fields";
+  count: Scalars["Int"];
+  max?: Maybe<App_Rankings_Max_Fields>;
+  min?: Maybe<App_Rankings_Min_Fields>;
+};
+
+/** aggregate fields of "app_rankings" */
+export type App_Rankings_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Rankings_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_rankings". All fields are combined with a logical 'AND'. */
+export type App_Rankings_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Rankings_Bool_Exp>>;
+  _not?: InputMaybe<App_Rankings_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Rankings_Bool_Exp>>;
+  country?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  platform?: InputMaybe<String_Comparison_Exp>;
+  rankings?: InputMaybe<_Text_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_rankings" */
+export enum App_Rankings_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AppRankingsPkey = "app_rankings_pkey",
+}
+
+/** input type for inserting data into table "app_rankings" */
+export type App_Rankings_Insert_Input = {
+  country?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  platform?: InputMaybe<Scalars["String"]>;
+  rankings?: InputMaybe<Scalars["_text"]>;
+};
+
+/** aggregate max on columns */
+export type App_Rankings_Max_Fields = {
+  __typename?: "app_rankings_max_fields";
+  country?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
+  platform?: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type App_Rankings_Min_Fields = {
+  __typename?: "app_rankings_min_fields";
+  country?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
+  platform?: Maybe<Scalars["String"]>;
+};
+
+/** response of any mutation on the table "app_rankings" */
+export type App_Rankings_Mutation_Response = {
+  __typename?: "app_rankings_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Rankings>;
+};
+
+/** on_conflict condition type for table "app_rankings" */
+export type App_Rankings_On_Conflict = {
+  constraint: App_Rankings_Constraint;
+  update_columns?: Array<App_Rankings_Update_Column>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_rankings". */
+export type App_Rankings_Order_By = {
+  country?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  platform?: InputMaybe<Order_By>;
+  rankings?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_rankings */
+export type App_Rankings_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "app_rankings" */
+export enum App_Rankings_Select_Column {
+  /** column name */
+  Country = "country",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Platform = "platform",
+  /** column name */
+  Rankings = "rankings",
+}
+
+/** input type for updating data in table "app_rankings" */
+export type App_Rankings_Set_Input = {
+  country?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  platform?: InputMaybe<Scalars["String"]>;
+  rankings?: InputMaybe<Scalars["_text"]>;
+};
+
+/** Streaming cursor of the table "app_rankings" */
+export type App_Rankings_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Rankings_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Rankings_Stream_Cursor_Value_Input = {
+  country?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  platform?: InputMaybe<Scalars["String"]>;
+  rankings?: InputMaybe<Scalars["_text"]>;
+};
+
+/** update columns of table "app_rankings" */
+export enum App_Rankings_Update_Column {
+  /** column name */
+  Country = "country",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Platform = "platform",
+  /** column name */
+  Rankings = "rankings",
+}
+
+export type App_Rankings_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Rankings_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Rankings_Bool_Exp;
+};
+
 /** select columns of table "app" */
 export enum App_Select_Column {
   /** column name */
@@ -3565,6 +3720,10 @@ export type Mutation_Root = {
   delete_app_metadata?: Maybe<App_Metadata_Mutation_Response>;
   /** delete single row from the table: "app_metadata" */
   delete_app_metadata_by_pk?: Maybe<App_Metadata>;
+  /** delete data from the table: "app_rankings" */
+  delete_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
+  /** delete single row from the table: "app_rankings" */
+  delete_app_rankings_by_pk?: Maybe<App_Rankings>;
   /** delete data from the table: "app_stats_returning" */
   delete_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
   /** delete single row from the table: "app_stats_returning" */
@@ -3630,6 +3789,10 @@ export type Mutation_Root = {
   insert_app_metadata_one?: Maybe<App_Metadata>;
   /** insert a single row into the table: "app" */
   insert_app_one?: Maybe<App>;
+  /** insert data into the table: "app_rankings" */
+  insert_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
+  /** insert a single row into the table: "app_rankings" */
+  insert_app_rankings_one?: Maybe<App_Rankings>;
   /** insert data into the table: "app_stats_returning" */
   insert_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
   /** insert a single row into the table: "app_stats_returning" */
@@ -3713,6 +3876,14 @@ export type Mutation_Root = {
   /** update multiples rows of table: "app_metadata" */
   update_app_metadata_many?: Maybe<
     Array<Maybe<App_Metadata_Mutation_Response>>
+  >;
+  /** update data of the table: "app_rankings" */
+  update_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
+  /** update single row of the table: "app_rankings" */
+  update_app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** update multiples rows of table: "app_rankings" */
+  update_app_rankings_many?: Maybe<
+    Array<Maybe<App_Rankings_Mutation_Response>>
   >;
   /** update data of the table: "app_stats_returning" */
   update_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
@@ -3833,6 +4004,16 @@ export type Mutation_RootDelete_App_MetadataArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_App_Metadata_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_RankingsArgs = {
+  where: App_Rankings_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Rankings_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -4009,6 +4190,18 @@ export type Mutation_RootInsert_App_Metadata_OneArgs = {
 export type Mutation_RootInsert_App_OneArgs = {
   object: App_Insert_Input;
   on_conflict?: InputMaybe<App_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_RankingsArgs = {
+  objects: Array<App_Rankings_Insert_Input>;
+  on_conflict?: InputMaybe<App_Rankings_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Rankings_OneArgs = {
+  object: App_Rankings_Insert_Input;
+  on_conflict?: InputMaybe<App_Rankings_On_Conflict>;
 };
 
 /** mutation root */
@@ -4248,6 +4441,23 @@ export type Mutation_RootUpdate_App_Metadata_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_App_Metadata_ManyArgs = {
   updates: Array<App_Metadata_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_RankingsArgs = {
+  _set?: InputMaybe<App_Rankings_Set_Input>;
+  where: App_Rankings_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Rankings_By_PkArgs = {
+  _set?: InputMaybe<App_Rankings_Set_Input>;
+  pk_columns: App_Rankings_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Rankings_ManyArgs = {
+  updates: Array<App_Rankings_Updates>;
 };
 
 /** mutation root */
@@ -4878,6 +5088,12 @@ export type Query_Root = {
   app_metadata_aggregate: App_Metadata_Aggregate;
   /** fetch data from the table: "app_metadata" using primary key columns */
   app_metadata_by_pk?: Maybe<App_Metadata>;
+  /** fetch data from the table: "app_rankings" */
+  app_rankings: Array<App_Rankings>;
+  /** fetch aggregated fields from the table: "app_rankings" */
+  app_rankings_aggregate: App_Rankings_Aggregate;
+  /** fetch data from the table: "app_rankings" using primary key columns */
+  app_rankings_by_pk?: Maybe<App_Rankings>;
   /** execute function "app_stats" which returns "app_stats_returning" */
   app_stats: Array<App_Stats_Returning>;
   /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
@@ -5072,6 +5288,26 @@ export type Query_RootApp_Metadata_AggregateArgs = {
 };
 
 export type Query_RootApp_Metadata_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Query_RootApp_RankingsArgs = {
+  distinct_on?: InputMaybe<Array<App_Rankings_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Rankings_Order_By>>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Query_RootApp_Rankings_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Rankings_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Rankings_Order_By>>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Query_RootApp_Rankings_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -5748,6 +5984,14 @@ export type Subscription_Root = {
   app_metadata_by_pk?: Maybe<App_Metadata>;
   /** fetch data from the table in a streaming manner: "app_metadata" */
   app_metadata_stream: Array<App_Metadata>;
+  /** fetch data from the table: "app_rankings" */
+  app_rankings: Array<App_Rankings>;
+  /** fetch aggregated fields from the table: "app_rankings" */
+  app_rankings_aggregate: App_Rankings_Aggregate;
+  /** fetch data from the table: "app_rankings" using primary key columns */
+  app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** fetch data from the table in a streaming manner: "app_rankings" */
+  app_rankings_stream: Array<App_Rankings>;
   /** execute function "app_stats" which returns "app_stats_returning" */
   app_stats: Array<App_Stats_Returning>;
   /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
@@ -5984,6 +6228,32 @@ export type Subscription_RootApp_Metadata_StreamArgs = {
   batch_size: Scalars["Int"];
   cursor: Array<InputMaybe<App_Metadata_Stream_Cursor_Input>>;
   where?: InputMaybe<App_Metadata_Bool_Exp>;
+};
+
+export type Subscription_RootApp_RankingsArgs = {
+  distinct_on?: InputMaybe<Array<App_Rankings_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Rankings_Order_By>>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Rankings_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Rankings_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Rankings_Order_By>>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Rankings_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootApp_Rankings_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<App_Rankings_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Rankings_Bool_Exp>;
 };
 
 export type Subscription_RootApp_StatsArgs = {

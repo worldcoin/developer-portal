@@ -1,0 +1,29 @@
+table:
+  name: app_rankings
+  schema: public
+select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - country
+        - platform
+        - rankings
+      filter: {}
+  - role: service
+    permission:
+      columns:
+        - country
+        - platform
+        - rankings
+      filter: {}
+update_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - country
+        - platform
+        - rankings
+      filter: {}
+      check: {}
