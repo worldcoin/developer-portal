@@ -1,4 +1,5 @@
 import { GET } from "@/api/public/app/[app_id]/route";
+import { NextRequest } from "next/server";
 import { getSdk as getAppMetadataSdk } from "../../../api/public/app/[app_id]/graphql/get-app-metadata.generated";
 
 // Mock the external dependencies
@@ -35,7 +36,10 @@ jest.mock(
 
 describe("/api/public/app/[app_id]", () => {
   test("Should return correct value", async () => {
-    const response = await GET({ params: { app_id: "1" } });
+    const request = new NextRequest(
+      "http://localhost/api/public/apps?country=US",
+    );
+    const response = await GET(request, { params: { app_id: "1" } });
     expect(await response.json()).toEqual({
       app_data: {
         name: "Example App",
@@ -61,8 +65,10 @@ describe("/api/public/app/[app_id]", () => {
         app_metadata: [],
       }),
     }));
-
-    const response = await GET({ params: { app_id: "2" } });
+    const request = new NextRequest(
+      "http://localhost/api/public/apps?country=US",
+    );
+    const response = await GET(request, { params: { app_id: "2" } });
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
       error: "App not found",

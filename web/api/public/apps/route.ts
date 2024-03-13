@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   ).GetAppMetadata({
     app_ids: appIdsToFetch,
     limit: limit - appIdsToFetch.length,
-    offset: startIndex - appIdsToFetch.length,
+    offset: Math.max(startIndex - appIdsToFetch.length, 0),
   });
 
   const apps = [...ranked_apps, ...unranked_apps];
