@@ -74,8 +74,10 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - name
+        - email
         - is_allow_tracking
+        - name
+        - world_id_nullifier
       filter:
         id:
           _eq: X-Hasura-User-Id

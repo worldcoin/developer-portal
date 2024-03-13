@@ -1,0 +1,9 @@
+mutation AddNullifierToUser($id: String!, $nullifier_hash: String!) {
+  update_user_by_pk(
+    pk_columns: { id: $id }
+    _set: { world_id_nullifier: $nullifier_hash }
+  ) {
+    id
+    world_id_nullifier
+  }
+}

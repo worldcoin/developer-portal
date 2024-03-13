@@ -15,6 +15,7 @@ export type FetchEmailUserQuery = {
     __typename?: "user";
     id: string;
     email?: string | null;
+    world_id_nullifier?: string | null;
     name: string;
     auth0Id?: string | null;
     posthog_id?: string | null;
@@ -29,6 +30,7 @@ export type FetchEmailUserQuery = {
     __typename?: "user";
     id: string;
     email?: string | null;
+    world_id_nullifier?: string | null;
     name: string;
     auth0Id?: string | null;
     posthog_id?: string | null;
@@ -46,6 +48,7 @@ export const FetchEmailUserDocument = gql`
     userByAuth0Id: user(where: { auth0Id: { _eq: $auth0Id } }) {
       id
       email
+      world_id_nullifier
       name
       auth0Id
       posthog_id
@@ -62,6 +65,7 @@ export const FetchEmailUserDocument = gql`
     userByEmail: user(where: { email: { _eq: $email } }) {
       id
       email
+      world_id_nullifier
       name
       auth0Id
       posthog_id

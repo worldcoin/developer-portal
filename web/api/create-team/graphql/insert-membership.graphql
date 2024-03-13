@@ -9,6 +9,7 @@ mutation InsertMembership(
     user {
       id
       email
+      world_id_nullifier
       name
       auth0Id
       posthog_id

@@ -1,11 +1,13 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
+import { twMerge } from "tailwind-merge";
 
 type Variant = "error" | "info" | "success" | "muted";
 
 export type CircleIconContainerProps = {
   children: ReactNode;
   variant: Variant;
+  className?: string;
 };
 
 type ThemeItem = {
@@ -42,7 +44,7 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
   };
 
   return (
-    <div className="relative size-[5.5rem]">
+    <div className={twMerge(clsx("relative size-[5.5rem]", props.className))}>
       <svg
         width="88"
         height="88"

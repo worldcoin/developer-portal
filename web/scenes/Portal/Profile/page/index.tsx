@@ -1,11 +1,14 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
+import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { Input } from "@/components/Input";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Auth0SessionUser } from "@/lib/types";
+import { Auth0SessionUser, Connection } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
@@ -14,12 +17,14 @@ import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { colorAtom } from "../../layout";
+import { AuthMethodDialog, authMethodDialogAtom } from "./AuthMethodDialog";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -35,12 +40,33 @@ type FormValues = yup.InferType<typeof schema>;
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const { user, loading } = useMeQuery();
+  const [, setIsOpened] = useAtom(authMethodDialogAtom);
 
   const [updateUser] = useUpdateUserMutation({
     refetchQueries: [FetchMeDocument],
   });
 
   const [color, setColor] = useAtom(colorAtom);
+
+  const connectedAuthMethods = useMemo(() => {
+    const methods: Array<Connection> = [];
+
+    if (user.email) {
+      methods.push(Connection.Email);
+    }
+
+    if (user.world_id_nullifier) {
+      methods.push(Connection.Worldcoin);
+    }
+
+    return methods;
+  }, [user.email, user.world_id_nullifier]);
+
+  const [authModalVariant, setAuthModalVariant] = useState(
+    Object.values(Connection).find(
+      (c) => c !== connectedAuthMethods[0],
+    ) as Connection,
+  );
 
   const {
     register,
@@ -117,8 +143,76 @@ export const ProfilePage = () => {
       </div>
 
       <SizingWrapper>
+        {connectedAuthMethods.length > 0 && (
+          <div className="mt-4 grid gap-y-4">
+            <Typography as="h2" variant={TYPOGRAPHY.H7}>
+              Auth methods
+            </Typography>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Button
+                className={clsx(
+                  "flex items-center justify-between rounded-12 border p-4",
+                  {
+                    "cursor-not-allowed border-system-success-500 bg-system-success-100 text-system-success-500":
+                      connectedAuthMethods.includes(Connection.Worldcoin),
+                    "border-blue-500 bg-blue-100 text-blue-500 transition-colors hover:bg-blue-50":
+                      !connectedAuthMethods.includes(Connection.Worldcoin),
+                  },
+                )}
+                type="button"
+                onClick={() => {
+                  setAuthModalVariant(Connection.Worldcoin);
+                  setIsOpened(true);
+                }}
+                disabled={connectedAuthMethods.includes(Connection.Worldcoin)}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>
+                  Sign in with worldcoin
+                </Typography>
+
+                {connectedAuthMethods.includes(Connection.Worldcoin) && (
+                  <CheckIcon size="16" className="size-4" />
+                )}
+
+                {!connectedAuthMethods.includes(Connection.Worldcoin) && (
+                  <ArrowRightIcon className="size-6" />
+                )}
+              </Button>
+
+              <Button
+                className={clsx(
+                  "flex w-full items-center justify-between rounded-12 border p-4",
+                  {
+                    "cursor-not-allowed border-system-success-500 bg-system-success-100 text-system-success-500":
+                      connectedAuthMethods.includes(Connection.Email),
+                    "border-blue-500 bg-blue-100 text-blue-500 transition-colors hover:bg-blue-50":
+                      !connectedAuthMethods.includes(Connection.Email),
+                  },
+                )}
+                type="button"
+                onClick={() => {
+                  setAuthModalVariant(Connection.Email);
+                  setIsOpened(true);
+                }}
+                disabled={connectedAuthMethods.includes(Connection.Email)}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>Email</Typography>
+
+                {connectedAuthMethods.includes(Connection.Email) && (
+                  <CheckIcon size="16" className="size-4" />
+                )}
+
+                {!connectedAuthMethods.includes(Connection.Email) && (
+                  <ArrowRightIcon className="size-6" />
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="m-auto grid gap-y-8 py-8">
-          <Typography as="h1" variant={TYPOGRAPHY.H7}>
+          <Typography as="h2" variant={TYPOGRAPHY.H7}>
             Profile settings
           </Typography>
 
@@ -127,7 +221,7 @@ export const ProfilePage = () => {
             onSubmit={handleSubmit(submit)}
           >
             <section className="rounded-12 border border-grey-200 p-6">
-              <Typography as="h2" variant={TYPOGRAPHY.R3}>
+              <Typography as="h3" variant={TYPOGRAPHY.R3}>
                 Avatar color
               </Typography>
 
@@ -191,6 +285,10 @@ export const ProfilePage = () => {
           </form>
         </div>
       </SizingWrapper>
+
+      {connectedAuthMethods.length <= 1 && (
+        <AuthMethodDialog variant={authModalVariant} />
+      )}
     </>
   );
 };
