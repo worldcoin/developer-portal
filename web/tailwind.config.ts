@@ -21,6 +21,7 @@ const config: Config = {
       borderRadius: {
         8: "0.5rem",
         12: "0.75rem",
+        16: "1rem",
         20: "1.25em",
         32: "2em",
       },
