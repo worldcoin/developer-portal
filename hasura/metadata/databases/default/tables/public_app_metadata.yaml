@@ -119,11 +119,21 @@ select_permissions:
   - role: service
     permission:
       columns:
-        - hero_image_url
         - id
-        - logo_img_url
+        - app_id
         - name
+        - logo_img_url
         - showcase_img_urls
+        - hero_image_url
+        - description
+        - world_app_description
+        - category
+        - is_developer_allow_listing
+        - integration_url
+        - app_website_url
+        - source_code_url
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
         - verification_status
       filter: {}
   - role: user
