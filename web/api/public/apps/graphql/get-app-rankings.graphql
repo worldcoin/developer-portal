@@ -1,0 +1,7 @@
+query GetAppRankings($platform: String!, $country: String!) {
+  app_rankings(
+    where: { platform: { _eq: $platform }, country: { _eq: $country } }
+  ) {
+    rankings
+  }
+}

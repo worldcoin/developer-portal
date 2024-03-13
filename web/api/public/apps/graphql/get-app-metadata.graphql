@@ -1,0 +1,31 @@
+query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
+  ranked_apps: app_metadata(
+    where: {
+      app_id: { _in: $app_ids }
+      verification_status: { _eq: "verified" }
+    }
+  ) {
+    app_id
+    logo_img_url
+    name
+    integration_url
+    world_app_description
+    category
+  }
+
+  unranked_apps: app_metadata(
+    where: {
+      app_id: { _nin: $app_ids }
+      verification_status: { _eq: "verified" }
+    }
+    limit: $limit
+    offset: $offset
+  ) {
+    app_id
+    logo_img_url
+    name
+    integration_url
+    world_app_description
+    category
+  }
+}

@@ -128,3 +128,5 @@ export enum KioskScreen {
   VerificationError,
   InvalidRequest,
 }
+
+export type PlatformType = "web" | "app";
