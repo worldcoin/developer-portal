@@ -1,5 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
 
@@ -9,7 +9,7 @@ import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generate
  * Accepts: platform, country, page
  * @param res
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const platform = searchParams.get("platform"); // Required
   const country = searchParams.get("country") ?? "default"; // Optional

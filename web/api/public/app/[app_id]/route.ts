@@ -9,8 +9,10 @@ import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generate
  * @param res
  */
 
-export async function GET({ params }: { params: { app_id: string } }) {
-  // Get the app ID
+export async function GET(
+  _: Request,
+  { params }: { params: { app_id: string } },
+) {
   const app_id = params.app_id;
 
   const client = await getAPIServiceGraphqlClient();
