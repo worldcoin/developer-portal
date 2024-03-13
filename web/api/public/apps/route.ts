@@ -52,8 +52,9 @@ export async function GET(request: Request) {
   ).GetAppMetadata({
     app_ids: appIdsToFetch,
     limit: limit - appIdsToFetch.length,
-    offset: page * limit - appIdsToFetch.length,
+    offset: startIndex - appIdsToFetch.length,
   });
+
   const apps = [...ranked_apps, ...unranked_apps];
 
   return NextResponse.json({ apps: apps }, { status: 200 });
