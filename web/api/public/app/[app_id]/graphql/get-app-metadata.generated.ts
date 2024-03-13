@@ -30,6 +30,10 @@ export const GetAppMetadataDocument = gql`
       where: {
         app_id: { _eq: $app_id }
         verification_status: { _eq: "verified" }
+        _or: [
+          { is_reviewer_app_store_approved: { _eq: true } }
+          { is_reviewer_world_app_approved: { _eq: true } }
+        ]
       }
     ) {
       name
