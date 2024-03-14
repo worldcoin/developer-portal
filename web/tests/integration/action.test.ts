@@ -69,7 +69,7 @@ describe("service role", () => {
 });
 
 describe("user role", () => {
-  test("owner can update sign in with worldcoin action", async () => {
+  test("Owner can update sign in with World ID", async () => {
     const serviceClient = await getAPIServiceClient();
 
     const query = gql(`query GetUserId {
