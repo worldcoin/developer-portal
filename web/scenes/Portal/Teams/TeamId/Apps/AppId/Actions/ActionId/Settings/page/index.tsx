@@ -5,6 +5,7 @@ import { ActionsHeader } from "../../Components/ActionsHeader";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -33,15 +34,19 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
     );
   } else {
     return (
-      <div className="flex size-full flex-col items-center ">
-        <div className="grid w-full max-w-[1180px] gap-y-2 py-10">
+      <>
+        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader
             actionId={actionID}
             teamId={teamId}
             appId={appId}
             learnMoreUrl="https://docs.worldcoin.org/quick-start/installation"
           />
-          <hr className="my-5 w-full border-dashed text-grey-200" />
+
+          <hr className="mt-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
+
+        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
           <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
             {loading ? (
               <Skeleton count={4} />
@@ -49,14 +54,15 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
               // Only possible if action is defined
               <UpdateActionForm action={action!} teamId={teamId ?? ""} />
             )}
+
             {loading ? (
               <Skeleton className="md:w-[480px]" height={400} />
             ) : (
               <TryAction action={action!} />
             )}
           </div>
-        </div>
-      </div>
+        </SizingWrapper>
+      </>
     );
   }
 };

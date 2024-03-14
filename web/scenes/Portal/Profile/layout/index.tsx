@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 export const ProfileLayout = (props: { children: ReactNode }) => {
   return (
     <div className="flex flex-col items-start">
-      <div className="order-2 md:order-1 md:border-b md:border-grey-100 md:bg-grey-50">
+      <div className="order-2 w-full md:order-1 md:border-b md:border-grey-100 md:bg-grey-50">
         <SizingWrapper variant="nav">
           <Tabs className="px-6 py-4 font-gta md:py-0">
             <Tab className="md:py-4" href={`/profile`} segment={null}>

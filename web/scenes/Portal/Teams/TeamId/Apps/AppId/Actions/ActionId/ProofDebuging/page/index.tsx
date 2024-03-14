@@ -4,6 +4,7 @@ import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { Debugger } from "../Debugger";
 import { useDebuggerQuery } from "./graphql/client/debugger.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -34,25 +35,30 @@ export const ActionIdProofDebugingPage = ({
     );
   } else {
     return (
-      <div className="flex size-full flex-col items-center ">
-        <div className="grid w-full max-w-[1180px] gap-y-2 py-10">
+      <>
+        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader
             actionId={actionID}
             teamId={teamId}
             appId={appId}
             learnMoreUrl="https://docs.worldcoin.org/reference/api#verify-proof"
           />
-          <hr className="my-5 w-full border-dashed text-grey-200" />
+
+          <hr className="mt-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
+
+        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
           {loading ? (
             <div className="grid grid-cols-1fr/auto gap-x-16">
               <Skeleton count={5} />
+
               <Skeleton height={250} className="md:w-[480px]" />
             </div>
           ) : (
             <Debugger action={action!} appID={appId ?? ""} />
           )}
-        </div>
-      </div>
+        </SizingWrapper>
+      </>
     );
   }
 };

@@ -6,6 +6,7 @@ import { ActionsHeader } from "../Components/ActionsHeader";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
 import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -34,12 +35,17 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
     return <ErrorComponent statusCode={401} title="No Access"></ErrorComponent>;
   } else {
     return (
-      <div className="flex size-full flex-col items-center">
-        <div className="grid w-full max-w-[1180px] gap-y-2 py-10">
+      <>
+        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
-          <hr className="my-5 w-full border-dashed text-grey-200" />
+
+          <hr className="mt-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
+
+        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
           <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-2">
             <ActionStatsGraph />
+
             {loading ? (
               <div>
                 <Skeleton count={5} />
@@ -48,8 +54,8 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
               <VerifiedTable nullifiers={action?.nullifiers ?? []} />
             )}
           </div>
-        </div>
-      </div>
+        </SizingWrapper>
+      </>
     );
   }
 };

@@ -108,92 +108,88 @@ export const ProfilePage = () => {
 
   return (
     <>
-      <div className="order-1 pt-9">
-        <SizingWrapper className="grid gap-y-8">
-          <UserInfo name={name} />
+      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+        <UserInfo name={name} />
 
-          <div className="border-b border-dashed border-grey-200" />
-        </SizingWrapper>
-      </div>
+        <div className="border-b border-dashed border-grey-200" />
+      </SizingWrapper>
 
-      <div className="order-3">
-        <SizingWrapper>
-          <div className="m-auto grid gap-y-8 py-8">
-            <Typography as="h1" variant={TYPOGRAPHY.H7}>
-              Profile settings
-            </Typography>
+      <SizingWrapper gridClassName="order-2">
+        <div className="m-auto grid gap-y-8 py-8">
+          <Typography as="h1" variant={TYPOGRAPHY.H7}>
+            Profile settings
+          </Typography>
 
-            <form
-              className="grid max-w-[36.25rem] gap-y-8"
-              onSubmit={handleSubmit(submit)}
+          <form
+            className="grid max-w-[36.25rem] gap-y-8"
+            onSubmit={handleSubmit(submit)}
+          >
+            <section className="rounded-12 border border-grey-200 p-6">
+              <Typography as="h2" variant={TYPOGRAPHY.R3}>
+                Avatar color
+              </Typography>
+
+              <Typography
+                as="p"
+                variant={TYPOGRAPHY.R4}
+                className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
+              >
+                Assigning colors randomly is the default, but feel free to
+                switch them if it`s necessary or preferred
+              </Typography>
+
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <ColorSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </section>
+
+            <Input
+              className="-mt-2"
+              label="Display name"
+              register={register("name")}
+              errors={errors.name}
+            />
+
+            <label
+              htmlFor="is_allow_tracking"
+              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
             >
-              <section className="rounded-12 border border-grey-200 p-6">
-                <Typography as="h2" variant={TYPOGRAPHY.R3}>
-                  Avatar color
-                </Typography>
-
-                <Typography
-                  as="p"
-                  variant={TYPOGRAPHY.R4}
-                  className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
-                >
-                  Assigning colors randomly is the default, but feel free to
-                  switch them if it`s necessary or preferred
-                </Typography>
-
-                <Controller
-                  name="color"
-                  control={control}
-                  render={({ field }) => (
-                    <ColorSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  )}
-                />
-              </section>
-
-              <Input
-                className="-mt-2"
-                label="Display name"
-                register={register("name")}
-                errors={errors.name}
+              <Checkbox
+                register={register("isAllowTracking")}
+                id="is_allow_tracking"
               />
 
-              <label
-                htmlFor="is_allow_tracking"
-                className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
-              >
-                <Checkbox
-                  register={register("isAllowTracking")}
-                  id="is_allow_tracking"
-                />
-
-                <div className="grid gap-y-2">
-                  <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                    Allow analytics
-                  </Typography>
-                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-                    We collect analytics in the developer portal to help us
-                    provide a better experience to you.
-                  </Typography>
-                </div>
-              </label>
-
-              <div>
-                <DecoratedButton
-                  type="submit"
-                  variant="primary"
-                  className="max-h-12 py-4"
-                  disabled={!isValid || isSubmitting}
-                >
-                  Save changes
-                </DecoratedButton>
+              <div className="grid gap-y-2">
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                  Allow analytics
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+                  We collect analytics in the developer portal to help us
+                  provide a better experience to you.
+                </Typography>
               </div>
-            </form>
-          </div>
-        </SizingWrapper>
-      </div>
+            </label>
+
+            <div>
+              <DecoratedButton
+                type="submit"
+                variant="primary"
+                className="max-h-12 py-4"
+                disabled={!isValid || isSubmitting}
+              >
+                Save changes
+              </DecoratedButton>
+            </div>
+          </form>
+        </div>
+      </SizingWrapper>
     </>
   );
 };

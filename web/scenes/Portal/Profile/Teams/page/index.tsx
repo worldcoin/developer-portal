@@ -8,35 +8,29 @@ import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 export const TeamsPage = () => {
   return (
     <>
-      <div className="order-1 pt-9">
-        <SizingWrapper className="grid gap-y-8">
-          <UserInfo />
+      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+        <UserInfo />
 
-          <div className="border-b border-dashed border-grey-200" />
-        </SizingWrapper>
-      </div>
+        <div className="border-b border-dashed border-grey-200" />
+      </SizingWrapper>
 
-      <div className="order-3">
-        <SizingWrapper>
-          <div className="m-auto grid gap-y-8 py-8">
-            <div className="grid grid-cols-[1fr_auto]">
-              <Typography as="h1" variant={TYPOGRAPHY.H7}>
-                Teams
-              </Typography>
+      <SizingWrapper gridClassName="order-2 gap-y-8 py-8">
+        <div className="grid grid-cols-[1fr_auto] items-center">
+          <Typography as="h1" variant={TYPOGRAPHY.H7}>
+            Teams
+          </Typography>
 
-              <DecoratedButton
-                variant="primary"
-                href={urls.createTeam()}
-                className="py-3"
-              >
-                Create new team
-              </DecoratedButton>
-            </div>
+          <DecoratedButton
+            variant="primary"
+            href={urls.createTeam()}
+            className="py-3"
+          >
+            Create new team
+          </DecoratedButton>
+        </div>
 
-            <List />
-          </div>
-        </SizingWrapper>
-      </div>
+        <List />
+      </SizingWrapper>
     </>
   );
 };

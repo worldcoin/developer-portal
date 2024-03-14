@@ -4,6 +4,7 @@ import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -30,12 +31,14 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     );
   } else {
     return (
-      <div className="flex size-full flex-col items-center ">
-        <div className="grid w-full gap-y-2 py-10">
+      <>
+        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
 
-          <hr className="my-5 w-full border-dashed text-grey-200" />
+          <hr className="mt-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
 
+        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
           {loading ? (
             <Skeleton height={150} />
           ) : (
@@ -45,8 +48,8 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
               appId={appId}
             />
           )}
-        </div>
-      </div>
+        </SizingWrapper>
+      </>
     );
   }
 };
