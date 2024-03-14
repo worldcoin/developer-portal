@@ -5,6 +5,7 @@ import {
   integrationDBSetup,
   integrationDBTearDown,
 } from "./setup";
+import { getAPIUserClient } from "./test-utils";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBSetup);
@@ -64,5 +65,141 @@ describe("service role", () => {
         "ApolloError: field 'delete_action' not found in type: 'mutation_root'",
       );
     }
+  });
+});
+
+describe("user role", () => {
+  test("owner can update sign in with worldcoin action", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    const query = gql(`query GetUserId {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        app {
+          team {
+            memberships(where: {role: {_eq: OWNER}}) {
+              user {
+                id
+              }
+            }
+          }
+        }
+      }
+    }`);
+
+    const res = (await serviceClient.query({ query })) as {
+      data: {
+        action: [
+          {
+            id: string;
+            app: {
+              team: {
+                memberships: [
+                  {
+                    user: {
+                      id: string;
+                    };
+                  },
+                ];
+              };
+            };
+          },
+        ];
+      };
+    };
+
+    const ownerUserId = res.data.action[0].app.team.memberships[0].user.id;
+    const actionId = res.data.action[0].id;
+
+    const client = await getAPIUserClient({
+      user_id: ownerUserId,
+    });
+
+    const mutation = gql`
+      mutation UpdateAction($id: String!) {
+        update_action_by_pk(
+          pk_columns: { id: $id }
+          _set: { privacy_policy_uri: "http://example.com" }
+        ) {
+          id
+        }
+      }
+    `;
+
+    const response = await client.mutate({
+      mutation,
+      variables: {
+        id: actionId,
+      },
+    });
+
+    expect(response.data.update_action_by_pk.id).toEqual(actionId);
+  });
+
+  test("member can't update sign in with worldcoin action", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    const query = gql(`query GetUserId {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        app {
+          team {
+            memberships(where: {role: {_eq: MEMBER}}) {
+              user {
+                id
+              }
+            }
+          }
+        }
+      }
+    }`);
+
+    const res = (await serviceClient.query({ query })) as {
+      data: {
+        action: [
+          {
+            id: string;
+            app: {
+              team: {
+                memberships: [
+                  {
+                    user: {
+                      id: string;
+                    };
+                  },
+                ];
+              };
+            };
+          },
+        ];
+      };
+    };
+
+    const ownerUserId = res.data.action[0].app.team.memberships[0].user.id;
+    const actionId = res.data.action[0].id;
+
+    const client = await getAPIUserClient({
+      user_id: ownerUserId,
+    });
+
+    const mutation = gql`
+      mutation UpdateAction($id: String!) {
+        update_action_by_pk(
+          pk_columns: { id: $id }
+          _set: { privacy_policy_uri: "http://example.com" }
+        ) {
+          id
+        }
+      }
+    `;
+
+    const response = await client.mutate({
+      mutation,
+      variables: {
+        id: actionId,
+      },
+    });
+
+    expect(response.data.update_action_by_pk).toBeNull();
   });
 });
