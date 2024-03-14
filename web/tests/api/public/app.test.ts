@@ -15,12 +15,9 @@ jest.mock(
         app_metadata: [
           {
             name: "Example App",
-            logo_img_url: "https://example.com/logo.png",
-            showcase_img_urls: [
-              "https://example.com/showcase1.png",
-              "https://example.com/showcase2.png",
-            ],
-            hero_image_url: "https://example.com/hero.png",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             category: "Productivity",
@@ -43,12 +40,12 @@ describe("/api/public/app/[app_id]", () => {
     expect(await response.json()).toEqual({
       app_data: {
         name: "Example App",
-        logo_img_url: "https://example.com/logo.png",
+        logo_img_url: "https://cdn.test.com/1/logo.png",
         showcase_img_urls: [
-          "https://example.com/showcase1.png",
-          "https://example.com/showcase2.png",
+          "https://cdn.test.com/1/showcase1.png",
+          "https://cdn.test.com/1/showcase2.png",
         ],
-        hero_image_url: "https://example.com/hero.png",
+        hero_image_url: "https://cdn.test.com/1/hero.png",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         category: "Productivity",

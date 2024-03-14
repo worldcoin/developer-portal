@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getCDNImageUrl } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
@@ -25,7 +26,19 @@ export async function GET(
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
 
-  const dataToReturn = app_metadata[0];
+  const appMetadataReturned = app_metadata[0];
+  const dataToReturn = {
+    ...appMetadataReturned,
+    logo_img_url: getCDNImageUrl(app_id, appMetadataReturned.logo_img_url),
+    showcase_img_urls: appMetadataReturned.showcase_img_urls
+      ? appMetadataReturned.showcase_img_urls?.map((showcase_img: string) =>
+          getCDNImageUrl(app_id, showcase_img),
+        )
+      : [],
+    hero_image_url: appMetadataReturned.hero_image_url
+      ? getCDNImageUrl(app_id, appMetadataReturned?.hero_image_url)
+      : "",
+  };
 
   return NextResponse.json(
     { app_data: dataToReturn },
