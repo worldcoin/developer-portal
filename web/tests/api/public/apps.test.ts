@@ -55,7 +55,13 @@ describe("/api/public/apps", () => {
     // Mocking the response to simulate non-empty rankings
     jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
       GetAppMetadata: jest.fn().mockResolvedValue({
-        ranked_apps: [{ appId: "1", name: "Test App" }],
+        ranked_apps: [
+          {
+            app_id: "1",
+            name: "Test App",
+            logo_img_url: "logo.png",
+          },
+        ],
         unranked_apps: [],
       }),
     }));
@@ -71,7 +77,13 @@ describe("/api/public/apps", () => {
     const response = await GET(request);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      apps: [{ appId: "1", name: "Test App" }],
+      apps: [
+        {
+          app_id: "1",
+          name: "Test App",
+          logo_img_url: "https://cdn.test.com/1/logo.png",
+        },
+      ],
     });
   });
 });
