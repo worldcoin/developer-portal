@@ -8,6 +8,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import clsx from "clsx";
 import { atom, useAtom } from "jotai";
+import { CheckIcon } from "@/components/Icons/CheckIcon";
+import { ExpandIcon } from "@/components/Icons/ExpandIcon";
+import { CollapseIcon } from "@/components/Icons/CollapseIcon";
+import { Disclosure } from "@headlessui/react";
 
 export const permissionsDialogAtom = atom(false);
 
@@ -112,7 +116,7 @@ export const PermissionsDialog = () => {
       <DialogOverlay />
 
       <DialogPanel className="grid gap-y-8 md:max-w-[66rem]">
-        <header className="flex w-full justify-start">
+        <header className="flex w-full items-center justify-start">
           <Button
             type="button"
             onClick={() => setIsOpened(false)}
@@ -120,9 +124,16 @@ export const PermissionsDialog = () => {
           >
             <ArrowRightIcon className="rotate-180" />
           </Button>
+
+          <Typography
+            variant={TYPOGRAPHY.H6}
+            className="w-full pr-8 text-center md:hidden"
+          >
+            Permissions list
+          </Typography>
         </header>
 
-        <div className="grid max-h-[70vh] w-full overflow-y-auto">
+        <div className="hidden md:grid">
           <div className="mb-5 grid grid-cols-4 items-center justify-items-center">
             <Typography variant={TYPOGRAPHY.H6} className="w-full text-start">
               Permissions list
@@ -158,6 +169,42 @@ export const PermissionsDialog = () => {
                 </Typography>
               ))}
             </div>
+          ))}
+        </div>
+
+        <div className="grid w-full gap-y-4 font-gta md:hidden">
+          {["Owner", "Admin", "Member"].map((role, index) => (
+            <Disclosure key={index}>
+              {({ open }) => (
+                <div className="rounded-16 border border-grey-200">
+                  <Disclosure.Button className="flex w-full justify-between px-5 py-4 text-18 font-medium leading-6">
+                    {role}
+
+                    {open ? <CollapseIcon /> : <ExpandIcon />}
+                  </Disclosure.Button>
+
+                  <Disclosure.Panel className="grid gap-y-4 px-5 pb-4">
+                    {Object.entries(config)
+                      .filter(
+                        ([_, roles]) => !!roles[role as keyof typeof Role_Enum],
+                      )
+                      .map(([permission], index) => (
+                        <div
+                          key={index}
+                          className="flex gap-x-2 text-14 leading-5"
+                        >
+                          <CheckIcon
+                            className="text-system-success-500"
+                            size="16"
+                          />
+
+                          {permission}
+                        </div>
+                      ))}
+                  </Disclosure.Panel>
+                </div>
+              )}
+            </Disclosure>
           ))}
         </div>
       </DialogPanel>
