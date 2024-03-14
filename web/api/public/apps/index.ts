@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getCDNImageUrl } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const platform = searchParams.get("platform"); // Required
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
-  const limit = parseInt(searchParams.get("limit") ?? "50", 10); // Optional
+  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 50); // Optional, max 50
 
   // Check platform param is defined
   if (!platform || (platform !== "web" && platform !== "app")) {
@@ -55,7 +56,12 @@ export async function GET(request: Request) {
     offset: Math.max(startIndex - appIdsToFetch.length, 0),
   });
 
-  const apps = [...ranked_apps, ...unranked_apps];
+  const apps = [...ranked_apps, ...unranked_apps].map((app) => {
+    return {
+      ...app,
+      logo_img_url: getCDNImageUrl(app.app_id, app.logo_img_url),
+    };
+  });
 
   return NextResponse.json({ apps: apps }, { status: 200 });
 }
