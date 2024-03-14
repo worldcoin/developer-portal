@@ -115,16 +115,18 @@ describe("user role", () => {
       user_id: ownerUserId,
     });
 
-    const mutation = gql`
+    const url = "http://example.com";
+
+    const mutation = gql(`
       mutation UpdateAction($id: String!) {
         update_action_by_pk(
           pk_columns: { id: $id }
-          _set: { privacy_policy_uri: "http://example.com" }
+          _set: { privacy_policy_uri: "${url}" }
         ) {
-          id
+          privacy_policy_uri
         }
       }
-    `;
+    `);
 
     const response = await client.mutate({
       mutation,
@@ -133,7 +135,7 @@ describe("user role", () => {
       },
     });
 
-    expect(response.data.update_action_by_pk.id).toEqual(actionId);
+    expect(response.data.update_action_by_pk.privacy_policy_uri).toEqual(url);
   });
 
   test("member can't update sign in with World ID privacy policy", async () => {
