@@ -136,7 +136,7 @@ describe("user role", () => {
     expect(response.data.update_action_by_pk.id).toEqual(actionId);
   });
 
-  test("member can't update sign in with worldcoin action", async () => {
+  test("member can't update sign in with World ID privacy policy", async () => {
     const serviceClient = await getAPIServiceClient();
 
     const query = gql(`query GetUserId {
