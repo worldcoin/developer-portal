@@ -68,11 +68,13 @@ export const ClientInformationPage = (props: {
         <div className="grid gap-y-5">
           <div className="grid gap-y-3">
             <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
+
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Use these attributes to configure Sign in with World ID in your
               app
             </Typography>
           </div>
+
           {fetchingAction ? (
             <Skeleton count={2} />
           ) : (
@@ -86,6 +88,7 @@ export const ClientInformationPage = (props: {
                   <CopyButton fieldName="Client ID" fieldValue={appID} />
                 }
               />
+
               <Input
                 placeholder={
                   clientSecret == ""
@@ -118,6 +121,7 @@ export const ClientInformationPage = (props: {
                     >
                       Reset
                     </DecoratedButton>
+
                     {clientSecret !== "" && (
                       <CopyButton
                         fieldName="Client secret"
@@ -130,11 +134,13 @@ export const ClientInformationPage = (props: {
             </div>
           )}
         </div>
+
         <div className="grid gap-y-5">
           <div className="grid gap-y-3">
             <Typography as="h6" variant={TYPOGRAPHY.H7}>
               Redirects
             </Typography>
+
             <Typography
               as="p"
               variant={TYPOGRAPHY.R3}
@@ -143,6 +149,7 @@ export const ClientInformationPage = (props: {
               You must specify at least one URL for authentication to work
             </Typography>
           </div>
+
           {fetchingAction ? (
             <Skeleton count={2} />
           ) : (
@@ -155,6 +162,7 @@ export const ClientInformationPage = (props: {
             />
           )}
         </div>
+
         {fetchingAction ? (
           <Skeleton height={150} />
         ) : (

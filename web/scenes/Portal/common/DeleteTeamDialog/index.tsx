@@ -159,12 +159,12 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             autoFocus
           />
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
             <DecoratedButton
               disabled={!isValid || isSubmitting}
               type="submit"
               variant="danger"
-              className="order-2 whitespace-nowrap py-3 md:order-1"
+              className="order-2 whitespace-nowrap md:order-1"
             >
               Delete team
             </DecoratedButton>
@@ -173,7 +173,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
               type="button"
               onClick={onClose}
               variant="primary"
-              className="order-1 whitespace-nowrap py-3 md:order-2"
+              className="order-1 whitespace-nowrap"
               disabled={isSubmitting}
             >
               Keep team

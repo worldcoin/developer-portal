@@ -165,7 +165,7 @@ export const EditRoleDialog = (props: {
         </div>
 
         <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-10">
-          <div className="grid grid-cols-2 gap-x-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
               disabled
               register={register("email")}
@@ -190,7 +190,7 @@ export const EditRoleDialog = (props: {
                     </fieldset>
 
                     <Select value={field.value} onChange={field.onChange}>
-                      <SelectButton className="flex size-full items-center justify-between">
+                      <SelectButton className="flex h-11 w-full items-center justify-between">
                         <Typography variant={TYPOGRAPHY.R3}>
                           {field.value?.label}
                         </Typography>
@@ -216,8 +216,9 @@ export const EditRoleDialog = (props: {
             />
           </div>
 
-          <div className="grid w-full grid-cols-2 items-center gap-x-4">
+          <div className="grid w-full grid-cols-1 items-center gap-2 md:grid-cols-2 md:gap-4">
             <DecoratedButton
+              className="order-2 md:order-1"
               type="button"
               onClick={onClose}
               variant="secondary"
@@ -226,6 +227,7 @@ export const EditRoleDialog = (props: {
             </DecoratedButton>
 
             <DecoratedButton
+              className="order-1 whitespace-nowrap"
               type="submit"
               variant="primary"
               disabled={!isDirty || isSubmitting}

@@ -108,15 +108,13 @@ export const ProfilePage = () => {
 
   return (
     <>
-      <div className="pt-9">
-        <SizingWrapper className="grid gap-y-8">
-          <UserInfo name={name} />
+      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+        <UserInfo name={name} />
 
-          <div className="border-b border-dashed border-grey-200" />
-        </SizingWrapper>
-      </div>
+        <div className="border-b border-dashed border-grey-200" />
+      </SizingWrapper>
 
-      <SizingWrapper>
+      <SizingWrapper gridClassName="order-2">
         <div className="m-auto grid gap-y-8 py-8">
           <Typography as="h1" variant={TYPOGRAPHY.H7}>
             Profile settings
@@ -178,6 +176,7 @@ export const ProfilePage = () => {
                 </Typography>
               </div>
             </label>
+
             <div>
               <DecoratedButton
                 type="submit"

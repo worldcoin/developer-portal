@@ -32,57 +32,56 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   );
 
   return (
-    <div>
-      <div className="grid size-full grid-rows-auto/1fr">
-        <div className="border-b border-grey-100">
-          <SizingWrapper variant="nav">
-            <Tabs className="m-auto font-gta">
+    <div className="flex grow flex-col items-start">
+      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
+        <SizingWrapper variant="nav">
+          <Tabs className="px-6 py-4 font-gta md:py-0">
+            <Tab
+              className="md:py-4"
+              href={`/teams/${params!.teamId}`}
+              segment={null}
+              underlined
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+            </Tab>
+
+            {ownerPermission && (
               <Tab
-                className="py-4"
-                href={`/teams/${params!.teamId}`}
-                segment={null}
+                className="md:py-4"
+                href={`/teams/${params!.teamId}/settings`}
+                segment={"settings"}
                 underlined
               >
-                <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+                <Typography variant={TYPOGRAPHY.R4}>Team settings</Typography>
               </Tab>
-              {ownerPermission && (
-                <Tab
-                  className="py-4"
-                  href={`/teams/${params!.teamId}/settings`}
-                  segment={"settings"}
-                  underlined
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Team settings</Typography>
-                </Tab>
-              )}
+            )}
 
-              {ownerAndAdminPermission && (
-                <Tab
-                  className="py-4"
-                  href={`/teams/${params!.teamId}/api-keys`}
-                  segment={"api-keys"}
-                  underlined
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
-                </Tab>
-              )}
+            {ownerAndAdminPermission && (
+              <Tab
+                className="md:py-4"
+                href={`/teams/${params!.teamId}/api-keys`}
+                segment={"api-keys"}
+                underlined
+              >
+                <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
+              </Tab>
+            )}
 
-              {ownerPermission && (
-                <Tab
-                  className="py-4"
-                  href={`/teams/${params!.teamId}/danger`}
-                  segment={"danger"}
-                  underlined
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
-                </Tab>
-              )}
-            </Tabs>
-          </SizingWrapper>
-        </div>
-
-        <SizingWrapper className="h-full">{props.children}</SizingWrapper>
+            {ownerPermission && (
+              <Tab
+                className="md:py-4"
+                href={`/teams/${params!.teamId}/danger`}
+                segment={"danger"}
+                underlined
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+              </Tab>
+            )}
+          </Tabs>
+        </SizingWrapper>
       </div>
+
+      {props.children}
     </div>
   );
 };

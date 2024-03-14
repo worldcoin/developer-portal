@@ -4,6 +4,7 @@ import { getSession } from "@auth0/nextjs-auth0";
 import { TeamProfile } from "../common/TeamProfile";
 import { Apps } from "./Apps";
 import { Members } from "./Members";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type TeamIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -21,17 +22,26 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
   );
 
   if (!isTeamMember) {
-    return <Unauthorized message="You are not a member of this team" />;
+    return (
+      <SizingWrapper gridClassName="grow order-2" fullHeight>
+        <Unauthorized message="You are not a member of this team" />
+      </SizingWrapper>
+    );
   }
 
   return (
-    <div>
-      <TeamProfile />
+    <>
+      <SizingWrapper gridClassName="order-1">
+        <TeamProfile />
+      </SizingWrapper>
 
-      <div className="grid gap-y-14 py-8">
-        <Members teamId={teamId} />
-        <Apps />
-      </div>
-    </div>
+      <SizingWrapper gridClassName="order-2">
+        <div className="grid gap-y-14 py-8">
+          <Members teamId={teamId} />
+
+          <Apps />
+        </div>
+      </SizingWrapper>
+    </>
   );
 };

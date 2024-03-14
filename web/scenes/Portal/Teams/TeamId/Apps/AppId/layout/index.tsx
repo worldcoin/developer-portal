@@ -5,6 +5,11 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
+import { BottomBar } from "@/components/BottomBar";
+import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
+import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
+import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
+import { AppIcon } from "@/components/Icons/AppIcon";
 
 type Params = {
   teamId?: string;
@@ -26,9 +31,9 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
-    <div>
+    <>
       <div className="border-b border-grey-100">
-        <SizingWrapper variant="nav">
+        <SizingWrapper gridClassName="hidden md:grid" variant="nav">
           <Tabs className="m-auto font-gta">
             <Tab
               href={`/teams/${params!.teamId}/apps/${params!.appId}`}
@@ -68,7 +73,40 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
           </Tabs>
         </SizingWrapper>
       </div>
+
       {props.children}
-    </div>
+
+      <div className="grow" />
+
+      <BottomBar>
+        <BottomBar.Link
+          href={`/teams/${params!.teamId}/apps/${params!.appId}`}
+          segment={null}
+        >
+          <DashboardSquareIcon />
+        </BottomBar.Link>
+
+        <BottomBar.Link
+          href={`/teams/${params!.teamId}/apps/${params!.appId}/actions`}
+          segment={"actions"}
+        >
+          <IncognitoIcon />
+        </BottomBar.Link>
+
+        <BottomBar.Link
+          href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
+          segment={"sign-in-with-world-id"}
+        >
+          <UserAccountIcon />
+        </BottomBar.Link>
+
+        <BottomBar.Link
+          href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+          segment={"profile"}
+        >
+          <AppIcon />
+        </BottomBar.Link>
+      </BottomBar>
+    </>
   );
 };

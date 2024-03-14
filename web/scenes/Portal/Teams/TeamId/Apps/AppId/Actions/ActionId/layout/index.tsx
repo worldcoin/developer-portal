@@ -38,13 +38,13 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
   const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
-    <div className="size-full">
-      <div className="border-b border-grey-100 bg-grey-50">
+    <div className="flex flex-col items-start">
+      <div className="order-2 w-full md:order-1 md:border-b md:border-grey-100 md:bg-grey-50">
         <SizingWrapper variant="nav">
-          <Tabs className="m-auto font-gta">
+          <Tabs className="px-6 py-4 font-gta md:py-0">
             {!isOnChainApp && (
               <Tab
-                className="py-4"
+                className="md:py-4"
                 href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}`}
                 segment={null}
               >
@@ -53,7 +53,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
             )}
 
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/settings`}
               segment={"settings"}
             >
@@ -61,7 +61,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
             </Tab>
 
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/proof-debugging`}
               segment={"proof-debugging"}
             >
@@ -70,7 +70,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
 
             {!isOnChainApp && (
               <Tab
-                className="py-4"
+                className="md:py-4"
                 href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/kiosk`}
                 segment={"kiosk"}
               >
@@ -80,7 +80,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
 
             {isEnoughPermissions && (
               <Tab
-                className="py-4"
+                className="md:py-4"
                 href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/danger`}
                 segment={"danger"}
               >
@@ -91,7 +91,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
         </SizingWrapper>
       </div>
 
-      <SizingWrapper className="h-full">{props.children}</SizingWrapper>
+      {props.children}
     </div>
   );
 };

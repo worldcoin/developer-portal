@@ -29,12 +29,12 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
   ]);
 
   return (
-    <div>
-      <div className="border-b border-grey-100 bg-grey-50">
+    <div className="flex flex-col items-start">
+      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100 md:bg-grey-50">
         <SizingWrapper variant="nav">
-          <Tabs className="m-auto font-gta">
+          <Tabs className="px-6 py-4 font-gta md:py-0">
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
               segment={null}
             >
@@ -42,7 +42,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
             </Tab>
 
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
               segment={"store-info"}
             >
@@ -50,7 +50,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
             </Tab>
 
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
               segment={"gallery"}
             >
@@ -58,7 +58,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
             </Tab>
 
             <Tab
-              className="py-4"
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
               segment={"links"}
             >
@@ -67,7 +67,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             {isEnoughPermissions && (
               <Tab
-                className="py-4"
+                className="md:py-4"
                 href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
                 segment={"danger"}
               >
@@ -77,11 +77,10 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
           </Tabs>
         </SizingWrapper>
       </div>
-      <SizingWrapper>
-        <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
-          {props.children}
-        </ImagesProvider>
-      </SizingWrapper>
+
+      <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
+        {props.children}
+      </ImagesProvider>
     </div>
   );
 };

@@ -21,6 +21,7 @@ const config: Config = {
       borderRadius: {
         8: "0.5rem",
         12: "0.75rem",
+        16: "1rem",
         20: "1.25em",
         32: "2em",
       },
@@ -30,6 +31,7 @@ const config: Config = {
         lg: "0px 4px 6px -2px rgba(25, 28, 32, 0.03), 0px 12px 16px -4px rgba(25, 28, 32, 0.08)",
         qrCode: "0px 16px 20px -8px #E6E9EEA3",
         image: "0px 10px 15px 0px #00000010",
+        tab: "0px 1px 2px 0px #191C200F, 0px 1px 3px 0px #191C201A",
       },
 
       colors: {
