@@ -39,7 +39,7 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
   const hasUser = Boolean(data) && Boolean(data!.user_by_pk?.id);
 
   return (
-    <SizingWrapper>
+    <SizingWrapper fullHeight>
       <div className="flex h-full items-center justify-center">
         <div className="grid w-full max-w-[580px] gap-y-8">
           <LayersIconFrame>

@@ -14,7 +14,7 @@ export const ClientPage = () => {
 
   return (
     <Fragment>
-      <SizingWrapper gridClassName="h-full flex justify-center items-center pb-10">
+      <SizingWrapper gridClassName="grow flex justify-center items-center pb-10">
         <InitialSteps
           title="Build your first project"
           description="Welcome to World ID! Let's get started by creating your first app."
