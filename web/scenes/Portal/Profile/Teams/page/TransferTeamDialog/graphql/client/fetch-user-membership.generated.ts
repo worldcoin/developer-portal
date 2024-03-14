@@ -77,3 +77,4 @@ export type FetchUserMembershipQueryResult = Apollo.QueryResult<
   FetchUserMembershipQuery,
   FetchUserMembershipQueryVariables
 >;
+

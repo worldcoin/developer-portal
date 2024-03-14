@@ -81,3 +81,4 @@ export type InsertAppMutationOptions = Apollo.BaseMutationOptions<
   InsertAppMutation,
   InsertAppMutationVariables
 >;
+

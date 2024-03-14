@@ -74,3 +74,4 @@ export type UpdateHeroImageMutationOptions = Apollo.BaseMutationOptions<
   UpdateHeroImageMutation,
   UpdateHeroImageMutationVariables
 >;
+

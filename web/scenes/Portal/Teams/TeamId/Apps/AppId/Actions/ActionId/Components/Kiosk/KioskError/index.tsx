@@ -47,3 +47,4 @@ export const KioskError = memo(function KioskError(props: {
     </div>
   );
 });
+

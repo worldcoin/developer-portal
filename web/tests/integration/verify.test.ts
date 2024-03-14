@@ -334,3 +334,4 @@ describe("/api/v1/verify/[app_id]", () => {
     expect(updatedNullifierHash.rows[0].uses).toBe(2);
   });
 });
+

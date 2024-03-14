@@ -150,3 +150,4 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     </Dialog>
   );
 });
+

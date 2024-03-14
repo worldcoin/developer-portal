@@ -208,3 +208,4 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     </div>
   );
 };
+

@@ -90,3 +90,4 @@ export type FetchActionStatsQueryResult = Apollo.QueryResult<
   FetchActionStatsQuery,
   FetchActionStatsQueryVariables
 >;
+

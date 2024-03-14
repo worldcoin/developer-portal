@@ -380,3 +380,4 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
     </div>
   );
 };
+

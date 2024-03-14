@@ -70,3 +70,4 @@ export type InviteTeamMembersMutationOptions = Apollo.BaseMutationOptions<
   InviteTeamMembersMutation,
   InviteTeamMembersMutationVariables
 >;
+

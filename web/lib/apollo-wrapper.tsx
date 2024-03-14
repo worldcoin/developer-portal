@@ -34,3 +34,4 @@ export function ApolloWrapper({ children }: React.PropsWithChildren) {
     </ApolloNextAppProvider>
   );
 }
+

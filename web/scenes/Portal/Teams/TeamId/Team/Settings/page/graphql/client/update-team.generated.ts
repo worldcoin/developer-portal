@@ -65,3 +65,4 @@ export type UpdateTeamMutationOptions = Apollo.BaseMutationOptions<
   UpdateTeamMutation,
   UpdateTeamMutationVariables
 >;
+

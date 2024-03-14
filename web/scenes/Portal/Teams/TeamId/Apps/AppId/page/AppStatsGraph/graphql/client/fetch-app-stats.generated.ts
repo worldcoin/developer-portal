@@ -95,3 +95,4 @@ export type FetchAppStatsQueryResult = Apollo.QueryResult<
   FetchAppStatsQuery,
   FetchAppStatsQueryVariables
 >;
+

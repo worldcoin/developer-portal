@@ -89,3 +89,4 @@ export type InsertActionMutationOptions = Apollo.BaseMutationOptions<
   InsertActionMutation,
   InsertActionMutationVariables
 >;
+

@@ -40,3 +40,4 @@ export const integrationDBExecuteQuery = async (
   await pool.end();
   return response;
 };
+

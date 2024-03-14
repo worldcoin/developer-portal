@@ -307,3 +307,4 @@ const updateNullifierQuery = gql`
     }
   }
 `;
+

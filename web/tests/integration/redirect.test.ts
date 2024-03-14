@@ -128,3 +128,4 @@ describe("redirect model", () => {
     }
   });
 });
+

@@ -7,3 +7,4 @@ export default async function handler(
   response.statusCode = 200;
   response.end("OK");
 }
+

@@ -145,3 +145,4 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     </div>
   );
 };
+

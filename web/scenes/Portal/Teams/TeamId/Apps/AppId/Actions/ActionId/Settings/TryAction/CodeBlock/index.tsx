@@ -123,3 +123,4 @@ const verifyProof = async (proof) => {
     </div>
   );
 };
+

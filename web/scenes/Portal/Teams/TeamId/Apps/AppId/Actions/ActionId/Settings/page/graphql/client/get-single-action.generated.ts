@@ -95,3 +95,4 @@ export type GetSingleActionQueryResult = Apollo.QueryResult<
   GetSingleActionQuery,
   GetSingleActionQueryVariables
 >;
+

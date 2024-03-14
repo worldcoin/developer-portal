@@ -61,3 +61,4 @@ const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
 };
 
 export default WithPostHogIdentifier;
+

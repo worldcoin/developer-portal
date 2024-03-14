@@ -135,3 +135,4 @@ export type CreateEditableRowMutationOptions = Apollo.BaseMutationOptions<
   CreateEditableRowMutation,
   CreateEditableRowMutationVariables
 >;
+

@@ -75,3 +75,4 @@ export type UpdateAppVerificationStatusMutationOptions =
     UpdateAppVerificationStatusMutation,
     UpdateAppVerificationStatusMutationVariables
   >;
+

@@ -252,3 +252,4 @@ const verifyChallenge = (challenge: string, verifier: string) => {
 
   return timingSafeEqual(Buffer.from(challenge), Buffer.from(hashedVerifier));
 };
+

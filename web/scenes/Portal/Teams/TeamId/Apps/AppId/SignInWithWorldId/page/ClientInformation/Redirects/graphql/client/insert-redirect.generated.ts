@@ -76,3 +76,4 @@ export type InsertRedirectMutationOptions = Apollo.BaseMutationOptions<
   InsertRedirectMutation,
   InsertRedirectMutationVariables
 >;
+

@@ -42,3 +42,4 @@ export const UserInfo = (props: UserInfoProps) => {
     </div>
   );
 };
+

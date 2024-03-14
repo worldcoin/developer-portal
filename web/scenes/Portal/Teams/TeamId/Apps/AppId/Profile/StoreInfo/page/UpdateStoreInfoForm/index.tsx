@@ -277,3 +277,4 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
     </div>
   );
 };
+

@@ -78,3 +78,4 @@ export type FetchInvitesQueryResult = Apollo.QueryResult<
   FetchInvitesQuery,
   FetchInvitesQueryVariables
 >;
+

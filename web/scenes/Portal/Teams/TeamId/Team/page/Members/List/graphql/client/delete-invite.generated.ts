@@ -63,3 +63,4 @@ export type DeleteInviteMutationOptions = Apollo.BaseMutationOptions<
   DeleteInviteMutation,
   DeleteInviteMutationVariables
 >;
+

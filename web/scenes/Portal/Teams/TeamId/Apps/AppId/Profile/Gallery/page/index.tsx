@@ -61,3 +61,4 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     );
   }
 };
+

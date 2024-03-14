@@ -61,3 +61,4 @@ export const RootLayout = ({
     </html>
   );
 };
+

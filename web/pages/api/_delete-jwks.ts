@@ -29,3 +29,4 @@ export default async function handleDeleteJWKS(
 
   return res.status(204).end();
 }
+

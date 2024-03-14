@@ -96,3 +96,4 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
     </Dialog>
   );
 };
+

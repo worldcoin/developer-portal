@@ -52,3 +52,4 @@ export const calculateColorFromString = (str: string | undefined | null) => {
   const colorName = Object.keys(colors)[colorIndex] as ColorName;
   return colors[colorName];
 };
+

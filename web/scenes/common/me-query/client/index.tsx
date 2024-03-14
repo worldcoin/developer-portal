@@ -84,3 +84,4 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
 
   return { user, loading, ...rest };
 };
+

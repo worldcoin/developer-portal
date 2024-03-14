@@ -84,3 +84,4 @@ export type UpdateAppInfoMutationOptions = Apollo.BaseMutationOptions<
   UpdateAppInfoMutation,
   UpdateAppInfoMutationVariables
 >;
+

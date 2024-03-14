@@ -79,3 +79,4 @@ export type UpdateRedirectMutationOptions = Apollo.BaseMutationOptions<
   UpdateRedirectMutation,
   UpdateRedirectMutationVariables
 >;
+

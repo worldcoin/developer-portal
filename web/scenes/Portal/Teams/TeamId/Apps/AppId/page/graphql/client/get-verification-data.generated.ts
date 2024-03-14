@@ -106,3 +106,4 @@ export type GetVerificationDataQueryResult = Apollo.QueryResult<
   GetVerificationDataQuery,
   GetVerificationDataQueryVariables
 >;
+

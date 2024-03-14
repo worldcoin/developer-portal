@@ -8,3 +8,4 @@ export const SignInWithWorldIdLayout = (props: { children: ReactNode }) => {
     </div>
   );
 };
+

@@ -56,3 +56,4 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
     </SizingWrapper>
   );
 };
+

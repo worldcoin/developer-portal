@@ -45,3 +45,4 @@ describe("/api/v1/oidc/userinfo", () => {
     });
   });
 });
+

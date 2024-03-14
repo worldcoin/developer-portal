@@ -63,3 +63,4 @@ export type DeleteActionMutationOptions = Apollo.BaseMutationOptions<
   DeleteActionMutation,
   DeleteActionMutationVariables
 >;
+

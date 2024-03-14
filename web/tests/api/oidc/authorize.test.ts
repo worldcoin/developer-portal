@@ -351,3 +351,4 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     expect(payload.iat!.toString().length).toEqual(10); // timestamp in seconds has 10 digits
   });
 });
+

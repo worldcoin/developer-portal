@@ -81,3 +81,4 @@ export type FetchImagesQueryResult = Apollo.QueryResult<
   FetchImagesQuery,
   FetchImagesQueryVariables
 >;
+

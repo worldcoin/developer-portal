@@ -71,3 +71,4 @@ export type UpdateLogoMutationOptions = Apollo.BaseMutationOptions<
   UpdateLogoMutation,
   UpdateLogoMutationVariables
 >;
+

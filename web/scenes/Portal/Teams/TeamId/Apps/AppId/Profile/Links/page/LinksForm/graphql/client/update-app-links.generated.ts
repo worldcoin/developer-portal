@@ -84,3 +84,4 @@ export type UpdateAppLinksInfoMutationOptions = Apollo.BaseMutationOptions<
   UpdateAppLinksInfoMutation,
   UpdateAppLinksInfoMutationVariables
 >;
+

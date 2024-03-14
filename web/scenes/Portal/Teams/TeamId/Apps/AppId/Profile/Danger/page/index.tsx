@@ -101,3 +101,4 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     );
   }
 };
+

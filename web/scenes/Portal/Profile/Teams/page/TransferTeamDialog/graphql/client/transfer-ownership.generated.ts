@@ -84,3 +84,4 @@ export type TransferOwnershipMutationOptions = Apollo.BaseMutationOptions<
   TransferOwnershipMutation,
   TransferOwnershipMutationVariables
 >;
+

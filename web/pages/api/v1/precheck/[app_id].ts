@@ -319,3 +319,4 @@ export default async function handlePrecheck(
 
   res.status(200).json(response);
 }
+

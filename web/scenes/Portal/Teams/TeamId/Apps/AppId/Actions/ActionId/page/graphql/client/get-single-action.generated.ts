@@ -92,3 +92,4 @@ export type GetSingleActionAndNullifiersQueryResult = Apollo.QueryResult<
   GetSingleActionAndNullifiersQuery,
   GetSingleActionAndNullifiersQueryVariables
 >;
+

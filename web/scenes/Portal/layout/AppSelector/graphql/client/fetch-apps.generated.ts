@@ -89,3 +89,4 @@ export type FetchAppsQueryResult = Apollo.QueryResult<
   FetchAppsQuery,
   FetchAppsQueryVariables
 >;
+

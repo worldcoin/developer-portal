@@ -44,3 +44,4 @@ export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.EmailNotVerified]:
     "Your email has not been verified. Please check your email for a verification link.",
 };
+

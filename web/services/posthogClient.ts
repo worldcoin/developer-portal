@@ -40,3 +40,4 @@ export async function captureEvent({
 }
 
 export default posthogClient;
+

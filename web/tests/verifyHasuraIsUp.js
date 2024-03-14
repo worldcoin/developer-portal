@@ -22,3 +22,4 @@ async function loop() {
 }
 
 loop();
+

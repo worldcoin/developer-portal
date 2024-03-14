@@ -142,3 +142,4 @@ export const validSemaphoreProofMock = {
   pendingValidAsOf: "2023-08-09T08:31:49.778Z",
   minedValidAsOf: "2023-08-09T08:31:49.778Z",
 };
+

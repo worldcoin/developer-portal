@@ -27,3 +27,4 @@ export const CreateTeamLayout = (props: { children: ReactNode }) => {
     </div>
   );
 };
+

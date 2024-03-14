@@ -184,3 +184,4 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     </Dialog>
   );
 };
+

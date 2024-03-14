@@ -162,3 +162,4 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     </Dialog>
   );
 };
+

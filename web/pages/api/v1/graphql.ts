@@ -108,3 +108,4 @@ export default async function handleGraphQL(
 
   res.status(response.status).json(await response.json());
 }
+

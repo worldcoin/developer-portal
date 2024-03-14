@@ -470,3 +470,4 @@ export const ImageForm = (props: ImageFormTypes) => {
     </form>
   );
 };
+

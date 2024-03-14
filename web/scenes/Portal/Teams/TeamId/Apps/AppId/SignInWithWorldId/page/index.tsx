@@ -74,3 +74,4 @@ export const SignInWithWorldIdPage = async (
     </div>
   );
 };
+

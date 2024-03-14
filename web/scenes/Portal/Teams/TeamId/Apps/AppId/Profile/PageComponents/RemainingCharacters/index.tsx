@@ -17,3 +17,4 @@ export const RemainingCharacters: React.FC<RemainingCharactersProps> = ({
     </Typography>
   );
 };
+

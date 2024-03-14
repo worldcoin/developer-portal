@@ -132,3 +132,4 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
     </div>
   );
 };
+

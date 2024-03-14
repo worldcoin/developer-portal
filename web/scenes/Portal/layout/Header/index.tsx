@@ -43,3 +43,4 @@ export const Header = (props: { color: Color | null }) => {
     </header>
   );
 };
+

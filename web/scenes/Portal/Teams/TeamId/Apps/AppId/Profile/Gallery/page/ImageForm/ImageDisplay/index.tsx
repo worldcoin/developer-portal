@@ -72,3 +72,4 @@ export const ImageDisplay = (props: {
     </div>
   );
 };
+

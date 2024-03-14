@@ -73,3 +73,4 @@ export default async function handleOIDCValidate(
 
   res.status(200).json({ app_id, redirect_uri });
 }
+

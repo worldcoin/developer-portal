@@ -92,3 +92,4 @@ export const InviteTeamMemberDialog = () => {
     </Dialog>
   );
 };
+

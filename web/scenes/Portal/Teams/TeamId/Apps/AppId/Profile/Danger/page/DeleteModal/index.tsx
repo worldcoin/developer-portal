@@ -156,3 +156,4 @@ export const DeleteModal = (props: DeleteModalProps) => {
     </Dialog>
   );
 };
+

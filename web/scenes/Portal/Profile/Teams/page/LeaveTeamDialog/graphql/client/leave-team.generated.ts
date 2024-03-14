@@ -69,3 +69,4 @@ export type LeaveTeamMutationOptions = Apollo.BaseMutationOptions<
   LeaveTeamMutation,
   LeaveTeamMutationVariables
 >;
+

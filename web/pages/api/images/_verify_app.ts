@@ -2,3 +2,4 @@
 
 import { handleVerifyApp } from "@/legacy/api/images/verify_app";
 export default handleVerifyApp;
+

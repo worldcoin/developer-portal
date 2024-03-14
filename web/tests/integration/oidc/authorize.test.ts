@@ -158,3 +158,4 @@ describe("/api/v1/oidc/authorize", () => {
     expect(code_challenge).toEqual(pkceChallenge("my_code_challenge"));
   });
 });
+

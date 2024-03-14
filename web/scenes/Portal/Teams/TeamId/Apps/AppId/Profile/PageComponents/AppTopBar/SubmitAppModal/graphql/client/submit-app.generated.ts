@@ -79,3 +79,4 @@ export type SubmitAppMutationOptions = Apollo.BaseMutationOptions<
   SubmitAppMutation,
   SubmitAppMutationVariables
 >;
+

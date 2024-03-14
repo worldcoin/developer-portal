@@ -86,3 +86,4 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
     </div>
   );
 };
+

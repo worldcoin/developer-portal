@@ -29,3 +29,4 @@ export const DetailsMenu = (props: { path: string }) => {
     </Menu>
   );
 };
+

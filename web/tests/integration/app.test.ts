@@ -367,3 +367,4 @@ describe("api_key role", () => {
     expect(response.data.delete_app.affected_rows).toEqual(0);
   });
 });
+

@@ -79,3 +79,4 @@ export type DebuggerQueryResult = Apollo.QueryResult<
   DebuggerQuery,
   DebuggerQueryVariables
 >;
+

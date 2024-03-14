@@ -5,3 +5,4 @@ export const SignInWithWorldIdProofDebuggingPage = () => {
     </div>
   );
 };
+

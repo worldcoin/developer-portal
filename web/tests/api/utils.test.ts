@@ -59,3 +59,4 @@ describe("url js injection", () => {
     expect(uriHasJS("javascript:;alert('test');")).toBeTruthy();
   });
 });
+

@@ -100,3 +100,4 @@ export const TeamSettingsPage = () => {
     </div>
   );
 };
+

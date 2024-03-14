@@ -68,3 +68,4 @@ export const TeamProfile = (props: { className?: string }) => {
     </div>
   );
 };
+

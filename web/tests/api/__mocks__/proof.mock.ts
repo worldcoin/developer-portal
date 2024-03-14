@@ -8,3 +8,4 @@ export const semaphoreProofParamsMock = {
   verification_level: "orb",
   signal: "my_signal",
 };
+

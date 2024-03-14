@@ -75,3 +75,4 @@ export type FetchTeamQueryResult = Apollo.QueryResult<
   FetchTeamQuery,
   FetchTeamQueryVariables
 >;
+

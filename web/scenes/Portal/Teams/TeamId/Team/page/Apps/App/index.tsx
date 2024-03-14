@@ -50,3 +50,4 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
     </Button>
   );
 };
+

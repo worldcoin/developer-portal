@@ -18,3 +18,4 @@ export const JoinCallback = async (props: {
 
   return <JoinCallbackPageContent invite_id={invite_id} />;
 };
+

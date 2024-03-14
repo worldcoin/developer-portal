@@ -194,3 +194,4 @@ export const Icon = (props: IconProps) => {
     </div>
   );
 };
+

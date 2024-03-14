@@ -156,3 +156,4 @@ export type FetchAppMetadataQueryResult = Apollo.QueryResult<
   FetchAppMetadataQuery,
   FetchAppMetadataQueryVariables
 >;
+

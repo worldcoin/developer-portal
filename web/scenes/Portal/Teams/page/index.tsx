@@ -19,3 +19,4 @@ export const TeamsPage = async () => {
 
   return redirect(urls.teams({ team_id: memberships[0].team?.id }));
 };
+

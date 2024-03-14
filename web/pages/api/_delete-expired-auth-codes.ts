@@ -48,3 +48,4 @@ export default async function handler(
 
   res.status(204).end();
 }
+

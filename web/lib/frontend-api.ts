@@ -35,3 +35,4 @@ export const restAPIRequest = async <T>(
 
   return jsonResponse as T;
 };
+

@@ -63,3 +63,4 @@ export type DeleteRedirectMutationOptions = Apollo.BaseMutationOptions<
   DeleteRedirectMutation,
   DeleteRedirectMutationVariables
 >;
+

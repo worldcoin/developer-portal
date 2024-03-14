@@ -40,3 +40,4 @@ export const AppsPage = async (props: AppPage) => {
 
   return <ClientPage />;
 };
+

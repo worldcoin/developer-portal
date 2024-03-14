@@ -53,3 +53,4 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
     </div>
   );
 };
+

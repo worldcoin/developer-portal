@@ -132,3 +132,4 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     </Dialog>
   );
 };
+

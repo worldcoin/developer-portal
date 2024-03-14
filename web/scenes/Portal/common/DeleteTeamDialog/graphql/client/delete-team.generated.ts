@@ -63,3 +63,4 @@ export type DeleteTeamMutationOptions = Apollo.BaseMutationOptions<
   DeleteTeamMutation,
   DeleteTeamMutationVariables
 >;
+

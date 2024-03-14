@@ -35,3 +35,4 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
     </div>
   );
 };
+

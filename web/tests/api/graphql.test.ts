@@ -5,3 +5,4 @@ describe("/api/v1/graphql", () => {
   test("invalid API key throws error", async () => {});
   test("expired API key throws error", async () => {});
 });
+

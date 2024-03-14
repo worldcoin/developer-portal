@@ -90,3 +90,4 @@ export type GetUploadedImageQueryResult = Apollo.QueryResult<
   GetUploadedImageQuery,
   GetUploadedImageQueryVariables
 >;
+

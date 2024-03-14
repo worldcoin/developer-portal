@@ -72,3 +72,4 @@ export type GetActionNameQueryResult = Apollo.QueryResult<
   GetActionNameQuery,
   GetActionNameQueryVariables
 >;
+

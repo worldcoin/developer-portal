@@ -80,3 +80,4 @@ export type RedirectsQueryResult = Apollo.QueryResult<
   RedirectsQuery,
   RedirectsQueryVariables
 >;
+

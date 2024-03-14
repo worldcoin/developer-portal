@@ -76,3 +76,4 @@ export const JoinPage = async (props: {
     </div>
   );
 };
+

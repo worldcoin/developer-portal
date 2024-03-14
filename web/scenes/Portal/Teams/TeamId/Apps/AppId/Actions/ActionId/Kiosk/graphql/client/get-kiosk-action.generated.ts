@@ -97,3 +97,4 @@ export type GetKioskActionQueryResult = Apollo.QueryResult<
   GetKioskActionQuery,
   GetKioskActionQueryVariables
 >;
+

@@ -56,3 +56,4 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     );
   }
 };
+

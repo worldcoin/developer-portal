@@ -71,3 +71,4 @@ export type FetchTeamNameQueryResult = Apollo.QueryResult<
   FetchTeamNameQuery,
   FetchTeamNameQueryVariables
 >;
+

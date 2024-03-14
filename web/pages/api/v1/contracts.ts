@@ -32,3 +32,4 @@ export default async function handleContracts(
 
   res.status(200).json(response.data.cache);
 }
+

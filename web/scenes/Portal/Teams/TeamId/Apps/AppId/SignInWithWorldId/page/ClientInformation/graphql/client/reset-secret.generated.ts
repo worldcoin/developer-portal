@@ -68,3 +68,4 @@ export type ResetClientSecretMutationOptions = Apollo.BaseMutationOptions<
   ResetClientSecretMutation,
   ResetClientSecretMutationVariables
 >;
+

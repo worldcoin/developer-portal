@@ -50,3 +50,4 @@ const configColors: ResolvableTo<RecursiveKeyValuePair<ColorName, Color>> =
   twConfig.theme?.extend?.colors! as RecursiveKeyValuePair<ColorName, Color>;
 
 export const colors = configColors?.additional as AdditionalColors;
+

@@ -74,3 +74,4 @@ export type UpdateShowcaseImagesMutationOptions = Apollo.BaseMutationOptions<
   UpdateShowcaseImagesMutation,
   UpdateShowcaseImagesMutationVariables
 >;
+

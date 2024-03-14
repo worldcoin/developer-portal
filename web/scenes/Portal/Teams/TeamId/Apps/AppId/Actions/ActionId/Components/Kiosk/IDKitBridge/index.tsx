@@ -141,3 +141,4 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
 
   return <></>;
 });
+

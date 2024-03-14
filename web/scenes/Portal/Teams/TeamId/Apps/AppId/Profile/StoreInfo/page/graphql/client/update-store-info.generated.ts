@@ -80,3 +80,4 @@ export type UpdateAppStoreInfoMutationOptions = Apollo.BaseMutationOptions<
   UpdateAppStoreInfoMutation,
   UpdateAppStoreInfoMutationVariables
 >;
+

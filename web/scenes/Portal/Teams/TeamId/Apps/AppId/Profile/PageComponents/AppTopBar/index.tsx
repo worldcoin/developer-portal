@@ -377,3 +377,4 @@ export const AppTopBar = (props: AppTopBarProps) => {
     </div>
   );
 };
+

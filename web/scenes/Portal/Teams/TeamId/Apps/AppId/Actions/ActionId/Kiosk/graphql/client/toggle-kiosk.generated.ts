@@ -68,3 +68,4 @@ export type ToggleKioskMutationOptions = Apollo.BaseMutationOptions<
   ToggleKioskMutation,
   ToggleKioskMutationVariables
 >;
+
