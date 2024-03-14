@@ -48,7 +48,7 @@ export const Input = memo(function Input(props: InputInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer h-full bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-none focus:ring-0",
+    "peer h-full min-w-0 bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-none focus:ring-0",
 
     {
       "placeholder:text-grey-400": !errors,
