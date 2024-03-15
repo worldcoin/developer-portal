@@ -4,7 +4,7 @@ import {
   DropdownButton,
   DropdownItem,
   DropdownItems,
-} from "@/components/Dropdown";
+} from "@/components/DropdownOld";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";

@@ -3,7 +3,7 @@ import {
   DropdownButton,
   DropdownItem,
   DropdownItems,
-} from "@/components/Dropdown";
+} from "@/components/DropdownOld";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";

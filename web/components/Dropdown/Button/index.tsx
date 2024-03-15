@@ -1,20 +1,28 @@
+import { lazy, ReactNode, useContext } from "react";
 import { dropdownContext } from "@/components/Dropdown";
-import { Menu, MenuButtonProps } from "@headlessui/react";
-import { useContext } from "react";
-import { twMerge } from "tailwind-merge";
 
-type DropdownButtonProps = Omit<MenuButtonProps<"button">, "className"> & {
+export type ButtonProps = {
   className?: string;
+  children: ReactNode;
 };
 
-export const DropdownButton = (props: DropdownButtonProps) => {
-  const { className, ...otherProps } = props;
-  const { setReference } = useContext(dropdownContext);
+const ButtonDesktopComponent = lazy(
+  () => import("@/components/Dropdown@desktop/Button@desktop"),
+);
+const ButtonMobileComponent = lazy(
+  () => import("@/components/Dropdown@mobile/Button@mobile"),
+);
+
+export const Button = (props: ButtonProps) => {
+  const { className } = props;
+
+  const { isDesktop } = useContext(dropdownContext);
+
+  const ButtonComponent = isDesktop
+    ? ButtonDesktopComponent
+    : ButtonMobileComponent;
+
   return (
-    <Menu.Button
-      ref={setReference}
-      className={twMerge(className)}
-      {...otherProps}
-    />
+    <ButtonComponent className={className}>{props.children}</ButtonComponent>
   );
 };

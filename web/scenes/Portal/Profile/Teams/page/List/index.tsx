@@ -6,7 +6,7 @@ import {
   DropdownButton,
   DropdownItem,
   DropdownItems,
-} from "@/components/Dropdown";
+} from "@/components/DropdownOld";
 
 import { Button } from "@/components/Button";
 import { EditIcon } from "@/components/Icons/EditIcon";

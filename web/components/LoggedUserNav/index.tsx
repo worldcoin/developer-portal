@@ -16,18 +16,14 @@ import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { CSSProperties, Fragment, useCallback, useMemo } from "react";
 import { Button } from "../Button";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "../Dropdown";
+import { Dropdown } from "../Dropdown";
 import { LogoutIcon } from "../Icons/LogoutIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { HelpNav } from "./HelpNav";
+import { CodeFolderIcon } from "@/components/Icons/CodeFolderIcon";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -79,16 +75,21 @@ export const LoggedUserNav = () => {
         } as CSSProperties
       }
     >
-      <HelpNav />
+      <div className="hidden md:contents">
+        <HelpNav />
 
-      <Button href={DOCS_URL} onClick={trackDocsClicked}>
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          Docs
-        </Typography>
-      </Button>
+        <Button href={DOCS_URL} onClick={trackDocsClicked}>
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+            Docs
+          </Typography>
+        </Button>
+      </div>
 
-      <Dropdown zIndex={60}>
-        <DropdownButton>
+      <Dropdown
+        placement="bottom-end"
+        //zIndex={60}
+      >
+        <Dropdown.Button>
           <div className="flex size-6 items-center justify-center rounded-full bg-[var(--color-100)] text-xs transition-colors duration-300">
             <Typography
               variant={TYPOGRAPHY.M5}
@@ -97,32 +98,28 @@ export const LoggedUserNav = () => {
               {nameFirstLetter}
             </Typography>
           </div>
-        </DropdownButton>
+        </Dropdown.Button>
 
-        <DropdownItems className="mt-2 max-w-[200px]">
-          <Typography
-            as="div"
-            variant={TYPOGRAPHY.R4}
-            className="max-w-full truncate px-4 py-2.5 text-grey-400"
-          >
+        <Dropdown.Items className="md:mt-2 md:max-w-[200px]">
+          <div className="px-2 py-2.5 text-14 leading-5 text-grey-400 md:px-4">
             {user.nameToDisplay}
-          </Typography>
+          </div>
 
-          <DropdownItem className="hover:bg-grey-50">
+          <Dropdown.Item>
             <Link
               href="/profile"
-              className="grid grid-cols-auto/1fr items-center gap-x-2"
+              className="grid grid-cols-auto/1fr items-center gap-x-4 md:gap-x-2"
             >
-              <UserCircleIcon className="text-grey-400" />
-              <Typography variant={TYPOGRAPHY.R4}>Profile</Typography>
+              <UserCircleIcon className="size-6 text-grey-400 md:size-4" />
+              Profile
             </Link>
-          </DropdownItem>
+          </Dropdown.Item>
 
           <hr className="my-1 border-grey-200" />
 
           {teamRes.data?.team && (
             <Fragment>
-              <div className="grid w-full grid-cols-auto/1fr items-center gap-x-2 px-4 py-2.5">
+              <div className="grid w-full grid-cols-auto/1fr items-center gap-x-2 px-2 py-2.5 md:px-4">
                 <TeamLogo src={""} name={teamRes.data?.team.name ?? ""} />
 
                 <Typography
@@ -133,48 +130,68 @@ export const LoggedUserNav = () => {
                 </Typography>
               </div>
 
-              <DropdownItem className="hover:bg-grey-50">
+              <Dropdown.Item>
                 <Link
                   href={`/teams/${teamId}`}
-                  className="grid grid-cols-auto/1fr items-center gap-x-2"
+                  className="grid grid-cols-auto/1fr items-center gap-x-4 md:gap-x-2"
                 >
-                  <UserMultipleIcon className="text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+                  <UserMultipleIcon className="size-6 text-grey-400 md:size-4" />
+                  Overview
                 </Link>
-              </DropdownItem>
+              </Dropdown.Item>
 
               {hasOwnerPermission && (
-                <DropdownItem className="hover:bg-grey-50">
+                <Dropdown.Item>
                   <Link
                     href={`/teams/${teamId}/settings`}
-                    className="grid grid-cols-auto/1fr items-center gap-x-2"
+                    className="grid grid-cols-auto/1fr items-center gap-x-4 md:gap-x-2"
                   >
-                    <SettingsIcon className="text-grey-400" />
-                    <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
+                    <SettingsIcon className="size-6 text-grey-400 md:size-4" />
+                    Settings
                   </Link>
-                </DropdownItem>
+                </Dropdown.Item>
               )}
 
               <hr className="my-1 border-grey-200" />
             </Fragment>
           )}
 
-          <DropdownItem as="div" className="p-0 hover:bg-grey-50">
+          <Dropdown.Item className="p-0" preventCloseOnClick>
             <TeamSwitch selectedTeamId={teamId} />
-          </DropdownItem>
+          </Dropdown.Item>
+
+          <div className="md:hidden">
+            <div className="px-2 py-2.5 text-14 leading-5 text-grey-400">
+              Resources
+            </div>
+
+            <Dropdown.Item>
+              <a
+                className="grid grid-cols-auto/1fr items-center gap-x-4"
+                href={DOCS_URL}
+                onClick={trackDocsClicked}
+              >
+                <CodeFolderIcon className="text-grey-400" /> Docs
+              </a>
+            </Dropdown.Item>
+
+            <Dropdown.Item className="p-0" preventCloseOnClick>
+              <HelpNav />
+            </Dropdown.Item>
+          </div>
 
           <hr className="my-1 border-grey-200" />
 
-          <DropdownItem className="hover:bg-grey-50">
+          <Dropdown.Item>
             <a
               href="/api/auth/logout"
-              className="grid grid-cols-auto/1fr items-center gap-x-2 text-system-error-600"
+              className="grid grid-cols-auto/1fr items-center gap-x-4 text-system-error-600 md:gap-x-2"
             >
-              <LogoutIcon className="size-4" />
-              <Typography variant={TYPOGRAPHY.R4}>Log out</Typography>
+              <LogoutIcon className="size-6 md:size-4" />
+              Log out
             </a>
-          </DropdownItem>
-        </DropdownItems>
+          </Dropdown.Item>
+        </Dropdown.Items>
       </Dropdown>
     </div>
   );

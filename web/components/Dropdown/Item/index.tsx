@@ -1,27 +1,31 @@
-import { Menu, MenuItemProps } from "@headlessui/react";
-import { ElementType } from "react";
-import { twMerge } from "tailwind-merge";
+import { lazy, ReactNode, useContext } from "react";
+import { dropdownContext } from "@/components/Dropdown";
 
-type DropdownItemProps<TTag extends ElementType> = Omit<
-  MenuItemProps<TTag>,
-  "className"
-> & {
+export type ItemProps = {
   className?: string;
+  preventCloseOnClick?: boolean;
+  children: ReactNode;
 };
 
-export const DropdownItem = <TTag extends ElementType>(
-  props: DropdownItemProps<TTag>,
-) => {
-  const { className, ...otherProps } = props;
+const ItemDesktopComponent = lazy(
+  () => import("@/components/Dropdown@desktop/Item@desktop"),
+);
+const ItemMobileComponent = lazy(
+  () => import("@/components/Dropdown@mobile/Item@mobile"),
+);
+
+export const Item = (props: ItemProps) => {
+  const { className, children } = props;
+  const { isDesktop } = useContext(dropdownContext);
+
+  const ItemComponent = isDesktop ? ItemDesktopComponent : ItemMobileComponent;
+
   return (
-    <Menu.Item
-      className={twMerge(
-        "cursor-pointer px-4 py-2.5 text-14 leading-5",
-        className,
-      )}
-      {...otherProps}
+    <ItemComponent
+      className={className}
+      preventCloseOnClick={props.preventCloseOnClick}
     >
-      {props.children}
-    </Menu.Item>
+      {children}
+    </ItemComponent>
   );
 };

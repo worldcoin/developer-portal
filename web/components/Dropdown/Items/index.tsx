@@ -1,42 +1,27 @@
-import { Menu, MenuItemsProps, Transition } from "@headlessui/react";
-import { FloatingPortal } from "@floating-ui/react";
-import { useContext, Fragment } from "react";
+import { lazy, ReactNode, useContext } from "react";
 import { dropdownContext } from "@/components/Dropdown";
-import { twMerge } from "tailwind-merge";
 
-type DropdownItemsProps = Omit<MenuItemsProps<"ul">, "className"> & {
+export type ItemsProps = {
   className?: string;
+  children: ReactNode;
 };
 
-export const DropdownItems = (props: DropdownItemsProps) => {
+const ItemsDesktopComponent = lazy(
+  () => import("@/components/Dropdown@desktop/Items@desktop"),
+);
+const ItemsMobileComponent = lazy(
+  () => import("@/components/Dropdown@mobile/Items@mobile"),
+);
+
+export const Items = (props: ItemsProps) => {
   const { className } = props;
-  const { setFloating, floatingStyles } = useContext(dropdownContext);
+  const { isDesktop } = useContext(dropdownContext);
+
+  const ItemsComponent = isDesktop
+    ? ItemsDesktopComponent
+    : ItemsMobileComponent;
+
   return (
-    <FloatingPortal>
-      <div
-        ref={setFloating}
-        style={floatingStyles}
-        className="z-[1] flex flex-col"
-      >
-        <Transition
-          enter="transition duration-300 ease-out"
-          enterFrom="transform opacity-0"
-          enterTo="transform opacity-100"
-          leave="transition duration-150 ease-out"
-          leaveFrom="transform opacity-100"
-          leaveTo="transform opacity-0"
-          as={Fragment}
-        >
-          <Menu.Items
-            className={twMerge(
-              "min-h-0 overflow-y-auto rounded-12 border border-grey-100 bg-grey-0 py-1 shadow-lg",
-              className,
-            )}
-          >
-            {props.children}
-          </Menu.Items>
-        </Transition>
-      </div>
-    </FloatingPortal>
+    <ItemsComponent className={className}>{props.children}</ItemsComponent>
   );
 };
