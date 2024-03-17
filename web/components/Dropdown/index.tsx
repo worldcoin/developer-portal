@@ -1,50 +1,60 @@
-import { createContext, lazy, ReactNode, useMemo } from "react";
-import { useMediaQuery } from "@uidotdev/usehooks";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useMemo,
+  useState,
+} from "react";
+import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
 import { Button } from "./Button";
-import { Item } from "./Item";
-import { Items } from "./Items";
+import { List } from "./List";
+import { ListHeader } from "./ListHeader";
+import { ListItem } from "./ListItem";
+import { ListItemIcon } from "./ListItemIcon";
+import { ListSeparator } from "./ListSeparator";
+import { Sub } from "./Sub";
+import { SubButton } from "./SubButton";
+import { SubList } from "./SubList";
 
 type DropdownContextValue = {
-  isDesktop: boolean;
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export const dropdownContext = createContext({} as DropdownContextValue);
 
-export type DropdownProps = {
-  children: ReactNode;
-  placement?: "bottom-end" | "left-start";
-};
-
-const DropdownDesktopComponent = lazy(
-  () => import("components/Dropdown@desktop"),
-);
-const DropdownMobileComponent = lazy(
-  () => import("components/Dropdown@mobile"),
-);
+export type DropdownProps = DropdownPrimitive.DropdownMenuProps & {};
 
 export const Dropdown = (props: DropdownProps) => {
-  const isDesktop = useMediaQuery("only screen and (min-width: 768px)");
+  const { children, ...otherProps } = props;
+  const [open, setOpen] = useState(false);
 
-  const contextValue = useMemo(
-    () => ({
-      isDesktop,
-    }),
-    [isDesktop],
-  );
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+  };
 
-  const DropdownComponent = isDesktop
-    ? DropdownDesktopComponent
-    : DropdownMobileComponent;
+  const contextValue = useMemo(() => {
+    return {
+      open,
+      setOpen,
+    };
+  }, [open]);
 
   return (
     <dropdownContext.Provider value={contextValue}>
-      <DropdownComponent placement={props.placement}>
-        {props.children}
-      </DropdownComponent>
+      <DropdownPrimitive.Root open={open} onOpenChange={handleOpenChange}>
+        {children}
+      </DropdownPrimitive.Root>
     </dropdownContext.Provider>
   );
 };
 
 Dropdown.Button = Button;
-Dropdown.Item = Item;
-Dropdown.Items = Items;
+Dropdown.List = List;
+Dropdown.ListHeader = ListHeader;
+Dropdown.ListItem = ListItem;
+Dropdown.ListItemIcon = ListItemIcon;
+Dropdown.ListSeparator = ListSeparator;
+Dropdown.Sub = Sub;
+Dropdown.SubButton = SubButton;
+Dropdown.SubList = SubList;

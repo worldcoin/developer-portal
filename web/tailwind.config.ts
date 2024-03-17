@@ -166,6 +166,28 @@ const config: Config = {
       spacing: {
         136: "34rem",
       },
+
+      keyframes: {
+        DropdownOverlayEnter: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "DropdownContentEnter@desktop": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "DropdownContentEnter@device": {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+
+      animation: {
+        DropdownOverlayEnter: "DropdownOverlayEnter 0.3s ease",
+        "DropdownContentEnter@desktop":
+          "DropdownContentEnter@desktop 0.3s ease",
+        "DropdownContentEnter@device": "DropdownContentEnter@device 0.3s ease",
+      },
     },
   },
   plugins: [],

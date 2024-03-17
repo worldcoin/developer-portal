@@ -1,28 +1,19 @@
-import { lazy, ReactNode, useContext } from "react";
-import { dropdownContext } from "@/components/Dropdown";
+import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
+import { twMerge } from "tailwind-merge";
 
-export type ButtonProps = {
-  className?: string;
-  children: ReactNode;
-};
-
-const ButtonDesktopComponent = lazy(
-  () => import("@/components/Dropdown@desktop/Button@desktop"),
-);
-const ButtonMobileComponent = lazy(
-  () => import("@/components/Dropdown@mobile/Button@mobile"),
-);
+type ButtonProps = DropdownPrimitive.DropdownMenuTriggerProps & {};
 
 export const Button = (props: ButtonProps) => {
-  const { className } = props;
-
-  const { isDesktop } = useContext(dropdownContext);
-
-  const ButtonComponent = isDesktop
-    ? ButtonDesktopComponent
-    : ButtonMobileComponent;
-
+  const { className, children, ...otherProps } = props;
   return (
-    <ButtonComponent className={className}>{props.children}</ButtonComponent>
+    <DropdownPrimitive.Trigger
+      className={twMerge(
+        "grid cursor-pointer items-center md:gap-x-2",
+        className,
+      )}
+      {...otherProps}
+    >
+      {children}
+    </DropdownPrimitive.Trigger>
   );
 };

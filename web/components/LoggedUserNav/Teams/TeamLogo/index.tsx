@@ -25,13 +25,11 @@ export const TeamLogo = (props: {
       {!src && (
         <div
           className={twMerge(
-            "flex size-5 items-center justify-center rounded bg-grey-100",
+            "flex size-5 items-center justify-center rounded bg-grey-100 text-sm",
             props.className,
           )}
         >
-          <span className="text-14 uppercase text-grey-400">
-            {props.name[0]}
-          </span>
+          <span className="uppercase text-grey-400">{props.name[0]}</span>
         </div>
       )}
     </div>
