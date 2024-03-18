@@ -5,6 +5,7 @@ import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import crypto from "crypto";
 import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -118,8 +119,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
       return errorResponse({
         statusCode: 500,
-        code: "Failed to send acceptance",
-        detail: undefined,
+        code: "server_error",
+        detail: "Failed to send acceptance",
         attribute: null,
         req,
       });
