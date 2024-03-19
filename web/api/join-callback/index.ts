@@ -3,6 +3,7 @@ import { IroncladActivityApi } from "@/lib/ironclad-activity-api";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import crypto from "crypto";
 import { parse } from "next-useragent";
 import { headers as nextHeaders } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -87,7 +88,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
         headersList.get("x-forwarded-for") ??
         headersList.get("x-real-ip") ??
         "",
-      pau: `${url.origin}/signup`,
+      pau: `${url.origin}/join-callback`,
       pad: url.host,
       pap: url.pathname,
       hn: url.hostname,
@@ -138,6 +139,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   // ANCHOR: Insert user
   let nullifier_hash: string | undefined = undefined;
+
   if (!isEmailUser(auth0User)) {
     const nullifier = auth0User.sub.split("|")[2];
     nullifier_hash = nullifier;
