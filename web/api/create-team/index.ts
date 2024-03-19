@@ -106,7 +106,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
           headersList.get("x-forwarded-for") ??
           headersList.get("x-real-ip") ??
           "",
-        pau: `${url.origin}/signup`,
+        pau: `${url.origin}/create-team`,
         pad: url.host,
         pap: url.pathname,
         hn: url.hostname,
