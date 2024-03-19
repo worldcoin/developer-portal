@@ -1,13 +1,6 @@
 "use client";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
-
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/DropdownOld";
-
+import { Dropdown } from "@/components/Dropdown";
 import { Button } from "@/components/Button";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { ExchangeIcon } from "@/components/Icons/ExchangeIcon";
@@ -23,6 +16,7 @@ import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
 import { TeamLogo } from "./TeamLogo";
+import Link from "next/link";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -94,81 +88,108 @@ export const List = () => {
 
             <div className="flex items-center border-b border-grey-100 px-2 py-4 group-hover:bg-grey-50">
               <Dropdown>
-                <DropdownButton className="rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100">
+                <Dropdown.Button className="rounded-8 hover:bg-grey-100">
                   <MoreVerticalIcon />
-                </DropdownButton>
+                </Dropdown.Button>
 
-                <DropdownItems>
-                  <DropdownItem
-                    as="a"
-                    href={urls.teams({ team_id: membership.team.id })}
-                    className="flex items-center gap-x-2 hover:bg-grey-50"
-                  >
-                    <LoginSquareIcon className="size-4 text-grey-400" />
+                <Dropdown.List
+                  align="end"
+                  heading={membership.team.name ?? ""} // TODO: replace header with team card in separate task
+                  hideBackButton
+                >
+                  <Dropdown.ListItem asChild>
+                    <Link href={urls.teams({ team_id: membership.team.id })}>
+                      <Dropdown.ListItemIcon asChild>
+                        <LoginSquareIcon />
+                      </Dropdown.ListItemIcon>
 
-                    <Typography variant={TYPOGRAPHY.R4}>
-                      Switch to team
-                    </Typography>
-                  </DropdownItem>
+                      <Dropdown.ListItemText>
+                        Switch to team
+                      </Dropdown.ListItemText>
+                    </Link>
+                  </Dropdown.ListItem>
 
                   {(membership.role === Role_Enum.Owner ||
                     membership.role === Role_Enum.Admin) && (
-                    <DropdownItem
-                      as="a"
-                      href={urls.teamSettings({ team_id: membership.team.id })}
-                      className="flex items-center gap-x-2 hover:bg-grey-50"
-                    >
-                      <EditIcon className="size-4 text-grey-400" />
-                      <Typography variant={TYPOGRAPHY.R4}>Edit team</Typography>
-                    </DropdownItem>
+                    <Dropdown.ListItem asChild>
+                      <Link
+                        href={urls.teamSettings({
+                          team_id: membership.team.id,
+                        })}
+                      >
+                        <Dropdown.ListItemIcon asChild>
+                          <EditIcon />
+                        </Dropdown.ListItemIcon>
+
+                        <Dropdown.ListItemText>Edit team</Dropdown.ListItemText>
+                      </Link>
+                    </Dropdown.ListItem>
                   )}
 
                   {membership.role === Role_Enum.Owner && (
-                    <DropdownItem
-                      as="button"
-                      type="button"
-                      onClick={() => setTeamForTransfer(membership.team)}
-                      className="flex items-center gap-x-2 hover:bg-grey-50"
-                    >
-                      <ExchangeIcon className="size-4 text-grey-400" />
+                    <Dropdown.ListItem asChild>
+                      <button
+                        type="button"
+                        onClick={() => setTeamForTransfer(membership.team)}
+                      >
+                        <Dropdown.ListItemIcon asChild>
+                          <ExchangeIcon />
+                        </Dropdown.ListItemIcon>
 
-                      <Typography variant={TYPOGRAPHY.R4}>
-                        Transfer ownership
-                      </Typography>
-                    </DropdownItem>
+                        <Dropdown.ListItemText>
+                          Transfer ownership
+                        </Dropdown.ListItemText>
+                      </button>
+                    </Dropdown.ListItem>
                   )}
 
                   {membership.role === Role_Enum.Owner && (
-                    <DropdownItem
-                      as="button"
-                      type="button"
-                      className="flex w-full items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
-                      onClick={() => setTeamForDelete(membership.team)}
+                    <Dropdown.ListItem
+                      className="text-system-error-600"
+                      asChild
                     >
-                      <LogoutIcon className="size-4" />
+                      <button
+                        type="button"
+                        onClick={() => setTeamForDelete(membership.team)}
+                      >
+                        <Dropdown.ListItemIcon
+                          className="text-system-error-600"
+                          asChild
+                        >
+                          <LogoutIcon />
+                        </Dropdown.ListItemIcon>
 
-                      <Typography variant={TYPOGRAPHY.R4}>
-                        Delete team
-                      </Typography>
-                    </DropdownItem>
+                        <Dropdown.ListItemText>
+                          Delete team
+                        </Dropdown.ListItemText>
+                      </button>
+                    </Dropdown.ListItem>
                   )}
 
                   {(membership.role === Role_Enum.Admin ||
                     membership.role === Role_Enum.Member) && (
-                    <DropdownItem
-                      as="button"
-                      type="button"
-                      className="flex w-full items-center gap-x-2 text-system-error-600 hover:bg-grey-50"
-                      onClick={() => setTeamForLeave(membership.team)}
+                    <Dropdown.ListItem
+                      className="text-system-error-600"
+                      asChild
                     >
-                      <LogoutIcon className="size-4" />
+                      <button
+                        type="button"
+                        onClick={() => setTeamForLeave(membership.team)}
+                      >
+                        <Dropdown.ListItemIcon
+                          className="text-system-error-600"
+                          asChild
+                        >
+                          <LogoutIcon />
+                        </Dropdown.ListItemIcon>
 
-                      <Typography variant={TYPOGRAPHY.R4}>
-                        Leave team
-                      </Typography>
-                    </DropdownItem>
+                        <Dropdown.ListItemText>
+                          Leave team
+                        </Dropdown.ListItemText>
+                      </button>
+                    </Dropdown.ListItem>
                   )}
-                </DropdownItems>
+                </Dropdown.List>
               </Dropdown>
             </div>
           </div>
