@@ -1,13 +1,14 @@
-export const UploadIcon = (props: { className?: string }) => {
-  const { className } = props;
+import { ComponentProps } from "react";
+
+export const UploadIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="40"
       height="40"
-      className={className}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <rect width="40" height="40" rx="20" fill="#F0F0FD" />
       <path

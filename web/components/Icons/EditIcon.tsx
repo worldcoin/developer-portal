@@ -1,12 +1,14 @@
-export const EditIcon = ({ className }: { className?: string }) => {
+import { ComponentProps } from "react";
+
+export const EditIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="16"
       height="16"
       viewBox="0 0 16 16"
-      className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g clipPath="url(#clip0_1421_28300)">
         <path

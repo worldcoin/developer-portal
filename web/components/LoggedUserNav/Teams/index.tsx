@@ -27,7 +27,7 @@ export const Teams = (props: { selectedTeamId?: string }) => {
               name={team.name ?? ""}
             />
 
-            <div className="truncate">{team.name}</div>
+            <div className="truncate !leading-4">{team.name}</div>
 
             {team.id === props.selectedTeamId && (
               <CheckmarkCircleIcon className="size-5 text-blue-500 md:size-4" />

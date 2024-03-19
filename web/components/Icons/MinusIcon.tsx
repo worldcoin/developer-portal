@@ -1,13 +1,14 @@
-export const MinusIcon = (props: { className: string }) => {
-  const { className } = props;
+import { ComponentProps } from "react";
+
+export const MinusIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="20"
       height="20"
       viewBox="0 0 20 20"
-      className={className}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g id="minus">
         <path
