@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/DropdownOld";
+import { Dropdown } from "@/components/Dropdown";
 import { EditUserIcon } from "@/components/Icons/EditUserIcon";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
@@ -297,72 +292,78 @@ export const List = (props: { search?: string }) => {
 
                   <div className="flex items-center border-b border-grey-100 px-2 py-4">
                     <Dropdown>
-                      <DropdownButton
+                      <Dropdown.Button
                         disabled={
                           !isEnoughPermissions || isCurrentMember(membership)
                         }
-                        className={clsx(
-                          "rounded-8 hover:bg-grey-100 data-[headlessui-state*=open]:bg-grey-100",
-                          {
-                            "pointer-events-none invisible":
-                              !isEnoughPermissions ||
-                              isCurrentMember(membership),
-                          },
-                        )}
+                        className={clsx("rounded-8 hover:bg-grey-100", {
+                          "pointer-events-none invisible":
+                            !isEnoughPermissions || isCurrentMember(membership),
+                        })}
                       >
                         <MoreVerticalIcon className="text-grey-900" />
-                      </DropdownButton>
+                      </Dropdown.Button>
 
-                      <DropdownItems>
+                      <Dropdown.List
+                        align="end"
+                        heading={name} // TODO: replace heading with member card in separate task
+                      >
                         {isEnoughPermissions && !isInviteRow && (
-                          <DropdownItem
-                            as="button"
-                            onClick={() => onEditUser(membership)}
-                            className=" grid w-full grid-cols-auto/1fr items-center gap-x-2 transition-colors hover:bg-grey-100"
-                          >
-                            <EditUserIcon className="text-grey-400" />
+                          <Dropdown.ListItem asChild>
+                            <button onClick={() => onEditUser(membership)}>
+                              <Dropdown.ListItemIcon asChild>
+                                <EditUserIcon />
+                              </Dropdown.ListItemIcon>
 
-                            <Typography
-                              variant={TYPOGRAPHY.R4}
-                              className="text-start"
-                            >
-                              Edit role
-                            </Typography>
-                          </DropdownItem>
+                              <Dropdown.ListItemText>
+                                Edit role
+                              </Dropdown.ListItemText>
+                            </button>
+                          </Dropdown.ListItem>
                         )}
 
                         {isEnoughPermissions && isInviteRow && (
-                          <DropdownItem
-                            as="button"
-                            onClick={() => resendInvite(membership)}
-                            className="grid w-full grid-cols-auto/1fr items-center gap-x-2 transition-colors hover:bg-grey-100"
-                          >
-                            <SendIcon className="text-grey-400" />
+                          <Dropdown.ListItem asChild>
+                            <button onClick={() => resendInvite(membership)}>
+                              <Dropdown.ListItemIcon asChild>
+                                <SendIcon />
+                              </Dropdown.ListItemIcon>
 
-                            <Typography variant={TYPOGRAPHY.R4}>
-                              Re-send invite
-                            </Typography>
-                          </DropdownItem>
+                              <Dropdown.ListItemText>
+                                Re-send invite
+                              </Dropdown.ListItemText>
+                            </button>
+                          </Dropdown.ListItem>
                         )}
 
                         {isEnoughPermissions && (
-                          <DropdownItem
-                            as="button"
-                            onClick={() =>
-                              isInviteRow
-                                ? cancelInvite(membership)
-                                : onRemoveUser(membership)
-                            }
-                            className="grid w-full grid-cols-auto/1fr items-center gap-x-2 text-system-error-600 transition-colors hover:bg-grey-100"
+                          <Dropdown.ListItem
+                            className="text-system-error-600"
+                            asChild
                           >
-                            <TrashIcon />
+                            <button
+                              onClick={() =>
+                                isInviteRow
+                                  ? cancelInvite(membership)
+                                  : onRemoveUser(membership)
+                              }
+                            >
+                              <Dropdown.ListItemIcon
+                                className="text-system-error-600"
+                                asChild
+                              >
+                                <TrashIcon />
+                              </Dropdown.ListItemIcon>
 
-                            <Typography variant={TYPOGRAPHY.R4}>
-                              {isInviteRow ? "Cancel invite" : "Remove member"}
-                            </Typography>
-                          </DropdownItem>
+                              <Dropdown.ListItemText>
+                                {isInviteRow
+                                  ? "Cancel invite"
+                                  : "Remove member"}
+                              </Dropdown.ListItemText>
+                            </button>
+                          </Dropdown.ListItem>
                         )}
-                      </DropdownItems>
+                      </Dropdown.List>
                     </Dropdown>
                   </div>
                 </div>
