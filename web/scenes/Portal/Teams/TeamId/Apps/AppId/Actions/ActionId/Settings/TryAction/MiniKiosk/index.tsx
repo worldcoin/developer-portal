@@ -75,7 +75,14 @@ export const MiniKiosk = (props: MiniKioskProps) => {
       try {
         response = await restAPIRequest<ProofResponse>(`/verify/${appId}`, {
           method: "POST",
-          json: { action: action?.action, signal: "", ...result },
+          json: {
+            ...result,
+            action: action?.action,
+            verification_level:
+              kioskVerificationLevel === VerificationLevel.Orb
+                ? VerificationLevel.Orb
+                : result.verification_level,
+          },
         });
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
@@ -102,7 +109,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         }
       }
     },
-    [action?.action, appId],
+    [action?.action, appId, kioskVerificationLevel],
   );
 
   useEffect(() => {
