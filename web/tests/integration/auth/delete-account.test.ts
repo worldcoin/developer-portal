@@ -47,7 +47,7 @@ describe("test /delete-account", () => {
     (updateSession as jest.Mock).mockReset();
   });
 
-  it("should return 500 if session user id is not found", async () => {
+  it("should return 401 if session user id is not found", async () => {
     const mockReq = {} as unknown as NextRequest;
     (getSession as jest.Mock).mockResolvedValue(null);
     const response = await deleteAccount(mockReq, {});
