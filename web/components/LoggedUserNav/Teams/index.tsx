@@ -27,7 +27,9 @@ export const Teams = (props: { selectedTeamId?: string }) => {
               name={team.name ?? ""}
             />
 
-            <div className="truncate !leading-4">{team.name}</div>
+            <Dropdown.ListItemText className="truncate md:!leading-4">
+              {team.name}
+            </Dropdown.ListItemText>
 
             {team.id === props.selectedTeamId && (
               <CheckmarkCircleIcon className="size-5 text-blue-500 md:size-4" />
@@ -41,7 +43,8 @@ export const Teams = (props: { selectedTeamId?: string }) => {
           <Dropdown.ListItemIcon asChild>
             <AddCircleIcon />
           </Dropdown.ListItemIcon>
-          Create new team
+
+          <Dropdown.ListItemText>Create new team</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
     </>

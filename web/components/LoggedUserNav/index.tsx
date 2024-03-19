@@ -126,7 +126,8 @@ export const LoggedUserNav = () => {
               <Dropdown.ListItemIcon asChild>
                 <UserCircleIcon />
               </Dropdown.ListItemIcon>
-              Profile
+
+              <Dropdown.ListItemText>Profile</Dropdown.ListItemText>
             </Link>
           </Dropdown.ListItem>
 
@@ -148,7 +149,8 @@ export const LoggedUserNav = () => {
                   <Dropdown.ListItemIcon asChild>
                     <UserMultipleIcon />
                   </Dropdown.ListItemIcon>
-                  Overview
+
+                  <Dropdown.ListItemText>Overview</Dropdown.ListItemText>
                 </Link>
               </Dropdown.ListItem>
 
@@ -158,7 +160,8 @@ export const LoggedUserNav = () => {
                     <Dropdown.ListItemIcon asChild>
                       <SettingsIcon />
                     </Dropdown.ListItemIcon>
-                    Settings
+
+                    <Dropdown.ListItemText>Settings</Dropdown.ListItemText>
                   </Link>
                 </Dropdown.ListItem>
               )}
@@ -169,8 +172,11 @@ export const LoggedUserNav = () => {
 
           <Dropdown.Sub>
             <Dropdown.SubButton className="text-18 md:text-14">
-              <LoginSquareIcon className="size-6 text-grey-400 md:size-4" />
-              Switch team
+              <Dropdown.ListItemIcon asChild>
+                <LoginSquareIcon />
+              </Dropdown.ListItemIcon>
+
+              <Dropdown.ListItemText>Switch team</Dropdown.ListItemText>
             </Dropdown.SubButton>
 
             <Dropdown.SubList heading="Switch team">
@@ -188,14 +194,18 @@ export const LoggedUserNav = () => {
                 <Dropdown.ListItemIcon asChild>
                   <CodeFolderIcon />
                 </Dropdown.ListItemIcon>
-                Docs
+
+                <Dropdown.ListItemText>Docs</Dropdown.ListItemText>
               </a>
             </Dropdown.ListItem>
 
             <Dropdown.Sub>
               <Dropdown.SubButton>
-                <HelpSquareIcon className="size-6 text-grey-400 md:size-4" />{" "}
-                Help
+                <Dropdown.ListItemIcon asChild>
+                  <HelpSquareIcon />
+                </Dropdown.ListItemIcon>
+
+                <Dropdown.ListItemText>Help</Dropdown.ListItemText>
               </Dropdown.SubButton>
 
               <Dropdown.SubList heading="Help">
@@ -211,7 +221,8 @@ export const LoggedUserNav = () => {
               <Dropdown.ListItemIcon className="text-system-error-600" asChild>
                 <LogoutIcon />
               </Dropdown.ListItemIcon>
-              Log out
+
+              <Dropdown.ListItemText>Log out</Dropdown.ListItemText>
             </a>
           </Dropdown.ListItem>
         </Dropdown.List>

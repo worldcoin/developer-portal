@@ -46,7 +46,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <SecurityIcon />
           </Dropdown.ListItemIcon>
-          Data Privacy & Security
+
+          <Dropdown.ListItemText>Data Privacy & Security</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -58,7 +59,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <SubtractIcon />
           </Dropdown.ListItemIcon>
-          Worldcoin Status
+
+          <Dropdown.ListItemText>Worldcoin Status</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -67,7 +69,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <HelpIcon />
           </Dropdown.ListItemIcon>
-          FAQ
+
+          <Dropdown.ListItemText>FAQ</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -80,7 +83,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <DiscordIcon />
           </Dropdown.ListItemIcon>
-          Join our Discord
+
+          <Dropdown.ListItemText>Join our Discord</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -92,7 +96,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <GithubIcon />
           </Dropdown.ListItemIcon>
-          GitHub Issues
+
+          <Dropdown.ListItemText>GitHub Issues</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -105,7 +110,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <LockIcon />
           </Dropdown.ListItemIcon>
-          Privacy Policy
+
+          <Dropdown.ListItemText>Privacy Policy</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -114,7 +120,8 @@ export const Help = () => {
           <Dropdown.ListItemIcon asChild>
             <WorldcoinIcon />
           </Dropdown.ListItemIcon>
-          Terms of service
+
+          <Dropdown.ListItemText>Terms of service</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
     </>
