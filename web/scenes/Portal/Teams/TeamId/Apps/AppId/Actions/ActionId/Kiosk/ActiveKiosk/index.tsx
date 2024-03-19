@@ -1,14 +1,8 @@
 "use client";
 import { Button } from "@/components/Button";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/DropdownOld";
+import { Dropdown } from "@/components/Dropdown";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { WorldcoinTextLogo } from "@/components/Icons/WorldcoinTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
@@ -30,6 +24,7 @@ import { KioskError } from "../../Components/Kiosk/KioskError";
 import { Success } from "../../Components/Kiosk/Success";
 import { Waiting } from "../../Components/Kiosk/Waiting";
 import { GetKioskActionQuery } from "../graphql/client/get-kiosk-action.generated";
+import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 dayjs.extend(dayjsRelative);
 
 type ProofResponse = {
@@ -190,65 +185,86 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
           <div className="z-[100] flex w-1/3 flex-col items-center justify-end md:flex-row md:gap-x-4 md:pr-6">
             <Dropdown>
-              <DropdownButton className="grid grid-cols-1fr/auto px-3 font-rubik text-xs font-medium md:text-sm">
+              <Dropdown.Button className="grid grid-cols-1fr/auto">
                 Reset Interval
-                <CaretIcon className="ml-1" />
-              </DropdownButton>
-              <DropdownItems className="mt-2 grid justify-start">
-                <Typography
-                  variant={TYPOGRAPHY.R3}
-                  className="border-b border-grey-100 p-3 text-start"
-                >
+                <CaretIcon />
+              </Dropdown.Button>
+
+              <Dropdown.List heading="Choose a time interval" hideBackButton>
+                <Dropdown.ListHeader className="max-md:hidden">
                   Choose a time interval
-                </Typography>
-                <DropdownItem
-                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
-                  onClick={() => setResetInterval(30000)}
-                >
-                  <div>
-                    <Typography variant={TYPOGRAPHY.R3} className="text-start">
+                </Dropdown.ListHeader>
+
+                <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
+                  <button onClick={() => setResetInterval(30000)}>
+                    <Dropdown.ListItemText className="md:!leading-4">
                       30 seconds
-                    </Typography>
+                    </Dropdown.ListItemText>
+
                     {resetInterval === 30000 && (
-                      <CheckIcon size="16" className="ml-2 size-3" />
+                      <Dropdown.ListItemIcon
+                        className="size-5 text-blue-500"
+                        asChild
+                      >
+                        <CheckmarkCircleIcon />
+                      </Dropdown.ListItemIcon>
                     )}
-                  </div>
-                </DropdownItem>
-                <DropdownItem
-                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
-                  onClick={() => setResetInterval(60000)}
-                >
-                  <div>
-                    <Typography variant={TYPOGRAPHY.R3}>1 minute</Typography>
+                  </button>
+                </Dropdown.ListItem>
+
+                <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
+                  <button onClick={() => setResetInterval(60000)}>
+                    <Dropdown.ListItemText className="md:!leading-4">
+                      1 minute
+                    </Dropdown.ListItemText>
+
                     {resetInterval === 60000 && (
-                      <CheckIcon size="16" className="ml-2 size-3" />
+                      <Dropdown.ListItemIcon
+                        className="size-5 text-blue-500"
+                        asChild
+                      >
+                        <CheckmarkCircleIcon />
+                      </Dropdown.ListItemIcon>
                     )}
-                  </div>
-                </DropdownItem>
-                <DropdownItem
-                  className="grid w-full grid-cols-1fr/auto  items-center px-3 py-1 hover:bg-grey-50"
-                  onClick={() => setResetInterval(300000)}
-                >
-                  <div>
-                    <Typography variant={TYPOGRAPHY.R3}>5 minutes</Typography>
+                  </button>
+                </Dropdown.ListItem>
+
+                <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
+                  <button onClick={() => setResetInterval(300000)}>
+                    <Dropdown.ListItemText className="md:!leading-4">
+                      5 minutes
+                    </Dropdown.ListItemText>
+
                     {resetInterval === 300000 && (
-                      <CheckIcon size="16" className="ml-2 size-3" />
+                      <Dropdown.ListItemIcon
+                        className="size-5 text-blue-500"
+                        asChild
+                      >
+                        <CheckmarkCircleIcon />
+                      </Dropdown.ListItemIcon>
                     )}
-                  </div>
-                </DropdownItem>
-                <DropdownItem
-                  className="grid w-full grid-cols-1fr/auto items-center px-3 py-1 hover:bg-grey-50"
-                  onClick={() => setResetInterval(0)}
-                >
-                  <div>
-                    <Typography variant={TYPOGRAPHY.R3}>Never</Typography>
+                  </button>
+                </Dropdown.ListItem>
+
+                <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
+                  <button onClick={() => setResetInterval(0)}>
+                    <Dropdown.ListItemText className="md:!leading-4">
+                      Never
+                    </Dropdown.ListItemText>
+
                     {resetInterval === 0 && (
-                      <CheckIcon size="16" className="ml-2 size-3" />
+                      <Dropdown.ListItemIcon
+                        className="size-5 text-blue-500"
+                        asChild
+                      >
+                        <CheckmarkCircleIcon />
+                      </Dropdown.ListItemIcon>
                     )}
-                  </div>
-                </DropdownItem>
-              </DropdownItems>
+                  </button>
+                </Dropdown.ListItem>
+              </Dropdown.List>
             </Dropdown>
+
             {logo && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -259,6 +275,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
                 className="size-8 rounded-full"
               />
             )}
+
             <Typography
               variant={TYPOGRAPHY.R4}
               className="max-w-[100px] truncate"
@@ -286,12 +303,14 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
             <Typography variant={TYPOGRAPHY.H4} className="pt-5 text-center">
               World ID Kiosk Verification
             </Typography>
+
             {action?.description && (
               <Typography variant={TYPOGRAPHY.R3} className="text-center">
                 {action.description}
               </Typography>
             )}
           </div>
+
           <div className="grid h-full items-start justify-center">
             {!action && (
               <KioskError title="This request is invalid." reset={resetKiosk} />
@@ -314,9 +333,11 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
             {screen === KioskScreen.Waiting && (
               <Waiting qrData={qrData} showSimulator={false} qrCodeSize={280} />
             )}
+
             {screen === KioskScreen.Connected && (
               <Connected reset={resetKiosk} />
             )}
+
             {screen === KioskScreen.Success && <Success reset={resetKiosk} />}
 
             {screen === KioskScreen.ConnectionError && (
@@ -363,6 +384,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
                 reset={resetKiosk}
               />
             )}
+
             {screen === KioskScreen.Success && successParams && (
               <div className="grid grid-cols-1">
                 <Typography variant={TYPOGRAPHY.R3}>
