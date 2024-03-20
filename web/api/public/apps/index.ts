@@ -1,11 +1,11 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getCDNImageUrl } from "@/lib/utils";
+import { getCDNImageUrl, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
 
 /**
- * Fetches the list of apps to be shown in the app store
+ * Fetches the list of apps to be shown in the app store. Needs to be called through our assets cloudfront
  * @param req
  * Accepts: platform, country, page
  * @param res
@@ -17,8 +17,18 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 50); // Optional, max 50
 
-  // Check platform param is defined
+  // We only accept requests through the distribution origin
+  if (!isValidHostName(request)) {
+    return NextResponse.json(
+      {
+        error: "Invalid request origin, please use CDN",
+      },
+      { status: 400 },
+    );
+  }
+
   if (!platform || (platform !== "web" && platform !== "app")) {
+    // Check platform param is defined
     return NextResponse.json(
       {
         error: "Invalid or missing platform parameter. Must be 'web' or 'app'.",
