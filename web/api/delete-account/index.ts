@@ -24,6 +24,17 @@ export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
   const id = session?.user.sub;
 
+  if (!id) {
+    logger.error("Session user id not found.");
+
+    return errorResponse({
+      statusCode: 401,
+      code: "unauthorized",
+      detail: "Session user id not found",
+      req,
+    });
+  }
+
   const managementClient = new ManagementClient({
     clientId: process.env.AUTH0_CLIENT_ID,
     clientSecret: process.env.AUTH0_CLIENT_SECRET,
