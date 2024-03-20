@@ -111,3 +111,23 @@ export const truncateString = (
 
   return `${str.slice(0, length)}...`;
 };
+
+// This function is to protect public endpoints to ensure they are coming from our cloudfront distribution
+export const isValidHostName = (request: Request) => {
+  const hostName =
+    request.headers.get("host") || request.headers.get(":authority");
+
+  // Skip check for development
+  if (process.env.NODE_ENV === "development") {
+    return true;
+  }
+
+  if (
+    !hostName ||
+    !hostName.includes(process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL!)
+  ) {
+    return false;
+  }
+
+  return true;
+};
