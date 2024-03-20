@@ -33,7 +33,12 @@ jest.mock(
 describe("/api/public/apps", () => {
   test("should return 400 for missing platform parameter", async () => {
     const request = new NextRequest(
-      "http://localhost/api/public/apps?country=US",
+      "https://cdn.test.com/api/public/apps?country=US",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
     );
     const response = await GET(request);
     expect(response.status).toBe(400);
@@ -44,7 +49,12 @@ describe("/api/public/apps", () => {
 
   test("should handle empty rankings correctly", async () => {
     const request = new NextRequest(
-      "http://localhost/api/public/apps?platform=web&country=US",
+      "https://cdn.test.com/api/public/apps?platform=web&country=US",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
     );
     const response = await GET(request);
     expect(response.status).toBe(200);
@@ -72,7 +82,12 @@ describe("/api/public/apps", () => {
       }),
     }));
     const request = new NextRequest(
-      "http://localhost/api/public/apps?platform=app&country=US",
+      "https://cdn.test.com/api/public/apps?platform=app&country=US",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
     );
     const response = await GET(request);
     expect(response.status).toBe(200);

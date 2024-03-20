@@ -34,7 +34,12 @@ jest.mock(
 describe("/api/public/app/[app_id]", () => {
   test("Should return correct value", async () => {
     const request = new NextRequest(
-      "http://localhost/api/public/apps?country=US",
+      "https://cdn.test.com/api/public/apps?country=US",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
     );
     const response = await GET(request, { params: { app_id: "1" } });
     expect(await response.json()).toEqual({
@@ -63,7 +68,12 @@ describe("/api/public/app/[app_id]", () => {
       }),
     }));
     const request = new NextRequest(
-      "http://localhost/api/public/apps?country=US",
+      "https://cdn.test.com/api/public/apps?country=US",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
     );
     const response = await GET(request, { params: { app_id: "2" } });
     expect(response.status).toBe(404);
