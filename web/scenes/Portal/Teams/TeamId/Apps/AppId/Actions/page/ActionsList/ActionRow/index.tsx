@@ -1,6 +1,9 @@
 import { CopyButton } from "@/components/CopyButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { DetailsMenu } from "../DetailsMenu";
+import { Dropdown } from "@/components/Dropdown";
+import { ElementsIcon } from "@/components/Icons/ElementsIcon";
+import { Link } from "@/components/Link";
+import { EditIcon } from "@/components/Icons/EditIcon";
 
 export const ActionRow = (props: {
   action: any;
@@ -44,8 +47,28 @@ export const ActionRow = (props: {
     <div className="md:w-[150px] " key={`${key}_2`}>
       <Typography variant={TYPOGRAPHY.R4}>{uses}</Typography>
     </div>,
-    <div key={`${key}_3`} className="flex w-full justify-end px-2">
-      <DetailsMenu path={pathName} />
+    <div
+      key={`${key}_3`}
+      className="flex w-full justify-end px-2"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <Dropdown>
+        <Dropdown.Button className="flex size-8 items-center justify-center rounded-lg hover:bg-grey-100">
+          <ElementsIcon />
+        </Dropdown.Button>
+
+        <Dropdown.List align="end" heading={action.name} hideBackButton>
+          <Dropdown.ListItem asChild>
+            <Link href={pathName}>
+              <Dropdown.ListItemIcon asChild>
+                <EditIcon />
+              </Dropdown.ListItemIcon>
+
+              <Dropdown.ListItemText>View details</Dropdown.ListItemText>
+            </Link>
+          </Dropdown.ListItem>
+        </Dropdown.List>
+      </Dropdown>
     </div>,
   ];
 };
