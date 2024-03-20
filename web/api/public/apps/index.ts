@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   if (!isValidHostName(request)) {
     return NextResponse.json(
       {
-        error: "Invalid request origin, please use CDN",
+        error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}`,
       },
       { status: 400 },
     );
