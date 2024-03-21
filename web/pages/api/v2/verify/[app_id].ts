@@ -21,6 +21,7 @@ import {
   VerificationLevel
 } from "@worldcoin/idkit-core";
 
+import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 import { captureEvent } from "@/services/posthogClient";
 import * as yup from "yup";
 
@@ -30,7 +31,16 @@ const schema = yup.object({
     .strict()
     .nonNullable()
     .defined("This attribute is required."),
-  signal: yup.string().default(""),
+  signal: yup
+    .string()
+    .default("0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4") // hashToField("")
+    .test(
+      'is-hashed',
+      'The signal must be a valid hash. Use the `hashToField` function from IDKit to hash the signal prior to verification.',
+      (signal) => {
+        validateABILikeEncoding(signal);
+      }
+    ),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
