@@ -8,18 +8,18 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 
-// TODO: Pull router updated error codes from the ABI of the contract
 const KNOWN_ERROR_CODES = [
+  // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
+  // code: error code to return to the client
+  // detail: error message to return to the client
   {
-    rawCode: "0x504570e3",
     rawMessage: "invalid root",
     code: "invalid_merkle_root",
     detail:
       "The provided Merkle root is invalid. User appears to be unverified.",
   },
   {
-    rawCode: "0x09bde339",
-    rawMessage: "invalid proof",
+    rawMessage: "invalid semaphore proof",
     code: "invalid_proof",
     detail:
       "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
@@ -29,6 +29,12 @@ const KNOWN_ERROR_CODES = [
     code: "root_too_old",
     detail:
       "The provided merkle root is too old. Please generate a new proof and try again.",
+  },
+  {
+    rawMessage: "prover error",
+    code: "prover_error",
+    detail:
+      "The prover encountered an error while verifying the proof. Please try again.",
   },
 ];
 

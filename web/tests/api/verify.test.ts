@@ -278,7 +278,7 @@ describe("/api/verify [error cases]", () => {
     });
 
     // mocks sequencer response
-    fetchMock.mockResponseOnce("invalid proof", {
+    fetchMock.mockResponseOnce("invalid semaphore proof", {
       status: 500,
     });
 
