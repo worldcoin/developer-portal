@@ -8,8 +8,10 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 
-// rawMessage is error from the sequencer: https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
 const KNOWN_ERROR_CODES = [
+  // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
+  // code: error code to return to the client
+  // detail: error message to return to the client
   {
     rawMessage: "invalid root",
     code: "invalid_merkle_root",
