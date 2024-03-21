@@ -18,8 +18,7 @@ import { fetchActionForProof, verifyProof } from "@/legacy/backend/verify";
 
 import {
   AppErrorCodes,
-  CredentialType,
-  VerificationLevel,
+  VerificationLevel
 } from "@worldcoin/idkit-core";
 
 import { captureEvent } from "@/services/posthogClient";
@@ -38,14 +37,7 @@ const schema = yup.object({
   verification_level: yup
     .string()
     .oneOf(Object.values(VerificationLevel))
-    .when("credential_type", {
-      is: undefined,
-      then: (verification_level) =>
-        verification_level.required(
-          "`verification_level` required unless deprecated `credential_type` is used.",
-        ),
-    }),
-  credential_type: yup.string().oneOf(Object.values(CredentialType)),
+    .required("This attribute is required."),
   max_age: yup
     .number()
     .integer()
@@ -139,13 +131,6 @@ export default async function handleVerify(
     );
   }
 
-  // NOTE: Backwards compatibility support for CredentialType
-  const verification_level =
-    parsedParams.verification_level ||
-    (parsedParams.credential_type === CredentialType.Orb
-      ? VerificationLevel.Orb
-      : VerificationLevel.Device);
-
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
@@ -157,7 +142,7 @@ export default async function handleVerify(
     },
     {
       is_staging: app.is_staging,
-      verification_level,
+      verification_level: parsedParams.verification_level,
       max_age: parsedParams.max_age,
     },
   );
@@ -169,7 +154,7 @@ export default async function handleVerify(
         action_id: action.id,
         app_id: app.id,
         environment: app.is_staging ? "staging" : "production",
-        verification_level: verification_level,
+        verification_level: parsedParams.verification_level,
         error: error,
       },
     });
@@ -208,7 +193,7 @@ export default async function handleVerify(
       properties: {
         action_id: action.id,
         app_id: app.id,
-        verification_level: verification_level,
+        verification_level: parsedParams.verification_level,
         environment: app.is_staging ? "staging" : "production",
         type: nullifier.uses,
       },
@@ -252,7 +237,7 @@ export default async function handleVerify(
         properties: {
           action_id: action.id,
           app_id: app.id,
-          verification_level: verification_level,
+          verification_level: parsedParams.verification_level,
           environment: app.is_staging ? "staging" : "production",
           type: "unique",
         },
@@ -265,7 +250,7 @@ export default async function handleVerify(
         max_uses: action.max_verifications,
         nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
         created_at: insertResponse.data.insert_nullifier_one.created_at,
-        verification_level,
+        verification_level: parsedParams.verification_level,
       });
     } catch (e) {
       if (
