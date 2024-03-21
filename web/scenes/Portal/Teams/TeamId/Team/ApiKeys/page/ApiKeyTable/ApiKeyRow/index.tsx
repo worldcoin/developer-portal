@@ -1,10 +1,5 @@
 "use client";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/Dropdown";
+import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -152,41 +147,46 @@ export const ApiKeyRow = (props: {
           })}
         >
           <Dropdown>
-            <DropdownButton>
+            <Dropdown.Button>
               <MoreVerticalIcon />
-            </DropdownButton>
-            <DropdownItems>
-              <DropdownItem
-                className="hover:bg-grey-50"
-                onClick={() => openViewDetails(apiKey)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <EditIcon className="w-5 text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Edit Key</Typography>
-                </div>
-              </DropdownItem>
-              <DropdownItem
-                className="hover:bg-grey-50"
-                onClick={() => resetAPIKey(apiKey.id)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <KeyIcon className="w-5 text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
-                </div>
-              </DropdownItem>
+            </Dropdown.Button>
 
-              <DropdownItem
-                className="text-system-error-600 hover:bg-grey-50"
-                onClick={() => openDeleteKeyModal(apiKey)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <TrashIcon className="w-5" />
-                  <Typography as="div" variant={TYPOGRAPHY.R4}>
+            <Dropdown.List heading={apiKey.name} hideBackButton>
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openViewDetails(apiKey)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <EditIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+
+              <Dropdown.ListItem asChild>
+                <button onClick={() => resetAPIKey(apiKey.id)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <KeyIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Reset key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openDeleteKeyModal(apiKey)}>
+                  <Dropdown.ListItemIcon
+                    className="text-system-error-600"
+                    asChild
+                  >
+                    <TrashIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText className="text-system-error-600">
                     Remove key
-                  </Typography>
-                </div>
-              </DropdownItem>
-            </DropdownItems>
+                  </Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            </Dropdown.List>
           </Dropdown>
         </div>
       </td>

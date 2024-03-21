@@ -1,4 +1,6 @@
-export const WarningErrorIcon = (props: { className: string }) => {
+import { ComponentProps } from "react";
+
+export const WarningErrorIcon = (props: ComponentProps<"svg">) => {
   const { className } = props;
   return (
     <svg
@@ -6,6 +8,7 @@ export const WarningErrorIcon = (props: { className: string }) => {
       viewBox="0 0 15 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         fillRule="evenodd"

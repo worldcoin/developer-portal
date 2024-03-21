@@ -1,4 +1,6 @@
-export const UserAddIcon = () => {
+import { ComponentProps } from "react";
+
+export const UserAddIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="24"
@@ -6,6 +8,7 @@ export const UserAddIcon = () => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M6.62598 6.375C6.62598 3.4755 8.97648 1.125 11.876 1.125C14.7755 1.125 17.126 3.4755 17.126 6.375C17.126 9.2745 14.7755 11.625 11.876 11.625C8.97648 11.625 6.62598 9.2745 6.62598 6.375Z"

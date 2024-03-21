@@ -1,56 +1,62 @@
-import { autoUpdate, size, useFloating } from "@floating-ui/react";
-import { Menu, MenuProps } from "@headlessui/react";
-import { CSSProperties, createContext, useMemo } from "react";
-
-export * from "./Button";
-export * from "./Item";
-export * from "./Items";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useMemo,
+  useState,
+} from "react";
+import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
+import { Button } from "./Button";
+import { List } from "./List";
+import { ListHeader } from "./ListHeader";
+import { ListItem } from "./ListItem";
+import { ListItemIcon } from "./ListItemIcon";
+import { ListItemText } from "./ListItemText";
+import { ListSeparator } from "./ListSeparator";
+import { Sub } from "./Sub";
+import { SubButton } from "./SubButton";
+import { SubList } from "./SubList";
 
 type DropdownContextValue = {
-  setReference: (element: HTMLElement | null) => void;
-  setFloating: (element: HTMLElement | null) => void;
-  floatingStyles: CSSProperties;
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export const dropdownContext = createContext({} as DropdownContextValue);
 
-type DropdownProps<T> = MenuProps<"div"> & {
-  placement?: "bottom-end" | "left-start";
-  zIndex?: number;
-};
+export type DropdownProps = DropdownPrimitive.DropdownMenuProps & {};
 
-export const Dropdown = <T,>(props: DropdownProps<T>) => {
-  const { placement = "bottom-end", zIndex = 0, ...otherProps } = props;
-  const { refs, floatingStyles } = useFloating({
-    placement,
-    strategy: "fixed",
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      size({
-        apply({ availableWidth, availableHeight, elements }) {
-          Object.assign(elements.floating.style, {
-            minWidth: "0px",
-            maxWidth: `${availableWidth}px`,
-            maxHeight: `${availableHeight}px`,
-            zIndex: `${zIndex}`,
-          });
-        },
-      }),
-    ],
-  });
+export const Dropdown = (props: DropdownProps) => {
+  const { children, ...otherProps } = props;
+  const [open, setOpen] = useState(false);
 
-  const dropdownContextValue = useMemo(
-    () => ({
-      setReference: refs.setReference,
-      setFloating: refs.setFloating,
-      floatingStyles,
-    }),
-    [refs, floatingStyles],
-  );
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+  };
+
+  const contextValue = useMemo(() => {
+    return {
+      open,
+      setOpen,
+    };
+  }, [open]);
 
   return (
-    <dropdownContext.Provider value={dropdownContextValue}>
-      <Menu {...otherProps} />
+    <dropdownContext.Provider value={contextValue}>
+      <DropdownPrimitive.Root open={open} onOpenChange={handleOpenChange}>
+        {children}
+      </DropdownPrimitive.Root>
     </dropdownContext.Provider>
   );
 };
+
+Dropdown.Button = Button;
+Dropdown.List = List;
+Dropdown.ListHeader = ListHeader;
+Dropdown.ListItem = ListItem;
+Dropdown.ListItemIcon = ListItemIcon;
+Dropdown.ListItemText = ListItemText;
+Dropdown.ListSeparator = ListSeparator;
+Dropdown.Sub = Sub;
+Dropdown.SubButton = SubButton;
+Dropdown.SubList = SubList;
