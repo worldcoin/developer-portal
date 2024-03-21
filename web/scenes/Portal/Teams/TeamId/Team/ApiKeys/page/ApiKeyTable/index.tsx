@@ -8,6 +8,7 @@ import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { ApiKeyRow } from "./ApiKeyRow";
 import { DeleteKeyModal } from "./DeleteKeyModal";
 import { ViewDetailsModal } from "./ViewDetailsModal";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
 type ApiKeysTableProps = {
   teamId?: string;
@@ -63,14 +64,6 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
-  const headers = [
-    <span key={0}>Name</span>,
-    <span key={1}>API Key</span>,
-    <span key={2}>Created</span>,
-    <span key={3}>Status</span>,
-    null,
-  ];
-
   const apiKeysToRender = useMemo(() => {
     if (!apiKeys) {
       return [];
@@ -102,6 +95,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
         name={selectedKey?.name}
         isActive={selectedKey?.is_active ?? false}
       />
+
       <DeleteKeyModal
         isOpen={showDeleteKeyModal}
         setIsOpen={setShowDeleteKeyModal}
@@ -109,20 +103,37 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
         keyId={selectedKey?.id}
         name={selectedKey?.name}
       />
-      <Table
-        footer={
-          <Footer
-            totalResults={totalResultsCount}
-            currentPage={currentPage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={rowsPerPageOptions}
-            handlePageChange={handlePageChange}
-            handleRowsPerPageChange={handleRowsPerPageChange}
-          />
-        }
-      >
-        <Header headers={headers} />
-        <Body>
+
+      <div className="md:table md:w-full">
+        <div className="hidden text-grey-400 md:table-row">
+          <div className="md:table-cell md:border-b md:border-grey-200 md:py-3">
+            <Typography variant={TYPOGRAPHY.R5} as="div">
+              Name
+            </Typography>
+          </div>
+
+          <div className="md:table-cell md:border-b md:border-grey-200 md:py-3">
+            <Typography variant={TYPOGRAPHY.R5} as="div">
+              API Key
+            </Typography>
+          </div>
+
+          <div className="md:table-cell md:border-b md:border-grey-200 md:py-3">
+            <Typography variant={TYPOGRAPHY.R5} as="div">
+              Created
+            </Typography>
+          </div>
+
+          <div className="md:table-cell md:border-b md:border-grey-200 md:py-3">
+            <Typography variant={TYPOGRAPHY.R5} as="div">
+              Status
+            </Typography>
+          </div>
+
+          <div className="md:table-cell md:border-b md:border-grey-200 md:py-3" />
+        </div>
+
+        <div className="max-md:grid md:contents">
           {apiKeysToRender.map((rowData: any, index: number) => {
             return (
               <ApiKeyRow
@@ -135,8 +146,19 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
               />
             );
           })}
-        </Body>
-      </Table>
+        </div>
+      </div>
+
+      <div className="max-md:hidden">
+        <Footer
+          totalResults={totalResultsCount}
+          currentPage={currentPage}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={rowsPerPageOptions}
+          handlePageChange={handlePageChange}
+          handleRowsPerPageChange={handleRowsPerPageChange}
+        />
+      </div>
     </div>
   );
 };

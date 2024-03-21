@@ -8,6 +8,7 @@ import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 
 type TeamApiKeysPageProps = {
   params: Record<string, string> | null | undefined;
@@ -23,7 +24,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   return (
     <>
       <SizingWrapper gridClassName="order-1">
-        <TeamProfile className="w-full" />
+        <TeamProfile />
       </SizingWrapper>
 
       <SizingWrapper gridClassName="order-2 pt-8">
@@ -59,26 +60,32 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
             </div>
           ) : (
             <div className="grid w-full gap-y-7">
-              <div className="flex items-center justify-between gap-x-2">
+              <div className="order-1 contents md:grid md:grid-cols-[1fr_auto] md:items-start">
                 <Typography variant={TYPOGRAPHY.H7}>API keys</Typography>
 
-                {loading ? (
-                  <Skeleton width={150} />
-                ) : (
-                  <DecoratedButton
-                    type="button"
-                    onClick={() => setShowCreateKeyModal(true)}
-                  >
-                    Create new key
-                  </DecoratedButton>
-                )}
+                <div className="order-2 max-md:sticky max-md:bottom-0 max-md:order-4 max-md:grid max-md:justify-center max-md:py-8">
+                  {loading ? (
+                    <Skeleton width={150} />
+                  ) : (
+                    <DecoratedButton
+                      type="button"
+                      variant="primary"
+                      onClick={() => setShowCreateKeyModal(true)}
+                      className="py-3"
+                    >
+                      <PlusIcon className="size-5" /> New key
+                    </DecoratedButton>
+                  )}
+                </div>
               </div>
 
-              {loading ? (
-                <Skeleton count={5} />
-              ) : (
-                <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
-              )}
+              <div className="order-3 grow md:pb-8">
+                {loading ? (
+                  <Skeleton count={5} />
+                ) : (
+                  <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />
+                )}
+              </div>
             </div>
           )}
         </div>
