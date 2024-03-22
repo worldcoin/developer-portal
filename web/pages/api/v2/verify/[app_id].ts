@@ -4,25 +4,16 @@ import {
   errorResponse,
   errorValidation,
 } from "@/legacy/backend/errors";
-import { ApolloError, gql } from "@apollo/client";
-import { NextApiRequest, NextApiResponse } from "next";
-
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-
 import {
   canVerifyForAction,
   validateRequestSchema,
 } from "@/legacy/backend/utils";
-
-import { fetchActionForProof, verifyProof } from "@/legacy/backend/verify";
-
-import {
-  AppErrorCodes,
-  VerificationLevel
-} from "@worldcoin/idkit-core";
-
-import { validateABILikeEncoding } from "@/legacy/lib/hashing";
+import { fetchActionForProof, verifyProof } from "@/lib/verify";
 import { captureEvent } from "@/services/posthogClient";
+import { ApolloError, gql } from "@apollo/client";
+import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
+import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -30,16 +21,13 @@ const schema = yup.object({
     .string()
     .strict()
     .nonNullable()
-    .defined("This attribute is required."),
-  signal: yup
+    .required("This attribute is required."),
+  signal_hash: yup
     .string()
-    .default("0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4") // hashToField("")
-    .test(
-      'is-hashed',
-      'The signal must be a valid hash. Use the `hashToField` function from IDKit to hash the signal prior to verification.',
-      (signal) => {
-        validateABILikeEncoding(signal);
-      }
+    .length(66)
+    .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
+    .default(
+      "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
     ),
   proof: yup.string().strict().required("This attribute is required."),
   nullifier_hash: yup.string().strict().required("This attribute is required."),
@@ -144,7 +132,7 @@ export default async function handleVerify(
   // ANCHOR: Verify the proof with the World ID smart contract
   const { error, success } = await verifyProof(
     {
-      signal: parsedParams.signal,
+      signal_hash: parsedParams.signal_hash,
       proof: parsedParams.proof,
       merkle_root: parsedParams.merkle_root,
       nullifier_hash: parsedParams.nullifier_hash,
