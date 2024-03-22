@@ -1,11 +1,9 @@
 "use client";
-
 import { Dropdown } from "@/components/Dropdown";
 import { EditUserIcon } from "@/components/Icons/EditUserIcon";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { Footer } from "@/components/Table/Footer";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -99,23 +97,6 @@ export const List = (props: { search?: string }) => {
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
   }, [data?.membership, fetchInvitesData?.invite]);
 
-  //const [totalResultsCount, setTotalResultsCount] = useState(
-  //  memberships.length,
-  //);
-
-  //const rowsPerPageOptions = [10, 20];
-  //const [currentPage, setCurrentPage] = useState(1);
-  //const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
-
-  //const handlePageChange = (newPage: number) => {
-  //  setCurrentPage(newPage);
-  //};
-
-  //const handleRowsPerPageChange = (newRowsPerPage: number) => {
-  //  setRowsPerPage(newRowsPerPage);
-  //  setCurrentPage(1); // Reset to first page when rows per page changes
-  //};
-
   const membersToRender = useMemo(() => {
     if (!memberships) {
       return [];
@@ -124,7 +105,6 @@ export const List = (props: { search?: string }) => {
     let filteredMemberships = memberships;
 
     if (props.search) {
-      //setCurrentPage(1);
       const fieldsToSearch = ["name", "email"] as const;
 
       filteredMemberships = filteredMemberships.filter((membership: any) => {
@@ -136,11 +116,6 @@ export const List = (props: { search?: string }) => {
       });
     }
 
-    //setTotalResultsCount(filteredMemberships.length);
-    //const startIndex = (currentPage - 1) * rowsPerPage;
-    //const endIndex = startIndex + rowsPerPage;
-    //const paginatedActions = filteredMemberships.slice(startIndex, endIndex);
-    //return paginatedActions;
     return filteredMemberships;
   }, [memberships, props.search]);
 
@@ -425,20 +400,10 @@ export const List = (props: { search?: string }) => {
         </div>
       )}
 
-      {/*<div className="max-md:hidden">*/}
-      {/*  <Footer*/}
-      {/*    totalResults={totalResultsCount ?? 0}*/}
-      {/*    currentPage={currentPage}*/}
-      {/*    rowsPerPage={rowsPerPage}*/}
-      {/*    rowsPerPageOptions={rowsPerPageOptions}*/}
-      {/*    handlePageChange={handlePageChange}*/}
-      {/*    handleRowsPerPageChange={handleRowsPerPageChange}*/}
-      {/*    className="border-none"*/}
-      {/*  />*/}
-      {/*</div>*/}
-
       <RemoveUserDialog name={userToRemove?.name ?? ""} id={userToRemove?.id} />
+
       <EditRoleDialog membership={userToEditRole} />
+
       <PermissionsDialog />
     </div>
   );
