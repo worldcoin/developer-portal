@@ -48,6 +48,15 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               </Typography>
             </Tab>
 
+            <Tab
+              className="md:hidden"
+              href={`/teams/${params!.teamId}/app`}
+              segment={"app"}
+              underlined
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Apps</Typography>
+            </Tab>
+
             {ownerPermission && (
               <Tab
                 className="md:py-4"
