@@ -44,9 +44,9 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
               <div className="flex w-full items-center justify-between px-8 py-5">
                 <p className="font-[550]">{buttonText}</p>
                 {open ? (
-                  <MinusIcon className="size-4 text-grey-900" />
+                  <MinusIcon className="size-5 text-grey-900" />
                 ) : (
-                  <PlusIcon className="size-3 text-grey-900" />
+                  <PlusIcon className="size-5 text-grey-900" />
                 )}
               </div>
             </DisclosureButton>

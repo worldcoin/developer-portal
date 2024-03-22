@@ -17,9 +17,14 @@ export const UserInfo = (props: UserInfoProps) => {
 
   return (
     <div
-      className={twMerge(clsx("flex items-center gap-x-5", props.className))}
+      className={twMerge(
+        clsx(
+          "grid items-center gap-5 max-md:mb-6 max-md:justify-items-center max-md:rounded-2xl max-md:border max-md:border-grey-200 max-md:p-8 md:grid-cols-auto/1fr",
+          props.className,
+        ),
+      )}
     >
-      <div className="leading-[0]">
+      <div className="leading-[0] max-md:pt-2">
         {!user ? (
           <Skeleton width={72} height={72} circle={true} inline={true} />
         ) : (
@@ -27,7 +32,7 @@ export const UserInfo = (props: UserInfoProps) => {
         )}
       </div>
 
-      <div className="grid gap-y-2">
+      <div className="grid gap-y-2 max-md:justify-items-center">
         <Typography variant={TYPOGRAPHY.H6} className="max-w-full truncate">
           {!user ? <Skeleton width={200} /> : user.nameToDisplay}
         </Typography>

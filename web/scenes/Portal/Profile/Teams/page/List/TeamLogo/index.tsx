@@ -4,13 +4,14 @@ import Image from "next/image";
 import { useState } from "react";
 
 export const TeamLogo = (props: {
+  className?: string;
   src: string | undefined | null;
   name: string;
 }) => {
   const [src, setSrc] = useState<typeof props.src>(props.src);
 
   return (
-    <div>
+    <div className={props.className}>
       {src && (
         <Image
           className="size-12"
