@@ -9,10 +9,8 @@ import { PlusIcon } from "@/components/Icons/PlusIcon";
 export const TeamsPage = () => {
   return (
     <>
-      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+      <SizingWrapper gridClassName="order-1" className="grid gap-y-8">
         <UserInfo />
-
-        <div className="border-b border-dashed border-grey-200 max-md:hidden" />
       </SizingWrapper>
 
       <SizingWrapper

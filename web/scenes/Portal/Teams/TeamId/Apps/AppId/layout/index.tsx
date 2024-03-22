@@ -32,7 +32,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
 
   return (
     <>
-      <div className="border-b border-grey-100">
+      <div className="md:border-b md:border-grey-100">
         <SizingWrapper gridClassName="hidden md:grid" variant="nav">
           <Tabs className="m-auto font-gta">
             <Tab

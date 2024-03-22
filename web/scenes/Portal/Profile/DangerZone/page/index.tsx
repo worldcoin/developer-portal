@@ -12,10 +12,8 @@ export const DangerZone = () => {
 
   return (
     <>
-      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+      <SizingWrapper gridClassName="order-1" className="grid gap-y-8">
         <UserInfo />
-
-        <div className="border-b border-dashed border-grey-200" />
       </SizingWrapper>
 
       <SizingWrapper gridClassName="order-2" className="py-8">

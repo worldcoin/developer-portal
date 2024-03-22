@@ -22,7 +22,7 @@ export const Header = (props: { color: Color | null }) => {
   }, [props.color, setColor]);
 
   return (
-    <header>
+    <header className="max-md:sticky max-md:top-0 max-md:z-10 max-md:mb-6 max-md:border-b max-md:border-gray-200 max-md:bg-grey-0">
       <SizingWrapper
         className="flex w-full items-center justify-between gap-x-4"
         gridClassName="py-4"
