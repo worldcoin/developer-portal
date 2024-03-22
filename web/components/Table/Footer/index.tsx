@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({
     <div
       className={twMerge(
         clsx(
-          "sticky bottom-0 grid w-full grid-cols-3 items-center justify-between gap-x-4 border-t-[1px] border-grey-100 bg-white py-4 text-xs",
+          "sticky bottom-0 grid w-full grid-cols-3 items-center justify-between gap-x-4 bg-white py-4 text-xs",
           className,
         ),
       )}
