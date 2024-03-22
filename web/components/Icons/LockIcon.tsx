@@ -1,13 +1,14 @@
-export const LockIcon = (props: { className: string }) => {
-  const { className } = props;
+import { ComponentProps } from "react";
+
+export const LockIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="24"
       height="24"
-      className={className}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         fillRule="evenodd"

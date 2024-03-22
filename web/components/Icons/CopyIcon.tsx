@@ -1,12 +1,14 @@
-export const CopyIcon = (props: { className?: string }) => {
+import { ComponentProps } from "react";
+
+export const CopyIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="20"
       height="20"
-      className={props.className}
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g clipPath="url(#clip0_2239_15710)">
         <path

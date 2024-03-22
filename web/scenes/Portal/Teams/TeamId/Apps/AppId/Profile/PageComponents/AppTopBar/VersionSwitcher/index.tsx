@@ -1,20 +1,16 @@
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/Dropdown";
+import { Dropdown } from "@/components/Dropdown";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useAtom } from "jotai";
 import { useMemo } from "react";
 import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../../layout/ImagesProvider";
+import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];
 };
+
 export const VersionSwitcher = (props: VersionSwitcherProps) => {
   const { app } = props;
   const [viewMode, setMode] = useAtom(viewModeAtom);
@@ -30,7 +26,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
 
   return (
     <Dropdown>
-      <DropdownButton
+      <Dropdown.Button
         disabled={app?.app_metadata.length === 0}
         className="flex items-center justify-center rounded-xl border border-grey-200 bg-grey-0 px-4  py-2.5 text-grey-700 shadow-button"
       >
@@ -38,45 +34,48 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
           {viewMode === "verified" ? "Approved version" : "Current version"}
         </Typography>
         {app?.app_metadata.length > 0 && <CaretIcon className="ml-2 size-4" />}
-      </DropdownButton>
-      <DropdownItems className="mt-2">
-        <DropdownItem
-          onClick={() => setMode("unverified")}
-          className="py-1 pl-1 hover:bg-grey-50"
-        >
-          <div className="grid w-full grid-cols-1fr/auto items-center">
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="max-w-full px-4 py-2.5 text-grey-900"
-            >
+      </Dropdown.Button>
+
+      <Dropdown.List
+        align="end"
+        className="md:mt-2"
+        heading="Version"
+        hideBackButton
+      >
+        <Dropdown.ListItem className="grid-cols-1fr/auto" asChild>
+          <button onClick={() => setMode("unverified")}>
+            <Dropdown.ListItemText className="md:!leading-4">
               Current version
-            </Typography>
+            </Dropdown.ListItemText>
+
             {viewMode === "unverified" && (
-              <CheckIcon size="16" className="ml-2 size-3" />
+              <Dropdown.ListItemIcon className="size-5 text-blue-500" asChild>
+                <CheckmarkCircleIcon />
+              </Dropdown.ListItemIcon>
             )}
-          </div>
-        </DropdownItem>
-        <DropdownItem
-          onClick={() => setMode("verified")}
-          className="py-1 pl-1 hover:bg-grey-50"
-        >
-          <div className="grid w-full grid-cols-1fr/auto items-center justify-start">
-            <Typography
-              as="div"
-              variant={TYPOGRAPHY.R3}
-              className=" max-w-full px-4 py-2.5 text-grey-900"
-            >
+          </button>
+        </Dropdown.ListItem>
+
+        <Dropdown.ListItem className="grid-cols-1fr/auto" asChild>
+          <button onClick={() => setMode("verified")}>
+            <Dropdown.ListItemText className="md:!leading-4">
               Approved version
-            </Typography>
+            </Dropdown.ListItemText>
+
             {viewMode === "verified" && (
-              <CheckIcon size="16" className="ml-2 size-3" />
+              <Dropdown.ListItemIcon className="size-5 text-blue-500" asChild>
+                <CheckmarkCircleIcon />
+              </Dropdown.ListItemIcon>
             )}
-            <Typography className="text-grey-500" variant={TYPOGRAPHY.R5}>
-              {viewMode !== "verified" && formattedDate}
-            </Typography>
-          </div>
-        </DropdownItem>
-      </DropdownItems>
+
+            {viewMode !== "verified" && (
+              <Dropdown.ListItemText className="text-grey-500 max-md:text-sm md:text-xs md:!leading-4">
+                {formattedDate}
+              </Dropdown.ListItemText>
+            )}
+          </button>
+        </Dropdown.ListItem>
+      </Dropdown.List>
     </Dropdown>
   );
 };

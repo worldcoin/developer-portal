@@ -1,20 +1,19 @@
-import { dropdownContext } from "@/components/Dropdown";
-import { Menu, MenuButtonProps } from "@headlessui/react";
-import { useContext } from "react";
+import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
 import { twMerge } from "tailwind-merge";
 
-type DropdownButtonProps = Omit<MenuButtonProps<"button">, "className"> & {
-  className?: string;
-};
+type ButtonProps = DropdownPrimitive.DropdownMenuTriggerProps & {};
 
-export const DropdownButton = (props: DropdownButtonProps) => {
-  const { className, ...otherProps } = props;
-  const { setReference } = useContext(dropdownContext);
+export const Button = (props: ButtonProps) => {
+  const { className, children, ...otherProps } = props;
   return (
-    <Menu.Button
-      ref={setReference}
-      className={twMerge(className)}
+    <DropdownPrimitive.Trigger
+      className={twMerge(
+        "grid cursor-pointer items-center md:gap-x-2",
+        className,
+      )}
       {...otherProps}
-    />
+    >
+      {children}
+    </DropdownPrimitive.Trigger>
   );
 };

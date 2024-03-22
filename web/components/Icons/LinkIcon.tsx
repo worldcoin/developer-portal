@@ -1,13 +1,14 @@
-export const LinkIcon = (props: { className: string }) => {
-  const { className } = props;
+import { ComponentProps } from "react";
+
+export const LinkIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="17"
       height="16"
-      className={className}
       viewBox="0 0 17 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         fillRule="evenodd"

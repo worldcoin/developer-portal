@@ -1,12 +1,14 @@
-export const ElementsIcon = (props: { className?: string }) => {
+import { ComponentProps } from "react";
+
+export const ElementsIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="4"
       height="16"
-      className={props.className}
       viewBox="0 0 4 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g id="elements">
         <path

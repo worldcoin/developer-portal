@@ -1,10 +1,5 @@
 "use client";
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownItems,
-} from "@/components/Dropdown";
+import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
@@ -98,98 +93,127 @@ export const ApiKeyRow = (props: {
   );
 
   return (
-    <tr className={clsx("w-full text-xs text-grey-500 hover:bg-grey-25")}>
-      <td key={`api_key_${index}_1`} className="group w-auto px-2 py-4">
-        <Typography
-          variant={TYPOGRAPHY.R3}
-          as="div"
-          className="max-w-44 truncate"
-        >
-          {apiKey.name}
-        </Typography>
-      </td>
+    <div
+      className={clsx(
+        "max-md:grid max-md:grid-cols-[max-content_auto_auto_max-content] max-md:items-center max-md:gap-x-3 max-md:gap-y-1 max-md:rounded-2xl max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:table-row",
+      )}
+    >
+      <div
+        key={`api_key_${index}_1`}
+        className="group max-md:col-start-2 max-md:col-end-3 max-md:row-start-1 max-md:row-end-2 md:table-cell md:border-b md:border-grey-200 md:py-4 md:pl-2 md:pr-4"
+      >
+        <div className="grid">
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            as="div"
+            className="truncate md:!leading-6"
+          >
+            {apiKey.name}
+          </Typography>
+        </div>
+      </div>
 
-      <td
-        className="group w-auto max-w-96 break-all pr-3"
+      <div
+        className="group max-md:col-start-3 max-md:col-end-4 max-md:row-start-1 max-md:row-end-3 max-md:text-end md:table-cell md:border-b md:border-grey-200 md:pr-4"
         key={`api_key${index}_2`}
       >
-        <Typography
-          variant={TYPOGRAPHY.R3}
-          as="div"
-          className="grid grid-cols-auto/1fr items-center justify-start justify-items-start gap-x-4 py-2 text-grey-500"
-        >
+        <div className="inline-grid grid-cols-1fr/auto gap-x-2 max-md:pl-8">
           <Typography
             variant={TYPOGRAPHY.R4}
-            className="max-w-[30px] truncate md:max-w-full md:whitespace-normal"
+            as="div"
+            className="truncate md:!leading-6"
           >
             {secretKey ?? "api_" + btoa(apiKey.id).substring(0, 15) + "..."}
           </Typography>
+
           <CopyButton
+            className={clsx(
+              "cursor-pointer !p-0 transition-opacity duration-300 ",
+              {
+                "sm:opacity-0 sm:group-hover:opacity-100": secretKey,
+              },
+            )}
             fieldValue={secretKey ?? ""}
             fieldName="API Key"
-            className={clsx("cursor-pointer transition-opacity duration-300 ", {
-              "sm:opacity-0 sm:group-hover:opacity-100": secretKey,
-            })}
           />
-        </Typography>
-      </td>
+        </div>
+      </div>
 
-      <td key={`api_key_${index}_3`} className="text-grey-500">
-        <Typography variant={TYPOGRAPHY.R4}>{timeAgo}</Typography>
-      </td>
+      <div
+        key={`api_key_${index}_3`}
+        className="text-grey-500 max-md:col-start-2 max-md:col-end-3 max-md:row-start-2 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4"
+      >
+        <div className="grid">
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            as="div"
+            className="max-md:truncate md:whitespace-nowrap md:!leading-6"
+          >
+            {timeAgo}
+          </Typography>
+        </div>
+      </div>
 
-      <td key={`api_key_${index}_4`} className="text-grey-500">
+      <div
+        key={`api_key_${index}_4`}
+        className="text-grey-500 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-3 max-md:table-cell md:table-cell md:border-b md:border-grey-200 md:pr-4 md:align-middle"
+      >
         <Typography variant={TYPOGRAPHY.R4}>
           <Status isActive={apiKey.is_active} />
         </Typography>
-      </td>
+      </div>
 
-      <td>
+      <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pl-4 md:pr-2 md:align-middle">
         <div
           key={`api_key_${index}_5`}
-          className={clsx("flex w-full justify-end px-2", {
+          className={clsx("flex w-full justify-end", {
             hidden: !isEnoughPermissions,
           })}
         >
           <Dropdown>
-            <DropdownButton>
+            <Dropdown.Button>
               <MoreVerticalIcon />
-            </DropdownButton>
-            <DropdownItems>
-              <DropdownItem
-                className="hover:bg-grey-50"
-                onClick={() => openViewDetails(apiKey)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <EditIcon className="w-5 text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Edit Key</Typography>
-                </div>
-              </DropdownItem>
-              <DropdownItem
-                className="hover:bg-grey-50"
-                onClick={() => resetAPIKey(apiKey.id)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <KeyIcon className="w-5 text-grey-400" />
-                  <Typography variant={TYPOGRAPHY.R4}>Reset key</Typography>
-                </div>
-              </DropdownItem>
+            </Dropdown.Button>
 
-              <DropdownItem
-                className="text-system-error-600 hover:bg-grey-50"
-                onClick={() => openDeleteKeyModal(apiKey)}
-              >
-                <div className="grid w-full grid-cols-auto/1fr items-center justify-between gap-x-2">
-                  <TrashIcon className="w-5" />
-                  <Typography as="div" variant={TYPOGRAPHY.R4}>
+            <Dropdown.List align="end" heading={apiKey.name} hideBackButton>
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openViewDetails(apiKey)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <EditIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+
+              <Dropdown.ListItem asChild>
+                <button onClick={() => resetAPIKey(apiKey.id)}>
+                  <Dropdown.ListItemIcon asChild>
+                    <KeyIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Reset key</Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+
+              <Dropdown.ListItem asChild>
+                <button onClick={() => openDeleteKeyModal(apiKey)}>
+                  <Dropdown.ListItemIcon
+                    className="text-system-error-600"
+                    asChild
+                  >
+                    <TrashIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText className="text-system-error-600">
                     Remove key
-                  </Typography>
-                </div>
-              </DropdownItem>
-            </DropdownItems>
+                  </Dropdown.ListItemText>
+                </button>
+              </Dropdown.ListItem>
+            </Dropdown.List>
           </Dropdown>
         </div>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 };
