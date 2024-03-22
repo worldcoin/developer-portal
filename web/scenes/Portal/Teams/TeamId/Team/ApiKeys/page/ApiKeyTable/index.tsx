@@ -86,7 +86,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
   }, [apiKeys, currentPage, rowsPerPage, openViewDetails]);
 
   return (
-    <div className="no-scrollbar w-full overflow-auto md:pb-16">
+    <div className="w-full md:pb-16">
       <ViewDetailsModal
         teamId={teamId}
         isOpen={showViewDetailsModal}
