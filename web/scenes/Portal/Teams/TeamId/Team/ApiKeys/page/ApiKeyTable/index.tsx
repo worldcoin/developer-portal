@@ -86,7 +86,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
   }, [apiKeys, currentPage, rowsPerPage, openViewDetails]);
 
   return (
-    <div className="no-scrollbar w-full overflow-auto pb-16">
+    <div className="no-scrollbar w-full overflow-auto md:pb-16">
       <ViewDetailsModal
         teamId={teamId}
         isOpen={showViewDetailsModal}
@@ -133,7 +133,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
           <div className="md:table-cell md:border-b md:border-grey-200 md:py-3" />
         </div>
 
-        <div className="max-md:grid md:contents">
+        <div className="max-md:grid max-md:gap-y-2 md:contents">
           {apiKeysToRender.map((rowData: any, index: number) => {
             return (
               <ApiKeyRow
