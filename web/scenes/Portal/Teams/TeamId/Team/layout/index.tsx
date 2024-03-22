@@ -42,7 +42,10 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               segment={null}
               underlined
             >
-              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>
+                <span className="max-md:hidden">Overview</span>
+                <span className="md:hidden">Members</span>
+              </Typography>
             </Tab>
 
             {ownerPermission && (

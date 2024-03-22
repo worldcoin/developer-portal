@@ -1,8 +1,5 @@
 "use client";
-import { Table } from "@/components/Table";
-import { Body } from "@/components/Table/Body";
 import { Footer } from "@/components/Table/Footer";
-import { Header } from "@/components/Table/Header";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { ApiKeyRow } from "./ApiKeyRow";

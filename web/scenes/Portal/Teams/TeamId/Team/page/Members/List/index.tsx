@@ -99,22 +99,22 @@ export const List = (props: { search?: string }) => {
     return [...(data?.membership ?? []), ...(formatttedInvites ?? [])];
   }, [data?.membership, fetchInvitesData?.invite]);
 
-  const [totalResultsCount, setTotalResultsCount] = useState(
-    memberships.length,
-  );
+  //const [totalResultsCount, setTotalResultsCount] = useState(
+  //  memberships.length,
+  //);
 
-  const rowsPerPageOptions = [10, 20];
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
+  //const rowsPerPageOptions = [10, 20];
+  //const [currentPage, setCurrentPage] = useState(1);
+  //const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
+  //const handlePageChange = (newPage: number) => {
+  //  setCurrentPage(newPage);
+  //};
 
-  const handleRowsPerPageChange = (newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1); // Reset to first page when rows per page changes
-  };
+  //const handleRowsPerPageChange = (newRowsPerPage: number) => {
+  //  setRowsPerPage(newRowsPerPage);
+  //  setCurrentPage(1); // Reset to first page when rows per page changes
+  //};
 
   const membersToRender = useMemo(() => {
     if (!memberships) {
@@ -124,7 +124,7 @@ export const List = (props: { search?: string }) => {
     let filteredMemberships = memberships;
 
     if (props.search) {
-      setCurrentPage(1);
+      //setCurrentPage(1);
       const fieldsToSearch = ["name", "email"] as const;
 
       filteredMemberships = filteredMemberships.filter((membership: any) => {
@@ -136,13 +136,24 @@ export const List = (props: { search?: string }) => {
       });
     }
 
-    setTotalResultsCount(filteredMemberships.length);
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    const paginatedActions = filteredMemberships.slice(startIndex, endIndex);
+    //setTotalResultsCount(filteredMemberships.length);
+    //const startIndex = (currentPage - 1) * rowsPerPage;
+    //const endIndex = startIndex + rowsPerPage;
+    //const paginatedActions = filteredMemberships.slice(startIndex, endIndex);
+    //return paginatedActions;
+    return filteredMemberships;
+  }, [memberships, props.search]);
 
-    return paginatedActions;
-  }, [currentPage, memberships, props.search, rowsPerPage]);
+  const membersToRenderHasInvitedMember = useMemo(() => {
+    if (!membersToRender) {
+      return false;
+    }
+    for (const member of membersToRender) {
+      if (member.id.startsWith("inv_")) {
+        return true;
+      }
+    }
+  }, [membersToRender]);
 
   const onEditUser = useCallback(
     (membership: (typeof membersToRender)[number]) => {
@@ -222,25 +233,31 @@ export const List = (props: { search?: string }) => {
   );
 
   return (
-    <div>
-      <div className="grid grid-cols-[1fr_1fr_auto]">
+    <div className="order-2">
+      <div className="grid md:grid-cols-[max-content_auto_auto_auto_max-content] md:items-center">
         {membersToRender.length > 0 && (
           <div className="contents text-12 leading-4 text-grey-400">
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="border-b border-grey-100 py-3"
-            >
-              Member
-            </Typography>
+            <div className="hidden md:contents">
+              <Typography variant={TYPOGRAPHY.R5} className="col-span-2 py-3">
+                Member
+              </Typography>
 
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="border-b border-grey-100 py-3"
-            >
-              Role
-            </Typography>
+              <Typography variant={TYPOGRAPHY.R5} className="col-span-3 py-3">
+                Role
+              </Typography>
+            </div>
 
-            <div className="border-b border-grey-100 py-3" />
+            <div className="col-span-full border-b border-grey-100 max-md:hidden" />
+
+            {membersToRenderHasInvitedMember && (
+              <div className="mt-8 max-md:order-1 max-md:col-span-full max-md:mb-1 md:hidden">
+                Invited
+              </div>
+            )}
+
+            <div className="mt-8 max-md:order-2 max-md:col-span-full max-md:mb-1 md:hidden">
+              Active
+            </div>
 
             {membersToRender.map((membership) => {
               const isInviteRow = membership.id.startsWith("inv_");
@@ -252,32 +269,49 @@ export const List = (props: { search?: string }) => {
                 "Anonymous User";
 
               return (
-                <div key={membership.user?.id} className="contents">
-                  <div className="flex items-center gap-x-4 border-b border-grey-100 px-2 py-4">
+                <div
+                  key={membership.user?.id}
+                  className={clsx(
+                    "max-md:mt-2 max-md:grid max-md:grid-cols-[max-content_auto_max-content] max-md:items-center max-md:rounded-2xl max-md:border max-md:border-grey-100 md:contents",
+                    {
+                      "max-md:order-1": isInviteRow,
+                      "max-md:order-2": !isInviteRow,
+                    },
+                  )}
+                >
+                  <div className="p-4 md:pl-2">
                     <UserLogo src={""} name={name} />
-
-                    <div className="grid gap-y-0.5">
-                      <Typography
-                        variant={TYPOGRAPHY.R3}
-                        className="max-w-full truncate text-grey-900"
-                      >
-                        {name}
-                      </Typography>
-
-                      <Typography
-                        variant={TYPOGRAPHY.R4}
-                        className="max-w-full truncate text-grey-500"
-                      >
-                        {membership.user?.email ?? ""}
-                      </Typography>
-                    </div>
                   </div>
 
-                  <div className="flex items-center border-b border-grey-100 py-4 text-14 leading-5 text-grey-500">
+                  <div className="grid gap-y-0.5">
+                    <Typography
+                      variant={TYPOGRAPHY.R3}
+                      className="max-w-full truncate text-grey-900"
+                    >
+                      {name}
+                    </Typography>
+
+                    <Typography
+                      variant={TYPOGRAPHY.R4}
+                      className="inline-grid grid-cols-[auto_1fr]  text-grey-500"
+                    >
+                      <div className="md:hidden">
+                        {roleName[membership.role]}&nbsp;•&nbsp;
+                      </div>
+
+                      <div className="truncate">
+                        {membership.user?.email ?? ""}
+                      </div>
+                    </Typography>
+                  </div>
+
+                  <div className="flex pr-4 text-grey-500 max-md:hidden">
                     <Typography variant={TYPOGRAPHY.R4}>
                       {roleName[membership.role]}
                     </Typography>
+                  </div>
 
+                  <div className="flex pr-4 max-md:hidden">
                     {isInviteRow && (
                       <div className="mx-2 rounded-full bg-system-warning-100 px-3 py-1 text-center">
                         <Typography
@@ -290,7 +324,7 @@ export const List = (props: { search?: string }) => {
                     )}
                   </div>
 
-                  <div className="flex items-center border-b border-grey-100 px-2 py-4">
+                  <div className="pr-2 max-md:pr-4">
                     <Dropdown>
                       <Dropdown.Button
                         disabled={
@@ -366,6 +400,8 @@ export const List = (props: { search?: string }) => {
                       </Dropdown.List>
                     </Dropdown>
                   </div>
+
+                  <hr className="col-span-full border-grey-100 max-md:hidden" />
                 </div>
               );
             })}
@@ -389,15 +425,17 @@ export const List = (props: { search?: string }) => {
         </div>
       )}
 
-      <Footer
-        totalResults={totalResultsCount ?? 0}
-        currentPage={currentPage}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={rowsPerPageOptions}
-        handlePageChange={handlePageChange}
-        handleRowsPerPageChange={handleRowsPerPageChange}
-        className="border-none"
-      />
+      {/*<div className="max-md:hidden">*/}
+      {/*  <Footer*/}
+      {/*    totalResults={totalResultsCount ?? 0}*/}
+      {/*    currentPage={currentPage}*/}
+      {/*    rowsPerPage={rowsPerPage}*/}
+      {/*    rowsPerPageOptions={rowsPerPageOptions}*/}
+      {/*    handlePageChange={handlePageChange}*/}
+      {/*    handleRowsPerPageChange={handleRowsPerPageChange}*/}
+      {/*    className="border-none"*/}
+      {/*  />*/}
+      {/*</div>*/}
 
       <RemoveUserDialog name={userToRemove?.name ?? ""} id={userToRemove?.id} />
       <EditRoleDialog membership={userToEditRole} />

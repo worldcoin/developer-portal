@@ -39,7 +39,9 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
         <div className="grid gap-y-14 py-8">
           <Members teamId={teamId} />
 
-          <Apps />
+          <div className="max-md:hidden">
+            <Apps />
+          </div>
         </div>
       </SizingWrapper>
     </>

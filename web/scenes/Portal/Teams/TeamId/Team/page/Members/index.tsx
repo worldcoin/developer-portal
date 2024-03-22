@@ -18,6 +18,7 @@ import {
   inviteTeamMemberDialogAtom,
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 
 const schema = yup.object({
   search: yup.string(),
@@ -51,7 +52,7 @@ export const Members = (props: { teamId: string }) => {
     <div className="grid gap-y-4">
       <Typography variant={TYPOGRAPHY.H7}>Members</Typography>
 
-      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-4 md:grid-cols-1fr/auto">
+      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-4 max-md:contents md:grid-cols-1fr/auto">
         <Input
           register={register("search")}
           type="search"
@@ -62,14 +63,18 @@ export const Members = (props: { teamId: string }) => {
         />
 
         {isEnoughPermissions && (
-          <DecoratedButton
-            type="button"
-            onClick={() => setInviteTeamMemberDialogOpened(true)}
-            variant="primary"
-            className="min-w-[200px] py-2.5"
-          >
-            <Typography variant={TYPOGRAPHY.M3}>Invite new member</Typography>
-          </DecoratedButton>
+          <div className="max-md:sticky max-md:bottom-0 max-md:order-3 max-md:grid max-md:justify-center max-md:py-8">
+            <DecoratedButton
+              type="button"
+              onClick={() => setInviteTeamMemberDialogOpened(true)}
+              variant="primary"
+              className="min-w-[200px] py-2.5"
+            >
+              <PlusIcon className="size-5 md:hidden" />
+              <span className="md:hidden">New member</span>
+              <span className="max-md:hidden">Invite new member</span>
+            </DecoratedButton>
+          </div>
         )}
       </div>
 
