@@ -1,19 +1,16 @@
 import {
-  errorNotAllowed,
   errorRequiredAttribute,
   errorResponse,
   errorValidation,
-} from "@/legacy/backend/errors";
+} from "@/api/helpers/errors";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import {
-  canVerifyForAction,
-  validateRequestSchema,
-} from "@/legacy/backend/utils";
+import { canVerifyForAction } from "@/legacy/backend/utils";
 import { fetchActionForProof, verifyProof } from "@/lib/verify";
 import { captureEvent } from "@/services/posthogClient";
 import { ApolloError, gql } from "@apollo/client";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -48,59 +45,52 @@ const schema = yup.object({
     .optional(),
 });
 
-export default async function handleVerify(
-  req: NextApiRequest,
-  res: NextApiResponse,
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { app_id: string } },
 ) {
-  // NOTE: Lack of CORS headers, because this endpoint should not be called from the frontend (security reasons)
-  if (!req.method || !["POST"].includes(req.method)) {
-    return errorNotAllowed(req.method, res, req);
-  }
-
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
     value: req.body,
   });
 
   if (!isValid) {
-    return handleError(req, res);
+    return handleError(req);
   }
 
-  if (!req.query.app_id) {
-    return errorRequiredAttribute("app_id", res, req);
+  if (!params.app_id) {
+    return errorRequiredAttribute("app_id", req);
   }
 
   const client = await getAPIServiceClient();
   const data = await fetchActionForProof(
     client,
-    req.query.app_id?.toString(),
+    params.app_id?.toString(),
     parsedParams.nullifier_hash,
     parsedParams.action,
   );
 
   if (data.error || !data.app) {
-    return errorResponse(
-      res,
-      data.error?.statusCode || 400,
-      data.error?.code || "unknown_error",
-      data.error?.message || "There was an error verifying this proof.",
-      data.error?.attribute || null,
+    return errorResponse({
+      statusCode: data.error?.statusCode || 400,
+      code: data.error?.code || "unknown_error",
+      detail: data.error?.message || "There was an error verifying this proof.",
+      attribute: data.error?.attribute || null,
       req,
-    );
+    });
   }
 
   const { app } = data;
   const { action, nullifier } = app;
 
   if (action.status === "inactive") {
-    return errorResponse(
-      res,
-      400,
-      "action_inactive",
-      "This action is inactive.",
-      "status",
+    return errorResponse({
+      statusCode: 400,
+      code: "action_inactive",
+      detail: "This action is inactive.",
+      attribute: "status",
       req,
-    );
+    });
   }
 
   if (!canVerifyForAction(nullifier, action.max_verifications)) {
@@ -109,24 +99,17 @@ export default async function handleVerify(
       action.max_verifications === 1
         ? "This person has already verified for this action."
         : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-    return errorValidation(
-      "max_verifications_reached",
-      errorMsg,
-      null,
-      res,
-      req,
-    );
+    return errorValidation("max_verifications_reached", errorMsg, null, req);
   }
 
   if (!action.external_nullifier) {
-    return errorResponse(
-      res,
-      400,
-      "verification_error",
-      "This action does not have a valid external nullifier set.",
-      null,
+    return errorResponse({
+      statusCode: 400,
+      code: "verification_error",
+      detail: "This action does not have a valid external nullifier set.",
+      attribute: null,
       req,
-    );
+    });
   }
 
   // ANCHOR: Verify the proof with the World ID smart contract
@@ -156,14 +139,13 @@ export default async function handleVerify(
         error: error,
       },
     });
-    return errorResponse(
-      res,
-      error?.statusCode || 400,
-      error?.code || AppErrorCodes.GenericError,
-      error?.message || "There was an error verifying this proof.",
-      error?.attribute || null,
+    return errorResponse({
+      statusCode: error?.statusCode || 400,
+      code: error?.code || AppErrorCodes.GenericError,
+      detail: error?.message || "There was an error verifying this proof.",
+      attribute: error?.attribute || null,
       req,
-    );
+    });
   }
 
   if (nullifier) {
@@ -180,7 +162,6 @@ export default async function handleVerify(
         AppErrorCodes.MaxVerificationsReached,
         "This person has already verified for this particular action the maximum number of times allowed.",
         null,
-        res,
         req,
       );
     }
@@ -197,14 +178,17 @@ export default async function handleVerify(
       },
     });
 
-    res.status(200).json({
-      success: true,
-      uses: nullifier.uses + 1,
-      action: action.action ?? null,
-      created_at: nullifier.created_at,
-      max_uses: action.max_verifications,
-      nullifier_hash: nullifier.nullifier_hash,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        uses: nullifier.uses + 1,
+        action: action.action ?? null,
+        created_at: nullifier.created_at,
+        max_uses: action.max_verifications,
+        nullifier_hash: nullifier.nullifier_hash,
+      },
+      { status: 200 },
+    );
   } else {
     try {
       const insertResponse = await client.mutate({
@@ -219,14 +203,14 @@ export default async function handleVerify(
         insertResponse.data.insert_nullifier_one.nullifier_hash !==
         parsedParams.nullifier_hash
       ) {
-        return errorResponse(
-          res,
-          400,
-          "verification_error",
-          "There was an error inserting the nullifier. Please try again.",
-          null,
+        return errorResponse({
+          statusCode: 400,
+          code: "verification_error",
+          detail:
+            "There was an error inserting the nullifier. Please try again.",
+          attribute: null,
           req,
-        );
+        });
       }
 
       await captureEvent({
@@ -241,15 +225,19 @@ export default async function handleVerify(
         },
       });
 
-      res.status(200).json({
-        uses: 1,
-        success: true,
-        action: action.action ?? null,
-        max_uses: action.max_verifications,
-        nullifier_hash: insertResponse.data.insert_nullifier_one.nullifier_hash,
-        created_at: insertResponse.data.insert_nullifier_one.created_at,
-        verification_level: parsedParams.verification_level,
-      });
+      return NextResponse.json(
+        {
+          uses: 1,
+          success: true,
+          action: action.action ?? null,
+          max_uses: action.max_verifications,
+          nullifier_hash:
+            insertResponse.data.insert_nullifier_one.nullifier_hash,
+          created_at: insertResponse.data.insert_nullifier_one.created_at,
+          verification_level: parsedParams.verification_level,
+        },
+        { status: 200 },
+      );
     } catch (e) {
       if (
         (e as ApolloError)?.graphQLErrors?.[0]?.extensions?.code ==
@@ -259,7 +247,6 @@ export default async function handleVerify(
           AppErrorCodes.MaxVerificationsReached,
           "This person has already verified for this particular action the maximum number of times allowed.",
           null,
-          res,
           req,
         );
       }
