@@ -11,7 +11,7 @@ export const AppsPage = () => {
         <TeamProfile />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2">
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
         <Apps />
       </SizingWrapper>
     </>

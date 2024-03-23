@@ -1,13 +1,12 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { truncateString } from "@/lib/utils";
 import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "../../common/TeamProfile";
 import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Section } from "@/components/Section";
 
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -29,24 +28,17 @@ export const TeamDangerPage = () => {
         <TeamProfile />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2">
-        <div className="m-auto grid gap-y-8 py-8">
-          <div className="grid gap-y-3">
-            <Typography as="h1" variant={TYPOGRAPHY.H7}>
-              Danger zone
-            </Typography>
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+        <Section>
+          <Section.Header>
+            <Section.Header.Title>Danger zone</Section.Header.Title>
+          </Section.Header>
 
-            <p className="max-w-[36.25rem] text-grey-500">
-              This will immediately and permanently delete the team{" "}
-              <span className="font-medium text-gray-900">
-                {truncateString(fetchTeamQueryRes.data?.team_by_pk?.name, 30)}
-              </span>
-              , along with all its applications and its data for everyone. This
-              cannot be undone.
+          <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
+            <p className="text-grey-500">
+              This will immediately and permanently delete the team <strong className="font-medium text-grey-900">{fetchTeamQueryRes.data?.team_by_pk?.name}</strong>, along with all its applications and its data for everyone. This cannot be undone.
             </p>
-          </div>
 
-          <div>
             <DecoratedButton
               type="submit"
               variant="danger"
@@ -55,7 +47,7 @@ export const TeamDangerPage = () => {
               Delete team
             </DecoratedButton>
           </div>
-        </div>
+        </Section>
       </SizingWrapper>
 
       <DeleteTeamDialog

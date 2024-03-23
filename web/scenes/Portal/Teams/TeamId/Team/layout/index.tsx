@@ -32,7 +32,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   );
 
   return (
-    <div className="flex grow flex-col items-start">
+    <div className="flex flex-col">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
         <SizingWrapper variant="nav">
           <Tabs className="px-6 py-4 font-gta md:py-0">

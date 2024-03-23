@@ -3,7 +3,6 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
@@ -19,6 +18,7 @@ import {
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
+import {Section} from "@/components/Section";
 
 const schema = yup.object({
   search: yup.string(),
@@ -49,21 +49,25 @@ export const Members = (props: { teamId: string }) => {
   });
 
   return (
-    <div className="grid gap-y-4">
-      <Typography variant={TYPOGRAPHY.H7}>Members</Typography>
+    <Section>
+      <Section.Header>
+        <Section.Header.Title>
+          Members
+        </Section.Header.Title>
 
-      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-4 max-md:contents md:grid-cols-1fr/auto">
-        <Input
-          register={register("search")}
-          type="search"
-          label=""
-          addOnLeft={<MagnifierIcon className="text-grey-400" />}
-          placeholder="Search member by name or email"
-          className="max-w-full px-4 py-2 md:max-w-[480px]"
-        />
+        <Section.Header.Search>
+          <Input
+            register={register("search")}
+            type="search"
+            label=""
+            addOnLeft={<MagnifierIcon className="text-grey-400" />}
+            placeholder="Search member by name or email"
+            className="max-w-full px-4 py-2 md:max-w-[480px]"
+          />
+        </Section.Header.Search>
 
         {isEnoughPermissions && (
-          <div className="max-md:sticky max-md:bottom-0 max-md:order-3 max-md:grid max-md:justify-center max-md:py-8">
+          <Section.Header.Button>
             <DecoratedButton
               type="button"
               onClick={() => setInviteTeamMemberDialogOpened(true)}
@@ -74,13 +78,13 @@ export const Members = (props: { teamId: string }) => {
               <span className="md:hidden">New member</span>
               <span className="max-md:hidden">Invite new member</span>
             </DecoratedButton>
-          </div>
+          </Section.Header.Button>
         )}
-      </div>
+      </Section.Header>
 
       <List search={search} />
 
       <InviteTeamMemberDialog />
-    </div>
+    </Section>
   );
 };

@@ -35,7 +35,7 @@ export const List = () => {
 
   return (
     <>
-      <div className="grid max-md:mt-5 md:grid-cols-[auto_60%_1fr_auto] md:items-center">
+      <div className="grid md:grid-cols-[auto_60%_1fr_auto] md:items-center">
         <div className="hidden text-12 leading-4 text-grey-400 md:contents">
           <Typography
             variant={TYPOGRAPHY.R5}
