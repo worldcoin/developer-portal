@@ -16,7 +16,7 @@ import {
 } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import {Section} from "@/components/Section";
+import { Section } from "@/components/Section";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),

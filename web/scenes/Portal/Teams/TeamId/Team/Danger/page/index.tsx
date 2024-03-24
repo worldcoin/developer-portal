@@ -36,7 +36,12 @@ export const TeamDangerPage = () => {
 
           <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
             <p className="text-grey-500">
-              This will immediately and permanently delete the team <strong className="font-medium text-grey-900">{fetchTeamQueryRes.data?.team_by_pk?.name}</strong>, along with all its applications and its data for everyone. This cannot be undone.
+              This will immediately and permanently delete the team{" "}
+              <strong className="font-medium text-grey-900">
+                {fetchTeamQueryRes.data?.team_by_pk?.name}
+              </strong>
+              , along with all its applications and its data for everyone. This
+              cannot be undone.
             </p>
 
             <DecoratedButton

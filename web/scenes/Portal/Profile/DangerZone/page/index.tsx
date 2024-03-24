@@ -6,7 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { useState } from "react";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
-import {Section} from "@/components/Section";
+import { Section } from "@/components/Section";
 
 export const DangerZone = () => {
   const [open, setOpen] = useState<boolean>(false);

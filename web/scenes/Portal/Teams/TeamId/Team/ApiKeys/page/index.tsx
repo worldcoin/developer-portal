@@ -9,7 +9,7 @@ import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
-import {Section} from "@/components/Section";
+import { Section } from "@/components/Section";
 
 type TeamApiKeysPageProps = {
   params: Record<string, string> | null | undefined;
@@ -38,9 +38,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
         {!loading && apiKeys?.length === 0 ? (
           <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
             <div className="grid justify-items-center gap-y-5 ">
-              <Typography variant={TYPOGRAPHY.H6}>
-                No API keys found
-              </Typography>
+              <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
 
               <Typography
                 variant={TYPOGRAPHY.R3}

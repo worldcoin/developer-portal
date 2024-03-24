@@ -1,9 +1,7 @@
 import { ComponentProps } from "react";
 import clsx from "clsx";
 
-type SearchProps = ComponentProps<"div"> & {
-
-};
+type SearchProps = ComponentProps<"div"> & {};
 
 export const Search = (props: SearchProps) => {
   const { className, ...otherProps } = props;
@@ -13,4 +11,4 @@ export const Search = (props: SearchProps) => {
       {...otherProps}
     />
   );
-}
+};

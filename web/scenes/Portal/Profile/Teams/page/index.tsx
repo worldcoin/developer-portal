@@ -4,7 +4,7 @@ import { urls } from "@/lib/urls";
 import { List } from "@/scenes/Portal/Profile/Teams/page/List";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
-import {Section} from "@/components/Section";
+import { Section } from "@/components/Section";
 
 export const TeamsPage = () => {
   return (

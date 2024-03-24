@@ -18,7 +18,7 @@ import {
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
-import {Section} from "@/components/Section";
+import { Section } from "@/components/Section";
 
 const schema = yup.object({
   search: yup.string(),
@@ -51,9 +51,7 @@ export const Members = (props: { teamId: string }) => {
   return (
     <Section>
       <Section.Header>
-        <Section.Header.Title>
-          Members
-        </Section.Header.Title>
+        <Section.Header.Title>Members</Section.Header.Title>
 
         <Section.Header.Search>
           <Input

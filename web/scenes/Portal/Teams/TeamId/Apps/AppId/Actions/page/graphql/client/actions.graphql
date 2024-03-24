@@ -1,7 +1,7 @@
-query GetActions($app_id: String!) {
-  action(
+query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
+  actions: action(
     order_by: { created_at: asc }
-    where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
+    where: { app_id: { _eq: $app_id }, action: { _neq: "" }, _or: $condition }
   ) {
     id
     app_id
@@ -15,20 +15,12 @@ query GetActions($app_id: String!) {
     max_accounts_per_user
     max_verifications
     updated_at
-    nullifiers {
-      id
-      created_at
-      nullifier_hash
-      uses
-    }
-  }
-
-  app(where: { id: { _eq: $app_id } }) {
-    id
-    engine
-    app_metadata {
-      id
-      name
+    nullifiers: nullifiers_aggregate {
+      aggregate {
+        sum {
+          uses
+        }
+      }
     }
   }
 }

@@ -2,9 +2,7 @@ import { ComponentProps } from "react";
 import clsx from "clsx";
 import { Header } from "./Header";
 
-type SectionProps = ComponentProps<"div"> & {
-
-};
+type SectionProps = ComponentProps<"div"> & {};
 
 export const Section = (props: SectionProps) => {
   const { className, ...otherProps } = props;
@@ -14,6 +12,6 @@ export const Section = (props: SectionProps) => {
       {...otherProps}
     />
   );
-}
+};
 
 Section.Header = Header;
