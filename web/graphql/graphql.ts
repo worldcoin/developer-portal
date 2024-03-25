@@ -4689,7 +4689,7 @@ export type Nullifier = {
   id: Scalars["String"];
   nullifier_hash: Scalars["String"];
   updated_at: Scalars["timestamptz"];
-  uses?: Maybe<Scalars["Int"]>;
+  uses: Scalars["Int"];
 };
 
 /** aggregated selection of "nullifier" */

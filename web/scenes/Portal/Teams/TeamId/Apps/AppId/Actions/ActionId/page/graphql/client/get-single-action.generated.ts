@@ -18,7 +18,7 @@ export type GetSingleActionAndNullifiersQuery = {
       id: string;
       updated_at: any;
       nullifier_hash: string;
-      uses?: number | null;
+      uses: number;
     }>;
     app: { __typename?: "app"; id: string; engine: string };
   }>;

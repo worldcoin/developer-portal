@@ -29,7 +29,7 @@ export type GetActionsQuery = {
       id: string;
       created_at: any;
       nullifier_hash: string;
-      uses?: number | null;
+      uses: number;
     }>;
   }>;
   app: Array<{
