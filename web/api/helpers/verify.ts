@@ -1,7 +1,6 @@
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
-import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { BigNumber, ethers } from "ethers";
@@ -50,58 +49,6 @@ export interface IVerifyParams {
   max_age?: number;
 }
 
-interface IAppAction {
-  app: {
-    id: string;
-    is_staging: true;
-    engine: string;
-    actions: {
-      id: string;
-      action: string;
-      status: string;
-      external_nullifier: string;
-      nullifiers: {
-        uses: number;
-        created_at: string;
-        nullifier_hash: string;
-      }[];
-      max_verifications: number;
-    }[];
-  }[];
-}
-
-const queryFetchAppAction = gql`
-  query FetchAppAction(
-    $app_id: String!
-    $action: String!
-    $nullifier_hash: String!
-  ) {
-    app(
-      where: {
-        id: { _eq: $app_id }
-        status: { _eq: "active" }
-        is_archived: { _eq: false }
-      }
-    ) {
-      id
-      is_staging
-      engine
-      actions(where: { action: { _eq: $action } }) {
-        id
-        action
-        max_verifications
-        external_nullifier
-        status
-        nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-          uses
-          created_at
-          nullifier_hash
-        }
-      }
-    }
-  }
-`;
-
 function decodeProof(encodedProof: string) {
   const binArray = abi.decode(["uint256[8]"], encodedProof)[0] as BigInt[];
   const hexArray = binArray.map((item) =>
@@ -121,65 +68,6 @@ function decodeProof(encodedProof: string) {
     [hexArray[6], hexArray[7]],
   ];
 }
-
-export const fetchActionForProof = async (
-  graphQLClient: ApolloClient<NormalizedCacheObject>,
-  app_id: string,
-  nullifier_hash: string,
-  action: string,
-) => {
-  const result = await graphQLClient.query<IAppAction>({
-    query: queryFetchAppAction,
-    variables: {
-      app_id,
-      nullifier_hash,
-      action,
-    },
-  });
-
-  if (!result.data.app.length) {
-    return {
-      error: {
-        message: "App not found. App may be no longer active.",
-        code: "not_found",
-        statusCode: 404,
-      },
-    };
-  }
-
-  const app = result.data.app[0];
-
-  if (!app.actions.length) {
-    return {
-      error: {
-        message: "Action not found.",
-        code: "invalid_action",
-        statusCode: 400,
-        attribute: "action",
-      },
-    };
-  }
-
-  if (app.engine !== "cloud") {
-    return {
-      error: {
-        message: "This action runs on-chain and can't be verified here.",
-        code: "invalid_engine",
-        statusCode: 400,
-        attribute: "engine",
-      },
-    };
-  }
-
-  return {
-    app: {
-      ...app,
-      actions: undefined,
-      action: app.actions[0],
-      nullifier: app.actions[0]?.nullifiers?.[0],
-    },
-  };
-};
 
 /**
  * Parses and validates the inputs to verify a proof
@@ -373,4 +261,28 @@ export const verifyProof = async (
   }
 
   return { success: true, status };
+};
+
+/**
+ * Checks whether the person can be verified for a particular action based on the max number of verifications
+ */
+export const canVerifyForAction = (
+  nullifier:
+    | {
+        uses?: number | null | undefined;
+        nullifier_hash: string;
+      }
+    | undefined,
+  max_verifications_per_person: number,
+): boolean => {
+  if (!nullifier || nullifier.uses === null || nullifier.uses === undefined) {
+    // Person has not verified before, can always verify for the first time
+    return true;
+  } else if (max_verifications_per_person <= 0) {
+    // `0` or `-1` means unlimited verifications
+    return true;
+  }
+
+  // Else, can only verify if the max number of verifications has not been met
+  return nullifier.uses < max_verifications_per_person;
 };
