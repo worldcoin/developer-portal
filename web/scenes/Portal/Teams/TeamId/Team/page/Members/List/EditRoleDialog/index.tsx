@@ -29,7 +29,7 @@ import { permissionsDialogAtom } from "../PermissionsDialog";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
-} from "../graphql/client/fetch-team-members.generated";
+} from "../../graphql/client/fetch-team-members.generated";
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
 import clsx from "clsx";
 
@@ -46,7 +46,7 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const EditRoleDialog = (props: {
-  membership: FetchTeamMembersQuery["membership"][number] | null;
+  membership: FetchTeamMembersQuery["members"][number] | null;
 }) => {
   const [isOpened, setIsOpened] = useAtom(editRoleDialogAtom);
   const [permissionsOpened, setPermissionsOpened] = useAtom(

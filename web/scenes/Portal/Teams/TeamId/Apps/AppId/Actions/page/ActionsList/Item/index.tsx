@@ -11,6 +11,7 @@ type ItemProps = {
   item?: GetActionsQuery["actions"][0];
   onClickView?: () => void;
 };
+
 export const Item = (props: ItemProps) => {
   const { item, onClickView } = props;
 

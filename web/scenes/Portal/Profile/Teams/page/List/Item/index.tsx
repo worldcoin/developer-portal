@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { urls } from "@/lib/urls";
 import { TeamLogo } from "@/scenes/Portal/Profile/Teams/page/List/TeamLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -13,8 +14,6 @@ import { Button } from "@/components/Button";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
-import { ElementsIcon } from "@/components/Icons/ElementsIcon";
-import clsx from "clsx";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -114,7 +113,7 @@ export const Item = (props: ItemsProps) => {
         >
           {!item ? (
             <div className="flex size-8 items-center justify-center">
-              <ElementsIcon className="text-grey-400" />
+              <MoreVerticalIcon className="text-grey-400" />
             </div>
           ) : (
             <Dropdown>

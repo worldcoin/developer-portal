@@ -12,7 +12,7 @@ import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchTeamMembersDocument } from "../graphql/client/fetch-team-members.generated";
+import { FetchTeamMembersDocument } from "../../graphql/client/fetch-team-members.generated";
 import { useRemoveUserMutation } from "./graphql/client/remove-user.generated";
 
 export const removeUserDialogAtom = atom(false);

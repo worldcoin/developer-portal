@@ -11,9 +11,9 @@ import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { FetchInvitesDocument } from "../List/graphql/client/fetch-invites.generated";
 import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
 import { EmailsInput } from "./EmailsInput";
+import { FetchTeamMembersDocument } from "../graphql/client/fetch-team-members.generated";
 
 export const inviteTeamMemberDialogAtom = atom(false);
 export const emailsInputAtom = atom<string[]>([]);
@@ -34,7 +34,7 @@ export const InviteTeamMemberDialog = () => {
     try {
       await inviteTeamMembers({
         variables: { emails, team_id: teamId },
-        refetchQueries: [FetchInvitesDocument],
+        refetchQueries: [FetchTeamMembersDocument],
       });
 
       toast.success(`Invites are sent to ${emails.join(", ")}`);
