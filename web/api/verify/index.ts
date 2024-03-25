@@ -3,15 +3,16 @@ import {
   errorResponse,
   errorValidation,
 } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { canVerifyForAction } from "@/legacy/backend/utils";
-import { fetchActionForProof, verifyProof } from "@/lib/verify";
+import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
 import { captureEvent } from "@/services/posthogClient";
-import { ApolloError, gql } from "@apollo/client";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
+import { getSdk as insertNullifierSdk } from "./graphql/insert-nullifier.generated";
+import { getSdk as updateNullifierUsesSdk } from "./graphql/update-nullifier-uses.generated";
 
 const schema = yup.object({
   action: yup
@@ -62,26 +63,50 @@ export async function POST(
     return errorRequiredAttribute("app_id", req);
   }
 
-  const client = await getAPIServiceClient();
-  const data = await fetchActionForProof(
-    client,
-    params.app_id?.toString(),
-    parsedParams.nullifier_hash,
-    parsedParams.action,
-  );
+  const client = await getAPIServiceGraphqlClient();
 
-  if (data.error || !data.app) {
+  const appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
+    app_id: params.app_id?.toString(),
+    action: parsedParams.action,
+    nullifier_hash: parsedParams.nullifier_hash,
+  });
+
+  if (!appActionResponse.app.length) {
     return errorResponse({
-      statusCode: data.error?.statusCode || 400,
-      code: data.error?.code || "unknown_error",
-      detail: data.error?.message || "There was an error verifying this proof.",
-      attribute: data.error?.attribute || null,
+      statusCode: 404,
+      code: "not_found",
+      detail: "App not found. App may be no longer active.",
+      attribute: null,
       req,
     });
   }
 
-  const { app } = data;
-  const { action, nullifier } = app;
+  const app = appActionResponse.app[0];
+
+  if (!app.actions.length) {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_action",
+      detail: "Action not found.",
+      attribute: "action",
+      req,
+    });
+  }
+
+  if (app.engine !== "cloud") {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_engine",
+      detail: "This action runs on-chain and can't be verified here.",
+      attribute: "engine",
+      req,
+    });
+  }
+
+  const { action, nullifier } = {
+    action: app.actions[0],
+    nullifier: app.actions[0]?.nullifiers?.[0],
+  };
 
   if (action.status === "inactive") {
     return errorResponse({
@@ -149,15 +174,14 @@ export async function POST(
   }
 
   if (nullifier) {
-    const updateResponse = await client.mutate({
-      mutation: updateNullifierQuery,
-      variables: {
-        nullifier_hash: nullifier.nullifier_hash,
-        uses: nullifier.uses,
-      },
+    const updateResponse = await updateNullifierUsesSdk(
+      client,
+    ).UpdateNullifierUses({
+      nullifier_hash: nullifier.nullifier_hash,
+      uses: nullifier.uses,
     });
 
-    if (updateResponse.data.update_nullifier.affected_rows === 0) {
+    if (updateResponse.update_nullifier?.affected_rows === 0) {
       return errorValidation(
         AppErrorCodes.MaxVerificationsReached,
         "This person has already verified for this particular action the maximum number of times allowed.",
@@ -191,16 +215,13 @@ export async function POST(
     );
   } else {
     try {
-      const insertResponse = await client.mutate({
-        mutation: insertNullifierQuery,
-        variables: {
-          action_id: action.id,
-          nullifier_hash: parsedParams.nullifier_hash,
-        },
+      const insertResponse = await insertNullifierSdk(client).InsertNullifier({
+        action_id: action.id,
+        nullifier_hash: parsedParams.nullifier_hash,
       });
 
       if (
-        insertResponse.data.insert_nullifier_one.nullifier_hash !==
+        insertResponse.insert_nullifier_one?.nullifier_hash !==
         parsedParams.nullifier_hash
       ) {
         return errorResponse({
@@ -231,49 +252,20 @@ export async function POST(
           success: true,
           action: action.action ?? null,
           max_uses: action.max_verifications,
-          nullifier_hash:
-            insertResponse.data.insert_nullifier_one.nullifier_hash,
-          created_at: insertResponse.data.insert_nullifier_one.created_at,
+          nullifier_hash: insertResponse.insert_nullifier_one.nullifier_hash,
+          created_at: insertResponse.insert_nullifier_one.created_at,
           verification_level: parsedParams.verification_level,
         },
         { status: 200 },
       );
     } catch (e) {
-      if (
-        (e as ApolloError)?.graphQLErrors?.[0]?.extensions?.code ==
-        "constraint-violation"
-      ) {
-        return errorValidation(
-          AppErrorCodes.MaxVerificationsReached,
-          "This person has already verified for this particular action the maximum number of times allowed.",
-          null,
-          req,
-        );
-      }
-
-      throw e;
+      return errorResponse({
+        statusCode: 400,
+        code: "verification_error",
+        detail: "There was an error inserting the nullifier. Please try again.",
+        attribute: null,
+        req,
+      });
     }
   }
 }
-
-const insertNullifierQuery = gql`
-  mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
-    insert_nullifier_one(
-      object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
-    ) {
-      created_at
-      nullifier_hash
-    }
-  }
-`;
-
-const updateNullifierQuery = gql`
-  mutation UpdateNullifierUses($nullifier_hash: String!, $uses: Int!) {
-    update_nullifier(
-      where: { uses: { _eq: $uses }, nullifier_hash: { _eq: $nullifier_hash } }
-      _inc: { uses: 1 }
-    ) {
-      affected_rows
-    }
-  }
-`;
