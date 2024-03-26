@@ -58,7 +58,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
     skip: !appId,
   });
 
-  const { data, loading } = actionsRes;
+  const { data } = actionsRes;
 
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
