@@ -1,11 +1,11 @@
-import { gql } from "@apollo/client";
-import crypto from "crypto";
+import { logger } from "@/legacy/lib/logger";
 import { ActionModel, AppModel, RedirectModel } from "@/legacy/lib/models";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
+import { gql } from "@apollo/client";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import crypto from "crypto";
 import { getAPIServiceClient } from "./graphql";
 import { verifyHashedSecret } from "./utils";
-import { logger } from "@/legacy/lib/logger";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 
 export const OIDCResponseTypeMapping = {
   code: OIDCResponseType.Code,
@@ -73,6 +73,7 @@ export const insertAuthCodeQuery = gql`
     $verification_level: String!
     $scope: jsonb!
     $nonce: String
+    $redirect_uri: String
   ) {
     insert_auth_code_one(
       object: {
@@ -85,6 +86,7 @@ export const insertAuthCodeQuery = gql`
         verification_level: $verification_level
         scope: $scope
         nonce: $nonce
+        redirect_uri: $redirect_uri
       }
     ) {
       auth_code
@@ -155,6 +157,7 @@ export const generateOIDCCode = async (
   nullifier_hash: string,
   verification_level: VerificationLevel,
   scope: OIDCScopes[],
+  redirect_uri: string,
   code_challenge?: string,
   code_challenge_method?: string,
   nonce?: string | null,
@@ -182,6 +185,7 @@ export const generateOIDCCode = async (
       verification_level,
       scope,
       nonce,
+      redirect_uri,
     },
   });
 
@@ -297,3 +301,30 @@ export function checkFlowType(responseTypes: string[]) {
 
   return null;
 }
+
+export const fetchRedirectCountQuery = gql`
+  query FetchRedirectCountQuery($app_id: String!) {
+    action(
+      where: {
+        app_id: { _eq: $app_id }
+        action: { _eq: "" }
+      }
+    ) {
+        redirect_count
+      }
+    }
+  }
+`;
+
+type FetchRedirectCountResult = {
+  action: Array<Pick<ActionModel, "redirect_count">>;
+};
+
+export const fetchRedirectCount = async (app_id: string): Promise<number> => {
+  const client = await getAPIServiceClient();
+  const { data } = await client.query<FetchRedirectCountResult>({
+    query: fetchAppSecretQuery,
+    variables: { app_id },
+  });
+  return data.action[0]?.redirect_count;
+};

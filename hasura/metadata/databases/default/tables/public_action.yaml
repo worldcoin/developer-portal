@@ -20,6 +20,13 @@ array_relationships:
         table:
           name: redirect
           schema: public
+computed_fields:
+  - name: redirect_count
+    definition:
+      function:
+        name: count_redirects
+        schema: public
+    comment: a computed field listing how many redirect_uris are added
 insert_permissions:
   - role: api_key
     permission:

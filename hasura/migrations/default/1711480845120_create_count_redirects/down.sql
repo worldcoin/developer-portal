@@ -1,0 +1,11 @@
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- CREATE FUNCTION public.count_redirects(action action)
+--  RETURNS integer
+--  LANGUAGE sql
+--  STABLE
+-- AS $function$
+--     SELECT COUNT(id)
+--     FROM redirect
+--     WHERE action_id = action.id
+-- $function$;
