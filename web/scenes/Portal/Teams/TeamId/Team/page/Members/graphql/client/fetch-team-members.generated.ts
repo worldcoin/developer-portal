@@ -6,11 +6,23 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchTeamMembersQueryVariables = Types.Exact<{
   teamId: Types.Scalars["String"];
+  invitesCondition?: Types.InputMaybe<
+    Array<Types.Invite_Bool_Exp> | Types.Invite_Bool_Exp
+  >;
+  membersCondition?: Types.InputMaybe<
+    Array<Types.Membership_Bool_Exp> | Types.Membership_Bool_Exp
+  >;
 }>;
 
 export type FetchTeamMembersQuery = {
   __typename?: "query_root";
-  membership: Array<{
+  invites: Array<{
+    __typename?: "invite";
+    id: string;
+    email: string;
+    expires_at: any;
+  }>;
+  members: Array<{
     __typename?: "membership";
     id: string;
     role: Types.Role_Enum;
@@ -25,8 +37,25 @@ export type FetchTeamMembersQuery = {
 };
 
 export const FetchTeamMembersDocument = gql`
-  query FetchTeamMembers($teamId: String!) {
-    membership(where: { team_id: { _eq: $teamId } }) {
+  query FetchTeamMembers(
+    $teamId: String!
+    $invitesCondition: [invite_bool_exp!]
+    $membersCondition: [membership_bool_exp!]
+  ) {
+    invites: invite(
+      where: {
+        team_id: { _eq: $teamId }
+        expires_at: { _gte: "now()" }
+        _or: $invitesCondition
+      }
+    ) {
+      id
+      email
+      expires_at
+    }
+    members: membership(
+      where: { team_id: { _eq: $teamId }, _or: $membersCondition }
+    ) {
       id
       role
       user {
@@ -52,6 +81,8 @@ export const FetchTeamMembersDocument = gql`
  * const { data, loading, error } = useFetchTeamMembersQuery({
  *   variables: {
  *      teamId: // value for 'teamId'
+ *      invitesCondition: // value for 'invitesCondition'
+ *      membersCondition: // value for 'membersCondition'
  *   },
  * });
  */

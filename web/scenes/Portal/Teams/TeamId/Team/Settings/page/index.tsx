@@ -16,6 +16,7 @@ import {
 } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Section } from "@/components/Section";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -73,25 +74,22 @@ export const TeamSettingsPage = () => {
         <TeamProfile />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2">
-        <div className="m-auto grid gap-y-8 py-8">
-          <Typography as="h1" variant={TYPOGRAPHY.H7}>
-            Team settings
-          </Typography>
-        </div>
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+        <Section>
+          <Section.Header>
+            <Section.Header.Title>Team settings</Section.Header.Title>
+          </Section.Header>
 
-        <form
-          className="grid max-w-[36.25rem] gap-y-8"
-          onSubmit={handleSubmit(submit)}
-        >
-          <Input
-            className="-mt-2"
-            label="Display name"
-            register={register("name")}
-            errors={errors.name}
-          />
+          <form
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+            onSubmit={handleSubmit(submit)}
+          >
+            <Input
+              label="Display name"
+              register={register("name")}
+              errors={errors.name}
+            />
 
-          <div>
             <DecoratedButton
               type="submit"
               variant="primary"
@@ -99,8 +97,8 @@ export const TeamSettingsPage = () => {
             >
               Save changes
             </DecoratedButton>
-          </div>
-        </form>
+          </form>
+        </Section>
       </SizingWrapper>
     </>
   );

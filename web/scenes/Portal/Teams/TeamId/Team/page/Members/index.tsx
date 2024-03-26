@@ -3,14 +3,13 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import * as yup from "yup";
 import {
@@ -19,6 +18,10 @@ import {
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
+import { Section } from "@/components/Section";
+import Skeleton from "react-loading-skeleton";
+import { useFetchTeamMembersQuery } from "./graphql/client/fetch-team-members.generated";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 
 const schema = yup.object({
   search: yup.string(),
@@ -48,39 +51,66 @@ export const Members = (props: { teamId: string }) => {
     name: "search",
   });
 
+  const membersRes = useFetchTeamMembersQuery({
+    variables: {
+      teamId,
+      invitesCondition: !search ? {} : [{ email: { _ilike: `%${search}%` } }],
+      membersCondition: !search
+        ? {}
+        : [
+            { user: { name: { _ilike: `%${search}%` } } },
+            { user: { email: { _ilike: `%${search}%` } } },
+          ],
+    },
+  });
+
+  // NOTE: refetch me query to update session in case user role was changed
+  useEffect(() => {
+    if (!membersRes.client || !membersRes.data) {
+      return;
+    }
+
+    membersRes.client.refetchQueries({ include: [FetchMeDocument] });
+  }, [membersRes.client, membersRes.data]);
+
   return (
-    <div className="grid gap-y-4">
-      <Typography variant={TYPOGRAPHY.H7}>Members</Typography>
+    <Section>
+      <Section.Header>
+        <Section.Header.Title>Members</Section.Header.Title>
 
-      <div className="mt-4 grid w-full grid-cols-1 items-center justify-between gap-x-6 gap-y-4 max-md:contents md:grid-cols-1fr/auto">
-        <Input
-          register={register("search")}
-          type="search"
-          label=""
-          addOnLeft={<MagnifierIcon className="text-grey-400" />}
-          placeholder="Search member by name or email"
-          className="max-w-full px-4 py-2 md:max-w-[480px]"
-        />
+        <Section.Header.Search>
+          <Input
+            register={register("search")}
+            type="search"
+            label=""
+            addOnLeft={<MagnifierIcon className="text-grey-400" />}
+            placeholder="Search member by name or email"
+            className="max-w-full px-4 py-2 md:max-w-[480px]"
+          />
+        </Section.Header.Search>
 
-        {isEnoughPermissions && (
-          <div className="max-md:sticky max-md:bottom-0 max-md:order-3 max-md:grid max-md:justify-center max-md:py-8">
+        <Section.Header.Button>
+          {membersRes.loading ? (
+            <Skeleton className="h-12 w-[12rem] rounded-xl" />
+          ) : (
             <DecoratedButton
               type="button"
               onClick={() => setInviteTeamMemberDialogOpened(true)}
               variant="primary"
-              className="min-w-[200px] py-2.5"
+              className="min-w-[12rem] py-2.5"
+              disabled={membersRes.data && !isEnoughPermissions}
             >
               <PlusIcon className="size-5 md:hidden" />
               <span className="md:hidden">New member</span>
               <span className="max-md:hidden">Invite new member</span>
             </DecoratedButton>
-          </div>
-        )}
-      </div>
+          )}
+        </Section.Header.Button>
+      </Section.Header>
 
-      <List search={search} />
+      <List membersRes={membersRes} keyword={search} />
 
       <InviteTeamMemberDialog />
-    </div>
+    </Section>
   );
 };

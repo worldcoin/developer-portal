@@ -31,7 +31,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
 
   return (
-    <>
+    <div className="flex flex-col">
       <div className="md:border-b md:border-grey-100">
         <SizingWrapper gridClassName="hidden md:grid" variant="nav">
           <Tabs className="m-auto font-gta">
@@ -76,8 +76,6 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
 
       {props.children}
 
-      <div className="grow" />
-
       <BottomBar>
         <BottomBar.Link
           href={`/teams/${params!.teamId}/apps/${params!.appId}`}
@@ -107,6 +105,6 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
           <AppIcon />
         </BottomBar.Link>
       </BottomBar>
-    </>
+    </div>
   );
 };

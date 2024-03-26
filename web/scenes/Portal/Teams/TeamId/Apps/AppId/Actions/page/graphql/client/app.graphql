@@ -1,0 +1,10 @@
+query GetApp($app_id: String!) {
+  app: app_by_pk(id: $app_id) {
+    id
+    engine
+    app_metadata {
+      id
+      name
+    }
+  }
+}

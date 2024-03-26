@@ -1,6 +1,5 @@
 "use client";
-import { Footer } from "@/components/Table/Footer";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
 import { ApiKeyRow } from "./ApiKeyRow";
 import { DeleteKeyModal } from "./DeleteKeyModal";
@@ -19,18 +18,12 @@ type ApiKeyRowType = {
 
 export const ApiKeysTable = (props: ApiKeysTableProps) => {
   const { teamId, apiKeys } = props;
-  const rowsPerPageOptions = [10, 20]; // Rows per page options
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedKey, setSelectedKey] = useState<
     FetchKeysQuery["api_key"][0] | null
   >(null);
 
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
   const [showDeleteKeyModal, setShowDeleteKeyModal] = useState(false);
-  const [totalResultsCount, setTotalResultsCount] = useState(
-    apiKeys?.length ?? 0,
-  );
 
   const openViewDetails = useCallback(
     (key: FetchKeysQuery["api_key"][0]) => {
@@ -48,31 +41,12 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
     [setShowDeleteKeyModal, setSelectedKey],
   );
 
-  useEffect(() => {
-    setTotalResultsCount(apiKeys?.length ?? 0);
-  }, [apiKeys?.length]);
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1); // Reset to first page when rows per page changes
-  };
-
   const apiKeysToRender = useMemo(() => {
     if (!apiKeys) {
       return [];
     }
 
-    let filteredApiKeys = apiKeys;
-
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    const paginatedNullifiers = filteredApiKeys.slice(startIndex, endIndex);
-
-    return paginatedNullifiers.map(
+    return apiKeys.map(
       (apiKey: FetchKeysQuery["api_key"][0]): ApiKeyRowType => {
         return {
           openViewDetails: openViewDetails,
@@ -80,7 +54,7 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
         };
       },
     );
-  }, [apiKeys, currentPage, rowsPerPage, openViewDetails]);
+  }, [apiKeys, openViewDetails]);
 
   return (
     <div className="w-full md:pb-16">
@@ -144,17 +118,6 @@ export const ApiKeysTable = (props: ApiKeysTableProps) => {
             );
           })}
         </div>
-      </div>
-
-      <div className="max-md:hidden">
-        <Footer
-          totalResults={totalResultsCount}
-          currentPage={currentPage}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={rowsPerPageOptions}
-          handlePageChange={handlePageChange}
-          handleRowsPerPageChange={handleRowsPerPageChange}
-        />
       </div>
     </div>
   );
