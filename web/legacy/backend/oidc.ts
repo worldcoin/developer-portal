@@ -304,14 +304,8 @@ export function checkFlowType(responseTypes: string[]) {
 
 export const fetchRedirectCountQuery = gql`
   query FetchRedirectCountQuery($app_id: String!) {
-    action(
-      where: {
-        app_id: { _eq: $app_id }
-        action: { _eq: "" }
-      }
-    ) {
-        redirect_count
-      }
+    action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
+      redirect_count
     }
   }
 `;
