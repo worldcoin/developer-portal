@@ -33,6 +33,8 @@ import {
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
 import clsx from "clsx";
 
+const roles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
+
 export const editRoleDialogAtom = atom(false);
 
 const schema = yup.object({
@@ -55,11 +57,11 @@ export const EditRoleDialog = (props: {
   const { teamId } = useParams() as { teamId: string };
 
   const roles = useMemo(
-    () =>
-      Object.entries(Role_Enum).map(([key, value]) => ({
-        label: key,
-        value,
-      })),
+    () => [
+      { label: "Owner", value: Role_Enum.Owner },
+      { label: "Admin", value: Role_Enum.Admin },
+      { label: "Member", value: Role_Enum.Member },
+    ],
     [],
   );
 

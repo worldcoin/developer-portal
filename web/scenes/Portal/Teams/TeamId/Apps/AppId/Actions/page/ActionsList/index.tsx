@@ -14,10 +14,10 @@ import Link from "next/link";
 export const ActionsList = (props: {
   searchForm: ReturnType<typeof useForm<{ keyword: string }>>;
   items: ReturnType<typeof useGetActionsQuery>;
-  itemHrefGetter: (id: string) => string;
+  generateItemHref: (id: string) => string;
   engineType?: string;
 }) => {
-  const { searchForm, items, itemHrefGetter } = props;
+  const { searchForm, items, generateItemHref } = props;
   const router = useRouter();
 
   const keyword = useWatch({
@@ -85,11 +85,11 @@ export const ActionsList = (props: {
               <Link
                 key={item.id}
                 className="contents"
-                href={itemHrefGetter(item.id)}
+                href={generateItemHref(item.id)}
               >
                 <Item
                   item={item}
-                  onClickView={() => router.push(itemHrefGetter(item.id))}
+                  onClickView={() => router.push(generateItemHref(item.id))}
                 />
               </Link>
             );

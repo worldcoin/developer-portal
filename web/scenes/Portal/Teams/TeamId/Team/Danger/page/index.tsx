@@ -7,6 +7,7 @@ import { TeamProfile } from "../../common/TeamProfile";
 import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
+import { truncateString } from "@/lib/utils";
 
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -38,7 +39,7 @@ export const TeamDangerPage = () => {
             <p className="text-grey-500">
               This will immediately and permanently delete the team{" "}
               <strong className="font-medium text-grey-900">
-                {fetchTeamQueryRes.data?.team_by_pk?.name}
+                {truncateString(fetchTeamQueryRes.data?.team_by_pk?.name, 30)}
               </strong>
               , along with all its applications and its data for everyone. This
               cannot be undone.

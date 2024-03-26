@@ -88,7 +88,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         <ActionsList
           searchForm={searchForm}
           items={actionsRes}
-          itemHrefGetter={(id) =>
+          generateItemHref={(id) =>
             engineType === EngineType.OnChain
               ? `${pathName}/${id}/settings`
               : `${pathName}/${id}`
