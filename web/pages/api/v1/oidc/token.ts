@@ -1,15 +1,15 @@
-import { gql } from "@apollo/client";
+import { runCors } from "@/legacy/backend/cors";
 import { errorOIDCResponse } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { fetchActiveJWK } from "@/legacy/backend/jwks";
 import { generateOIDCJWT } from "@/legacy/backend/jwts";
 import { authenticateOIDCEndpoint } from "@/legacy/backend/oidc";
-import { AuthCodeModel } from "@/legacy/lib/models";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createHash, timingSafeEqual } from "crypto";
-import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
-import { runCors } from "@/legacy/backend/cors";
+import { AuthCodeModel } from "@/legacy/lib/models";
+import { gql } from "@apollo/client";
+import { createHash, timingSafeEqual } from "crypto";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 const findAuthCodeQuery = gql`
   query FindAuthCode(
@@ -29,6 +29,7 @@ const findAuthCodeQuery = gql`
       scope
       code_challenge
       code_challenge_method
+      nonce
     }
   }
 `;
@@ -146,6 +147,7 @@ export default async function handleOIDCToken(
         | "scope"
         | "code_challenge"
         | "code_challenge_method"
+        | "nonce"
       >
     >;
   }>({
@@ -222,6 +224,7 @@ export default async function handleOIDCToken(
     verification_level: code.verification_level,
     ...jwk,
     scope: code.scope,
+    nonce: code.nonce,
   });
 
   await client.mutate({

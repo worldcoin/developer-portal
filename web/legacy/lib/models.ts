@@ -2,9 +2,9 @@
  * This file contains the raw TypeScript types for the Hasura models.
  */
 
+import { AppStatusType, EngineType } from "@/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import * as jose from "jose";
-import { AppStatusType, EngineType } from "@/lib/types";
 
 type DateTime = string;
 
@@ -145,6 +145,7 @@ export interface AuthCodeModel {
   code_challenge_method: string;
   verification_level: VerificationLevel;
   scope: [];
+  nonce: string;
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "auth_code";
