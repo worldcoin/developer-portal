@@ -147,6 +147,7 @@ export interface AuthCodeModel {
   verification_level: VerificationLevel;
   scope: [];
   redirect_uri: string;
+  nonce: string;
   created_at: DateTime;
   updated_at: DateTime;
   __typename: "auth_code";

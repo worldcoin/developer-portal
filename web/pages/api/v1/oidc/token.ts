@@ -33,6 +33,7 @@ const findAuthCodeQuery = gql`
       code_challenge
       code_challenge_method
       redirect_uri
+      nonce
     }
   }
 `;
@@ -153,6 +154,7 @@ export default async function handleOIDCToken(
         | "code_challenge"
         | "code_challenge_method"
         | "redirect_uri"
+        | "nonce"
       >
     >;
   }>({
@@ -252,6 +254,7 @@ export default async function handleOIDCToken(
     verification_level: code.verification_level,
     ...jwk,
     scope: code.scope,
+    nonce: code.nonce,
   });
 
   await client.mutate({
