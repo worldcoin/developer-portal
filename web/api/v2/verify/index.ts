@@ -19,7 +19,7 @@ const schema = yup.object({
     .string()
     .strict()
     .nonNullable()
-    .required("This attribute is required."),
+    .defined("This attribute is required."),
   signal_hash: yup
     .string()
     .length(66)
@@ -50,9 +50,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { app_id: string } },
 ) {
+  const body = await req.json();
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: req.body,
+    value: body,
   });
 
   if (!isValid) {
@@ -152,6 +154,7 @@ export async function POST(
       max_age: parsedParams.max_age,
     },
   );
+
   if (error || !success) {
     await captureEvent({
       event: "action_verify_failed",
