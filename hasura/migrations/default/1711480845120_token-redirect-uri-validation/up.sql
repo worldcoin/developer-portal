@@ -1,3 +1,5 @@
+
+alter table "public"."auth_code" add column "redirect_uri" varchar not null;
 CREATE FUNCTION public.count_redirects(action action)
  RETURNS integer
  LANGUAGE sql
