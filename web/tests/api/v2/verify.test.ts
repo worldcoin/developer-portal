@@ -221,6 +221,58 @@ describe("/api/v2/verify", () => {
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
+
+  it("sets default value if signal_hash is not provided", async () => {
+    // NOTE: We are assuming that default flow will finish successfully if default value is provided instead of undefined
+
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      signal_hash: undefined,
+    });
+
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
+
+    InsertNullifier.mockResolvedValue({
+      insert_nullifier_one: {
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        created_at: validNullifier.created_at,
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      success: true,
+      uses: 1,
+      action: validBody.action,
+      created_at: validNullifier.created_at,
+      max_uses: 0,
+      verification_level: VerificationLevel.Orb,
+      nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+    });
+  });
 });
 // #endregion
 
@@ -499,6 +551,103 @@ describe("/api/v2/verify [error cases]", () => {
       code: "invalid_merkle_root",
       detail:
         "The provided Merkle root is invalid. User appears to be unverified.",
+    });
+  });
+
+  it("should return error if signal_hash format is invalid", async () => {
+    const invalidVariants = [
+      "0x123",
+      "0x12345678901234567890123456789012345678901234567890123456789012__",
+    ];
+
+    let bodies: Array<Record<"attribute" | "code" | "detail", string>> = [];
+
+    for (const signal_hash of invalidVariants) {
+      const mockReq = createMockRequest(getUrl(stagingAppId), {
+        ...validBody,
+        signal_hash,
+      });
+
+      const ctx = { params: { app_id: stagingAppId } };
+
+      const fetchAppResponse = {
+        app: [
+          {
+            ...validApp,
+            actions: [{ ...validAction, nullifiers: [] }],
+          },
+        ],
+      };
+
+      FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+      // NOTE: mock for the fetch in verifyProof
+      mockFetch({
+        body: {
+          status: "mined",
+        },
+        ok: true,
+        status: 200,
+      });
+
+      InsertNullifier.mockResolvedValue({
+        insert_nullifier_one: {
+          nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+          created_at: validNullifier.created_at,
+        },
+      });
+
+      const response = await POST(mockReq, ctx);
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      bodies.push(body);
+    }
+
+    expect(bodies[0]).toEqual({
+      code: "validation_error",
+      detail: "signal_hash must be exactly 66 characters",
+      attribute: "signal_hash",
+    });
+
+    expect(bodies[1]).toEqual({
+      code: "validation_error",
+      detail: "Invalid signal_hash.",
+      attribute: "signal_hash",
+    });
+  });
+
+  it("invalid proof", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {},
+      ok: false,
+      status: 500,
+      text: "invalid proof",
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "invalid_proof",
+      detail:
+        "We couldn't verify the provided proof (error code invalid proof).",
     });
   });
 });
