@@ -7,4 +7,6 @@ export const semaphoreProofParamsMock = {
     "0x0936d98c83151035b528d1631df5c3607a740bd296b4c79c627130a96645dcc7",
   verification_level: "orb",
   signal: "my_signal",
+  signal_hash:
+    "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
 };
