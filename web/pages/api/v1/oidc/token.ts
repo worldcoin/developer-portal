@@ -3,7 +3,10 @@ import { errorOIDCResponse } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { fetchActiveJWK } from "@/legacy/backend/jwks";
 import { generateOIDCJWT } from "@/legacy/backend/jwts";
-import { authenticateOIDCEndpoint } from "@/legacy/backend/oidc";
+import {
+  authenticateOIDCEndpoint,
+  fetchRedirectCount,
+} from "@/legacy/backend/oidc";
 import { validateRequestSchema } from "@/legacy/backend/utils";
 import { AuthCodeModel } from "@/legacy/lib/models";
 import { gql } from "@apollo/client";
@@ -29,6 +32,7 @@ const findAuthCodeQuery = gql`
       scope
       code_challenge
       code_challenge_method
+      redirect_uri
       nonce
     }
   }
@@ -55,6 +59,7 @@ const deleteAuthCodeQuery = gql`
 const schema = yup.object({
   grant_type: yup.string().default("authorization_code"),
   code: yup.string().strict().required("This attribute is required."),
+  redirect_uri: yup.string().notRequired(),
 });
 
 export default async function handleOIDCToken(
@@ -135,6 +140,7 @@ export default async function handleOIDCToken(
   }
 
   const auth_code = parsedParams.code;
+  const redirect_uri = parsedParams.redirect_uri;
 
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
@@ -147,6 +153,7 @@ export default async function handleOIDCToken(
         | "scope"
         | "code_challenge"
         | "code_challenge_method"
+        | "redirect_uri"
         | "nonce"
       >
     >;
@@ -168,6 +175,29 @@ export default async function handleOIDCToken(
       "invalid_grant",
       "Invalid authorization code.",
       null,
+      req,
+    );
+  }
+
+  if (!redirect_uri) {
+    const redirectCount = await fetchRedirectCount(app_id);
+    if (redirectCount > 1) {
+      return errorOIDCResponse(
+        res,
+        400,
+        "invalid_request",
+        "Missing redirect URI.",
+        "redirect_uri",
+        req,
+      );
+    }
+  } else if (code.redirect_uri !== redirect_uri) {
+    return errorOIDCResponse(
+      res,
+      400,
+      "invalid_request",
+      "Invalid redirect URI.",
+      "redirect_uri",
       req,
     );
   }

@@ -1,6 +1,3 @@
-import { gql } from "@apollo/client";
-import { VerificationLevel } from "@worldcoin/idkit-core";
-import { NextApiRequest, NextApiResponse } from "next";
 import { runCors } from "@/legacy/backend/cors";
 import {
   errorNotAllowed,
@@ -22,6 +19,9 @@ import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { gql } from "@apollo/client";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
 
 const UpsertNullifier = gql`
@@ -222,6 +222,7 @@ export default async function handleOIDCAuthorize(
       nullifier_hash,
       verification_level,
       sanitizedScopes,
+      redirect_uri,
       code_challenge,
       code_challenge_method,
       shouldStoreSignal ? signal : null,

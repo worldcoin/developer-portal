@@ -1,18 +1,12 @@
-import { createMocks } from "node-mocks-http";
-import handleVerify from "@/pages/api/v1/verify/[app_id]";
-import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
-import {
-  integrationDBSetup,
-  integrationDBTearDown,
-  integrationDBExecuteQuery,
-} from "./setup";
 import { IInputParams, IVerifyParams } from "@/legacy/backend/verify";
+import handleVerify from "@/pages/api/v1/verify/[app_id]";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
+import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 jest.mock(
   "legacy/backend/verify",
   jest.fn(() => {

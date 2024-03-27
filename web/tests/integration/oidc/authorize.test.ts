@@ -1,21 +1,15 @@
-import { createMocks } from "node-mocks-http";
-import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "../setup";
-import { testGetDefaultApp } from "../test-utils";
-import fetchMock from "jest-fetch-mock";
-import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
-import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
 import { OIDCErrorCodes } from "@/legacy/backend/oidc";
+import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createHash } from "crypto";
+import fetchMock from "jest-fetch-mock";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
+import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
+import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
+import { testGetDefaultApp } from "../test-utils";
 
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 beforeAll(() => {
   fetchMock.enableMocks();
 });

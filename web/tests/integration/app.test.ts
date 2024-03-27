@@ -1,18 +1,13 @@
 import { gql } from "@apollo/client";
 
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "./setup";
+import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
 import { handleSecretReset } from "@/legacy/api/_reset-client-secret";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 // TODO: Consider moving this to a generalized jest environment
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
+beforeEach(integrationDBClean);
 
 describe("user role", () => {
   test("can select all apps in the team", async () => {

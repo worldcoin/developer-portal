@@ -83,6 +83,7 @@ export interface ActionModel {
   status: "active" | "inactive"; // TODO: need add constraint for status field in hasura (or use boolean)
   terms_uri: string;
   privacy_policy_uri: string;
+  redirect_count: number;
   __typename: "action";
 }
 
@@ -145,6 +146,7 @@ export interface AuthCodeModel {
   code_challenge_method: string;
   verification_level: VerificationLevel;
   scope: [];
+  redirect_uri: string;
   nonce: string;
   created_at: DateTime;
   updated_at: DateTime;
