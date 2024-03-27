@@ -76,6 +76,7 @@ const getUrl = (app_id: string) =>
 
 const validBody = {
   ...semaphoreProofParamsMock,
+  signal: undefined,
   action: "verify",
 };
 
