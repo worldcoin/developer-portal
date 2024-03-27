@@ -172,56 +172,6 @@ describe("/api/v2/verify", () => {
     });
   });
 
-  it("can verify proof with empty action", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), {
-      ...validBody,
-      action: "",
-    });
-
-    const ctx = { params: { app_id: stagingAppId } };
-
-    // NOTE: mock for the fetch in verifyProof
-    mockFetch({
-      body: {
-        status: "mined",
-      },
-      ok: true,
-      status: 200,
-    });
-
-    const fetchAppResponse = {
-      app: [
-        {
-          ...validApp,
-          actions: [{ ...validAction, nullifiers: [] }],
-        },
-      ],
-    };
-
-    FetchAppAction.mockResolvedValue(fetchAppResponse);
-
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: {
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-        created_at: validNullifier.created_at,
-      },
-    });
-
-    const response = await POST(mockReq, ctx);
-    expect(response.status).toBe(200);
-    const body = await response.json();
-
-    expect(body).toEqual({
-      success: true,
-      uses: 1,
-      action: validBody.action,
-      created_at: validNullifier.created_at,
-      max_uses: 0,
-      verification_level: VerificationLevel.Orb,
-      nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-    });
-  });
-
   it("can verify without a signal", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...validBody,
@@ -276,6 +226,52 @@ describe("/api/v2/verify", () => {
 
 // #region Error cases
 describe("/api/v2/verify [error cases]", () => {
+  it("return error if action is empty", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      action: "",
+    });
+
+    const ctx = { params: { app_id: stagingAppId } };
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    InsertNullifier.mockResolvedValue({
+      insert_nullifier_one: {
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        created_at: validNullifier.created_at,
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: "action",
+      code: "validation_error",
+      detail: "This attribute is required.",
+    });
+  });
+
   it("action inactive or not found", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: { app_id: stagingAppId } };

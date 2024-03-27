@@ -19,7 +19,7 @@ const schema = yup.object({
     .string()
     .strict()
     .nonNullable()
-    .defined("This attribute is required."),
+    .required("This attribute is required."),
   signal_hash: yup
     .string()
     .length(66)
