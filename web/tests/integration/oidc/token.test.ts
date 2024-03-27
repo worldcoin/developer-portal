@@ -4,11 +4,7 @@ import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { publicJwk } from "tests/api/__mocks__/jwk";
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "../setup";
+import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { setClientSecret, testGetSignInApp } from "../test-utils";
 
 jest.mock("legacy/backend/kms", () =>
@@ -24,8 +20,7 @@ const pkceChallenge = (code_verifier: string) => {
     .replace(/=/g, "");
 };
 
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
+beforeEach(integrationDBClean);
 
 describe("/api/v1/oidc/token", () => {
   test("can exchange one-time auth code", async () => {
@@ -55,6 +50,7 @@ describe("/api/v1/oidc/token", () => {
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -91,6 +87,7 @@ describe("/api/v1/oidc/token", () => {
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
     await handleOIDCToken(req2, res2);
@@ -131,6 +128,7 @@ describe("/api/v1/oidc/token", () => {
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -199,6 +197,7 @@ describe("/api/v1/oidc/token", () => {
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -252,6 +251,7 @@ describe("/api/v1/oidc/token", () => {
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "invalid_code_challenge",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -303,6 +303,7 @@ describe("/api/v1/oidc/token", () => {
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -353,6 +354,7 @@ describe("/api/v1/oidc/token", () => {
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -407,6 +409,7 @@ describe("/api/v1/oidc/token", () => {
         client_id: app_id,
         code: "83a313c5939399ba017d2381",
         grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 
@@ -427,6 +430,7 @@ describe("/api/v1/oidc/token", () => {
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
+        redirect_uri: "http://localhost:3000/login",
       },
     });
 

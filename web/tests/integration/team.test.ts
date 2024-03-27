@@ -4,17 +4,11 @@ import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "./setup";
+import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 
 // TODO: Consider moving this to a generalized jest environment
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 describe("team model", () => {
   test("verified logo is properly sent when team is verified", async () => {
     // TODO

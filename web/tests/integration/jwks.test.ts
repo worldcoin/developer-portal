@@ -4,11 +4,7 @@ import {
   retrieveJWK,
 } from "@/legacy/backend/jwks";
 import { createKMSKey, getKMSClient } from "@/legacy/backend/kms";
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "./setup";
+import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
 jest.mock("legacy/backend/kms", () => {
   return {
@@ -22,9 +18,7 @@ jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 describe("jwks management", () => {
   it("can retrieve existing jwks", async () => {
     const { rows } = await integrationDBExecuteQuery(

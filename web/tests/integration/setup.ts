@@ -4,32 +4,37 @@ import { Pool } from "pg";
 
 let pool: Pool | null = null;
 
-export const integrationDBSetup = async () => {
+export const integrationDBClean = async () => {
   pool = new Pool();
 
-  // Reset database
-  const resetDB = fs.readFileSync(
-    path.resolve(__dirname, "./db/resetdb.sql"),
-    "utf8",
-  );
-  await pool.query(resetDB);
+  try {
+    await pool.query("BEGIN");
 
-  // Seed database
-  const seedFiles: string[] = fs.readdirSync(
-    path.resolve(__dirname, "./db/default"),
-  );
-  for (const file of seedFiles) {
-    const seedQuery = fs.readFileSync(
-      path.resolve(__dirname, `./db/default/${file}`),
+    // Reset database
+    const resetDB = fs.readFileSync(
+      path.resolve(__dirname, "./db/resetdb.sql"),
       "utf8",
     );
-    await pool.query(seedQuery);
-  }
-  return;
-};
+    await pool.query(resetDB);
 
-export const integrationDBTearDown = async () => {
-  await pool?.end();
+    // Seed database
+    const seedFiles: string[] = fs.readdirSync(
+      path.resolve(__dirname, "./db/default"),
+    );
+    for (const file of seedFiles) {
+      const seedQuery = fs.readFileSync(
+        path.resolve(__dirname, `./db/default/${file}`),
+        "utf8",
+      );
+      await pool.query(seedQuery);
+    }
+    await pool.query("COMMIT");
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    throw error;
+  } finally {
+    await pool.end();
+  }
   return;
 };
 
