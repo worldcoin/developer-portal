@@ -113,6 +113,8 @@ select_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
+      computed_fields:
+        - redirect_count
       filter:
         _and:
           - app:

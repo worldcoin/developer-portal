@@ -1,15 +1,15 @@
-import { createMocks } from "node-mocks-http";
 import handleOIDCToken from "@/pages/api/v1/oidc/token";
+import { createHash } from "crypto";
+import * as jose from "jose";
+import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { publicJwk } from "tests/api/__mocks__/jwk";
 import {
   integrationDBExecuteQuery,
   integrationDBSetup,
   integrationDBTearDown,
 } from "../setup";
-import { setClientSecret, testGetDefaultApp } from "../test-utils";
-import * as jose from "jose";
-import { publicJwk } from "tests/api/__mocks__/jwk";
-import { createHash } from "crypto";
-import { NextApiRequest, NextApiResponse } from "next";
+import { setClientSecret, testGetSignInApp } from "../test-utils";
 
 jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
@@ -29,18 +29,19 @@ beforeEach(integrationDBTearDown);
 
 describe("/api/v1/oidc/token", () => {
   test("can exchange one-time auth code", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope) VALUES ($1, $2, $3, $4, $5)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
       [
         app_id,
         "83a313c5939399ba017d2381",
         "2030-09-01T00:00:00.000Z",
         "0x000000000000000111111111111",
         '["openid", "email"]',
+        "http://localhost:3000/login",
       ],
     );
 
@@ -103,12 +104,12 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("access_token is valid", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, verification_level) VALUES ($1, $2, $3, $4, $5, $6)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, verification_level, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -116,6 +117,7 @@ describe("/api/v1/oidc/token", () => {
         "0x000000000000000111111111111",
         '["openid", "email"]',
         "orb",
+        "http://localhost:3000/login",
       ],
     );
 
@@ -168,12 +170,12 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("successfully validates PKCE", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code with PKCE
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -182,6 +184,7 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
+        "http://localhost:3000/login",
       ],
     );
 
@@ -220,12 +223,12 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("rejects invalid PKCE", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code with PKCE
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -234,6 +237,7 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
+        "http://localhost:3000/login",
       ],
     );
 
@@ -271,12 +275,12 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("prevent PKCE downgrade", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code with PKCE
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -285,6 +289,7 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
+        "http://localhost:3000/login",
       ],
     );
 
@@ -321,18 +326,19 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("error when PKCE not expected", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code with PKCE
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope) VALUES ($1, $2, $3, $4, $5)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
       [
         app_id,
         "83a313c5939399ba017d2381",
         "2030-09-01T00:00:00.000Z",
         "0x000000000000000111111111111",
         '["openid", "email"]',
+        "http://localhost:3000/login",
       ],
     );
 
@@ -370,12 +376,12 @@ describe("/api/v1/oidc/token", () => {
   });
 
   test("properly sets CORS headers", async () => {
-    const app_id = await testGetDefaultApp();
+    const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
     // Insert a valid auth code with PKCE
     await integrationDBExecuteQuery(
-      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, code_challenge, code_challenge_method, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [
         app_id,
         "83a313c5939399ba017d2381",
@@ -384,6 +390,7 @@ describe("/api/v1/oidc/token", () => {
         '["openid", "email"]',
         pkceChallenge("my_code_challenge"),
         "S256",
+        "http://localhost:3000/login",
       ],
     );
 
@@ -430,5 +437,256 @@ describe("/api/v1/oidc/token", () => {
         "access-control-allow-origin": "*",
       }),
     );
+  });
+
+  test("successfully validates single redirect_uri", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+
+    const { access_token, id_token, token_type, expires_in, scope } =
+      res._getJSONData();
+    expect(access_token).toBeTruthy();
+    expect(id_token).toEqual(access_token);
+    expect(token_type).toEqual("Bearer");
+    expect(expires_in).toEqual(3600);
+    expect(scope).toEqual("openid email");
+
+    // Verify that the auth code is deleted
+    const result = await integrationDBExecuteQuery(
+      "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
+      [app_id, "83a313c5939399ba017d2381"],
+    );
+    expect(result.rowCount).toEqual(0);
+  });
+
+  test("allows no redirect_uri when only one set", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+
+    const { access_token, id_token, token_type, expires_in, scope } =
+      res._getJSONData();
+    expect(access_token).toBeTruthy();
+    expect(id_token).toEqual(access_token);
+    expect(token_type).toEqual("Bearer");
+    expect(expires_in).toEqual(3600);
+    expect(scope).toEqual("openid email");
+
+    // Verify that the auth code is deleted
+    const result = await integrationDBExecuteQuery(
+      "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
+      [app_id, "83a313c5939399ba017d2381"],
+    );
+    expect(result.rowCount).toEqual(0);
+  });
+
+  test("blocks no redirect_uri when multiple set", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // insert second redirect_uri
+    await integrationDBExecuteQuery(
+      "INSERT INTO redirect (action_id, redirect_uri) VALUES ((SELECT id FROM action WHERE app_id = $1 AND action = '') , $2)",
+      [app_id, "http://localhost:3000/login2"],
+    );
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+
+    const { code, detail, attribute } = res._getJSONData();
+    expect(code).toEqual("invalid_request");
+    expect(detail).toEqual("Missing redirect URI.");
+    expect(attribute).toEqual("redirect_uri");
+  });
+
+  test("blocks wrong redirect_uri when multiple set", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // insert second redirect_uri
+    await integrationDBExecuteQuery(
+      "INSERT INTO redirect (action_id, redirect_uri) VALUES ((SELECT id FROM action WHERE app_id = $1 AND action = '') , $2)",
+      [app_id, "http://localhost:3000/login2"],
+    );
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login2",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+
+    const { code, detail, attribute } = res._getJSONData();
+    expect(code).toEqual("invalid_request");
+    expect(detail).toEqual("Invalid redirect URI.");
+    expect(attribute).toEqual("redirect_uri");
+  });
+
+  test("accepts correct redirect_uri when multiple set", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // insert second redirect_uri
+    await integrationDBExecuteQuery(
+      "INSERT INTO redirect (action_id, redirect_uri) VALUES ((SELECT id FROM action WHERE app_id = $1 AND action = '') , $2)",
+      [app_id, "http://localhost:3000/login2"],
+    );
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+
+    const { access_token, id_token, token_type, expires_in, scope } =
+      res._getJSONData();
+    expect(access_token).toBeTruthy();
+    expect(id_token).toEqual(access_token);
+    expect(token_type).toEqual("Bearer");
+    expect(expires_in).toEqual(3600);
+    expect(scope).toEqual("openid email");
+
+    // Verify that the auth code is deleted
+    const result = await integrationDBExecuteQuery(
+      "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
+      [app_id, "83a313c5939399ba017d2381"],
+    );
+    expect(result.rowCount).toEqual(0);
   });
 });

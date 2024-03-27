@@ -117,6 +117,7 @@ export const generateOIDCCode = async (
   nullifier_hash: string,
   verification_level: VerificationLevel,
   scope: OIDCScopes[],
+  redirect_uri: string,
   code_challenge?: string,
   code_challenge_method?: string,
   nonce?: string | null,
@@ -137,6 +138,7 @@ export const generateOIDCCode = async (
       verification_level,
       scope,
       nonce,
+      redirect_uri,
     });
   } catch (error) {
     logger.error("generateOIDCCode - Failed to generate auth code.", { error });

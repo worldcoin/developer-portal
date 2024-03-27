@@ -8,6 +8,7 @@ mutation InsertAuthCode(
   $verification_level: String!
   $scope: jsonb!
   $nonce: String
+  $redirect_uri: String
 ) {
   insert_auth_code_one(
     object: {
@@ -20,6 +21,7 @@ mutation InsertAuthCode(
       verification_level: $verification_level
       scope: $scope
       nonce: $nonce
+      redirect_uri: $redirect_uri
     }
   ) {
     auth_code

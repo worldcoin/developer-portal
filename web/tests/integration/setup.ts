@@ -1,6 +1,6 @@
-import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
+import { Pool } from "pg";
 
 let pool: Pool | null = null;
 
@@ -25,10 +25,12 @@ export const integrationDBSetup = async () => {
     );
     await pool.query(seedQuery);
   }
+  return;
 };
 
 export const integrationDBTearDown = async () => {
-  pool?.end();
+  await pool?.end();
+  return;
 };
 
 export const integrationDBExecuteQuery = async (

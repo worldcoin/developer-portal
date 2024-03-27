@@ -14,6 +14,7 @@ export type InsertAuthCodeMutationVariables = Types.Exact<{
   verification_level: Types.Scalars["String"];
   scope: Types.Scalars["jsonb"];
   nonce?: Types.InputMaybe<Types.Scalars["String"]>;
+  redirect_uri?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
 export type InsertAuthCodeMutation = {
@@ -36,6 +37,7 @@ export const InsertAuthCodeDocument = gql`
     $verification_level: String!
     $scope: jsonb!
     $nonce: String
+    $redirect_uri: String
   ) {
     insert_auth_code_one(
       object: {
@@ -48,6 +50,7 @@ export const InsertAuthCodeDocument = gql`
         verification_level: $verification_level
         scope: $scope
         nonce: $nonce
+        redirect_uri: $redirect_uri
       }
     ) {
       auth_code

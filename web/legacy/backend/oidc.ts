@@ -172,6 +172,7 @@ export const generateOIDCCode = async (
       auth_code: string;
       code_challenge?: string;
       code_challenge_method?: string;
+      redirect_uri: string;
     };
   }>({
     mutation: insertAuthCodeQuery,
@@ -303,7 +304,7 @@ export function checkFlowType(responseTypes: string[]) {
 }
 
 export const fetchRedirectCountQuery = gql`
-  query FetchRedirectCountQuery($app_id: String!) {
+  query FetchRedirectCountQuery($app_id: String) {
     action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
       redirect_count
     }
@@ -317,8 +318,8 @@ type FetchRedirectCountResult = {
 export const fetchRedirectCount = async (app_id: string): Promise<number> => {
   const client = await getAPIServiceClient();
   const { data } = await client.query<FetchRedirectCountResult>({
-    query: fetchAppSecretQuery,
+    query: fetchRedirectCountQuery,
     variables: { app_id },
   });
-  return data.action[0]?.redirect_count;
+  return data.action?.[0]?.redirect_count;
 };

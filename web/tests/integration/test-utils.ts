@@ -25,6 +25,13 @@ export const testGetDefaultApp = async () => {
   return response.rows[0].id;
 };
 
+export const testGetSignInApp = async () => {
+  const response = await integrationDBExecuteQuery(
+    "SELECT * FROM app WHERE name = 'Sign In App' limit 1;",
+  );
+  return response.rows[0].id;
+};
+
 export const setClientSecret = async (app_id: string) => {
   const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
 

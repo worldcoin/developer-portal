@@ -32,6 +32,7 @@ const findAuthCodeQuery = gql`
       scope
       code_challenge
       code_challenge_method
+      redirect_uri
     }
   }
 `;
