@@ -1,3 +1,4 @@
+import { Nullifier } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
@@ -267,15 +268,10 @@ export const verifyProof = async (
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
-  nullifier:
-    | {
-        uses?: number | null | undefined;
-        nullifier_hash: string;
-      }
-    | undefined,
+  nullifier: Pick<Nullifier, "uses" | "nullifier_hash"> | undefined,
   max_verifications_per_person: number,
 ): boolean => {
-  if (!nullifier || nullifier.uses === null || nullifier.uses === undefined) {
+  if (!nullifier || nullifier.uses === undefined) {
     // Person has not verified before, can always verify for the first time
     return true;
   } else if (max_verifications_per_person <= 0) {
