@@ -1,1 +1,1 @@
-export { POST } from "@/api/verify";
+export { POST } from "@/api/v2/verify";
