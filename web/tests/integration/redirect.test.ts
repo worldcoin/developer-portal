@@ -1,15 +1,9 @@
-import { gql } from "@apollo/client";
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "./setup";
-import { getAPIUserClient } from "./test-utils";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
+import { gql } from "@apollo/client";
+import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
+import { getAPIUserClient } from "./test-utils";
 
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 describe("redirect model", () => {
   test("allows valid URLs", async () => {
     const client = await getAPIServiceClient();

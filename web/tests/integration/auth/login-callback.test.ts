@@ -5,16 +5,10 @@ import { gql } from "@apollo/client";
 import { getSession, updateSession } from "@auth0/nextjs-auth0";
 import { NextRequest } from "next/server";
 
-import {
-  integrationDBExecuteQuery,
-  integrationDBSetup,
-  integrationDBTearDown,
-} from "../setup";
+import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 
 // TODO: Consider moving this to a generalized jest environment
-beforeEach(integrationDBSetup);
-beforeEach(integrationDBTearDown);
-
+beforeEach(integrationDBClean);
 const validEmailSessionUser = {
   email: "test@worldcoin.org",
   email_verified: true,

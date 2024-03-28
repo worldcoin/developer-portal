@@ -16,7 +16,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
   );
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="grid min-h-[100dvh] grid-rows-[auto_1fr]">
       <Header color={initialColor} />
       {props.children}
     </div>

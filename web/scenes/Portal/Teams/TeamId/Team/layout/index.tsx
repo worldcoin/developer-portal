@@ -32,7 +32,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   );
 
   return (
-    <div className="flex grow flex-col items-start">
+    <div className="flex flex-col">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
         <SizingWrapper variant="nav">
           <Tabs className="px-6 py-4 font-gta md:py-0">
@@ -42,7 +42,19 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               segment={null}
               underlined
             >
-              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>
+                <span className="max-md:hidden">Overview</span>
+                <span className="md:hidden">Members</span>
+              </Typography>
+            </Tab>
+
+            <Tab
+              className="md:hidden"
+              href={`/teams/${params!.teamId}/app`}
+              segment={"app"}
+              underlined
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Apps</Typography>
             </Tab>
 
             {ownerPermission && (

@@ -35,10 +35,10 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
         <TeamProfile />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2">
-        <div className="grid gap-y-14 py-8">
-          <Members teamId={teamId} />
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+        <Members teamId={teamId} />
 
+        <div className="order-5 max-md:hidden">
           <Apps />
         </div>
       </SizingWrapper>

@@ -172,6 +172,8 @@ export type Action = {
   /** An aggregate relationship */
   nullifiers_aggregate: Nullifier_Aggregate;
   privacy_policy_uri?: Maybe<Scalars["String"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
   /** An array relationship */
   redirects: Array<Redirect>;
   /** An aggregate relationship */
@@ -302,6 +304,8 @@ export type Action_Avg_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by avg() on columns of table "action" */
@@ -333,6 +337,7 @@ export type Action_Bool_Exp = {
   nullifiers?: InputMaybe<Nullifier_Bool_Exp>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Bool_Exp>;
   privacy_policy_uri?: InputMaybe<String_Comparison_Exp>;
+  redirect_count?: InputMaybe<Int_Comparison_Exp>;
   redirects?: InputMaybe<Redirect_Bool_Exp>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Bool_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
@@ -406,6 +411,8 @@ export type Action_Max_Fields = {
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
   privacy_policy_uri?: Maybe<Scalars["String"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
   status?: Maybe<Scalars["String"]>;
   terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -455,6 +462,8 @@ export type Action_Min_Fields = {
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]>;
   privacy_policy_uri?: Maybe<Scalars["String"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
   status?: Maybe<Scalars["String"]>;
   terms_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
@@ -524,6 +533,7 @@ export type Action_Order_By = {
   name?: InputMaybe<Order_By>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Order_By>;
   privacy_policy_uri?: InputMaybe<Order_By>;
+  redirect_count?: InputMaybe<Order_By>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Order_By>;
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
@@ -854,6 +864,8 @@ export type Action_Stddev_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by stddev() on columns of table "action" */
@@ -871,6 +883,8 @@ export type Action_Stddev_Pop_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by stddev_pop() on columns of table "action" */
@@ -888,6 +902,8 @@ export type Action_Stddev_Samp_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by stddev_samp() on columns of table "action" */
@@ -938,6 +954,8 @@ export type Action_Sum_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Int"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Int"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by sum() on columns of table "action" */
@@ -1000,6 +1018,8 @@ export type Action_Var_Pop_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by var_pop() on columns of table "action" */
@@ -1017,6 +1037,8 @@ export type Action_Var_Samp_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by var_samp() on columns of table "action" */
@@ -1034,6 +1056,8 @@ export type Action_Variance_Fields = {
   max_accounts_per_user?: Maybe<Scalars["Float"]>;
   /** Only used for actions. Only for actions verified in the Developer Portal. Determines the maximum number of verifications that a user can perform for this action. */
   max_verifications?: Maybe<Scalars["Float"]>;
+  /** a computed field listing how many redirect_uris are added */
+  redirect_count?: Maybe<Scalars["Int"]>;
 };
 
 /** order by variance() on columns of table "action" */
@@ -2596,6 +2620,7 @@ export type Auth_Code = {
   id: Scalars["String"];
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash: Scalars["String"];
+  redirect_uri: Scalars["String"];
   scope?: Maybe<Scalars["jsonb"]>;
   updated_at: Scalars["timestamptz"];
   verification_level: Scalars["String"];
@@ -2646,6 +2671,7 @@ export type Auth_Code_Bool_Exp = {
   id?: InputMaybe<String_Comparison_Exp>;
   nonce?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+  redirect_uri?: InputMaybe<String_Comparison_Exp>;
   scope?: InputMaybe<Jsonb_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_level?: InputMaybe<String_Comparison_Exp>;
@@ -2683,6 +2709,7 @@ export type Auth_Code_Insert_Input = {
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
+  redirect_uri?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_level?: InputMaybe<Scalars["String"]>;
@@ -2700,6 +2727,7 @@ export type Auth_Code_Max_Fields = {
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
+  redirect_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_level?: Maybe<Scalars["String"]>;
 };
@@ -2716,6 +2744,7 @@ export type Auth_Code_Min_Fields = {
   id?: Maybe<Scalars["String"]>;
   nonce?: Maybe<Scalars["String"]>;
   nullifier_hash?: Maybe<Scalars["String"]>;
+  redirect_uri?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_level?: Maybe<Scalars["String"]>;
 };
@@ -2747,6 +2776,7 @@ export type Auth_Code_Order_By = {
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  redirect_uri?: InputMaybe<Order_By>;
   scope?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_level?: InputMaybe<Order_By>;
@@ -2783,6 +2813,8 @@ export enum Auth_Code_Select_Column {
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
+  RedirectUri = "redirect_uri",
+  /** column name */
   Scope = "scope",
   /** column name */
   UpdatedAt = "updated_at",
@@ -2801,6 +2833,7 @@ export type Auth_Code_Set_Input = {
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
+  redirect_uri?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_level?: InputMaybe<Scalars["String"]>;
@@ -2825,6 +2858,7 @@ export type Auth_Code_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars["String"]>;
   nonce?: InputMaybe<Scalars["String"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]>;
+  redirect_uri?: InputMaybe<Scalars["String"]>;
   scope?: InputMaybe<Scalars["jsonb"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_level?: InputMaybe<Scalars["String"]>;
@@ -2850,6 +2884,8 @@ export enum Auth_Code_Update_Column {
   Nonce = "nonce",
   /** column name */
   NullifierHash = "nullifier_hash",
+  /** column name */
+  RedirectUri = "redirect_uri",
   /** column name */
   Scope = "scope",
   /** column name */

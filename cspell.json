@@ -46,6 +46,8 @@
     "nullifer",
     "OIDC",
     "partialize",
+    "PKCE",
+    "pkey",
     "RSASSA",
     "secp256k1",
     "signup",

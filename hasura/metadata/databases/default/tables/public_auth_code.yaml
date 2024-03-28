@@ -15,6 +15,7 @@ insert_permissions:
         - nonce
         - nullifier_hash
         - scope
+        - redirect_uri
 select_permissions:
   - role: service
     permission:
@@ -29,6 +30,7 @@ select_permissions:
         - nonce
         - nullifier_hash
         - scope
+        - redirect_uri
       filter: {}
 delete_permissions:
   - role: service

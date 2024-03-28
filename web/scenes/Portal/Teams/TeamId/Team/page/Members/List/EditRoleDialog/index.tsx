@@ -29,8 +29,11 @@ import { permissionsDialogAtom } from "../PermissionsDialog";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
-} from "../graphql/client/fetch-team-members.generated";
+} from "../../graphql/client/fetch-team-members.generated";
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
+import clsx from "clsx";
+
+const roles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 
 export const editRoleDialogAtom = atom(false);
 
@@ -45,7 +48,7 @@ const schema = yup.object({
 type FormValues = yup.InferType<typeof schema>;
 
 export const EditRoleDialog = (props: {
-  membership: FetchTeamMembersQuery["membership"][number] | null;
+  membership: FetchTeamMembersQuery["members"][number] | null;
 }) => {
   const [isOpened, setIsOpened] = useAtom(editRoleDialogAtom);
   const [permissionsOpened, setPermissionsOpened] = useAtom(
@@ -54,11 +57,11 @@ export const EditRoleDialog = (props: {
   const { teamId } = useParams() as { teamId: string };
 
   const roles = useMemo(
-    () =>
-      Object.entries(Role_Enum).map(([key, value]) => ({
-        label: key,
-        value,
-      })),
+    () => [
+      { label: "Owner", value: Role_Enum.Owner },
+      { label: "Admin", value: Role_Enum.Admin },
+      { label: "Member", value: Role_Enum.Member },
+    ],
     [],
   );
 
@@ -138,7 +141,7 @@ export const EditRoleDialog = (props: {
     <Dialog open={isOpened} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-10 md:max-w-[36rem]">
+      <DialogPanel className="grid md:max-w-[36rem] md:gap-y-10">
         <div className="grid justify-items-center gap-y-4">
           <CircleIconContainer variant="info">
             <UserEditIcon />
@@ -164,12 +167,15 @@ export const EditRoleDialog = (props: {
           </Notification>
         </div>
 
-        <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-10">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <form
+          onSubmit={handleSubmit(submit)}
+          className="grid w-full md:gap-y-10"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
             <Input
               disabled
               register={register("email")}
-              className="px-2 py-1"
+              className="px-2 py-1 max-md:hidden"
             />
 
             <Controller
@@ -177,40 +183,67 @@ export const EditRoleDialog = (props: {
               name="role"
               render={({ field }) => {
                 return (
-                  <div className="relative">
-                    <fieldset className="pointer-events-none absolute inset-x-0 -top-3 bottom-0 rounded-lg border">
-                      <legend className="ml-3.5 px-0.5">
-                        <Typography
-                          variant={TYPOGRAPHY.R4}
-                          className="text-grey-400"
-                        >
-                          Role
-                        </Typography>
-                      </legend>
-                    </fieldset>
-
-                    <Select value={field.value} onChange={field.onChange}>
-                      <SelectButton className="flex h-11 w-full items-center justify-between">
-                        <Typography variant={TYPOGRAPHY.R3}>
-                          {field.value?.label}
-                        </Typography>
-
-                        <CaretIcon />
-                      </SelectButton>
-
-                      <SelectOptions className="mt-2">
-                        {roles.map((option, index) => (
-                          <SelectOption
-                            key={`edit-role-option-${index}`}
-                            value={option}
-                            className="size-full transition-colors hover:bg-grey-100"
+                  <>
+                    <div className="relative max-md:hidden">
+                      <fieldset className="pointer-events-none absolute inset-x-0 -top-3 bottom-0 rounded-lg border">
+                        <legend className="ml-3.5 px-0.5">
+                          <Typography
+                            variant={TYPOGRAPHY.R4}
+                            className="text-grey-400"
                           >
-                            {option.label}
-                          </SelectOption>
-                        ))}
-                      </SelectOptions>
-                    </Select>
-                  </div>
+                            Role
+                          </Typography>
+                        </legend>
+                      </fieldset>
+
+                      <Select value={field.value} onChange={field.onChange}>
+                        <SelectButton className="flex h-11 w-full items-center justify-between">
+                          <Typography variant={TYPOGRAPHY.R3}>
+                            {field.value?.label}
+                          </Typography>
+
+                          <CaretIcon />
+                        </SelectButton>
+
+                        <SelectOptions className="mt-2">
+                          {roles.map((option, index) => (
+                            <SelectOption
+                              key={`edit-role-option-${index}`}
+                              value={option}
+                              className="size-full transition-colors hover:bg-grey-100"
+                            >
+                              {option.label}
+                            </SelectOption>
+                          ))}
+                        </SelectOptions>
+                      </Select>
+                    </div>
+
+                    <div className="grid gap-y-6 py-8 md:hidden">
+                      {roles.map((option, index) => (
+                        <button
+                          key={`edit-role-option-${index}`}
+                          type="button"
+                          className="grid grid-cols-auto/1fr items-center gap-x-3 text-start"
+                          onClick={() => field.onChange(option)}
+                        >
+                          <div
+                            className={clsx(
+                              "flex size-6 items-center justify-center rounded-full before:rounded-full before:bg-grey-0",
+                              {
+                                "bg-gray-900 before:size-2.5":
+                                  option.value === field.value?.value,
+                                "bg-gray-300 before:size-5":
+                                  option.value !== field.value?.value,
+                              },
+                            )}
+                          />
+
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 );
               }}
             />

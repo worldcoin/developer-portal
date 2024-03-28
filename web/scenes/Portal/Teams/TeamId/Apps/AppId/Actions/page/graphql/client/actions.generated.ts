@@ -6,11 +6,14 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetActionsQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
+  condition?: Types.InputMaybe<
+    Array<Types.Action_Bool_Exp> | Types.Action_Bool_Exp
+  >;
 }>;
 
 export type GetActionsQuery = {
   __typename?: "query_root";
-  action: Array<{
+  actions: Array<{
     __typename?: "action";
     id: string;
     app_id: string;
@@ -24,31 +27,24 @@ export type GetActionsQuery = {
     max_accounts_per_user: number;
     max_verifications: number;
     updated_at: any;
-    nullifiers: Array<{
-      __typename?: "nullifier";
-      id: string;
-      created_at: any;
-      nullifier_hash: string;
-      uses: number;
-    }>;
-  }>;
-  app: Array<{
-    __typename?: "app";
-    id: string;
-    engine: string;
-    app_metadata: Array<{
-      __typename?: "app_metadata";
-      id: string;
-      name: string;
-    }>;
+    nullifiers: {
+      __typename?: "nullifier_aggregate";
+      aggregate?: {
+        __typename?: "nullifier_aggregate_fields";
+        sum?: {
+          __typename?: "nullifier_sum_fields";
+          uses?: number | null;
+        } | null;
+      } | null;
+    };
   }>;
 };
 
 export const GetActionsDocument = gql`
-  query GetActions($app_id: String!) {
-    action(
+  query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
+    actions: action(
       order_by: { created_at: asc }
-      where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
+      where: { app_id: { _eq: $app_id }, action: { _neq: "" }, _or: $condition }
     ) {
       id
       app_id
@@ -62,19 +58,12 @@ export const GetActionsDocument = gql`
       max_accounts_per_user
       max_verifications
       updated_at
-      nullifiers {
-        id
-        created_at
-        nullifier_hash
-        uses
-      }
-    }
-    app(where: { id: { _eq: $app_id } }) {
-      id
-      engine
-      app_metadata {
-        id
-        name
+      nullifiers: nullifiers_aggregate {
+        aggregate {
+          sum {
+            uses
+          }
+        }
       }
     }
   }
@@ -93,6 +82,7 @@ export const GetActionsDocument = gql`
  * const { data, loading, error } = useGetActionsQuery({
  *   variables: {
  *      app_id: // value for 'app_id'
+ *      condition: // value for 'condition'
  *   },
  * });
  */

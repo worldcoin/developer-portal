@@ -9,6 +9,9 @@ import { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
 import { useFetchAppsQuery } from "./graphql/client/fetch-apps.generated";
+import { Section } from "@/components/Section";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
+import { DecoratedButton } from "@/components/DecoratedButton";
 
 export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
@@ -27,8 +30,21 @@ export const Apps = () => {
   const app = data?.app;
 
   return (
-    <div className="grid gap-y-8">
-      <Typography variant={TYPOGRAPHY.H7}>Apps</Typography>
+    <Section>
+      <Section.Header>
+        <Section.Header.Title>Apps</Section.Header.Title>
+
+        <Section.Header.Button className="md:hidden">
+          <DecoratedButton
+            href={urls.apps({ team_id: teamId })}
+            variant="primary"
+            className="min-w-[200px] py-2.5"
+          >
+            <PlusIcon className="size-5" />
+            New app
+          </DecoratedButton>
+        </Section.Header.Button>
+      </Section.Header>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {!loading && app?.map((app) => <App key={app.id} app={app} />)}
@@ -56,6 +72,6 @@ export const Apps = () => {
           </Button>
         )}
       </div>
-    </div>
+    </Section>
   );
 };

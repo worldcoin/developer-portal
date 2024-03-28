@@ -20,6 +20,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { colorAtom } from "../../layout";
+import { Section } from "@/components/Section";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -108,23 +109,21 @@ export const ProfilePage = () => {
 
   return (
     <>
-      <SizingWrapper gridClassName="order-1 pt-8" className="grid gap-y-8">
+      <SizingWrapper gridClassName="order-1">
         <UserInfo name={name} />
-
-        <div className="border-b border-dashed border-grey-200" />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2">
-        <div className="m-auto grid gap-y-8 py-8">
-          <Typography as="h1" variant={TYPOGRAPHY.H7}>
-            Profile settings
-          </Typography>
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+        <Section>
+          <Section.Header>
+            <Section.Header.Title>Profile settings</Section.Header.Title>
+          </Section.Header>
 
           <form
-            className="grid max-w-[36.25rem] gap-y-8"
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
             onSubmit={handleSubmit(submit)}
           >
-            <section className="rounded-12 border border-grey-200 p-6">
+            <div className="w-full rounded-12 border border-grey-200 p-6">
               <Typography as="h2" variant={TYPOGRAPHY.R3}>
                 Avatar color
               </Typography>
@@ -148,7 +147,7 @@ export const ProfilePage = () => {
                   />
                 )}
               />
-            </section>
+            </div>
 
             <Input
               className="-mt-2"
@@ -177,18 +176,15 @@ export const ProfilePage = () => {
               </div>
             </label>
 
-            <div>
-              <DecoratedButton
-                type="submit"
-                variant="primary"
-                className="max-h-12 py-4"
-                disabled={!isValid || isSubmitting}
-              >
-                Save changes
-              </DecoratedButton>
-            </div>
+            <DecoratedButton
+              type="submit"
+              variant="primary"
+              disabled={!isValid || isSubmitting}
+            >
+              Save changes
+            </DecoratedButton>
           </form>
-        </div>
+        </Section>
       </SizingWrapper>
     </>
   );
