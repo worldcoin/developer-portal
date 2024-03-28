@@ -7,6 +7,7 @@ const defaultOptions = {} as const;
 export type RemoveUserMutationVariables = Types.Exact<{
   userId: Types.Scalars["String"];
   teamId: Types.Scalars["String"];
+  currentUserId: Types.Scalars["String"];
 }>;
 
 export type RemoveUserMutation = {
@@ -18,10 +19,18 @@ export type RemoveUserMutation = {
 };
 
 export const RemoveUserDocument = gql`
-  mutation RemoveUser($userId: String!, $teamId: String!) {
+  mutation RemoveUser(
+    $userId: String!
+    $teamId: String!
+    $currentUserId: String!
+  ) {
     delete_membership(
       where: {
-        _and: [{ user_id: { _eq: $userId } }, { team_id: { _eq: $teamId } }]
+        _and: [
+          { user_id: { _eq: $userId } }
+          { user_id: { _neq: $currentUserId } }
+          { team_id: { _eq: $teamId } }
+        ]
       }
     ) {
       affected_rows
@@ -48,6 +57,7 @@ export type RemoveUserMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      userId: // value for 'userId'
  *      teamId: // value for 'teamId'
+ *      currentUserId: // value for 'currentUserId'
  *   },
  * });
  */

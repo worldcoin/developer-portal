@@ -1,7 +1,15 @@
-mutation RemoveUser($userId: String!, $teamId: String!) {
+mutation RemoveUser(
+  $userId: String!
+  $teamId: String!
+  $currentUserId: String!
+) {
   delete_membership(
     where: {
-      _and: [{ user_id: { _eq: $userId } }, { team_id: { _eq: $teamId } }]
+      _and: [
+        { user_id: { _eq: $userId } }
+        { user_id: { _neq: $currentUserId } }
+        { team_id: { _eq: $teamId } }
+      ]
     }
   ) {
     affected_rows

@@ -7,6 +7,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useMeQuery } from "@/scenes/common/me-query/client";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
@@ -21,6 +22,7 @@ export const RemoveUserDialog = (props: {
   name: string;
   id: string | undefined | null;
 }) => {
+  const { user } = useMeQuery();
   const [isOpened, setIsOpened] = useAtom(removeUserDialogAtom);
   const { teamId } = useParams() as { teamId: string };
 
@@ -32,6 +34,10 @@ export const RemoveUserDialog = (props: {
   const [removeUser] = useRemoveUserMutation();
 
   const submit = useCallback(async () => {
+    if (!user?.id) {
+      return;
+    }
+
     if (!props.id || !teamId) {
       return toast.error("Something went wrong. Please try again later.");
     }
@@ -41,6 +47,7 @@ export const RemoveUserDialog = (props: {
         variables: {
           teamId,
           userId: props.id,
+          currentUserId: user.id,
         },
 
         refetchQueries: [FetchTeamMembersDocument],
@@ -53,7 +60,7 @@ export const RemoveUserDialog = (props: {
     }
 
     setIsOpened(false);
-  }, [props.id, props.name, removeUser, setIsOpened, teamId]);
+  }, [props.id, props.name, removeUser, setIsOpened, teamId, user?.id]);
 
   return (
     <Dialog open={isOpened} onClose={setIsOpened}>
