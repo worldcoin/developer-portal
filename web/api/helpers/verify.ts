@@ -271,7 +271,7 @@ export const canVerifyForAction = (
   nullifier: Pick<Nullifier, "uses" | "nullifier_hash"> | undefined,
   max_verifications_per_person: number,
 ): boolean => {
-  if (!nullifier || nullifier.uses === undefined) {
+  if (!nullifier) {
     // Person has not verified before, can always verify for the first time
     return true;
   } else if (max_verifications_per_person <= 0) {
