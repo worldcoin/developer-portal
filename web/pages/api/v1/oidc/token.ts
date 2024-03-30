@@ -81,7 +81,11 @@ export default async function handleOIDCToken(
     );
   }
 
-  if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
+  if (
+    !req.headers["content-type"]?.startsWith(
+      "application/x-www-form-urlencoded",
+    )
+  ) {
     return errorOIDCResponse(
       res,
       400,
