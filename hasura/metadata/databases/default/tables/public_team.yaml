@@ -23,6 +23,13 @@ array_relationships:
         table:
           name: membership
           schema: public
+computed_fields:
+  - name: team_owners_count
+    definition:
+      function:
+        name: get_team_owners_count
+        schema: public
+    comment: A computed field that returns a quantity of team owners
 insert_permissions:
   - role: service
     permission:
