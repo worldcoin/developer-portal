@@ -1,6 +1,15 @@
 table:
   name: app_rankings
   schema: public
+insert_permissions:
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - id
+        - country
+        - platform
+        - rankings
 select_permissions:
   - role: reviewer
     permission:
