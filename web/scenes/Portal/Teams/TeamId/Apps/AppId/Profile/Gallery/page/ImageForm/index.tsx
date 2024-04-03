@@ -47,12 +47,8 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const {
-    resizeFile,
-    getImage,
-    uploadViaPresignedPost,
-    validateImageAspectRatio,
-  } = useImage();
+  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
+    useImage();
 
   const showcaseImgFileNames = useMemo(
     () => appMetadata?.showcase_img_urls ?? [],
@@ -191,21 +187,21 @@ export const ImageForm = (props: ImageFormTypes) => {
         } else {
           throw new Error("Invalid aspect ratio");
         }
+
         await validateImageAspectRatio(
           file,
           aspectRatioWidth,
           aspectRatioHeight,
         );
 
-        const resizedImage = await resizeFile(file, width, height, file.type);
-
         toast.info("Uploading image", {
           toastId: "upload_toast",
           autoClose: false,
         });
+
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+        await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,

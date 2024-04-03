@@ -40,12 +40,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const {
-    resizeFile,
-    getImage,
-    uploadViaPresignedPost,
-    validateImageAspectRatio,
-  } = useImage();
+  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
+    useImage();
   const router = useRouter();
   const handleUpload = () => {
     imageInputRef.current?.click();
@@ -67,10 +63,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           autoClose: false,
         });
 
-        const resizedImage = await resizeFile(file, 512, 512, file.type);
         toast.dismiss("ImageValidationError");
-
-        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+        await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,
