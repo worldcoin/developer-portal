@@ -198,6 +198,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           toastId: "upload_toast",
           autoClose: false,
         });
+
         toast.dismiss("ImageValidationError");
 
         await uploadViaPresignedPost(file, appId, teamId, imageType);
@@ -363,7 +364,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb). Required size: ${1600}x${1200}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 4:3. \nRecommended size: ${1600}x${1200}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -425,7 +426,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb). Required size: ${1920}x${1080}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 16:9. Recommended size: ${1920}x${1080}px`}{" "}
             </Typography>
           </div>
         </ImageDropZone>
