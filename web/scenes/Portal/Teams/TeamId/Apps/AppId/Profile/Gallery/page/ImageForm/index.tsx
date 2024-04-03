@@ -47,12 +47,8 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const {
-    resizeFile,
-    getImage,
-    uploadViaPresignedPost,
-    validateImageAspectRatio,
-  } = useImage();
+  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
+    useImage();
 
   const showcaseImgFileNames = useMemo(
     () => appMetadata?.showcase_img_urls ?? [],
@@ -191,13 +187,12 @@ export const ImageForm = (props: ImageFormTypes) => {
         } else {
           throw new Error("Invalid aspect ratio");
         }
+
         await validateImageAspectRatio(
           file,
           aspectRatioWidth,
           aspectRatioHeight,
         );
-
-        const resizedImage = await resizeFile(file, width, height, file.type);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
@@ -205,7 +200,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         });
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(resizedImage, appId, teamId, imageType);
+        await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -368,7 +363,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 4:3. \nRecommended size: ${1600}x${1200}px`}
+              {`JPG or PNG (max 250kb). Required size: ${1600}x${1200}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -430,7 +425,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 16:9. Recommended size: ${1920}x${1080}px`}
+              {`JPG or PNG (max 250kb). Required size: ${1920}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>

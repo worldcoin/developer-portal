@@ -1,4 +1,3 @@
-import Resizer from "react-image-file-resizer";
 import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
@@ -9,29 +8,6 @@ export class ImageValidationError extends Error {
     this.name = "ImageValidationError";
   }
 }
-
-export const resizeFile = (
-  file: File,
-  width: number,
-  height: number,
-  fileType: string,
-): Promise<File> =>
-  new Promise((resolve) => {
-    Resizer.imageFileResizer(
-      file,
-      width,
-      height,
-      fileType === "image/png" ? "png" : "jpeg",
-      100,
-      0,
-      (uri) => {
-        resolve(uri as File);
-      },
-      "file",
-      width,
-      height,
-    );
-  });
 
 export const useImage = () => {
   const [getUploadedImage] = useGetUploadedImageLazyQuery();
@@ -144,7 +120,6 @@ export const useImage = () => {
   };
 
   return {
-    resizeFile,
     getImage,
     validateImageAspectRatio,
     uploadViaPresignedPost,
