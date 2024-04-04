@@ -55,7 +55,6 @@ export async function GET(request: Request) {
   const endIndex = startIndex + limit;
 
   const appIdsToFetch = rankings.slice(startIndex, endIndex);
-
   // Anchor: Get the list of app metadata that corresponds to the platform and country
   // TODO: We are currently not checking platform inside this call, it's not breaking but if we decide we don't want to show some apps on the app store and don't rank them then we need to implement this.
   const { ranked_apps, unranked_apps } = await getAppMetadataSdk(
@@ -65,6 +64,10 @@ export async function GET(request: Request) {
     limit: limit - appIdsToFetch.length,
     offset: Math.max(startIndex - appIdsToFetch.length, 0),
   });
+
+  ranked_apps.sort(
+    (a, b) => appIdsToFetch.indexOf(a.app_id) - appIdsToFetch.indexOf(b.app_id),
+  );
 
   const apps = [...ranked_apps, ...unranked_apps].map((app) => {
     return {
