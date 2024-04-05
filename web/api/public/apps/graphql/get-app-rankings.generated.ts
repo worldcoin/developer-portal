@@ -12,12 +12,21 @@ export type GetAppRankingsQueryVariables = Types.Exact<{
 export type GetAppRankingsQuery = {
   __typename?: "query_root";
   app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
+  default_app_rankings: Array<{
+    __typename?: "app_rankings";
+    rankings?: any | null;
+  }>;
 };
 
 export const GetAppRankingsDocument = gql`
   query GetAppRankings($platform: String!, $country: String!) {
     app_rankings(
       where: { platform: { _eq: $platform }, country: { _eq: $country } }
+    ) {
+      rankings
+    }
+    default_app_rankings: app_rankings(
+      where: { platform: { _eq: $platform }, country: { _eq: "default" } }
     ) {
       rankings
     }

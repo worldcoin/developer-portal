@@ -17,10 +17,15 @@ export type GetAppMetadataQuery = {
     showcase_img_urls?: any | null;
     hero_image_url: string;
     world_app_description: string;
+    description: string;
     category: string;
     integration_url: string;
     app_website_url: string;
     source_code_url: string;
+    app: {
+      __typename?: "app";
+      team: { __typename?: "team"; name?: string | null };
+    };
   }>;
 };
 
@@ -41,10 +46,16 @@ export const GetAppMetadataDocument = gql`
       showcase_img_urls
       hero_image_url
       world_app_description
+      description
       category
       integration_url
       app_website_url
       source_code_url
+      app {
+        team {
+          name
+        }
+      }
     }
   }
 `;

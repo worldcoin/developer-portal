@@ -9,12 +9,22 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
       ]
     }
   ) {
+    name
     app_id
     logo_img_url
-    name
-    integration_url
+    showcase_img_urls
+    hero_image_url
     world_app_description
+    description
     category
+    integration_url
+    app_website_url
+    source_code_url
+    app {
+      team {
+        name
+      }
+    }
   }
 
   unranked_apps: app_metadata(
@@ -29,11 +39,21 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     limit: $limit
     offset: $offset
   ) {
+    name
     app_id
     logo_img_url
-    name
-    integration_url
+    showcase_img_urls
+    hero_image_url
     world_app_description
+    description
     category
+    integration_url
+    app_website_url
+    source_code_url
+    app {
+      team {
+        name
+      }
+    }
   }
 }

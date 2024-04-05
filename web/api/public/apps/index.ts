@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const platform = searchParams.get("platform"); // Required
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 50); // Optional, max 50
+  const limit = Math.min(parseInt(searchParams.get("limit") ?? "250", 10), 500); // Optional, max 500 default 250
 
   // We only accept requests through the distribution origin
   if (!isValidHostName(request)) {
@@ -40,7 +40,9 @@ export async function GET(request: Request) {
   const client = await getAPIServiceGraphqlClient();
 
   // Anchor: Fetch the country ordering if exists, otherwise get default ordering
-  const { app_rankings } = await getAppRankingsSdk(client).GetAppRankings({
+  const { app_rankings, default_app_rankings } = await getAppRankingsSdk(
+    client,
+  ).GetAppRankings({
     platform,
     country,
   });
@@ -49,12 +51,16 @@ export async function GET(request: Request) {
 
   if (app_rankings.length > 0) {
     rankings = app_rankings[0].rankings;
+  } else if (default_app_rankings.length > 0) {
+    // If no rankings or not specified we should use default
+    rankings = default_app_rankings[0].rankings;
   }
 
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
 
   const appIdsToFetch = rankings.slice(startIndex, endIndex);
+
   // Anchor: Get the list of app metadata that corresponds to the platform and country
   // TODO: We are currently not checking platform inside this call, it's not breaking but if we decide we don't want to show some apps on the app store and don't rank them then we need to implement this.
   const { ranked_apps, unranked_apps } = await getAppMetadataSdk(
@@ -69,10 +75,24 @@ export async function GET(request: Request) {
     (a, b) => appIdsToFetch.indexOf(a.app_id) - appIdsToFetch.indexOf(b.app_id),
   );
 
-  const apps = [...ranked_apps, ...unranked_apps].map((app) => {
+  const apps = [...ranked_apps, ...unranked_apps].map((appData) => {
+    const { app, ...appMetadata } = appData;
     return {
-      ...app,
-      logo_img_url: getCDNImageUrl(app.app_id, app.logo_img_url),
+      ...appMetadata,
+      logo_img_url: getCDNImageUrl(
+        appMetadata.app_id,
+        appMetadata.logo_img_url,
+      ),
+      hero_image_url: getCDNImageUrl(
+        appMetadata.app_id,
+        appMetadata.hero_image_url,
+      ),
+      showcase_img_urls: appMetadata.showcase_img_urls
+        ? appMetadata.showcase_img_urls?.map((showcase_img: string) =>
+            getCDNImageUrl(appMetadata.app_id, showcase_img),
+          )
+        : [],
+      team_name: app.team.name,
     };
   });
 
