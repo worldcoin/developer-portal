@@ -51,5 +51,5 @@ describe("validateUrl()", () => {
   test("insecure schema", () => {
     expect(validateUrl("javascript:alert('test')", isStaging)).toBeFalsy();
     expect(validateUrl("jaVasCript:;alert('test');", isStaging)).toBeFalsy();
-  })
+  });
 });
