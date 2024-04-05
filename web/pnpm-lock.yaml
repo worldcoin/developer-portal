@@ -84,8 +84,8 @@ dependencies:
     specifier: ^2.12.6
     version: 2.12.6(graphql@16.8.1)
   jose:
-    specifier: ^5.2.0
-    version: 5.2.2
+    specifier: ^5.2.3
+    version: 5.2.3
   jotai:
     specifier: ^2.6.4
     version: 2.6.4(@types/react@18.2.55)(react@18.2.0)
@@ -108,8 +108,8 @@ dependencies:
     specifier: ^1.105.6
     version: 1.105.8
   posthog-node:
-    specifier: ^3.5.0
-    version: 3.6.2
+    specifier: ^4.0.0
+    version: 4.0.0
   react:
     specifier: ^18
     version: 18.2.0
@@ -8521,8 +8521,8 @@ packages:
   /jose@4.15.4:
     resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
 
-  /jose@5.2.2:
-    resolution: {integrity: sha512-/WByRr4jDcsKlvMd1dRJnPfS1GVO3WuKyaurJ/vvXcOaUQO8rnNObCQMlv/5uCceVQIq5Q4WLF44ohsdiTohdg==}
+  /jose@5.2.3:
+    resolution: {integrity: sha512-KUXdbctm1uHVL8BYhnyHkgp3zDX5KW8ZhAKVFEfUbU2P8Alpzjb+48hHvjOdQIyPshoblhzsuqOwEEAbtHVirA==}
     dev: false
 
   /jotai@2.6.4(@types/react@18.2.55)(react@18.2.0):
@@ -9714,8 +9714,8 @@ packages:
       preact: 10.19.4
     dev: false
 
-  /posthog-node@3.6.2:
-    resolution: {integrity: sha512-tVIaShR3SxBx17AlAUS86jQTweKuJIFRedBB504fCz7YPnXJTYSrVcUHn5IINE2wu4jUQimQK6ihQr90Djrdrg==}
+  /posthog-node@4.0.0:
+    resolution: {integrity: sha512-jEZnNbgb/3FNk+gNwtTcyz3j+62zIN+UTPotONfacVXJnoI70KScSkKdIR+rvP9tA2kjBSoHQxGwJuizs27o9A==}
     engines: {node: '>=15.0.0'}
     dependencies:
       axios: 1.6.7
