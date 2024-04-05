@@ -1,9 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { fetchOIDCApp } from "@/legacy/backend/oidc";
-import { uriHasJS } from "@/lib/utils";
-import * as yup from "yup";
 import { validateRequestSchema } from "@/legacy/backend/utils";
+import { validateUrl } from "@/lib/utils";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup.string().strict().required("This attribute is required."),
@@ -34,7 +34,7 @@ export default async function handleOIDCValidate(
 
   const { app_id, redirect_uri } = parsedParams;
 
-  if (uriHasJS(redirect_uri)) {
+  if (!validateUrl(redirect_uri, true)) {
     return errorResponse(
       res,
       400,
