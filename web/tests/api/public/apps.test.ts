@@ -93,16 +93,41 @@ describe("/api/public/apps", () => {
             app_id: "1",
             name: "Test App",
             logo_img_url: "logo.png",
+            hero_image_url: "hero1.png",
+            showcase_img_urls: ["showcase1.png"],
+            app: {
+              team: {
+                name: "Example Team",
+              },
+            },
           },
           {
             app_id: "2",
             name: "Test App2",
             logo_img_url: "logo.png",
+            hero_image_url: "hero.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            app: {
+              team: {
+                name: "Example Team",
+              },
+            },
           },
           {
             app_id: "3",
             name: "Test App3",
             logo_img_url: "logo.png",
+            hero_image_url: "hero.png",
+            showcase_img_urls: [
+              "showcase1.png",
+              "showcase2.png",
+              "showcase3.png",
+            ],
+            app: {
+              team: {
+                name: "Example Team",
+              },
+            },
           },
         ],
         unranked_apps: [],
@@ -125,16 +150,32 @@ describe("/api/public/apps", () => {
           app_id: "2",
           name: "Test App2",
           logo_img_url: "https://cdn.test.com/2/logo.png",
+          hero_image_url: "https://cdn.test.com/2/hero.png",
+          showcase_img_urls: [
+            "https://cdn.test.com/2/showcase1.png",
+            "https://cdn.test.com/2/showcase2.png",
+          ],
+          team_name: "Example Team",
         },
         {
           app_id: "1",
           name: "Test App",
           logo_img_url: "https://cdn.test.com/1/logo.png",
+          hero_image_url: "https://cdn.test.com/1/hero1.png",
+          showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
+          team_name: "Example Team",
         },
         {
           app_id: "3",
           name: "Test App3",
           logo_img_url: "https://cdn.test.com/3/logo.png",
+          hero_image_url: "https://cdn.test.com/3/hero.png",
+          showcase_img_urls: [
+            "https://cdn.test.com/3/showcase1.png",
+            "https://cdn.test.com/3/showcase2.png",
+            "https://cdn.test.com/3/showcase3.png",
+          ],
+          team_name: "Example Team",
         },
       ],
     });
