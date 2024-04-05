@@ -14,9 +14,15 @@ query GetAppMetadata($app_id: String!) {
     showcase_img_urls
     hero_image_url
     world_app_description
+    description
     category
     integration_url
     app_website_url
     source_code_url
+    app {
+      team {
+        name
+      }
+    }
   }
 }

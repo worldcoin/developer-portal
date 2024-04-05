@@ -16,21 +16,39 @@ export type GetAppMetadataQuery = {
   __typename?: "query_root";
   ranked_apps: Array<{
     __typename?: "app_metadata";
+    name: string;
     app_id: string;
     logo_img_url: string;
-    name: string;
-    integration_url: string;
+    showcase_img_urls?: any | null;
+    hero_image_url: string;
     world_app_description: string;
+    description: string;
     category: string;
+    integration_url: string;
+    app_website_url: string;
+    source_code_url: string;
+    app: {
+      __typename?: "app";
+      team: { __typename?: "team"; name?: string | null };
+    };
   }>;
   unranked_apps: Array<{
     __typename?: "app_metadata";
+    name: string;
     app_id: string;
     logo_img_url: string;
-    name: string;
-    integration_url: string;
+    showcase_img_urls?: any | null;
+    hero_image_url: string;
     world_app_description: string;
+    description: string;
     category: string;
+    integration_url: string;
+    app_website_url: string;
+    source_code_url: string;
+    app: {
+      __typename?: "app";
+      team: { __typename?: "team"; name?: string | null };
+    };
   }>;
 };
 
@@ -46,12 +64,22 @@ export const GetAppMetadataDocument = gql`
         ]
       }
     ) {
+      name
       app_id
       logo_img_url
-      name
-      integration_url
+      showcase_img_urls
+      hero_image_url
       world_app_description
+      description
       category
+      integration_url
+      app_website_url
+      source_code_url
+      app {
+        team {
+          name
+        }
+      }
     }
     unranked_apps: app_metadata(
       where: {
@@ -65,12 +93,22 @@ export const GetAppMetadataDocument = gql`
       limit: $limit
       offset: $offset
     ) {
+      name
       app_id
       logo_img_url
-      name
-      integration_url
+      showcase_img_urls
+      hero_image_url
       world_app_description
+      description
       category
+      integration_url
+      app_website_url
+      source_code_url
+      app {
+        team {
+          name
+        }
+      }
     }
   }
 `;
