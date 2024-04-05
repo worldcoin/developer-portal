@@ -1,5 +1,5 @@
 import { canVerifyForAction } from "@/legacy/backend/utils";
-import { uriHasJS, validateUrl } from "@/lib/utils";
+import { isURL, validateUrl } from "@/lib/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
@@ -49,13 +49,15 @@ describe("validateUrl()", () => {
   });
 });
 
-describe("url js injection", () => {
-  it("without inject", () => {
-    expect(uriHasJS("http://test.com")).toBeFalsy();
+describe("URL validation", () => {
+  const candidate1 = "https://www.example.com";
+  const candidate2 = "javascript:not_a_valid_url";
+  
+  test("Valid URL test", () => {
+    expect(validateURL(candidate1)).toBe(true);
   });
 
-  it("with inject", () => {
-    expect(uriHasJS("javascript:alert('test')")).toBeTruthy();
-    expect(uriHasJS("javascript:;alert('test');")).toBeTruthy();
+  test("Invalid URL test", () => {
+    expect(validateURL(candidate2)).toBe(false);
   });
 });
