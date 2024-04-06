@@ -20,12 +20,12 @@ export const InitialSteps = (props: {
   return (
     <div
       className={clsx(
-        "grid w-full max-w-[480px] items-center  justify-items-center gap-y-6 ",
+        "grid w-full max-w-[480px] items-center justify-items-center gap-y-6 ",
       )}
     >
       <div className="relative min-h-[60px] max-w-full">
         <LogoLinesIcon className="z-0 w-full" />
-        <WorldcoinBlueprintIcon className="absolute inset-0 z-10 m-auto size-[60px] rounded-2xl" />
+        <WorldcoinBlueprintIcon className="absolute inset-0 m-auto size-[60px] rounded-2xl" />
       </div>
 
       <div className="grid w-full max-w-[320px] grid-cols-1 gap-y-2 text-center md:max-w-full">
