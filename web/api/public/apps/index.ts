@@ -1,5 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getCDNImageUrl, isValidHostName } from "@/lib/utils";
+import {
+  createLocaliseCategory,
+  createLocaliseField,
+  getCDNImageUrl,
+  isValidHostName,
+} from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
@@ -16,6 +21,7 @@ export async function GET(request: Request) {
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "250", 10), 500); // Optional, max 500 default 250
+  const isApp = platform === "app";
 
   // We only accept requests through the distribution origin
   if (!isValidHostName(request)) {
@@ -76,9 +82,9 @@ export async function GET(request: Request) {
 
   const apps = [...ranked_apps, ...unranked_apps].map((appData) => {
     const { app, ...appMetadata } = appData;
+    const parsedDescription = JSON.parse(appMetadata.description);
     return {
       ...appMetadata,
-      description: JSON.parse(appMetadata.description),
       logo_img_url: getCDNImageUrl(
         appMetadata.app_id,
         appMetadata.logo_img_url,
@@ -93,6 +99,30 @@ export async function GET(request: Request) {
           )
         : [],
       team_name: app.team.name,
+      category: isApp
+        ? createLocaliseCategory(appMetadata.category)
+        : appMetadata.category,
+      description: isApp
+        ? {
+            overview: createLocaliseField(appMetadata.app_id, "overview"),
+            how_it_works: createLocaliseField(
+              appMetadata.app_id,
+              "how_it_works",
+            ),
+            how_to_connect: createLocaliseField(
+              appMetadata.app_id,
+              "how_to_connect",
+            ),
+          }
+        : parsedDescription,
+      world_app_button_text: createLocaliseField(
+        appMetadata.app_id,
+        "world_app_button_text",
+      ),
+      world_app_description: createLocaliseField(
+        appMetadata.app_id,
+        "world_app_description",
+      ),
     };
   });
 
@@ -101,10 +131,10 @@ export async function GET(request: Request) {
     featured_app_ids.includes(app.app_id),
   );
 
-  // TODO: Return the query string
+  // TODO: Return the localise string
 
   return NextResponse.json(
-    { apps: apps, featured_apps: featured_apps },
+    { apps: apps, featured: featured_apps },
     { status: 200 },
   );
 }

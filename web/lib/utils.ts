@@ -130,10 +130,10 @@ export const isValidHostName = (request: Request) => {
   return true;
 };
 
-export const createCategory = (category: string) => {
+export const createLocaliseCategory = (category: string) => {
   return `world_id_partner_category_${category.toLowerCase()}`;
 };
 
-export const createField = (app_id: string, field: string) => {
+export const createLocaliseField = (app_id: string, field: string) => {
   return `world_id_partner_${app_id}_${field}`;
 };

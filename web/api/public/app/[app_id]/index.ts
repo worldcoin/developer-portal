@@ -39,6 +39,7 @@ export async function GET(
   const { app, ...appMetadataReturned } = app_metadata[0];
   const dataToReturn = {
     ...appMetadataReturned,
+    description: JSON.parse(appMetadataReturned.description),
     logo_img_url: getCDNImageUrl(app_id, appMetadataReturned.logo_img_url),
     hero_image_url: appMetadataReturned.hero_image_url
       ? getCDNImageUrl(app_id, appMetadataReturned?.hero_image_url)

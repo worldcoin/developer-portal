@@ -22,6 +22,7 @@ export type GetAppMetadataQuery = {
     showcase_img_urls?: any | null;
     hero_image_url: string;
     world_app_description: string;
+    world_app_button_text: string;
     description: string;
     category: string;
     integration_url: string;
@@ -40,6 +41,7 @@ export type GetAppMetadataQuery = {
     showcase_img_urls?: any | null;
     hero_image_url: string;
     world_app_description: string;
+    world_app_button_text: string;
     description: string;
     category: string;
     integration_url: string;
@@ -70,6 +72,7 @@ export const GetAppMetadataDocument = gql`
       showcase_img_urls
       hero_image_url
       world_app_description
+      world_app_button_text
       description
       category
       integration_url
@@ -99,6 +102,7 @@ export const GetAppMetadataDocument = gql`
       showcase_img_urls
       hero_image_url
       world_app_description
+      world_app_button_text
       description
       category
       integration_url
