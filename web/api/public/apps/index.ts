@@ -40,12 +40,11 @@ export async function GET(request: Request) {
   const client = await getAPIServiceGraphqlClient();
 
   // Anchor: Fetch the country ordering if exists, otherwise get default ordering
-  const { app_rankings, default_app_rankings } = await getAppRankingsSdk(
-    client,
-  ).GetAppRankings({
-    platform,
-    country,
-  });
+  const { app_rankings, default_app_rankings, featured_app_rankings } =
+    await getAppRankingsSdk(client).GetAppRankings({
+      platform,
+      country,
+    });
 
   let rankings = [];
 
@@ -79,6 +78,7 @@ export async function GET(request: Request) {
     const { app, ...appMetadata } = appData;
     return {
       ...appMetadata,
+      description: JSON.parse(appMetadata.description),
       logo_img_url: getCDNImageUrl(
         appMetadata.app_id,
         appMetadata.logo_img_url,
@@ -96,5 +96,15 @@ export async function GET(request: Request) {
     };
   });
 
-  return NextResponse.json({ apps: apps }, { status: 200 });
+  const featured_app_ids = featured_app_rankings[0]?.rankings ?? [];
+  const featured_apps = apps.filter((app) =>
+    featured_app_ids.includes(app.app_id),
+  );
+
+  // TODO: Return the query string
+
+  return NextResponse.json(
+    { apps: apps, featured_apps: featured_apps },
+    { status: 200 },
+  );
 }

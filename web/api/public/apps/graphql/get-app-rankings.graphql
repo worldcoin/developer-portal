@@ -9,4 +9,9 @@ query GetAppRankings($platform: String!, $country: String!) {
   ) {
     rankings
   }
+  featured_app_rankings: app_rankings(
+    where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
+  ) {
+    rankings
+  }
 }

@@ -1,5 +1,5 @@
 "use client";
-import clsx from "clsx";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
@@ -9,7 +9,6 @@ import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { LinksForm } from "./LinksForm";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type AppProfileLinksProps = {
   params: Record<string, string> | null | undefined;

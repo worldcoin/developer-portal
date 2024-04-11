@@ -42,6 +42,10 @@ const schema = yup.object().shape({
       excludeEmptyString: true,
     })
     .optional(),
+  world_app_button_text: yup
+    .string()
+    .max(25, "Content cannot exceed 25 characters")
+    .optional(),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -78,6 +82,7 @@ export const LinksForm = (props: LinksFormProps) => {
       integration_url: appMetadata?.integration_url,
       app_website_url: appMetadata?.app_website_url,
       source_code_url: appMetadata?.source_code_url,
+      world_app_button_text: appMetadata?.world_app_button_text,
     },
   });
   // Used to update the fields when view mode is change
@@ -86,11 +91,13 @@ export const LinksForm = (props: LinksFormProps) => {
       integration_url: appMetadata?.integration_url,
       app_website_url: appMetadata?.app_website_url,
       source_code_url: appMetadata?.source_code_url,
+      world_app_button_text: appMetadata?.world_app_button_text,
     });
   }, [
     appMetadata?.app_website_url,
     appMetadata?.integration_url,
     appMetadata?.source_code_url,
+    appMetadata?.world_app_button_text,
     reset,
   ]);
 
@@ -104,6 +111,7 @@ export const LinksForm = (props: LinksFormProps) => {
             integration_url: values.integration_url,
             app_website_url: values.app_website_url ?? "",
             source_code_url: values.source_code_url ?? "",
+            world_app_button_text: values.world_app_button_text ?? "",
           },
 
           refetchQueries: [
@@ -160,6 +168,13 @@ export const LinksForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://"
           register={register("source_code_url")}
+        />
+        <Input
+          label="World App Button Text"
+          errors={errors.world_app_button_text}
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="Use Integration"
+          register={register("world_app_button_text")}
         />
       </div>
 

@@ -15,6 +15,7 @@ query FetchAppMetadata($id: String!) {
       world_app_description
       category
       is_developer_allow_listing
+      world_app_button_text
       integration_url
       app_website_url
       source_code_url
@@ -35,6 +36,7 @@ query FetchAppMetadata($id: String!) {
       world_app_description
       category
       is_developer_allow_listing
+      world_app_button_text
       integration_url
       app_website_url
       source_code_url

@@ -3,6 +3,7 @@ mutation UpdateAppLinksInfo(
   $integration_url: String!
   $app_website_url: String!
   $source_code_url: String!
+  $world_app_button_text: String!
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
@@ -10,6 +11,7 @@ mutation UpdateAppLinksInfo(
       integration_url: $integration_url
       app_website_url: $app_website_url
       source_code_url: $source_code_url
+      world_app_button_text: $world_app_button_text
     }
   ) {
     id

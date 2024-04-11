@@ -1566,6 +1566,7 @@ export type App_Metadata = {
   updated_at: Scalars["timestamptz"];
   verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  world_app_button_text: Scalars["String"];
   world_app_description: Scalars["String"];
 };
 
@@ -1658,6 +1659,7 @@ export type App_Metadata_Bool_Exp = {
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  world_app_button_text?: InputMaybe<String_Comparison_Exp>;
   world_app_description?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -1695,6 +1697,7 @@ export type App_Metadata_Insert_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
 
@@ -1717,6 +1720,7 @@ export type App_Metadata_Max_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  world_app_button_text?: Maybe<Scalars["String"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
 
@@ -1738,6 +1742,7 @@ export type App_Metadata_Max_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
 
@@ -1760,6 +1765,7 @@ export type App_Metadata_Min_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  world_app_button_text?: Maybe<Scalars["String"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
 
@@ -1781,6 +1787,7 @@ export type App_Metadata_Min_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
 
@@ -1824,6 +1831,7 @@ export type App_Metadata_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
 
@@ -1877,6 +1885,8 @@ export enum App_Metadata_Select_Column {
   /** column name */
   VerifiedAt = "verified_at",
   /** column name */
+  WorldAppButtonText = "world_app_button_text",
+  /** column name */
   WorldAppDescription = "world_app_description",
 }
 
@@ -1927,6 +1937,7 @@ export type App_Metadata_Set_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
 
@@ -1961,6 +1972,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
 
@@ -2008,6 +2020,8 @@ export enum App_Metadata_Update_Column {
   VerificationStatus = "verification_status",
   /** column name */
   VerifiedAt = "verified_at",
+  /** column name */
+  WorldAppButtonText = "world_app_button_text",
   /** column name */
   WorldAppDescription = "world_app_description",
 }
@@ -2140,6 +2154,8 @@ export type App_Rankings_Bool_Exp = {
 export enum App_Rankings_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppRankingsPkey = "app_rankings_pkey",
+  /** unique or primary key constraint on columns "platform", "country" */
+  AppRankingsPlatformCountryUnique = "app_rankings_platform_country_unique",
 }
 
 /** input type for inserting data into table "app_rankings" */
@@ -6620,6 +6636,8 @@ export type Team = {
   /** An aggregate relationship */
   memberships_aggregate: Membership_Aggregate;
   name?: Maybe<Scalars["String"]>;
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
   updated_at: Scalars["timestamptz"];
 };
 
@@ -6687,15 +6705,30 @@ export type Team_Aggregate = {
 /** aggregate fields of "team" */
 export type Team_Aggregate_Fields = {
   __typename?: "team_aggregate_fields";
+  avg?: Maybe<Team_Avg_Fields>;
   count: Scalars["Int"];
   max?: Maybe<Team_Max_Fields>;
   min?: Maybe<Team_Min_Fields>;
+  stddev?: Maybe<Team_Stddev_Fields>;
+  stddev_pop?: Maybe<Team_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Team_Stddev_Samp_Fields>;
+  sum?: Maybe<Team_Sum_Fields>;
+  var_pop?: Maybe<Team_Var_Pop_Fields>;
+  var_samp?: Maybe<Team_Var_Samp_Fields>;
+  variance?: Maybe<Team_Variance_Fields>;
 };
 
 /** aggregate fields of "team" */
 export type Team_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Team_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** aggregate avg on columns */
+export type Team_Avg_Fields = {
+  __typename?: "team_avg_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
 };
 
 /** Boolean expression to filter rows from the table "team". All fields are combined with a logical 'AND'. */
@@ -6712,6 +6745,7 @@ export type Team_Bool_Exp = {
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  team_owners_count?: InputMaybe<Int_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -6738,6 +6772,8 @@ export type Team_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -6747,6 +6783,8 @@ export type Team_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]>;
   id?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
@@ -6781,6 +6819,7 @@ export type Team_Order_By = {
   id?: InputMaybe<Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
+  team_owners_count?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -6809,6 +6848,27 @@ export type Team_Set_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
 };
 
+/** aggregate stddev on columns */
+export type Team_Stddev_Fields = {
+  __typename?: "team_stddev_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Team_Stddev_Pop_Fields = {
+  __typename?: "team_stddev_pop_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Team_Stddev_Samp_Fields = {
+  __typename?: "team_stddev_samp_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
+};
+
 /** Streaming cursor of the table "team" */
 export type Team_Stream_Cursor_Input = {
   /** Stream column input with initial value */
@@ -6823,6 +6883,13 @@ export type Team_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
+};
+
+/** aggregate sum on columns */
+export type Team_Sum_Fields = {
+  __typename?: "team_sum_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
 };
 
 /** update columns of table "team" */
@@ -6842,6 +6909,27 @@ export type Team_Updates = {
   _set?: InputMaybe<Team_Set_Input>;
   /** filter the rows which have to be updated */
   where: Team_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Team_Var_Pop_Fields = {
+  __typename?: "team_var_pop_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Team_Var_Samp_Fields = {
+  __typename?: "team_var_samp_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
+};
+
+/** aggregate variance on columns */
+export type Team_Variance_Fields = {
+  __typename?: "team_variance_fields";
+  /** A computed field that returns a quantity of team owners */
+  team_owners_count?: Maybe<Scalars["Int"]>;
 };
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */

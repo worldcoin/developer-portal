@@ -16,6 +16,10 @@ export type GetAppRankingsQuery = {
     __typename?: "app_rankings";
     rankings?: any | null;
   }>;
+  featured_app_rankings: Array<{
+    __typename?: "app_rankings";
+    rankings?: any | null;
+  }>;
 };
 
 export const GetAppRankingsDocument = gql`
@@ -27,6 +31,11 @@ export const GetAppRankingsDocument = gql`
     }
     default_app_rankings: app_rankings(
       where: { platform: { _eq: $platform }, country: { _eq: "default" } }
+    ) {
+      rankings
+    }
+    featured_app_rankings: app_rankings(
+      where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
     ) {
       rankings
     }

@@ -24,7 +24,7 @@ import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-in
 const schema = yup.object().shape({
   world_app_description: yup
     .string()
-    .max(50, "World app description cannot exceed 50 characters")
+    .max(35, "World app description cannot exceed 35 characters")
     .optional(),
   description_overview: yup
     .string()
@@ -253,7 +253,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
                 <span style={{ color: "red" }}>*</span>
               </>
             }
-            maxLength={50}
+            maxLength={35}
             errors={errors.world_app_description}
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="This description will be shown inside of World App."
@@ -261,7 +261,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
             addOnRight={
               <RemainingCharacters
                 text={watch("world_app_description")}
-                maxChars={50}
+                maxChars={35}
               />
             }
           />
