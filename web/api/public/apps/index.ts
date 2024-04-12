@@ -126,12 +126,10 @@ export async function GET(request: Request) {
     };
   });
 
-  const featured_app_ids = featured_app_rankings[0]?.rankings ?? [];
+  const featured_app_ids = featured_app_rankings?.[0]?.rankings ?? [];
   const featured_apps = apps.filter((app) =>
     featured_app_ids.includes(app.app_id),
   );
-
-  // TODO: Return the localise string
 
   return NextResponse.json(
     { apps: apps, featured: featured_apps },
