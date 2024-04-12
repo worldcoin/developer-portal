@@ -82,7 +82,6 @@ export async function GET(request: Request) {
 
   const apps = [...ranked_apps, ...unranked_apps].map((appData) => {
     const { app, ...appMetadata } = appData;
-    const parsedDescription = JSON.parse(appMetadata.description);
     return {
       ...appMetadata,
       logo_img_url: getCDNImageUrl(
@@ -104,25 +103,26 @@ export async function GET(request: Request) {
         : appMetadata.category,
       description: isApp
         ? {
-            overview: createLocaliseField(appMetadata.app_id, "overview"),
+            overview: createLocaliseField(
+              appMetadata.app_id,
+              "description_overview",
+            ),
             how_it_works: createLocaliseField(
               appMetadata.app_id,
-              "how_it_works",
+              "description_how_it_works",
             ),
             how_to_connect: createLocaliseField(
               appMetadata.app_id,
-              "how_to_connect",
+              "description_connect",
             ),
           }
-        : parsedDescription,
-      world_app_button_text: createLocaliseField(
-        appMetadata.app_id,
-        "world_app_button_text",
-      ),
-      world_app_description: createLocaliseField(
-        appMetadata.app_id,
-        "world_app_description",
-      ),
+        : JSON.parse(appMetadata.description),
+      world_app_button_text: isApp
+        ? createLocaliseField(appMetadata.app_id, "world_app_button_text")
+        : appMetadata.world_app_button_text,
+      world_app_description: isApp
+        ? createLocaliseField(appMetadata.app_id, "world_app_description")
+        : appMetadata.world_app_description,
     };
   });
 
