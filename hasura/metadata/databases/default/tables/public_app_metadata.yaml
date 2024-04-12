@@ -210,10 +210,11 @@ update_permissions:
         - review_message
         - verification_status
       filter:
-        - verification_status:
-            _in:
-              - changes_requested
-              - verified
+        _and:
+          - verification_status:
+              _in:
+                - changes_requested
+                - verified
       check:
         _and:
           - verification_status:
