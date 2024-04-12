@@ -9,6 +9,7 @@ export type UpdateAppLinksInfoMutationVariables = Types.Exact<{
   integration_url: Types.Scalars["String"];
   app_website_url: Types.Scalars["String"];
   source_code_url: Types.Scalars["String"];
+  world_app_button_text: Types.Scalars["String"];
 }>;
 
 export type UpdateAppLinksInfoMutation = {
@@ -25,6 +26,7 @@ export const UpdateAppLinksInfoDocument = gql`
     $integration_url: String!
     $app_website_url: String!
     $source_code_url: String!
+    $world_app_button_text: String!
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
@@ -32,6 +34,7 @@ export const UpdateAppLinksInfoDocument = gql`
         integration_url: $integration_url
         app_website_url: $app_website_url
         source_code_url: $source_code_url
+        world_app_button_text: $world_app_button_text
       }
     ) {
       id
@@ -60,6 +63,7 @@ export type UpdateAppLinksInfoMutationFn = Apollo.MutationFunction<
  *      integration_url: // value for 'integration_url'
  *      app_website_url: // value for 'app_website_url'
  *      source_code_url: // value for 'source_code_url'
+ *      world_app_button_text: // value for 'world_app_button_text'
  *   },
  * });
  */

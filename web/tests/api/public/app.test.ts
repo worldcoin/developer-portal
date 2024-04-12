@@ -24,6 +24,8 @@ jest.mock(
             integration_url: "https://example.com/integration",
             app_website_url: "https://example.com",
             source_code_url: "https://github.com/example/app",
+            description:
+              '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
             app: {
               team: {
                 name: "Example Team",
@@ -63,6 +65,11 @@ describe("/api/public/app/[app_id]", () => {
         app_website_url: "https://example.com",
         source_code_url: "https://github.com/example/app",
         team_name: "Example Team",
+        description: {
+          description_overview: "fewf",
+          description_how_it_works: "few",
+          description_connect: "fewf",
+        },
       },
     });
   });

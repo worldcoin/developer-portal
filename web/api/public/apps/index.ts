@@ -1,5 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getCDNImageUrl, isValidHostName } from "@/lib/utils";
+import {
+  createLocaliseCategory,
+  createLocaliseField,
+  getCDNImageUrl,
+  isValidHostName,
+} from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
@@ -16,6 +21,7 @@ export async function GET(request: Request) {
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "250", 10), 500); // Optional, max 500 default 250
+  const isApp = platform === "app";
 
   // We only accept requests through the distribution origin
   if (!isValidHostName(request)) {
@@ -40,12 +46,11 @@ export async function GET(request: Request) {
   const client = await getAPIServiceGraphqlClient();
 
   // Anchor: Fetch the country ordering if exists, otherwise get default ordering
-  const { app_rankings, default_app_rankings } = await getAppRankingsSdk(
-    client,
-  ).GetAppRankings({
-    platform,
-    country,
-  });
+  const { app_rankings, default_app_rankings, featured_app_rankings } =
+    await getAppRankingsSdk(client).GetAppRankings({
+      platform,
+      country,
+    });
 
   let rankings = [];
 
@@ -93,8 +98,41 @@ export async function GET(request: Request) {
           )
         : [],
       team_name: app.team.name,
+      category: isApp
+        ? createLocaliseCategory(appMetadata.category)
+        : appMetadata.category,
+      description: isApp
+        ? {
+            overview: createLocaliseField(
+              appMetadata.app_id,
+              "description_overview",
+            ),
+            how_it_works: createLocaliseField(
+              appMetadata.app_id,
+              "description_how_it_works",
+            ),
+            how_to_connect: createLocaliseField(
+              appMetadata.app_id,
+              "description_connect",
+            ),
+          }
+        : JSON.parse(appMetadata.description),
+      world_app_button_text: isApp
+        ? createLocaliseField(appMetadata.app_id, "world_app_button_text")
+        : appMetadata.world_app_button_text,
+      world_app_description: isApp
+        ? createLocaliseField(appMetadata.app_id, "world_app_description")
+        : appMetadata.world_app_description,
     };
   });
 
-  return NextResponse.json({ apps: apps }, { status: 200 });
+  const featured_app_ids = featured_app_rankings?.[0]?.rankings ?? [];
+  const featured_apps = apps.filter((app) =>
+    featured_app_ids.includes(app.app_id),
+  );
+
+  return NextResponse.json(
+    { apps: apps, featured: featured_apps },
+    { status: 200 },
+  );
 }

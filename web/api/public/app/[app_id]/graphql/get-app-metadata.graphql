@@ -14,6 +14,7 @@ query GetAppMetadata($app_id: String!) {
     showcase_img_urls
     hero_image_url
     world_app_description
+    world_app_button_text
     description
     category
     integration_url

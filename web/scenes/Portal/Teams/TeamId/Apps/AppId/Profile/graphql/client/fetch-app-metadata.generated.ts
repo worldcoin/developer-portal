@@ -28,6 +28,7 @@ export type FetchAppMetadataQuery = {
       world_app_description: string;
       category: string;
       is_developer_allow_listing: boolean;
+      world_app_button_text: string;
       integration_url: string;
       app_website_url: string;
       source_code_url: string;
@@ -47,6 +48,7 @@ export type FetchAppMetadataQuery = {
       world_app_description: string;
       category: string;
       is_developer_allow_listing: boolean;
+      world_app_button_text: string;
       integration_url: string;
       app_website_url: string;
       source_code_url: string;
@@ -75,6 +77,7 @@ export const FetchAppMetadataDocument = gql`
         world_app_description
         category
         is_developer_allow_listing
+        world_app_button_text
         integration_url
         app_website_url
         source_code_url
@@ -95,6 +98,7 @@ export const FetchAppMetadataDocument = gql`
         world_app_description
         category
         is_developer_allow_listing
+        world_app_button_text
         integration_url
         app_website_url
         source_code_url

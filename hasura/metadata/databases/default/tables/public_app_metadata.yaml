@@ -113,6 +113,7 @@ select_permissions:
         - verification_status
         - created_at
         - updated_at
+        - world_app_button_text
       filter:
         verification_status:
           _neq: unverified
@@ -135,6 +136,7 @@ select_permissions:
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - verification_status
+        - world_app_button_text
       filter: {}
   - role: user
     permission:
@@ -158,6 +160,7 @@ select_permissions:
         - review_message
         - verification_status
         - updated_at
+        - world_app_button_text
       filter:
         app:
           team:
@@ -207,8 +210,11 @@ update_permissions:
         - review_message
         - verification_status
       filter:
-        verification_status:
-          _eq: awaiting_review
+        _and:
+          - verification_status:
+              _in:
+                - changes_requested
+                - verified
       check:
         _and:
           - verification_status:
@@ -230,6 +236,7 @@ update_permissions:
         - app_website_url
         - source_code_url
         - verification_status
+        - world_app_button_text
       filter:
         _and:
           - verification_status:

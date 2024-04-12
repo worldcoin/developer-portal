@@ -1,4 +1,5 @@
-import { ApolloError, gql } from "@apollo/client";
+import { runCors } from "@/legacy/backend/cors";
+import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import {
   canVerifyForAction,
@@ -10,13 +11,12 @@ import {
   AppModel,
   NullifierModel,
 } from "@/legacy/lib/models";
-import { NextApiRequest, NextApiResponse } from "next";
 import { CanUserVerifyType, EngineType } from "@/legacy/lib/types";
-import { runCors } from "@/legacy/backend/cors";
-import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
-import * as yup from "yup";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { getCDNImageUrl } from "@/lib/utils";
+import { ApolloError, gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 type _Nullifier = Pick<
   NullifierModel,
@@ -225,6 +225,7 @@ export default async function handlePrecheck(
     verified_app_logo: logo_img_url,
     actions: rawAppValues.actions,
   };
+
   // ANCHOR: If the action doesn't exist, create it
   if (!app.actions.length) {
     if (action === null) {

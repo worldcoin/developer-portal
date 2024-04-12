@@ -75,7 +75,7 @@ describe("/api/public/apps", () => {
     );
     const response = await GET(request);
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ apps: [] });
+    expect(await response.json()).toEqual({ apps: [], featured: [] });
   });
 
   test("should return 200 with non-empty rankings for valid platform and country parameters", async () => {
@@ -95,6 +95,14 @@ describe("/api/public/apps", () => {
             logo_img_url: "logo.png",
             hero_image_url: "hero1.png",
             showcase_img_urls: ["showcase1.png"],
+            category: "social",
+            world_app_button_text: "random",
+            world_app_description: "random",
+            description: {
+              how_it_works: "23423",
+              how_to_connect: "4fwfewf",
+              overview: "random string",
+            },
             app: {
               team: {
                 name: "Example Team",
@@ -107,6 +115,14 @@ describe("/api/public/apps", () => {
             logo_img_url: "logo.png",
             hero_image_url: "hero.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            category: "social",
+            world_app_button_text: "random",
+            world_app_description: "random",
+            description: {
+              how_it_works: "fwefw",
+              how_to_connect: "fewfw",
+              overview: "fwefew",
+            },
             app: {
               team: {
                 name: "Example Team",
@@ -118,11 +134,19 @@ describe("/api/public/apps", () => {
             name: "Test App3",
             logo_img_url: "logo.png",
             hero_image_url: "hero.png",
+            world_app_button_text: "random",
+            world_app_description: "random",
             showcase_img_urls: [
               "showcase1.png",
               "showcase2.png",
               "showcase3.png",
             ],
+            category: "social",
+            description: {
+              how_it_works: "random",
+              how_to_connect: "random",
+              overview: "random",
+            },
             app: {
               team: {
                 name: "Example Team",
@@ -145,17 +169,26 @@ describe("/api/public/apps", () => {
     const response = await GET(request);
 
     expect(await response.json()).toEqual({
+      featured: [],
       apps: [
         {
           app_id: "2",
           name: "Test App2",
           logo_img_url: "https://cdn.test.com/2/logo.png",
           hero_image_url: "https://cdn.test.com/2/hero.png",
+          category: "world_id_partner_category_social",
+          description: {
+            how_it_works: "world_id_partner_2_description_how_it_works",
+            how_to_connect: "world_id_partner_2_description_connect",
+            overview: "world_id_partner_2_description_overview",
+          },
           showcase_img_urls: [
             "https://cdn.test.com/2/showcase1.png",
             "https://cdn.test.com/2/showcase2.png",
           ],
           team_name: "Example Team",
+          world_app_button_text: "world_id_partner_2_world_app_button_text",
+          world_app_description: "world_id_partner_2_world_app_description",
         },
         {
           app_id: "1",
@@ -164,6 +197,14 @@ describe("/api/public/apps", () => {
           hero_image_url: "https://cdn.test.com/1/hero1.png",
           showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
           team_name: "Example Team",
+          category: "world_id_partner_category_social",
+          description: {
+            how_it_works: "world_id_partner_1_description_how_it_works",
+            how_to_connect: "world_id_partner_1_description_connect",
+            overview: "world_id_partner_1_description_overview",
+          },
+          world_app_button_text: "world_id_partner_1_world_app_button_text",
+          world_app_description: "world_id_partner_1_world_app_description",
         },
         {
           app_id: "3",
@@ -175,7 +216,15 @@ describe("/api/public/apps", () => {
             "https://cdn.test.com/3/showcase2.png",
             "https://cdn.test.com/3/showcase3.png",
           ],
+          category: "world_id_partner_category_social",
+          description: {
+            how_it_works: "world_id_partner_3_description_how_it_works",
+            how_to_connect: "world_id_partner_3_description_connect",
+            overview: "world_id_partner_3_description_overview",
+          },
           team_name: "Example Team",
+          world_app_button_text: "world_id_partner_3_world_app_button_text",
+          world_app_description: "world_id_partner_3_world_app_description",
         },
       ],
     });
