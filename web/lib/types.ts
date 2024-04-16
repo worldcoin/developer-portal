@@ -35,6 +35,14 @@ export enum AppStatusType {
   Inactive = "inactive",
 }
 
+export enum AppLocaliseKeys {
+  description_overview = "overview",
+  description_how_it_works = "how_it_works",
+  description_connect = "connect",
+  world_app_button_text = "world_app_button_text",
+  world_app_description = "world_app_description",
+}
+
 // Options for the `can_user_verify` attribute in the /precheck endpoint
 export enum CanUserVerifyType {
   Yes = "yes",
