@@ -103,18 +103,12 @@ export async function GET(request: Request) {
         : appMetadata.category,
       description: isApp
         ? {
-            overview: createLocaliseField(
-              appMetadata.app_id,
-              "description_overview",
-            ),
+            overview: createLocaliseField(appMetadata.app_id, "overview"),
             how_it_works: createLocaliseField(
               appMetadata.app_id,
-              "description_how_it_works",
+              "how_it_works",
             ),
-            how_to_connect: createLocaliseField(
-              appMetadata.app_id,
-              "description_connect",
-            ),
+            how_to_connect: createLocaliseField(appMetadata.app_id, "connect"),
           }
         : JSON.parse(appMetadata.description),
       world_app_button_text: isApp
