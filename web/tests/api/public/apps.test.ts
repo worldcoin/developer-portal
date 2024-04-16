@@ -1,4 +1,6 @@
 import { GET } from "@/api/public/apps";
+import { AppLocaliseKeys } from "@/lib/types";
+import { createLocaliseCategory, createLocaliseField } from "@/lib/utils";
 import { NextRequest } from "next/server";
 import { getSdk as getAppMetadataSdk } from "../../../api/public/apps/graphql/get-app-metadata.generated";
 import { getSdk as getAppRankingsSdk } from "../../../api/public/apps/graphql/get-app-rankings.generated";
@@ -176,19 +178,34 @@ describe("/api/public/apps", () => {
           name: "Test App2",
           logo_img_url: "https://cdn.test.com/2/logo.png",
           hero_image_url: "https://cdn.test.com/2/hero.png",
-          category: "world_id_partner_category_social",
+          category: createLocaliseCategory("social"),
           description: {
-            how_it_works: "world_id_partner_2_description_how_it_works",
-            how_to_connect: "world_id_partner_2_description_connect",
-            overview: "world_id_partner_2_description_overview",
+            overview: createLocaliseField(
+              "2",
+              AppLocaliseKeys.description_overview,
+            ),
+            how_it_works: createLocaliseField(
+              "2",
+              AppLocaliseKeys.description_how_it_works,
+            ),
+            how_to_connect: createLocaliseField(
+              "2",
+              AppLocaliseKeys.description_connect,
+            ),
           },
           showcase_img_urls: [
             "https://cdn.test.com/2/showcase1.png",
             "https://cdn.test.com/2/showcase2.png",
           ],
           team_name: "Example Team",
-          world_app_button_text: "world_id_partner_2_world_app_button_text",
-          world_app_description: "world_id_partner_2_world_app_description",
+          world_app_button_text: createLocaliseField(
+            "2",
+            AppLocaliseKeys.world_app_button_text,
+          ),
+          world_app_description: createLocaliseField(
+            "2",
+            AppLocaliseKeys.world_app_description,
+          ),
         },
         {
           app_id: "1",
@@ -197,14 +214,29 @@ describe("/api/public/apps", () => {
           hero_image_url: "https://cdn.test.com/1/hero1.png",
           showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
           team_name: "Example Team",
-          category: "world_id_partner_category_social",
+          category: createLocaliseCategory("social"),
           description: {
-            how_it_works: "world_id_partner_1_description_how_it_works",
-            how_to_connect: "world_id_partner_1_description_connect",
-            overview: "world_id_partner_1_description_overview",
+            how_it_works: createLocaliseField(
+              "1",
+              AppLocaliseKeys.description_how_it_works,
+            ),
+            how_to_connect: createLocaliseField(
+              "1",
+              AppLocaliseKeys.description_connect,
+            ),
+            overview: createLocaliseField(
+              "1",
+              AppLocaliseKeys.description_overview,
+            ),
           },
-          world_app_button_text: "world_id_partner_1_world_app_button_text",
-          world_app_description: "world_id_partner_1_world_app_description",
+          world_app_button_text: createLocaliseField(
+            "1",
+            AppLocaliseKeys.world_app_button_text,
+          ),
+          world_app_description: createLocaliseField(
+            "1",
+            AppLocaliseKeys.world_app_description,
+          ),
         },
         {
           app_id: "3",
@@ -216,15 +248,30 @@ describe("/api/public/apps", () => {
             "https://cdn.test.com/3/showcase2.png",
             "https://cdn.test.com/3/showcase3.png",
           ],
-          category: "world_id_partner_category_social",
+          category: createLocaliseCategory("social"),
           description: {
-            how_it_works: "world_id_partner_3_description_how_it_works",
-            how_to_connect: "world_id_partner_3_description_connect",
-            overview: "world_id_partner_3_description_overview",
+            how_it_works: createLocaliseField(
+              "3",
+              AppLocaliseKeys.description_how_it_works,
+            ),
+            how_to_connect: createLocaliseField(
+              "3",
+              AppLocaliseKeys.description_connect,
+            ),
+            overview: createLocaliseField(
+              "3",
+              AppLocaliseKeys.description_overview,
+            ),
           },
           team_name: "Example Team",
-          world_app_button_text: "world_id_partner_3_world_app_button_text",
-          world_app_description: "world_id_partner_3_world_app_description",
+          world_app_button_text: createLocaliseField(
+            "3",
+            AppLocaliseKeys.world_app_button_text,
+          ),
+          world_app_description: createLocaliseField(
+            "3",
+            AppLocaliseKeys.world_app_description,
+          ),
         },
       ],
     });
