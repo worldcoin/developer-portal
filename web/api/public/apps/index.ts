@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { AppLocaliseKeys } from "@/lib/types";
 import {
   createLocaliseCategory,
   createLocaliseField,
@@ -105,23 +106,29 @@ export async function GET(request: Request) {
         ? {
             overview: createLocaliseField(
               appMetadata.app_id,
-              "description_overview",
+              AppLocaliseKeys.description_overview,
             ),
             how_it_works: createLocaliseField(
               appMetadata.app_id,
-              "description_how_it_works",
+              AppLocaliseKeys.description_how_it_works,
             ),
             how_to_connect: createLocaliseField(
               appMetadata.app_id,
-              "description_connect",
+              AppLocaliseKeys.description_connect,
             ),
           }
         : JSON.parse(appMetadata.description),
       world_app_button_text: isApp
-        ? createLocaliseField(appMetadata.app_id, "world_app_button_text")
+        ? createLocaliseField(
+            appMetadata.app_id,
+            AppLocaliseKeys.world_app_button_text,
+          )
         : appMetadata.world_app_button_text,
       world_app_description: isApp
-        ? createLocaliseField(appMetadata.app_id, "world_app_description")
+        ? createLocaliseField(
+            appMetadata.app_id,
+            AppLocaliseKeys.world_app_description,
+          )
         : appMetadata.world_app_description,
     };
   });
