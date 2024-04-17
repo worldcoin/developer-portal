@@ -1,5 +1,11 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getCDNImageUrl, isValidHostName } from "@/lib/utils";
+import { AppLocaliseKeys } from "@/lib/types";
+import {
+  createLocaliseCategory,
+  createLocaliseField,
+  getCDNImageUrl,
+  isValidHostName,
+} from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
@@ -39,7 +45,29 @@ export async function GET(
   const { app, ...appMetadataReturned } = app_metadata[0];
   const dataToReturn = {
     ...appMetadataReturned,
-    description: JSON.parse(appMetadataReturned.description),
+    description: {
+      overview: createLocaliseField(
+        appMetadataReturned.app_id,
+        AppLocaliseKeys.description_overview,
+      ),
+      how_it_works: createLocaliseField(
+        appMetadataReturned.app_id,
+        AppLocaliseKeys.description_how_it_works,
+      ),
+      how_to_connect: createLocaliseField(
+        appMetadataReturned.app_id,
+        AppLocaliseKeys.description_connect,
+      ),
+    },
+    world_app_button_text: createLocaliseField(
+      appMetadataReturned.app_id,
+      AppLocaliseKeys.world_app_button_text,
+    ),
+    world_app_description: createLocaliseField(
+      appMetadataReturned.app_id,
+      AppLocaliseKeys.world_app_description,
+    ),
+    category: createLocaliseCategory(appMetadataReturned.category),
     logo_img_url: getCDNImageUrl(app_id, appMetadataReturned.logo_img_url),
     hero_image_url: appMetadataReturned.hero_image_url
       ? getCDNImageUrl(app_id, appMetadataReturned?.hero_image_url)
