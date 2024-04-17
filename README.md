@@ -48,3 +48,4 @@ If you need to update anything related to the database (model, permissions, even
 > **Warning** Make sure to only make the changes in the Hasura console (usually `http://localhost:9665`), if you make changes on `http://localhost:8080`the migrations will not be generated and your changes will be lost.
 
 > 💡 The admin secret in stored in `docker-compose.yml` file in the root of the repo.
+
