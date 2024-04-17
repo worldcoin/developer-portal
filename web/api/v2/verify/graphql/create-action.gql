@@ -1,0 +1,27 @@
+mutation VerifyCreateAction(
+  $app_id: String!
+  $external_nullifier: String!
+  $action: String!
+) {
+  insert_action_one(
+    object: {
+      app_id: $app_id
+      external_nullifier: $external_nullifier
+      action: $action
+      name: ""
+      description: ""
+      creation_mode: "dynamic"
+    }
+  ) {
+    id
+    action
+    max_verifications
+    external_nullifier
+    status
+    nullifiers {
+      uses
+      created_at
+      nullifier_hash
+    }
+  }
+}

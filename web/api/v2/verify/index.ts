@@ -4,12 +4,16 @@ import {
   errorValidation,
 } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
+import { generateExternalNullifier } from "@/lib/hashing";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as createActionSdk } from "./graphql/create-action.generated";
+import { getSdk as fetchAPIKeySdk } from "./graphql/fetch-api-key.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
 import { getSdk as insertNullifierSdk } from "./graphql/insert-nullifier.generated";
 import { getSdk as updateNullifierUsesSdk } from "./graphql/update-nullifier-uses.generated";
@@ -44,6 +48,7 @@ const schema = yup.object({
     )
     .strict()
     .optional(),
+  api_key: yup.string().strict().optional(),
 });
 
 export async function POST(
@@ -84,15 +89,100 @@ export async function POST(
   }
 
   const app = appActionResponse.app[0];
+  let action = app.actions[0];
 
   if (!app.actions.length) {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_action",
-      detail: "Action not found.",
-      attribute: "action",
-      req,
+    if (!parsedParams.api_key) {
+      return errorResponse({
+        statusCode: 400,
+        code: "invalid_action",
+        detail: "Action not found.",
+        attribute: "action",
+        req,
+      });
+    }
+
+    const base64ApiKey = Buffer.from(parsedParams.api_key, "base64").toString(
+      "utf-8",
+    );
+
+    const [id, secret] = base64ApiKey.split(":");
+
+    const { api_key_by_pk } = await fetchAPIKeySdk(client).VerifyFetchAPIKey({
+      id,
+      appId: app.id,
     });
+
+    if (!api_key_by_pk) {
+      return errorResponse({
+        statusCode: 404,
+        code: "not_found",
+        detail: "API key not found.",
+        attribute: "api_key",
+        req,
+      });
+    }
+
+    if (!api_key_by_pk.is_active) {
+      return errorResponse({
+        statusCode: 400,
+        code: "api_key_inactive",
+        detail: "API key is inactive.",
+        attribute: "api_key",
+        req,
+      });
+    }
+
+    if (!api_key_by_pk.team.apps.some((a) => a.id === app.id)) {
+      return errorResponse({
+        statusCode: 403,
+        code: "invalid_app",
+        detail: "API key is not valid for this app.",
+        attribute: "api_key",
+        req,
+      });
+    }
+
+    const isAPIKeyValid = verifyHashedSecret(
+      app.id,
+      secret,
+      api_key_by_pk.api_key,
+    );
+
+    if (!isAPIKeyValid) {
+      return errorResponse({
+        statusCode: 403,
+        code: "invalid_api_key",
+        detail: "API key is not valid.",
+        attribute: "api_key",
+        req,
+      });
+    }
+
+    const external_nullifier = generateExternalNullifier(
+      app.id as `app_${string}`,
+      parsedParams.action,
+    ).digest;
+
+    const { insert_action_one } = await createActionSdk(
+      client,
+    ).VerifyCreateAction({
+      app_id: app.id,
+      action: parsedParams.action,
+      external_nullifier,
+    });
+
+    if (!insert_action_one) {
+      return errorResponse({
+        statusCode: 500,
+        code: "internal_server_error",
+        detail: "Action can't be created.",
+        attribute: "action",
+        req,
+      });
+    }
+
+    action = insert_action_one;
   }
 
   if (app.engine !== "cloud") {
@@ -105,10 +195,7 @@ export async function POST(
     });
   }
 
-  const { action, nullifier } = {
-    action: app.actions[0],
-    nullifier: app.actions[0]?.nullifiers?.[0],
-  };
+  const nullifier = action.nullifiers?.[0];
 
   if (action.status === "inactive") {
     return errorResponse({

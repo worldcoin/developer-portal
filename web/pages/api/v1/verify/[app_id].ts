@@ -12,6 +12,7 @@ import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import {
   canVerifyForAction,
   validateRequestSchema,
+  verifyHashedSecret,
 } from "@/legacy/backend/utils";
 
 import { fetchActionForProof, verifyProof } from "@/legacy/backend/verify";
@@ -22,6 +23,7 @@ import {
   VerificationLevel,
 } from "@worldcoin/idkit-core";
 
+import { generateExternalNullifier } from "@/legacy/lib/hashing";
 import { captureEvent } from "@/services/posthogClient";
 import * as yup from "yup";
 
@@ -56,6 +58,8 @@ const schema = yup.object({
     )
     .strict()
     .optional(),
+
+  api_key: yup.string().strict().optional(),
 });
 
 export default async function handleVerify(
@@ -100,7 +104,134 @@ export default async function handleVerify(
   }
 
   const { app } = data;
-  const { action, nullifier } = app;
+  let action = app.action;
+  const { nullifier } = app;
+
+  if (!action) {
+    if (!parsedParams.api_key) {
+      return errorResponse(
+        res,
+        400,
+        "action_not_found",
+        "Action not found.",
+        "action",
+        req,
+      );
+    }
+
+    const base64ApiKey = Buffer.from(parsedParams.api_key, "base64").toString(
+      "utf-8",
+    );
+
+    const [id, secret] = base64ApiKey.split(":");
+
+    const apiKeyResponse = await client.query<{
+      api_key_by_pk?: {
+        id: string;
+        api_key: string;
+        is_active: boolean;
+        team: {
+          apps: Array<{ id: string }>;
+        };
+      } | null;
+    }>({
+      query: fetchApiKey,
+      variables: {
+        id,
+        appId: req.query.app_id?.toString(),
+      },
+    });
+
+    if (!apiKeyResponse.data.api_key_by_pk) {
+      return errorResponse(
+        res,
+        404,
+        "api_key_not_found",
+        "API key not found.",
+        "api_key",
+        req,
+      );
+    }
+
+    const apiKey = apiKeyResponse.data.api_key_by_pk;
+
+    if (!apiKey.is_active) {
+      return errorResponse(
+        res,
+        400,
+        "api_key_inactive",
+        "API key is inactive",
+        "api_key",
+        req,
+      );
+    }
+
+    if (
+      !apiKey.team.apps.some((app) => app.id === req.query.app_id?.toString())
+    ) {
+      return errorResponse(
+        res,
+        400,
+        "api_key_invalid",
+        "API key is invalid for this app.",
+        "api_key",
+        req,
+      );
+    }
+
+    const isAPIKeyValid = verifyHashedSecret(app.id, secret, apiKey.api_key);
+
+    if (!isAPIKeyValid) {
+      return errorResponse(
+        res,
+        400,
+        "api_key_invalid",
+        "API key is invalid",
+        "api_key",
+        req,
+      );
+    }
+
+    const external_nullifier = generateExternalNullifier(
+      app.id as `app_${string}`,
+      parsedParams.action,
+    ).digest;
+
+    const createActionResponse = await client.mutate<{
+      insert_action_one?: {
+        id: string;
+        action: string;
+        max_verifications: number;
+        external_nullifier: string;
+        status: string;
+        nullifiers: Array<{
+          uses: number;
+          created_at: any;
+          nullifier_hash: string;
+        }>;
+      };
+    } | null>({
+      mutation: createAction,
+      variables: {
+        app_id: app.id,
+        external_nullifier,
+        action: parsedParams.action,
+      },
+    });
+
+    if (!createActionResponse.data?.insert_action_one) {
+      return errorResponse(
+        res,
+        400,
+        "action_error",
+        "There was an error creating the action.",
+        "action",
+        req,
+      );
+    }
+
+    action = createActionResponse?.data?.insert_action_one;
+  }
 
   if (action.status === "inactive") {
     return errorResponse(
@@ -304,6 +435,51 @@ const updateNullifierQuery = gql`
       _inc: { uses: 1 }
     ) {
       affected_rows
+    }
+  }
+`;
+
+const createAction = gql`
+  mutation VerifyCreateAction(
+    $app_id: String!
+    $external_nullifier: String!
+    $action: String!
+  ) {
+    insert_action_one(
+      object: {
+        app_id: $app_id
+        external_nullifier: $external_nullifier
+        action: $action
+        name: ""
+        description: ""
+        creation_mode: "dynamic"
+      }
+    ) {
+      id
+      action
+      max_verifications
+      external_nullifier
+      status
+      nullifiers {
+        uses
+        created_at
+        nullifier_hash
+      }
+    }
+  }
+`;
+
+const fetchApiKey = gql`
+  query VerifyFetchAPIKey($id: String!, $appId: String!) {
+    api_key_by_pk(id: $id) {
+      id
+      api_key
+      is_active
+      team {
+        apps(where: { id: { _eq: $appId } }) {
+          id
+        }
+      }
     }
   }
 `;

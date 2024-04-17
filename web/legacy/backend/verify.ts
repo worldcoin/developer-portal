@@ -1,12 +1,12 @@
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { BigNumber, ethers } from "ethers";
-import { IInternalError } from "@/legacy/lib/types";
-import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
-import { sequencerMapping } from "@/lib/utils";
+import { validateABILikeEncoding } from "@/legacy/lib/hashing";
 import { logger } from "@/legacy/lib/logger";
+import { IInternalError } from "@/legacy/lib/types";
+import { sequencerMapping } from "@/lib/utils";
+import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
+import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
-import { validateABILikeEncoding } from "@/legacy/lib/hashing";
+import { BigNumber, ethers } from "ethers";
 
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
