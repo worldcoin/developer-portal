@@ -22,7 +22,6 @@ export async function GET(request: Request) {
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "250", 10), 500); // Optional, max 500 default 250
-  const isApp = platform === "app";
 
   // We only accept requests through the distribution origin
   if (!isValidHostName(request)) {
@@ -99,37 +98,29 @@ export async function GET(request: Request) {
           )
         : [],
       team_name: app.team.name,
-      category: isApp
-        ? createLocaliseCategory(appMetadata.category)
-        : appMetadata.category,
-      description: isApp
-        ? {
-            overview: createLocaliseField(
-              appMetadata.app_id,
-              AppLocaliseKeys.description_overview,
-            ),
-            how_it_works: createLocaliseField(
-              appMetadata.app_id,
-              AppLocaliseKeys.description_how_it_works,
-            ),
-            how_to_connect: createLocaliseField(
-              appMetadata.app_id,
-              AppLocaliseKeys.description_connect,
-            ),
-          }
-        : JSON.parse(appMetadata.description),
-      world_app_button_text: isApp
-        ? createLocaliseField(
-            appMetadata.app_id,
-            AppLocaliseKeys.world_app_button_text,
-          )
-        : appMetadata.world_app_button_text,
-      world_app_description: isApp
-        ? createLocaliseField(
-            appMetadata.app_id,
-            AppLocaliseKeys.world_app_description,
-          )
-        : appMetadata.world_app_description,
+      category: createLocaliseCategory(appMetadata.category),
+      description: {
+        overview: createLocaliseField(
+          appMetadata.app_id,
+          AppLocaliseKeys.description_overview,
+        ),
+        how_it_works: createLocaliseField(
+          appMetadata.app_id,
+          AppLocaliseKeys.description_how_it_works,
+        ),
+        how_to_connect: createLocaliseField(
+          appMetadata.app_id,
+          AppLocaliseKeys.description_connect,
+        ),
+      },
+      world_app_button_text: createLocaliseField(
+        appMetadata.app_id,
+        AppLocaliseKeys.world_app_button_text,
+      ),
+      world_app_description: createLocaliseField(
+        appMetadata.app_id,
+        AppLocaliseKeys.world_app_description,
+      ),
     };
   });
 
