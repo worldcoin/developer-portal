@@ -257,7 +257,7 @@ export const handleVerifyApp = async (
     },
   });
 
-  if (!updateAppMetadata) {
+  if (!updateAppMetadata.update_app_metadata_by_pk) {
     return errorHasuraQuery({
       res,
       req,
