@@ -200,6 +200,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           app_website_url: appMetaData?.app_website_url,
           source_code_url: appMetaData?.source_code_url,
           integration_url: appMetaData?.integration_url,
+          world_app_button_text: appMetaData?.world_app_button_text,
           logo_img_url: appMetaData?.logo_img_url
             ? `logo_img.${_getImageEndpoint(appMetaData.logo_img_url)}`
             : "",
@@ -255,6 +256,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     appMetaData?.showcase_img_urls,
     appMetaData?.source_code_url,
     appMetaData?.world_app_description,
+    appMetaData?.world_app_button_text,
     createEditableRowMutation,
     fetchImagesQuery,
     setUnverifiedImages,

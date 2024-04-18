@@ -61,6 +61,7 @@ insert_permissions:
         - app_website_url
         - source_code_url
         - verification_status
+        - world_app_button_text
 select_permissions:
   - role: api_key
     permission:
@@ -213,7 +214,7 @@ update_permissions:
         _and:
           - verification_status:
               _in:
-                - changes_requested
+                - awaiting_review
                 - verified
       check:
         _and:
