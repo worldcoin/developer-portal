@@ -1546,6 +1546,7 @@ export type App_Metadata = {
   /** An object relationship */
   app: App;
   app_id: Scalars["String"];
+  app_mode: Scalars["String"];
   app_website_url: Scalars["String"];
   category: Scalars["String"];
   created_at: Scalars["timestamptz"];
@@ -1566,6 +1567,7 @@ export type App_Metadata = {
   updated_at: Scalars["timestamptz"];
   verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: Maybe<Scalars["_text"]>;
   world_app_button_text: Scalars["String"];
   world_app_description: Scalars["String"];
 };
@@ -1639,6 +1641,7 @@ export type App_Metadata_Bool_Exp = {
   _or?: InputMaybe<Array<App_Metadata_Bool_Exp>>;
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
+  app_mode?: InputMaybe<String_Comparison_Exp>;
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1659,6 +1662,7 @@ export type App_Metadata_Bool_Exp = {
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  whitelisted_addresses?: InputMaybe<_Text_Comparison_Exp>;
   world_app_button_text?: InputMaybe<String_Comparison_Exp>;
   world_app_description?: InputMaybe<String_Comparison_Exp>;
 };
@@ -1677,6 +1681,7 @@ export enum App_Metadata_Constraint {
 export type App_Metadata_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]>;
+  app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1697,6 +1702,7 @@ export type App_Metadata_Insert_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1705,6 +1711,7 @@ export type App_Metadata_Insert_Input = {
 export type App_Metadata_Max_Fields = {
   __typename?: "app_metadata_max_fields";
   app_id?: Maybe<Scalars["String"]>;
+  app_mode?: Maybe<Scalars["String"]>;
   app_website_url?: Maybe<Scalars["String"]>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
@@ -1727,6 +1734,7 @@ export type App_Metadata_Max_Fields = {
 /** order by max() on columns of table "app_metadata" */
 export type App_Metadata_Max_Order_By = {
   app_id?: InputMaybe<Order_By>;
+  app_mode?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -1750,6 +1758,7 @@ export type App_Metadata_Max_Order_By = {
 export type App_Metadata_Min_Fields = {
   __typename?: "app_metadata_min_fields";
   app_id?: Maybe<Scalars["String"]>;
+  app_mode?: Maybe<Scalars["String"]>;
   app_website_url?: Maybe<Scalars["String"]>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
@@ -1772,6 +1781,7 @@ export type App_Metadata_Min_Fields = {
 /** order by min() on columns of table "app_metadata" */
 export type App_Metadata_Min_Order_By = {
   app_id?: InputMaybe<Order_By>;
+  app_mode?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -1811,6 +1821,7 @@ export type App_Metadata_On_Conflict = {
 export type App_Metadata_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
+  app_mode?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -1831,6 +1842,7 @@ export type App_Metadata_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  whitelisted_addresses?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1844,6 +1856,8 @@ export type App_Metadata_Pk_Columns_Input = {
 export enum App_Metadata_Select_Column {
   /** column name */
   AppId = "app_id",
+  /** column name */
+  AppMode = "app_mode",
   /** column name */
   AppWebsiteUrl = "app_website_url",
   /** column name */
@@ -1884,6 +1898,8 @@ export enum App_Metadata_Select_Column {
   VerificationStatus = "verification_status",
   /** column name */
   VerifiedAt = "verified_at",
+  /** column name */
+  WhitelistedAddresses = "whitelisted_addresses",
   /** column name */
   WorldAppButtonText = "world_app_button_text",
   /** column name */
@@ -1917,6 +1933,7 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_A
 /** input type for updating data in table "app_metadata" */
 export type App_Metadata_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
+  app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1937,6 +1954,7 @@ export type App_Metadata_Set_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1952,6 +1970,7 @@ export type App_Metadata_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type App_Metadata_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
+  app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1972,6 +1991,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1980,6 +2000,8 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
 export enum App_Metadata_Update_Column {
   /** column name */
   AppId = "app_id",
+  /** column name */
+  AppMode = "app_mode",
   /** column name */
   AppWebsiteUrl = "app_website_url",
   /** column name */
@@ -2020,6 +2042,8 @@ export enum App_Metadata_Update_Column {
   VerificationStatus = "verification_status",
   /** column name */
   VerifiedAt = "verified_at",
+  /** column name */
+  WhitelistedAddresses = "whitelisted_addresses",
   /** column name */
   WorldAppButtonText = "world_app_button_text",
   /** column name */

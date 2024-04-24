@@ -137,3 +137,23 @@ export const createLocaliseCategory = (category: string) => {
 export const createLocaliseField = (app_id: string, field: string) => {
   return `world_id_partner_${app_id}_${field}`;
 };
+
+// converts the stringified array of addresses to a format that can be used in a query
+export const formatWhiteListedAddresses = (
+  addresses: string | null | undefined,
+) => {
+  if (!addresses) return null;
+
+  const formattedAddresses = `{${addresses
+    .split(",")
+    .map((address) => `"${address.trim()}"`)
+    .join(",")}}`;
+
+  console.log(formattedAddresses);
+
+  return formattedAddresses;
+};
+
+export const convertArrayToHasusrArray = (array: string[]) => {
+  return `{${array.join(",")}}`;
+};

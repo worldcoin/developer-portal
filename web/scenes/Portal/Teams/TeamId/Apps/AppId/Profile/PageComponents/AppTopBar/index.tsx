@@ -6,6 +6,7 @@ import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { convertArrayToHasusrArray } from "@/lib/utils";
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
@@ -216,6 +217,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 .join(",")}}`
             : null,
           verification_status: "unverified",
+          app_mode: appMetaData?.app_mode,
+          whitelisted_addresses: convertArrayToHasusrArray(
+            appMetaData?.whitelisted_addresses,
+          ),
         },
         refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
@@ -244,24 +249,26 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   }, [
     app,
-    appId,
-    appMetaData?.app_website_url,
-    appMetaData?.category,
-    appMetaData?.description,
-    appMetaData?.hero_image_url,
-    appMetaData?.integration_url,
-    appMetaData?.is_developer_allow_listing,
-    appMetaData?.logo_img_url,
-    appMetaData?.name,
-    appMetaData?.showcase_img_urls,
-    appMetaData?.source_code_url,
-    appMetaData?.world_app_description,
-    appMetaData?.world_app_button_text,
     createEditableRowMutation,
+    appId,
+    appMetaData?.name,
+    appMetaData?.description,
+    appMetaData?.world_app_description,
+    appMetaData?.category,
+    appMetaData?.is_developer_allow_listing,
+    appMetaData?.app_website_url,
+    appMetaData?.source_code_url,
+    appMetaData?.integration_url,
+    appMetaData?.world_app_button_text,
+    appMetaData?.logo_img_url,
+    appMetaData?.hero_image_url,
+    appMetaData?.showcase_img_urls,
+    appMetaData?.app_mode,
+    appMetaData?.whitelisted_addresses,
     fetchImagesQuery,
-    setUnverifiedImages,
-    setViewMode,
     teamId,
+    setViewMode,
+    setUnverifiedImages,
   ]);
 
   // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail

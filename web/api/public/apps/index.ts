@@ -19,6 +19,7 @@ import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generate
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const platform = searchParams.get("platform"); // Required
+  const app_mode = searchParams.get("app_mode"); // Optional
   const country = searchParams.get("country") ?? "default"; // Optional
   const page = parseInt(searchParams.get("page") ?? "1", 10); // Optional
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "250", 10), 500); // Optional, max 500 default 250
@@ -128,9 +129,19 @@ export async function GET(request: Request) {
   const featured_apps = apps.filter((app) =>
     featured_app_ids.includes(app.app_id),
   );
-
-  return NextResponse.json(
-    { apps: apps, featured: featured_apps },
-    { status: 200 },
-  );
+  // If app_mode is provided, filter the apps based on the mode
+  if (app_mode && (app_mode === "mini-app" || app_mode === "external")) {
+    return NextResponse.json(
+      {
+        apps: apps.filter((app) => app.app_mode === app_mode),
+        featured: featured_apps.filter((app) => app.app_mode === app_mode),
+      },
+      { status: 200 },
+    );
+  } else {
+    return NextResponse.json(
+      { apps: apps, featured: featured_apps },
+      { status: 200 },
+    );
+  }
 }
