@@ -467,7 +467,7 @@ describe("/api/public/apps", () => {
             "https://cdn.test.com/3/showcase3.png",
           ],
           whitelisted_addresses: ["0x1234", "0x5678"],
-          app_mode: "mini-app",
+          app_mode: "external",
           category: createLocaliseCategory("social"),
           description: {
             how_it_works: createLocaliseField(
