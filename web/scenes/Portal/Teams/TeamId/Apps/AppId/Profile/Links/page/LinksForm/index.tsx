@@ -170,7 +170,7 @@ export const LinksForm = (props: LinksFormProps) => {
           register={register("source_code_url")}
         />
         <Input
-          label="World App Button Text"
+          label="World App Button Content"
           errors={errors.world_app_button_text}
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="Use Integration"

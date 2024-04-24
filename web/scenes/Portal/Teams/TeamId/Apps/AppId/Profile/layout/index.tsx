@@ -64,6 +64,13 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
             >
               <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
             </Tab>
+            <Tab
+              className="md:py-4"
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/mini-app`}
+              segment={"mini-app"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+            </Tab>
 
             {isEnoughPermissions && (
               <Tab

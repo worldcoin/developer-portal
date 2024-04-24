@@ -62,6 +62,8 @@ insert_permissions:
         - source_code_url
         - verification_status
         - world_app_button_text
+        - whitelisted_addresses
+        - app_mode
 select_permissions:
   - role: api_key
     permission:
@@ -115,6 +117,8 @@ select_permissions:
         - created_at
         - updated_at
         - world_app_button_text
+        - whitelisted_addresses
+        - app_mode
       filter:
         verification_status:
           _neq: unverified
@@ -138,6 +142,8 @@ select_permissions:
         - is_reviewer_world_app_approved
         - verification_status
         - world_app_button_text
+        - whitelisted_addresses
+        - app_mode
       filter: {}
   - role: user
     permission:
@@ -162,6 +168,8 @@ select_permissions:
         - verification_status
         - updated_at
         - world_app_button_text
+        - whitelisted_addresses
+        - app_mode
       filter:
         app:
           team:
@@ -238,6 +246,8 @@ update_permissions:
         - source_code_url
         - verification_status
         - world_app_button_text
+        - whitelisted_addresses
+        - app_mode
       filter:
         _and:
           - verification_status:

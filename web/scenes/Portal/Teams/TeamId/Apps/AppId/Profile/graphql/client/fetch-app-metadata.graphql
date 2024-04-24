@@ -22,6 +22,8 @@ query FetchAppMetadata($id: String!) {
       verified_at
       review_message
       verification_status
+      app_mode
+      whitelisted_addresses
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -43,6 +45,8 @@ query FetchAppMetadata($id: String!) {
       verified_at
       review_message
       verification_status
+      app_mode
+      whitelisted_addresses
     }
   }
 }

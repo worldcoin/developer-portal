@@ -35,6 +35,8 @@ export type FetchAppMetadataQuery = {
       verified_at?: any | null;
       review_message: string;
       verification_status: string;
+      app_mode: string;
+      whitelisted_addresses?: any | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -55,6 +57,8 @@ export type FetchAppMetadataQuery = {
       verified_at?: any | null;
       review_message: string;
       verification_status: string;
+      app_mode: string;
+      whitelisted_addresses?: any | null;
     }>;
   }>;
 };
@@ -84,6 +88,8 @@ export const FetchAppMetadataDocument = gql`
         verified_at
         review_message
         verification_status
+        app_mode
+        whitelisted_addresses
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -105,6 +111,8 @@ export const FetchAppMetadataDocument = gql`
         verified_at
         review_message
         verification_status
+        app_mode
+        whitelisted_addresses
       }
     }
   }
