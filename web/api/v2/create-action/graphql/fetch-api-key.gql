@@ -1,0 +1,12 @@
+query VerifyFetchAPIKey($id: String!, $appId: String!) {
+  api_key_by_pk(id: $id) {
+    id
+    api_key
+    is_active
+    team {
+      apps(where: { id: { _eq: $appId } }) {
+        id
+      }
+    }
+  }
+}
