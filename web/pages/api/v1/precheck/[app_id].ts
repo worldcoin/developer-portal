@@ -104,7 +104,11 @@ const appPrecheckQuery = gql`
 `;
 
 const schema = yup.object().shape({
-  action: yup.string().strict().required("").default(""),
+  action: yup
+    .string()
+    .strict()
+    .required("This attribute is required")
+    .default(""),
 
   nullifier_hash: yup
     .string()
