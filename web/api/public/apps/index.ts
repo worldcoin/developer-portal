@@ -130,7 +130,7 @@ export async function GET(request: Request) {
     featured_app_ids.includes(app.app_id),
   );
   // If app_mode is provided, filter the apps based on the mode
-  if (app_mode) {
+  if (app_mode && (app_mode === "mini-app" || app_mode === "external")) {
     return NextResponse.json(
       {
         apps: apps.filter((app) => app.app_mode === app_mode),
