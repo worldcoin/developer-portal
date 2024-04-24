@@ -100,6 +100,8 @@ describe("/api/public/apps", () => {
             category: "social",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
             description: {
               how_it_works: "23423",
               how_to_connect: "4fwfewf",
@@ -120,6 +122,8 @@ describe("/api/public/apps", () => {
             category: "social",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "external",
             description: {
               how_it_works: "fwefw",
               how_to_connect: "fewfw",
@@ -138,6 +142,8 @@ describe("/api/public/apps", () => {
             hero_image_url: "hero.png",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
             showcase_img_urls: [
               "showcase1.png",
               "showcase2.png",
@@ -179,6 +185,8 @@ describe("/api/public/apps", () => {
           logo_img_url: "https://cdn.test.com/2/logo.png",
           hero_image_url: "https://cdn.test.com/2/hero.png",
           category: createLocaliseCategory("social"),
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "external",
           description: {
             overview: createLocaliseField(
               "2",
@@ -214,6 +222,8 @@ describe("/api/public/apps", () => {
           hero_image_url: "https://cdn.test.com/1/hero1.png",
           showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
           team_name: "Example Team",
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "mini-app",
           category: createLocaliseCategory("social"),
           description: {
             how_it_works: createLocaliseField(
@@ -248,6 +258,8 @@ describe("/api/public/apps", () => {
             "https://cdn.test.com/3/showcase2.png",
             "https://cdn.test.com/3/showcase3.png",
           ],
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "mini-app",
           category: createLocaliseCategory("social"),
           description: {
             how_it_works: createLocaliseField(
@@ -296,6 +308,8 @@ describe("/api/public/apps", () => {
             category: "social",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
             description: {
               how_it_works: "23423",
               how_to_connect: "4fwfewf",
@@ -316,6 +330,8 @@ describe("/api/public/apps", () => {
             category: "social",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "external",
             description: {
               how_it_works: "fwefw",
               how_to_connect: "fewfw",
@@ -334,6 +350,8 @@ describe("/api/public/apps", () => {
             hero_image_url: "hero.png",
             world_app_button_text: "random",
             world_app_description: "random",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "external",
             showcase_img_urls: [
               "showcase1.png",
               "showcase2.png",
@@ -375,6 +393,8 @@ describe("/api/public/apps", () => {
           logo_img_url: "https://cdn.test.com/2/logo.png",
           hero_image_url: "https://cdn.test.com/2/hero.png",
           category: createLocaliseCategory("social"),
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "external",
           description: {
             overview: createLocaliseField(
               "2",
@@ -410,6 +430,8 @@ describe("/api/public/apps", () => {
           hero_image_url: "https://cdn.test.com/1/hero1.png",
           showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
           team_name: "Example Team",
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "mini-app",
           category: createLocaliseCategory("social"),
           description: {
             how_it_works: createLocaliseField(
@@ -444,6 +466,8 @@ describe("/api/public/apps", () => {
             "https://cdn.test.com/3/showcase2.png",
             "https://cdn.test.com/3/showcase3.png",
           ],
+          whitelisted_addresses: ["0x1234", "0x5678"],
+          app_mode: "mini-app",
           category: createLocaliseCategory("social"),
           description: {
             how_it_works: createLocaliseField(
