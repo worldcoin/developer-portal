@@ -100,7 +100,10 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     nullifier_hash = (
-      abi.decode(["uint256"], params.nullifier_hash)[0] as BigNumber
+      abi.decode(
+        ["uint256"],
+        `0x${params.nullifier_hash.slice(2).padStart(64, "0")}`,
+      )[0] as BigNumber
     ).toHexString();
   } catch (error) {
     logger.error("Error create nullifier hash", { error });
@@ -117,7 +120,10 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     merkle_root = (
-      abi.decode(["uint256"], params.merkle_root)[0] as BigNumber
+      abi.decode(
+        ["uint256"],
+        `0x${params.merkle_root.slice(2).padStart(64, "0")}`,
+      )[0] as BigNumber
     ).toHexString();
   } catch (error) {
     logger.error("Error create merkle root", { error });
@@ -134,7 +140,10 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     external_nullifier = (
-      abi.decode(["uint256"], params.external_nullifier)[0] as BigNumber
+      abi.decode(
+        ["uint256"],
+        `0x${params.external_nullifier.slice(2).padStart(64, "0")}`,
+      )[0] as BigNumber
     ).toHexString();
   } catch (error) {
     logger.error("Error create external nullifier", { error });
@@ -151,7 +160,10 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     signal_hash = (
-      abi.decode(["uint256"], params.signal_hash)[0] as BigNumber
+      abi.decode(
+        ["uint256"],
+        `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
+      )[0] as BigNumber
     ).toHexString();
   } catch (error) {
     logger.error("Error create signal hash", { error });

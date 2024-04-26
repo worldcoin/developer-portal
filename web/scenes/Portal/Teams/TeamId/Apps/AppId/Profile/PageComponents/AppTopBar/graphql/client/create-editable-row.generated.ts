@@ -18,6 +18,9 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   app_website_url?: Types.InputMaybe<Types.Scalars["String"]>;
   source_code_url?: Types.InputMaybe<Types.Scalars["String"]>;
   verification_status?: Types.InputMaybe<Types.Scalars["String"]>;
+  world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]>;
+  app_mode?: Types.InputMaybe<Types.Scalars["String"]>;
+  whitelisted_addresses?: Types.InputMaybe<Types.Scalars["_text"]>;
 }>;
 
 export type CreateEditableRowMutation = {
@@ -40,6 +43,9 @@ export const CreateEditableRowDocument = gql`
     $app_website_url: String = ""
     $source_code_url: String = ""
     $verification_status: String = ""
+    $world_app_button_text: String = ""
+    $app_mode: String = ""
+    $whitelisted_addresses: _text = null
   ) {
     insert_app_metadata_one(
       object: {
@@ -56,6 +62,9 @@ export const CreateEditableRowDocument = gql`
         app_website_url: $app_website_url
         source_code_url: $source_code_url
         verification_status: $verification_status
+        world_app_button_text: $world_app_button_text
+        app_mode: $app_mode
+        whitelisted_addresses: $whitelisted_addresses
       }
       on_conflict: {
         constraint: app_metadata_app_id_is_row_verified_key
@@ -72,6 +81,9 @@ export const CreateEditableRowDocument = gql`
           app_website_url
           source_code_url
           verification_status
+          world_app_button_text
+          app_mode
+          whitelisted_addresses
         ]
         where: { verification_status: { _neq: "verified" } }
       }
@@ -111,6 +123,9 @@ export type CreateEditableRowMutationFn = Apollo.MutationFunction<
  *      app_website_url: // value for 'app_website_url'
  *      source_code_url: // value for 'source_code_url'
  *      verification_status: // value for 'verification_status'
+ *      world_app_button_text: // value for 'world_app_button_text'
+ *      app_mode: // value for 'app_mode'
+ *      whitelisted_addresses: // value for 'whitelisted_addresses'
  *   },
  * });
  */

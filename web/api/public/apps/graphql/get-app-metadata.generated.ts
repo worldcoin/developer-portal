@@ -23,6 +23,8 @@ export type GetAppMetadataQuery = {
     hero_image_url: string;
     world_app_description: string;
     world_app_button_text: string;
+    whitelisted_addresses?: any | null;
+    app_mode: string;
     description: string;
     category: string;
     integration_url: string;
@@ -42,6 +44,8 @@ export type GetAppMetadataQuery = {
     hero_image_url: string;
     world_app_description: string;
     world_app_button_text: string;
+    whitelisted_addresses?: any | null;
+    app_mode: string;
     description: string;
     category: string;
     integration_url: string;
@@ -73,6 +77,8 @@ export const GetAppMetadataDocument = gql`
       hero_image_url
       world_app_description
       world_app_button_text
+      whitelisted_addresses
+      app_mode
       description
       category
       integration_url
@@ -103,6 +109,8 @@ export const GetAppMetadataDocument = gql`
       hero_image_url
       world_app_description
       world_app_button_text
+      whitelisted_addresses
+      app_mode
       description
       category
       integration_url

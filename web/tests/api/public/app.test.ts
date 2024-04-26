@@ -27,6 +27,8 @@ jest.mock(
             integration_url: "https://example.com/integration",
             app_website_url: "https://example.com",
             source_code_url: "https://github.com/example/app",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
             app: {
@@ -67,6 +69,8 @@ describe("/api/public/app/[app_id]", () => {
         app_website_url: "https://example.com",
         source_code_url: "https://github.com/example/app",
         team_name: "Example Team",
+        whitelisted_addresses: ["0x1234", "0x5678"],
+        app_mode: "mini-app",
         description: {
           how_it_works: createLocaliseField(
             "1",

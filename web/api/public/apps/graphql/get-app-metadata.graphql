@@ -16,6 +16,8 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     hero_image_url
     world_app_description
     world_app_button_text
+    whitelisted_addresses
+    app_mode
     description
     category
     integration_url
@@ -47,6 +49,8 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     hero_image_url
     world_app_description
     world_app_button_text
+    whitelisted_addresses
+    app_mode
     description
     category
     integration_url
