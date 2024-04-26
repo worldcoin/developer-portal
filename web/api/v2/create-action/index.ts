@@ -1,16 +1,21 @@
 import { errorResponse } from "@/api/helpers/errors";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getAPIKeyGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { ApolloError } from "@apollo/client";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as createDynamicActionSdk } from "./graphql/create-dynamic-action.generated";
+import {
+  CreateDynamicActionMutation,
+  getSdk as createDynamicActionSdk,
+} from "./graphql/create-dynamic-action.generated";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
 const createActionBodySchema = yup.object({
   app_id: yup.string().strict().required(),
   action: yup.string().strict().required(),
+  team_id: yup.string().strict().required(),
 });
 
 export const POST = async (req: NextRequest) => {
@@ -36,10 +41,11 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { app_id } = parsedParams;
-  const base64ApiKey = Buffer.from(api_key, "base64").toString("utf-8");
+  const { app_id, action, team_id } = parsedParams;
+  const keyValue = api_key.replace(/^api_/, "");
+  const base64ApiKey = Buffer.from(keyValue, "base64").toString("utf8");
   const [id, secret] = base64ApiKey.split(":");
-  const client = await getAPIServiceGraphqlClient();
+  const client = await getAPIKeyGraphqlClient({ team_id });
 
   const { api_key_by_pk } = await fetchApiKeySdk(client).VerifyFetchAPIKey({
     id,
@@ -77,7 +83,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   const isAPIKeyValid = verifyHashedSecret(
-    app_id,
+    api_key_by_pk.id,
     secret,
     api_key_by_pk.api_key,
   );
@@ -94,18 +100,46 @@ export const POST = async (req: NextRequest) => {
 
   const external_nullifier = generateExternalNullifier(
     app_id as `app_${string}`,
-    parsedParams.action,
+    action,
   ).digest;
 
-  const { insert_action_one } = await createDynamicActionSdk(
-    client,
-  ).CreateDynamicAction({
-    app_id: app_id,
-    action: parsedParams.action,
-    external_nullifier,
-  });
+  let insertedAction: CreateDynamicActionMutation["insert_action_one"] | null =
+    null;
 
-  if (!insert_action_one) {
+  try {
+    const { insert_action_one } = await createDynamicActionSdk(
+      client,
+    ).CreateDynamicAction({
+      app_id: app_id,
+      action: parsedParams.action,
+      external_nullifier,
+    });
+
+    insertedAction = insert_action_one;
+  } catch (error) {
+    const e = error as {
+      response: { errors: ApolloError["graphQLErrors"] };
+    };
+
+    if (e.response.errors[0].extensions.code === "constraint-violation") {
+      return errorResponse({
+        statusCode: 400,
+        code: "constraint-violation",
+        detail: "Action already exists.",
+        attribute: "action",
+        req,
+      });
+    }
+
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_server_error",
+      detail: "Action can't be created.",
+      req,
+    });
+  }
+
+  if (!insertedAction) {
     return errorResponse({
       statusCode: 500,
       code: "internal_server_error",
@@ -115,5 +149,5 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  return NextResponse.json({ action: insert_action_one }, { status: 200 });
+  return NextResponse.json({ action: insertedAction }, { status: 200 });
 };
