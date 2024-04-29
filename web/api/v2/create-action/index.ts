@@ -1,5 +1,8 @@
 import { errorResponse } from "@/api/helpers/errors";
-import { getAPIKeyGraphqlClient } from "@/api/helpers/graphql";
+import {
+  getAPIKeyGraphqlClient,
+  getAPIServiceGraphqlClient,
+} from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
@@ -13,13 +16,18 @@ import {
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
 const createActionBodySchema = yup.object({
-  app_id: yup.string().strict().required(),
   action: yup.string().strict().required(),
-  team_id: yup.string().strict().required(),
 });
 
-export const POST = async (req: NextRequest) => {
-  const body = await req.json();
+const createActionParamsSchema = yup.object({
+  app_id: yup.string().strict().required(),
+});
+
+export const POST = async (
+  req: NextRequest,
+  { params: rawParams }: { params: { app_id: string } },
+) => {
+  const rawBody = await req.json();
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
   if (!api_key) {
@@ -32,22 +40,45 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema: createActionBodySchema,
-    value: body,
+  const {
+    isValid: isParamsValid,
+    parsedParams: params,
+    handleError: handleParamsValidationError,
+  } = await validateRequestSchema({
+    schema: createActionParamsSchema,
+    value: rawParams,
   });
 
-  if (!isValid) {
-    return handleError(req);
+  if (!isParamsValid) {
+    return handleParamsValidationError(req);
   }
 
-  const { app_id, action, team_id } = parsedParams;
+  const {
+    isValid: isBodyValid,
+    parsedParams: body,
+    handleError: handleBodyValidationError,
+  } = await validateRequestSchema({
+    schema: createActionBodySchema,
+    value: rawBody,
+  });
+
+  if (!isBodyValid) {
+    return handleBodyValidationError(req);
+  }
+
+  const { action, app_id } = {
+    ...body,
+    ...params,
+  };
+
   const keyValue = api_key.replace(/^api_/, "");
   const base64ApiKey = Buffer.from(keyValue, "base64").toString("utf8");
   const [id, secret] = base64ApiKey.split(":");
-  const client = await getAPIKeyGraphqlClient({ team_id });
+  const serviceClient = await getAPIServiceGraphqlClient();
 
-  const { api_key_by_pk } = await fetchApiKeySdk(client).VerifyFetchAPIKey({
+  const { api_key_by_pk } = await fetchApiKeySdk(
+    serviceClient,
+  ).VerifyFetchAPIKey({
     id,
     appId: app_id,
   });
@@ -98,6 +129,9 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const team_id = api_key_by_pk.team.id;
+  const apiKeyClient = await getAPIKeyGraphqlClient({ team_id });
+
   const external_nullifier = generateExternalNullifier(
     app_id as `app_${string}`,
     action,
@@ -108,10 +142,10 @@ export const POST = async (req: NextRequest) => {
 
   try {
     const { insert_action_one } = await createDynamicActionSdk(
-      client,
+      apiKeyClient,
     ).CreateDynamicAction({
       app_id: app_id,
-      action: parsedParams.action,
+      action: body.action,
       external_nullifier,
     });
 

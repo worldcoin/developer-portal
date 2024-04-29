@@ -18,6 +18,7 @@ export type VerifyFetchApiKeyQuery = {
     is_active: boolean;
     team: {
       __typename?: "team";
+      id: string;
       apps: Array<{ __typename?: "app"; id: string }>;
     };
   } | null;
@@ -30,6 +31,7 @@ export const VerifyFetchApiKeyDocument = gql`
       api_key
       is_active
       team {
+        id
         apps(where: { id: { _eq: $appId } }) {
           id
         }
