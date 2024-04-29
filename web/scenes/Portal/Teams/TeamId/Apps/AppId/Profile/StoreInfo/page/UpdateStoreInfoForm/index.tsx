@@ -21,22 +21,32 @@ import { viewModeAtom } from "../../../layout/ImagesProvider";
 import { DescriptionSubFields } from "../../../types";
 import { useUpdateAppStoreInfoMutation } from "../graphql/client/update-store-info.generated";
 
+function noLinks(value: string | undefined) {
+  if (!value) return true;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return !urlRegex.test(value);
+}
+
 const schema = yup.object().shape({
   world_app_description: yup
     .string()
     .max(35, "World app description cannot exceed 35 characters")
+    .test("no-links", "Links not allowed here", noLinks)
     .optional(),
   description_overview: yup
     .string()
     .max(1500, "Overview cannot exceed 1500 characters")
+    .test("no-links", "Links not allowed here", noLinks)
     .required("This section is required"),
   description_how_it_works: yup
     .string()
     .max(1500, "How it works cannot exceed 1500 characters")
+    .test("no-links", "Links not allowed here", noLinks)
     .optional(),
   description_connect: yup
     .string()
     .max(1500, "How to connect cannot exceed 1500 characters")
+    .test("no-links", "Links not allowed here", noLinks)
     .optional(),
 });
 
