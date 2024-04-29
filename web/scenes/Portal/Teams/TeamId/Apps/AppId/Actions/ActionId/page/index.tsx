@@ -43,7 +43,7 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
         </SizingWrapper>
 
         <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
-          <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-2">
+          <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
             <ActionStatsGraph />
 
             {loading ? (

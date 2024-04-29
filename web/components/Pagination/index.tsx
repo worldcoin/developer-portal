@@ -19,7 +19,7 @@ type FooterProps = {
   className?: string;
 };
 
-export const Footer: React.FC<FooterProps> = ({
+export const Pagination: React.FC<FooterProps> = ({
   totalResults,
   currentPage,
   rowsPerPageOptions,
