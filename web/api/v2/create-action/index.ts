@@ -17,6 +17,9 @@ import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
 const createActionBodySchema = yup.object({
   action: yup.string().strict().required(),
+  name: yup.string().strict().optional().default(""),
+  description: yup.string().strict().optional().default(""),
+  max_verifications: yup.number().strict().optional().default(1),
 });
 
 const createActionParamsSchema = yup.object({
@@ -27,7 +30,6 @@ export const POST = async (
   req: NextRequest,
   { params: rawParams }: { params: { app_id: string } },
 ) => {
-  const rawBody = await req.json();
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
   if (!api_key) {
@@ -53,6 +55,8 @@ export const POST = async (
     return handleParamsValidationError(req);
   }
 
+  const rawBody = await req.json();
+
   const {
     isValid: isBodyValid,
     parsedParams: body,
@@ -66,7 +70,7 @@ export const POST = async (
     return handleBodyValidationError(req);
   }
 
-  const { action, app_id } = {
+  const { action, app_id, name, description, max_verifications } = {
     ...body,
     ...params,
   };
@@ -144,9 +148,12 @@ export const POST = async (
     const { insert_action_one } = await createDynamicActionSdk(
       apiKeyClient,
     ).CreateDynamicAction({
-      app_id: app_id,
-      action: body.action,
+      app_id,
+      action,
       external_nullifier,
+      name,
+      description,
+      max_verifications,
     });
 
     insertedAction = insert_action_one;

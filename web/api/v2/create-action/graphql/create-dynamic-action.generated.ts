@@ -8,6 +8,9 @@ export type CreateDynamicActionMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
   external_nullifier: Types.Scalars["String"];
   action: Types.Scalars["String"];
+  name: Types.Scalars["String"];
+  description: Types.Scalars["String"];
+  max_verifications: Types.Scalars["Int"];
 }>;
 
 export type CreateDynamicActionMutation = {
@@ -16,6 +19,8 @@ export type CreateDynamicActionMutation = {
     __typename?: "action";
     id: string;
     action: string;
+    name: string;
+    description: string;
     max_verifications: number;
     external_nullifier: string;
     status: string;
@@ -33,19 +38,25 @@ export const CreateDynamicActionDocument = gql`
     $app_id: String!
     $external_nullifier: String!
     $action: String!
+    $name: String!
+    $description: String!
+    $max_verifications: Int!
   ) {
     insert_action_one(
       object: {
         app_id: $app_id
         external_nullifier: $external_nullifier
         action: $action
-        name: ""
-        description: ""
+        name: $name
+        description: $description
+        max_verifications: $max_verifications
         creation_mode: "dynamic"
       }
     ) {
       id
       action
+      name
+      description
       max_verifications
       external_nullifier
       status
