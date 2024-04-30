@@ -167,7 +167,7 @@ describe("/api/v2/create-action [error cases]", () => {
   it("returns 404 if api key not exists", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validAppId),
-      api_key: "invalid-token",
+      api_key: (Math.random() * 10 ** 10).toFixed(),
       body: validBody,
     });
 
