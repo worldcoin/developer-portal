@@ -155,7 +155,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   return (
     <div
       className={clsx(
-        "fixed inset-0 grid w-full justify-center bg-white",
+        "fixed inset-0 z-10 grid w-full justify-center bg-white",
         className,
       )}
     >
