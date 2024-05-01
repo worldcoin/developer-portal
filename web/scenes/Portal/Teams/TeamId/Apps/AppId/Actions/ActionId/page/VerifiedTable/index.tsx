@@ -1,11 +1,7 @@
 "use client";
-import { Table } from "@/components/Table";
-import { Body } from "@/components/Table/Body";
-import { Footer } from "@/components/Table/Footer";
-import { Header } from "@/components/Table/Header";
-import { Row } from "@/components/Table/Row";
+import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { VerifiedRow } from "./VerifiedRow";
 
 export type NullifierItem = {
@@ -58,12 +54,6 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     [],
   );
 
-  const headers = [
-    <span key={0}>Human</span>,
-    <span key={1}>Uses</span>,
-    <span key={2}>Time</span>,
-  ];
-
   // Update total results count when nullifiers change
   useEffect(() => {
     setTotalResultsCount(nullifiers.length);
@@ -86,7 +76,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
     [logos],
   );
 
-  const actionsToRender = useMemo(() => {
+  const paginatedNullifiers = useMemo(() => {
     if (!nullifiers) {
       return [];
     }
@@ -95,24 +85,15 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
 
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    const paginatedNullifiers = filteredNullifiers.slice(startIndex, endIndex);
-
-    return paginatedNullifiers.map(
-      (nullifier: NullifierItem, index: number) => {
-        return VerifiedRow({
-          nullifier: nullifier,
-          key: index,
-          logo: _selectImage(nullifier.nullifier_hash),
-        });
-      },
-    );
-  }, [nullifiers, currentPage, rowsPerPage, _selectImage]);
+    return filteredNullifiers.slice(startIndex, endIndex);
+  }, [nullifiers, currentPage, rowsPerPage]);
 
   return (
     <div className="flex w-full items-center justify-end">
       <div className="grid w-full gap-y-6">
-        <div className="flex items-center justify-start gap-x-2">
+        <div className="mt-6 flex items-center justify-start gap-x-2">
           <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
+
           <Typography
             variant={TYPOGRAPHY.R5}
             className="w-8 rounded-xl bg-grey-100 py-1 text-center"
@@ -120,26 +101,34 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
             {nullifiers.length}
           </Typography>
         </div>
+
         <div className="no-scrollbar w-full overflow-auto">
-          <Table
-            footer={
-              <Footer
-                totalResults={totalResultsCount}
-                currentPage={currentPage}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={rowsPerPageOptions}
-                handlePageChange={handlePageChange}
-                handleRowsPerPageChange={handleRowsPerPageChange}
-              />
-            }
-          >
-            <Header headers={headers} />
-            <Body>
-              {actionsToRender.map((rowData: ReactNode[], index: number) => {
-                return <Row row={rowData} key={index} />;
-              })}
-            </Body>
-          </Table>
+          <div className="grid md:grid-cols-[auto_auto_min-content]">
+            <div className="text-left text-xs font-[400] text-grey-400 max-md:flex max-md:justify-between md:contents md:[&>*]:border-b md:[&>*]:border-grey-100">
+              <div className="py-3 pr-2 max-md:pl-5">Human</div>
+              <div className="px-2 py-3 max-md:pr-5">Uses</div>
+              <div className="py-3 pl-2 max-md:hidden max-md:px-4">Time</div>
+            </div>
+
+            <div className="max-md:grid max-md:gap-y-2 md:contents">
+              {paginatedNullifiers.map((nullifier, index) => (
+                <VerifiedRow
+                  nullifier={nullifier}
+                  key={index}
+                  logo={_selectImage(nullifier.nullifier_hash)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Pagination
+            totalResults={totalResultsCount}
+            currentPage={currentPage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={rowsPerPageOptions}
+            handlePageChange={handlePageChange}
+            handleRowsPerPageChange={handleRowsPerPageChange}
+          />
         </div>
       </div>
     </div>

@@ -183,6 +183,10 @@ export const ActionStatsGraph = () => {
 
   return (
     <div className="grid gap-y-6">
+      <Typography className="mt-6 block" variant={TYPOGRAPHY.H7}>
+        Overview
+      </Typography>
+
       <div className="flex flex-col items-center justify-between gap-y-4 md:flex-row">
         <div className="flex w-full items-center gap-x-6">
           <StatCard
