@@ -37,6 +37,7 @@ insert_permissions:
       columns:
         - action
         - app_id
+        - creation_mode
         - description
         - external_nullifier
         - kiosk_enabled
@@ -90,6 +91,7 @@ select_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
+        - status
         - updated_at
       filter:
         app:

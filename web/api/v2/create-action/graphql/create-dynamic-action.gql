@@ -1,0 +1,33 @@
+mutation CreateDynamicAction(
+  $app_id: String!
+  $external_nullifier: String!
+  $action: String!
+  $name: String!
+  $description: String!
+  $max_verifications: Int!
+) {
+  insert_action_one(
+    object: {
+      app_id: $app_id
+      external_nullifier: $external_nullifier
+      action: $action
+      name: $name
+      description: $description
+      max_verifications: $max_verifications
+      creation_mode: "dynamic"
+    }
+  ) {
+    id
+    action
+    name
+    description
+    max_verifications
+    external_nullifier
+    status
+    nullifiers {
+      uses
+      created_at
+      nullifier_hash
+    }
+  }
+}

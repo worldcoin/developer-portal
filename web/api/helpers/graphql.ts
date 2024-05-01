@@ -1,6 +1,6 @@
 import "server-only";
 
-import { generateServiceJWT } from "@/api/helpers/jwts";
+import { generateAPIKeyJWT, generateServiceJWT } from "@/api/helpers/jwts";
 import { GraphQLClient } from "graphql-request";
 
 /**
@@ -12,6 +12,14 @@ export const getAPIServiceGraphqlClient = async () => {
   return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
     headers: {
       authorization: `Bearer ${await generateServiceJWT()}`,
+    },
+  });
+};
+
+export const getAPIKeyGraphqlClient = async (params: { team_id: string }) => {
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
+    headers: {
+      authorization: `Bearer ${await generateAPIKeyJWT(params.team_id)}`,
     },
   });
 };

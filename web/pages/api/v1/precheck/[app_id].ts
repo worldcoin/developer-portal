@@ -14,7 +14,7 @@ import {
 import { CanUserVerifyType, EngineType } from "@/legacy/lib/types";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { getCDNImageUrl } from "@/lib/utils";
-import { ApolloError, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
 
@@ -103,34 +103,12 @@ const appPrecheckQuery = gql`
   }
 `;
 
-const createActionQuery = gql`
-  mutation PrecheckCreateAction(
-    $app_id: String!
-    $external_nullifier: String!
-    $action: String!
-  ) {
-    insert_action_one(
-      object: {
-        app_id: $app_id
-        external_nullifier: $external_nullifier
-        action: $action
-        name: ""
-        description: ""
-        creation_mode: "dynamic"
-      }
-    ) {
-      external_nullifier
-      name
-      description
-      max_verifications
-      max_accounts_per_user
-      action
-    }
-  }
-`;
-
 const schema = yup.object().shape({
-  action: yup.string().strict().nullable().default(""),
+  action: yup
+    .string()
+    .strict()
+    .required("This attribute is required")
+    .default(""),
 
   nullifier_hash: yup
     .string()
@@ -226,45 +204,16 @@ export default async function handlePrecheck(
     actions: rawAppValues.actions,
   };
 
-  // ANCHOR: If the action doesn't exist, create it
+  // ANCHOR: If the action doesn't exist return error
   if (!app.actions.length) {
-    if (action === null) {
-      return errorResponse(
-        res,
-        400,
-        "required",
-        "This attribute is required for new actions.",
-        "action",
-        req,
-      );
-    }
-
-    try {
-      const createActionResponse = await client.mutate({
-        mutation: createActionQuery,
-        variables: {
-          app_id,
-          action,
-          external_nullifier,
-        },
-        errorPolicy: "none",
-      });
-      app.actions.push(createActionResponse.data.insert_action_one);
-    } catch (e) {
-      const error = e as ApolloError;
-      if (
-        error.graphQLErrors?.[0]?.extensions?.code === "constraint-violation"
-      ) {
-        return errorResponse(
-          res,
-          400,
-          "external_nullifier_mismatch",
-          "This action already exists but the external nullifier does not match. Please send the correct external nullifier and action.",
-          "external_nullifier",
-          req,
-        );
-      }
-    }
+    return errorResponse(
+      res,
+      400,
+      "required",
+      "This attribute is required for new actions.",
+      "action",
+      req,
+    );
   }
 
   const actionItem = app.actions[0];
