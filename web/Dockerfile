@@ -1,20 +1,28 @@
-# This Dockerfile is used to build the production image
-# from https://github.com/vercel/next.js/blob/474b115e6d903394d58a51eef97ffa4f2ae2ce70/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 node:18-alpine AS base
-RUN wget -qO /bin/pnpm "https://github.com/pnpm/pnpm/releases/latest/download/pnpm-linuxstatic-x64" && chmod +x /bin/pnpm
+# https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk upgrade
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk update && apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN corepack enable pnpm && pnpm i --frozen-lockfile
+# Server depencies are runtime depencies required for running the Node.JS server, bundled separately
+# this includes logging dependencies
+FROM base AS server_deps
+WORKDIR /app
+
+# TODO: Can be further optimized to remove next peer dependency
+RUN yarn add next-logger dd-trace@5.9.0
 
 # Rebuild the source code only when needed
-FROM base AS runner
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
 # Temporary env vars required for building
 ARG ASSETS_S3_BUCKET_NAME=""
@@ -31,20 +39,40 @@ ENV GENERAL_SECRET_KEY unsafe_test_key
 ENV HASURA_GRAPHQL_JWT_SECRET '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
 ENV JWT_ISSUER invalid.localhost
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN corepack enable pnpm && pnpm run build;
+
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
-RUN chown -R nextjs:nodejs /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
-# TODO: Leverage Next.JS standalone output to significantly reduce image size
-RUN pnpm build
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Change ownership of the .next directory to nextjs user
-RUN chown -R nextjs:nodejs /app/.next
+COPY --from=builder /app/public ./public
 
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=server_deps --chown=nextjs:nodejs /app/node_modules/. ./node_modules/.
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Source maps are enabled to provide helpful error stacks
+ENV NODE_OPTIONS='--enable-source-maps -r dd-trace/init -r next-logger'
+ENV NODE_ENV production
+
+# Final config
 USER nextjs
 
 EXPOSE 3000
 
-CMD [ "pnpm" , "start" ]
+ENV PORT 3000
+# set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
+
+# server.js is created by next build from the standalone output
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
+CMD ["node", "server.js"]
