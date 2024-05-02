@@ -16,7 +16,7 @@ FROM base AS server_deps
 WORKDIR /app
 
 # TODO: Can be further optimized to remove next peer dependency
-RUN yarn add next-logger dd-trace@5.9.0
+RUN yarn add next-logger dd-trace@5.12.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
