@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
-      - name: Set up Node 18
+      - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 
@@ -45,12 +45,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
-      - name: Set up Node 18
+      - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 
@@ -96,12 +96,12 @@ jobs:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
-      - name: Set up Node 18
+      - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 
@@ -123,7 +123,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
@@ -132,10 +132,10 @@ jobs:
         run: |
           docker-compose -f ../docker-compose-test.yaml up -d hasura_test
 
-      - name: Set up Node 18
+      - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 
@@ -157,12 +157,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
-      - name: Set up Node 18
+      - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
 

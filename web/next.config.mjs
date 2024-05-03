@@ -11,7 +11,7 @@ const publicAppURL =
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-
+  output: "standalone",
   images: {
     // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
     remotePatterns: [

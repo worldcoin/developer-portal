@@ -48,7 +48,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const params = useParams();
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
-  const teamId = params?.teamId as `team_${string}`;
 
   const {
     control,

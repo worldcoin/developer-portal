@@ -45,29 +45,31 @@ export const ActionDangerZoneContent = (props: {
     try {
       const result = await deleteActionQuery({
         variables: { id: action?.id ?? "" },
-
         refetchQueries: [
           {
             query: GetActionsDocument,
-            variables: { app_id: appId },
+            variables: {
+              app_id: appId,
+              condition: {},
+            },
+            fetchPolicy: "network-only", // No reason to pull cache as we deleted an action
           },
         ],
-
         awaitRefetchQueries: true,
       });
 
       if (result instanceof Error) {
         throw result;
       }
-
-      router.replace(`..`);
+      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
+      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
     } catch (error) {
       console.error(error);
       return toast.error("Unable to delete action");
     }
 
     toast.success(`${action?.name} was deleted.`);
-  }, [action?.id, action?.name, appId, deleteActionQuery, router]);
+  }, [action?.id, action?.name, appId, deleteActionQuery, router, teamId]);
 
   return (
     <div>

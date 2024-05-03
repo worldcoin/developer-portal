@@ -30,7 +30,7 @@
     "jotai": "^2.6.4",
     "jsdom": "^24.0.0",
     "json5": "^2.2.3",
-    "next": "14.1.0",
+    "next": "14.2.3",
     "next-safe": "^3.5.0",
     "next-useragent": "^2.8.0",
     "posthog-js": "^1.105.6",
@@ -95,7 +95,8 @@
     "whatwg-fetch": "^3.6.20"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=8.15.8"
   },
   "license": "MIT",
   "name": "worldcoin-developer-portal",
