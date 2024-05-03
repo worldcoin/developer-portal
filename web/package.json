@@ -95,7 +95,8 @@
     "whatwg-fetch": "^3.6.20"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=8.15.8"
   },
   "license": "MIT",
   "name": "worldcoin-developer-portal",
