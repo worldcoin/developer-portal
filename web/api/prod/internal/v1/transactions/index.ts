@@ -18,11 +18,12 @@ export const GET = async () => {
     } catch (error) {
       data = null;
     }
+    const headers = Object.fromEntries(response.headers.entries());
 
     return new NextResponse(JSON.stringify(data), {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers: headers,
     });
   } catch (error) {
     if (error instanceof Error) {
