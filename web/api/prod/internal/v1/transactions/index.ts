@@ -5,14 +5,36 @@ export const GET = async () => {
     return NextResponse.json({ error: "Missing environment" }, { status: 500 });
   }
 
-  const res = await fetch(process.env.NEXT_SERVER_PAYMENTS_TEST_ENDPOINT);
-
-  if (res.status !== 200) {
-    return NextResponse.json(
-      { error: "Failed to fetch data" },
-      { status: 500 },
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_SERVER_PAYMENTS_TEST_ENDPOINT}?nocache=${new Date().getTime().toString()}`,
+      { next: { revalidate: 0 } },
     );
-  }
 
-  return NextResponse.json({ success: true }, { status: 200 });
+    let data: any = null;
+
+    try {
+      data = await response.json();
+    } catch (error) {
+      data = null;
+    }
+
+    return new NextResponse(JSON.stringify(data), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return new NextResponse(JSON.stringify({ error: error.message }), {
+        status: 500,
+        statusText: "Internal Server Error",
+      });
+    }
+
+    return new NextResponse(JSON.stringify({ error: "Unknown error" }), {
+      status: 500,
+      statusText: "Internal Server Error",
+    });
+  }
 };
