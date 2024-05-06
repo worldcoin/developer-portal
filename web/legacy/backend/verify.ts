@@ -276,7 +276,7 @@ export const parseProofInputs = (params: IInputParams) => {
       signal_hash = (
         abi.decode(
           ["uint256"],
-          `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
+          `0x${params.signal.slice(2).padStart(64, "0")}`,
         )[0] as BigNumber
       ).toHexString();
     } catch (error) {
