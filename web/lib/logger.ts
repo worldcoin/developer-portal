@@ -63,7 +63,10 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
     return {};
   }
 
-  const ip = req.socket.remoteAddress;
+  const ip =
+    req.socket?.remoteAddress ||
+    req.headers["x-forwarded-for"] ||
+    "IP not available";
   const url = req.url?.replace(/\?.*$/, "");
   const method = req.method;
   const userAgent = req.headers["user-agent"];
