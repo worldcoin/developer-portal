@@ -144,7 +144,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
             </DecoratedButton>
 
             <DecoratedButton
-              type="submit"
+              type="button"
               className="order-1 w-full py-3 md:order-2"
               onClick={() => setOpenDeleteModal(false)}
             >
