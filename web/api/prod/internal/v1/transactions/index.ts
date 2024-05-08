@@ -1,39 +1,61 @@
+import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextResponse } from "next/server";
 
+const signedFetch = createSignedFetcher({
+  service: "execute-api",
+  region: "us-east-1",
+});
+
 export const GET = async () => {
+  // NOTE: Ensure the environment variable is present
   if (!process.env.NEXT_SERVER_PAYMENTS_TEST_ENDPOINT) {
-    return NextResponse.json({ error: "Missing environment" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          "Missing NEXT_SERVER_PAYMENTS_TEST_ENDPOINT environment variable",
+      },
+      { status: 500 },
+    );
   }
 
+  const url = `${process.env.NEXT_SERVER_PAYMENTS_TEST_ENDPOINT}?nocache=${new Date().getTime().toString()}`;
+
   try {
-    const response = await fetch(
-      `${process.env.NEXT_SERVER_PAYMENTS_TEST_ENDPOINT}?nocache=${new Date().getTime().toString()}`,
-      { next: { revalidate: 0 } },
-    );
+    const response = await signedFetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    let data: any = null;
-
+    let data = null;
     try {
       data = await response.json();
     } catch (error) {
-      data = null;
+      console.error("Error parsing JSON:", error);
+
+      return new NextResponse(
+        JSON.stringify({ error: "Failed to parse JSON response" }),
+        {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+        },
+      );
     }
-    const headers = Object.fromEntries(response.headers.entries());
 
     return new NextResponse(JSON.stringify(data), {
       status: response.status,
       statusText: response.statusText,
-      headers: headers,
+      headers: Object.fromEntries(response.headers.entries()),
     });
   } catch (error) {
-    if (error instanceof Error) {
-      return new NextResponse(JSON.stringify({ error: error.message }), {
-        status: 500,
-        statusText: "Internal Server Error",
-      });
-    }
+    console.error("Request failed:", error);
 
-    return new NextResponse(JSON.stringify({ error: "Unknown error" }), {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,
       statusText: "Internal Server Error",
     });
