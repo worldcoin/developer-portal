@@ -51,6 +51,7 @@
     "RSASSA",
     "secp256k1",
     "signup",
+    "sigv",
     "testid",
     "timestamptz",
     "toastify",
