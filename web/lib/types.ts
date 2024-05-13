@@ -136,3 +136,17 @@ export enum KioskScreen {
   VerificationError,
   InvalidRequest,
 }
+
+export type TransactionMetadata = {
+  transactionId: string;
+  transactionHash: string | null;
+  transactionStatus: string;
+  referenceId: string;
+  miniappId: string;
+  updatedAt: string;
+  network: string;
+  fromWalletAddress: string;
+  recipientAddress: string;
+  inputToken: string;
+  inputTokenAmount: string;
+};
