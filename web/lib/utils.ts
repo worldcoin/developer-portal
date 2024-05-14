@@ -157,3 +157,14 @@ export const formatWhiteListedAddresses = (
 export const convertArrayToHasusrArray = (array: string[]) => {
   return `{${array.join(",")}}`;
 };
+
+export const createTransactionHashUrl = (
+  transactionHash: string | null,
+  network: string,
+) => {
+  if (!transactionHash) return "";
+  if (network === "optimism") {
+    return `https://optimistic.etherscan.io/tx/${transactionHash}`;
+  }
+  return "Invalid network";
+};

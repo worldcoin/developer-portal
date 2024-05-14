@@ -1,15 +1,16 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { BottomBar } from "@/components/BottomBar";
+import { AppIcon } from "@/components/Icons/AppIcon";
+import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
+import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
+import { TransactionIcon } from "@/components/Icons/TransactionIcon";
+import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
-import { BottomBar } from "@/components/BottomBar";
-import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
-import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
-import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
-import { AppIcon } from "@/components/Icons/AppIcon";
 
 type Params = {
   teamId?: string;
@@ -70,6 +71,13 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
             >
               <Typography variant={TYPOGRAPHY.R4}>App profile</Typography>
             </Tab>
+            <Tab
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/transactions`}
+              underlined
+              segment={"transactions"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
+            </Tab>
           </Tabs>
         </SizingWrapper>
       </div>
@@ -81,28 +89,34 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
           href={`/teams/${params!.teamId}/apps/${params!.appId}`}
           segment={null}
         >
-          <DashboardSquareIcon />
+          <DashboardSquareIcon className="size-7" />
         </BottomBar.Link>
 
         <BottomBar.Link
           href={`/teams/${params!.teamId}/apps/${params!.appId}/actions`}
           segment={"actions"}
         >
-          <IncognitoIcon />
+          <IncognitoIcon className="size-7" />
         </BottomBar.Link>
 
         <BottomBar.Link
           href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
           segment={"sign-in-with-world-id"}
         >
-          <UserAccountIcon />
+          <UserAccountIcon className="size-7" />
         </BottomBar.Link>
 
         <BottomBar.Link
           href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
           segment={"profile"}
         >
-          <AppIcon />
+          <AppIcon className="size-7" />
+        </BottomBar.Link>
+        <BottomBar.Link
+          href={`/teams/${params!.teamId}/apps/${params!.appId}/transactions`}
+          segment={"transactions"}
+        >
+          <TransactionIcon className="size-7" />
         </BottomBar.Link>
       </BottomBar>
     </div>
