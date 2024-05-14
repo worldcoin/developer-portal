@@ -7,9 +7,9 @@ export const getTransactionData = async (
   transactionId?: string,
 ): Promise<TransactionMetadata[]> => {
   try {
-    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniappId=${appId}`;
+    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}`;
     if (transactionId) {
-      url += `&transactionId=${transactionId}`;
+      url += `&transaction-id=${transactionId}`;
     }
     const response = await fetch(url, {
       method: "GET",
