@@ -19,6 +19,7 @@ import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { captureEvent } from "@/services/posthogClient";
 import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -305,6 +306,14 @@ export default async function handleOIDCAuthorize(
       logger.error("Error inserting nullifier", { req, error });
     }
   }
+
+  await captureEvent({
+    event: "world_id_sign_in_success",
+    distinctId: app.id,
+    properties: {
+      verification_level: verification_level,
+    },
+  });
 
   res.status(200).json(response);
 }
