@@ -22,7 +22,6 @@ select_permissions:
         - created_at
         - id
         - nullifier_hash
-        - uses
       filter:
         action:
           app:

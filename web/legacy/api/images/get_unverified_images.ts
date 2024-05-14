@@ -22,6 +22,8 @@ export type ImageGetAllUnverifiedImagesResponse = {
  * @param req
  * @param res
  */
+
+// TODO: When we migrate this to new API, should convert to GET
 export const handleGetAllUnverifiedImages = async (
   req: NextApiRequest,
   res: NextApiResponse,
@@ -31,10 +33,12 @@ export const handleGetAllUnverifiedImages = async (
       return;
     }
 
-    if (req.method !== "GET") {
+    if (req.method !== "POST") {
       return errorNotAllowed(req.method, res, req);
     }
-    const body = JSON.parse(req.body);
+
+    const body = req.body;
+
     if (body?.action.name !== "get_all_unverified_images") {
       return errorHasuraQuery({
         res,
@@ -43,7 +47,6 @@ export const handleGetAllUnverifiedImages = async (
         code: "invalid_action",
       });
     }
-
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
@@ -74,6 +77,7 @@ export const handleGetAllUnverifiedImages = async (
         code: "required",
       });
     }
+
     const client = await getAPIServiceGraphqlClient();
     const { app: appInfo } = await getUnverifiedImagesSDK(
       client,
@@ -96,12 +100,15 @@ export const handleGetAllUnverifiedImages = async (
     if (!process.env.ASSETS_S3_REGION) {
       throw new Error("AWS Region must be set.");
     }
+
     const s3Client = new S3Client({
       region: process.env.ASSETS_S3_REGION,
     });
+
     if (!process.env.ASSETS_S3_BUCKET_NAME) {
       throw new Error("AWS Bucket Name must be set.");
     }
+
     const objectKey = `unverified/${app_id}/`;
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
     const urlPromises = [];
@@ -109,6 +116,8 @@ export const handleGetAllUnverifiedImages = async (
       Bucket: bucketName,
       Key: objectKey + app.logo_img_url,
     });
+
+    console.log("here");
     // We check for any image values that are defined in the unverified row and generate a signed URL for that image
     if (app.logo_img_url) {
       urlPromises.push(
@@ -147,11 +156,13 @@ export const handleGetAllUnverifiedImages = async (
     } else {
       urlPromises.push({ showcase_img_urls: [] });
     }
+
     const signedUrls = await Promise.all(urlPromises);
     const formattedSignedUrl = signedUrls.reduce(
       (a, urlObj) => ({ ...a, ...urlObj }),
       {},
     );
+
     res.status(200).json({
       ...formattedSignedUrl,
     });

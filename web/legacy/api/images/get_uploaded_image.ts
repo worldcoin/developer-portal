@@ -22,6 +22,8 @@ type RequestQueryParams = {
  * @param req
  * @param res
  */
+
+// TODO: When we migrate this to new API, should convert to GET
 export const handleImageGet = async (
   req: NextApiRequest,
   res: NextApiResponse,
@@ -31,11 +33,11 @@ export const handleImageGet = async (
       return;
     }
 
-    if (!req.method || req.method !== "GET") {
+    if (!req.method || req.method !== "POST") {
       return errorNotAllowed(req.method, res, req);
     }
 
-    const body = JSON.parse(req.body);
+    const body = req.body;
     if (body?.action.name !== "get_uploaded_image") {
       return errorHasuraQuery({
         res,

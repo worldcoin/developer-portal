@@ -30,6 +30,8 @@ const schema = yup.object({
  * @param req
  * @param res
  */
+
+// TODO: When we migrate this to new API, should convert to GET
 export const handleGetAppReviewImages = async (
   req: NextApiRequest,
   res: NextApiResponse,
@@ -47,11 +49,11 @@ export const handleGetAppReviewImages = async (
       return;
     }
 
-    if (req.method !== "GET") {
+    if (req.method !== "POST") {
       return errorNotAllowed(req.method, res, req);
     }
 
-    const body = JSON.parse(req.body);
+    const body = req.body;
 
     if (body?.action.name !== "get_app_review_images") {
       return errorHasuraQuery({
