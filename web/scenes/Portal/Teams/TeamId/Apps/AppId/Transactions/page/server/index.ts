@@ -15,13 +15,13 @@ export const getTransactionData = async (
       method: "GET",
     });
 
+    const data = await response.json();
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch transaction data. Status: ${response.status}`,
+        `Failed to fetch transaction data. Status: ${response.status}. Error: ${data}`,
       );
     }
 
-    const data = await response.json();
     console.log(data); // Keep for now since we can only test on staging
     return data;
   } catch (error) {
