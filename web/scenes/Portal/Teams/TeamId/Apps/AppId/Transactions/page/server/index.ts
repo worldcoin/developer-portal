@@ -6,17 +6,26 @@ export const getTransactionData = async (
   appId: string,
   transactionId?: string,
 ): Promise<TransactionMetadata[]> => {
-  const response = await fetch(
-    `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?transactionId=${transactionId}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ miniappId: appId }),
-    },
-  );
+  try {
+    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniappId=${appId}`;
+    if (transactionId) {
+      url += `&transactionId=${transactionId}`;
+    }
+    const response = await fetch(url, {
+      method: "GET",
+    });
 
-  const data = await response.json();
-  return data;
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch transaction data. Status: ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+    console.log(data); // Keep for now since we can only test on staging
+    return data;
+  } catch (error) {
+    console.warn("Error fetching transaction data", error);
+    return [];
+  }
 };

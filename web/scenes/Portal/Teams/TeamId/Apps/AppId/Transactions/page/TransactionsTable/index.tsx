@@ -9,7 +9,7 @@ import { TransactionRow } from "./TransactionRow";
 type TransactionsTableProps = {
   transactionData: TransactionMetadata[];
 };
-export const TransactionsTable = async (props: TransactionsTableProps) => {
+export const TransactionsTable = (props: TransactionsTableProps) => {
   const { transactionData } = props;
 
   const rowsPerPageOptions = [10, 25, 50]; // Rows per page options
@@ -38,52 +38,63 @@ export const TransactionsTable = async (props: TransactionsTableProps) => {
     }
 
     let filteredTransactions = transactionData;
-
+    console.log(filteredTransactions);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return filteredTransactions.slice(startIndex, endIndex);
   }, [transactionData, currentPage, rowsPerPage]);
 
   return (
-    <div>
-      <div className="flex w-full items-center justify-end">
-        <div className="grid w-full gap-y-6">
-          <div className="mt-6 flex items-center justify-start gap-x-2">
-            <Typography variant={TYPOGRAPHY.H7}>Transactions</Typography>
-          </div>
-
-          <div className="no-scrollbar w-full overflow-auto">
-            <div className="grid md:grid-cols-[auto_auto_min-content]">
-              <div className="text-left text-xs font-[400] text-grey-400 max-md:flex max-md:justify-between md:contents md:[&>*]:border-b md:[&>*]:border-grey-100">
-                <div className="py-3 pr-2 max-md:pl-5">Amount</div>
-                <div className="px-2 py-3 max-md:pr-5">Reference ID</div>
-                <div className="py-3 pl-2 max-md:hidden max-md:px-4">
+    <div className="py-5">
+      <div className="no-scrollbar overflow-auto">
+        <table className="w-full min-w-[700px] table-auto overflow-scroll">
+          <thead className="text-left text-xs font-[400] text-grey-400 md:[&>*]:border-b md:[&>*]:border-grey-100">
+            <tr>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>Amount</Typography>
+              </th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>Reference Id</Typography>
+              </th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>
                   Transaction Hash
-                </div>
-                <div className="px-2 py-3 max-md:pr-5">From</div>
-                <div className="px-2 py-3 max-md:pr-5">To</div>
-                <div className="px-2 py-3 max-md:pr-5">Timestamp</div>
-                <div className="px-2 py-3 max-md:pr-5">Status</div>
-              </div>
+                </Typography>
+              </th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>From</Typography>
+              </th>
+              <th className="border-b"></th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>To</Typography>
+              </th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>Timestamp</Typography>
+              </th>
+              <th className="border-b border-grey-200 px-2 py-3">
+                <Typography variant={TYPOGRAPHY.R5}>Status</Typography>
+              </th>
+            </tr>
+          </thead>
 
-              <div className="max-md:grid max-md:gap-y-2 md:contents">
-                {paginatedTransactions.map((transaction, index) => (
-                  <TransactionRow transaction={transaction} key={index} />
-                ))}
-              </div>
-            </div>
-
-            <Pagination
-              totalResults={totalResultsCount}
-              currentPage={currentPage}
-              rowsPerPage={rowsPerPage}
-              rowsPerPageOptions={rowsPerPageOptions}
-              handlePageChange={handlePageChange}
-              handleRowsPerPageChange={handleRowsPerPageChange}
+          {paginatedTransactions.map((transaction, index) => (
+            <TransactionRow
+              transaction={transaction}
+              key={index}
+              index={index}
             />
-          </div>
-        </div>
+          ))}
+        </table>
       </div>
+
+      <Pagination
+        totalResults={totalResultsCount}
+        currentPage={currentPage}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={rowsPerPageOptions}
+        handlePageChange={handlePageChange}
+        handleRowsPerPageChange={handleRowsPerPageChange}
+      />
     </div>
   );
 };

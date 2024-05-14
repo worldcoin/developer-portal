@@ -150,3 +150,9 @@ export type TransactionMetadata = {
   inputToken: string;
   inputTokenAmount: string;
 };
+
+export enum TransactionStatus {
+  Pending = "pending",
+  Mined = "mined",
+  Failed = "failed",
+}

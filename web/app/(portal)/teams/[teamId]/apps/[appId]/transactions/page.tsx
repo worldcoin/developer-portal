@@ -3,7 +3,7 @@ import { TransactionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Transa
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Mini App Transactions" }),
+  title: generateMetaTitle({ left: "Transactions" }),
 };
 
 export default TransactionsPage;

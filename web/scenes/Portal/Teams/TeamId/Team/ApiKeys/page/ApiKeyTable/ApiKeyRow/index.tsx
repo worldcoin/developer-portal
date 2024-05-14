@@ -42,11 +42,6 @@ export const ApiKeyRow = (props: {
 
   const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
 
-  const copyKey = useCallback(() => {
-    navigator.clipboard.writeText(secretKey ?? "");
-    toast.success("Copied to clipboard");
-  }, [secretKey]);
-
   const resetAPIKey = useCallback(
     async (apiKeyId: string) => {
       if (loading) {
