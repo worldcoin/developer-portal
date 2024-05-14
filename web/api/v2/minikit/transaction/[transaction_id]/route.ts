@@ -1,6 +1,8 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
+import { TransactionMetadata } from "@/lib/types";
+import { captureEvent } from "@/services/posthogClient";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
@@ -105,7 +107,21 @@ export const GET = async (
       req,
     });
   }
-
   const data = await res.json();
+
+  if (data.length !== 0) {
+    const transaction = data[0] as TransactionMetadata;
+
+    await captureEvent({
+      event: "miniapp_payment_queried",
+      distinctId: transaction.transactionId,
+      properties: {
+        input_token: transaction.inputToken,
+        token_amount: transaction.inputTokenAmount,
+        appId: transaction.miniappId,
+      },
+    });
+  }
+
   return NextResponse.json(data, { status: 200 });
 };

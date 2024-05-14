@@ -60,7 +60,7 @@ const createMockRequest = (params: {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `ApiKey ${api_key}`,
+      Authorization: `Bearer ${api_key}`,
     },
   });
 };
@@ -126,7 +126,7 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     mockFetch({
-      body: transaction,
+      body: [transaction],
       ok: true,
       status: 200,
     });
@@ -135,7 +135,7 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    expect(body).toEqual(transaction);
+    expect(body).toEqual([transaction]);
   });
 });
 // #endregion
