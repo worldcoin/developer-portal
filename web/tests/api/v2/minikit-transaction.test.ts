@@ -1,4 +1,4 @@
-import { GET } from "@/api/v2/minikit/transaction/[transaction_id]/route";
+import { GET } from "@/api/v2/minikit/transaction/[transaction_id]";
 import { generateHashedSecret } from "@/legacy/backend/utils";
 import { NextRequest } from "next/server";
 

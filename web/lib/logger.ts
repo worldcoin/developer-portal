@@ -101,7 +101,7 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
 
   if (
     (typeof body === "string" && body === "") ||
-    (typeof body === "object" && Object.keys(body).length === 0)
+    (body && typeof body === "object" && Object.keys(body).length === 0)
   ) {
     body = null;
   }
