@@ -3,6 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { TransactionMetadata } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
@@ -91,13 +92,22 @@ export const GET = async (
     });
   }
 
-  const res = await fetch(
+  const signedFetch = createSignedFetcher({
+    service: "execute-api",
+    region: "eu-west-1", // TODO: Will change region to env once I confirm this works in staging
+  });
+
+  const res = await signedFetch(
     `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}&transaction-id=${transactionId}`,
     {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
   );
 
+  console.log(res); // Including this for now to debug will remove
   if (!res.ok) {
     console.warn("Failed to fetch transaction data", res);
 
