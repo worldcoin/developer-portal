@@ -17,13 +17,9 @@ actions:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
-        method: GET
+        method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
-        request_headers:
-          add_headers: {}
-          remove_headers:
-            - content-type
         template_engine: Kriti
         version: 2
     permissions:
@@ -37,13 +33,9 @@ actions:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
-        method: GET
+        method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
-        request_headers:
-          add_headers: {}
-          remove_headers:
-            - content-type
         template_engine: Kriti
         version: 2
     permissions:
@@ -57,15 +49,11 @@ actions:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
-        method: GET
+        method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
           content_type_ending: '{{$body.input.content_type_ending}}'
           image_type: '{{$body.input.image_type}}'
-        request_headers:
-          add_headers: {}
-          remove_headers:
-            - content-type
         template_engine: Kriti
         version: 2
     permissions:
@@ -111,15 +99,11 @@ actions:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
-        method: GET
+        method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
           content_type_ending: '{{$body.input.content_type_ending}}'
           image_type: '{{$body.input.image_type}}'
-        request_headers:
-          add_headers: {}
-          remove_headers:
-            - content-type
         template_engine: Kriti
         version: 2
     permissions:
