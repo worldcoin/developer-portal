@@ -122,7 +122,7 @@ export const GET = async (
   }
   const data = await res.json();
 
-  if (data.length !== 0) {
+  if (data?.result?.transactions.length !== 0) {
     const transaction = data[0] as TransactionMetadata;
 
     await captureEvent({
@@ -136,5 +136,5 @@ export const GET = async (
     });
   }
 
-  return NextResponse.json(data, { status: 200 });
+  return NextResponse.json(data?.result?.transactions, { status: 200 });
 };
