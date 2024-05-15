@@ -1,6 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
+import { logger } from "@/lib/logger";
 import { TransactionMetadata } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
 import { NextRequest, NextResponse } from "next/server";
@@ -99,6 +100,8 @@ export const GET = async (
   );
 
   if (!res.ok) {
+    logger.error("Failed to fetch transaction data", res);
+
     return errorResponse({
       statusCode: res.status,
       code: "internal_server_error",
