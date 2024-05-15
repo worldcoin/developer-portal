@@ -123,8 +123,7 @@ export const GET = async (
   const data = await res.json();
 
   if (data?.result?.transactions.length !== 0) {
-    const transaction = data[0] as TransactionMetadata;
-
+    const transaction = data?.result?.transactions[0] as TransactionMetadata;
     await captureEvent({
       event: "miniapp_payment_queried",
       distinctId: transaction.transactionId,
@@ -134,7 +133,14 @@ export const GET = async (
         appId: transaction.miniappId,
       },
     });
+    return NextResponse.json(transaction, { status: 200 });
+  } else {
+    return errorResponse({
+      statusCode: 404,
+      code: "not_found",
+      detail: "Transaction not found.",
+      attribute: "transaction",
+      req,
+    });
   }
-
-  return NextResponse.json(data?.result?.transactions, { status: 200 });
 };

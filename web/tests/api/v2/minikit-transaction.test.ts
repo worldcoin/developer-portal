@@ -26,7 +26,7 @@ jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
     jest.fn(() =>
       Promise.resolve({
-        json: () => [transaction],
+        json: () => ({ result: { transactions: [transaction] } }),
         ok: true,
         status: 200,
       }),
@@ -117,7 +117,7 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    expect(body).toEqual([transaction]);
+    expect(body).toEqual(transaction);
   });
 });
 // #endregion
