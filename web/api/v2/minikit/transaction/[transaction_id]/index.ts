@@ -91,10 +91,10 @@ export const GET = async (
       req,
     });
   }
-  console.log(appId, transactionId);
+
   const signedFetch = createSignedFetcher({
     service: "execute-api",
-    region: "us-east-1", // TODO: Will change region to env once I confirm this works in staging
+    region: process.env.TRANSACTION_BACKEND_REGION,
   });
 
   const res = await signedFetch(

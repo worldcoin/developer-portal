@@ -14,7 +14,7 @@ export const getTransactionData = async (
 
     const signedFetch = createSignedFetcher({
       service: "execute-api",
-      region: "us-east-1",
+      region: process.env.TRANSACTION_BACKEND_REGION,
     });
 
     let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}`;

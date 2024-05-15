@@ -5,7 +5,7 @@ import { memo } from "react";
 export const TokenIcon = memo(function TokenIcon(props: { token: string }) {
   const { token } = props;
 
-  if (token === "USDC") {
+  if (token === "USDCE") {
     return <USDCIcon className="size-8" />;
   } else if (token === "WLD") {
     return <WLDIcon className="size-8" />;
