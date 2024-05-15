@@ -117,7 +117,6 @@ export const handleGetAllUnverifiedImages = async (
       Key: objectKey + app.logo_img_url,
     });
 
-    console.log("here");
     // We check for any image values that are defined in the unverified row and generate a signed URL for that image
     if (app.logo_img_url) {
       urlPromises.push(

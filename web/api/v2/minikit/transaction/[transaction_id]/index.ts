@@ -94,7 +94,7 @@ export const GET = async (
 
   const signedFetch = createSignedFetcher({
     service: "execute-api",
-    region: "eu-west-1", // TODO: Will change region to env once I confirm this works in staging
+    region: "us-east-1", // TODO: Will change region to env once I confirm this works in staging
   });
 
   const res = await signedFetch(
@@ -103,6 +103,7 @@ export const GET = async (
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-store, max-age=0",
       },
     },
   );
