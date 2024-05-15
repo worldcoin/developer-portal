@@ -91,7 +91,7 @@ export const GET = async (
       req,
     });
   }
-
+  console.log(appId, transactionId);
   const signedFetch = createSignedFetcher({
     service: "execute-api",
     region: "us-east-1", // TODO: Will change region to env once I confirm this works in staging
@@ -102,13 +102,11 @@ export const GET = async (
     {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
         "Cache-Control": "no-store, max-age=0",
       },
     },
   );
 
-  console.log(res); // Including this for now to debug will remove
   if (!res.ok) {
     const errorData = await res.json(); // Parse the response body to get the error message
 
