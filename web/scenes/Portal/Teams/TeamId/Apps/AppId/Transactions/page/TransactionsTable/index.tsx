@@ -14,7 +14,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
 
   const rowsPerPageOptions = [10, 25, 50]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalResultsCount, setTotalResultsCount] = useState(
     transactionData.length,
   );
