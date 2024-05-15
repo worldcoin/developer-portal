@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 
 // #region Mocks
 const FetchAPIKey = jest.fn();
+const signedFetch = jest.fn();
 
 jest.mock("../../../lib/logger", () => ({
   logger: {
@@ -20,6 +21,17 @@ jest.mock(
     }),
   }),
 );
+
+jest.mock("aws-sigv4-fetch", () => ({
+  createSignedFetcher: () =>
+    jest.fn(() =>
+      Promise.resolve({
+        json: () => [transaction],
+        ok: true,
+        status: 200,
+      }),
+    ),
+}));
 
 const transaction = {
   transactionId: "txn_123456789",
@@ -90,30 +102,6 @@ const validApiKey = `api_${apiKeyValue}`;
 
 // #endregion
 
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: jest.fn(() => Promise.resolve({})),
-    ok: true,
-    status: 200,
-  }),
-) as jest.Mock;
-
-const mockFetch = (params: {
-  body: Record<string, any>;
-  ok: boolean;
-  status: number;
-  text?: string;
-}) => {
-  (fetch as jest.Mock).mockImplementationOnce(() =>
-    Promise.resolve({
-      json: jest.fn(() => Promise.resolve(params.body)),
-      text: jest.fn(() => Promise.resolve(params.text ?? "")),
-      ok: params.ok,
-      status: params.status,
-    }),
-  );
-};
-
 // #region Success cases tests
 describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
   it("can fetch a transaction", async () => {
@@ -124,12 +112,6 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
 
     const ctx = { params: { transaction_id: validTransactionId } };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
-
-    mockFetch({
-      body: [transaction],
-      ok: true,
-      status: 200,
-    });
 
     const res = await GET(mockReq, ctx);
     expect(res.status).toBe(200);
