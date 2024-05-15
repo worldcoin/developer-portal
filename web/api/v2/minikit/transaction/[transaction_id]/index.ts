@@ -109,7 +109,9 @@ export const GET = async (
 
   console.log(res); // Including this for now to debug will remove
   if (!res.ok) {
-    console.warn("Failed to fetch transaction data", res);
+    const errorData = await res.json(); // Parse the response body to get the error message
+
+    console.warn("Failed to fetch transaction data", errorData);
 
     return errorResponse({
       statusCode: res.status,
