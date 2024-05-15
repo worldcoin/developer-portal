@@ -38,9 +38,9 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
     }
 
     let filteredTransactions = transactionData;
-    console.log(filteredTransactions);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
+
     return filteredTransactions.slice(startIndex, endIndex);
   }, [transactionData, currentPage, rowsPerPage]);
 

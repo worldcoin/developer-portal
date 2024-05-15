@@ -1,5 +1,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Suspense } from "react";
+import Skeleton from "react-loading-skeleton";
 import { TransactionsTable } from "./TransactionsTable";
 import { getTransactionData } from "./server";
 
@@ -12,6 +14,7 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
 
   const transactionData = await getTransactionData(appId);
+
   return (
     <div className="my-6 min-h-[100dvh]">
       <div className="flex items-center justify-start gap-x-2 text-gray-900">
@@ -42,7 +45,9 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
           </DecoratedButton>
         </div>
       ) : (
-        <TransactionsTable transactionData={transactionData} />
+        <Suspense fallback={<Skeleton />}>
+          <TransactionsTable transactionData={transactionData} />
+        </Suspense>
       )}
     </div>
   );
