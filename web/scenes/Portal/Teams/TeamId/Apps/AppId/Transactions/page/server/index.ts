@@ -36,8 +36,7 @@ export const getTransactionData = async (
       );
     }
 
-    console.log(data); // Keep for now since we can only test on staging
-    return data;
+    return data?.result?.transactions || [];
   } catch (error) {
     console.warn("Error fetching transaction data", error);
     return [];
