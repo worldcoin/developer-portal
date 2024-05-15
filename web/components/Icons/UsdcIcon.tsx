@@ -10,7 +10,7 @@ export const USDCIcon = memo(function Icon(props: USDCIconIconProps) {
   const { className } = props;
 
   return (
-    <div className={twMerge(clsx(`size-6`, className))}>
+    <div className={twMerge(clsx(`flex size-6 items-center`, className))}>
       <svg
         width="24"
         height="24"

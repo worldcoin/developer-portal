@@ -29,13 +29,20 @@ export const TransactionRow = (props: {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  const formatAmount = (amount: string, token: string) => {
+    if (token === "USDCE") {
+      return (parseFloat(amount) / 10 ** 6).toFixed(2);
+    } else if (token === "WLD") {
+      return (parseFloat(amount) / 10 ** 18).toFixed(2);
+    }
+  };
   return (
     <tr>
       <td key={`transaction_${index}_0`} className="border-b border-grey-200">
-        <div className="flex items-center gap-x-2">
+        <div className="flex items-center gap-x-1">
           <TokenIcon token={transaction.inputToken} />
           <Typography variant={TYPOGRAPHY.R4}>
-            {transaction.inputTokenAmount}
+            {formatAmount(transaction.inputTokenAmount, transaction.inputToken)}
           </Typography>
           <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
             {transaction.inputToken}
