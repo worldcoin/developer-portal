@@ -35,8 +35,10 @@ export const getTransactionData = async (
         `Failed to fetch transaction data. Status: ${response.status}. Error: ${data}`,
       );
     }
-
-    return data?.result?.transactions || [];
+    return (data?.result?.transactions || []).sort(
+      (a: TransactionMetadata, b: TransactionMetadata) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
   } catch (error) {
     console.warn("Error fetching transaction data", error);
     return [];
