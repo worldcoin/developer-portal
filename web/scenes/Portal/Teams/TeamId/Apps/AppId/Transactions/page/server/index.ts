@@ -22,6 +22,7 @@ export const getTransactionData = async (
     if (transactionId) {
       url += `&transaction-id=${transactionId}`;
     }
+
     const response = await signedFetch(url, {
       method: "GET",
       headers: {
