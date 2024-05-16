@@ -56,7 +56,7 @@ export const TransactionRow = (props: {
       >
         <div className="px-2 py-3">
           <Typography variant={TYPOGRAPHY.R4}>
-            {transaction.referenceId}
+            {transaction.reference}
           </Typography>
         </div>
       </td>

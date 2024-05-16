@@ -141,7 +141,7 @@ export type TransactionMetadata = {
   transactionId: string;
   transactionHash: string | null;
   transactionStatus: string;
-  referenceId: string;
+  reference: string;
   miniappId: string;
   updatedAt: string;
   network: string;
