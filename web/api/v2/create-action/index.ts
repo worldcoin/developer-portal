@@ -17,9 +17,9 @@ import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
 const createActionBodySchema = yup.object({
   action: yup.string().strict().required(),
-  name: yup.string().strict().optional().default(""),
-  description: yup.string().strict().optional().default(""),
-  max_verifications: yup.number().strict().optional().default(1),
+  name: yup.string().optional().default(""),
+  description: yup.string().optional().default(""),
+  max_verifications: yup.number().optional().default(1),
 });
 
 const createActionParamsSchema = yup.object({
@@ -172,6 +172,7 @@ export const POST = async (
       });
     }
 
+    console.warn("Error creating action", e.response.errors[0]);
     return errorResponse({
       statusCode: 500,
       code: "internal_server_error",

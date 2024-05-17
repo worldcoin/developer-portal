@@ -24,12 +24,6 @@ export type CreateDynamicActionMutation = {
     max_verifications: number;
     external_nullifier: string;
     status: string;
-    nullifiers: Array<{
-      __typename?: "nullifier";
-      uses: number;
-      created_at: any;
-      nullifier_hash: string;
-    }>;
   } | null;
 };
 
@@ -60,11 +54,6 @@ export const CreateDynamicActionDocument = gql`
       max_verifications
       external_nullifier
       status
-      nullifiers {
-        uses
-        created_at
-        nullifier_hash
-      }
     }
   }
 `;
