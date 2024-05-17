@@ -35,14 +35,15 @@ insert_permissions:
           team_id:
             _eq: X-Hasura-Team-Id
       columns:
-        - action
-        - app_id
+        - name
         - description
+        - action
         - external_nullifier
-        - kiosk_enabled
+        - app_id
         - max_accounts_per_user
         - max_verifications
-        - name
+        - creation_mode
+        - kiosk_enabled
   - role: service
     permission:
       check: {}
@@ -79,18 +80,19 @@ select_permissions:
   - role: api_key
     permission:
       columns:
-        - action
-        - app_id
-        - created_at
-        - creation_mode
-        - description
-        - external_nullifier
         - id
-        - kiosk_enabled
+        - created_at
+        - updated_at
+        - name
+        - description
+        - action
+        - external_nullifier
+        - app_id
         - max_accounts_per_user
         - max_verifications
-        - name
-        - updated_at
+        - creation_mode
+        - kiosk_enabled
+        - status
       filter:
         app:
           team_id:

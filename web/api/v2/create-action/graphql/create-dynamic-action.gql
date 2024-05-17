@@ -24,10 +24,5 @@ mutation CreateDynamicAction(
     max_verifications
     external_nullifier
     status
-    nullifiers {
-      uses
-      created_at
-      nullifier_hash
-    }
   }
 }
