@@ -23,7 +23,6 @@ export type CreateDynamicActionMutation = {
     description: string;
     max_verifications: number;
     external_nullifier: string;
-    status: string;
   } | null;
 };
 
@@ -44,7 +43,6 @@ export const CreateDynamicActionDocument = gql`
         name: $name
         description: $description
         max_verifications: $max_verifications
-        creation_mode: "dynamic"
       }
     ) {
       id
@@ -53,7 +51,6 @@ export const CreateDynamicActionDocument = gql`
       description
       max_verifications
       external_nullifier
-      status
     }
   }
 `;
