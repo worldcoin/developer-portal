@@ -26,7 +26,11 @@ export const test = base.extend<{}, { workerStorageState: string }>({
       }
 
       // Authentication steps via Auth0 UI
-      const page = await browser.newPage({ storageState: undefined });
+      const context = await browser.newContext({
+        userAgent: "Chrome/999.0.0.0",
+        baseURL: process.env.NEXT_PUBLIC_APP_URL,
+      });
+      const page = await context.newPage();
 
       await page.goto("/login");
       await page.locator("[data-testid='button-log-in']").click();
