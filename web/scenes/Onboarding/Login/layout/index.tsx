@@ -16,6 +16,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
               href={urls.api.authLogin()}
               variant="secondary"
               className="rounded-lg"
+              testId="log-in"
             >
               Log in
             </DecoratedButton>

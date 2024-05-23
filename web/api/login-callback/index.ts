@@ -33,6 +33,7 @@ import { logger } from "@/lib/logger";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
+import { isPasswordUser } from "../helpers/is-password-user";
 import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 
@@ -58,7 +59,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     | undefined = null;
 
   // ANCHOR: User is authenticated through Sign in with World ID
-  if (!isEmailUser(auth0User)) {
+  if (!isEmailUser(auth0User) && !isPasswordUser(auth0User)) {
     const nullifier = auth0User.sub.split("|")[2];
 
     try {
@@ -95,8 +96,8 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
-  // ANCHOR: User is authenticated through email OTP
-  else if (isEmailUser(auth0User)) {
+  // ANCHOR: User is authenticated through email OTP or email & password
+  else if (isEmailUser(auth0User) || isPasswordUser(auth0User)) {
     // NOTE: All users from Auth0 should have verified emails as we only use email OTP for authentication, but this is a sanity check
     if (!auth0User.email_verified) {
       logger.error(

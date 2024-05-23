@@ -11,6 +11,7 @@ type DecoratedButtonProps = CommonButtonProps & {
   loading?: boolean;
   className?: string;
   variant?: "primary" | "secondary" | "danger";
+  testId?: string;
 };
 
 export const DecoratedButton = memo(function DecoratedButton(
@@ -23,6 +24,7 @@ export const DecoratedButton = memo(function DecoratedButton(
     disabled,
     className,
     variant = "primary",
+    testId,
     ...restProps
   } = props;
 
@@ -65,6 +67,7 @@ export const DecoratedButton = memo(function DecoratedButton(
           className,
         ),
       )}
+      {...(testId ? { "data-testid": `button-${testId}` } : {})}
       {...restProps}
     >
       <div
