@@ -98,7 +98,7 @@ export const GET = async (
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
-  console.log(app_metadata[0].app);
+
   const { app, ...appMetadataReturned } = app_metadata[0];
   const description = JSON.parse(appMetadataReturned.description);
 
