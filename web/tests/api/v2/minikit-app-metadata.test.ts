@@ -136,6 +136,62 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
 
     expect(body).toEqual(app_metadata);
   });
+
+  it("returns valid payload if description is null", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(validAppId),
+      api_key: validApiKey,
+    });
+
+    FetchAPIKey.mockResolvedValue(validApiKeyResponse);
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          name: "test",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          logo_img_url: "",
+          showcase_img_urls: null,
+          hero_image_url: "",
+          world_app_description: "Random Values",
+          world_app_button_text: "Use Integration",
+          whitelisted_addresses: null,
+          app_mode: "external",
+          description: "",
+          category: "Social",
+          integration_url: "https://github.com",
+          app_website_url: "",
+          source_code_url: "",
+          app: { team: { name: "test" } },
+        },
+      ],
+    });
+
+    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+
+    expect(body).toEqual({
+      name: "test",
+      app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+      logo_img_url: null,
+      showcase_img_urls: null,
+      hero_image_url: null,
+      world_app_description: "Random Values",
+      world_app_button_text: "Use Integration",
+      whitelisted_addresses: null,
+      app_mode: "external",
+      description: {
+        overview: "",
+        how_it_works: "",
+        how_to_connect: "",
+      },
+      category: "Social",
+      integration_url: "https://github.com",
+      app_website_url: "",
+      source_code_url: "",
+      team_name: "test",
+    });
+  });
 });
 // #endregion
 
