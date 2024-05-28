@@ -98,16 +98,18 @@ export const GET = async (
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
-
   const { app, ...appMetadataReturned } = app_metadata[0];
-  const description = JSON.parse(appMetadataReturned.description);
+
+  const description = appMetadataReturned.description
+    ? JSON.parse(appMetadataReturned.description)
+    : "";
 
   const dataToReturn = {
     ...appMetadataReturned,
     description: {
-      overview: description.description_overview,
-      how_it_works: description.description_how_it_works,
-      how_to_connect: description.description_connect,
+      overview: description.description_overview ?? "",
+      how_it_works: description.description_how_it_works ?? "",
+      how_to_connect: description.description_connect ?? "",
     },
     logo_img_url: null,
     hero_image_url: null,
