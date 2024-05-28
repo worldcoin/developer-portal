@@ -1,5 +1,5 @@
-query FetchKeys {
-  api_key(order_by: { created_at: asc }) {
+query FetchKeys($teamId: String!) {
+  api_key(order_by: { created_at: asc }, where: { team_id: { _eq: $teamId } }) {
     id
     team_id
     created_at

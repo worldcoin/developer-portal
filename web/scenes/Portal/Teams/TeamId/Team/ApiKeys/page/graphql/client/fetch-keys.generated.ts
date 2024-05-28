@@ -4,7 +4,9 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type FetchKeysQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type FetchKeysQueryVariables = Types.Exact<{
+  teamId: Types.Scalars["String"];
+}>;
 
 export type FetchKeysQuery = {
   __typename?: "query_root";
@@ -20,8 +22,11 @@ export type FetchKeysQuery = {
 };
 
 export const FetchKeysDocument = gql`
-  query FetchKeys {
-    api_key(order_by: { created_at: asc }) {
+  query FetchKeys($teamId: String!) {
+    api_key(
+      order_by: { created_at: asc }
+      where: { team_id: { _eq: $teamId } }
+    ) {
       id
       team_id
       created_at
@@ -44,14 +49,12 @@ export const FetchKeysDocument = gql`
  * @example
  * const { data, loading, error } = useFetchKeysQuery({
  *   variables: {
+ *      teamId: // value for 'teamId'
  *   },
  * });
  */
 export function useFetchKeysQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    FetchKeysQuery,
-    FetchKeysQueryVariables
-  >,
+  baseOptions: Apollo.QueryHookOptions<FetchKeysQuery, FetchKeysQueryVariables>,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchKeysQuery, FetchKeysQueryVariables>(
