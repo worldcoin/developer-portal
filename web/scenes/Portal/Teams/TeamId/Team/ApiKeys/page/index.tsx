@@ -1,5 +1,8 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
+import { Section } from "@/components/Section";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -7,9 +10,6 @@ import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
-import { Section } from "@/components/Section";
 
 type TeamApiKeysPageProps = {
   params: Record<string, string> | null | undefined;
@@ -19,7 +19,9 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   const { params } = props;
   const teamId = params?.teamId;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
-  const { data, loading } = useFetchKeysQuery();
+  const { data, loading } = useFetchKeysQuery({
+    variables: { teamId: teamId ?? "" },
+  });
 
   const apiKeys = data?.api_key;
   return (
