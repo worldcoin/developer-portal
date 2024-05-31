@@ -34,17 +34,6 @@ export default async function handleOIDCValidate(
 
   const { app_id, redirect_uri } = parsedParams;
 
-  if (!validateUrl(redirect_uri, true)) {
-    return errorResponse(
-      res,
-      400,
-      "invalid_redirect_uri",
-      "Invalid redirect_uri provided.",
-      "redirect_uri",
-      req,
-    );
-  }
-
   const { app, error: fetchAppError } = await fetchOIDCApp(
     app_id,
     redirect_uri,
@@ -56,6 +45,17 @@ export default async function handleOIDCValidate(
       fetchAppError?.code ?? "error",
       fetchAppError?.message ?? "Error fetching app.",
       fetchAppError?.attribute ?? "app_id",
+      req,
+    );
+  }
+
+  if (!validateUrl(redirect_uri, app.is_staging)) {
+    return errorResponse(
+      res,
+      400,
+      "invalid_redirect_uri",
+      "Invalid redirect_uri provided.",
+      "redirect_uri",
       req,
     );
   }
