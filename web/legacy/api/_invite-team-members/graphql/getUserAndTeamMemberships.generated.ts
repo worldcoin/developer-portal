@@ -21,6 +21,7 @@ export type GetUserAndTeamMembershipsQuery = {
   membership: Array<{
     __typename?: "membership";
     user: { __typename?: "user"; email?: string | null };
+    team: { __typename?: "team"; id: string; name?: string | null };
   }>;
 };
 
@@ -46,6 +47,10 @@ export const GetUserAndTeamMembershipsDocument = gql`
     membership(where: { team_id: { _eq: $team_id } }) {
       user {
         email
+      }
+      team {
+        id
+        name
       }
     }
   }

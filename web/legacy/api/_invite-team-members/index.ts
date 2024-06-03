@@ -90,6 +90,10 @@ export const handleInvite = async (
 
   const invitingUser = query.user[0];
 
+  const invitingUsersMembership = query.membership.find(
+    (membership) => membership.team.id === teamId,
+  );
+
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
@@ -122,22 +126,22 @@ export const handleInvite = async (
     emails,
   });
 
-  const invitesToUpdate = fetchInvitesResult.invite.filter((invite) => {
-    return emails.includes(invite.email);
+  const existingInvites = fetchInvitesResult.invite.filter((invite) => {
+    return emails.includes(invite.email) && invite.team_id === teamId;
   });
 
   const emailsToCreate = emails.filter((email: string) => {
-    return !invitesToUpdate.some((invite) => invite.email === email);
+    return !existingInvites.some((invite) => invite.email === email);
   });
 
   let updatedInvites: NonNullable<
     UpdateInvitesExpirationMutation["invites"]
   >["returning"] = [];
 
-  if (invitesToUpdate.length > 0) {
+  if (existingInvites.length > 0) {
     const updateExpirationResult = await getSdk(client).UpdateInvitesExpiration(
       {
-        ids: invitesToUpdate.map((invite) => invite.id),
+        ids: existingInvites.map((invite) => invite.id),
         expires_at: dayjs().add(7, "days").toISOString(),
       },
     );
@@ -209,7 +213,9 @@ export const handleInvite = async (
       invitingUser.name || invitingUser.email || "Someone",
     );
 
-    const team = DOMPurify.sanitize(invitingUser.team?.name || "their team");
+    const team = DOMPurify.sanitize(
+      invitingUsersMembership?.team.name || "their team",
+    );
     const to = DOMPurify.sanitize(invite.email);
 
     promises.push(
