@@ -10,7 +10,12 @@ export type FetchInvitesQueryVariables = Types.Exact<{
 
 export type FetchInvitesQuery = {
   __typename?: "query_root";
-  invite: Array<{ __typename?: "invite"; id: string; email: string }>;
+  invite: Array<{
+    __typename?: "invite";
+    id: string;
+    email: string;
+    team_id: string;
+  }>;
 };
 
 export const FetchInvitesDocument = gql`
@@ -18,6 +23,7 @@ export const FetchInvitesDocument = gql`
     invite(where: { email: { _in: $emails } }) {
       id
       email
+      team_id
     }
   }
 `;

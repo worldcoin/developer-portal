@@ -122,22 +122,22 @@ export const handleInvite = async (
     emails,
   });
 
-  const invitesToUpdate = fetchInvitesResult.invite.filter((invite) => {
-    return emails.includes(invite.email);
+  const existingInvites = fetchInvitesResult.invite.filter((invite) => {
+    return emails.includes(invite.email) && invite.team_id === teamId;
   });
 
   const emailsToCreate = emails.filter((email: string) => {
-    return !invitesToUpdate.some((invite) => invite.email === email);
+    return !existingInvites.some((invite) => invite.email === email);
   });
 
   let updatedInvites: NonNullable<
     UpdateInvitesExpirationMutation["invites"]
   >["returning"] = [];
 
-  if (invitesToUpdate.length > 0) {
+  if (existingInvites.length > 0) {
     const updateExpirationResult = await getSdk(client).UpdateInvitesExpiration(
       {
-        ids: invitesToUpdate.map((invite) => invite.id),
+        ids: existingInvites.map((invite) => invite.id),
         expires_at: dayjs().add(7, "days").toISOString(),
       },
     );
