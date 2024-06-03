@@ -1564,6 +1564,7 @@ export type App_Metadata = {
   reviewed_by: Scalars["String"];
   showcase_img_urls?: Maybe<Scalars["_text"]>;
   source_code_url: Scalars["String"];
+  support_email?: Maybe<Scalars["String"]>;
   updated_at: Scalars["timestamptz"];
   verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
@@ -1659,6 +1660,7 @@ export type App_Metadata_Bool_Exp = {
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
   showcase_img_urls?: InputMaybe<_Text_Comparison_Exp>;
   source_code_url?: InputMaybe<String_Comparison_Exp>;
+  support_email?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1699,6 +1701,7 @@ export type App_Metadata_Insert_Input = {
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
+  support_email?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1724,6 +1727,7 @@ export type App_Metadata_Max_Fields = {
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   source_code_url?: Maybe<Scalars["String"]>;
+  support_email?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
@@ -1747,6 +1751,7 @@ export type App_Metadata_Max_Order_By = {
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
+  support_email?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
@@ -1771,6 +1776,7 @@ export type App_Metadata_Min_Fields = {
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   source_code_url?: Maybe<Scalars["String"]>;
+  support_email?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
@@ -1794,6 +1800,7 @@ export type App_Metadata_Min_Order_By = {
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
+  support_email?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
@@ -1839,6 +1846,7 @@ export type App_Metadata_Order_By = {
   reviewed_by?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
+  support_email?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
@@ -1892,6 +1900,8 @@ export enum App_Metadata_Select_Column {
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
   SourceCodeUrl = "source_code_url",
+  /** column name */
+  SupportEmail = "support_email",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
@@ -1951,6 +1961,7 @@ export type App_Metadata_Set_Input = {
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
+  support_email?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1988,6 +1999,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   reviewed_by?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Scalars["_text"]>;
   source_code_url?: InputMaybe<Scalars["String"]>;
+  support_email?: InputMaybe<Scalars["String"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -2036,6 +2048,8 @@ export enum App_Metadata_Update_Column {
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
   SourceCodeUrl = "source_code_url",
+  /** column name */
+  SupportEmail = "support_email",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */

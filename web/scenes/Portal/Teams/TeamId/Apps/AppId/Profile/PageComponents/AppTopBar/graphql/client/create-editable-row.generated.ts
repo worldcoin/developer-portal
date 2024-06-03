@@ -21,6 +21,7 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]>;
   app_mode?: Types.InputMaybe<Types.Scalars["String"]>;
   whitelisted_addresses?: Types.InputMaybe<Types.Scalars["_text"]>;
+  support_email?: Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
 export type CreateEditableRowMutation = {
@@ -46,6 +47,7 @@ export const CreateEditableRowDocument = gql`
     $world_app_button_text: String = ""
     $app_mode: String = ""
     $whitelisted_addresses: _text = null
+    $support_email: String = null
   ) {
     insert_app_metadata_one(
       object: {
@@ -65,6 +67,7 @@ export const CreateEditableRowDocument = gql`
         world_app_button_text: $world_app_button_text
         app_mode: $app_mode
         whitelisted_addresses: $whitelisted_addresses
+        support_email: $support_email
       }
       on_conflict: {
         constraint: app_metadata_app_id_is_row_verified_key
@@ -84,6 +87,7 @@ export const CreateEditableRowDocument = gql`
           world_app_button_text
           app_mode
           whitelisted_addresses
+          support_email
         ]
         where: { verification_status: { _neq: "verified" } }
       }
@@ -126,6 +130,7 @@ export type CreateEditableRowMutationFn = Apollo.MutationFunction<
  *      world_app_button_text: // value for 'world_app_button_text'
  *      app_mode: // value for 'app_mode'
  *      whitelisted_addresses: // value for 'whitelisted_addresses'
+ *      support_email: // value for 'support_email'
  *   },
  * });
  */

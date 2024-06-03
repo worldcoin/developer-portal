@@ -26,6 +26,7 @@ export type GetAppMetadataQuery = {
     integration_url: string;
     app_website_url: string;
     source_code_url: string;
+    support_email?: string | null;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };
@@ -55,6 +56,7 @@ export const GetAppMetadataDocument = gql`
       integration_url
       app_website_url
       source_code_url
+      support_email
       app {
         team {
           name

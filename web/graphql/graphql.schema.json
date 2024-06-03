@@ -12056,6 +12056,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -12925,6 +12937,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -13277,6 +13301,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -13516,6 +13552,18 @@
           },
           {
             "name": "source_code_url",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": null,
             "args": [],
             "type": {
@@ -13767,6 +13815,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -13994,6 +14054,18 @@
           },
           {
             "name": "source_code_url",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": null,
             "args": [],
             "type": {
@@ -14234,6 +14306,18 @@
           },
           {
             "name": "source_code_url",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -14670,6 +14754,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -14891,6 +14987,12 @@
           },
           {
             "name": "source_code_url",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -15228,6 +15330,18 @@
           },
           {
             "name": "source_code_url",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -15589,6 +15703,18 @@
             "deprecationReason": null
           },
           {
+            "name": "support_email",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -15783,6 +15909,12 @@
           },
           {
             "name": "source_code_url",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "support_email",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

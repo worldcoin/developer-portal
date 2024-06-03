@@ -15,6 +15,7 @@ mutation CreateEditableRow(
   $world_app_button_text: String = ""
   $app_mode: String = ""
   $whitelisted_addresses: _text = null
+  $support_email: String = null
 ) {
   insert_app_metadata_one(
     object: {
@@ -34,6 +35,7 @@ mutation CreateEditableRow(
       world_app_button_text: $world_app_button_text
       app_mode: $app_mode
       whitelisted_addresses: $whitelisted_addresses
+      support_email: $support_email
     }
     on_conflict: {
       constraint: app_metadata_app_id_is_row_verified_key
@@ -53,6 +55,7 @@ mutation CreateEditableRow(
         world_app_button_text
         app_mode
         whitelisted_addresses
+        support_email
       ]
       where: { verification_status: { _neq: "verified" } }
     }
