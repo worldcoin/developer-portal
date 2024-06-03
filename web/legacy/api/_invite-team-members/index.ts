@@ -90,6 +90,10 @@ export const handleInvite = async (
 
   const invitingUser = query.user[0];
 
+  const invitingUsersMembership = query.membership.find(
+    (membership) => membership.team.id === teamId,
+  );
+
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
@@ -209,7 +213,9 @@ export const handleInvite = async (
       invitingUser.name || invitingUser.email || "Someone",
     );
 
-    const team = DOMPurify.sanitize(invitingUser.team?.name || "their team");
+    const team = DOMPurify.sanitize(
+      invitingUsersMembership?.team.name || "their team",
+    );
     const to = DOMPurify.sanitize(invite.email);
 
     promises.push(

@@ -17,5 +17,9 @@ query GetUserAndTeamMemberships($team_id: String!, $user_id: String!) {
     user {
       email
     }
+    team {
+      id
+      name
+    }
   }
 }
