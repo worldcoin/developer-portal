@@ -3,6 +3,7 @@ mutation UpdateMiniAppInfo(
   $app_mode: String!
   $whitelisted_addresses: _text
   $support_email: String
+  $supported_countries: _text
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
@@ -10,6 +11,7 @@ mutation UpdateMiniAppInfo(
       app_mode: $app_mode
       whitelisted_addresses: $whitelisted_addresses
       support_email: $support_email
+      supported_countries: $supported_countries
     }
   ) {
     id

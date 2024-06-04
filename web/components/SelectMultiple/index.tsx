@@ -148,12 +148,12 @@ export const SelectMultiple = <T extends FieldValues>(
   const MAX_VISIBLE_ITEMS = 10;
 
   const inputVisibleItems = useMemo(
-    () => selectedItems.slice(0, MAX_VISIBLE_ITEMS),
+    () => selectedItems?.slice(0, MAX_VISIBLE_ITEMS),
     [selectedItems],
   );
 
   const restSelectedCount = useMemo(
-    () => selectedItems.length - MAX_VISIBLE_ITEMS,
+    () => selectedItems?.length - MAX_VISIBLE_ITEMS,
     [selectedItems],
   );
 

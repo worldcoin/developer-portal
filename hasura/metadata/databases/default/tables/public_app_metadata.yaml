@@ -61,6 +61,7 @@ insert_permissions:
         - showcase_img_urls
         - source_code_url
         - support_email
+        - supported_countries
         - verification_status
         - whitelisted_addresses
         - world_app_button_text
@@ -142,6 +143,7 @@ select_permissions:
         - showcase_img_urls
         - source_code_url
         - support_email
+        - supported_countries
         - verification_status
         - whitelisted_addresses
         - world_app_button_text
@@ -167,6 +169,7 @@ select_permissions:
         - showcase_img_urls
         - source_code_url
         - support_email
+        - supported_countries
         - updated_at
         - verification_status
         - verified_at
@@ -248,6 +251,7 @@ update_permissions:
         - showcase_img_urls
         - source_code_url
         - support_email
+        - supported_countries
         - verification_status
         - whitelisted_addresses
         - world_app_button_text

@@ -222,6 +222,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
             appMetaData?.whitelisted_addresses,
           ),
           support_email: appMetaData.support_email,
+          supported_countries: convertArrayToHasusrArray(
+            appMetaData.supported_countries,
+          ),
         },
         refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
@@ -267,6 +270,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     appMetaData?.app_mode,
     appMetaData?.whitelisted_addresses,
     appMetaData.support_email,
+    appMetaData.supported_countries,
     fetchImagesQuery,
     teamId,
     setViewMode,

@@ -24,6 +24,7 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     app_website_url
     source_code_url
     support_email
+    supported_countries
     app {
       team {
         name
@@ -58,6 +59,7 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     app_website_url
     source_code_url
     support_email
+    supported_countries
     app {
       team {
         name

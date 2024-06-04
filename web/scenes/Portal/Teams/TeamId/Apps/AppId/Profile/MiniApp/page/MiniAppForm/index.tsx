@@ -2,20 +2,26 @@
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
+import { SelectMultiple } from "@/components/SelectMultiple";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, formatWhiteListedAddresses } from "@/lib/utils";
+import {
+  checkUserPermissions,
+  convertArrayToHasusrArray,
+  formatWhiteListedAddresses,
+} from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useMemo } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
+import { formCountriesList } from "../helpers/form-countries-list";
 import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.generated";
 
 const schema = yup.object().shape({
@@ -30,6 +36,22 @@ const schema = yup.object().shape({
         .required("This field is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
+
+  supported_countries: yup.array().when("app_mode", {
+    is: true,
+    then: (schema) =>
+      schema
+        .of(
+          yup
+            .string()
+            .required("This field is required")
+            .length(2, "Invalid country code"),
+        )
+        .min(1, "This field is required for Mini Apps")
+        .required("This field is required")
+        .default([]),
+    otherwise: (schema) => schema.notRequired().default(null),
+  }),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -41,6 +63,7 @@ type LinksFormProps = {
 };
 
 export const MiniAppForm = (props: LinksFormProps) => {
+  const countries = useMemo(() => formCountriesList(), []);
   const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
@@ -61,6 +84,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
     reset,
     formState: { errors, isDirty, isValid },
     setError,
+    control,
   } = useForm<LinksFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -69,12 +93,10 @@ export const MiniAppForm = (props: LinksFormProps) => {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
+      support_email: appMetadata?.support_email ?? undefined,
+      supported_countries: appMetadata?.supported_countries ?? [],
     },
   });
-
-  const [isSupportEmailRequired, setIsSupportEmailRequired] = useState(
-    appMetadata?.app_mode === "mini-app" ? true : false,
-  );
 
   // Used to update the fields when view mode is change
   useEffect(() => {
@@ -82,8 +104,16 @@ export const MiniAppForm = (props: LinksFormProps) => {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
+      support_email: appMetadata?.support_email ?? undefined,
+      supported_countries: appMetadata?.supported_countries ?? [],
     });
-  }, [appMetadata?.whitelisted_addresses, appMetadata?.app_mode, reset]);
+  }, [
+    appMetadata?.whitelisted_addresses,
+    appMetadata?.app_mode,
+    reset,
+    appMetadata?.support_email,
+    appMetadata?.supported_countries,
+  ]);
 
   const submit = useCallback(
     async (values: LinksFormValues) => {
@@ -103,6 +133,11 @@ export const MiniAppForm = (props: LinksFormProps) => {
         return; // Stop the submission process
       }
 
+      const supported_countries =
+        values.supported_countries && values.supported_countries.length > 0
+          ? convertArrayToHasusrArray(values.supported_countries)
+          : null;
+
       try {
         const result = await updateMiniAppInfoMutation({
           variables: {
@@ -111,6 +146,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
               formatWhiteListedAddresses(values.whitelisted_addresses) ?? null,
             app_mode: values.app_mode ? "mini-app" : "external",
             support_email: values.support_email ?? null,
+            supported_countries,
           },
 
           refetchQueries: [
@@ -137,6 +173,16 @@ export const MiniAppForm = (props: LinksFormProps) => {
     [appId, appMetadata?.id, setError, updateMiniAppInfoMutation, updatingInfo],
   );
 
+  const selectedCountries = useWatch({
+    control,
+    name: "supported_countries",
+  });
+
+  const appMode = useWatch({
+    control,
+    name: "app_mode",
+  });
+
   return (
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-2">
@@ -155,10 +201,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       >
         <Checkbox
           id="app_mode"
-          register={register("app_mode", {
-            onChange: (event) =>
-              setIsSupportEmailRequired(event.target.checked),
-          })}
+          register={register("app_mode")}
           disabled={!isEditable || !isEnoughPermissions}
         />
 
@@ -195,29 +238,74 @@ export const MiniAppForm = (props: LinksFormProps) => {
           />
         </div>
 
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
-
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            If your app is Mini App then you must provide a support email to
-            give users a way to contact you.
-          </Typography>
-
-          <Input
-            label="Support Email"
-            disabled={!isEditable || !isEnoughPermissions}
-            placeholder="address@example.com"
-            register={register("support_email")}
-            errors={errors.support_email}
-            required={isSupportEmailRequired}
-          />
-        </div>
-
         {errors?.whitelisted_addresses?.message && (
           <p className="mt-2 text-xs text-system-error-500">
             {errors?.whitelisted_addresses?.message}
           </p>
         )}
+      </div>
+
+      <div className="grid gap-y-2">
+        <Typography variant={TYPOGRAPHY.H7}>Supported Countries</Typography>
+
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          If your app is Mini App then you must select a list of countries where
+          Mini App will be available.
+        </Typography>
+
+        <Controller
+          control={control}
+          name="supported_countries"
+          render={({ field }) => (
+            <SelectMultiple
+              values={selectedCountries}
+              onChange={(value) => {
+                if (!field.value) {
+                  return field.onChange([]);
+                }
+
+                field.onChange(
+                  field.value.some((v) => v === value)
+                    ? field.value.filter((v) => v !== value)
+                    : [...field.value, value],
+                );
+              }}
+              onRemove={(value) =>
+                field.onChange(field.value?.filter((v) => v !== value) ?? [])
+              }
+              items={countries}
+              label="Supported Countries"
+              disabled={!isEditable || !isEnoughPermissions}
+              errors={errors.supported_countries}
+              required={appMode}
+              selectAll={() =>
+                field.onChange(
+                  selectedCountries?.length && selectedCountries.length > 0
+                    ? []
+                    : countries.map((c) => c.value),
+                )
+              }
+            />
+          )}
+        />
+      </div>
+
+      <div className="grid gap-y-2">
+        <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
+
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          If your app is Mini App then you must provide a support email to give
+          users a way to contact you.
+        </Typography>
+
+        <Input
+          label="Support Email"
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="address@example.com"
+          register={register("support_email")}
+          errors={errors.support_email}
+          required={appMode}
+        />
       </div>
 
       <DecoratedButton

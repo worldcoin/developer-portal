@@ -38,6 +38,7 @@ export type FetchAppMetadataQuery = {
       app_mode: string;
       whitelisted_addresses?: any | null;
       support_email?: string | null;
+      supported_countries?: any | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -61,6 +62,7 @@ export type FetchAppMetadataQuery = {
       app_mode: string;
       whitelisted_addresses?: any | null;
       support_email?: string | null;
+      supported_countries?: any | null;
     }>;
   }>;
 };
@@ -93,6 +95,7 @@ export const FetchAppMetadataDocument = gql`
         app_mode
         whitelisted_addresses
         support_email
+        supported_countries
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -117,6 +120,7 @@ export const FetchAppMetadataDocument = gql`
         app_mode
         whitelisted_addresses
         support_email
+        supported_countries
       }
     }
   }
