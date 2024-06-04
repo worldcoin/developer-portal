@@ -7,6 +7,7 @@ actions:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
+      - role: service
       - role: user
       - role: api_key
   - name: get_all_unverified_images
