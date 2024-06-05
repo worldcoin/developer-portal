@@ -113,12 +113,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
-      return app.verified_app_metadata[0];
+      return app.verified_app_metadata[0] ?? [];
     } else {
       // Null check in case app got verified and has no unverified metadata
-      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+      return app.app_metadata?.[0] ?? app.verified_app_metadata[0] ?? [];
     }
-  }, [app, viewMode]);
+  }, [viewMode, app.app_metadata, app.verified_app_metadata]);
 
   const isSubmitFormValid = useMemo(() => {
     const description = JSON.parse(
@@ -192,16 +192,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
       }
       await createEditableRowMutation({
         variables: {
+          ...appMetaData,
           app_id: appId,
-          name: appMetaData?.name,
-          description: appMetaData?.description,
-          world_app_description: appMetaData?.world_app_description,
-          category: appMetaData?.category,
-          is_developer_allow_listing: appMetaData?.is_developer_allow_listing,
-          app_website_url: appMetaData?.app_website_url,
-          source_code_url: appMetaData?.source_code_url,
-          integration_url: appMetaData?.integration_url,
-          world_app_button_text: appMetaData?.world_app_button_text,
           logo_img_url: appMetaData?.logo_img_url
             ? `logo_img.${_getImageEndpoint(appMetaData.logo_img_url)}`
             : "",
@@ -217,11 +209,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 .join(",")}}`
             : null,
           verification_status: "unverified",
-          app_mode: appMetaData?.app_mode,
           whitelisted_addresses: convertArrayToHasusrArray(
             appMetaData?.whitelisted_addresses,
           ),
-          support_email: appMetaData.support_email ?? null,
           supported_countries: appMetaData.supported_countries
             ? convertArrayToHasusrArray(appMetaData.supported_countries)
             : null,
@@ -258,23 +248,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     app,
     createEditableRowMutation,
     appId,
-    appMetaData?.name,
-    appMetaData?.description,
-    appMetaData?.world_app_description,
-    appMetaData?.category,
-    appMetaData?.is_developer_allow_listing,
-    appMetaData?.app_website_url,
-    appMetaData?.source_code_url,
-    appMetaData?.integration_url,
-    appMetaData?.world_app_button_text,
-    appMetaData?.logo_img_url,
-    appMetaData.hero_image_url,
-    appMetaData.showcase_img_urls,
-    appMetaData?.app_mode,
-    appMetaData?.whitelisted_addresses,
-    appMetaData.support_email,
-    appMetaData.supported_countries,
-    appMetaData.supported_languages,
+    appMetaData,
     fetchImagesQuery,
     teamId,
     setViewMode,

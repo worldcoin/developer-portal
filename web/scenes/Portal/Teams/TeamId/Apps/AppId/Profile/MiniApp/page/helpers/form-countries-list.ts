@@ -1,6 +1,6 @@
 import { countries } from "countries-list";
 
-const unavailableCountries = [
+const blockedCountries = [
   "AF", // Afghanistan
   "AL", // Albania
   "DZ", // Algeria
@@ -100,6 +100,6 @@ export const formCountriesList = () =>
       label: value.name,
       value: key,
     }))
-    .filter(({ value }) => !unavailableCountries.includes(value));
+    .filter(({ value }) => !blockedCountries.includes(value));
 
 export const formLanguagesList = () => supportedLanguages;
