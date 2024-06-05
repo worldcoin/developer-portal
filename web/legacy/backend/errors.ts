@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { logger } from "@/legacy/lib/logger";
+import { NextApiRequest, NextApiResponse } from "next";
 
 export function errorResponse(
   res: NextApiResponse,
@@ -122,7 +122,7 @@ export function errorHasuraQuery({
   code?: string;
   detail?: string;
 }) {
-  logger.error(detail, { req, error: { code } });
+  logger.warn(detail, { req, error: { code } });
 
   return res.status(400).json({
     message: detail,

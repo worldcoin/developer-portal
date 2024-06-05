@@ -276,7 +276,7 @@ export default async function handleOIDCAuthorize(
 
     hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
   } catch (error) {
-    logger.error("Error inserting nullifier", { req, error });
+    logger.error("Generic Error fetching nullifier", { req, error });
   }
 
   if (!hasNullifier) {
@@ -303,7 +303,7 @@ export default async function handleOIDCAuthorize(
         logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
       }
     } catch (error) {
-      logger.error("Error inserting nullifier", { req, error });
+      logger.error("Generic Error inserting nullifier", { req, error });
     }
   }
 
