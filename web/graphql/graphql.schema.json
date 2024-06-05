@@ -12080,6 +12080,18 @@
             "deprecationReason": null
           },
           {
+            "name": "supported_languages",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "_text",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -12973,6 +12985,18 @@
             "deprecationReason": null
           },
           {
+            "name": "supported_languages",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "_text_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -13338,6 +13362,18 @@
           },
           {
             "name": "supported_countries",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "_text",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "supported_languages",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -14814,6 +14850,18 @@
             "deprecationReason": null
           },
           {
+            "name": "supported_languages",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -15047,6 +15095,12 @@
           },
           {
             "name": "supported_countries",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "supported_languages",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -15408,6 +15462,18 @@
           },
           {
             "name": "supported_countries",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "_text",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "supported_languages",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -15793,6 +15859,18 @@
             "deprecationReason": null
           },
           {
+            "name": "supported_languages",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "_text",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -15999,6 +16077,12 @@
           },
           {
             "name": "supported_countries",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "supported_languages",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

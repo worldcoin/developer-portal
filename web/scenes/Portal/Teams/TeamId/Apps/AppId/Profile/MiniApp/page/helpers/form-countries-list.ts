@@ -43,6 +43,57 @@ const unavailableCountries = [
   "YE", // Yemen
 ];
 
+const supportedLanguages = [
+  {
+    label: "English",
+    value: "en",
+  },
+  {
+    label: "Catalan",
+    value: "ca",
+  },
+  {
+    label: "Chinese Simplified",
+    value: "zh_CN",
+  },
+  {
+    label: "French",
+    value: "fr",
+  },
+  {
+    label: "German",
+    value: "de",
+  },
+  {
+    label: "Hindi",
+    value: "hi",
+  },
+  {
+    label: "Japanese",
+    value: "ja",
+  },
+  {
+    label: "Korean",
+    value: "ko",
+  },
+  {
+    label: "Polish",
+    value: "pl",
+  },
+  {
+    label: "Portuguese",
+    value: "pt",
+  },
+  {
+    label: "Spanish",
+    value: "es",
+  },
+  {
+    label: "Spanish (Latin America)",
+    value: "es_419",
+  },
+];
+
 export const formCountriesList = () =>
   Object.entries(countries)
     .map(([key, value]) => ({
@@ -50,3 +101,5 @@ export const formCountriesList = () =>
       value: key,
     }))
     .filter(({ value }) => !unavailableCountries.includes(value));
+
+export const formLanguagesList = () => supportedLanguages;

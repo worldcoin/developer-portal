@@ -26,6 +26,7 @@ query FetchAppMetadata($id: String!) {
       whitelisted_addresses
       support_email
       supported_countries
+      supported_languages
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -51,6 +52,7 @@ query FetchAppMetadata($id: String!) {
       whitelisted_addresses
       support_email
       supported_countries
+      supported_languages
     }
   }
 }

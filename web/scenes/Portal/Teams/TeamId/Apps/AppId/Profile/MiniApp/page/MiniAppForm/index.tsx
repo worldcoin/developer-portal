@@ -21,7 +21,10 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { formCountriesList } from "../helpers/form-countries-list";
+import {
+  formCountriesList,
+  formLanguagesList,
+} from "../helpers/form-countries-list";
 import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.generated";
 
 const schema = yup.object().shape({
@@ -52,6 +55,17 @@ const schema = yup.object().shape({
         .default([]),
     otherwise: (schema) => schema.notRequired().default(null),
   }),
+
+  supported_languages: yup.array().when("app_mode", {
+    is: true,
+    then: (schema) =>
+      schema
+        .of(yup.string().required("This field is required"))
+        .min(1, "This field is required for Mini Apps")
+        .required("This field is required")
+        .default([]),
+    otherwise: (schema) => schema.notRequired().default(null),
+  }),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -64,6 +78,7 @@ type LinksFormProps = {
 
 export const MiniAppForm = (props: LinksFormProps) => {
   const countries = useMemo(() => formCountriesList(), []);
+  const languages = useMemo(() => formLanguagesList(), []);
   const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
@@ -95,6 +110,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
       support_email: appMetadata?.support_email ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
+      supported_languages: appMetadata?.supported_languages ?? [],
     },
   });
 
@@ -106,6 +122,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
       support_email: appMetadata?.support_email ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
+      supported_languages: appMetadata?.supported_languages ?? [],
     });
   }, [
     appMetadata?.whitelisted_addresses,
@@ -113,6 +130,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
     reset,
     appMetadata?.support_email,
     appMetadata?.supported_countries,
+    appMetadata?.supported_languages,
   ]);
 
   const submit = useCallback(
@@ -138,6 +156,11 @@ export const MiniAppForm = (props: LinksFormProps) => {
           ? convertArrayToHasusrArray(values.supported_countries)
           : null;
 
+      const supported_languages =
+        values.supported_languages && values.supported_languages.length > 0
+          ? convertArrayToHasusrArray(values.supported_languages)
+          : null;
+
       try {
         const result = await updateMiniAppInfoMutation({
           variables: {
@@ -145,8 +168,9 @@ export const MiniAppForm = (props: LinksFormProps) => {
             whitelisted_addresses:
               formatWhiteListedAddresses(values.whitelisted_addresses) ?? null,
             app_mode: values.app_mode ? "mini-app" : "external",
-            support_email: values.support_email ?? null,
+            support_email: values.support_email || null,
             supported_countries,
+            supported_languages,
           },
 
           refetchQueries: [
@@ -283,6 +307,51 @@ export const MiniAppForm = (props: LinksFormProps) => {
                   selectedCountries?.length && selectedCountries.length > 0
                     ? []
                     : countries.map((c) => c.value),
+                )
+              }
+            />
+          )}
+        />
+      </div>
+
+      <div className="grid gap-y-2">
+        <Typography variant={TYPOGRAPHY.H7}>Supported Languages</Typography>
+
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          If your app is Mini App then you must select a list of languages which
+          Mini App will support.
+        </Typography>
+
+        <Controller
+          control={control}
+          name="supported_languages"
+          render={({ field }) => (
+            <SelectMultiple
+              values={field.value}
+              onChange={(value) => {
+                if (!field.value) {
+                  return field.onChange([]);
+                }
+
+                field.onChange(
+                  field.value.some((v) => v === value)
+                    ? field.value.filter((v) => v !== value)
+                    : [...field.value, value],
+                );
+              }}
+              onRemove={(value) =>
+                field.onChange(field.value?.filter((v) => v !== value) ?? [])
+              }
+              items={languages}
+              label="Supported Languages"
+              disabled={!isEditable || !isEnoughPermissions}
+              errors={errors.supported_languages}
+              required={appMode}
+              selectAll={() =>
+                field.onChange(
+                  field.value?.length && field.value.length > 0
+                    ? []
+                    : languages.map((c) => c.value),
                 )
               }
             />

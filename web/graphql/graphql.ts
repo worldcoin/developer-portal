@@ -1566,6 +1566,7 @@ export type App_Metadata = {
   source_code_url: Scalars["String"];
   support_email?: Maybe<Scalars["String"]>;
   supported_countries?: Maybe<Scalars["_text"]>;
+  supported_languages?: Maybe<Scalars["_text"]>;
   updated_at: Scalars["timestamptz"];
   verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
@@ -1663,6 +1664,7 @@ export type App_Metadata_Bool_Exp = {
   source_code_url?: InputMaybe<String_Comparison_Exp>;
   support_email?: InputMaybe<String_Comparison_Exp>;
   supported_countries?: InputMaybe<_Text_Comparison_Exp>;
+  supported_languages?: InputMaybe<_Text_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1705,6 +1707,7 @@ export type App_Metadata_Insert_Input = {
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
   supported_countries?: InputMaybe<Scalars["_text"]>;
+  supported_languages?: InputMaybe<Scalars["_text"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1851,6 +1854,7 @@ export type App_Metadata_Order_By = {
   source_code_url?: InputMaybe<Order_By>;
   support_email?: InputMaybe<Order_By>;
   supported_countries?: InputMaybe<Order_By>;
+  supported_languages?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
@@ -1908,6 +1912,8 @@ export enum App_Metadata_Select_Column {
   SupportEmail = "support_email",
   /** column name */
   SupportedCountries = "supported_countries",
+  /** column name */
+  SupportedLanguages = "supported_languages",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
@@ -1969,6 +1975,7 @@ export type App_Metadata_Set_Input = {
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
   supported_countries?: InputMaybe<Scalars["_text"]>;
+  supported_languages?: InputMaybe<Scalars["_text"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -2008,6 +2015,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
   supported_countries?: InputMaybe<Scalars["_text"]>;
+  supported_languages?: InputMaybe<Scalars["_text"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -2060,6 +2068,8 @@ export enum App_Metadata_Update_Column {
   SupportEmail = "support_email",
   /** column name */
   SupportedCountries = "supported_countries",
+  /** column name */
+  SupportedLanguages = "supported_languages",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */

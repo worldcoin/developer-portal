@@ -10,6 +10,7 @@ export type UpdateMiniAppInfoMutationVariables = Types.Exact<{
   whitelisted_addresses?: Types.InputMaybe<Types.Scalars["_text"]>;
   support_email?: Types.InputMaybe<Types.Scalars["String"]>;
   supported_countries?: Types.InputMaybe<Types.Scalars["_text"]>;
+  supported_languages?: Types.InputMaybe<Types.Scalars["_text"]>;
 }>;
 
 export type UpdateMiniAppInfoMutation = {
@@ -27,6 +28,7 @@ export const UpdateMiniAppInfoDocument = gql`
     $whitelisted_addresses: _text
     $support_email: String
     $supported_countries: _text
+    $supported_languages: _text
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
@@ -35,6 +37,7 @@ export const UpdateMiniAppInfoDocument = gql`
         whitelisted_addresses: $whitelisted_addresses
         support_email: $support_email
         supported_countries: $supported_countries
+        supported_languages: $supported_languages
       }
     ) {
       id
@@ -64,6 +67,7 @@ export type UpdateMiniAppInfoMutationFn = Apollo.MutationFunction<
  *      whitelisted_addresses: // value for 'whitelisted_addresses'
  *      support_email: // value for 'support_email'
  *      supported_countries: // value for 'supported_countries'
+ *      supported_languages: // value for 'supported_languages'
  *   },
  * });
  */

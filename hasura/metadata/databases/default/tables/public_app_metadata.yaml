@@ -62,6 +62,7 @@ insert_permissions:
         - source_code_url
         - support_email
         - supported_countries
+        - supported_languages
         - verification_status
         - whitelisted_addresses
         - world_app_button_text
@@ -144,6 +145,7 @@ select_permissions:
         - source_code_url
         - support_email
         - supported_countries
+        - supported_languages
         - verification_status
         - whitelisted_addresses
         - world_app_button_text
@@ -170,6 +172,7 @@ select_permissions:
         - source_code_url
         - support_email
         - supported_countries
+        - supported_languages
         - updated_at
         - verification_status
         - verified_at
@@ -252,6 +255,7 @@ update_permissions:
         - source_code_url
         - support_email
         - supported_countries
+        - supported_languages
         - verification_status
         - whitelisted_addresses
         - world_app_button_text

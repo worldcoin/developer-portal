@@ -21,6 +21,7 @@ query GetAppMetadata($app_id: String!) {
     source_code_url
     support_email
     supported_countries
+    supported_languages
     app {
       team {
         name
