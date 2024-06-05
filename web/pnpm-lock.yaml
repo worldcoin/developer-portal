@@ -13,10 +13,10 @@ importers:
         version: 3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@apollo/experimental-nextjs-app-support':
         specifier: ^0.8.0
-        version: 0.8.0(@apollo/client@3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
+        version: 0.8.0(@apollo/client@3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
       '@auth0/nextjs-auth0':
         specifier: ^3.5.0
-        version: 3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+        version: 3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
       '@aws-sdk/client-kms':
         specifier: ^3.496.0
         version: 3.511.0
@@ -103,13 +103,13 @@ importers:
         version: 2.2.3
       next:
         specifier: 14.2.3
-        version: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-safe:
         specifier: ^3.5.0
-        version: 3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+        version: 3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
       next-useragent:
         specifier: ^2.8.0
-        version: 2.8.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+        version: 2.8.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
       posthog-js:
         specifier: ^1.105.6
         version: 1.105.8
@@ -193,8 +193,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7(graphql-tag@2.12.6(graphql@16.8.1))(graphql@16.8.1)
       '@playwright/test':
-        specifier: ^1.44.0
-        version: 1.44.0
+        specifier: 1.43.1
+        version: 1.43.1
       '@testing-library/jest-dom':
         specifier: ^6.1.4
         version: 6.4.2(@jest/globals@29.7.0)(@types/jest@29.5.12)(jest@29.7.0(@types/node@20.11.17)(ts-node@10.9.2(@types/node@20.11.17)(typescript@5.3.3)))
@@ -1752,8 +1752,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@playwright/test@1.44.0':
-    resolution: {integrity: sha512-rNX5lbNidamSUorBhB4XZ9SQTjAqfe5M+p37Z8ic0jPFBMo5iCtQz1kRWkEMg+rYOKSlVycpQmpqjSFq7LXOfg==}
+  '@playwright/test@1.43.1':
+    resolution: {integrity: sha512-HgtQzFgNEEo4TE22K/X7sYTYNqEMMTZmFS8kTq6m8hXj+m1D8TgwgIbumHddJa9h4yl4GkKb8/bgAl2+g7eDgA==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -5017,13 +5017,13 @@ packages:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
 
-  playwright-core@1.44.0:
-    resolution: {integrity: sha512-ZTbkNpFfYcGWohvTTl+xewITm7EOuqIqex0c7dNZ+aXsbrLj0qI8XlGKfPpipjm0Wny/4Lt4CJsWJk1stVS5qQ==}
+  playwright-core@1.43.1:
+    resolution: {integrity: sha512-EI36Mto2Vrx6VF7rm708qSnesVQKbxEWvPrfA1IPY6HgczBplDx7ENtx+K2n4kJ41sLLkuGfmb0ZLSSXlDhqPg==}
     engines: {node: '>=16'}
     hasBin: true
 
-  playwright@1.44.0:
-    resolution: {integrity: sha512-F9b3GUCLQ3Nffrfb6dunPOkE5Mh68tR7zN32L4jCk4FjQamgesGay7/dAAe1WaMEGV04DkdJfcJzjoCKygUaRQ==}
+  playwright@1.43.1:
+    resolution: {integrity: sha512-V7SoH0ai2kNt1Md9E3Gwas5B9m8KR2GVvwZnAI6Pg0m3sh7UvgiYhRrhsziCmqMJNouPckiOhk8T+9bSAK0VIA==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -6307,10 +6307,10 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@apollo/experimental-nextjs-app-support@0.8.0(@apollo/client@3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)':
+  '@apollo/experimental-nextjs-app-support@0.8.0(@apollo/client@3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@apollo/client': 3.9.0-rc.1(@types/react@18.2.55)(graphql-ws@5.12.1(graphql@16.8.1))(graphql@16.8.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0
       server-only: 0.0.1
       superjson: 2.2.1
@@ -6346,14 +6346,14 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@auth0/nextjs-auth0@3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))':
+  '@auth0/nextjs-auth0@3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))':
     dependencies:
       '@panva/hkdf': 1.1.1
       cookie: 0.6.0
       debug: 4.3.4
       joi: 17.12.1
       jose: 4.15.4
-      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       oauth4webapi: 2.10.3
       openid-client: 5.6.4
       tslib: 2.6.2
@@ -8917,9 +8917,9 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@playwright/test@1.44.0':
+  '@playwright/test@1.43.1':
     dependencies:
-      playwright: 1.44.0
+      playwright: 1.43.1
 
   '@radix-ui/primitive@1.0.1':
     dependencies:
@@ -12682,16 +12682,16 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  next-safe@3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)):
+  next-safe@3.5.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)):
     dependencies:
-      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 
-  next-useragent@2.8.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)):
+  next-useragent@2.8.0(next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)):
     dependencies:
-      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       ua-parser-js: 0.7.37
 
-  next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.44.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  next@14.2.3(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       '@next/env': 14.2.3
       '@swc/helpers': 0.5.5
@@ -12712,7 +12712,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 14.2.3
       '@next/swc-win32-ia32-msvc': 14.2.3
       '@next/swc-win32-x64-msvc': 14.2.3
-      '@playwright/test': 1.44.0
+      '@playwright/test': 1.43.1
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
@@ -13024,11 +13024,11 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
-  playwright-core@1.44.0: {}
+  playwright-core@1.43.1: {}
 
-  playwright@1.44.0:
+  playwright@1.43.1:
     dependencies:
-      playwright-core: 1.44.0
+      playwright-core: 1.43.1
     optionalDependencies:
       fsevents: 2.3.2
 
