@@ -65,6 +65,9 @@ export default async function handleGraphQL(
       "Authorization",
       `Bearer ${await generateAPIKeyJWT(response.data.api_key[0].team_id)}`,
     );
+  } else if (authorization) {
+    // If we get a service key or reviewer key in the authorization header, pass it through
+    headers.append("authorization", `Bearer ${authorization}`);
   }
 
   let body: string | undefined = undefined;
