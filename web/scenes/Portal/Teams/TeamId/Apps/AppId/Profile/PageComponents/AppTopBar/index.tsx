@@ -267,7 +267,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     appMetaData?.source_code_url,
     appMetaData?.integration_url,
     appMetaData?.world_app_button_text,
-    appMetaData.logo_img_url,
+    appMetaData?.logo_img_url,
     appMetaData.hero_image_url,
     appMetaData.showcase_img_urls,
     appMetaData?.app_mode,
