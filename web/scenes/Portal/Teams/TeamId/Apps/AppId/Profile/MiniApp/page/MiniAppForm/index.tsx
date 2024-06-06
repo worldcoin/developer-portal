@@ -318,8 +318,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
         <Typography variant={TYPOGRAPHY.H7}>Supported Languages</Typography>
 
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          If your app is a Mini App then you must select a list of countries
-          where the Mini App will be available.
+          If your app is a Mini App then you must select a list of languages you
+          support
         </Typography>
 
         <Controller
@@ -363,8 +363,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
         <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
 
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          If your app is a Mini App then you must select a list of countries
-          where the Mini App will be available.
+          Please include a support email where users can reach out to you for
+          help.
         </Typography>
 
         <Input
