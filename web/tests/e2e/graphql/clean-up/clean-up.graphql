@@ -1,0 +1,8 @@
+mutation CleanUp($name: String!, $email: String!) {
+  delete_user(where: { email: { _eq: $email } }) {
+    affected_rows
+  }
+  delete_team(where: { name: { _like: $name } }) {
+    affected_rows
+  }
+}
