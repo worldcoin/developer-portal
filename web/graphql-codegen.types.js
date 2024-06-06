@@ -154,6 +154,25 @@ module.exports = {
         withMutationFn: true,
       },
     },
+
+    "tests/e2e": {
+      documents: ["tests/e2e/**/*.graphql", "tests/e2e/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable import/no-relative-parent-imports -- auto generated file */",
+          },
+        },
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
+    },
   },
 
   hooks: {
