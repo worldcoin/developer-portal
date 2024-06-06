@@ -149,8 +149,6 @@ export const formatWhiteListedAddresses = (
     .map((address) => `"${address.trim()}"`)
     .join(",")}}`;
 
-  console.log(formattedAddresses);
-
   return formattedAddresses;
 };
 

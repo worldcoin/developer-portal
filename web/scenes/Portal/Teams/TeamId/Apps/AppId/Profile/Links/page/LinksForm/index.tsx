@@ -26,6 +26,7 @@ const schema = yup.object().shape({
       excludeEmptyString: true,
     })
     .required("This field is required"),
+
   app_website_url: yup
     .string()
     .url("Must be a valid https:// URL")
@@ -34,6 +35,7 @@ const schema = yup.object().shape({
       excludeEmptyString: true,
     })
     .optional(),
+
   source_code_url: yup
     .string()
     .url("Must be a valid https:// URL")
@@ -42,6 +44,7 @@ const schema = yup.object().shape({
       excludeEmptyString: true,
     })
     .optional(),
+
   world_app_button_text: yup
     .string()
     .max(25, "Content cannot exceed 25 characters")
@@ -59,9 +62,10 @@ type LinksFormProps = {
 export const LinksForm = (props: LinksFormProps) => {
   const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
+  const isEditable = appMetadata?.verification_status === "unverified";
+
   const [updateLinksMutation, { loading: updatingInfo }] =
     useUpdateAppLinksInfoMutation();
-  const isEditable = appMetadata?.verification_status === "unverified";
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -78,6 +82,7 @@ export const LinksForm = (props: LinksFormProps) => {
   } = useForm<LinksFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
+
     defaultValues: {
       integration_url: appMetadata?.integration_url,
       app_website_url: appMetadata?.app_website_url,
@@ -104,6 +109,7 @@ export const LinksForm = (props: LinksFormProps) => {
   const submit = useCallback(
     async (values: LinksFormValues) => {
       if (updatingInfo) return;
+
       try {
         const result = await updateLinksMutation({
           variables: {
@@ -123,15 +129,18 @@ export const LinksForm = (props: LinksFormProps) => {
             },
           ],
         });
+
         if (result instanceof Error) {
           throw result;
         }
+
         toast.success("App information updated successfully");
       } catch (e) {
         console.error(e);
         toast.error("Failed to update app information");
       }
     },
+
     [appMetadata?.id, appId, updateLinksMutation, updatingInfo],
   );
 
@@ -139,6 +148,7 @@ export const LinksForm = (props: LinksFormProps) => {
     <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.H7}>Links</Typography>
+
         {isDirty && (
           <Typography variant={TYPOGRAPHY.R4} className="text-system-error-500">
             Warning: You have unsaved changes
@@ -155,6 +165,7 @@ export const LinksForm = (props: LinksFormProps) => {
           placeholder="https://"
           register={register("integration_url")}
         />
+
         <Input
           label="Official website"
           errors={errors.app_website_url}
@@ -162,6 +173,7 @@ export const LinksForm = (props: LinksFormProps) => {
           placeholder="https://"
           register={register("app_website_url")}
         />
+
         <Input
           label="Github"
           errors={errors.source_code_url}
@@ -169,6 +181,7 @@ export const LinksForm = (props: LinksFormProps) => {
           placeholder="https://"
           register={register("source_code_url")}
         />
+
         <Input
           label="World App Button Content"
           errors={errors.world_app_button_text}
