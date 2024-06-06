@@ -29,6 +29,7 @@ export const ClientPage = () => {
               title="Create an app"
               description="Begin by creating your app"
               buttonText="Start"
+              testId="create-an-app"
             />,
 
             <Step

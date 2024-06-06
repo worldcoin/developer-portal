@@ -118,6 +118,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                 title={appName ?? "Add your app"}
                 description="App created successfully"
                 buttonText="Start"
+                testId="app-1"
                 completed
               />,
               <Step
@@ -131,6 +132,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                 title="Create action"
                 description="Allow user to verify as a unique person"
                 buttonText="Create"
+                testId="create-app"
               />,
             ]}
           />
