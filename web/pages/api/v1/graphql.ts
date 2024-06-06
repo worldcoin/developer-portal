@@ -1,4 +1,4 @@
-import { errorUnauthenticated } from "@/legacy/backend/errors";
+import { errorNotAllowed, errorUnauthenticated } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
 import { verifyHashedSecret } from "@/legacy/backend/utils";
@@ -11,6 +11,10 @@ export default async function handleGraphQL(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  if (!req.method || !["POST"].includes(req.method)) {
+    return errorNotAllowed(req.method, res, req);
+  }
+
   if (!process.env.NEXT_PUBLIC_GRAPHQL_API_URL) {
     throw new Error(
       "Improperly configured. `NEXT_PUBLIC_GRAPHQL_API_URL` env var must be set.",
@@ -65,6 +69,9 @@ export default async function handleGraphQL(
       "Authorization",
       `Bearer ${await generateAPIKeyJWT(response.data.api_key[0].team_id)}`,
     );
+  } else if (authorization) {
+    // If we get a service key or reviewer key in the authorization header, pass it through
+    headers.append("authorization", `Bearer ${authorization}`);
   }
 
   let body: string | undefined = undefined;

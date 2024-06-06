@@ -1,11 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { runCors } from "@/legacy/backend/cors";
-import { verifyProof } from "@/legacy/backend/verify";
-import * as yup from "yup";
+import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
 import { validateRequestSchema } from "@/legacy/backend/utils";
+import { verifyProof } from "@/legacy/backend/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { CredentialType, VerificationLevel } from "@worldcoin/idkit-core";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup
@@ -55,26 +55,30 @@ export default async function handler(
     parsedParams.action,
   ).digest;
 
-  const result = await verifyProof(
-    {
-      merkle_root: parsedParams.merkle_root,
-      signal: parsedParams.signal,
-      nullifier_hash: parsedParams.nullifier_hash,
-      external_nullifier,
-      proof: parsedParams.proof,
-    },
-    {
-      is_staging: parsedParams.is_staging,
-      verification_level: parsedParams.verification_level,
-    },
-  );
+  try {
+    const result = await verifyProof(
+      {
+        merkle_root: parsedParams.merkle_root,
+        signal: parsedParams.signal,
+        nullifier_hash: parsedParams.nullifier_hash,
+        external_nullifier,
+        proof: parsedParams.proof,
+      },
+      {
+        is_staging: parsedParams.is_staging,
+        verification_level: parsedParams.verification_level,
+      },
+    );
 
-  if (result.success) {
-    return res.status(200).json({ success: true, status: result.status });
-  }
+    if (result.success) {
+      return res.status(200).json({ success: true, status: result.status });
+    }
 
-  if (result.error) {
-    return res.status(400).json(result.error);
+    if (result.error) {
+      return res.status(400).json(result.error);
+    }
+  } catch (e) {
+    console.warn(e);
   }
 
   return errorResponse(
