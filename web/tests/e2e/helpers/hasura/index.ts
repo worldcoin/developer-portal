@@ -1,1 +1,1 @@
-export * from './admin-graphql-client'
+export * from "./admin-graphql-client";

@@ -27,7 +27,9 @@ export const RadioCard = (
           <Radio
             register={props.register}
             value={props.option.value}
-            {...(props.testId ? { "data-testid": `radio-${props.testId}` } : {})}
+            {...(props.testId
+              ? { "data-testid": `radio-${props.testId}` }
+              : {})}
           />
 
           <Typography variant={TYPOGRAPHY.M3} className="select-none">

@@ -2,14 +2,16 @@ import { adminGraphqlClient } from "@e2e/helpers/hasura";
 import { InsertTeamMutation, insertTeamSdk } from "./graphql";
 
 export const createTeam = async (name: string) => {
-  let response: InsertTeamMutation
+  let response: InsertTeamMutation;
 
   try {
     response = await insertTeamSdk(adminGraphqlClient).InsertTeam({
       object: { name },
     });
   } catch (e) {
-    throw new Error(`Failed to create a team in Hasura:\n${JSON.stringify(e, null, 2)}`);
+    throw new Error(
+      `Failed to create a team in Hasura:\n${JSON.stringify(e, null, 2)}`,
+    );
   }
 
   let id: string | undefined;

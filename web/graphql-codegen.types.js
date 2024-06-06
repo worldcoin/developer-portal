@@ -166,7 +166,8 @@ module.exports = {
         {
           add: {
             placement: "prepend",
-            content: "/* eslint-disable import/no-relative-parent-imports -- auto generated file */",
+            content:
+              "/* eslint-disable import/no-relative-parent-imports -- auto generated file */",
           },
         },
         "typescript-operations",

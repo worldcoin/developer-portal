@@ -71,7 +71,10 @@ export const Step = (
       )}
 
       {completed && (
-        <div className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] select-none grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400" {...(testId ? { "data-testid": `button-${testId}` } : {})}>
+        <div
+          className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] select-none grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400"
+          {...(testId ? { "data-testid": `button-${testId}` } : {})}
+        >
           <CheckIcon size="16" />
           <Typography variant={TYPOGRAPHY.M4}>Done</Typography>
         </div>

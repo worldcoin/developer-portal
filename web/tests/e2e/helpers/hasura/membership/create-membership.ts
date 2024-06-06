@@ -7,22 +7,26 @@ export const createMembership = async (params: {
   userId: string;
   role: Role_Enum;
 }) => {
-  let response: InsertMembershipMutation
+  let response: InsertMembershipMutation;
 
   try {
-    response = await insertMembershipSdk(adminGraphqlClient).InsertMembership({object: {
-      team_id: params.teamId,
-      user_id: params.userId,
-      role: params.role,
-    }});
+    response = await insertMembershipSdk(adminGraphqlClient).InsertMembership({
+      object: {
+        team_id: params.teamId,
+        user_id: params.userId,
+        role: params.role,
+      },
+    });
   } catch (e) {
-    throw new Error(`Failed to create a membership in Hasura:\n${JSON.stringify(e, null, 2)}`);
+    throw new Error(
+      `Failed to create a membership in Hasura:\n${JSON.stringify(e, null, 2)}`,
+    );
   }
 
   let id: string | undefined;
 
   try {
-    id = response.insert_membership_one?.id
+    id = response.insert_membership_one?.id;
   } catch {}
 
   if (!id) {

@@ -19,6 +19,8 @@ export const deleteTeam = async (id: string) => {
   } catch {}
 
   if (!result) {
-    throw new Error(`Failed to delete a team (${id}):\n${JSON.stringify(response)}`);
+    throw new Error(
+      `Failed to delete a team (${id}):\n${JSON.stringify(response)}`,
+    );
   }
 };
