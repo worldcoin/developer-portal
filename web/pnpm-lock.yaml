@@ -240,6 +240,9 @@ importers:
       axios:
         specifier: ^1.6.8
         version: 1.6.8
+      casual:
+        specifier: ^1.6.2
+        version: 1.6.2
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -3046,6 +3049,9 @@ packages:
   capital-case@1.0.4:
     resolution: {integrity: sha512-ds37W8CytHgwnhGGTi88pcPyR15qoNkOpYwmMMfnWqqWgESapLqvDx6huFjQ5vqWSn2Z06173XNA7LtMOeUh1A==}
 
+  casual@1.6.2:
+    resolution: {integrity: sha512-NQObL800rg32KZ9bBajHbyDjxLXxxuShChQg7A4tbSeG3n1t7VYGOSkzFSI9gkSgOHp+xilEJ7G0L5l6M30KYA==}
+
   chalk@2.4.2:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
     engines: {node: '>=4'}
@@ -4631,6 +4637,9 @@ packages:
       '@types/node':
         optional: true
 
+  mersenne-twister@1.1.0:
+    resolution: {integrity: sha512-mUYWsMKNrm4lfygPkL3OfGzOPTR2DBlTkBNHM//F6hGp8cLThY897crAlk3/Jo17LEOOjQUrNAx6DvgO77QJkA==}
+
   methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
     engines: {node: '>= 0.6'}
@@ -4683,6 +4692,9 @@ packages:
   minipass@7.0.4:
     resolution: {integrity: sha512-jYofLM5Dam9279rdkWzqHozUo4ybjdZmCsDHePy5V/PbBcVMiSZR97gmAy45aqi8CK1lG2ECd356FU86avfwUQ==}
     engines: {node: '>=16 || 14 >=14.17'}
+
+  moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
   ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
@@ -10582,6 +10594,11 @@ snapshots:
       tslib: 2.6.2
       upper-case-first: 2.0.2
 
+  casual@1.6.2:
+    dependencies:
+      mersenne-twister: 1.1.0
+      moment: 2.30.1
+
   chalk@2.4.2:
     dependencies:
       ansi-styles: 3.2.1
@@ -12625,6 +12642,8 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.11.17
 
+  mersenne-twister@1.1.0: {}
+
   methods@1.1.2: {}
 
   micromatch@4.0.5:
@@ -12663,6 +12682,8 @@ snapshots:
   minimist@1.2.8: {}
 
   minipass@7.0.4: {}
+
+  moment@2.30.1: {}
 
   ms@2.1.2: {}
 
