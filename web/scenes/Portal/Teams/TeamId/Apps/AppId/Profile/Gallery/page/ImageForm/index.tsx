@@ -176,23 +176,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         ? setHeroImageUploading(true)
         : setShowcaseImageUploading(true);
       try {
-        // Aspect Ratio
-        let aspectRatioWidth, aspectRatioHeight;
-        if (width === 1920 && height === 1080) {
-          aspectRatioWidth = 16;
-          aspectRatioHeight = 9;
-        } else if (width === 1600 && height === 1200) {
-          aspectRatioWidth = 4;
-          aspectRatioHeight = 3;
-        } else {
-          throw new Error("Invalid aspect ratio");
-        }
-
-        await validateImageAspectRatio(
-          file,
-          aspectRatioWidth,
-          aspectRatioHeight,
-        );
+        await validateImageAspectRatio(file, 1, 1);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
@@ -342,8 +326,8 @@ export const ImageForm = (props: ImageFormTypes) => {
       </div>
       {!heroImage && (
         <ImageDropZone
-          width={1600}
-          height={1200}
+          width={1080}
+          height={1080}
           disabled={
             unverifiedImages.hero_image_url !== "" ||
             !isEnoughPermissions ||
@@ -364,7 +348,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 4:3. \nRecommended size: ${1600}x${1200}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 1:1. \nRecommended size: ${1080}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -374,9 +358,9 @@ export const ImageForm = (props: ImageFormTypes) => {
           <ImageDisplay
             src={heroImage}
             type={viewMode}
-            width={400}
+            width={300}
             height={300}
-            className="h-[132px] w-44 rounded-lg"
+            className="h-auto w-32 rounded-lg"
           />
           <Button
             type="button"
@@ -408,7 +392,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       </div>
       {showcaseImgUrls?.length < 3 && isEditable && isEnoughPermissions && (
         <ImageDropZone
-          width={1920}
+          width={1080}
           height={1080}
           uploadImage={uploadImage}
           disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
@@ -426,7 +410,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 16:9. Recommended size: ${1920}x${1080}px`}
+              {`JPG or PNG (max 250kb), required aspect ratio 1:1. Recommended size: ${1080}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -438,9 +422,9 @@ export const ImageForm = (props: ImageFormTypes) => {
               <ImageDisplay
                 src={url}
                 type={viewMode}
-                width={640}
-                height={360}
-                className="h-[99px] w-44 rounded-lg"
+                width={300}
+                height={300}
+                className="h-auto w-32 rounded-lg"
               />
               <Button
                 type="button"
