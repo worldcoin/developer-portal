@@ -1,5 +1,4 @@
 import { adminGraphqlClient } from "@e2e/helpers/hasura";
-import casual from "casual";
 import { InsertUserMutation, insertUserSdk } from "./graphql";
 
 export const createUser = async (params: {
@@ -15,7 +14,7 @@ export const createUser = async (params: {
         auth0Id: params.auth0Id,
         email: params.email,
         is_subscribed: false,
-        ironclad_id: casual.uuid,
+        ironclad_id: crypto.randomUUID(),
         team_id: params.teamId,
       },
     });
