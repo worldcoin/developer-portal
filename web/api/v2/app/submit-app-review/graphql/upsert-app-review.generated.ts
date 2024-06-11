@@ -30,13 +30,16 @@ export const UpsertAppReviewDocument = gql`
     $rating: Int!
   ) {
     insert_app_reviews_one(
-      objects: {
+      object: {
         nullifier_hash: $nullifier_hash
         app_id: $app_id
         country: $country
         rating: $rating
       }
-      on_conflict: { constraint: nullifier_hash, update_columns: [rating] }
+      on_conflict: {
+        constraint: app_reviews_nullifier_hash_key
+        update_columns: [rating]
+      }
     ) {
       id
       app_id

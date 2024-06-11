@@ -56,6 +56,7 @@ export const POST = async (req: NextRequest) => {
     {
       is_staging: parsedParams.app_id.includes("staging"),
       verification_level: parsedParams.verification_level,
+      max_age: 3600, // require that root be less than 1 hour old
     },
   );
 
@@ -78,7 +79,7 @@ export const POST = async (req: NextRequest) => {
   const { insert_app_reviews_one } = await upsertAppReview(
     serviceClient,
   ).UpsertAppReview({
-    nullifier_hash: external_nullifier.digest,
+    nullifier_hash: parsedParams.nullifier_hash,
     app_id: parsedParams.app_id,
     country: parsedParams.country?.toLowerCase() ?? "",
     rating: parsedParams.rating,
