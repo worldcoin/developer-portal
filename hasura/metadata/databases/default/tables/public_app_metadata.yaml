@@ -129,8 +129,6 @@ select_permissions:
         - world_app_button_text
         - whitelisted_addresses
         - app_mode
-      computed_fields:
-        - app_rating
       filter:
         verification_status:
           _neq: unverified

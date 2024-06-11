@@ -1,0 +1,21 @@
+mutation UpsertAppReview(
+  $nullifier_hash: String!
+  $app_id: String!
+  $country: String!
+  $rating: Int!
+) {
+  insert_app_reviews_one(
+    objects: {
+      nullifier_hash: $nullifier_hash
+      app_id: $app_id
+      country: $country
+      rating: $rating
+    }
+    on_conflict: { constraint: nullifier_hash, update_columns: [rating] }
+  ) {
+    id
+    app_id
+    country
+    rating
+  }
+}
