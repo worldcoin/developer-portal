@@ -1,0 +1,31 @@
+table:
+  name: app_reviews
+  schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - nullifier_hash
+        - app_id
+        - country
+        - rating
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - nullifier_hash
+        - app_id
+        - country
+        - rating
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - rating
+        - updated_at
+      filter: {}
+      check: {}

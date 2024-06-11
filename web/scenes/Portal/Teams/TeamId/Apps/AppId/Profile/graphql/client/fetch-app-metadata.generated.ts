@@ -37,7 +37,7 @@ export type FetchAppMetadataQuery = {
       verification_status: string;
       app_mode: string;
       whitelisted_addresses?: any | null;
-      support_email?: string | null;
+      support_email: string;
       supported_countries?: any | null;
       supported_languages?: any | null;
     }>;
@@ -62,7 +62,7 @@ export type FetchAppMetadataQuery = {
       verification_status: string;
       app_mode: string;
       whitelisted_addresses?: any | null;
-      support_email?: string | null;
+      support_email: string;
       supported_countries?: any | null;
       supported_languages?: any | null;
     }>;
