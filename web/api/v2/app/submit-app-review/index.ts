@@ -23,16 +23,8 @@ const schema = yup.object({
     .max(5, "Max rating is 5")
     .strict()
     .required(),
-  country: yup.string().max(2).strict().required(),
-  app_id: yup
-    .string()
-    .strict()
-    .required()
-    .test(
-      "no-staging",
-      "Staging apps cannot be reviewed",
-      (val) => !val.includes("staging"),
-    ),
+  app_id: yup.string().strict().required(),
+  country: yup.string().max(2).strict().optional(),
 });
 
 export const POST = async (req: NextRequest) => {
@@ -48,23 +40,21 @@ export const POST = async (req: NextRequest) => {
   }
 
   // Fix the signal hash to be empty string
-  const signalHash =
-    "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4";
-
+  const signalHash = hashToField(parsedParams.rating.toString());
   const external_nullifier = packAndEncode([
     ["uint256", hashToField(`${parsedParams.app_id}_app_review`).hash],
   ]);
 
   const { error, success } = await verifyProof(
     {
-      signal_hash: signalHash,
+      signal_hash: signalHash.digest,
       proof: parsedParams.proof,
       merkle_root: parsedParams.merkle_root,
       nullifier_hash: parsedParams.nullifier_hash,
       external_nullifier: external_nullifier.digest,
     },
     {
-      is_staging: false,
+      is_staging: parsedParams.app_id.includes("staging"),
       verification_level: parsedParams.verification_level,
     },
   );
@@ -90,7 +80,7 @@ export const POST = async (req: NextRequest) => {
   ).UpsertAppReview({
     nullifier_hash: external_nullifier.digest,
     app_id: parsedParams.app_id,
-    country: parsedParams.country.toLowerCase(),
+    country: parsedParams.country?.toLowerCase() ?? "",
     rating: parsedParams.rating,
   });
 
