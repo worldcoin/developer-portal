@@ -1547,6 +1547,8 @@ export type App_Metadata = {
   app: App;
   app_id: Scalars["String"];
   app_mode: Scalars["String"];
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url: Scalars["String"];
   category: Scalars["String"];
   created_at: Scalars["timestamptz"];
@@ -1564,7 +1566,7 @@ export type App_Metadata = {
   reviewed_by: Scalars["String"];
   showcase_img_urls?: Maybe<Scalars["_text"]>;
   source_code_url: Scalars["String"];
-  support_email?: Maybe<Scalars["String"]>;
+  support_email: Scalars["String"];
   supported_countries?: Maybe<Scalars["_text"]>;
   supported_languages?: Maybe<Scalars["_text"]>;
   updated_at: Scalars["timestamptz"];
@@ -1612,9 +1614,17 @@ export type App_Metadata_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "app_metadata" */
 export type App_Metadata_Aggregate_Fields = {
   __typename?: "app_metadata_aggregate_fields";
+  avg?: Maybe<App_Metadata_Avg_Fields>;
   count: Scalars["Int"];
   max?: Maybe<App_Metadata_Max_Fields>;
   min?: Maybe<App_Metadata_Min_Fields>;
+  stddev?: Maybe<App_Metadata_Stddev_Fields>;
+  stddev_pop?: Maybe<App_Metadata_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<App_Metadata_Stddev_Samp_Fields>;
+  sum?: Maybe<App_Metadata_Sum_Fields>;
+  var_pop?: Maybe<App_Metadata_Var_Pop_Fields>;
+  var_samp?: Maybe<App_Metadata_Var_Samp_Fields>;
+  variance?: Maybe<App_Metadata_Variance_Fields>;
 };
 
 /** aggregate fields of "app_metadata" */
@@ -1637,6 +1647,13 @@ export type App_Metadata_Arr_Rel_Insert_Input = {
   on_conflict?: InputMaybe<App_Metadata_On_Conflict>;
 };
 
+/** aggregate avg on columns */
+export type App_Metadata_Avg_Fields = {
+  __typename?: "app_metadata_avg_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
 /** Boolean expression to filter rows from the table "app_metadata". All fields are combined with a logical 'AND'. */
 export type App_Metadata_Bool_Exp = {
   _and?: InputMaybe<Array<App_Metadata_Bool_Exp>>;
@@ -1645,6 +1662,7 @@ export type App_Metadata_Bool_Exp = {
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   app_mode?: InputMaybe<String_Comparison_Exp>;
+  app_rating?: InputMaybe<Numeric_Comparison_Exp>;
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1721,6 +1739,8 @@ export type App_Metadata_Max_Fields = {
   __typename?: "app_metadata_max_fields";
   app_id?: Maybe<Scalars["String"]>;
   app_mode?: Maybe<Scalars["String"]>;
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url?: Maybe<Scalars["String"]>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
@@ -1770,6 +1790,8 @@ export type App_Metadata_Min_Fields = {
   __typename?: "app_metadata_min_fields";
   app_id?: Maybe<Scalars["String"]>;
   app_mode?: Maybe<Scalars["String"]>;
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url?: Maybe<Scalars["String"]>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
@@ -1835,6 +1857,7 @@ export type App_Metadata_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
+  app_rating?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -1984,6 +2007,27 @@ export type App_Metadata_Set_Input = {
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
 
+/** aggregate stddev on columns */
+export type App_Metadata_Stddev_Fields = {
+  __typename?: "app_metadata_stddev_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type App_Metadata_Stddev_Pop_Fields = {
+  __typename?: "app_metadata_stddev_pop_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type App_Metadata_Stddev_Samp_Fields = {
+  __typename?: "app_metadata_stddev_samp_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
 /** Streaming cursor of the table "app_metadata" */
 export type App_Metadata_Stream_Cursor_Input = {
   /** Stream column input with initial value */
@@ -2022,6 +2066,13 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
+};
+
+/** aggregate sum on columns */
+export type App_Metadata_Sum_Fields = {
+  __typename?: "app_metadata_sum_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
 };
 
 /** update columns of table "app_metadata" */
@@ -2089,6 +2140,27 @@ export type App_Metadata_Updates = {
   _set?: InputMaybe<App_Metadata_Set_Input>;
   /** filter the rows which have to be updated */
   where: App_Metadata_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type App_Metadata_Var_Pop_Fields = {
+  __typename?: "app_metadata_var_pop_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate var_samp on columns */
+export type App_Metadata_Var_Samp_Fields = {
+  __typename?: "app_metadata_var_samp_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate variance on columns */
+export type App_Metadata_Variance_Fields = {
+  __typename?: "app_metadata_variance_fields";
+  /** A computed field that returns the rating of an app */
+  app_rating?: Maybe<Scalars["numeric"]>;
 };
 
 /** aggregate min on columns */
@@ -2322,6 +2394,264 @@ export type App_Rankings_Updates = {
   _set?: InputMaybe<App_Rankings_Set_Input>;
   /** filter the rows which have to be updated */
   where: App_Rankings_Bool_Exp;
+};
+
+/** columns and relationships of "app_reviews" */
+export type App_Reviews = {
+  __typename?: "app_reviews";
+  app_id: Scalars["String"];
+  country: Scalars["String"];
+  created_at: Scalars["timestamptz"];
+  id: Scalars["String"];
+  nullifier_hash: Scalars["String"];
+  rating: Scalars["Int"];
+  updated_at: Scalars["timestamptz"];
+};
+
+/** aggregated selection of "app_reviews" */
+export type App_Reviews_Aggregate = {
+  __typename?: "app_reviews_aggregate";
+  aggregate?: Maybe<App_Reviews_Aggregate_Fields>;
+  nodes: Array<App_Reviews>;
+};
+
+/** aggregate fields of "app_reviews" */
+export type App_Reviews_Aggregate_Fields = {
+  __typename?: "app_reviews_aggregate_fields";
+  avg?: Maybe<App_Reviews_Avg_Fields>;
+  count: Scalars["Int"];
+  max?: Maybe<App_Reviews_Max_Fields>;
+  min?: Maybe<App_Reviews_Min_Fields>;
+  stddev?: Maybe<App_Reviews_Stddev_Fields>;
+  stddev_pop?: Maybe<App_Reviews_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<App_Reviews_Stddev_Samp_Fields>;
+  sum?: Maybe<App_Reviews_Sum_Fields>;
+  var_pop?: Maybe<App_Reviews_Var_Pop_Fields>;
+  var_samp?: Maybe<App_Reviews_Var_Samp_Fields>;
+  variance?: Maybe<App_Reviews_Variance_Fields>;
+};
+
+/** aggregate fields of "app_reviews" */
+export type App_Reviews_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** aggregate avg on columns */
+export type App_Reviews_Avg_Fields = {
+  __typename?: "app_reviews_avg_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_reviews". All fields are combined with a logical 'AND'. */
+export type App_Reviews_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Reviews_Bool_Exp>>;
+  _not?: InputMaybe<App_Reviews_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Reviews_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  country?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+  rating?: InputMaybe<Int_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_reviews" */
+export enum App_Reviews_Constraint {
+  /** unique or primary key constraint on columns "nullifier_hash" */
+  AppReviewsNullifierHashKey = "app_reviews_nullifier_hash_key",
+  /** unique or primary key constraint on columns "id" */
+  AppReviewsPkey = "app_reviews_pkey",
+}
+
+/** input type for incrementing numeric columns in table "app_reviews" */
+export type App_Reviews_Inc_Input = {
+  rating?: InputMaybe<Scalars["Int"]>;
+};
+
+/** input type for inserting data into table "app_reviews" */
+export type App_Reviews_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  country?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]>;
+  rating?: InputMaybe<Scalars["Int"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]>;
+};
+
+/** aggregate max on columns */
+export type App_Reviews_Max_Fields = {
+  __typename?: "app_reviews_max_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  country?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  nullifier_hash?: Maybe<Scalars["String"]>;
+  rating?: Maybe<Scalars["Int"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
+};
+
+/** aggregate min on columns */
+export type App_Reviews_Min_Fields = {
+  __typename?: "app_reviews_min_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  country?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  nullifier_hash?: Maybe<Scalars["String"]>;
+  rating?: Maybe<Scalars["Int"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
+};
+
+/** response of any mutation on the table "app_reviews" */
+export type App_Reviews_Mutation_Response = {
+  __typename?: "app_reviews_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Reviews>;
+};
+
+/** on_conflict condition type for table "app_reviews" */
+export type App_Reviews_On_Conflict = {
+  constraint: App_Reviews_Constraint;
+  update_columns?: Array<App_Reviews_Update_Column>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_reviews". */
+export type App_Reviews_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  country?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  rating?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_reviews */
+export type App_Reviews_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "app_reviews" */
+export enum App_Reviews_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Country = "country",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+  /** column name */
+  Rating = "rating",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** input type for updating data in table "app_reviews" */
+export type App_Reviews_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  country?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]>;
+  rating?: InputMaybe<Scalars["Int"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]>;
+};
+
+/** aggregate stddev on columns */
+export type App_Reviews_Stddev_Fields = {
+  __typename?: "app_reviews_stddev_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type App_Reviews_Stddev_Pop_Fields = {
+  __typename?: "app_reviews_stddev_pop_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type App_Reviews_Stddev_Samp_Fields = {
+  __typename?: "app_reviews_stddev_samp_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** Streaming cursor of the table "app_reviews" */
+export type App_Reviews_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Reviews_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Reviews_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  country?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]>;
+  rating?: InputMaybe<Scalars["Int"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]>;
+};
+
+/** aggregate sum on columns */
+export type App_Reviews_Sum_Fields = {
+  __typename?: "app_reviews_sum_fields";
+  rating?: Maybe<Scalars["Int"]>;
+};
+
+/** update columns of table "app_reviews" */
+export enum App_Reviews_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Country = "country",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+  /** column name */
+  Rating = "rating",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+export type App_Reviews_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<App_Reviews_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Reviews_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Reviews_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type App_Reviews_Var_Pop_Fields = {
+  __typename?: "app_reviews_var_pop_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate var_samp on columns */
+export type App_Reviews_Var_Samp_Fields = {
+  __typename?: "app_reviews_var_samp_fields";
+  rating?: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate variance on columns */
+export type App_Reviews_Variance_Fields = {
+  __typename?: "app_reviews_variance_fields";
+  rating?: Maybe<Scalars["Float"]>;
 };
 
 /** select columns of table "app" */
@@ -3834,6 +4164,10 @@ export type Mutation_Root = {
   delete_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
   /** delete single row from the table: "app_rankings" */
   delete_app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** delete data from the table: "app_reviews" */
+  delete_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
+  /** delete single row from the table: "app_reviews" */
+  delete_app_reviews_by_pk?: Maybe<App_Reviews>;
   /** delete data from the table: "app_stats_returning" */
   delete_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
   /** delete single row from the table: "app_stats_returning" */
@@ -3903,6 +4237,10 @@ export type Mutation_Root = {
   insert_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
   /** insert a single row into the table: "app_rankings" */
   insert_app_rankings_one?: Maybe<App_Rankings>;
+  /** insert data into the table: "app_reviews" */
+  insert_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
+  /** insert a single row into the table: "app_reviews" */
+  insert_app_reviews_one?: Maybe<App_Reviews>;
   /** insert data into the table: "app_stats_returning" */
   insert_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
   /** insert a single row into the table: "app_stats_returning" */
@@ -3995,6 +4333,12 @@ export type Mutation_Root = {
   update_app_rankings_many?: Maybe<
     Array<Maybe<App_Rankings_Mutation_Response>>
   >;
+  /** update data of the table: "app_reviews" */
+  update_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
+  /** update single row of the table: "app_reviews" */
+  update_app_reviews_by_pk?: Maybe<App_Reviews>;
+  /** update multiples rows of table: "app_reviews" */
+  update_app_reviews_many?: Maybe<Array<Maybe<App_Reviews_Mutation_Response>>>;
   /** update data of the table: "app_stats_returning" */
   update_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
   /** update single row of the table: "app_stats_returning" */
@@ -4124,6 +4468,16 @@ export type Mutation_RootDelete_App_RankingsArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_App_Rankings_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_ReviewsArgs = {
+  where: App_Reviews_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Reviews_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -4312,6 +4666,18 @@ export type Mutation_RootInsert_App_RankingsArgs = {
 export type Mutation_RootInsert_App_Rankings_OneArgs = {
   object: App_Rankings_Insert_Input;
   on_conflict?: InputMaybe<App_Rankings_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_ReviewsArgs = {
+  objects: Array<App_Reviews_Insert_Input>;
+  on_conflict?: InputMaybe<App_Reviews_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Reviews_OneArgs = {
+  object: App_Reviews_Insert_Input;
+  on_conflict?: InputMaybe<App_Reviews_On_Conflict>;
 };
 
 /** mutation root */
@@ -4568,6 +4934,25 @@ export type Mutation_RootUpdate_App_Rankings_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_App_Rankings_ManyArgs = {
   updates: Array<App_Rankings_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_ReviewsArgs = {
+  _inc?: InputMaybe<App_Reviews_Inc_Input>;
+  _set?: InputMaybe<App_Reviews_Set_Input>;
+  where: App_Reviews_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Reviews_By_PkArgs = {
+  _inc?: InputMaybe<App_Reviews_Inc_Input>;
+  _set?: InputMaybe<App_Reviews_Set_Input>;
+  pk_columns: App_Reviews_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Reviews_ManyArgs = {
+  updates: Array<App_Reviews_Updates>;
 };
 
 /** mutation root */
@@ -5204,6 +5589,12 @@ export type Query_Root = {
   app_rankings_aggregate: App_Rankings_Aggregate;
   /** fetch data from the table: "app_rankings" using primary key columns */
   app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** fetch data from the table: "app_reviews" */
+  app_reviews: Array<App_Reviews>;
+  /** fetch aggregated fields from the table: "app_reviews" */
+  app_reviews_aggregate: App_Reviews_Aggregate;
+  /** fetch data from the table: "app_reviews" using primary key columns */
+  app_reviews_by_pk?: Maybe<App_Reviews>;
   /** execute function "app_stats" which returns "app_stats_returning" */
   app_stats: Array<App_Stats_Returning>;
   /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
@@ -5418,6 +5809,26 @@ export type Query_RootApp_Rankings_AggregateArgs = {
 };
 
 export type Query_RootApp_Rankings_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Query_RootApp_ReviewsArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+export type Query_RootApp_Reviews_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+export type Query_RootApp_Reviews_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -6102,6 +6513,14 @@ export type Subscription_Root = {
   app_rankings_by_pk?: Maybe<App_Rankings>;
   /** fetch data from the table in a streaming manner: "app_rankings" */
   app_rankings_stream: Array<App_Rankings>;
+  /** fetch data from the table: "app_reviews" */
+  app_reviews: Array<App_Reviews>;
+  /** fetch aggregated fields from the table: "app_reviews" */
+  app_reviews_aggregate: App_Reviews_Aggregate;
+  /** fetch data from the table: "app_reviews" using primary key columns */
+  app_reviews_by_pk?: Maybe<App_Reviews>;
+  /** fetch data from the table in a streaming manner: "app_reviews" */
+  app_reviews_stream: Array<App_Reviews>;
   /** execute function "app_stats" which returns "app_stats_returning" */
   app_stats: Array<App_Stats_Returning>;
   /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
@@ -6364,6 +6783,32 @@ export type Subscription_RootApp_Rankings_StreamArgs = {
   batch_size: Scalars["Int"];
   cursor: Array<InputMaybe<App_Rankings_Stream_Cursor_Input>>;
   where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Subscription_RootApp_ReviewsArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Reviews_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Reviews_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootApp_Reviews_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<App_Reviews_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
 };
 
 export type Subscription_RootApp_StatsArgs = {
