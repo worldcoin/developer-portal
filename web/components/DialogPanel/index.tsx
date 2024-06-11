@@ -3,8 +3,8 @@ import {
   DialogPanelProps as DialogPanelPropsBase,
   Transition,
 } from "@headlessui/react";
-import { twMerge } from "tailwind-merge";
 import { Fragment } from "react";
+import { twMerge } from "tailwind-merge";
 
 type DialogPanelProps = Omit<DialogPanelPropsBase<"div">, "className"> & {
   className?: string;
@@ -26,7 +26,7 @@ export const DialogPanel = (props: DialogPanelProps) => {
       <div className="fixed inset-0 grid items-end overflow-y-auto p-5 md:items-center md:justify-center">
         <Dialog.Panel
           className={twMerge(
-            "relative z-50 grid w-full justify-items-center rounded-32 bg-grey-0 p-7 md:mx-4 md:w-auto md:min-w-[25rem] md:rounded-20",
+            "relative z-50 grid w-full justify-items-center rounded-32 bg-grey-0 p-7 md:w-auto md:min-w-[25rem] md:rounded-20",
             className,
           )}
           {...otherProps}

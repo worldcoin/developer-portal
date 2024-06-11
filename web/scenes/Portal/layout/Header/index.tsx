@@ -39,7 +39,7 @@ export const Header = (props: { color: Color | null }) => {
         <LoggedUserNav />
       </SizingWrapper>
 
-      <CreateAppDialog open={open} onClose={setOpen} />
+      <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
     </header>
   );
 };
