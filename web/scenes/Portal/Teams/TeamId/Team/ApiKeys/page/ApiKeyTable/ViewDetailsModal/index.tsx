@@ -85,7 +85,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
       );
       setIsOpen(false);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to update API Key: ", error);
       toast.error("Error occurred while updating API key.");
     }
   };

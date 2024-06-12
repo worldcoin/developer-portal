@@ -55,7 +55,7 @@ export const ClientInformationPage = (props: {
       setClientSecret(result.data?.reset_client_secret?.client_secret ?? "");
       toast.success("Client secret reset");
     } catch (error) {
-      console.error(error);
+      console.error("Reset Client Secret Error: ", error);
       toast.error("Failed to reset client secret");
     }
   }, [resetClientSecretMutation]);

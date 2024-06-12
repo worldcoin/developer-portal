@@ -101,7 +101,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
         toast.success("Ownership transferred!");
         props.onClose(true);
       } catch (e) {
-        console.error(e);
+        console.error("Transfer Team Dialog: ", e);
         toast.error("Error ownership transferring");
       }
     },

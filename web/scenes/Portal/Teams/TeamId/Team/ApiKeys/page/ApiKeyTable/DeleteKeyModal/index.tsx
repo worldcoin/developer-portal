@@ -39,7 +39,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
       setIsOpen(false);
       toast.success(`API key ${name} deleted successfully`);
     } catch (e) {
-      console.error(e);
+      console.error("Delete api key error: ", e);
       toast.error("An error occurred while deleting the API key");
     }
   };

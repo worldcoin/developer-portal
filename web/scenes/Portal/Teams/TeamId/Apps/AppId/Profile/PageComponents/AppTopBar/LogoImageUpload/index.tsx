@@ -103,7 +103,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         }
         setShowDialog(false);
       } catch (error) {
-        console.error(error);
+        console.error("Logo Upload Failed: ", error);
+
         if (error instanceof ImageValidationError) {
           toast.dismiss("upload_toast");
         } else {

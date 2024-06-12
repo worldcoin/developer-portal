@@ -64,7 +64,7 @@ export const ActionDangerZoneContent = (props: {
       router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
       router.replace(`/teams/${teamId}/apps/${appId}/actions`);
     } catch (error) {
-      console.error(error);
+      console.error("Delete Action: ", error);
       return toast.error("Unable to delete action");
     }
 

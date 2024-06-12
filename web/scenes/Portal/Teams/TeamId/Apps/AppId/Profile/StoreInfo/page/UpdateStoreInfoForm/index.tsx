@@ -164,7 +164,7 @@ export const UpdateStoreInfoForm = (props: UpdateStoreInfoFormProps) => {
         }
         toast.success("App information updated successfully");
       } catch (e) {
-        console.error(e);
+        console.error("Failed to update store info: ", e);
         toast.error("Failed to update app information");
       }
     },

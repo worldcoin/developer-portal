@@ -1,7 +1,8 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Section } from "@/components/Section";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
@@ -15,8 +16,6 @@ import {
   useFetchTeamQuery,
 } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { Section } from "@/components/Section";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -61,7 +60,7 @@ export const TeamSettingsPage = () => {
         });
         toast.success("Your team was successfully updated");
       } catch (error) {
-        console.error(error);
+        console.error("Failed to update team: ", error);
         toast.error("Error updating team");
       }
     },
