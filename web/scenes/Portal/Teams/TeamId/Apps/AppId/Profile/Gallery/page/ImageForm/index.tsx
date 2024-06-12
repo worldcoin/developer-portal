@@ -101,7 +101,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         throw result;
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error Deleting Image: ", error);
       toast.error("Error deleting image");
     }
   }, [
@@ -266,7 +266,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           autoClose: 5000,
         });
       } catch (error) {
-        console.error(error);
+        console.error("Error Uploading Image: ", error);
 
         if (error instanceof ImageValidationError) {
           toast.dismiss("upload_toast");

@@ -83,7 +83,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         toast.success("App submitted for review");
         setOpen(false);
       } catch (error) {
-        console.error(error);
+        console.error("Submit App Modal Failed: ", error);
         toast.error("Failed to submit app for review");
       }
     },

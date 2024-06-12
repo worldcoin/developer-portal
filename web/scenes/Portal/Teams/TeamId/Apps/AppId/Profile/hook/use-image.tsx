@@ -101,16 +101,21 @@ export const useImage = () => {
 
     const { url, stringifiedFields } = response.data.upload_image;
     const fields = JSON.parse(stringifiedFields);
+
     const formData = new FormData();
+
     Object.entries(fields).forEach(([key, value]) =>
       formData.append(key, value as string),
     );
+
     formData.append("Content-Type", file.type);
     formData.append("file", file);
+
     const uploadResponse = await fetch(url, {
       method: "POST",
       body: formData,
     });
+
     if (!uploadResponse.ok) {
       const errorBody = await uploadResponse.json();
       throw new Error(

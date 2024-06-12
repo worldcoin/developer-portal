@@ -61,7 +61,8 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       reset();
       setIsOpen(false);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to create API key: ", error);
+
       toast.error("Error occurred while creating API key.");
     }
   };

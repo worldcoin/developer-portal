@@ -177,7 +177,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error(error.errors[0]);
         return;
       } else {
-        console.error(error);
+        console.error("Submitting App Failed: ", error);
         toast.error("Error occurred while submitting app for review");
       }
     }
@@ -241,7 +241,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       setViewMode("unverified");
       toast.success("New app draft created");
     } catch (error: any) {
-      console.error(error.message);
+      console.error("Failed to create a new draft: ", error.message);
       toast.error("Error creating a new draft");
     }
   }, [

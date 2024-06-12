@@ -3,6 +3,7 @@
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
+import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
@@ -20,7 +21,6 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { colorAtom } from "../../layout";
-import { Section } from "@/components/Section";
 
 const schema = yup.object({
   name: yup.string().required("This is a required field"),
@@ -100,7 +100,7 @@ export const ProfilePage = () => {
 
         toast.success("Your profile was successfully updated");
       } catch (error) {
-        console.error(error);
+        console.error("Profile Page: ", error);
         toast.error("Error updating profile");
       }
     },

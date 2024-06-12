@@ -54,7 +54,7 @@ export const LinksForm = memo(function LinksForm(props: {
         });
         toast.success("Links saved!");
       } catch (error) {
-        console.error(error);
+        console.error("Update Sign in Links Error: ", error);
         toast.error("Error updating action");
       }
     },

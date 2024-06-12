@@ -10,7 +10,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    console.error("Sign in With World ID Error: ", error);
   }, [error]);
 
   return (

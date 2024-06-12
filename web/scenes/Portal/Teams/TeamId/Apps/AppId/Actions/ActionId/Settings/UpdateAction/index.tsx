@@ -72,7 +72,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           throw result;
         }
       } catch (error) {
-        console.error(error);
+        console.error("Update Action: ", error);
         return toast.error("Error occurred while updating action.");
       }
       toast.success(`Action "${values.name}" updated.`);

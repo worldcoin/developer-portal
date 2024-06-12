@@ -69,7 +69,7 @@ export const Redirects = memo(function Redirects(props: {
           app_id: appId,
         });
 
-        console.error(error);
+        console.error("Sign in redirects error: ", error);
         toast.error("Error adding redirect");
       }
     },
@@ -93,7 +93,7 @@ export const Redirects = memo(function Redirects(props: {
         });
         toast.success("Redirect deleted!");
       } catch (error) {
-        console.error(error);
+        console.error("Delete redirect error: ", error);
         toast.error("Error deleting redirect");
       }
     },

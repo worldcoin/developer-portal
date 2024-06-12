@@ -136,7 +136,7 @@ export const LinksForm = (props: LinksFormProps) => {
 
         toast.success("App information updated successfully");
       } catch (e) {
-        console.error(e);
+        console.error("Links Failed to Update: ", e);
         toast.error("Failed to update app information");
       }
     },

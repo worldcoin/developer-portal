@@ -62,7 +62,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
 
       router.replace(`/teams/${teamId}/apps`);
     } catch (error) {
-      console.error(error);
+      console.error("Delete App: ", error);
 
       toast.update("deleting_app", {
         type: "error",
