@@ -19,6 +19,7 @@ select_permissions:
         - app_id
         - country
         - rating
+        - created_at
         - updated_at
       filter: {}
 update_permissions:
@@ -26,6 +27,5 @@ update_permissions:
     permission:
       columns:
         - rating
-        - updated_at
       filter: {}
       check: {}
