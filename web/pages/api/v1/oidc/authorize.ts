@@ -270,13 +270,14 @@ export default async function handleOIDCAuthorize(
       },
     });
 
-    if (!fetchNullifierResult.data.nullifier) {
-      logger.error("Error fetching nullifier.", fetchNullifierResult ?? {});
+    if (!fetchNullifierResult?.data?.nullifier) {
+      logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
     }
 
     hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
   } catch (error) {
-    logger.error("Generic Error fetching nullifier", { req, error });
+    // Temp Fix to reduce on call alerts
+    logger.warn("Generic Error fetching nullifier", { req, error });
   }
 
   if (!hasNullifier) {
