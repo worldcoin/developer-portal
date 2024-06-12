@@ -117,6 +117,39 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
+  // FIXME: Temporary fix for native apps
+  if (process.env.APP_ENV === "staging") {
+    const nativeAppsMap: Record<string, string> = {
+      app_staging_44e711bce52215150d0a7f31af4f4f33: "worldapp://grants",
+      app_staging_fb0465348ceb59cba6202685cbdc4120: "worldapp://invite",
+      app_staging_44210a8be72aa299410be44232b1ea57: "worldapp://network",
+    };
+
+    topApps = topApps.map((app) => {
+      if (nativeAppsMap[app.app_id]) {
+        return {
+          ...app,
+          app_mode: "native",
+          app_url: nativeAppsMap[app.app_id],
+        };
+      }
+
+      return app;
+    });
+
+    highlightsApps = highlightsApps.map((app) => {
+      if (nativeAppsMap[app.app_id]) {
+        return {
+          ...app,
+          app_mode: "native",
+          app_url: nativeAppsMap[app.app_id],
+        };
+      }
+
+      return app;
+    });
+  }
+
   return NextResponse.json({
     app_rankings: {
       top_apps: topApps,
