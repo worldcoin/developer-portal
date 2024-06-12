@@ -25,5 +25,4 @@
     "**/Thumbs.db": true,
     "**/node_modules": true
   },
-  "cSpell.words": ["lokalise"]
 }
