@@ -44,3 +44,15 @@ export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.EmailNotVerified]:
     "Your email has not been verified. Please check your email for a verification link.",
 };
+
+export const Categories: Array<{ name: string; lokalise_key: string }> = [
+  { name: "Social", lokalise_key: "world_id_partner_category_social" },
+  { name: "Gaming", lokalise_key: "world_id_partner_category_gaming" },
+  { name: "Business", lokalise_key: "world_id_partner_category_business" },
+  { name: "Finance", lokalise_key: "world_id_partner_category_finance" },
+  {
+    name: "Productivity",
+    lokalise_key: "world_id_partner_category_productivity",
+  },
+  { name: "Other", lokalise_key: "world_id_partner_category_other" },
+];

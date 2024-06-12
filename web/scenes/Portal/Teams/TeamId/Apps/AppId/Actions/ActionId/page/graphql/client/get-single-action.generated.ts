@@ -16,7 +16,7 @@ export type GetSingleActionAndNullifiersQuery = {
     nullifiers: Array<{
       __typename?: "nullifier";
       id: string;
-      updated_at: any;
+      updated_at: string;
       nullifier_hash: string;
       uses: number;
     }>;

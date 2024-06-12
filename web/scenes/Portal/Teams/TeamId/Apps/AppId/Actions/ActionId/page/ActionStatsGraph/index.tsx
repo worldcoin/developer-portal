@@ -56,7 +56,10 @@ const timespanAtom = atom(timespans[0]);
 
 const calculatePercentageChange = (
   arr: FetchActionStatsQuery["action_stats"] | undefined,
-  key: keyof FetchActionStatsQuery["action_stats"][number],
+  key: Extract<
+    keyof FetchActionStatsQuery["action_stats"][number],
+    "verifications" | "unique_users"
+  >,
 ) => {
   if (!arr || arr.length < 2) {
     return 0;
@@ -84,6 +87,8 @@ export const ActionStatsGraph = () => {
 
   const startsAt = useMemo(() => {
     switch (timespan.value) {
+      default:
+        return dayjs().startOf("week").tz().toISOString(); // day as default
       case "day":
         return dayjs().startOf("week").tz().toISOString();
       case "week":

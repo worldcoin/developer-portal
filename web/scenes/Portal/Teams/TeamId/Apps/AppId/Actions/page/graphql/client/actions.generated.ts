@@ -19,7 +19,7 @@ export type GetActionsQuery = {
     id: string;
     app_id: string;
     action: string;
-    created_at: any;
+    created_at: string;
     creation_mode: string;
     description: string;
     external_nullifier: string;
@@ -27,7 +27,7 @@ export type GetActionsQuery = {
     name: string;
     max_accounts_per_user: number;
     max_verifications: number;
-    updated_at: any;
+    updated_at: string;
     nullifiers: {
       __typename?: "nullifier_aggregate";
       aggregate?: {

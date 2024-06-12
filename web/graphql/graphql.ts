@@ -19,8 +19,8 @@ export type Scalars = {
   Float: number;
   _text: any;
   jsonb: any;
-  numeric: any;
-  timestamptz: any;
+  numeric: number;
+  timestamptz: string;
 };
 
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */

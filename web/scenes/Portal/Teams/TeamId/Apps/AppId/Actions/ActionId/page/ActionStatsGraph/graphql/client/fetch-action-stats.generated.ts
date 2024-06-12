@@ -15,9 +15,9 @@ export type FetchActionStatsQuery = {
   action_stats: Array<{
     __typename?: "action_stats_returning";
     action_id: string;
-    date: any;
-    verifications: any;
-    unique_users: any;
+    date: string;
+    verifications: number;
+    unique_users: number;
   }>;
 };
 

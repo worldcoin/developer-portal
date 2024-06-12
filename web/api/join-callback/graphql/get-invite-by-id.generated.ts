@@ -13,7 +13,7 @@ export type GetInviteByIdQuery = {
   invite?: {
     __typename?: "invite";
     id: string;
-    expires_at: any;
+    expires_at: string;
     email: string;
     team: { __typename?: "team"; id: string; name?: string | null };
   } | null;

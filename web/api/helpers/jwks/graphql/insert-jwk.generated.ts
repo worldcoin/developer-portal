@@ -16,7 +16,7 @@ export type InsertJwkMutation = {
     __typename?: "jwks";
     id: string;
     kms_id?: string | null;
-    expires_at: any;
+    expires_at: string;
   } | null;
 };
 

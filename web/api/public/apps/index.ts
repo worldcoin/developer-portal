@@ -8,7 +8,10 @@ import {
 } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
-import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
+import {
+  GetAppRankingsQuery,
+  getSdk as getAppRankingsSdk,
+} from "./graphql/get-app-rankings.generated";
 
 /**
  * Fetches the list of apps to be shown in the app store. Needs to be called through our assets cloudfront
@@ -53,13 +56,24 @@ export async function GET(request: Request) {
       country,
     });
 
-  let rankings = [];
+  let rankings:
+    | GetAppRankingsQuery["app_rankings"][number]["rankings"]
+    | GetAppRankingsQuery["default_app_rankings"][number]["rankings"] = [];
 
   if (app_rankings.length > 0) {
     rankings = app_rankings[0].rankings;
   } else if (default_app_rankings.length > 0) {
     // If no rankings or not specified we should use default
     rankings = default_app_rankings[0].rankings;
+  }
+
+  if (!rankings || rankings.length === 0) {
+    return NextResponse.json(
+      {
+        error: "No apps found for the specified platform and country.",
+      },
+      { status: 404 },
+    );
   }
 
   const startIndex = (page - 1) * limit;
@@ -73,8 +87,8 @@ export async function GET(request: Request) {
     client,
   ).GetAppMetadata({
     app_ids: appIdsToFetch,
-    limit: limit - appIdsToFetch.length,
-    offset: Math.max(startIndex - appIdsToFetch.length, 0),
+    limit: limit - appIdsToFetch?.length,
+    offset: Math.max(startIndex - appIdsToFetch?.length, 0),
   });
 
   ranked_apps.sort(

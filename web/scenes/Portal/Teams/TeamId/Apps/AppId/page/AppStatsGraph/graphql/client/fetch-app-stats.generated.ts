@@ -15,9 +15,9 @@ export type FetchAppStatsQuery = {
   app_stats: Array<{
     __typename?: "app_stats_returning";
     app_id: string;
-    date: any;
-    verifications: any;
-    unique_users: any;
+    date: string;
+    verifications: number;
+    unique_users: number;
   }>;
   app: Array<{ __typename?: "app"; id: string; engine: string }>;
 };
