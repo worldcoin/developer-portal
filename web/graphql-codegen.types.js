@@ -18,8 +18,8 @@ module.exports = {
       jsonb: "any",
       json: "any",
       numeric: "number",
-      _text: "any"
-    }
+      _text: "any",
+    },
   },
 
   generates: {
