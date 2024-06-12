@@ -27,7 +27,7 @@ export type FetchAppActionQuery = {
       nullifiers: Array<{
         __typename?: "nullifier";
         uses: number;
-        created_at: any;
+        created_at: string;
         nullifier_hash: string;
       }>;
     }>;

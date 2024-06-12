@@ -1,0 +1,67 @@
+query GetAppRankings(
+  $topAppsConditions: [app_metadata_bool_exp]!
+  $limit: Int!
+  $offset: Int!
+  $highlightsIds: [String]!
+) {
+  top_apps: app_metadata(
+    # FIXME: Add ordering by the number of users
+    where: {
+      _and: $topAppsConditions
+      _or: [
+        { is_reviewer_app_store_approved: { _eq: true } }
+        { is_reviewer_world_app_approved: { _eq: true } }
+      ]
+    }
+    limit: $limit
+    offset: $offset
+  ) {
+    name
+    app_id
+    logo_img_url
+    showcase_img_urls
+    hero_image_url
+    world_app_description
+    world_app_button_text
+    whitelisted_addresses
+    app_mode
+    description
+    category
+    integration_url
+    app_website_url
+    source_code_url
+    support_email
+    supported_countries
+    supported_languages
+    app {
+      team {
+        name
+      }
+    }
+  }
+
+  highlights: app_metadata(where: { app_id: { _in: $highlightsIds } }) {
+    name
+    app_id
+    logo_img_url
+    showcase_img_urls
+    hero_image_url
+    world_app_description
+    world_app_button_text
+    whitelisted_addresses
+    app_mode
+    description
+    category
+    integration_url
+    app_website_url
+    source_code_url
+    support_email
+    supported_countries
+    supported_languages
+    app {
+      team {
+        name
+      }
+    }
+  }
+}

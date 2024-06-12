@@ -4,27 +4,21 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type InsertNullifierMutationVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
-  nullifier_hash: Types.Scalars["String"];
+export type GetAppWebHighLightsQueryVariables = Types.Exact<{
+  [key: string]: never;
 }>;
 
-export type InsertNullifierMutation = {
-  __typename?: "mutation_root";
-  insert_nullifier_one?: {
-    __typename?: "nullifier";
-    created_at: string;
-    nullifier_hash: string;
-  } | null;
+export type GetAppWebHighLightsQuery = {
+  __typename?: "query_root";
+  app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
 };
 
-export const InsertNullifierDocument = gql`
-  mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
-    insert_nullifier_one(
-      object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
+export const GetAppWebHighLightsDocument = gql`
+  query GetAppWebHighLights {
+    app_rankings(
+      where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
     ) {
-      created_at
-      nullifier_hash
+      rankings
     }
   }
 `;
@@ -46,19 +40,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    InsertNullifier(
-      variables: InsertNullifierMutationVariables,
+    GetAppWebHighLights(
+      variables?: GetAppWebHighLightsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<InsertNullifierMutation> {
+    ): Promise<GetAppWebHighLightsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<InsertNullifierMutation>(
-            InsertNullifierDocument,
+          client.request<GetAppWebHighLightsQuery>(
+            GetAppWebHighLightsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "InsertNullifier",
-        "mutation",
+        "GetAppWebHighLights",
+        "query",
       );
     },
   };
