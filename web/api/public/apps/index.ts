@@ -67,15 +67,6 @@ export async function GET(request: Request) {
     rankings = default_app_rankings[0].rankings;
   }
 
-  if (!rankings || rankings.length === 0) {
-    return NextResponse.json(
-      {
-        error: "No apps found for the specified platform and country.",
-      },
-      { status: 404 },
-    );
-  }
-
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
 
