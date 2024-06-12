@@ -9,6 +9,7 @@ export const RadioCard = (
     option: { value: string; label: string };
     description?: string;
     stampText?: string;
+    testId?: string;
   },
 ) => {
   return (
@@ -19,10 +20,17 @@ export const RadioCard = (
           props.className,
         ),
       )}
+      {...(props.testId ? { "data-testid": `card-${props.testId}` } : {})}
     >
       <div className="flex items-center justify-between">
         <div className="grid grid-cols-auto/1fr items-center gap-x-2">
-          <Radio register={props.register} value={props.option.value} />
+          <Radio
+            register={props.register}
+            value={props.option.value}
+            {...(props.testId
+              ? { "data-testid": `radio-${props.testId}` }
+              : {})}
+          />
 
           <Typography variant={TYPOGRAPHY.M3} className="select-none">
             {props.option.label}

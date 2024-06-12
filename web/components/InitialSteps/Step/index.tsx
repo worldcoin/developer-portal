@@ -14,6 +14,7 @@ export const Step = (
     icon: ReactNode;
     disabled?: boolean;
     completed?: boolean;
+    testId?: string;
   },
 ) => {
   const {
@@ -24,6 +25,7 @@ export const Step = (
     disabled,
     completed,
     className,
+    testId,
     ...buttonProps
   } = props;
 
@@ -38,6 +40,7 @@ export const Step = (
           className,
         ),
       )}
+      {...(testId ? { "data-testid": `step-${testId}` } : {})}
     >
       {icon}
 
@@ -45,6 +48,7 @@ export const Step = (
         <Typography
           variant={TYPOGRAPHY.M3}
           className="max-w-full truncate text-grey-900"
+          {...(testId ? { "data-testid": `title-${testId}` } : {})}
         >
           {title}
         </Typography>
@@ -59,6 +63,7 @@ export const Step = (
           variant="primary"
           className="max-h-[40px] w-full min-w-[80px] rounded-[.7rem] px-0 py-2.5"
           disabled={disabled}
+          {...(testId ? { testId } : {})}
           {...buttonProps}
         >
           <Typography variant={TYPOGRAPHY.M4}>{buttonText}</Typography>
@@ -66,7 +71,10 @@ export const Step = (
       )}
 
       {completed && (
-        <div className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] select-none grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400">
+        <div
+          className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] select-none grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400"
+          {...(testId ? { "data-testid": `button-${testId}` } : {})}
+        >
           <CheckIcon size="16" />
           <Typography variant={TYPOGRAPHY.M4}>Done</Typography>
         </div>

@@ -1,0 +1,5 @@
+mutation DeleteMembership($id: String!) {
+  delete_membership_by_pk(id: $id) {
+    id
+  }
+}

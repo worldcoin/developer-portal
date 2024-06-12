@@ -159,6 +159,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   placeholder="Display name (ex. Voting app)"
                   required
                   errors={errors.appName}
+                  data-testid="input-app-name"
                 />
               </div>
 
@@ -171,12 +172,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                     option={{ value: "staging", label: "Staging" }}
                     description="Development environment for testing and debugging. Verify with the simulator."
                     stampText="Recommended"
+                    testId="build-staging"
                   />
 
                   <RadioCard
                     register={register("build")}
                     option={{ value: "production", label: "Production" }}
                     description="Verify real humans. Use World App to verify."
+                    testId="build-production"
                   />
                 </div>
               </div>
@@ -190,12 +193,14 @@ export const CreateAppDialog = (props: DialogProps) => {
                     option={{ value: "cloud", label: "Cloud" }}
                     description={`Verify your proofs using our public API endpoint.`}
                     stampText="Easiest"
+                    testId="verification-cloud"
                   />
 
                   <RadioCard
                     register={register("verification")}
                     option={{ value: "on-chain", label: "On-chain" }}
                     description="Validate and store your proofs on the blockchain."
+                    testId="verification-on-chain"
                   />
                 </div>
               </div>
@@ -205,6 +210,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                 variant="primary"
                 className="justify-self-end py-3"
                 disabled={!isValid || isSubmitting}
+                testId="create-app"
               >
                 Create app
               </DecoratedButton>
