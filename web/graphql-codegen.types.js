@@ -10,6 +10,18 @@ const prettier = require("prettier");
 module.exports = {
   schema: "graphql/graphql.schema.json",
   ignoreNoDocuments: true,
+  config: {
+    defaultScalarType: "unknown",
+    scalars: {
+      timestamp: "string",
+      timestamptz: "string",
+      jsonb: "any",
+      json: "any",
+      numeric: "number",
+      _text: "any"
+    }
+  },
+
   generates: {
     "graphql/graphql.ts": {
       plugins: [
