@@ -123,8 +123,10 @@ export const CreateAppDialog = (props: DialogProps) => {
   }, [defaultValues, props, reset]);
 
   return (
-    <Dialog open={props.open} onClose={onClose} className="z-50">
-      <DialogPanel className={clsx("fixed inset-0 p-0", props.className)}>
+    <Dialog open={props.open} onClose={onClose} className="z-50 ">
+      <DialogPanel
+        className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
+      >
         <header className="relative z-10 max-h-[56px] w-full border-b border-grey-100 py-4">
           <SizingWrapper>
             <div className="flex items-center justify-between">
@@ -141,7 +143,7 @@ export const CreateAppDialog = (props: DialogProps) => {
             </div>
           </SizingWrapper>
         </header>
-        <div className="grid h-[95dvh] w-full grid-rows-auto/1fr items-center pb-4">
+        <div className="grid w-full grid-rows-auto/1fr items-center pb-4">
           <SizingWrapper
             gridClassName="overflow-y-auto"
             className="flex items-start justify-center"
