@@ -155,6 +155,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const hasRequiredImagesForAppStore = useMemo(() => {
     return (
       appMetaData?.hero_image_url !== "" &&
+      Array.isArray(appMetaData?.showcase_img_urls) &&
       appMetaData?.showcase_img_urls?.length > 0
     );
   }, [appMetaData?.hero_image_url, appMetaData?.showcase_img_urls]);
@@ -210,7 +211,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
             : null,
           verification_status: "unverified",
           whitelisted_addresses: convertArrayToHasusrArray(
-            appMetaData?.whitelisted_addresses,
+            Array.isArray(appMetaData?.whitelisted_addresses)
+              ? appMetaData?.whitelisted_addresses
+              : [],
           ),
           supported_countries: appMetaData.supported_countries
             ? convertArrayToHasusrArray(appMetaData.supported_countries)

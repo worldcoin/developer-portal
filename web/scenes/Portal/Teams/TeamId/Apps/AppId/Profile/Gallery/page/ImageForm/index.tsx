@@ -390,31 +390,36 @@ export const ImageForm = (props: ImageFormTypes) => {
           and should show the integration being used.
         </Typography>
       </div>
-      {showcaseImgUrls?.length < 3 && isEditable && isEnoughPermissions && (
-        <ImageDropZone
-          width={1080}
-          height={1080}
-          uploadImage={uploadImage}
-          disabled={!nextShowcaseImgName || !isEnoughPermissions || !isEditable}
-          imageType={nextShowcaseImgName}
-        >
-          <UploadIcon className="size-12 text-blue-500" />
-          <div className="gap-y-2">
-            <div className="text-center">
-              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-                Click to upload
-              </Typography>{" "}
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                {" "}
-                or drag and drop
+      {Array.isArray(showcaseImgUrls) &&
+        showcaseImgUrls?.length < 3 &&
+        isEditable &&
+        isEnoughPermissions && (
+          <ImageDropZone
+            width={1080}
+            height={1080}
+            uploadImage={uploadImage}
+            disabled={
+              !nextShowcaseImgName || !isEnoughPermissions || !isEditable
+            }
+            imageType={nextShowcaseImgName}
+          >
+            <UploadIcon className="size-12 text-blue-500" />
+            <div className="gap-y-2">
+              <div className="text-center">
+                <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+                  Click to upload
+                </Typography>{" "}
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                  {" "}
+                  or drag and drop
+                </Typography>
+              </div>
+              <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+                {`JPG or PNG (max 250kb), required aspect ratio 1:1. Recommended size: ${1080}x${1080}px`}
               </Typography>
             </div>
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 1:1. Recommended size: ${1080}x${1080}px`}
-            </Typography>
-          </div>
-        </ImageDropZone>
-      )}
+          </ImageDropZone>
+        )}
       <div className="grid gap-y-4 md:grid-cols-3">
         {showcaseImgUrls &&
           showcaseImgUrls.map((url: string, index: number) => (
@@ -442,7 +447,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           ))}
         {showcaseImageUploading && (
           <ImageLoader
-            name={`showcase_image_${showcaseImgUrls.length}`}
+            name={`showcase_image_${showcaseImgUrls?.length}`}
             className="h-[99px]"
           />
         )}

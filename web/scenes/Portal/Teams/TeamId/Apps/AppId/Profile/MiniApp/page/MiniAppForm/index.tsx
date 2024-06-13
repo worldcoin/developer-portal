@@ -29,7 +29,7 @@ import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.g
 
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
-  whitelisted_addresses: yup.string(),
+  whitelisted_addresses: yup.string().nullable(),
 
   support_email: yup.string().when("app_mode", {
     is: true,

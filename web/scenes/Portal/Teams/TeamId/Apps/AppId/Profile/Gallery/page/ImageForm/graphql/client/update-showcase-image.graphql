@@ -1,6 +1,6 @@
 mutation UpdateShowcaseImages(
   $app_metadata_id: String!
-  $showcase_img_urls: _text
+  $showcase_img_urls: [String!]
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
