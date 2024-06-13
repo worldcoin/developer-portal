@@ -117,7 +117,7 @@ export const GET = async (request: NextRequest) => {
   if (process.env.APP_ENV === "staging") {
     nativeAppsMap = {
       app_staging_44e711bce52215150d0a7f31af4f4f33: "worldapp://grants",
-      app_staging_fb0465348ceb59cba6202685cbdc4120: "worldapp://invite",
+      app_staging_fb0465348ceb59cba6202685cbdc4120: "worldapp://invites",
       app_staging_44210a8be72aa299410be44232b1ea57: "worldapp://network",
     };
   } else if (process.env.APP_ENV === "production") {
