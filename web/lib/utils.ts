@@ -156,7 +156,10 @@ export const formatWhiteListedAddresses = (
   return formattedAddresses;
 };
 
-export const convertArrayToHasusrArray = (array: string[]) => {
+export const convertArrayToHasuraArray = (
+  array: string[] | null | undefined,
+) => {
+  if (!array) return null;
   return `{${array.join(",")}}`;
 };
 

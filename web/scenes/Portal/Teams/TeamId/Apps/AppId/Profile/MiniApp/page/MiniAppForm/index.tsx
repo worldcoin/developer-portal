@@ -8,7 +8,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import {
   checkUserPermissions,
-  convertArrayToHasusrArray,
+  convertArrayToHasuraArray,
   formatWhiteListedAddresses,
 } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -153,12 +153,12 @@ export const MiniAppForm = (props: LinksFormProps) => {
 
       const supported_countries =
         values.supported_countries && values.supported_countries.length > 0
-          ? convertArrayToHasusrArray(values.supported_countries)
+          ? convertArrayToHasuraArray(values.supported_countries)
           : null;
 
       const supported_languages =
         values.supported_languages && values.supported_languages.length > 0
-          ? convertArrayToHasusrArray(values.supported_languages)
+          ? convertArrayToHasuraArray(values.supported_languages)
           : null;
 
       try {

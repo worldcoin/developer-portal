@@ -25,9 +25,7 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   whitelisted_addresses?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
-  support_email?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
+  support_email?: Types.InputMaybe<Types.Scalars["String"]>;
   supported_countries?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
@@ -59,7 +57,7 @@ export const CreateEditableRowDocument = gql`
     $world_app_button_text: String = ""
     $app_mode: String = ""
     $whitelisted_addresses: [String!] = null
-    $support_email: [String!] = null
+    $support_email: String = ""
     $supported_countries: [String!] = null
     $supported_languages: [String!] = null
   ) {

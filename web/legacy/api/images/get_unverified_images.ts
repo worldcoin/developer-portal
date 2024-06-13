@@ -139,7 +139,7 @@ export const handleGetAllUnverifiedImages = async (
       );
     }
 
-    if (app.showcase_img_urls && Array.isArray(app.showcase_img_urls)) {
+    if (app.showcase_img_urls) {
       const showcaseUrlPromises = app.showcase_img_urls.map((key) =>
         getSignedUrl(
           s3Client,

@@ -390,7 +390,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           and should show the integration being used.
         </Typography>
       </div>
-      {Array.isArray(showcaseImgUrls) &&
+      {showcaseImgUrls &&
         showcaseImgUrls?.length < 3 &&
         isEditable &&
         isEnoughPermissions && (

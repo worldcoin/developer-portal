@@ -1,8 +1,8 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import * as Apollo from "@apollo/client";
 import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateShowcaseImagesMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];

@@ -15,7 +15,7 @@ mutation CreateEditableRow(
   $world_app_button_text: String = ""
   $app_mode: String = ""
   $whitelisted_addresses: [String!] = null
-  $support_email: [String!] = null
+  $support_email: String = ""
   $supported_countries: [String!] = null
   $supported_languages: [String!] = null
 ) {
