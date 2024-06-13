@@ -16,7 +16,7 @@ export type GetAppMetadataQuery = {
       __typename?: "app_metadata";
       id: string;
       logo_img_url: string;
-      showcase_img_urls?: any | null;
+      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
       verification_status: string;
     }>;

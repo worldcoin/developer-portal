@@ -17,7 +17,6 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  _text: any;
   jsonb: any;
   numeric: number;
   timestamptz: string;
@@ -95,6 +94,23 @@ export type ResetClientOutput = {
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
+export type String_Array_Comparison_Exp = {
+  /** is the array contained in the given array value */
+  _contained_in?: InputMaybe<Array<Scalars["String"]>>;
+  /** does the array contain the given value */
+  _contains?: InputMaybe<Array<Scalars["String"]>>;
+  _eq?: InputMaybe<Array<Scalars["String"]>>;
+  _gt?: InputMaybe<Array<Scalars["String"]>>;
+  _gte?: InputMaybe<Array<Scalars["String"]>>;
+  _in?: InputMaybe<Array<Array<Scalars["String"]>>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]>;
+  _lt?: InputMaybe<Array<Scalars["String"]>>;
+  _lte?: InputMaybe<Array<Scalars["String"]>>;
+  _neq?: InputMaybe<Array<Scalars["String"]>>;
+  _nin?: InputMaybe<Array<Array<Scalars["String"]>>>;
+};
+
+/** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type String_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["String"]>;
   _gt?: InputMaybe<Scalars["String"]>;
@@ -130,19 +146,6 @@ export type String_Comparison_Exp = {
 export type VerifyAppOutput = {
   __typename?: "VerifyAppOutput";
   success?: Maybe<Scalars["Boolean"]>;
-};
-
-/** Boolean expression to compare columns of type "_text". All fields are combined with logical 'AND'. */
-export type _Text_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars["_text"]>;
-  _gt?: InputMaybe<Scalars["_text"]>;
-  _gte?: InputMaybe<Scalars["_text"]>;
-  _in?: InputMaybe<Array<Scalars["_text"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]>;
-  _lt?: InputMaybe<Scalars["_text"]>;
-  _lte?: InputMaybe<Scalars["_text"]>;
-  _neq?: InputMaybe<Scalars["_text"]>;
-  _nin?: InputMaybe<Array<Scalars["_text"]>>;
 };
 
 /** columns and relationships of "action" */
@@ -1564,15 +1567,15 @@ export type App_Metadata = {
   name: Scalars["String"];
   review_message: Scalars["String"];
   reviewed_by: Scalars["String"];
-  showcase_img_urls?: Maybe<Scalars["_text"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url: Scalars["String"];
   support_email: Scalars["String"];
-  supported_countries?: Maybe<Scalars["_text"]>;
-  supported_languages?: Maybe<Scalars["_text"]>;
+  supported_countries?: Maybe<Array<Scalars["String"]>>;
+  supported_languages?: Maybe<Array<Scalars["String"]>>;
   updated_at: Scalars["timestamptz"];
   verification_status: Scalars["String"];
   verified_at?: Maybe<Scalars["timestamptz"]>;
-  whitelisted_addresses?: Maybe<Scalars["_text"]>;
+  whitelisted_addresses?: Maybe<Array<Scalars["String"]>>;
   world_app_button_text: Scalars["String"];
   world_app_description: Scalars["String"];
 };
@@ -1678,15 +1681,15 @@ export type App_Metadata_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
-  showcase_img_urls?: InputMaybe<_Text_Comparison_Exp>;
+  showcase_img_urls?: InputMaybe<String_Array_Comparison_Exp>;
   source_code_url?: InputMaybe<String_Comparison_Exp>;
   support_email?: InputMaybe<String_Comparison_Exp>;
-  supported_countries?: InputMaybe<_Text_Comparison_Exp>;
-  supported_languages?: InputMaybe<_Text_Comparison_Exp>;
+  supported_countries?: InputMaybe<String_Array_Comparison_Exp>;
+  supported_languages?: InputMaybe<String_Array_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   verification_status?: InputMaybe<String_Comparison_Exp>;
   verified_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  whitelisted_addresses?: InputMaybe<_Text_Comparison_Exp>;
+  whitelisted_addresses?: InputMaybe<String_Array_Comparison_Exp>;
   world_app_button_text?: InputMaybe<String_Comparison_Exp>;
   world_app_description?: InputMaybe<String_Comparison_Exp>;
 };
@@ -1721,15 +1724,15 @@ export type App_Metadata_Insert_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
-  showcase_img_urls?: InputMaybe<Scalars["_text"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
-  supported_countries?: InputMaybe<Scalars["_text"]>;
-  supported_languages?: InputMaybe<Scalars["_text"]>;
+  supported_countries?: InputMaybe<Array<Scalars["String"]>>;
+  supported_languages?: InputMaybe<Array<Scalars["String"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
-  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
+  whitelisted_addresses?: InputMaybe<Array<Scalars["String"]>>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -1752,11 +1755,15 @@ export type App_Metadata_Max_Fields = {
   name?: Maybe<Scalars["String"]>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url?: Maybe<Scalars["String"]>;
   support_email?: Maybe<Scalars["String"]>;
+  supported_countries?: Maybe<Array<Scalars["String"]>>;
+  supported_languages?: Maybe<Array<Scalars["String"]>>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: Maybe<Array<Scalars["String"]>>;
   world_app_button_text?: Maybe<Scalars["String"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
@@ -1776,11 +1783,15 @@ export type App_Metadata_Max_Order_By = {
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
+  showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_email?: InputMaybe<Order_By>;
+  supported_countries?: InputMaybe<Order_By>;
+  supported_languages?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  whitelisted_addresses?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1803,11 +1814,15 @@ export type App_Metadata_Min_Fields = {
   name?: Maybe<Scalars["String"]>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url?: Maybe<Scalars["String"]>;
   support_email?: Maybe<Scalars["String"]>;
+  supported_countries?: Maybe<Array<Scalars["String"]>>;
+  supported_languages?: Maybe<Array<Scalars["String"]>>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
   verification_status?: Maybe<Scalars["String"]>;
   verified_at?: Maybe<Scalars["timestamptz"]>;
+  whitelisted_addresses?: Maybe<Array<Scalars["String"]>>;
   world_app_button_text?: Maybe<Scalars["String"]>;
   world_app_description?: Maybe<Scalars["String"]>;
 };
@@ -1827,11 +1842,15 @@ export type App_Metadata_Min_Order_By = {
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
+  showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_email?: InputMaybe<Order_By>;
+  supported_countries?: InputMaybe<Order_By>;
+  supported_languages?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   verification_status?: InputMaybe<Order_By>;
   verified_at?: InputMaybe<Order_By>;
+  whitelisted_addresses?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
 };
@@ -1994,15 +2013,15 @@ export type App_Metadata_Set_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
-  showcase_img_urls?: InputMaybe<Scalars["_text"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
-  supported_countries?: InputMaybe<Scalars["_text"]>;
-  supported_languages?: InputMaybe<Scalars["_text"]>;
+  supported_countries?: InputMaybe<Array<Scalars["String"]>>;
+  supported_languages?: InputMaybe<Array<Scalars["String"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
-  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
+  whitelisted_addresses?: InputMaybe<Array<Scalars["String"]>>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -2055,15 +2074,15 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
-  showcase_img_urls?: InputMaybe<Scalars["_text"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_email?: InputMaybe<Scalars["String"]>;
-  supported_countries?: InputMaybe<Scalars["_text"]>;
-  supported_languages?: InputMaybe<Scalars["_text"]>;
+  supported_countries?: InputMaybe<Array<Scalars["String"]>>;
+  supported_languages?: InputMaybe<Array<Scalars["String"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]>;
   verification_status?: InputMaybe<Scalars["String"]>;
   verified_at?: InputMaybe<Scalars["timestamptz"]>;
-  whitelisted_addresses?: InputMaybe<Scalars["_text"]>;
+  whitelisted_addresses?: InputMaybe<Array<Scalars["String"]>>;
   world_app_button_text?: InputMaybe<Scalars["String"]>;
   world_app_description?: InputMaybe<Scalars["String"]>;
 };
@@ -2245,7 +2264,7 @@ export type App_Rankings = {
   country: Scalars["String"];
   id: Scalars["String"];
   platform: Scalars["String"];
-  rankings?: Maybe<Scalars["_text"]>;
+  rankings?: Maybe<Array<Scalars["String"]>>;
 };
 
 /** aggregated selection of "app_rankings" */
@@ -2277,7 +2296,7 @@ export type App_Rankings_Bool_Exp = {
   country?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   platform?: InputMaybe<String_Comparison_Exp>;
-  rankings?: InputMaybe<_Text_Comparison_Exp>;
+  rankings?: InputMaybe<String_Array_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_rankings" */
@@ -2293,7 +2312,7 @@ export type App_Rankings_Insert_Input = {
   country?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   platform?: InputMaybe<Scalars["String"]>;
-  rankings?: InputMaybe<Scalars["_text"]>;
+  rankings?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 /** aggregate max on columns */
@@ -2302,6 +2321,7 @@ export type App_Rankings_Max_Fields = {
   country?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   platform?: Maybe<Scalars["String"]>;
+  rankings?: Maybe<Array<Scalars["String"]>>;
 };
 
 /** aggregate min on columns */
@@ -2310,6 +2330,7 @@ export type App_Rankings_Min_Fields = {
   country?: Maybe<Scalars["String"]>;
   id?: Maybe<Scalars["String"]>;
   platform?: Maybe<Scalars["String"]>;
+  rankings?: Maybe<Array<Scalars["String"]>>;
 };
 
 /** response of any mutation on the table "app_rankings" */
@@ -2358,7 +2379,7 @@ export type App_Rankings_Set_Input = {
   country?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   platform?: InputMaybe<Scalars["String"]>;
-  rankings?: InputMaybe<Scalars["_text"]>;
+  rankings?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 /** Streaming cursor of the table "app_rankings" */
@@ -2374,7 +2395,7 @@ export type App_Rankings_Stream_Cursor_Value_Input = {
   country?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   platform?: InputMaybe<Scalars["String"]>;
-  rankings?: InputMaybe<Scalars["_text"]>;
+  rankings?: InputMaybe<Array<Scalars["String"]>>;
 };
 
 /** update columns of table "app_rankings" */

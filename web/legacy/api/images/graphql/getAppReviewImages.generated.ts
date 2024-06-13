@@ -15,7 +15,7 @@ export type GetAppReviewImagesQuery = {
     app_metadata: Array<{
       __typename?: "app_metadata";
       logo_img_url: string;
-      showcase_img_urls?: any | null;
+      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
     }>;
   }>;

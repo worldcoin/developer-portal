@@ -11,14 +11,17 @@ export type GetAppRankingsQueryVariables = Types.Exact<{
 
 export type GetAppRankingsQuery = {
   __typename?: "query_root";
-  app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
+  app_rankings: Array<{
+    __typename?: "app_rankings";
+    rankings?: Array<string> | null;
+  }>;
   default_app_rankings: Array<{
     __typename?: "app_rankings";
-    rankings?: any | null;
+    rankings?: Array<string> | null;
   }>;
   featured_app_rankings: Array<{
     __typename?: "app_rankings";
-    rankings?: any | null;
+    rankings?: Array<string> | null;
   }>;
 };
 

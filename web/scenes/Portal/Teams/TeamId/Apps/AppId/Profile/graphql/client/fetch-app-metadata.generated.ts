@@ -22,7 +22,7 @@ export type FetchAppMetadataQuery = {
       app_id: string;
       name: string;
       logo_img_url: string;
-      showcase_img_urls?: any | null;
+      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
       description: string;
       world_app_description: string;
@@ -36,10 +36,10 @@ export type FetchAppMetadataQuery = {
       review_message: string;
       verification_status: string;
       app_mode: string;
-      whitelisted_addresses?: any | null;
+      whitelisted_addresses?: Array<string> | null;
       support_email: string;
-      supported_countries?: any | null;
-      supported_languages?: any | null;
+      supported_countries?: Array<string> | null;
+      supported_languages?: Array<string> | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -47,7 +47,7 @@ export type FetchAppMetadataQuery = {
       app_id: string;
       name: string;
       logo_img_url: string;
-      showcase_img_urls?: any | null;
+      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
       description: string;
       world_app_description: string;
@@ -61,10 +61,10 @@ export type FetchAppMetadataQuery = {
       review_message: string;
       verification_status: string;
       app_mode: string;
-      whitelisted_addresses?: any | null;
+      whitelisted_addresses?: Array<string> | null;
       support_email: string;
-      supported_countries?: any | null;
-      supported_languages?: any | null;
+      supported_countries?: Array<string> | null;
+      supported_languages?: Array<string> | null;
     }>;
   }>;
 };

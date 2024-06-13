@@ -2,7 +2,7 @@ mutation CreateEditableRow(
   $app_id: String!
   $name: String
   $logo_img_url: String = ""
-  $showcase_img_urls: _text = null
+  $showcase_img_urls: [String!] = null
   $hero_image_url: String = ""
   $description: String = ""
   $world_app_description: String = ""
@@ -14,10 +14,10 @@ mutation CreateEditableRow(
   $verification_status: String = ""
   $world_app_button_text: String = ""
   $app_mode: String = ""
-  $whitelisted_addresses: _text = null
-  $support_email: String = null
-  $supported_countries: _text = null
-  $supported_languages: _text = null
+  $whitelisted_addresses: [String!] = null
+  $support_email: [String!] = null
+  $supported_countries: [String!] = null
+  $supported_languages: [String!] = null
 ) {
   insert_app_metadata_one(
     object: {

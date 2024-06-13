@@ -6,7 +6,7 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateShowcaseImagesMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
-  showcase_img_urls?: Types.InputMaybe<Types.Scalars["_text"]>;
+  showcase_img_urls?: Types.InputMaybe<Types._Text>;
 }>;
 
 export type UpdateShowcaseImagesMutation = {

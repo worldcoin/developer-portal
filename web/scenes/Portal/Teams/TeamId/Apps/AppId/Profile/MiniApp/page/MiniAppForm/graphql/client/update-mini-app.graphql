@@ -1,10 +1,10 @@
 mutation UpdateMiniAppInfo(
   $app_metadata_id: String!
   $app_mode: String!
-  $whitelisted_addresses: _text
+  $whitelisted_addresses: [String!]
   $support_email: String
-  $supported_countries: _text
-  $supported_languages: _text
+  $supported_countries: [String!]
+  $supported_languages: [String!]
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
