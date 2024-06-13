@@ -212,6 +212,8 @@ export const formatAppMetadata = (appData: AppStoreMetadataFields) => {
         lokalise_key: createLocaliseCategory(appMetadata.category),
       },
     ],
+    // FIXME: HARDCODE USER COUNT
+    unique_users: 0,
     team_name: app.team.name,
   };
 };
