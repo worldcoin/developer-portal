@@ -1,11 +1,11 @@
 import { Dropdown } from "@/components/Dropdown";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
+import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useAtom } from "jotai";
 import { useMemo } from "react";
 import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../../layout/ImagesProvider";
-import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];
@@ -16,7 +16,13 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
   const [viewMode, setMode] = useAtom(viewModeAtom);
 
   const formattedDate = useMemo(() => {
-    const date = new Date(app?.verified_app_metadata[0]?.verified_at);
+    const verifiedAt = app?.verified_app_metadata[0]?.verified_at;
+
+    if (!verifiedAt) {
+      return "";
+    }
+
+    const date = new Date(verifiedAt);
     const month = date.getMonth() + 1; // Months are 0-based in JavaScript
     const day = date.getDate();
     const year = date.getFullYear();

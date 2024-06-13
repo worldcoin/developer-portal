@@ -14,8 +14,8 @@ export type FetchKeysQuery = {
     __typename?: "api_key";
     id: string;
     team_id: string;
-    created_at: any;
-    updated_at: any;
+    created_at: string;
+    updated_at: string;
     is_active: boolean;
     name: string;
   }>;

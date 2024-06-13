@@ -167,3 +167,26 @@ export enum TransactionStatus {
   Mined = "mined",
   Failed = "failed",
 }
+
+export type AppStoreMetadataFields = {
+  name: string;
+  app_id: string;
+  logo_img_url: string;
+  showcase_img_urls?: any | null;
+  hero_image_url: string;
+  world_app_description: string;
+  world_app_button_text: string;
+  whitelisted_addresses?: any | null;
+  app_mode: string;
+  description: string;
+  category: string;
+  integration_url: string;
+  app_website_url: string;
+  source_code_url: string;
+  support_email: string;
+  supported_countries?: any | null;
+  supported_languages?: any | null;
+  app: {
+    team: { name?: string | null };
+  };
+};

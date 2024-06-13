@@ -20,7 +20,7 @@ export type FetchTeamMembersQuery = {
     __typename?: "invite";
     id: string;
     email: string;
-    expires_at: any;
+    expires_at: string;
   }>;
   members: Array<{
     __typename?: "membership";

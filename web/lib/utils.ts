@@ -7,7 +7,11 @@ import {
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
 } from "./constants";
-import { Auth0SessionUser } from "./types";
+import {
+  AppLocaliseKeys,
+  AppStoreMetadataFields,
+  Auth0SessionUser,
+} from "./types";
 
 // Sequencer mapping
 export const sequencerMapping: Record<
@@ -165,4 +169,49 @@ export const createTransactionHashUrl = (
     return `https://optimistic.etherscan.io/tx/${transactionHash}`;
   }
   return "Invalid network";
+};
+
+export const formatAppMetadata = (appData: AppStoreMetadataFields) => {
+  const { app, ...appMetadata } = appData;
+
+  return {
+    ...appMetadata,
+    logo_img_url: getCDNImageUrl(appMetadata.app_id, appMetadata.logo_img_url),
+    showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
+      getCDNImageUrl(appMetadata.app_id, url),
+    ),
+    hero_image_url: getCDNImageUrl(
+      appMetadata.app_id,
+      appMetadata.hero_image_url,
+    ),
+    description: {
+      overview: createLocaliseField(
+        appMetadata.app_id,
+        AppLocaliseKeys.description_overview,
+      ),
+      how_it_works: createLocaliseField(
+        appMetadata.app_id,
+        AppLocaliseKeys.description_how_it_works,
+      ),
+      how_to_connect: createLocaliseField(
+        appMetadata.app_id,
+        AppLocaliseKeys.description_connect,
+      ),
+    },
+    world_app_button_text: createLocaliseField(
+      appMetadata.app_id,
+      AppLocaliseKeys.world_app_button_text,
+    ),
+    world_app_description: createLocaliseField(
+      appMetadata.app_id,
+      AppLocaliseKeys.world_app_description,
+    ),
+    category: [
+      {
+        name: appMetadata.category,
+        lokalise_key: createLocaliseCategory(appMetadata.category),
+      },
+    ],
+    team_name: app.team.name,
+  };
 };

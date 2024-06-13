@@ -14,7 +14,7 @@ export type InviteQuery = {
     __typename?: "invite";
     team_id: string;
     email: string;
-    expires_at: any;
+    expires_at: string;
   }>;
 };
 

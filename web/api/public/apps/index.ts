@@ -8,7 +8,10 @@ import {
 } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
-import { getSdk as getAppRankingsSdk } from "./graphql/get-app-rankings.generated";
+import {
+  GetAppRankingsQuery,
+  getSdk as getAppRankingsSdk,
+} from "./graphql/get-app-rankings.generated";
 
 /**
  * Fetches the list of apps to be shown in the app store. Needs to be called through our assets cloudfront
@@ -53,7 +56,9 @@ export async function GET(request: Request) {
       country,
     });
 
-  let rankings = [];
+  let rankings:
+    | GetAppRankingsQuery["app_rankings"][number]["rankings"]
+    | GetAppRankingsQuery["default_app_rankings"][number]["rankings"] = [];
 
   if (app_rankings.length > 0) {
     rankings = app_rankings[0].rankings;
@@ -73,8 +78,8 @@ export async function GET(request: Request) {
     client,
   ).GetAppMetadata({
     app_ids: appIdsToFetch,
-    limit: limit - appIdsToFetch.length,
-    offset: Math.max(startIndex - appIdsToFetch.length, 0),
+    limit: limit - appIdsToFetch?.length,
+    offset: Math.max(startIndex - appIdsToFetch?.length, 0),
   });
 
   ranked_apps.sort(

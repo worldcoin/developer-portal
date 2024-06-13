@@ -4,31 +4,19 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetInviteByIdQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-}>;
+export type GetHighlightsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-export type GetInviteByIdQuery = {
+export type GetHighlightsQuery = {
   __typename?: "query_root";
-  invite?: {
-    __typename?: "invite";
-    id: string;
-    expires_at: string;
-    email: string;
-    team: { __typename?: "team"; id: string; name?: string | null };
-  } | null;
+  app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
 };
 
-export const GetInviteByIdDocument = gql`
-  query GetInviteById($id: String!) {
-    invite: invite_by_pk(id: $id) {
-      id
-      expires_at
-      email
-      team {
-        id
-        name
-      }
+export const GetHighlightsDocument = gql`
+  query GetHighlights {
+    app_rankings(
+      where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
+    ) {
+      rankings
     }
   }
 `;
@@ -50,17 +38,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetInviteById(
-      variables: GetInviteByIdQueryVariables,
+    GetHighlights(
+      variables?: GetHighlightsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetInviteByIdQuery> {
+    ): Promise<GetHighlightsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetInviteByIdQuery>(GetInviteByIdDocument, variables, {
+          client.request<GetHighlightsQuery>(GetHighlightsDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "GetInviteById",
+        "GetHighlights",
         "query",
       );
     },

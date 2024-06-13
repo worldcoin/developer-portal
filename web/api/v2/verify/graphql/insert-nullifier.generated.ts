@@ -13,7 +13,7 @@ export type InsertNullifierMutation = {
   __typename?: "mutation_root";
   insert_nullifier_one?: {
     __typename?: "nullifier";
-    created_at: any;
+    created_at: string;
     nullifier_hash: string;
   } | null;
 };

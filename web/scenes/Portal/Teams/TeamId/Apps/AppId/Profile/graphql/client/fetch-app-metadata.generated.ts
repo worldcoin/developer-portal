@@ -32,7 +32,7 @@ export type FetchAppMetadataQuery = {
       integration_url: string;
       app_website_url: string;
       source_code_url: string;
-      verified_at?: any | null;
+      verified_at?: string | null;
       review_message: string;
       verification_status: string;
       app_mode: string;
@@ -57,7 +57,7 @@ export type FetchAppMetadataQuery = {
       integration_url: string;
       app_website_url: string;
       source_code_url: string;
-      verified_at?: any | null;
+      verified_at?: string | null;
       review_message: string;
       verification_status: string;
       app_mode: string;
