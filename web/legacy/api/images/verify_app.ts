@@ -238,9 +238,6 @@ export const handleVerifyApp = async (
   await Promise.all(copyPromises);
 
   // Update app metadata unverified to reflect new verified images, change verification_status to verified, verified_at, reviewed_by etc.
-  const stringifiedShowcaseImgUrls = showcaseImgUUIDs
-    ? `{${showcaseImgUUIDs.map((url: string) => `"${url}"`).join(",")}}`
-    : null;
 
   const updateAppMetadata = await verifyAppSDK(reviewer_client).verifyApp({
     idToVerify: awaitingReviewAppMetadata.id,
@@ -248,7 +245,7 @@ export const handleVerifyApp = async (
     verified_data_changes: {
       logo_img_url: newLogoImgName,
       hero_image_url: newHeroImgName,
-      showcase_img_urls: stringifiedShowcaseImgUrls,
+      showcase_img_urls: showcaseImgUUIDs,
       verification_status: "verified",
       verified_at: new Date().toISOString(),
       reviewed_by: reviewer_name,

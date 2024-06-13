@@ -7,10 +7,16 @@ const defaultOptions = {} as const;
 export type UpdateMiniAppInfoMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
   app_mode: Types.Scalars["String"];
-  whitelisted_addresses?: Types.InputMaybe<Types.Scalars["_text"]>;
+  whitelisted_addresses?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
   support_email?: Types.InputMaybe<Types.Scalars["String"]>;
-  supported_countries?: Types.InputMaybe<Types.Scalars["_text"]>;
-  supported_languages?: Types.InputMaybe<Types.Scalars["_text"]>;
+  supported_countries?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
+  supported_languages?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
 }>;
 
 export type UpdateMiniAppInfoMutation = {
@@ -25,10 +31,10 @@ export const UpdateMiniAppInfoDocument = gql`
   mutation UpdateMiniAppInfo(
     $app_metadata_id: String!
     $app_mode: String!
-    $whitelisted_addresses: _text
+    $whitelisted_addresses: [String!]
     $support_email: String
-    $supported_countries: _text
-    $supported_languages: _text
+    $supported_countries: [String!]
+    $supported_languages: [String!]
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }

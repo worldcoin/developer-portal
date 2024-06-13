@@ -8,7 +8,10 @@ export type GetHighlightsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetHighlightsQuery = {
   __typename?: "query_root";
-  app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
+  app_rankings: Array<{
+    __typename?: "app_rankings";
+    rankings?: Array<string> | null;
+  }>;
 };
 
 export const GetHighlightsDocument = gql`

@@ -15,11 +15,11 @@ export type GetAppMetadataQuery = {
     name: string;
     app_id: string;
     logo_img_url: string;
-    showcase_img_urls?: any | null;
+    showcase_img_urls?: Array<string> | null;
     hero_image_url: string;
     world_app_description: string;
     world_app_button_text: string;
-    whitelisted_addresses?: any | null;
+    whitelisted_addresses?: Array<string> | null;
     app_mode: string;
     description: string;
     category: string;
@@ -27,8 +27,8 @@ export type GetAppMetadataQuery = {
     app_website_url: string;
     source_code_url: string;
     support_email: string;
-    supported_countries?: any | null;
-    supported_languages?: any | null;
+    supported_countries?: Array<string> | null;
+    supported_languages?: Array<string> | null;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };

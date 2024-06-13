@@ -6,7 +6,9 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateShowcaseImagesMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
-  showcase_img_urls?: Types.InputMaybe<Types.Scalars["_text"]>;
+  showcase_img_urls?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
 }>;
 
 export type UpdateShowcaseImagesMutation = {
@@ -20,7 +22,7 @@ export type UpdateShowcaseImagesMutation = {
 export const UpdateShowcaseImagesDocument = gql`
   mutation UpdateShowcaseImages(
     $app_metadata_id: String!
-    $showcase_img_urls: _text
+    $showcase_img_urls: [String!]
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }

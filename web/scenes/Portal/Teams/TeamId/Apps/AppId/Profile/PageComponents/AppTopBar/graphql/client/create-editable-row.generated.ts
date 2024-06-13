@@ -8,7 +8,9 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
   name?: Types.InputMaybe<Types.Scalars["String"]>;
   logo_img_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  showcase_img_urls?: Types.InputMaybe<Types.Scalars["_text"]>;
+  showcase_img_urls?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
   hero_image_url?: Types.InputMaybe<Types.Scalars["String"]>;
   description?: Types.InputMaybe<Types.Scalars["String"]>;
   world_app_description?: Types.InputMaybe<Types.Scalars["String"]>;
@@ -20,10 +22,16 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   verification_status?: Types.InputMaybe<Types.Scalars["String"]>;
   world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]>;
   app_mode?: Types.InputMaybe<Types.Scalars["String"]>;
-  whitelisted_addresses?: Types.InputMaybe<Types.Scalars["_text"]>;
+  whitelisted_addresses?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
   support_email?: Types.InputMaybe<Types.Scalars["String"]>;
-  supported_countries?: Types.InputMaybe<Types.Scalars["_text"]>;
-  supported_languages?: Types.InputMaybe<Types.Scalars["_text"]>;
+  supported_countries?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
+  supported_languages?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
 }>;
 
 export type CreateEditableRowMutation = {
@@ -36,7 +44,7 @@ export const CreateEditableRowDocument = gql`
     $app_id: String!
     $name: String
     $logo_img_url: String = ""
-    $showcase_img_urls: _text = null
+    $showcase_img_urls: [String!] = null
     $hero_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""
@@ -48,10 +56,10 @@ export const CreateEditableRowDocument = gql`
     $verification_status: String = ""
     $world_app_button_text: String = ""
     $app_mode: String = ""
-    $whitelisted_addresses: _text = null
-    $support_email: String = null
-    $supported_countries: _text = null
-    $supported_languages: _text = null
+    $whitelisted_addresses: [String!] = null
+    $support_email: String = ""
+    $supported_countries: [String!] = null
+    $supported_languages: [String!] = null
   ) {
     insert_app_metadata_one(
       object: {

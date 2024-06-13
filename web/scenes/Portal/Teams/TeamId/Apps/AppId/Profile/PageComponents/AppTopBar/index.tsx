@@ -6,7 +6,7 @@ import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { convertArrayToHasusrArray } from "@/lib/utils";
+import { convertArrayToHasuraArray } from "@/lib/utils";
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
@@ -153,9 +153,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
 
   const hasRequiredImagesForAppStore = useMemo(() => {
-    return (
+    return Boolean(
       appMetaData?.hero_image_url !== "" &&
-      appMetaData?.showcase_img_urls?.length > 0
+        appMetaData?.showcase_img_urls &&
+        appMetaData?.showcase_img_urls?.length > 0,
     );
   }, [appMetaData?.hero_image_url, appMetaData?.showcase_img_urls]);
 
@@ -209,14 +210,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 .join(",")}}`
             : null,
           verification_status: "unverified",
-          whitelisted_addresses: convertArrayToHasusrArray(
+          whitelisted_addresses: convertArrayToHasuraArray(
             appMetaData?.whitelisted_addresses,
           ),
           supported_countries: appMetaData.supported_countries
-            ? convertArrayToHasusrArray(appMetaData.supported_countries)
+            ? convertArrayToHasuraArray(appMetaData.supported_countries)
             : null,
           supported_languages: appMetaData.supported_languages
-            ? convertArrayToHasusrArray(appMetaData.supported_languages)
+            ? convertArrayToHasuraArray(appMetaData.supported_languages)
             : null,
         },
         refetchQueries: [FetchAppMetadataDocument],
