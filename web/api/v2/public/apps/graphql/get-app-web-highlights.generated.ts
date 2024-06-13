@@ -14,7 +14,7 @@ export type GetHighlightsQuery = {
 export const GetHighlightsDocument = gql`
   query GetHighlights {
     app_rankings(
-      where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
+      where: { platform: { _eq: "app" }, country: { _eq: "featured" } }
     ) {
       rankings
     }

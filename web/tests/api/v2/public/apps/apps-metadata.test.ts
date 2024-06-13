@@ -196,6 +196,7 @@ describe("/api/v2/public/apps", () => {
             hero_image_url: "https://cdn.test.com/1/hero1.png",
             showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
             team_name: "Example Team",
+            unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             category: [
@@ -239,6 +240,7 @@ describe("/api/v2/public/apps", () => {
               },
             ],
             whitelisted_addresses: ["0x1234", "0x5678"],
+            unique_users: 0,
             app_mode: "external",
             description: {
               overview: createLocaliseField(
@@ -279,6 +281,7 @@ describe("/api/v2/public/apps", () => {
               "https://cdn.test.com/3/showcase3.png",
             ],
             whitelisted_addresses: ["0x1234", "0x5678"],
+            unique_users: 0,
             app_mode: "mini-app",
             category: [
               {
