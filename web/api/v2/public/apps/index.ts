@@ -2,7 +2,7 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { Categories } from "@/lib/constants";
-import { formatAppMetadata } from "@/lib/utils";
+import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -23,14 +23,14 @@ const queryParamsSchema = yup.object({
 
 export const GET = async (request: NextRequest) => {
   // NOTE: We only accept requests through the distribution origin
-  // if (!isValidHostName(request)) {
-  //   return NextResponse.json(
-  //     {
-  //       error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}`,
-  //     },
-  //     { status: 400 },
-  //   );
-  // }
+  if (!isValidHostName(request)) {
+    return NextResponse.json(
+      {
+        error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}`,
+      },
+      { status: 400 },
+    );
+  }
 
   const { searchParams } = new URL(request.url);
   const queryParamsObject = Object.fromEntries(searchParams.entries());
