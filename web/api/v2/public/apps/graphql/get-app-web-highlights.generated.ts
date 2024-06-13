@@ -4,17 +4,15 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetAppWebHighLightsQueryVariables = Types.Exact<{
-  [key: string]: never;
-}>;
+export type GetHighlightsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-export type GetAppWebHighLightsQuery = {
+export type GetHighlightsQuery = {
   __typename?: "query_root";
   app_rankings: Array<{ __typename?: "app_rankings"; rankings?: any | null }>;
 };
 
-export const GetAppWebHighLightsDocument = gql`
-  query GetAppWebHighLights {
+export const GetHighlightsDocument = gql`
+  query GetHighlights {
     app_rankings(
       where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
     ) {
@@ -40,18 +38,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetAppWebHighLights(
-      variables?: GetAppWebHighLightsQueryVariables,
+    GetHighlights(
+      variables?: GetHighlightsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetAppWebHighLightsQuery> {
+    ): Promise<GetHighlightsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetAppWebHighLightsQuery>(
-            GetAppWebHighLightsDocument,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
-          ),
-        "GetAppWebHighLights",
+          client.request<GetHighlightsQuery>(GetHighlightsDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "GetHighlights",
         "query",
       );
     },

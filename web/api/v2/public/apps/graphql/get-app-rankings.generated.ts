@@ -4,7 +4,7 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient } from "graphql-request";
 import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
-export type GetAppRankingsQueryVariables = Types.Exact<{
+export type GetAppsQueryVariables = Types.Exact<{
   topAppsConditions:
     | Array<Types.InputMaybe<Types.App_Metadata_Bool_Exp>>
     | Types.InputMaybe<Types.App_Metadata_Bool_Exp>;
@@ -15,7 +15,7 @@ export type GetAppRankingsQueryVariables = Types.Exact<{
     | Types.InputMaybe<Types.Scalars["String"]>;
 }>;
 
-export type GetAppRankingsQuery = {
+export type GetAppsQuery = {
   __typename?: "query_root";
   top_apps: Array<{
     __typename?: "app_metadata";
@@ -36,6 +36,7 @@ export type GetAppRankingsQuery = {
     support_email: string;
     supported_countries?: any | null;
     supported_languages?: any | null;
+    app_rating?: number | null;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };
@@ -67,8 +68,8 @@ export type GetAppRankingsQuery = {
   }>;
 };
 
-export const GetAppRankingsDocument = gql`
-  query GetAppRankings(
+export const GetAppsDocument = gql`
+  query GetApps(
     $topAppsConditions: [app_metadata_bool_exp]!
     $limit: Int!
     $offset: Int!
@@ -102,6 +103,7 @@ export const GetAppRankingsDocument = gql`
       support_email
       supported_countries
       supported_languages
+      app_rating
       app {
         team {
           name
@@ -152,18 +154,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetAppRankings(
-      variables: GetAppRankingsQueryVariables,
+    GetApps(
+      variables: GetAppsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetAppRankingsQuery> {
+    ): Promise<GetAppsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetAppRankingsQuery>(
-            GetAppRankingsDocument,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
-          ),
-        "GetAppRankings",
+          client.request<GetAppsQuery>(GetAppsDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "GetApps",
         "query",
       );
     },

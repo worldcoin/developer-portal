@@ -1,4 +1,4 @@
-query GetAppWebHighLights {
+query GetHighlights {
   app_rankings(
     where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
   ) {

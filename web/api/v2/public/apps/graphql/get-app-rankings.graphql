@@ -1,4 +1,4 @@
-query GetAppRankings(
+query GetApps(
   $topAppsConditions: [app_metadata_bool_exp]!
   $limit: Int!
   $offset: Int!
@@ -33,6 +33,7 @@ query GetAppRankings(
     support_email
     supported_countries
     supported_languages
+    app_rating
     app {
       team {
         name
