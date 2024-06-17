@@ -190,3 +190,12 @@ export type AppStoreMetadataFields = {
     team: { name?: string | null };
   };
 };
+
+type NativeApp = {
+  app_id: string;
+  integration_url: string;
+};
+
+export type NativeAppsMap = {
+  [key: string]: NativeApp;
+};
