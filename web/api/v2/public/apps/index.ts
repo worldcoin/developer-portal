@@ -134,7 +134,11 @@ export const GET = async (request: NextRequest) => {
     // TODO: Add Production Apps
   }
 
-  topApps = topApps.map((app) => {
+  // Anchor: Format Apps
+  let fomattedTopApps = topApps.map((app) => formatAppMetadata(app));
+  let highlightedApps = highlightsApps.map((app) => formatAppMetadata(app));
+
+  fomattedTopApps = fomattedTopApps.map((app) => {
     if (app.app_id in nativeAppsMap) {
       const nativeAppItem = nativeAppsMap[app.app_id];
       return {
@@ -148,7 +152,7 @@ export const GET = async (request: NextRequest) => {
     return app;
   });
 
-  highlightsApps = highlightsApps.map((app) => {
+  highlightedApps = highlightedApps.map((app) => {
     if (app.app_id in nativeAppsMap) {
       const nativeAppItem = nativeAppsMap[app.app_id];
       return {
@@ -161,13 +165,11 @@ export const GET = async (request: NextRequest) => {
 
     return app;
   });
-
-  // Format Data
 
   return NextResponse.json({
     app_rankings: {
-      top_apps: topApps.map((app) => formatAppMetadata(app)),
-      highlights: highlightsApps.map((app) => formatAppMetadata(app)),
+      top_apps: fomattedTopApps,
+      highlights: highlightedApps,
     },
     categories: Categories,
   });
