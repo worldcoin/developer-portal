@@ -357,7 +357,7 @@ describe("/api/v2/public/apps", () => {
         top_apps: [
           {
             name: "Example App",
-            app_id: "TEST_APP_ID",
+            app_id: "app_test_123",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
@@ -398,12 +398,12 @@ describe("/api/v2/public/apps", () => {
         top_apps: [
           {
             name: "Example App",
-            app_id: "Test",
-            logo_img_url: "https://cdn.test.com/TEST_APP_ID/logo.png",
-            hero_image_url: "https://cdn.test.com/TEST_APP_ID/hero.png",
+            app_id: "TEST_APP",
+            logo_img_url: "https://cdn.test.com/app_test_123/logo.png",
+            hero_image_url: "https://cdn.test.com/app_test_123/hero.png",
             showcase_img_urls: [
-              "https://cdn.test.com/TEST_APP_ID/showcase1.png",
-              "https://cdn.test.com/TEST_APP_ID/showcase2.png",
+              "https://cdn.test.com/app_test_123/showcase1.png",
+              "https://cdn.test.com/app_test_123/showcase2.png",
             ],
             team_name: "Example Team",
             app_mode: "native",
@@ -424,24 +424,24 @@ describe("/api/v2/public/apps", () => {
             ],
             description: {
               how_it_works: createLocaliseField(
-                "TEST_APP_ID",
+                "app_test_123",
                 AppLocaliseKeys.description_how_it_works,
               ),
               how_to_connect: createLocaliseField(
-                "TEST_APP_ID",
+                "app_test_123",
                 AppLocaliseKeys.description_connect,
               ),
               overview: createLocaliseField(
-                "TEST_APP_ID",
+                "app_test_123",
                 AppLocaliseKeys.description_overview,
               ),
             },
             world_app_button_text: createLocaliseField(
-              "TEST_APP_ID",
+              "app_test_123",
               AppLocaliseKeys.world_app_button_text,
             ),
             world_app_description: createLocaliseField(
-              "TEST_APP_ID",
+              "app_test_123",
               AppLocaliseKeys.world_app_description,
             ),
           },
