@@ -58,6 +58,7 @@ export const Categories: Array<{ name: string; lokalise_key: string }> = [
 ];
 
 export const NativeApps: Record<string, NativeAppsMap> = {
+  dev: {},
   staging: {
     app_staging_44e711bce52215150d0a7f31af4f4f33: {
       app_id: "grants",
