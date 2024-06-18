@@ -1,6 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { NativeApps } from "@/lib/constants";
-import { formatAppMetadata } from "@/lib/utils";
+import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
