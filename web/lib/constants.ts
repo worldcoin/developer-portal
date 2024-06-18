@@ -2,7 +2,7 @@
  * Constants available to both backend and frontend.
  */
 
-import { LoginErrorCode } from "./types";
+import { LoginErrorCode, NativeAppsMap } from "./types";
 
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
@@ -56,3 +56,22 @@ export const Categories: Array<{ name: string; lokalise_key: string }> = [
   },
   { name: "Other", lokalise_key: "world_id_partner_category_other" },
 ];
+
+export const NativeApps: Record<string, NativeAppsMap> = {
+  dev: {},
+  staging: {
+    app_staging_44e711bce52215150d0a7f31af4f4f33: {
+      app_id: "grants",
+      integration_url: "worldapp://grants",
+    },
+    app_staging_fb0465348ceb59cba6202685cbdc4120: {
+      app_id: "invites",
+      integration_url: "worldapp://invites",
+    },
+    app_staging_44210a8be72aa299410be44232b1ea57: {
+      app_id: "network",
+      integration_url: "worldapp://network",
+    },
+  },
+  production: {},
+};

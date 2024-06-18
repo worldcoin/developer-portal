@@ -1,8 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { Categories } from "@/lib/constants";
-import { NativeAppsMap } from "@/lib/types";
+import { Categories, NativeApps } from "@/lib/constants";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -112,35 +111,15 @@ export const GET = async (request: NextRequest) => {
       ),
     );
   }
-  let nativeAppsMap: NativeAppsMap = {};
-
-  // FIXME: Temporary fix for native apps
-  if (process.env.APP_ENV === "staging") {
-    nativeAppsMap = {
-      app_staging_44e711bce52215150d0a7f31af4f4f33: {
-        app_id: "grants",
-        integration_url: "worldapp://grants",
-      },
-      app_staging_fb0465348ceb59cba6202685cbdc4120: {
-        app_id: "invites",
-        integration_url: "worldapp://invites",
-      },
-      app_staging_44210a8be72aa299410be44232b1ea57: {
-        app_id: "network",
-        integration_url: "worldapp://network",
-      },
-    };
-  } else if (process.env.APP_ENV === "production") {
-    // TODO: Add Production Apps
-  }
+  const nativeAppMetadata = NativeApps[process.env.APP_ENV!];
 
   // Anchor: Format Apps
   let fomattedTopApps = topApps.map((app) => formatAppMetadata(app));
   let highlightedApps = highlightsApps.map((app) => formatAppMetadata(app));
 
   fomattedTopApps = fomattedTopApps.map((app) => {
-    if (app.app_id in nativeAppsMap) {
-      const nativeAppItem = nativeAppsMap[app.app_id];
+    if (app.app_id in nativeAppMetadata) {
+      const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
         ...app,
         app_mode: "native",
@@ -148,13 +127,12 @@ export const GET = async (request: NextRequest) => {
         app_id: nativeAppItem.app_id,
       };
     }
-
     return app;
   });
 
   highlightedApps = highlightedApps.map((app) => {
-    if (app.app_id in nativeAppsMap) {
-      const nativeAppItem = nativeAppsMap[app.app_id];
+    if (app.app_id in nativeAppMetadata) {
+      const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
         ...app,
         app_mode: "native",
@@ -162,7 +140,6 @@ export const GET = async (request: NextRequest) => {
         app_id: nativeAppItem.app_id,
       };
     }
-
     return app;
   });
 
