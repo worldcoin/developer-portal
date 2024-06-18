@@ -1,5 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { NativeApps } from "@/lib/constants";
+import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -15,8 +15,6 @@ export async function GET(
   request: Request,
   { params }: { params: { app_id: string } },
 ) {
-  const app_id = params.app_id;
-
   if (!process.env.APP_ENV) {
     return NextResponse.json(
       {
@@ -24,6 +22,13 @@ export async function GET(
       },
       { status: 400 },
     );
+  }
+
+  let app_id = params.app_id;
+
+  // Native Apps have substituted app_ids so we pull their constant ID to get the metadata
+  if (app_id in NativeAppToAppIdMapping[process.env.APP_ENV]) {
+    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
   }
 
   const client = await getAPIServiceGraphqlClient();
