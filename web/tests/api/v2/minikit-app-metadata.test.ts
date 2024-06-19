@@ -83,6 +83,10 @@ const validAppMetadataResponse = [
     integration_url: "https://github.com",
     app_website_url: "",
     source_code_url: "",
+    support_email: "test@test.com",
+    supported_countries: ["us"],
+    supported_languages: ["en"],
+    app_rating: 3.2,
     app: { team: { name: "test" } },
   },
 ];
@@ -107,10 +111,20 @@ const app_metadata = {
     how_it_works: "Random values",
     how_to_connect: "test",
   },
-  category: "Social",
+  category: [
+    {
+      lokalise_key: "world_id_partner_category_social",
+      name: "Social",
+    },
+  ],
   integration_url: "https://github.com",
   app_website_url: "",
   source_code_url: "",
+  support_email: "test@test.com",
+  supported_countries: ["us"],
+  supported_languages: ["en"],
+  app_rating: 3.2,
+  unique_users: 0,
   team_name: "test",
 };
 
@@ -161,6 +175,10 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
           integration_url: "https://github.com",
           app_website_url: "",
           source_code_url: "",
+          support_email: "test@test.com",
+          supported_countries: ["us"],
+          supported_languages: ["en"],
+          app_rating: 3.2,
           app: { team: { name: "test" } },
         },
       ],
@@ -185,10 +203,20 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
         how_it_works: "",
         how_to_connect: "",
       },
-      category: "Social",
+      category: [
+        {
+          lokalise_key: "world_id_partner_category_social",
+          name: "Social",
+        },
+      ],
       integration_url: "https://github.com",
       app_website_url: "",
       source_code_url: "",
+      support_email: "test@test.com",
+      supported_countries: ["us"],
+      supported_languages: ["en"],
+      app_rating: 3.2,
+      unique_users: 0,
       team_name: "test",
     });
   });

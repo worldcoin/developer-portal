@@ -14,6 +14,10 @@ query GetAppMetadata($app_id: String!) {
     integration_url
     app_website_url
     source_code_url
+    support_email
+    supported_countries
+    supported_languages
+    app_rating
     app {
       team {
         name
