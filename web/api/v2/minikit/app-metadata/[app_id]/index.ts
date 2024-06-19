@@ -1,6 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
+import { createLocaliseCategory } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -114,6 +115,13 @@ export const GET = async (
     logo_img_url: null,
     hero_image_url: null,
     showcase_img_urls: null,
+    category: [
+      {
+        name: appMetadataReturned.category,
+        lokalise_key: createLocaliseCategory(appMetadataReturned.category),
+      },
+    ],
+    unique_users: 0,
     team_name: app.team.name,
   };
 
