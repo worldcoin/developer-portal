@@ -67,7 +67,7 @@ export const retrieveJWK = async (kid: string) => {
 };
 
 /**
- * Generates an RS256 asymmetric key pair in JWK format
+ * Generates a PS256 asymmetric key pair in JWK format
  * @returns
  */
 export const generateJWK = async (): Promise<CreateJWKResult> => {
