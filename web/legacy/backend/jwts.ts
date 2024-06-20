@@ -264,7 +264,7 @@ export const generateOIDCJWT = async ({
   // Sign the JWT with a KMS managed key
   const client = await getKMSClient();
   const header = {
-    alg: "RS256",
+    alg: "PS256",
     typ: "JWT",
     kid,
   };
@@ -293,7 +293,7 @@ export const verifyOIDCJWT = async (
 
   const { payload } = await jose.jwtVerify(
     token,
-    await jose.importJWK(public_jwk, "RS256"),
+    await jose.importJWK(public_jwk, "PS256"),
     {
       issuer: JWT_ISSUER,
     },

@@ -1,11 +1,11 @@
+import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "@/legacy/lib/constants";
+import { logger } from "@/legacy/lib/logger";
+import { JWKModel } from "@/legacy/lib/models";
 import { gql } from "@apollo/client";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
-import { JWKModel } from "@/legacy/lib/models";
 import { getAPIServiceClient } from "./graphql";
 import { createKMSKey, getKMSClient, scheduleKeyDeletion } from "./kms";
-import { JWK_TIME_TO_LIVE, JWK_TTL_USABLE } from "@/legacy/lib/constants";
-import { logger } from "@/legacy/lib/logger";
 
 export type CreateJWKResult = {
   keyId: string;
@@ -126,7 +126,7 @@ export const fetchActiveJWK = async () => {
 };
 
 /**
- * Generates an RS256 asymmetric key pair in JWK format
+ * Generates a PS256 asymmetric key pair in JWK format
  * @returns
  */
 export const generateJWK = async (): Promise<CreateJWKResult> => {

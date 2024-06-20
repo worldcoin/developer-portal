@@ -2,6 +2,7 @@
  * Contains all functions for interacting with Amazon KMS
  */
 
+import { logger } from "@/legacy/lib/logger";
 import {
   CreateKeyCommand,
   DescribeKeyCommand,
@@ -13,7 +14,6 @@ import {
 } from "@aws-sdk/client-kms";
 import { base64url } from "jose";
 import { retrieveJWK } from "./jwks";
-import { logger } from "@/legacy/lib/logger";
 
 export type CreateKeyResult =
   | {
@@ -93,7 +93,7 @@ export const signJWTWithKMSKey = async (
         KeyId: kms_id,
         Message: Buffer.from(encodedHeaderPayload),
         MessageType: "RAW",
-        SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
+        SigningAlgorithm: "RSASSA_PSS_SHA_256",
       }),
     );
 

@@ -1,6 +1,3 @@
-import { when } from "jest-when";
-import fetchMock from "jest-fetch-mock";
-import { createMocks } from "node-mocks-http";
 import {
   OIDCErrorCodes,
   OIDCScopes,
@@ -9,13 +6,16 @@ import {
 } from "@/legacy/backend/oidc";
 import { OIDCResponseType } from "@/legacy/lib/types";
 import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
-import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
-import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
-import { jwtVerify } from "jose";
-import { publicJwk } from "../__mocks__/jwk";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
+import fetchMock from "jest-fetch-mock";
+import { when } from "jest-when";
+import { jwtVerify } from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { publicJwk } from "../__mocks__/jwk";
+import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
+import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
 
 jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
@@ -255,7 +255,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
     const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
 
     expect(protectedHeader).toEqual({
-      alg: "RS256",
+      alg: "PS256",
       kid: "kid_my_test_key",
       typ: "JWT",
     });
@@ -316,7 +316,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
 
     expect(protectedHeader).toEqual({
-      alg: "RS256",
+      alg: "PS256",
       kid: "kid_my_test_key",
       typ: "JWT",
     });
