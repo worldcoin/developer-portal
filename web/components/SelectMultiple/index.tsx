@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
 import {
   autoUpdate,
   flip,
@@ -11,11 +12,11 @@ import {
   useInteractions,
 } from "@floating-ui/react";
 import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { FieldValues, Path, PathValue } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
+import { Button } from "../Button";
 import { DecoratedButton } from "../DecoratedButton";
-import { CaretIcon } from "../Icons/CaretIcon";
 import { CheckIcon } from "../Icons/CheckIcon";
 import { CloseIcon } from "../Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
@@ -25,7 +26,6 @@ type Item = { label: string; value: string };
 export type SelectMultipleProps<T extends FieldValues> = {
   items: Item[];
   values: PathValue<T, Path<T>>;
-  onChange: (value: string) => void;
   onRemove: (value: string) => void;
   label: string;
   errors: any;
@@ -34,6 +34,9 @@ export type SelectMultipleProps<T extends FieldValues> = {
   className?: string;
   helperText?: string;
   selectAll?: () => void;
+  clearAll?: () => void;
+  showSelectedList?: boolean;
+  children: (item: Item, index: number) => React.ReactNode;
 };
 
 export const SelectMultiple = <T extends FieldValues>(
@@ -48,9 +51,9 @@ export const SelectMultiple = <T extends FieldValues>(
     required,
     values,
     helperText,
-    onChange,
     onRemove,
     selectAll,
+    clearAll,
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -118,7 +121,7 @@ export const SelectMultiple = <T extends FieldValues>(
   });
 
   const fieldsetClassName = clsx(
-    "rounded-lg border bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
+    "overflow-hidden rounded-lg border bg-grey-0 text-base text-grey-700 md:text-sm",
 
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700":
@@ -169,7 +172,7 @@ export const SelectMultiple = <T extends FieldValues>(
     >
       <fieldset
         className={clsx(
-          "w-full cursor-pointer border px-2 pb-4 pt-2",
+          "w-full cursor-pointer border px-2.5",
           fieldsetClassName,
         )}
         onClick={toggleOpen}
@@ -183,19 +186,92 @@ export const SelectMultiple = <T extends FieldValues>(
           </legend>
         )}
 
-        <div className="grid w-full grid-cols-1fr/auto items-center px-2">
-          {Array.isArray(selectedItems) && selectedItems.length === 0 && (
-            <span
-              className={twMerge(
-                clsx("select-none text-grey-400", {
-                  "text-system-error-500": errors,
-                }),
-              )}
-            >
-              Select options
-            </span>
-          )}
+        <div className="grid grid-cols-1fr/auto items-center gap-x-2">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={twMerge(
+              clsx("w-full rounded-lg py-4 pl-2.5 outline-none", {
+                "border-grey-200 text-grey-700 focus-within:border-blue-500 hover:border-grey-700 focus-within:hover:border-blue-500":
+                  errors,
+              }),
+            )}
+          />
 
+          {Array.isArray(inputVisibleItems) && inputVisibleItems.length > 0 && (
+            <DecoratedButton
+              type="button"
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearAll?.();
+              }}
+              className="h-9 rounded-lg"
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Clear all</Typography>
+            </DecoratedButton>
+          )}
+        </div>
+      </fieldset>
+
+      <div
+        ref={refs.setFloating}
+        style={floatingStyles}
+        className={clsx(
+          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-1 rounded-xl border border-grey-200 bg-white py-2 shadow-lg",
+          { hidden: !open },
+        )}
+        {...getFloatingProps()}
+      >
+        {(!search || search.length === 0) && (
+          <div
+            className={clsx("grid gap-y-2 p-2 hover:bg-grey-50", {
+              "order-1": placement === "top",
+              "order-0": placement !== "top",
+            })}
+          >
+            {selectAll && (
+              <Button
+                type="button"
+                className="grid grid-cols-auto/1fr items-center justify-items-start gap-x-2"
+                onClick={selectAll}
+              >
+                <PlusCircleIcon variant="secondary" />
+
+                <Typography variant={TYPOGRAPHY.R3}>
+                  Add all countries
+                </Typography>
+              </Button>
+            )}
+          </div>
+        )}
+
+        <div className={clsx("grid min-h-0 gap-y-1 overflow-y-auto")}>
+          {filteredItems.map((item, index) => props.children(item, index))}
+        </div>
+      </div>
+
+      <div className={clsx("flex w-full flex-col px-2")}>
+        {helperText && (
+          <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+            {helperText}
+          </Typography>
+        )}
+
+        {errors?.message && (
+          <Typography
+            className="mt-2 text-system-error-500"
+            variant={TYPOGRAPHY.R5}
+          >
+            {errors.message}
+          </Typography>
+        )}
+      </div>
+
+      {props.showSelectedList && (
+        <div className="mt-2">
           {Array.isArray(inputVisibleItems) && inputVisibleItems.length > 0 && (
             <div className="grid gap-y-2">
               <div className="flex flex-wrap gap-2">
@@ -235,107 +311,64 @@ export const SelectMultiple = <T extends FieldValues>(
               )}
             </div>
           )}
-
-          <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700" />
         </div>
-      </fieldset>
-
-      <div
-        ref={refs.setFloating}
-        style={floatingStyles}
-        className={clsx(
-          "z-50 grid min-h-0 w-full grid-rows-auto/1fr gap-y-2 rounded-xl border border-grey-200 bg-white py-2 shadow-lg",
-          { hidden: !open },
-        )}
-        {...getFloatingProps()}
-      >
-        <div
-          className={clsx("grid gap-y-2", {
-            "order-1": placement === "top",
-            "order-0": placement !== "top",
-          })}
-        >
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={twMerge(
-              clsx("mx-2 p-2", fieldsetClassName, {
-                "border-grey-200 text-grey-700 focus-within:border-blue-500 hover:border-grey-700 focus-within:hover:border-blue-500":
-                  errors,
-              }),
-            )}
-          />
-
-          {selectAll && (
-            <DecoratedButton
-              type="button"
-              variant="primary"
-              className="mx-2"
-              onClick={selectAll}
-            >
-              {selectedItems.length > 0 ? "Remove all" : "Select all"}
-            </DecoratedButton>
-          )}
-        </div>
-
-        <div className={clsx("min-h-0 overflow-y-auto")}>
-          {filteredItems.map((item, index) => (
-            <label
-              key={`select-multiple-${item.value}-${index}`}
-              className="grid cursor-pointer grid-cols-auto/1fr items-center gap-x-2 px-2 py-1 hover:bg-grey-50"
-            >
-              <div
-                className={twMerge(
-                  clsx(
-                    "relative size-6 rounded-md",
-                    { "opacity-50": disabled },
-                    className,
-                  ),
-                )}
-              >
-                <input
-                  type="checkbox"
-                  className="peer hidden"
-                  value={item.value}
-                  checked={values.includes(item.value)}
-                  onChange={() => {
-                    onChange(item.value);
-                  }}
-                />
-                <div className="pointer-events-none absolute inset-0 z-10 size-full rounded-md shadow-[0px_0px_0px_1px_inset] shadow-grey-300 transition-colors peer-checked:shadow-grey-100/20" />
-
-                <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-md bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-grey-0/10 to-transparent" />
-                  <CheckIcon size="16" className="text-grey-0" />
-                </div>
-              </div>
-
-              <Typography variant={TYPOGRAPHY.R4} className="select-none">
-                {item.label}
-              </Typography>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className={clsx("flex w-full flex-col px-2")}>
-        {helperText && (
-          <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
-            {helperText}
-          </Typography>
-        )}
-
-        {errors?.message && (
-          <Typography
-            className="mt-2 text-system-error-500"
-            variant={TYPOGRAPHY.R5}
-          >
-            {errors.message}
-          </Typography>
-        )}
-      </div>
+      )}
     </div>
   );
 };
+
+const Item = (props: {
+  icon?: ReactNode;
+  item: Item;
+  index: number;
+  checked: boolean | undefined;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  className?: string;
+}) => {
+  const { icon, item, index, checked, onChange, disabled, className } = props;
+
+  return (
+    <label
+      key={`select-multiple-${item.value}-${index}`}
+      className={clsx(
+        "grid cursor-pointer items-center gap-x-2 py-2 pl-2 pr-5 hover:bg-grey-50",
+        {
+          "grid-cols-1fr/auto": !icon,
+          "grid-cols-auto/1fr/auto": icon,
+        },
+      )}
+    >
+      {icon ?? null}
+
+      <Typography variant={TYPOGRAPHY.R3} className="select-none">
+        {item.label}
+      </Typography>
+
+      <div
+        className={twMerge(
+          clsx(
+            "relative size-[22px] rounded-full",
+            { "opacity-50": disabled },
+            className,
+          ),
+        )}
+      >
+        <input
+          type="checkbox"
+          className="peer hidden"
+          value={item.value}
+          checked={checked}
+          onChange={() => onChange(item.value)}
+        />
+
+        <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-grey-0/10 to-transparent" />
+          <CheckIcon size="16" className="text-grey-0" />
+        </div>
+      </div>
+    </label>
+  );
+};
+
+SelectMultiple.Item = Item;

@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -283,33 +284,46 @@ export const MiniAppForm = (props: LinksFormProps) => {
           render={({ field }) => (
             <SelectMultiple
               values={selectedCountries}
-              onChange={(value) => {
-                if (!field.value) {
-                  return field.onChange([]);
-                }
-
-                field.onChange(
-                  field.value.some((v) => v === value)
-                    ? field.value.filter((v) => v !== value)
-                    : [...field.value, value],
-                );
-              }}
               onRemove={(value) =>
                 field.onChange(field.value?.filter((v) => v !== value) ?? [])
               }
               items={countries}
-              label="Supported Countries"
+              label=""
               disabled={!isEditable || !isEnoughPermissions}
               errors={errors.supported_countries}
               required={appMode}
-              selectAll={() =>
-                field.onChange(
-                  selectedCountries?.length && selectedCountries.length > 0
-                    ? []
-                    : countries.map((c) => c.value),
-                )
-              }
-            />
+              selectAll={() => field.onChange(countries.map((c) => c.value))}
+              clearAll={() => field.onChange([])}
+            >
+              {(item, index) => (
+                <SelectMultiple.Item
+                  icon={
+                    <Image
+                      width={20}
+                      height={20}
+                      className="size-5"
+                      src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${item.value}.svg`}
+                      alt={`${item.value} flag`}
+                    />
+                  }
+                  item={item}
+                  index={index}
+                  checked={selectedCountries?.includes(item.value)}
+                  onChange={(value) => {
+                    if (!field.value) {
+                      return field.onChange([]);
+                    }
+
+                    field.onChange(
+                      field.value.some((v) => v === value)
+                        ? field.value.filter((v) => v !== value)
+                        : [...field.value, value],
+                    );
+                  }}
+                  disabled={!isEditable || !isEnoughPermissions}
+                />
+              )}
+            </SelectMultiple>
           )}
         />
       </div>
@@ -328,33 +342,37 @@ export const MiniAppForm = (props: LinksFormProps) => {
           render={({ field }) => (
             <SelectMultiple
               values={field.value}
-              onChange={(value) => {
-                if (!field.value) {
-                  return field.onChange([]);
-                }
-
-                field.onChange(
-                  field.value.some((v) => v === value)
-                    ? field.value.filter((v) => v !== value)
-                    : [...field.value, value],
-                );
-              }}
               onRemove={(value) =>
                 field.onChange(field.value?.filter((v) => v !== value) ?? [])
               }
               items={languages}
-              label="Supported Languages"
+              label=""
               disabled={!isEditable || !isEnoughPermissions}
               errors={errors.supported_languages}
               required={appMode}
-              selectAll={() =>
-                field.onChange(
-                  field.value?.length && field.value.length > 0
-                    ? []
-                    : languages.map((c) => c.value),
-                )
-              }
-            />
+              selectAll={() => field.onChange(languages.map((c) => c.value))}
+              clearAll={() => field.onChange([])}
+            >
+              {(item, index) => (
+                <SelectMultiple.Item
+                  item={item}
+                  index={index}
+                  checked={field.value?.includes(item.value)}
+                  onChange={(value) => {
+                    if (!field.value) {
+                      return field.onChange([]);
+                    }
+
+                    field.onChange(
+                      field.value.some((v) => v === value)
+                        ? field.value.filter((v) => v !== value)
+                        : [...field.value, value],
+                    );
+                  }}
+                  disabled={!isEditable || !isEnoughPermissions}
+                />
+              )}
+            </SelectMultiple>
           )}
         />
       </div>
