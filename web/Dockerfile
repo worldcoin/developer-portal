@@ -16,7 +16,7 @@ FROM base AS server_deps
 WORKDIR /app
 
 # TODO: Can be further optimized to remove next peer dependency
-RUN corepack enable pnpm && pnpm i next-logger pino dd-trace@5.12.0
+RUN corepack enable pnpm && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.12.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
