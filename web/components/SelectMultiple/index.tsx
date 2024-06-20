@@ -37,6 +37,7 @@ export type SelectMultipleProps<T extends FieldValues> = {
   clearAll?: () => void;
   showSelectedList?: boolean;
   children: (item: Item, index: number) => React.ReactNode;
+  searchPlaceholder?: string;
 };
 
 export const SelectMultiple = <T extends FieldValues>(
@@ -54,6 +55,7 @@ export const SelectMultiple = <T extends FieldValues>(
     onRemove,
     selectAll,
     clearAll,
+    searchPlaceholder,
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -189,7 +191,7 @@ export const SelectMultiple = <T extends FieldValues>(
         <div className="grid grid-cols-1fr/auto items-center gap-x-2">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder={searchPlaceholder ?? "Search..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={twMerge(
@@ -198,6 +200,7 @@ export const SelectMultiple = <T extends FieldValues>(
                   errors,
               }),
             )}
+            disabled={disabled}
           />
 
           {Array.isArray(inputVisibleItems) && inputVisibleItems.length > 0 && (
@@ -209,6 +212,7 @@ export const SelectMultiple = <T extends FieldValues>(
                 clearAll?.();
               }}
               className="h-9 rounded-lg"
+              disabled={disabled}
             >
               <Typography variant={TYPOGRAPHY.R4}>Clear all</Typography>
             </DecoratedButton>
@@ -237,6 +241,7 @@ export const SelectMultiple = <T extends FieldValues>(
                 type="button"
                 className="grid grid-cols-auto/1fr items-center justify-items-start gap-x-2"
                 onClick={selectAll}
+                disabled={disabled}
               >
                 <PlusCircleIcon variant="secondary" />
 
@@ -282,18 +287,31 @@ export const SelectMultiple = <T extends FieldValues>(
                   >
                     <Typography
                       variant={TYPOGRAPHY.R4}
-                      className="select-none border-r border-grey-0 bg-grey-900 px-2 py-1 text-grey-0"
+                      className={clsx(
+                        "select-none border-r border-grey-0  px-2 py-1 text-grey-0",
+                        {
+                          "bg-grey-900": !disabled,
+                          "bg-grey-300": disabled,
+                        },
+                      )}
                     >
                       {item.label}
                     </Typography>
 
                     <button
                       type="button"
-                      className="size-full cursor-pointer bg-grey-900 p-1 transition-colors hover:bg-grey-900/80"
+                      className={clsx(
+                        "size-full cursor-pointer p-1 transition-colors hover:bg-grey-900/80",
+                        {
+                          "bg-grey-900": !disabled,
+                          "bg-grey-300": disabled,
+                        },
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemove(item.value);
                       }}
+                      disabled={disabled}
                     >
                       <CloseIcon strokeWidth={2} className="text-grey-0" />
                     </button>
@@ -360,6 +378,7 @@ const Item = (props: {
           value={item.value}
           checked={checked}
           onChange={() => onChange(item.value)}
+          disabled={disabled}
         />
 
         <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">

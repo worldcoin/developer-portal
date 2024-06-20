@@ -294,6 +294,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
               required={appMode}
               selectAll={() => field.onChange(countries.map((c) => c.value))}
               clearAll={() => field.onChange([])}
+              showSelectedList
+              searchPlaceholder="Start by typing country..."
             >
               {(item, index) => (
                 <SelectMultiple.Item
@@ -352,6 +354,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
               required={appMode}
               selectAll={() => field.onChange(languages.map((c) => c.value))}
               clearAll={() => field.onChange([])}
+              showSelectedList
+              searchPlaceholder="Start by typing language..."
             >
               {(item, index) => (
                 <SelectMultiple.Item
