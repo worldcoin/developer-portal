@@ -79,7 +79,6 @@
     "@types/react-syntax-highlighter": "^15.5.11",
     "@types/request-ip": "^0.0.41",
     "autoprefixer": "^10.0.1",
-    "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",

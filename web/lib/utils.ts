@@ -9,6 +9,7 @@ import {
 } from "./constants";
 import {
   AppLocaliseKeys,
+  AppStatsReturnType,
   AppStoreMetadataFields,
   Auth0SessionUser,
 } from "./types";
@@ -174,8 +175,14 @@ export const createTransactionHashUrl = (
   return "Invalid network";
 };
 
-export const formatAppMetadata = (appData: AppStoreMetadataFields) => {
+export const formatAppMetadata = (
+  appData: AppStoreMetadataFields,
+  appStats: AppStatsReturnType,
+) => {
   const { app, ...appMetadata } = appData;
+  const appStat: number =
+    appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
+    0;
 
   return {
     ...appMetadata,
@@ -215,8 +222,7 @@ export const formatAppMetadata = (appData: AppStoreMetadataFields) => {
         lokalise_key: createLocaliseCategory(appMetadata.category),
       },
     ],
-    // FIXME: HARDCODE USER COUNT
-    unique_users: 0,
+    unique_users: appStat,
     team_name: app.team.name,
   };
 };

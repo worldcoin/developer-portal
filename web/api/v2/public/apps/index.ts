@@ -2,6 +2,7 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { Categories, NativeApps } from "@/lib/constants";
+import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -27,6 +28,18 @@ export const GET = async (request: NextRequest) => {
     return NextResponse.json(
       {
         error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}`,
+      },
+      { status: 400 },
+    );
+  }
+
+  if (
+    !process.env.APP_ENV ||
+    !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT
+  ) {
+    return NextResponse.json(
+      {
+        error: `Invalid Environment Configuration`,
       },
       { status: 400 },
     );
@@ -111,11 +124,22 @@ export const GET = async (request: NextRequest) => {
       ),
     );
   }
-  const nativeAppMetadata = NativeApps[process.env.APP_ENV!];
+
+  // ANCHOR: Fetch app stats from metrics service
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/data.json`,
+  );
+
+  const metricsData: AppStatsReturnType = await response.json();
+  const nativeAppMetadata = NativeApps[process.env.APP_ENV];
 
   // Anchor: Format Apps
-  let fomattedTopApps = topApps.map((app) => formatAppMetadata(app));
-  let highlightedApps = highlightsApps.map((app) => formatAppMetadata(app));
+  let fomattedTopApps = topApps.map((app) =>
+    formatAppMetadata(app, metricsData),
+  );
+  let highlightedApps = highlightsApps.map((app) =>
+    formatAppMetadata(app, metricsData),
+  );
 
   fomattedTopApps = fomattedTopApps.map((app) => {
     if (app.app_id in nativeAppMetadata) {
