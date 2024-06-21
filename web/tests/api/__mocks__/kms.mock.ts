@@ -1,9 +1,4 @@
-import {
-  constants,
-  createPrivateKey,
-  createPublicKey,
-  createSign,
-} from "crypto";
+import { createPrivateKey, createPublicKey, createSign } from "crypto";
 import { privateJwk, publicJwk } from "./jwk";
 
 module.exports = {
@@ -17,13 +12,7 @@ module.exports = {
       const sign = createSign("RSA-SHA256");
       sign.update(Buffer.from(signCommand.input.Message));
       return {
-        Signature: new Uint8Array(
-          sign.sign({
-            key: key,
-            padding: constants.RSA_PKCS1_PSS_PADDING,
-            saltLength: constants.RSA_PSS_SALTLEN_DIGEST,
-          }).buffer,
-        ),
+        Signature: new Uint8Array(sign.sign(key).buffer),
       };
     }),
   })),
