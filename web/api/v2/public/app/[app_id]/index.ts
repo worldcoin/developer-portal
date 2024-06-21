@@ -1,6 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
-import { AppStatsReturnType } from "@/lib/types";
+import { AppStatsItem } from "@/lib/types";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -56,13 +56,13 @@ export async function GET(
   }
   // ANCHOR: Fetch app stats from metrics service
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/data.json`,
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/apps/${app_id}`,
   );
 
-  const metricsData: AppStatsReturnType = await response.json();
+  const metricsData: AppStatsItem = await response.json();
   const nativeAppMetadata = NativeApps[process.env.APP_ENV];
 
-  let dataToReturn = formatAppMetadata(app_metadata[0], metricsData);
+  let dataToReturn = formatAppMetadata(app_metadata[0], [metricsData]);
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];
