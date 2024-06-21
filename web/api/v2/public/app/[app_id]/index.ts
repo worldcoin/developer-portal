@@ -1,5 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
+import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -15,10 +16,13 @@ export async function GET(
   request: Request,
   { params }: { params: { app_id: string } },
 ) {
-  if (!process.env.APP_ENV) {
+  if (
+    !process.env.APP_ENV ||
+    !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT
+  ) {
     return NextResponse.json(
       {
-        error: `Invalid configurations`,
+        error: `Invalid Environment Configuration`,
       },
       { status: 400 },
     );
@@ -50,10 +54,19 @@ export async function GET(
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
+  // ANCHOR: Fetch app stats from metrics service
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/apps/${app_id}.json`,
+  );
+
+  let metricsData: AppStatsReturnType = [];
+
+  if (response.status == 200) {
+    metricsData = [await response.json()];
+  }
 
   const nativeAppMetadata = NativeApps[process.env.APP_ENV];
-
-  let dataToReturn = formatAppMetadata(app_metadata[0]);
+  let dataToReturn = formatAppMetadata(app_metadata[0], metricsData);
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];

@@ -199,3 +199,11 @@ type NativeApp = {
 export type NativeAppsMap = {
   [key: string]: NativeApp;
 };
+
+export type AppStatsItem = {
+  app_id: string;
+  unique_users: number;
+  last_updated_at: string;
+};
+
+export type AppStatsReturnType = Array<AppStatsItem>;
