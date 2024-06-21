@@ -51,7 +51,13 @@ const deleteAuthCodeQuery = gql`
         auth_code: { _eq: $auth_code }
       }
     ) {
-      affected_rows
+      nullifier_hash
+      verification_level
+      scope
+      code_challenge
+      code_challenge_method
+      redirect_uri
+      nonce
     }
   }
 `;
@@ -158,7 +164,7 @@ export default async function handleOIDCToken(
       >
     >;
   }>({
-    mutation: findAuthCodeQuery,
+    mutation: deleteAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
@@ -255,15 +261,6 @@ export default async function handleOIDCToken(
     ...jwk,
     scope: code.scope,
     nonce: code.nonce,
-  });
-
-  await client.mutate({
-    mutation: deleteAuthCodeQuery,
-    variables: {
-      auth_code,
-      app_id,
-      now,
-    },
   });
 
   return res.status(200).json({
