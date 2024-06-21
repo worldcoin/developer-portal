@@ -184,6 +184,7 @@ describe("/api/v2/public/apps", () => {
         host: "cdn.test.com",
       },
     });
+
     const response = await GET(request);
 
     expect(await response.json()).toEqual({
