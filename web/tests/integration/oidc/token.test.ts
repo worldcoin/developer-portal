@@ -140,7 +140,7 @@ describe("/api/v1/oidc/token", () => {
 
     const { payload } = await jose.jwtVerify(
       access_token,
-      await jose.importJWK(publicJwk, "PS256"),
+      await jose.importJWK(publicJwk, "RS256"),
       {
         issuer: process.env.JWT_ISSUER,
       },
