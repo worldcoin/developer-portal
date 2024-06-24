@@ -1,21 +1,19 @@
-import { getSdk as checkUserInAppDocumentSDK } from "@/legacy/api/images/graphql/checkUserInApp.generated";
-import {
-  errorHasuraQuery,
-  errorNotAllowed,
-  errorResponse,
-} from "@/legacy/backend/errors";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { getSdk as checkUserInAppDocumentSDK } from "@/api/app-profile/graphql/checkUserInApp.generated";
+import { errorHasuraQuery, errorNotAllowed } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 
-type RequestQueryParams = {
-  app_id: string;
-  image_type: string;
-  content_type_ending: string;
-};
+const schema = yup.object({
+  app_id: yup.string().strict().required(),
+  image_type: yup.string().strict().required(),
+  content_type_ending: yup.string().required(),
+});
 
 /**
  * Returns a single signed url to get the recently uploaded image from S3
@@ -23,34 +21,27 @@ type RequestQueryParams = {
  * @param res
  */
 
-// TODO: When we migrate this to new API, should convert to GET
-export const handleImageGet = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
+export const POST = async (req: NextRequest) => {
   try {
-    if (!protectInternalEndpoint(req, res)) {
+    if (!protectInternalEndpoint(req)) {
       return;
     }
 
     if (!req.method || req.method !== "POST") {
-      return errorNotAllowed(req.method, res, req);
+      return errorNotAllowed(req.method, req);
     }
 
-    const body = req.body;
+    const body = await req.json();
     if (body?.action.name !== "get_uploaded_image") {
       return errorHasuraQuery({
-        res,
         req,
         detail: "Invalid action.",
         code: "invalid_action",
       });
     }
-
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "userId must be set.",
         code: "required",
@@ -61,22 +52,27 @@ export const handleImageGet = async (
 
     if (!teamId) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "teamId must be set.",
         code: "required",
       });
     }
-    const { app_id, image_type, content_type_ending } =
-      req.query as RequestQueryParams;
-    if (!app_id || !image_type || !content_type_ending) {
+
+    const { isValid, parsedParams } = await validateRequestSchema({
+      value: body.input,
+      schema,
+    });
+
+    if (!isValid || !parsedParams) {
       return errorHasuraQuery({
-        res,
         req,
-        detail: "app_id, image_type, and content_type_ending must be set.",
-        code: "required",
+        detail: "Invalid request body.",
+        code: "invalid_request",
       });
     }
+
+    const { app_id, image_type, content_type_ending } = parsedParams;
+
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
@@ -90,45 +86,46 @@ export const handleImageGet = async (
     // Admin and Owner allowed to view uploaded images. Not relevant for Member.
     if (userTeam.length === 0) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "App not found.",
         code: "not_found",
       });
     }
+
     if (!process.env.ASSETS_S3_REGION) {
       throw new Error("AWS Region must be set.");
     }
+
     const s3Client = new S3Client({
       region: process.env.ASSETS_S3_REGION,
     });
+
     if (!process.env.ASSETS_S3_BUCKET_NAME) {
       throw new Error("AWS Bucket Name must be set.");
     }
+
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
     const objectKey = `unverified/${app_id}/${image_type}.${
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;
+
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey,
     });
+
     const signedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 900, // The URL will expire in 15 minutes
     });
 
-    res.status(200).json({
-      url: signedUrl,
-    });
+    return NextResponse.json({ url: signedUrl });
   } catch (error) {
-    logger.error("Error getting uploaded image.", { error });
-    return errorResponse(
-      res,
-      500,
-      "internal_server_error",
-      "Unable to get uploaded image",
-      null,
+    logger.error("Error getting images.", { error });
+
+    return errorHasuraQuery({
       req,
-    );
+      detail: "Unable to get image",
+      code: "internal_error",
+    });
   }
 };

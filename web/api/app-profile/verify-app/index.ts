@@ -1,15 +1,9 @@
-import { getSdk as getAppMetadataSDK } from "@/legacy/api/images/graphql/getAppMetadata.generated";
-import { getSdk as verifyAppSDK } from "@/legacy/api/images/graphql/verifyApp.generated";
-import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { getAPIReviewerGraphqlClient } from "@/legacy/backend/graphql";
-import {
-  getFileExtension,
-  protectInternalEndpoint,
-  validateRequestSchema,
-} from "@/legacy/backend/utils";
-import { NextApiRequest, NextApiResponse } from "next";
-import * as yup from "yup";
-
+import { getSdk as getAppMetadataSDK } from "@/api/app-profile/verify-app/graphql/getAppMetadata.generated";
+import { getSdk as verifyAppSDK } from "@/api/app-profile/verify-app/graphql/verifyApp.generated";
+import { errorHasuraQuery, errorNotAllowed } from "@/api/helpers/errors";
+import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
+import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
   CopyObjectCommand,
@@ -18,10 +12,8 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-
-export type VerifyAppResponse = {
-  success?: boolean;
-};
+import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
@@ -30,56 +22,49 @@ const schema = yup.object({
   is_reviewer_world_app_approved: yup.boolean().required(),
 });
 
-// TODO: This should be converted to an Async Worker.
-
-/**
- * This function handles the verification of the app by a reviewer
- * @param req Expects an app_id and reviewer_name is_reviewer_app_store_approved and is_reviewer_world_app_approved
- * @param res Returns a success message if the app was verified
- */
-export const handleVerifyApp = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
-  if (!process.env.ASSETS_S3_BUCKET_NAME) {
-    logger.error("AWS Bucket Name is not set.");
-    return errorHasuraQuery({ req, res });
+export const POST = async (req: NextRequest) => {
+  if (!process.env.ASSETS_S3_BUCKET_NAME || !process.env.ASSETS_S3_REGION) {
+    logger.error("AWS config is not set.");
+    return errorHasuraQuery({
+      req,
+      detail: "AWS config is not set.",
+      code: "invalid_config",
+    });
   }
 
-  if (!protectInternalEndpoint(req, res)) {
+  if (!protectInternalEndpoint(req)) {
     return;
   }
 
-  if (req.method !== "POST") {
-    return errorNotAllowed(req.method!, res, req);
+  if (!req.method || req.method !== "POST") {
+    return errorNotAllowed(req.method, req);
   }
 
-  if (
-    !["reviewer", "admin"].includes(req.body.session_variables["x-hasura-role"])
-  ) {
-    logger.error("Unauthorized access."),
-      { role: req.body.session_variables["x-hasura-role"] };
-    return errorHasuraQuery({ res, req });
-  }
-
-  if (req.body.action?.name !== "verify_app") {
+  const body = await req.json();
+  if (body?.action.name !== "verify_app") {
     return errorHasuraQuery({
-      res,
       req,
       detail: "Invalid action.",
       code: "invalid_action",
     });
   }
 
+  if (
+    !["reviewer", "admin"].includes(body.session_variables["x-hasura-role"])
+  ) {
+    logger.error("Unauthorized access."),
+      { role: body.session_variables["x-hasura-role"] };
+    return errorHasuraQuery({ req });
+  }
+
   const { isValid, parsedParams } = await validateRequestSchema({
-    value: req.body.input,
+    value: body.input,
     schema,
   });
 
   if (!isValid || !parsedParams) {
     return errorHasuraQuery({
       req,
-      res,
       detail: "Invalid request body.",
       code: "invalid_request",
     });
@@ -93,6 +78,7 @@ export const handleVerifyApp = async (
   } = parsedParams;
 
   const reviewer_client = await getAPIReviewerGraphqlClient();
+
   const { app: appMetadata } = await getAppMetadataSDK(
     reviewer_client,
   ).GetAppMetadata({
@@ -102,7 +88,6 @@ export const handleVerifyApp = async (
   const app = appMetadata[0];
   if (!app) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "App not found.",
       code: "not_found",
@@ -115,7 +100,6 @@ export const handleVerifyApp = async (
 
   if (!awaitingReviewAppMetadata) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "No app awaiting review.",
       code: "invalid_verification_status",
@@ -133,7 +117,6 @@ export const handleVerifyApp = async (
       !awaitingReviewAppMetadata.showcase_img_urls)
   ) {
     return errorHasuraQuery({
-      res,
       req,
       detail:
         "Hero and showcase images are required for app store and world app approval",
@@ -187,6 +170,7 @@ export const handleVerifyApp = async (
   const currentLogoImgName = awaitingReviewAppMetadata.logo_img_url;
   const logoFileType = getFileExtension(currentLogoImgName);
   const newLogoImgName = randomUUID() + logoFileType;
+
   copyPromises.push(
     s3Client.send(
       new CopyObjectCommand({
@@ -199,9 +183,11 @@ export const handleVerifyApp = async (
 
   const currentHeroImgName = awaitingReviewAppMetadata?.hero_image_url;
   let newHeroImgName: string = "";
+
   if (currentHeroImgName) {
     const heroFileType = getFileExtension(currentHeroImgName);
     newHeroImgName = randomUUID() + heroFileType;
+
     copyPromises.push(
       s3Client.send(
         new CopyObjectCommand({
@@ -215,13 +201,16 @@ export const handleVerifyApp = async (
 
   const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
   let showcaseImgUUIDs: string[] | null = null;
+
   if (showcaseImgUrls) {
     const showcaseFileTypes = showcaseImgUrls.map((url: string) =>
       getFileExtension(url),
     );
+
     showcaseImgUUIDs = showcaseImgUrls.map(
       (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
     );
+
     const showcaseCopyPromises = showcaseImgUrls.map(
       (key: string, index: number) => {
         return s3Client.send(
@@ -256,14 +245,11 @@ export const handleVerifyApp = async (
 
   if (!updateAppMetadata.update_app_metadata_by_pk) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "Unable to verify.",
       code: "verification_failed",
     });
   }
 
-  res.status(200).json({
-    success: true,
-  });
+  return NextResponse.json({ success: true });
 };

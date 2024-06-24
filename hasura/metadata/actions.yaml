@@ -2,7 +2,7 @@ actions:
   - name: delete_unverified_images
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/images/_delete_images'
+      handler: '{{NEXT_API_URL}}/app-profile/delete-images'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,7 +12,7 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_get_unverified_images'
+      handler: '{{NEXT_API_URL}}/app-profile/get-unverified-images'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -28,7 +28,7 @@ actions:
   - name: get_app_review_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_get_app_review_images'
+      handler: '{{NEXT_API_URL}}/app-profile/get-app-review-images'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -44,7 +44,7 @@ actions:
   - name: get_uploaded_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_get_image'
+      handler: '{{NEXT_API_URL}}/app-profile/get-image'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -94,7 +94,7 @@ actions:
   - name: upload_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/images/_upload_image'
+      handler: '{{NEXT_API_URL}}/app-profile/upload-image'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -113,7 +113,7 @@ actions:
   - name: verify_app
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/images/_verify_app'
+      handler: '{{NEXT_API_URL}}/app-profile/verify-app'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
