@@ -39,36 +39,12 @@ if (!GENERAL_SECRET_KEY) {
   );
 }
 
-// ANCHOR: -----------------HASURA JWTs--------------------------
-
-/**
- * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
- * @returns
- */
-export const generateServiceJWT = async (): Promise<string> => {
-  const payload = {
-    sub: "service_account",
-    "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["service"],
-      "x-hasura-default-role": "service",
-    },
-  };
-
-  const token = await new jose.SignJWT(payload)
-    .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
-    .setIssuer(JWT_ISSUER)
-    .setExpirationTime("1m")
-    .sign(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key));
-
-  return token;
-};
-
 /**
  * Generates a Hasura-valid JWT for a specific user.
  */
 export const _generateJWT = async (
   payload: Record<string, any>,
-  expiration: string | number = "1h",
+  expiration: string | number = "1m",
   key: string = HASURA_GRAPHQL_JWT_SECRET.key,
 ): Promise<string> => {
   const token = await new jose.SignJWT(payload)
@@ -123,6 +99,40 @@ export const verifyUserJWT = async (token: string) => {
   return true;
 };
 
+// ANCHOR: -----------------HASURA JWTs--------------------------
+
+/**
+ * Generates a 1-min JWT for the `service` role (only for internal use from Next.js API)
+ * @returns
+ */
+export const generateServiceJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "service_account",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["service"],
+      "x-hasura-default-role": "service",
+    },
+  };
+
+  return await _generateJWT(payload, "1m");
+};
+
+/**
+ * Generates a 1-min JWT for the `reviewer` role (only for internal use from Next.js API)
+ * @returns
+ */
+export const generateReviewerJWT = async (): Promise<string> => {
+  const payload = {
+    sub: "reviewer_account",
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["reviewer"],
+      "x-hasura-default-role": "reviewer",
+    },
+  };
+
+  return await _generateJWT(payload, "1m");
+};
+
 /**
  * Generates a JWT for a specific API key.
  * @param team_id
@@ -138,7 +148,7 @@ export const generateAPIKeyJWT = async (team_id: string): Promise<string> => {
     },
   };
 
-  return await _generateJWT(payload);
+  return await _generateJWT(payload, "1m");
 };
 
 /**
@@ -154,7 +164,7 @@ export const generateAnalyticsJWT = async (): Promise<string> => {
     },
   };
 
-  return await _generateJWT(payload);
+  return await _generateJWT(payload, "1m");
 };
 
 // ANCHOR: -----------------Sign up JWTs--------------------------

@@ -100,6 +100,7 @@ export const useImage = () => {
     }
 
     const { url, stringifiedFields } = response.data.upload_image;
+
     const fields = JSON.parse(stringifiedFields);
 
     const formData = new FormData();

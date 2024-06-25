@@ -58,8 +58,8 @@ export function errorUnauthenticated(
 }
 
 export function errorForbidden(
-  detail: string = "You do not have permission to perform this action.",
   req: NextRequest,
+  detail: string = "You do not have permission to perform this action.",
 ) {
   return errorResponse({
     statusCode: 403,
@@ -124,9 +124,9 @@ export function errorOIDCResponse(
 }
 
 export function errorHasuraQuery({
+  req,
   code = "internal_api_error",
   detail = "Something went wrong.",
-  req,
 }: {
   req: NextRequest;
   code?: string;

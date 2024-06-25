@@ -1,56 +1,37 @@
-import { getSdk as getUnverifiedImagesSDK } from "@/legacy/api/images/graphql/getUnverifiedImages.generated";
-import {
-  errorHasuraQuery,
-  errorNotAllowed,
-  errorResponse,
-} from "@/legacy/backend/errors";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { getSdk as getUnverifiedImagesSDK } from "@/api/app-profile/get-unverified-images/graphql/getUnverifiedImages.generated";
+import { errorHasuraQuery } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 
-export type ImageGetAllUnverifiedImagesResponse = {
-  logo_img_url?: string;
-  hero_image_url?: string;
-  showcase_img_urls?: string[];
-};
+const schema = yup.object({
+  app_id: yup.string().strict().required(),
+});
 
-/**
- * Used when an app is loaded to show all unverified images
- * @param req
- * @param res
- */
-
-// TODO: When we migrate this to new API, should convert to GET
-export const handleGetAllUnverifiedImages = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
+export const POST = async (req: NextRequest) => {
   try {
-    if (!protectInternalEndpoint(req, res)) {
+    if (!protectInternalEndpoint(req)) {
       return;
     }
 
-    if (req.method !== "POST") {
-      return errorNotAllowed(req.method, res, req);
-    }
-
-    const body = req.body;
+    const body = await req.json();
 
     if (body?.action.name !== "get_all_unverified_images") {
       return errorHasuraQuery({
-        res,
         req,
         detail: "Invalid action.",
         code: "invalid_action",
       });
     }
+
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "userId must be set.",
         code: "required",
@@ -61,17 +42,29 @@ export const handleGetAllUnverifiedImages = async (
 
     if (!teamId) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "teamId must be set.",
         code: "required",
       });
     }
 
-    const app_id = req.query.app_id;
+    const { isValid, parsedParams } = await validateRequestSchema({
+      value: Object.fromEntries(req.nextUrl.searchParams),
+      schema,
+    });
+
+    if (!isValid || !parsedParams) {
+      return errorHasuraQuery({
+        req,
+        detail: "Invalid request body.",
+        code: "invalid_request",
+      });
+    }
+
+    const { app_id } = parsedParams;
+
     if (!app_id) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "app_id must be set.",
         code: "required",
@@ -86,10 +79,10 @@ export const handleGetAllUnverifiedImages = async (
       app_id: app_id as string,
       user_id: userId,
     });
+
     // All roles can view the unverified images awaiting review.
     if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "App not found",
         code: "not_found",
@@ -112,6 +105,7 @@ export const handleGetAllUnverifiedImages = async (
     const objectKey = `unverified/${app_id}/`;
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
     const urlPromises = [];
+
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey + app.logo_img_url,
@@ -150,6 +144,7 @@ export const handleGetAllUnverifiedImages = async (
           { expiresIn: 7200 },
         ),
       );
+
       const showcaseUrls = await Promise.all(showcaseUrlPromises);
       urlPromises.push({ showcase_img_urls: showcaseUrls });
     } else {
@@ -162,18 +157,15 @@ export const handleGetAllUnverifiedImages = async (
       {},
     );
 
-    res.status(200).json({
+    return NextResponse.json({
       ...formattedSignedUrl,
     });
   } catch (error) {
     logger.error("Error getting images.", { error });
-    return errorResponse(
-      res,
-      500,
-      "internal_server_error",
-      "Unable to get images",
-      null,
+    return errorHasuraQuery({
       req,
-    );
+      detail: "Unable to get images",
+      code: "internal_error",
+    });
   }
 };
