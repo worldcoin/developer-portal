@@ -1,4 +1,4 @@
-import { getSdk as checkUserInAppDocumentSDK } from "@/api/app-profile/graphql/checkUserInApp.generated";
+import { getSdk as getUnverifiedImagesSDK } from "@/api/hasura/get-unverified-images/graphql/getUnverifiedImages.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
@@ -11,15 +11,7 @@ import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
-  image_type: yup.string().strict().required(),
-  content_type_ending: yup.string().required(),
 });
-
-/**
- * Returns a single signed url to get the recently uploaded image from S3
- * @param req
- * @param res
- */
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -28,13 +20,15 @@ export const POST = async (req: NextRequest) => {
     }
 
     const body = await req.json();
-    if (body?.action.name !== "get_uploaded_image") {
+
+    if (body?.action.name !== "get_all_unverified_images") {
       return errorHasuraQuery({
         req,
         detail: "Invalid action.",
         code: "invalid_action",
       });
     }
+
     const userId = body.session_variables["x-hasura-user-id"];
     if (!userId) {
       return errorHasuraQuery({
@@ -67,27 +61,35 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const { app_id, image_type, content_type_ending } = parsedParams;
+    const { app_id } = parsedParams;
+
+    if (!app_id) {
+      return errorHasuraQuery({
+        req,
+        detail: "app_id must be set.",
+        code: "required",
+      });
+    }
 
     const client = await getAPIServiceGraphqlClient();
-
-    const { team: userTeam } = await checkUserInAppDocumentSDK(
+    const { app: appInfo } = await getUnverifiedImagesSDK(
       client,
-    ).CheckUserInApp({
+    ).GetUnverifiedImages({
       team_id: teamId,
-      app_id: app_id,
+      app_id: app_id as string,
       user_id: userId,
     });
 
-    // Admin and Owner allowed to view uploaded images. Not relevant for Member.
-    if (userTeam.length === 0) {
+    // All roles can view the unverified images awaiting review.
+    if (appInfo.length === 0 || appInfo[0].app_metadata.length === 0) {
       return errorHasuraQuery({
         req,
-        detail: "App not found.",
+        detail: "App not found",
         code: "not_found",
       });
     }
 
+    const app = appInfo[0].app_metadata[0];
     if (!process.env.ASSETS_S3_REGION) {
       throw new Error("AWS Region must be set.");
     }
@@ -100,27 +102,69 @@ export const POST = async (req: NextRequest) => {
       throw new Error("AWS Bucket Name must be set.");
     }
 
+    const objectKey = `unverified/${app_id}/`;
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-    const objectKey = `unverified/${app_id}/${image_type}.${
-      content_type_ending === "jpeg" ? "jpg" : content_type_ending
-    }`;
+    const urlPromises = [];
 
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: objectKey,
+      Key: objectKey + app.logo_img_url,
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 900, // The URL will expire in 15 minutes
-    });
+    // We check for any image values that are defined in the unverified row and generate a signed URL for that image
+    if (app.logo_img_url) {
+      urlPromises.push(
+        getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
+          logo_img_url: url,
+        })),
+      );
+    }
 
-    return NextResponse.json({ url: signedUrl });
+    if (app.hero_image_url) {
+      urlPromises.push(
+        getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: objectKey + app.hero_image_url,
+          }),
+          { expiresIn: 7200 },
+        ).then((url) => ({ hero_image_url: url })),
+      );
+    }
+
+    if (app.showcase_img_urls) {
+      const showcaseUrlPromises = app.showcase_img_urls.map((key) =>
+        getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: objectKey + key,
+          }),
+          { expiresIn: 7200 },
+        ),
+      );
+
+      const showcaseUrls = await Promise.all(showcaseUrlPromises);
+      urlPromises.push({ showcase_img_urls: showcaseUrls });
+    } else {
+      urlPromises.push({ showcase_img_urls: [] });
+    }
+
+    const signedUrls = await Promise.all(urlPromises);
+    const formattedSignedUrl = signedUrls.reduce(
+      (a, urlObj) => ({ ...a, ...urlObj }),
+      {},
+    );
+
+    return NextResponse.json({
+      ...formattedSignedUrl,
+    });
   } catch (error) {
     logger.error("Error getting images.", { error });
-
     return errorHasuraQuery({
       req,
-      detail: "Unable to get image",
+      detail: "Unable to get images",
       code: "internal_error",
     });
   }

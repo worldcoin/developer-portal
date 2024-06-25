@@ -1,1 +1,1 @@
-export { POST } from "@/api/app-profile/get-unverified-images";
+export { POST } from "@/api/hasura/get-unverified-images";

@@ -1,5 +1,5 @@
-import { getSdk as getAppMetadataSDK } from "@/api/app-profile/verify-app/graphql/getAppMetadata.generated";
-import { getSdk as verifyAppSDK } from "@/api/app-profile/verify-app/graphql/verifyApp.generated";
+import { getSdk as getAppMetadataSDK } from "@/api/hasura/verify-app/graphql/getAppMetadata.generated";
+import { getSdk as verifyAppSDK } from "@/api/hasura/verify-app/graphql/verifyApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";

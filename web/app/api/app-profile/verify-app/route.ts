@@ -1,1 +1,1 @@
-export { POST } from "@/api/app-profile/verify-app";
+export { POST } from "@/api/hasura/verify-app";

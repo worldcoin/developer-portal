@@ -1,1 +1,1 @@
-export { POST } from "@/api/app-profile/upload-image";
+export { POST } from "@/api/hasura/upload-image";
