@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: "pnpm"
+    directory: "/web"
+    schedule:
+      interval: "daily"
+    versioning-strategy: increase
