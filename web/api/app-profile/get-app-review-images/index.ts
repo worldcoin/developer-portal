@@ -1,5 +1,5 @@
 import { getSdk as getAppReviewImages } from "@/api/app-profile/get-app-review-images/graphql/getAppReviewImages.generated";
-import { errorHasuraQuery, errorNotAllowed } from "@/api/helpers/errors";
+import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -29,10 +29,6 @@ export const POST = async (req: NextRequest) => {
   }
   if (!protectInternalEndpoint(req)) {
     return;
-  }
-
-  if (!req.method || req.method !== "POST") {
-    return errorNotAllowed(req.method, req);
   }
 
   const body = await req.json();

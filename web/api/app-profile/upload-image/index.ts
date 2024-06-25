@@ -1,5 +1,5 @@
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/app-profile/graphql/checkUserInApp.generated";
-import { errorHasuraQuery, errorNotAllowed } from "@/api/helpers/errors";
+import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -19,10 +19,6 @@ export const POST = async (req: NextRequest) => {
   try {
     if (!protectInternalEndpoint(req)) {
       return;
-    }
-
-    if (!req.method || req.method !== "POST") {
-      return errorNotAllowed(req.method, req);
     }
 
     const body = await req.json();

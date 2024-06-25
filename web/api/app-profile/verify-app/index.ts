@@ -1,6 +1,6 @@
 import { getSdk as getAppMetadataSDK } from "@/api/app-profile/verify-app/graphql/getAppMetadata.generated";
 import { getSdk as verifyAppSDK } from "@/api/app-profile/verify-app/graphql/verifyApp.generated";
-import { errorHasuraQuery, errorNotAllowed } from "@/api/helpers/errors";
+import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -36,10 +36,6 @@ export const POST = async (req: NextRequest) => {
     return;
   }
 
-  if (!req.method || req.method !== "POST") {
-    return errorNotAllowed(req.method, req);
-  }
-
   const body = await req.json();
   if (body?.action.name !== "verify_app") {
     return errorHasuraQuery({
@@ -58,7 +54,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   const { isValid, parsedParams } = await validateRequestSchema({
-    value: body.input,
+    value: Object.fromEntries(req.nextUrl.searchParams),
     schema,
   });
 
