@@ -3,5 +3,5 @@ updates:
   - package-ecosystem: "pnpm"
     directory: "/web"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     versioning-strategy: increase
