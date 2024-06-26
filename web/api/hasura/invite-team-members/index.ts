@@ -1,75 +1,81 @@
-import { errorHasuraQuery, errorNotAllowed } from "@/legacy/backend/errors";
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
-import { logger } from "@/legacy/lib/logger";
-import { sendEmail } from "@/legacy/lib/send-email";
+import { errorHasuraQuery } from "@/api/helpers/errors";
+import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { logger } from "@/lib/logger";
 import dayjs from "dayjs";
 import createDOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
-import { NextApiRequest, NextApiResponse } from "next";
-import { getSdk as getFetchInvitesSdk } from "./graphql/fetchInvites.generated";
-
 import {
   CreateInvitesMutation,
   getSdk as getCreateInvitesSdk,
-} from "@/legacy/api/_invite-team-members/graphql/createInvite.generated";
+} from "./graphql/createInvite.generated";
 
+import { NextRequest, NextResponse } from "next/server";
+import { getSdk as getFetchInvitesSdk } from "./graphql/fetchInvites.generated";
 import {
   GetUserAndTeamMembershipsQuery,
   getSdk as getUserAndTeamMembershipsSdk,
 } from "./graphql/getUserAndTeamMemberships.generated";
 
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { sendEmail } from "@/api/helpers/send-email";
 import {
   UpdateInvitesExpirationMutation,
   getSdk,
 } from "./graphql/updateInvitesExpiration.generated";
 
-export const handleInvite = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-) => {
-  if (!protectInternalEndpoint(req, res)) {
+export const POST = async (req: NextRequest) => {
+  if (!protectInternalEndpoint(req)) {
     return;
   }
 
-  if (req.method !== "POST") {
-    return errorNotAllowed(req.method!, res, req);
-  }
-
   if (!process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID) {
-    throw new Error("SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.");
+    return errorHasuraQuery({
+      req,
+      detail: "SENDGRID_TEAM_INVITE_TEMPLATE_ID must be set.",
+      code: "invalid_config",
+    });
   }
 
-  if (req.body.action?.name !== "invite_team_members") {
-    logger.error("invalid action in _invite-team-members", { body: req.body });
-    return errorHasuraQuery({ res, req });
+  const body = await req.json();
+
+  if (body?.action.name !== "reset_client_secret") {
+    return errorHasuraQuery({
+      req,
+      detail: "Invalid action.",
+      code: "invalid_action",
+    });
   }
 
-  if (req.body.session_variables["x-hasura-role"] === "admin") {
-    logger.error("admin role cannot call _invite-team-members.");
-    return errorHasuraQuery({ res, req });
+  if (body.session_variables["x-hasura-role"] === "admin") {
+    logger.error("Admin not allowed to run _reset-client-client-secret"),
+      { role: body.session_variables["x-hasura-role"] };
+    return errorHasuraQuery({ req });
   }
 
-  const userId = req.body.session_variables["x-hasura-user-id"];
+  const userId = body.session_variables["x-hasura-user-id"];
   if (!userId) {
-    logger.error("userId must be set in _invite-team-members");
-    return errorHasuraQuery({ res, req });
+    return errorHasuraQuery({
+      req,
+      detail: "userId must be set.",
+      code: "required",
+    });
   }
 
-  const teamId = req.body.input.team_id as string;
-
+  const teamId = body.input.team_id;
   if (!teamId) {
-    logger.error("teamId must be set in _invite-team-members");
-    return errorHasuraQuery({ res, req });
+    return errorHasuraQuery({
+      req,
+      detail: "teamId must be set.",
+      code: "required",
+    });
   }
 
-  const emails = req.body.input.emails as string[];
+  const emails = body.input.emails as string[];
   let query: GetUserAndTeamMembershipsQuery | null = null;
   const client = await getAPIServiceGraphqlClient();
 
   if (!emails) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "emails must be set.",
       code: "required",
@@ -85,7 +91,11 @@ export const handleInvite = async (
     });
   } catch (error) {
     logger.error("Cannot fetch memberships.", { error });
-    return errorHasuraQuery({ res, req });
+    return errorHasuraQuery({
+      req,
+      detail: "Cannot fetch memberships.",
+      code: "required",
+    });
   }
 
   const invitingUser = query.user[0];
@@ -100,7 +110,6 @@ export const handleInvite = async (
       { userId, teamId },
     );
     return errorHasuraQuery({
-      res,
       req,
       detail: "Insufficient Permissions",
       code: "insufficient_permissions",
@@ -115,7 +124,6 @@ export const handleInvite = async (
 
   if (alreadyExistingEmails.length > 0) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "Some emails are already in the team.",
       code: "already_in_team",
@@ -148,7 +156,6 @@ export const handleInvite = async (
 
     if (!updateExpirationResult.invites?.returning) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "Some invites could not be updated.",
         code: "invalid_emails",
@@ -175,7 +182,6 @@ export const handleInvite = async (
       createInvitesRes.invites?.returning?.length !== emailsToCreate.length
     ) {
       return errorHasuraQuery({
-        res,
         req,
         detail: "Some emails could not be invited.",
         code: "invalid_emails",
@@ -189,7 +195,6 @@ export const handleInvite = async (
 
   if (!invites || invites.length === 0) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "No invites to send.",
       code: "invalid_emails",
@@ -242,5 +247,5 @@ export const handleInvite = async (
     }
   });
 
-  res.status(200).json({ emails });
+  return NextResponse.json({ emails });
 };
