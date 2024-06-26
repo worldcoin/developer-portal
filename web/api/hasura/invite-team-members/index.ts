@@ -38,7 +38,7 @@ export const POST = async (req: NextRequest) => {
 
   const body = await req.json();
 
-  if (body?.action.name !== "reset_client_secret") {
+  if (body?.action.name !== "invite_team_members") {
     return errorHasuraQuery({
       req,
       detail: "Invalid action.",
