@@ -1,4 +1,4 @@
-import { getSdk as getAppReviewImages } from "@/api/app-profile/get-app-review-images/graphql/getAppReviewImages.generated";
+import { getSdk as getAppReviewImages } from "@/api/hasura/get-app-review-images/graphql/getAppReviewImages.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";

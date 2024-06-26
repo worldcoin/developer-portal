@@ -1,4 +1,4 @@
-import { getSdk as checkUserInAppDocumentSDK } from "@/api/app-profile/graphql/checkUserInApp.generated";
+import { getSdk as checkUserInAppDocumentSDK } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
