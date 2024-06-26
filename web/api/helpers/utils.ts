@@ -34,6 +34,14 @@ export const protectInternalEndpoint = (req: NextRequest): boolean => {
   return true;
 };
 
+export const generateHashedSecret = (identifier: string) => {
+  const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", GENERAL_SECRET_KEY);
+  hmac.update(`${identifier}.${secret}`);
+  const hashed_secret = hmac.digest("hex");
+  return { secret, hashed_secret };
+};
+
 export const verifyHashedSecret = (
   identifier: string,
   secret: string,

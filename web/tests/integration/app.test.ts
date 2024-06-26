@@ -2,9 +2,8 @@ import { gql } from "@apollo/client";
 
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
-import { handleSecretReset } from "@/legacy/api/_reset-client-secret";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
+import { POST } from "@/api/hasura/reset-client-secret";
+import { NextRequest } from "next/server";
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);
@@ -175,25 +174,28 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { app_id: appId, team_id: tokenTeamId },
-        action: { name: "reset_client_secret" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { app_id: appId, team_id: tokenTeamId },
+          action: { name: "reset_client_secret" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": tokenUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleSecretReset(req, res);
+    const res = await POST(req);
 
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const responseJSON = await res?.json();
     expect(responseJSON.extensions.code).toBe("insufficient_permissions");
   });
 
@@ -214,27 +216,28 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-
-      body: {
-        input: { app_id: appId, team_id: tokenTeamId },
-        action: { name: "reset_client_secret" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { app_id: appId, team_id: tokenTeamId },
+          action: { name: "reset_client_secret" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": tokenUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleSecretReset(req, res);
+    const res = await POST(req);
 
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const responseJSON = await res?.json();
     expect(responseJSON.extensions.code).toBe("insufficient_permissions");
   });
 
@@ -255,25 +258,28 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const appId = teamApps[0].id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { app_id: appId, team_id: tokenTeamId },
-        action: { name: "reset_client_secret" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { app_id: appId, team_id: tokenTeamId },
+          action: { name: "reset_client_secret" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": tokenUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleSecretReset(req, res);
+    const res = await POST(req);
 
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const responseJSON = await res?.json();
     expect(responseJSON.client_secret).toBeDefined();
   });
 });
