@@ -26,7 +26,11 @@ export const POST = async (req: NextRequest) => {
   if (body.session_variables["x-hasura-role"] === "admin") {
     logger.error("Admin not allowed to run _reset-client-client-secret"),
       { role: body.session_variables["x-hasura-role"] };
-    return errorHasuraQuery({ req });
+    return errorHasuraQuery({
+      req,
+      detail: "Admin is not allowed to run this query.",
+      code: "admin_not_allowed",
+    });
   }
 
   const userId = body.session_variables["x-hasura-user-id"];

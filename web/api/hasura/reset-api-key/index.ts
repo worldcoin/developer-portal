@@ -1,45 +1,60 @@
-import { getAPIServiceGraphqlClient } from "@/legacy/backend/graphql";
+import { errorHasuraQuery } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
   generateHashedSecret,
   protectInternalEndpoint,
-} from "@/legacy/backend/utils";
-import { NextApiRequest, NextApiResponse } from "next";
-import { errorHasuraQuery, errorNotAllowed } from "../../backend/errors";
+} from "@/api/helpers/utils";
+import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
 import { getSdk as checkUserPermissions } from "./graphql/check-user-permission.generated";
 import { getSdk as updateAPIKey } from "./graphql/update-api-key.generated";
 
-/**
- * Rotates a specific API key.
- * @param req
- * @param res
- */
-export default async function handleAPIKeyReset(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  if (!protectInternalEndpoint(req, res)) {
+export const POST = async (req: NextRequest) => {
+  if (!protectInternalEndpoint(req)) {
     return;
   }
 
-  if (req.method !== "POST") {
-    return errorNotAllowed(req.method, res, req);
-  }
+  const body = await req.json();
 
-  if (req.body.action?.name !== "reset_api_key") {
+  if (body?.action.name !== "reset_api_key") {
     return errorHasuraQuery({
-      res,
       req,
       detail: "Invalid action.",
       code: "invalid_action",
     });
   }
 
-  const id = req.body.input.id;
-  const teamId = req.body.input.team_id;
+  if (body.session_variables["x-hasura-role"] === "admin") {
+    logger.error("Admin not allowed to run _reset-client-client-secret"),
+      { role: body.session_variables["x-hasura-role"] };
+    return errorHasuraQuery({
+      req,
+      detail: "Admin is not allowed to run this query.",
+      code: "admin_not_allowed",
+    });
+  }
 
+  const userId = body.session_variables["x-hasura-user-id"];
+  if (!userId) {
+    return errorHasuraQuery({
+      req,
+      detail: "userId must be set.",
+      code: "required",
+    });
+  }
+
+  const teamId = body.input.team_id;
+  if (!teamId) {
+    return errorHasuraQuery({
+      req,
+      detail: "teamId must be set.",
+      code: "required",
+    });
+  }
+
+  const id = body.input.id;
   if (!id) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "id must be set.",
       code: "required",
@@ -47,35 +62,6 @@ export default async function handleAPIKeyReset(
   }
 
   const client = await getAPIServiceGraphqlClient();
-
-  if (req.body.session_variables["x-hasura-role"] === "admin") {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "Admin is not allowed to run this query.",
-      code: "admin_not_allowed",
-    });
-  }
-
-  // Check user role
-  const userId = req.body.session_variables["x-hasura-user-id"];
-  if (!userId) {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "userId must be set.",
-      code: "required",
-    });
-  }
-
-  if (!teamId) {
-    return errorHasuraQuery({
-      res,
-      req,
-      detail: "teamId must be set.",
-      code: "required",
-    });
-  }
 
   const { team: userTeam } = await checkUserPermissions(
     client,
@@ -87,7 +73,6 @@ export default async function handleAPIKeyReset(
 
   if (!userTeam || !userTeam.length) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "User does not have sufficient permissions.",
       code: "no_permission",
@@ -107,12 +92,11 @@ export default async function handleAPIKeyReset(
 
   if (!update_api_key || !update_api_key.affected_rows) {
     return errorHasuraQuery({
-      res,
       req,
       detail: "Failed to rotate the API key.",
       code: "rotate_failed",
     });
   }
 
-  res.status(200).json({ api_key });
-}
+  return NextResponse.json({ api_key });
+};
