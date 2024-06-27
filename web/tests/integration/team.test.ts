@@ -1,9 +1,8 @@
+import { POST } from "@/api/hasura/invite-team-members";
 import { Role_Enum } from "@/graphql/graphql";
-import { handleInvite } from "@/legacy/api/_invite-team-members";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { gql } from "@apollo/client";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
+import { NextRequest } from "next/server";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 import { getAPIClient, getAPIUserClient } from "./test-utils";
 
@@ -180,24 +179,27 @@ describe("user role", () => {
     const memberRoleUserId = memberRoleMemberships[0].user_id;
     const memberRoleTeamId = memberRoleMemberships[0].team_id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"], team_id: memberRoleTeamId },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": memberRoleUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { emails: ["test@gmail.com"], team_id: memberRoleTeamId },
+          action: { name: "invite_team_members" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": memberRoleUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const res = await POST(req);
+    const responseJSON = await res?.json();
     expect(responseJSON.extensions.code).toBe("insufficient_permissions");
   });
 
@@ -213,24 +215,27 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const tokenTeamId = teams[1].id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
+          action: { name: "invite_team_members" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": tokenUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const res = await POST(req);
+    const responseJSON = await res?.json();
     expect(responseJSON.extensions.code).toBe("insufficient_permissions");
   });
 
@@ -246,24 +251,27 @@ describe("user role", () => {
     const tokenUserId = teamMemberships[0].user_id;
     const tokenTeamId = teamMemberships[0].team_id;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      headers: {
-        authorization: process.env.INTERNAL_ENDPOINTS_SECRET,
-      },
-      body: {
-        input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
-        action: { name: "invite_team_members" },
-        session_variables: {
-          "x-hasura-role": "user",
-          "x-hasura-user-id": tokenUserId,
+    const req = new NextRequest(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.INTERNAL_ENDPOINTS_SECRET!,
         },
+        body: JSON.stringify({
+          input: { emails: ["test@gmail.com"], team_id: tokenTeamId },
+          action: { name: "invite_team_members" },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": tokenUserId,
+          },
+        }),
       },
-    });
+    );
 
-    await handleInvite(req, res);
-    const responseData = res._getData();
-    const responseJSON = JSON.parse(responseData);
+    const res = await POST(req);
+    const responseJSON = await res?.json();
     expect(responseJSON.emails).toEqual(["test@gmail.com"]);
   });
 });

@@ -63,7 +63,7 @@ actions:
   - name: invite_team_members
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/_invite_team_members'
+      handler: '{{NEXT_API_URL}}/hasura/invite-team-members'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET

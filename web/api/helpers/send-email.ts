@@ -50,13 +50,12 @@ export const sendEmail = async (params: {
       from: params.from,
       to: params.to,
     });
-  } catch (err) {
+  } catch (err: any) {
     const emails = [params.to]
       .flat()
       .map((email) => (typeof email === "string" ? email : email.email))
       .join(", ");
-    throw new Error(`Cannot send email for user ${emails}`);
+    throw new Error(`Cannot send email for user ${emails}: ${err.messsage}`);
   }
-
   return true;
 };
