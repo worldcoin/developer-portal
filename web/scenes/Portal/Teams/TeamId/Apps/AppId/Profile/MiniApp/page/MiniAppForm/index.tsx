@@ -1,6 +1,7 @@
 "use client";
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { OptimismIcon } from "@/components/Icons/OptimismIcon";
 import { Input } from "@/components/Input";
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -30,8 +32,9 @@ import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.g
 
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
+  // If the whitelist is null then the it is considered disabled
   whitelisted_addresses: yup.string().nullable(),
-
+  is_whitelist_disabled: yup.boolean(),
   support_email: yup.string().when("app_mode", {
     is: true,
     then: (schema) =>
@@ -112,6 +115,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       support_email: appMetadata?.support_email ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
+      is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
     },
   });
 
@@ -124,11 +128,12 @@ export const MiniAppForm = (props: LinksFormProps) => {
       support_email: appMetadata?.support_email ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
+      is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
     });
   }, [
+    reset,
     appMetadata?.whitelisted_addresses,
     appMetadata?.app_mode,
-    reset,
     appMetadata?.support_email,
     appMetadata?.supported_countries,
     appMetadata?.supported_languages,
@@ -137,37 +142,43 @@ export const MiniAppForm = (props: LinksFormProps) => {
   const submit = useCallback(
     async (values: LinksFormValues) => {
       if (updatingInfo) return;
-
-      // Check if app_mode is true and whitelisted_addresses is not provided or empty
-      if (
-        values.app_mode &&
-        (!values.whitelisted_addresses ||
-          values.whitelisted_addresses.length === 0)
-      ) {
-        setError("whitelisted_addresses", {
-          type: "manual",
-          message:
-            "Mini Apps must have at least one whitelisted payment address.",
-        });
-        return; // Stop the submission process
-      }
-
-      const supported_countries =
-        values.supported_countries && values.supported_countries.length > 0
-          ? convertArrayToHasuraArray(values.supported_countries)
-          : null;
-
-      const supported_languages =
-        values.supported_languages && values.supported_languages.length > 0
-          ? convertArrayToHasuraArray(values.supported_languages)
-          : null;
-
       try {
+        // Check if app_mode is true and whitelisted_addresses is not provided or empty
+        if (
+          values.app_mode &&
+          !values.is_whitelist_disabled &&
+          (!values.whitelisted_addresses ||
+            values.whitelisted_addresses.length === 0)
+        ) {
+          setError("whitelisted_addresses", {
+            type: "manual",
+            message:
+              "Mini Apps must have at least one whitelisted payment address.",
+          });
+          throw new Error(
+            "Mini Apps must have at least one whitelisted payment address.",
+          );
+        }
+
+        const supported_countries =
+          values.supported_countries && values.supported_countries.length > 0
+            ? convertArrayToHasuraArray(values.supported_countries)
+            : null;
+
+        const supported_languages =
+          values.supported_languages && values.supported_languages.length > 0
+            ? convertArrayToHasuraArray(values.supported_languages)
+            : null;
+
+        // If the user disabled the whitelist, we should set the whitelisted_addresses to null
+        const whitelistedAddresses = values.is_whitelist_disabled
+          ? null
+          : formatWhiteListedAddresses(values.whitelisted_addresses);
+
         const result = await updateMiniAppInfoMutation({
           variables: {
             app_metadata_id: appMetadata?.id ?? "",
-            whitelisted_addresses:
-              formatWhiteListedAddresses(values.whitelisted_addresses) ?? null,
+            whitelisted_addresses: whitelistedAddresses,
             app_mode: values.app_mode ? "mini-app" : "external",
             support_email: values.support_email || null,
             supported_countries,
@@ -208,8 +219,13 @@ export const MiniAppForm = (props: LinksFormProps) => {
     name: "app_mode",
   });
 
+  const isWhitelistDisabled = useWatch({
+    control,
+    name: "is_whitelist_disabled",
+  });
+
   return (
-    <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
+    <form className="grid gap-y-9" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.H7}>Mini App Configuration</Typography>
 
@@ -236,28 +252,44 @@ export const MiniAppForm = (props: LinksFormProps) => {
           </Typography>
 
           <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-            Checking this means you have implemented mini-kit inside of your app
-            and are would like this to loaded as a mini-app. Note your app will
-            be rejected if this is not the case.
+            Check this if you have integrated mini-kit into your app and want it
+            to load as a mini-app. Your app will be rejected if this is not
+            true.
           </Typography>
         </div>
       </label>
 
       <div className="grid gap-y-4">
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.H7}>
-            Whitelisted Payment Addresses (Optimism Network)
-          </Typography>
-
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            These are addresses that are allowed to receive payments for your
-            app. Note minikit payment requests that do not send funds to these
-            addresses will be rejected.
-          </Typography>
-
+        <div className="grid gap-y-5">
+          <div className="grid gap-y-3">
+            <div className="flex flex-row gap-x-2">
+              <OptimismIcon />
+              <Typography variant={TYPOGRAPHY.H7} className="text-center">
+                Whitelisted Payment Addresses
+              </Typography>
+            </div>
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              These addresses are authorised to receive payments for your mini
+              app. Payment requests to other addresses will be rejected. <br />
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className={clsx("text-system-warning-500", {
+                hidden: !isWhitelistDisabled || !appMode,
+              })}
+            >
+              Warning: Disabling the whitelist removes protection from payments
+              to invalid addresses.
+            </Typography>
+          </div>
           <Input
             label="Whitelisted Payment Addresses"
-            disabled={!isEditable || !isEnoughPermissions}
+            disabled={
+              !isEditable ||
+              !isEnoughPermissions ||
+              isWhitelistDisabled ||
+              !appMode
+            }
             placeholder="0x12312321..., 0x12312312..."
             register={register("whitelisted_addresses")}
           />
@@ -268,16 +300,29 @@ export const MiniAppForm = (props: LinksFormProps) => {
             {errors?.whitelisted_addresses?.message}
           </p>
         )}
+        <label
+          htmlFor="is_whitelist_disabled"
+          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
+        >
+          <Checkbox
+            id="is_whitelist_disabled"
+            register={register("is_whitelist_disabled")}
+            disabled={!isEditable || !isEnoughPermissions || !appMode}
+          />
+
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+            Disable whitelist
+          </Typography>
+        </label>
       </div>
 
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Supported Countries</Typography>
-
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          If your app is a Mini App then you must select a list of countries
-          where the Mini App will be available.
-        </Typography>
-
+      <div className="grid gap-y-5">
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Supported Countries</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Select a list of countries where Mini App will be available
+          </Typography>
+        </div>
         <Controller
           control={control}
           name="supported_countries"
@@ -289,7 +334,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
               }
               items={countries}
               label=""
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable || !isEnoughPermissions || !appMode}
               errors={errors.supported_countries}
               required={appMode}
               selectAll={() => field.onChange(countries.map((c) => c.value))}
@@ -330,14 +375,14 @@ export const MiniAppForm = (props: LinksFormProps) => {
         />
       </div>
 
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Supported Languages</Typography>
+      <div className="grid gap-y-5">
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Supported Languages</Typography>
 
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          If your app is a Mini App then you must select a list of languages you
-          support
-        </Typography>
-
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Select a list of languages your Mini App supports
+          </Typography>
+        </div>
         <Controller
           control={control}
           name="supported_languages"
@@ -349,7 +394,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
               }
               items={languages}
               label=""
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable || !isEnoughPermissions || !appMode}
               errors={errors.supported_languages}
               required={appMode}
               selectAll={() => field.onChange(languages.map((c) => c.value))}
@@ -381,17 +426,18 @@ export const MiniAppForm = (props: LinksFormProps) => {
         />
       </div>
 
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
+      <div className="grid gap-y-5">
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
 
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Please include a support email where users can reach out to you for
-          help.
-        </Typography>
-
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Please include a support email where users can reach out to you for
+            help.
+          </Typography>
+        </div>
         <Input
           label="Support Email"
-          disabled={!isEditable || !isEnoughPermissions}
+          disabled={!isEditable || !isEnoughPermissions || !appMode}
           placeholder="address@example.com"
           register={register("support_email")}
           errors={errors.support_email}
