@@ -133,6 +133,72 @@ describe("user role", () => {
     expect(response.data.update_action_by_pk.privacy_policy_uri).toEqual(url);
   });
 
+  test("Owner can update sign in with World ID", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    const query = gql(`query GetUserId {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        app {
+          team {
+            memberships(where: {role: {_eq: OWNER}}) {
+              user {
+                id
+              }
+            }
+          }
+          id
+        }
+      }
+    }`);
+
+    const res = (await serviceClient.query({ query })) as {
+      data: {
+        action: [
+          {
+            id: string;
+            app: {
+              team: {
+                memberships: [
+                  {
+                    user: {
+                      id: string;
+                    };
+                  },
+                ];
+              };
+              id: string;
+            };
+          },
+        ];
+      };
+    };
+
+    const ownerUserId = res.data.action[0].app.team.memberships[0].user.id;
+    const appId = res.data.action[0].app.id;
+    console.log(appId);
+
+    const client = await getAPIUserClient({
+      user_id: ownerUserId,
+    });
+
+    const mutation = gql(`
+      mutation DeleteAction {
+        delete_action(
+         where: {action: {_eq: ""}, app_id: {_eq: "${appId}"}}
+        ) {
+          affected_rows
+        }
+      }
+    `);
+
+    const response = await client.mutate({
+      mutation,
+    });
+    console.log(response);
+    expect(response.data.delete_action.affected_rows).toEqual(0);
+  });
+
   test("member can't update sign in with World ID privacy policy", async () => {
     const serviceClient = await getAPIServiceClient();
 
