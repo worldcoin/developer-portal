@@ -7,6 +7,7 @@ import {
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
 } from "./constants";
+import { generateExternalNullifier } from "./hashing";
 import {
   AppLocaliseKeys,
   AppStatsReturnType,
@@ -216,6 +217,9 @@ export const formatAppMetadata = (
       appMetadata.app_id,
       AppLocaliseKeys.world_app_description,
     ),
+    ratings_external_nullifier: generateExternalNullifier(
+      `${appMetadata.app_id}_app_review`,
+    ).digest,
     category: [
       {
         name: appMetadata.category,

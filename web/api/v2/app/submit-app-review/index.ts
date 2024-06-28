@@ -2,9 +2,10 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
+import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
-import { hashToField, packAndEncode } from "@worldcoin/idkit-core/hashing";
+import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as upsertAppReview } from "./graphql/upsert-app-review.generated";
@@ -41,9 +42,9 @@ export const POST = async (req: NextRequest) => {
 
   // Fix the signal hash to be empty string
   const signalHash = hashToField(parsedParams.rating.toString());
-  const external_nullifier = packAndEncode([
-    ["uint256", hashToField(`${parsedParams.app_id}_app_review`).hash],
-  ]);
+  const external_nullifier = generateExternalNullifier(
+    `${parsedParams.app_id}_app_review`,
+  );
 
   const { error, success } = await verifyProof(
     {
