@@ -16,7 +16,7 @@ export const generateExternalNullifier = (
 
   return packAndEncode([
     ["uint256", hashToField(app_id).hash],
-  ...action.types.map(
+    ...action.types.map(
       (type, index) =>
         [type, (action as AbiEncodedValue).values[index]] as [string, unknown],
     ),
