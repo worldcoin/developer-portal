@@ -78,6 +78,8 @@ describe("/api/public/app/[app_id]", () => {
         team_name: "Example Team",
         whitelisted_addresses: ["0x1234", "0x5678"],
         app_mode: "mini-app",
+        ratings_external_nullifier:
+          "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
         support_email: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
@@ -169,6 +171,8 @@ describe("/api/public/app/[app_id]", () => {
         integration_url: "worldapp://test",
         app_website_url: "https://example.com",
         source_code_url: "https://github.com/example/app",
+        ratings_external_nullifier:
+          "0x00ca597c4f12f9f85a633bb04cfdc877af7c2d91a6c1c7fe45031b495a227a58",
         support_email: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],

@@ -193,6 +193,8 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "1",
             name: "Test App",
+            ratings_external_nullifier:
+              "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
             logo_img_url: "https://cdn.test.com/1/logo.png",
             hero_image_url: "https://cdn.test.com/1/hero1.png",
             showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
@@ -232,6 +234,8 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "2",
             name: "Test App2",
+            ratings_external_nullifier:
+              "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
             logo_img_url: "https://cdn.test.com/2/logo.png",
             hero_image_url: "https://cdn.test.com/2/hero.png",
             category: [
@@ -276,6 +280,8 @@ describe("/api/v2/public/apps", () => {
             name: "Test App3",
             logo_img_url: "https://cdn.test.com/3/logo.png",
             hero_image_url: "https://cdn.test.com/3/hero.png",
+            ratings_external_nullifier:
+              "0x00a8ca23f766684e799bbbf19666342bb13b830c80aba71b9e25036990b539f1",
             showcase_img_urls: [
               "https://cdn.test.com/3/showcase1.png",
               "https://cdn.test.com/3/showcase2.png",
@@ -414,6 +420,8 @@ describe("/api/v2/public/apps", () => {
             support_email: "andy@gmail.com",
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
+            ratings_external_nullifier:
+              "0x00ca597c4f12f9f85a633bb04cfdc877af7c2d91a6c1c7fe45031b495a227a58",
             app_rating: 3.4,
             unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
