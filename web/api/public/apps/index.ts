@@ -134,19 +134,13 @@ export async function GET(request: Request) {
   const featured_apps = apps.filter((app) =>
     featured_app_ids.includes(app.app_id),
   );
-  // If app_mode is provided, filter the apps based on the mode
-  if (app_mode && (app_mode === "mini-app" || app_mode === "external")) {
-    return NextResponse.json(
-      {
-        apps: apps.filter((app) => app.app_mode === app_mode),
-        featured: featured_apps.filter((app) => app.app_mode === app_mode),
-      },
-      { status: 200 },
-    );
-  } else {
-    return NextResponse.json(
-      { apps: apps, featured: featured_apps },
-      { status: 200 },
-    );
-  }
+
+  // As we move to v2 we will force show external so we can interally test mini apps in production
+  return NextResponse.json(
+    {
+      apps: apps.filter((app) => app.app_mode === "external"),
+      featured: featured_apps.filter((app) => app.app_mode === "external"),
+    },
+    { status: 200 },
+  );
 }
