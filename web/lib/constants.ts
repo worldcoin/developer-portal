@@ -67,9 +67,9 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     network: "app_staging_44210a8be72aa299410be44232b1ea57",
   },
   production: {
-    grants: "app_c16465ad8eec7e3a78c1ffe87977434f",
-    invites: "app_b48c2001175096fffeb805f0dc57a371",
-    network: "app_d955116fab00289b8ed156d85de6ef67",
+    grants: "app_d2905e660b94ad24d6fc97816182ab35",
+    invites: "app_432af83feb4051e72fd7ee682f365c39",
+    network: "app_a23c6398432498825962a9b96294dde1",
   },
 };
 
