@@ -1,4 +1,5 @@
 import { GET } from "@/api/v2/public/apps";
+import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
@@ -62,14 +63,7 @@ describe("/api/v2/public/apps", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
-      categories: [
-        "Social",
-        "Gaming",
-        "Business",
-        "Finance",
-        "Productivity",
-        "Other",
-      ],
+      categories: Categories,
     });
   });
 
@@ -182,7 +176,7 @@ describe("/api/v2/public/apps", () => {
             unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
-            category: "Social",
+            category: { id: "social", name: "Social" },
             description: {
               overview: "random string",
               how_it_works: "23423",
@@ -198,7 +192,7 @@ describe("/api/v2/public/apps", () => {
               "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
             logo_img_url: "https://cdn.test.com/2/logo.png",
             hero_image_url: "https://cdn.test.com/2/hero.png",
-            category: "Social",
+            category: { id: "social", name: "Social" },
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             app_mode: "external",
@@ -230,7 +224,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             app_mode: "mini-app",
-            category: "Social",
+            category: { id: "social", name: "Social" },
             description: {
               how_it_works: "random",
               how_to_connect: "random",
@@ -243,14 +237,7 @@ describe("/api/v2/public/apps", () => {
         ],
         highlights: [],
       },
-      categories: [
-        "Social",
-        "Gaming",
-        "Business",
-        "Finance",
-        "Productivity",
-        "Other",
-      ],
+      categories: Categories,
     });
   });
 
@@ -327,7 +314,7 @@ describe("/api/v2/public/apps", () => {
             app_rating: 3.4,
             unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
-            category: "Social",
+            category: { id: "social", name: "Social" },
             description: {
               how_it_works: "few",
               how_to_connect: "fewf",
@@ -340,14 +327,7 @@ describe("/api/v2/public/apps", () => {
         ],
         highlights: [],
       },
-      categories: [
-        "Social",
-        "Gaming",
-        "Business",
-        "Finance",
-        "Productivity",
-        "Other",
-      ],
+      categories: Categories,
     });
   });
 });

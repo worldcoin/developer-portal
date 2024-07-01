@@ -64,7 +64,10 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/1/showcase2.png",
         ],
         hero_image_url: "https://cdn.test.com/1/hero.png",
-        category: "Productivity",
+        category: {
+          id: "productivity",
+          name: "Productivity",
+        },
         integration_url: "https://example.com/integration",
         app_website_url: "https://example.com",
         source_code_url: "https://github.com/example/app",
@@ -158,7 +161,7 @@ describe("/api/public/app/[app_id]", () => {
         app_rating: 3.4,
         unique_users: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],
-        category: "Social",
+        category: { id: "social", name: "Social" },
         description: {
           how_it_works: "few",
           how_to_connect: "fewf",

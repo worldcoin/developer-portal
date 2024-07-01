@@ -2,6 +2,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
+  Categories,
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
@@ -222,6 +223,7 @@ export const formatAppMetadata = (
       `${appMetadata.app_id}_app_review`,
     ).digest,
     unique_users: appStat,
+    category: Categories.find((c) => c.name === appMetadata.category),
     team_name: app.team.name,
   };
 };
