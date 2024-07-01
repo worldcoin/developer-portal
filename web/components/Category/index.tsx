@@ -8,7 +8,7 @@ import {
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Categories } from "@/lib/constants";
 import clsx from "clsx";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { FieldError } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
@@ -32,8 +32,6 @@ export const CategorySelector = (props: {
     required,
     disabled,
   } = props;
-
-  const categories = useMemo(() => Categories.map((i) => i.name), []);
 
   const parentClassNames = clsx(
     "rounded-lg border-[1px] bg-grey-0 text-sm text-grey-700",
@@ -63,14 +61,14 @@ export const CategorySelector = (props: {
 
   const handleSelect = useCallback(
     (newValue: number) => {
-      onChange(categories[newValue]);
+      onChange(Categories[newValue]);
     },
-    [categories, onChange],
+    [onChange],
   );
 
   return (
     <Select
-      value={value ? categories.indexOf(value) : -1}
+      value={value ? Categories.indexOf(value) : -1}
       onChange={handleSelect}
       disabled={disabled}
       by={(a: number | null, b: number | null) => a === b}
@@ -102,7 +100,7 @@ export const CategorySelector = (props: {
               "mt-3 max-h-40 text-sm focus:outline-none focus:ring-0",
             )}
           >
-            {categories.map((_, index) => (
+            {Categories.map((_, index) => (
               <SelectOption
                 key={index}
                 value={index}
@@ -110,7 +108,7 @@ export const CategorySelector = (props: {
               >
                 <div className="grid grid-cols-1fr/auto">
                   <Typography variant={TYPOGRAPHY.R4}>
-                    {categories[index]}
+                    {Categories[index]}
                   </Typography>
                 </div>
               </SelectOption>

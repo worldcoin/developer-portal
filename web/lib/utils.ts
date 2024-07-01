@@ -9,8 +9,8 @@ import {
 } from "./constants";
 import { generateExternalNullifier } from "./hashing";
 import {
-  AppLocaliseKeys,
   AppStatsReturnType,
+  AppStoreMetadataDescription,
   AppStoreMetadataFields,
   Auth0SessionUser,
 } from "./types";
@@ -176,6 +176,20 @@ export const createTransactionHashUrl = (
   return "Invalid network";
 };
 
+export const tryParseJSON = (jsonString: string) => {
+  try {
+    const o = JSON.parse(jsonString);
+
+    if (o && typeof o === "object") {
+      return o;
+    }
+  } catch (e) {
+    return null;
+  }
+
+  return null;
+};
+
 export const formatAppMetadata = (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
@@ -184,6 +198,10 @@ export const formatAppMetadata = (
   const appStat: number =
     appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
     0;
+
+  const description: AppStoreMetadataDescription = tryParseJSON(
+    appMetadata.description,
+  );
 
   return {
     ...appMetadata,
@@ -196,36 +214,13 @@ export const formatAppMetadata = (
       appMetadata.hero_image_url,
     ),
     description: {
-      overview: createLocaliseField(
-        appMetadata.app_id,
-        AppLocaliseKeys.description_overview,
-      ),
-      how_it_works: createLocaliseField(
-        appMetadata.app_id,
-        AppLocaliseKeys.description_how_it_works,
-      ),
-      how_to_connect: createLocaliseField(
-        appMetadata.app_id,
-        AppLocaliseKeys.description_connect,
-      ),
+      overview: description.description_overview,
+      how_it_works: description.description_how_it_works,
+      how_to_connect: description.description_connect,
     },
-    world_app_button_text: createLocaliseField(
-      appMetadata.app_id,
-      AppLocaliseKeys.world_app_button_text,
-    ),
-    world_app_description: createLocaliseField(
-      appMetadata.app_id,
-      AppLocaliseKeys.world_app_description,
-    ),
     ratings_external_nullifier: generateExternalNullifier(
       `${appMetadata.app_id}_app_review`,
     ).digest,
-    category: [
-      {
-        name: appMetadata.category,
-        lokalise_key: createLocaliseCategory(appMetadata.category),
-      },
-    ],
     unique_users: appStat,
     team_name: app.team.name,
   };

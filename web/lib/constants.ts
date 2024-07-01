@@ -45,16 +45,13 @@ export const loginErrors: Record<LoginErrorCode, string> = {
     "Your email has not been verified. Please check your email for a verification link.",
 };
 
-export const Categories: Array<{ name: string; lokalise_key: string }> = [
-  { name: "Social", lokalise_key: "world_id_partner_category_social" },
-  { name: "Gaming", lokalise_key: "world_id_partner_category_gaming" },
-  { name: "Business", lokalise_key: "world_id_partner_category_business" },
-  { name: "Finance", lokalise_key: "world_id_partner_category_finance" },
-  {
-    name: "Productivity",
-    lokalise_key: "world_id_partner_category_productivity",
-  },
-  { name: "Other", lokalise_key: "world_id_partner_category_other" },
+export const Categories: string[] = [
+  "Social",
+  "Gaming",
+  "Business",
+  "Finance",
+  "Productivity",
+  "Other",
 ];
 
 export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {

@@ -172,6 +172,6 @@ export const GET = async (request: NextRequest) => {
       top_apps: fomattedTopApps,
       highlights: highlightedApps,
     },
-    categories: Categories,
+    categories: Categories, // TODO: Localise
   });
 };
