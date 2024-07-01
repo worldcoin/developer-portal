@@ -65,7 +65,7 @@ export const CategorySelector = (props: {
     (newValue: number) => {
       onChange(categories[newValue]);
     },
-    [categories, onChange],
+    [onChange, categories],
   );
 
   return (

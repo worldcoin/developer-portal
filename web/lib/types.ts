@@ -207,3 +207,9 @@ export type AppStatsItem = {
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;
+
+export type AppStoreMetadataDescription = {
+  description_overview: string;
+  description_how_it_works: string;
+  description_connect: string;
+};

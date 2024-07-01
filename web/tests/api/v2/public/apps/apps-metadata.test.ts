@@ -1,6 +1,5 @@
 import { GET } from "@/api/v2/public/apps";
-import { AppLocaliseKeys } from "@/lib/types";
-import { createLocaliseField } from "@/lib/utils";
+import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
@@ -64,32 +63,7 @@ describe("/api/v2/public/apps", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
-      categories: [
-        {
-          name: "Social",
-          lokalise_key: "world_id_partner_category_social",
-        },
-        {
-          name: "Gaming",
-          lokalise_key: "world_id_partner_category_gaming",
-        },
-        {
-          name: "Business",
-          lokalise_key: "world_id_partner_category_business",
-        },
-        {
-          name: "Finance",
-          lokalise_key: "world_id_partner_category_finance",
-        },
-        {
-          name: "Productivity",
-          lokalise_key: "world_id_partner_category_productivity",
-        },
-        {
-          name: "Other",
-          lokalise_key: "world_id_partner_category_other",
-        },
-      ],
+      categories: Categories,
     });
   });
 
@@ -110,16 +84,16 @@ describe("/api/v2/public/apps", () => {
             logo_img_url: "logo.png",
             hero_image_url: "hero1.png",
             showcase_img_urls: ["showcase1.png"],
-            category: "social",
+            category: "Social",
             world_app_button_text: "random",
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
-            description: {
-              how_it_works: "23423",
-              how_to_connect: "4fwfewf",
-              overview: "random string",
-            },
+            description: JSON.stringify({
+              description_overview: "random string",
+              description_how_it_works: "23423",
+              description_connect: "4fwfewf",
+            }),
             app: {
               team: {
                 name: "Example Team",
@@ -132,16 +106,16 @@ describe("/api/v2/public/apps", () => {
             logo_img_url: "logo.png",
             hero_image_url: "hero.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            category: "social",
+            category: "Social",
             world_app_button_text: "random",
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "external",
-            description: {
-              how_it_works: "fwefw",
-              how_to_connect: "fewfw",
-              overview: "fwefew",
-            },
+            description: JSON.stringify({
+              description_overview: "fwefw",
+              description_how_it_works: "fwefw",
+              description_connect: "fwefw",
+            }),
             app: {
               team: {
                 name: "Example Team",
@@ -162,12 +136,12 @@ describe("/api/v2/public/apps", () => {
               "showcase2.png",
               "showcase3.png",
             ],
-            category: "social",
-            description: {
-              how_it_works: "random",
-              how_to_connect: "random",
-              overview: "random",
-            },
+            category: "Social",
+            description: JSON.stringify({
+              description_overview: "random",
+              description_how_it_works: "random",
+              description_connect: "random",
+            }),
             app: {
               team: {
                 name: "Example Team",
@@ -202,34 +176,14 @@ describe("/api/v2/public/apps", () => {
             unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
-            category: [
-              {
-                name: "social",
-                lokalise_key: "world_id_partner_category_social",
-              },
-            ],
+            category: { id: "social", name: "Social" },
             description: {
-              how_it_works: createLocaliseField(
-                "1",
-                AppLocaliseKeys.description_how_it_works,
-              ),
-              how_to_connect: createLocaliseField(
-                "1",
-                AppLocaliseKeys.description_connect,
-              ),
-              overview: createLocaliseField(
-                "1",
-                AppLocaliseKeys.description_overview,
-              ),
+              overview: "random string",
+              how_it_works: "23423",
+              how_to_connect: "4fwfewf",
             },
-            world_app_button_text: createLocaliseField(
-              "1",
-              AppLocaliseKeys.world_app_button_text,
-            ),
-            world_app_description: createLocaliseField(
-              "1",
-              AppLocaliseKeys.world_app_description,
-            ),
+            world_app_button_text: "random",
+            world_app_description: "random",
           },
           {
             app_id: "2",
@@ -238,42 +192,22 @@ describe("/api/v2/public/apps", () => {
               "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
             logo_img_url: "https://cdn.test.com/2/logo.png",
             hero_image_url: "https://cdn.test.com/2/hero.png",
-            category: [
-              {
-                name: "social",
-                lokalise_key: "world_id_partner_category_social",
-              },
-            ],
+            category: { id: "social", name: "Social" },
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             app_mode: "external",
             description: {
-              overview: createLocaliseField(
-                "2",
-                AppLocaliseKeys.description_overview,
-              ),
-              how_it_works: createLocaliseField(
-                "2",
-                AppLocaliseKeys.description_how_it_works,
-              ),
-              how_to_connect: createLocaliseField(
-                "2",
-                AppLocaliseKeys.description_connect,
-              ),
+              overview: "fwefw",
+              how_it_works: "fwefw",
+              how_to_connect: "fwefw",
             },
             showcase_img_urls: [
               "https://cdn.test.com/2/showcase1.png",
               "https://cdn.test.com/2/showcase2.png",
             ],
             team_name: "Example Team",
-            world_app_button_text: createLocaliseField(
-              "2",
-              AppLocaliseKeys.world_app_button_text,
-            ),
-            world_app_description: createLocaliseField(
-              "2",
-              AppLocaliseKeys.world_app_description,
-            ),
+            world_app_button_text: "random",
+            world_app_description: "random",
           },
           {
             app_id: "3",
@@ -290,65 +224,20 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             app_mode: "mini-app",
-            category: [
-              {
-                name: "social",
-                lokalise_key: "world_id_partner_category_social",
-              },
-            ],
+            category: { id: "social", name: "Social" },
             description: {
-              how_it_works: createLocaliseField(
-                "3",
-                AppLocaliseKeys.description_how_it_works,
-              ),
-              how_to_connect: createLocaliseField(
-                "3",
-                AppLocaliseKeys.description_connect,
-              ),
-              overview: createLocaliseField(
-                "3",
-                AppLocaliseKeys.description_overview,
-              ),
+              how_it_works: "random",
+              how_to_connect: "random",
+              overview: "random",
             },
             team_name: "Example Team",
-            world_app_button_text: createLocaliseField(
-              "3",
-              AppLocaliseKeys.world_app_button_text,
-            ),
-            world_app_description: createLocaliseField(
-              "3",
-              AppLocaliseKeys.world_app_description,
-            ),
+            world_app_button_text: "random",
+            world_app_description: "random",
           },
         ],
         highlights: [],
       },
-      categories: [
-        {
-          name: "Social",
-          lokalise_key: "world_id_partner_category_social",
-        },
-        {
-          name: "Gaming",
-          lokalise_key: "world_id_partner_category_gaming",
-        },
-        {
-          name: "Business",
-          lokalise_key: "world_id_partner_category_business",
-        },
-        {
-          name: "Finance",
-          lokalise_key: "world_id_partner_category_finance",
-        },
-        {
-          name: "Productivity",
-          lokalise_key: "world_id_partner_category_productivity",
-        },
-        {
-          name: "Other",
-          lokalise_key: "world_id_partner_category_other",
-        },
-      ],
+      categories: Categories,
     });
   });
 
@@ -371,7 +260,7 @@ describe("/api/v2/public/apps", () => {
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
-            category: "social",
+            category: "Social",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
             integration_url: "https://example.com/integration",
@@ -425,64 +314,20 @@ describe("/api/v2/public/apps", () => {
             app_rating: 3.4,
             unique_users: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
-            category: [
-              {
-                name: "social",
-                lokalise_key: "world_id_partner_category_social",
-              },
-            ],
+            category: { id: "social", name: "Social" },
             description: {
-              how_it_works: createLocaliseField(
-                "app_test_123",
-                AppLocaliseKeys.description_how_it_works,
-              ),
-              how_to_connect: createLocaliseField(
-                "app_test_123",
-                AppLocaliseKeys.description_connect,
-              ),
-              overview: createLocaliseField(
-                "app_test_123",
-                AppLocaliseKeys.description_overview,
-              ),
+              how_it_works: "few",
+              how_to_connect: "fewf",
+              overview: "fewf",
             },
-            world_app_button_text: createLocaliseField(
-              "app_test_123",
-              AppLocaliseKeys.world_app_button_text,
-            ),
-            world_app_description: createLocaliseField(
-              "app_test_123",
-              AppLocaliseKeys.world_app_description,
-            ),
+            world_app_button_text: "Use Integration",
+            world_app_description:
+              "This is an example app designed to showcase the capabilities of our platform.",
           },
         ],
         highlights: [],
       },
-      categories: [
-        {
-          name: "Social",
-          lokalise_key: "world_id_partner_category_social",
-        },
-        {
-          name: "Gaming",
-          lokalise_key: "world_id_partner_category_gaming",
-        },
-        {
-          name: "Business",
-          lokalise_key: "world_id_partner_category_business",
-        },
-        {
-          name: "Finance",
-          lokalise_key: "world_id_partner_category_finance",
-        },
-        {
-          name: "Productivity",
-          lokalise_key: "world_id_partner_category_productivity",
-        },
-        {
-          name: "Other",
-          lokalise_key: "world_id_partner_category_other",
-        },
-      ],
+      categories: Categories,
     });
   });
 });

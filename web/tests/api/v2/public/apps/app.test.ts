@@ -1,6 +1,4 @@
 import { GET } from "@/api/v2/public/app/[app_id]";
-import { AppLocaliseKeys } from "@/lib/types";
-import { createLocaliseCategory, createLocaliseField } from "@/lib/utils";
 import { NextRequest } from "next/server";
 import { getSdk as getAppMetadataSdk } from "../../../../../api/v2/public/app/[app_id]/graphql/get-app-metadata.generated";
 
@@ -66,12 +64,10 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/1/showcase2.png",
         ],
         hero_image_url: "https://cdn.test.com/1/hero.png",
-        category: [
-          {
-            name: "Productivity",
-            lokalise_key: createLocaliseCategory("Productivity"),
-          },
-        ],
+        category: {
+          id: "productivity",
+          name: "Productivity",
+        },
         integration_url: "https://example.com/integration",
         app_website_url: "https://example.com",
         source_code_url: "https://github.com/example/app",
@@ -86,27 +82,13 @@ describe("/api/public/app/[app_id]", () => {
         app_rating: 3.4,
         unique_users: 0,
         description: {
-          how_it_works: createLocaliseField(
-            "1",
-            AppLocaliseKeys.description_how_it_works,
-          ),
-          how_to_connect: createLocaliseField(
-            "1",
-            AppLocaliseKeys.description_connect,
-          ),
-          overview: createLocaliseField(
-            "1",
-            AppLocaliseKeys.description_overview,
-          ),
+          how_it_works: "few",
+          how_to_connect: "fewf",
+          overview: "fewf",
         },
-        world_app_button_text: createLocaliseField(
-          "1",
-          AppLocaliseKeys.world_app_button_text,
-        ),
-        world_app_description: createLocaliseField(
-          "1",
-          AppLocaliseKeys.world_app_description,
-        ),
+        world_app_button_text: "Use Integration",
+        world_app_description:
+          "This is an example app designed to showcase the capabilities of our platform.",
       },
     });
   });
@@ -133,7 +115,7 @@ describe("/api/public/app/[app_id]", () => {
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
-            category: "social",
+            category: "Social",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
             integration_url: "https://example.com/integration",
@@ -179,34 +161,15 @@ describe("/api/public/app/[app_id]", () => {
         app_rating: 3.4,
         unique_users: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],
-        category: [
-          {
-            name: "social",
-            lokalise_key: "world_id_partner_category_social",
-          },
-        ],
+        category: { id: "social", name: "Social" },
         description: {
-          how_it_works: createLocaliseField(
-            "app_test_123",
-            AppLocaliseKeys.description_how_it_works,
-          ),
-          how_to_connect: createLocaliseField(
-            "app_test_123",
-            AppLocaliseKeys.description_connect,
-          ),
-          overview: createLocaliseField(
-            "app_test_123",
-            AppLocaliseKeys.description_overview,
-          ),
+          how_it_works: "few",
+          how_to_connect: "fewf",
+          overview: "fewf",
         },
-        world_app_button_text: createLocaliseField(
-          "app_test_123",
-          AppLocaliseKeys.world_app_button_text,
-        ),
-        world_app_description: createLocaliseField(
-          "app_test_123",
-          AppLocaliseKeys.world_app_description,
-        ),
+        world_app_button_text: "Use Integration",
+        world_app_description:
+          "This is an example app designed to showcase the capabilities of our platform.",
       },
     });
   });
