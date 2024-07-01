@@ -51,6 +51,15 @@ const deleteAuthCodeQuery = gql`
         auth_code: { _eq: $auth_code }
       }
     ) {
+      returning {
+        nullifier_hash
+        verification_level
+        scope
+        code_challenge
+        code_challenge_method
+        redirect_uri
+        nonce
+      }
       affected_rows
     }
   }
@@ -145,20 +154,22 @@ export default async function handleOIDCToken(
   const client = await getAPIServiceClient();
   const now = new Date().toISOString();
   const { data } = await client.mutate<{
-    auth_code: Array<
-      Pick<
-        AuthCodeModel,
-        | "nullifier_hash"
-        | "verification_level"
-        | "scope"
-        | "code_challenge"
-        | "code_challenge_method"
-        | "redirect_uri"
-        | "nonce"
-      >
-    >;
+    delete_auth_code: {
+      returning: Array<
+        Pick<
+          AuthCodeModel,
+          | "nullifier_hash"
+          | "verification_level"
+          | "scope"
+          | "code_challenge"
+          | "code_challenge_method"
+          | "redirect_uri"
+          | "nonce"
+        >
+      >;
+    };
   }>({
-    mutation: findAuthCodeQuery,
+    mutation: deleteAuthCodeQuery,
     variables: {
       auth_code,
       app_id,
@@ -166,7 +177,7 @@ export default async function handleOIDCToken(
     },
   });
 
-  const code = data?.auth_code[0];
+  const code = data?.delete_auth_code.returning[0];
 
   if (!code) {
     return errorOIDCResponse(
@@ -255,15 +266,6 @@ export default async function handleOIDCToken(
     ...jwk,
     scope: code.scope,
     nonce: code.nonce,
-  });
-
-  await client.mutate({
-    mutation: deleteAuthCodeQuery,
-    variables: {
-      auth_code,
-      app_id,
-      now,
-    },
   });
 
   return res.status(200).json({

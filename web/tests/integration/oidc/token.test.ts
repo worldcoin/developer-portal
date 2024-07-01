@@ -318,12 +318,12 @@ describe("/api/v1/oidc/token", () => {
       error_description: "Missing code verifier.",
     });
 
-    // Verify that the auth code is not deleted
+    // Verify that the auth code is deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
       [app_id, "83a313c5939399ba017d2381"],
     );
-    expect(result.rowCount).toEqual(1);
+    expect(result.rowCount).toEqual(0);
   });
 
   test("error when PKCE not expected", async () => {
@@ -369,12 +369,12 @@ describe("/api/v1/oidc/token", () => {
       error_description: "Code verifier was not expected.",
     });
 
-    // Verify that the auth code is not deleted
+    // Verify that the auth code is deleted
     const result = await integrationDBExecuteQuery(
       "SELECT id FROM auth_code WHERE app_id = $1 AND auth_code = $2",
       [app_id, "83a313c5939399ba017d2381"],
     );
-    expect(result.rowCount).toEqual(1);
+    expect(result.rowCount).toEqual(0);
   });
 
   test("properly sets CORS headers", async () => {
