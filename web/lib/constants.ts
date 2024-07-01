@@ -66,7 +66,11 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     invites: "app_staging_fb0465348ceb59cba6202685cbdc4120",
     network: "app_staging_44210a8be72aa299410be44232b1ea57",
   },
-  production: {},
+  production: {
+    grants: "app_c16465ad8eec7e3a78c1ffe87977434f",
+    invites: "app_b48c2001175096fffeb805f0dc57a371",
+    network: "app_d955116fab00289b8ed156d85de6ef67",
+  },
 };
 
 export const NativeApps: Record<string, NativeAppsMap> = {
@@ -90,5 +94,18 @@ export const NativeApps: Record<string, NativeAppsMap> = {
       integration_url: "worldapp://network",
     },
   },
-  production: {},
+  production: {
+    [NativeAppToAppIdMapping.production.grants]: {
+      app_id: "grants",
+      integration_url: "worldapp://grants",
+    },
+    [NativeAppToAppIdMapping.production.invites]: {
+      app_id: "invites",
+      integration_url: "worldapp://invites",
+    },
+    [NativeAppToAppIdMapping.production.network]: {
+      app_id: "network",
+      integration_url: "worldapp://network",
+    },
+  },
 };
