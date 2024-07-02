@@ -5,6 +5,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { CleanUpMutation, cleanUpSdk } from "./graphql/clean-up";
 import { adminGraphqlClient } from "./helpers/hasura";
 import crypto from "crypto";
+import { constants } from "@e2e/helpers";
 
 export default async function globalSetup() {
   if (
@@ -69,22 +70,22 @@ export default async function globalSetup() {
     console.log("\x1b[32m%s\x1b[0m", "No test teams found", "\x1b[0m");
   }
 
-  const teamId = await createTeam(
-    teamName + ` ${crypto.randomBytes(4).toString("hex")}`,
-  );
-  process.env["TEST_TEAM_ID"] = teamId;
+  await createTeam({
+    name: teamName + ` ${crypto.randomBytes(4).toString("hex")}`,
+    id: constants.teamId,
+  });
 
-  const userId = await createUser({
+  await createUser({
     auth0Id,
     email,
-    teamId,
+    teamId: constants.teamId,
+    userId: constants.userId,
   });
-  process.env["TEST_USER_ID"] = userId;
 
-  const membershipId = await createMembership({
-    teamId,
-    userId,
+  await createMembership({
+    teamId: constants.teamId,
+    userId: constants.userId,
+    membershipId: constants.membershipId,
     role: Role_Enum.Owner,
   });
-  process.env["TEST_MEMBERSHIP_ID"] = membershipId;
 }
