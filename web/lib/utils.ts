@@ -11,6 +11,7 @@ import {
 import { generateExternalNullifier } from "./hashing";
 import {
   AppStatsReturnType,
+  AppStoreFormattedFields,
   AppStoreMetadataDescription,
   AppStoreMetadataFields,
   Auth0SessionUser,
@@ -194,7 +195,7 @@ export const tryParseJSON = (jsonString: string) => {
 export const formatAppMetadata = (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
-) => {
+): AppStoreFormattedFields => {
   const { app, ...appMetadata } = appData;
   const appStat: number =
     appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
@@ -223,7 +224,26 @@ export const formatAppMetadata = (
       `${appMetadata.app_id}_app_review`,
     ).digest,
     unique_users: appStat,
-    category: Categories.find((c) => c.name === appMetadata.category),
-    team_name: app.team.name,
+    category: Categories.find((c) => c.name === appMetadata.category) ?? {
+      id: "other",
+      name: "Other",
+    },
+    team_name: app.team.name ?? "",
   };
+};
+
+// Cached thus this is not that expensive
+export const rankApps = (
+  apps: AppStoreFormattedFields[],
+  appStats: AppStatsReturnType,
+) => {
+  return apps.sort((a, b) => {
+    const aStat = appStats.find((stat) => stat.app_id === a.app_id);
+    const bStat = appStats.find((stat) => stat.app_id === b.app_id);
+
+    return (
+      (bStat?.unique_users_last_7_days ?? 0) -
+      (aStat?.unique_users_last_7_days ?? 0)
+    );
+  });
 };

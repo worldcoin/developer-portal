@@ -191,6 +191,21 @@ export type AppStoreMetadataFields = {
   };
 };
 
+export type AppStoreFormattedFields = Omit<
+  AppStoreMetadataFields,
+  "description" | "category" | "app"
+> & {
+  ratings_external_nullifier: string;
+  unique_users: number;
+  team_name: string;
+  category: { id: string; name: string };
+  description: {
+    overview: string;
+    how_it_works: string;
+    how_to_connect: string;
+  };
+};
+
 type NativeApp = {
   app_id: string;
   integration_url: string;
@@ -204,6 +219,7 @@ export type AppStatsItem = {
   app_id: string;
   unique_users: number;
   last_updated_at: string;
+  unique_users_last_7_days: number | null;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;

@@ -4,7 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { Categories, NativeApps } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { AppStatsReturnType } from "@/lib/types";
-import { formatAppMetadata, isValidHostName } from "@/lib/utils";
+import { formatAppMetadata, isValidHostName, rankApps } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -173,8 +173,8 @@ export const GET = async (request: NextRequest) => {
 
   return NextResponse.json({
     app_rankings: {
-      top_apps: fomattedTopApps,
-      highlights: highlightedApps,
+      top_apps: rankApps(fomattedTopApps, metricsData),
+      highlights: rankApps(highlightedApps, metricsData),
     },
     categories: Categories, // TODO: Localise
   });
