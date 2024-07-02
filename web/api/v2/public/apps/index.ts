@@ -56,9 +56,7 @@ export const GET = async (request: NextRequest) => {
     return handleError(request);
   }
   const headers = request.headers;
-  const country = headers.get("CloudFront-Viewer-Country")?.toLowerCase();
-  // TODO: Remove after testing
-  console.log(`Country: ${country}`);
+  const country = headers.get("CloudFront-Viewer-Country");
 
   const { page, limit, app_mode } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
@@ -113,18 +111,14 @@ export const GET = async (request: NextRequest) => {
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) =>
-      app.supported_countries?.some(
-        (c: string) => c.toLowerCase() === country.toLowerCase(),
-      ),
+      app.supported_countries?.some((c: string) => c === country),
     );
   }
 
   // ANCHOR: Filter highlights apps by country
   if (country && highlightsApps.length > 0) {
     highlightsApps = highlightsApps.filter((app) =>
-      app.supported_countries?.some(
-        (c: string) => c.toLowerCase() === country.toLowerCase(),
-      ),
+      app.supported_countries?.some((c: string) => c === country),
     );
   }
 
