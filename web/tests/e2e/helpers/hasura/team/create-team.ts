@@ -1,12 +1,12 @@
 import { adminGraphqlClient } from "@e2e/helpers/hasura";
 import { InsertTeamMutation, insertTeamSdk } from "./graphql";
 
-export const createTeam = async (name: string) => {
+export const createTeam = async (params: { name: string; id?: string }) => {
   let response: InsertTeamMutation;
 
   try {
     response = await insertTeamSdk(adminGraphqlClient).InsertTeam({
-      object: { name },
+      object: { name: params.name, ...(params.id ? { id: params.id } : {}) },
     });
   } catch (e) {
     throw new Error(
