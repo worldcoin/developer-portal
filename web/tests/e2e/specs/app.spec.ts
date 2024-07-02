@@ -3,8 +3,8 @@ import { deleteAppsForTeam } from "@e2e/helpers/hasura/app";
 
 test.describe("App", () => {
   test.afterAll(async () => {
-    await deleteAppsForTeam(constants.teamId)
-  })
+    await deleteAppsForTeam(constants.teamId);
+  });
 
   test("Create an App", async ({ page }) => {
     const appName = "World Test!";

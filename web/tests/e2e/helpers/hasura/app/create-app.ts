@@ -10,7 +10,7 @@ export const createApp = async (name: string) => {
       object: {
         name,
         team_id: constants.teamId,
-        app_metadata: {data: [{name}]},
+        app_metadata: { data: [{ name }] },
       },
     });
   } catch (e) {
