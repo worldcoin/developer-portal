@@ -132,7 +132,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                 title="Create action"
                 description="Allow user to verify as a unique person"
                 buttonText="Create"
-                testId="create-app"
+                testId="create-action"
               />,
             ]}
           />
