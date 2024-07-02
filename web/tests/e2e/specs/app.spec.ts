@@ -1,8 +1,14 @@
-import { expect, test } from "@e2e/helpers";
+import { constants, expect, test } from "@e2e/helpers";
+import { deleteAppsForTeam } from "@e2e/helpers/hasura/app";
 
 test.describe("App", () => {
+  test.afterAll(async () => {
+    await deleteAppsForTeam(constants.teamId);
+  });
+
   test("Create an App", async ({ page }) => {
     const appName = "World Test!";
+
     await page.goto("/");
     await expect(page.getByText("Build your first project")).toBeVisible();
     await page.click("[data-testid='button-create-an-app']");

@@ -5,6 +5,7 @@ export const createUser = async (params: {
   auth0Id: string;
   email: string;
   teamId: string;
+  userId?: string;
 }) => {
   let response: InsertUserMutation;
 
@@ -14,8 +15,9 @@ export const createUser = async (params: {
         auth0Id: params.auth0Id,
         email: params.email,
         is_subscribed: false,
-        ironclad_id: crypto.randomUUID(),
+        ironclad_id: `ironclad_${Math.floor(Math.random() * (99999 - 10000) + 10000)}_test`,
         team_id: params.teamId,
+        ...(params.userId ? { id: params.userId } : {}),
       },
     });
   } catch (e) {

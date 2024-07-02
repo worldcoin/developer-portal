@@ -5,6 +5,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60000,
   globalSetup: require.resolve("./tests/e2e/global-setup"),
   globalTeardown: require.resolve("./tests/e2e/global-teardown"),
+  workers: 1,
   use: {
     baseURL: process.env.NEXT_PUBLIC_APP_URL,
     browserName: "chromium",

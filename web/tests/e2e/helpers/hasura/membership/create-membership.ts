@@ -6,6 +6,7 @@ export const createMembership = async (params: {
   teamId: string;
   userId: string;
   role: Role_Enum;
+  membershipId?: string;
 }) => {
   let response: InsertMembershipMutation;
 
@@ -15,6 +16,7 @@ export const createMembership = async (params: {
         team_id: params.teamId,
         user_id: params.userId,
         role: params.role,
+        ...(params.membershipId ? { id: params.membershipId } : {}),
       },
     });
   } catch (e) {

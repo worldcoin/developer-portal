@@ -4,3 +4,4 @@
 pnpm-lock.yaml
 /graphql
 /test-results
+playwright-report/

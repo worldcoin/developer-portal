@@ -1,0 +1,5 @@
+mutation InsertApp($object: app_insert_input!) {
+  insert_app_one(object: $object) {
+    id
+  }
+}

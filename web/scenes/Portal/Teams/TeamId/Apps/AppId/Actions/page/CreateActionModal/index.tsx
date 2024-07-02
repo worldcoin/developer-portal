@@ -192,6 +192,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               errors={errors.name}
               label="Name"
               placeholder="Anonymous Vote #12"
+              data-testid="input-name"
               required
             />
             <Input
@@ -200,6 +201,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               label="Short Description"
               placeholder="Cast your vote on proposal #102"
               helperText="Tell your users what the action is for."
+              data-testid="input-description"
               required
             />
             <Input
@@ -208,6 +210,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               label="Identifier"
               helperText="This is the value you will use in IDKit and any API calls."
               placeholder="A short description of your action"
+              data-testid="input-id"
               required
               addOnRight={
                 <CopyButton
@@ -242,6 +245,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                 type="submit"
                 disabled={!isValid || loading}
                 className="px-10 py-3"
+                testId="create-action-modal"
               >
                 <Typography variant={TYPOGRAPHY.R3}>Create Action</Typography>
               </DecoratedButton>

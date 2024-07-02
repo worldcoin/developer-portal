@@ -91,6 +91,7 @@ export const MaxVerificationsSelector = (props: {
               "grid grid-cols-1fr/auto",
               className,
             )}
+            data-testid="select-max-verifications"
           >
             <Typography variant={TYPOGRAPHY.R4}>
               {VerificationOptions[value] ?? value.toString()}
