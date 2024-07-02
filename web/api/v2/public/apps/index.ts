@@ -2,6 +2,7 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { Categories, NativeApps } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,7 +16,6 @@ import { getSdk as getHighlightsSdk } from "./graphql/get-app-web-highlights.gen
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
   limit: yup.number().integer().min(1).max(500).notRequired().default(250),
-  country: yup.string().notRequired(),
   app_mode: yup
     .string()
     .oneOf(["mini-app", "external", "native"])
@@ -56,8 +56,12 @@ export const GET = async (request: NextRequest) => {
   if (!isValid) {
     return handleError(request);
   }
+  const headers = request.headers;
+  const country = headers.get("CloudFront-Viewer-Country")?.toLowerCase();
+  // TODO: Remove after testing
+  logger.info(`Country: ${country}`);
 
-  const { page, limit, country, app_mode } = parsedParams;
+  const { page, limit, app_mode } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
 
   let highlightsIds: string[] = [];
