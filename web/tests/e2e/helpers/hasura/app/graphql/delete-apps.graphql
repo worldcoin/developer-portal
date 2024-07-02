@@ -1,0 +1,5 @@
+mutation DeleteApps($where: app_bool_exp!) {
+  delete_app(where: $where) {
+    affected_rows
+  }
+}
