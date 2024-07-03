@@ -268,7 +268,7 @@ describe("/api/v2/public/apps", () => {
             source_code_url: "https://github.com/example/app",
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
-            support_email: "andy@gmail.com",
+            support_link: "andy@gmail.com",
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
@@ -306,7 +306,7 @@ describe("/api/v2/public/apps", () => {
             integration_url: "worldapp://test",
             app_website_url: "https://example.com",
             source_code_url: "https://github.com/example/app",
-            support_email: "andy@gmail.com",
+            support_link: "andy@gmail.com",
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             ratings_external_nullifier:

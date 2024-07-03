@@ -24,7 +24,7 @@ query FetchAppMetadata($id: String!) {
       verification_status
       app_mode
       whitelisted_addresses
-      support_email
+      support_link
       supported_countries
       supported_languages
     }
@@ -50,7 +50,7 @@ query FetchAppMetadata($id: String!) {
       verification_status
       app_mode
       whitelisted_addresses
-      support_email
+      support_link
       supported_countries
       supported_languages
     }

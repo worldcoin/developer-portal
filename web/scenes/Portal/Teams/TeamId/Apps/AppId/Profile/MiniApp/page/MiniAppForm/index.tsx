@@ -30,18 +30,17 @@ import {
 } from "../helpers/form-countries-list";
 import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.generated";
 
+const urlRegex = /^(https:\/\/|mailto:)/;
+
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
   // If the whitelist is null then the it is considered disabled
   whitelisted_addresses: yup.string().nullable(),
   is_whitelist_disabled: yup.boolean(),
-  support_email: yup.string().when("app_mode", {
+  support_link: yup.string().when("app_mode", {
     is: true,
     then: (schema) =>
-      schema
-        .email("Must be a valid email address")
-        .required("This field is required"),
-    otherwise: (schema) => schema.notRequired(),
+      schema.matches(urlRegex, "URL must start with https:// or mailto::"),
   }),
 
   supported_countries: yup.array().when("app_mode", {
@@ -112,7 +111,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
-      support_email: appMetadata?.support_email ?? undefined,
+      support_link: appMetadata?.support_link ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
@@ -125,7 +124,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
-      support_email: appMetadata?.support_email ?? undefined,
+      support_link: appMetadata?.support_link ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
@@ -134,7 +133,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
     reset,
     appMetadata?.whitelisted_addresses,
     appMetadata?.app_mode,
-    appMetadata?.support_email,
+    appMetadata?.support_link,
     appMetadata?.supported_countries,
     appMetadata?.supported_languages,
   ]);
@@ -180,7 +179,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
             app_metadata_id: appMetadata?.id ?? "",
             whitelisted_addresses: whitelistedAddresses,
             app_mode: values.app_mode ? "mini-app" : "external",
-            support_email: values.support_email || null,
+            support_link: values.support_link || null,
             supported_countries,
             supported_languages,
           },
@@ -428,19 +427,19 @@ export const MiniAppForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>Support Email</Typography>
-
+          <Typography variant={TYPOGRAPHY.H7}>Support</Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Please include a support email where users can reach out to you for
-            help.
+            Please include a support link where users can reach out to you for
+            help. Emails should preceded by mailto:
           </Typography>
         </div>
+        {/* Pending designs change this to a switcher */}
         <Input
-          label="Support Email"
+          label="Support Link"
           disabled={!isEditable || !isEnoughPermissions || !appMode}
-          placeholder="address@example.com"
-          register={register("support_email")}
-          errors={errors.support_email}
+          placeholder="mailto::address@example.com"
+          register={register("support_link")}
+          errors={errors.support_link}
           required={appMode}
         />
       </div>

@@ -12170,7 +12170,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "args": [],
             "type": {
@@ -13234,7 +13234,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -13630,7 +13630,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -13972,7 +13972,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "args": [],
             "type": {
@@ -14296,7 +14296,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -14614,7 +14614,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "args": [],
             "type": {
@@ -14938,7 +14938,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -15423,7 +15423,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -15685,7 +15685,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -16054,7 +16054,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -16541,7 +16541,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -16823,7 +16823,7 @@
             "deprecationReason": null
           },
           {
-            "name": "support_email",
+            "name": "support_link",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

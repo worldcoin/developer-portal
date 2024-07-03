@@ -67,7 +67,7 @@ insert_permissions:
         - name
         - showcase_img_urls
         - source_code_url
-        - support_email
+        - support_link
         - supported_countries
         - supported_languages
         - verification_status
@@ -150,7 +150,7 @@ select_permissions:
         - name
         - showcase_img_urls
         - source_code_url
-        - support_email
+        - support_link
         - supported_countries
         - supported_languages
         - verification_status
@@ -179,7 +179,7 @@ select_permissions:
         - review_message
         - showcase_img_urls
         - source_code_url
-        - support_email
+        - support_link
         - supported_countries
         - supported_languages
         - updated_at
@@ -264,7 +264,7 @@ update_permissions:
         - name
         - showcase_img_urls
         - source_code_url
-        - support_email
+        - support_link
         - supported_countries
         - supported_languages
         - verification_status

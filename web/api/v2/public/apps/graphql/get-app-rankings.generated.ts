@@ -33,7 +33,7 @@ export type GetAppsQuery = {
     integration_url: string;
     app_website_url: string;
     source_code_url: string;
-    support_email: string;
+    support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     app_rating?: number | null;
@@ -58,7 +58,7 @@ export type GetAppsQuery = {
     integration_url: string;
     app_website_url: string;
     source_code_url: string;
-    support_email: string;
+    support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     app: {
@@ -100,7 +100,7 @@ export const GetAppsDocument = gql`
       integration_url
       app_website_url
       source_code_url
-      support_email
+      support_link
       supported_countries
       supported_languages
       app_rating
@@ -125,7 +125,7 @@ export const GetAppsDocument = gql`
       integration_url
       app_website_url
       source_code_url
-      support_email
+      support_link
       supported_countries
       supported_languages
       app {

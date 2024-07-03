@@ -25,7 +25,7 @@ export type CreateEditableRowMutationVariables = Types.Exact<{
   whitelisted_addresses?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
-  support_email?: Types.InputMaybe<Types.Scalars["String"]>;
+  support_link?: Types.InputMaybe<Types.Scalars["String"]>;
   supported_countries?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
@@ -57,7 +57,7 @@ export const CreateEditableRowDocument = gql`
     $world_app_button_text: String = ""
     $app_mode: String = ""
     $whitelisted_addresses: [String!] = null
-    $support_email: String = ""
+    $support_link: String = ""
     $supported_countries: [String!] = null
     $supported_languages: [String!] = null
   ) {
@@ -79,7 +79,7 @@ export const CreateEditableRowDocument = gql`
         world_app_button_text: $world_app_button_text
         app_mode: $app_mode
         whitelisted_addresses: $whitelisted_addresses
-        support_email: $support_email
+        support_link: $support_link
         supported_countries: $supported_countries
         supported_languages: $supported_languages
       }
@@ -101,7 +101,7 @@ export const CreateEditableRowDocument = gql`
           world_app_button_text
           app_mode
           whitelisted_addresses
-          support_email
+          support_link
           supported_countries
           supported_languages
         ]
@@ -146,7 +146,7 @@ export type CreateEditableRowMutationFn = Apollo.MutationFunction<
  *      world_app_button_text: // value for 'world_app_button_text'
  *      app_mode: // value for 'app_mode'
  *      whitelisted_addresses: // value for 'whitelisted_addresses'
- *      support_email: // value for 'support_email'
+ *      support_link: // value for 'support_link'
  *      supported_countries: // value for 'supported_countries'
  *      supported_languages: // value for 'supported_languages'
  *   },

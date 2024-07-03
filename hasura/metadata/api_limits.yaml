@@ -1,9 +1,13 @@
-depth_limit:
-  global: 5
-# Rate Limits are enforced by WAF
-node_limit:
-  global: 10
-time_limit:
-  global: 30
 batch_limit:
   global: 5
+  per_role: {}
+depth_limit:
+  global: 2
+  per_role: {}
+disabled: false
+node_limit:
+  global: 10
+  per_role: {}
+time_limit:
+  global: 30
+  per_role: {}
