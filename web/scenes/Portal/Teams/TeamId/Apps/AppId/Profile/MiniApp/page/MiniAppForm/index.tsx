@@ -40,7 +40,7 @@ const schema = yup.object().shape({
   support_link: yup.string().when("app_mode", {
     is: true,
     then: (schema) =>
-      schema.matches(urlRegex, "URL must start with https:// or mailto::"),
+      schema.matches(urlRegex, "URL must start with https:// or mailto:"),
   }),
 
   supported_countries: yup.array().when("app_mode", {
@@ -437,7 +437,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
         <Input
           label="Support Link"
           disabled={!isEditable || !isEnoughPermissions || !appMode}
-          placeholder="mailto::address@example.com"
+          placeholder="mailto:address@example.com"
           register={register("support_link")}
           errors={errors.support_link}
           required={appMode}
