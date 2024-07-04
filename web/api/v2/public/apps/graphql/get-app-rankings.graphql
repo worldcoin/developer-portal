@@ -30,7 +30,7 @@ query GetApps(
     integration_url
     app_website_url
     source_code_url
-    support_email
+    support_link
     supported_countries
     supported_languages
     app_rating
@@ -56,7 +56,7 @@ query GetApps(
     integration_url
     app_website_url
     source_code_url
-    support_email
+    support_link
     supported_countries
     supported_languages
     app {

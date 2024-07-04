@@ -15,7 +15,7 @@ mutation CreateEditableRow(
   $world_app_button_text: String = ""
   $app_mode: String = ""
   $whitelisted_addresses: [String!] = null
-  $support_email: String = ""
+  $support_link: String = ""
   $supported_countries: [String!] = null
   $supported_languages: [String!] = null
 ) {
@@ -37,7 +37,7 @@ mutation CreateEditableRow(
       world_app_button_text: $world_app_button_text
       app_mode: $app_mode
       whitelisted_addresses: $whitelisted_addresses
-      support_email: $support_email
+      support_link: $support_link
       supported_countries: $supported_countries
       supported_languages: $supported_languages
     }
@@ -59,7 +59,7 @@ mutation CreateEditableRow(
         world_app_button_text
         app_mode
         whitelisted_addresses
-        support_email
+        support_link
         supported_countries
         supported_languages
       ]
