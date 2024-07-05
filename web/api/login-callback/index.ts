@@ -170,7 +170,10 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         error,
       });
 
-      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        307,
+      );
     }
 
     if (
@@ -179,12 +182,18 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       new Date(invite.expires_at) <= new Date()
     ) {
       logger.error("Invite not found or team_id is missing.");
-      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        307,
+      );
     }
 
     if (invite.email !== auth0User.email) {
       logger.error("Invite email does not match logged in email");
-      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        307,
+      );
     }
 
     let membership: InsertMembershipMutation["insert_membership_one"] | null =
@@ -208,12 +217,18 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         },
       );
 
-      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        307,
+      );
     }
 
     if (!membership) {
       logger.error("Membership not found after inserting.");
-      return NextResponse.redirect(new URL(urls.logout()).toString(), 307);
+      return NextResponse.redirect(
+        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        307,
+      );
     }
 
     try {
