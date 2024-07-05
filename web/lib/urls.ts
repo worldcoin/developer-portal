@@ -48,6 +48,12 @@ export const urls = {
   profileTeams: (): "/profile/teams" => "/profile/teams",
 
   tos: (): "/tos" => "/tos",
+
+  unauthorized: (params?: { message: string }): string => {
+    const searchParams = new URLSearchParams(params);
+    return `/unauthorized?${searchParams.toString()}`;
+  },
+
   privacyStatement: (): "/privacy-statement" => "/privacy-statement",
 
   api: {
