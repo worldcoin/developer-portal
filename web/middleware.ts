@@ -4,7 +4,6 @@ import {
 } from "@auth0/nextjs-auth0/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
-import { logger } from "./lib/logger";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
@@ -137,7 +136,7 @@ export default withMiddlewareAuthRequired({
       response.headers.set("Permissions-Policy", "clipboard-write=(self)");
       return response;
     } catch (error) {
-      logger.warn("Error in middleware", { error });
+      console.warn("Error in middleware", { error });
       return NextResponse.error();
     }
   },
