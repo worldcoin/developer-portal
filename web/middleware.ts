@@ -120,20 +120,25 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
 
 export default withMiddlewareAuthRequired({
   middleware: async function middleware(request: NextRequest) {
-    const redirect = await checkRouteRolesRestrictions(request);
+    try {
+      const redirect = await checkRouteRolesRestrictions(request);
 
-    if (redirect) {
-      return redirect;
+      if (redirect) {
+        return redirect;
+      }
+
+      const { csp, nonce } = generateCsp();
+      const headers = new Headers(request.headers);
+      headers.set("x-nonce", nonce);
+      headers.set("content-security-policy", csp);
+      const response = NextResponse.next({ request: { headers } });
+      response.headers.set("content-security-policy", csp);
+      response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+      return response;
+    } catch (error) {
+      console.warn("Error in middleware", { error });
+      return NextResponse.error();
     }
-
-    const { csp, nonce } = generateCsp();
-    const headers = new Headers(request.headers);
-    headers.set("x-nonce", nonce);
-    headers.set("content-security-policy", csp);
-    const response = NextResponse.next({ request: { headers } });
-    response.headers.set("content-security-policy", csp);
-    response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-    return response;
   },
 
   returnTo: (req) =>
