@@ -51,8 +51,8 @@ importers:
         specifier: ^8.1.0
         version: 8.1.0
       '@worldcoin/idkit-core':
-        specifier: ^1.1.3
-        version: 1.1.4(@types/react@18.2.55)(react@18.2.0)(typescript@5.3.3)
+        specifier: ^1.2.0
+        version: 1.2.0(@types/react@18.2.55)(react@18.2.0)(typescript@5.3.3)
       auth0:
         specifier: ^4.2.0
         version: 4.3.1
@@ -2690,8 +2690,8 @@ packages:
   '@whatwg-node/node-fetch@0.3.6':
     resolution: {integrity: sha512-w9wKgDO4C95qnXZRwZTfCmLWqyRnooGjcIwG0wADWjw9/HN0p7dtvtgSvItZtUyNteEvgTrd8QojNEqV6DAGTA==}
 
-  '@worldcoin/idkit-core@1.1.4':
-    resolution: {integrity: sha512-3FFbqTDIltJfanKpCtOlHOWqZRWapOXoCf9i4oZ3w4Y9u45yLdGwquf02Xcte2KATZ0hEGX0N+L4F74ClDrgZA==}
+  '@worldcoin/idkit-core@1.2.0':
+    resolution: {integrity: sha512-jX7gNTGvedvM90+DOaNG/6tKgSFIx4brLbXPmmYQIM19BghO1CWbYBmgDUjozMInq5AwsXJ38Ealy+D+UdBThg==}
     engines: {node: '>=12.4'}
 
   '@wry/caches@1.0.1':
@@ -2989,6 +2989,9 @@ packages:
 
   brorand@1.1.0:
     resolution: {integrity: sha512-cKV8tMCEpQs4hK/ik71d6LrPOnpkpGBR0wzxqr68g2m/LB2GxVYQroAjMJZRVM1Y4BCjCKc3vAamxSzOY2RP+w==}
+
+  browser-or-node@3.0.0-pre.0:
+    resolution: {integrity: sha512-J6/RvtjajlHVJMBZ/Xk+5O9E8CKUHOZDz5e/eG8UBjWBSB/d/tgqFOua/xxqP+eGfgZlaJHELHnC3mdsVTTMIQ==}
 
   browserslist@4.22.3:
     resolution: {integrity: sha512-UAp55yfwNv0klWNapjs/ktHoguxuQNGnOzxYmfnXIS+8AsRDZkSDxg7R1AX3GKzn078SBI5dzwzj/Yx0Or0e3A==}
@@ -10146,8 +10149,9 @@ snapshots:
       fast-url-parser: 1.1.3
       tslib: 2.6.2
 
-  '@worldcoin/idkit-core@1.1.4(@types/react@18.2.55)(react@18.2.0)(typescript@5.3.3)':
+  '@worldcoin/idkit-core@1.2.0(@types/react@18.2.55)(react@18.2.0)(typescript@5.3.3)':
     dependencies:
+      browser-or-node: 3.0.0-pre.0
       buffer: 6.0.3
       viem: 1.21.4(typescript@5.3.3)
       zustand: 4.5.0(@types/react@18.2.55)(react@18.2.0)
@@ -10528,6 +10532,8 @@ snapshots:
       fill-range: 7.0.1
 
   brorand@1.1.0: {}
+
+  browser-or-node@3.0.0-pre.0: {}
 
   browserslist@4.22.3:
     dependencies:
