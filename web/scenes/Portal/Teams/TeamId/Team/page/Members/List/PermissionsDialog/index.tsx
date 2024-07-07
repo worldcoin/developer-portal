@@ -3,15 +3,15 @@ import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
+import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
+import { CollapseIcon } from "@/components/Icons/CollapseIcon";
+import { ExpandIcon } from "@/components/Icons/ExpandIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { Disclosure } from "@headlessui/react";
 import clsx from "clsx";
 import { atom, useAtom } from "jotai";
-import { CheckIcon } from "@/components/Icons/CheckIcon";
-import { ExpandIcon } from "@/components/Icons/ExpandIcon";
-import { CollapseIcon } from "@/components/Icons/CollapseIcon";
-import { Disclosure } from "@headlessui/react";
 
 export const permissionsDialogAtom = atom(false);
 
@@ -21,10 +21,15 @@ type PermissionsConfig = Record<
 >;
 
 const config: PermissionsConfig = {
-  "Create & Edit incognito actions": {
+  "Create Incognito Actions": {
     Owner: true,
     Admin: true,
     Member: true,
+  },
+  "Edit Incognito Actions": {
+    Owner: true,
+    Admin: true,
+    Member: false,
   },
   "Delete incognito actions": {
     Owner: true,

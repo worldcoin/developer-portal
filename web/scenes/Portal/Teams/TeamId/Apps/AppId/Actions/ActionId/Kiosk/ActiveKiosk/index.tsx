@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
+import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { WorldcoinTextLogo } from "@/components/Icons/WorldcoinTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
@@ -16,6 +17,7 @@ import {
 import clsx from "clsx";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
+import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connected } from "../../Components/Kiosk/Connected";
@@ -24,7 +26,6 @@ import { KioskError } from "../../Components/Kiosk/KioskError";
 import { Success } from "../../Components/Kiosk/Success";
 import { Waiting } from "../../Components/Kiosk/Waiting";
 import { GetKioskActionQuery } from "../graphql/client/get-kiosk-action.generated";
-import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 dayjs.extend(dayjsRelative);
 
 type ProofResponse = {
@@ -60,6 +61,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const { reset } = useWorldBridgeStore();
   const appId = props.params?.appId as `app_${string}`;
   const data = props.data;
+  const router = useRouter();
 
   const action = data?.action[0];
   const logo = data?.app_metadata[0]?.logo_img_url;
@@ -172,7 +174,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
           <div className="left-0 flex w-1/3 items-center pl-4">
             <Button
               className="flex size-9 items-center justify-center rounded-full bg-[#ebecef]"
-              onClick={() => props.toggleKiosk(false)}
+              onClick={() => router.back()}
               type="button"
             >
               <ArrowRightIcon className="size-6 rotate-180" />
