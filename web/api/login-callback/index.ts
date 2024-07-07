@@ -191,7 +191,13 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     if (invite.email !== auth0User.email) {
       logger.error("Invite email does not match logged in email");
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(
+          urls.unauthorized({
+            message:
+              "Invite email does not match logged in email. Please log out and try again.",
+          }),
+          process.env.NEXT_PUBLIC_APP_URL,
+        ).toString(),
         307,
       );
     }
