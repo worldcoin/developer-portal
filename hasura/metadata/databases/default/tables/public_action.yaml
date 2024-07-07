@@ -184,29 +184,17 @@ update_permissions:
         - status
         - terms_uri
       filter:
-        _or:
-          - _and:
-              - action:
-                  _neq: ""
-              - app:
-                  team:
-                    memberships:
-                      user_id:
-                        _eq: X-Hasura-User-Id
-          - _and:
-              - action:
-                  _eq: ""
-              - app:
-                  team:
-                    memberships:
-                      _and:
-                        - user_id:
-                            _eq: X-Hasura-User-Id
-                        - _or:
-                            - role:
-                                _eq: OWNER
-                            - role:
-                                _eq: ADMIN
+        app:
+          team:
+            memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - _or:
+                    - role:
+                        _eq: OWNER
+                    - role:
+                        _eq: ADMIN
       check: null
 delete_permissions:
   - role: api_key

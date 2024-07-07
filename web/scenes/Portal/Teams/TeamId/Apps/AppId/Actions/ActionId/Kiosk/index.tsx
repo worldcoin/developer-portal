@@ -1,25 +1,23 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
 import { ActionsHeader } from "../Components/ActionsHeader";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
-import { ActiveKioskPage } from "./ActiveKiosk";
 import {
   GetKioskActionDocument,
   useGetKioskActionQuery,
 } from "./graphql/client/get-kiosk-action.generated";
 import { useToggleKioskMutation } from "./graphql/client/toggle-kiosk.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdKioskPageProps = {
   params: Record<string, string> | null | undefined;
 };
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const { params } = props;
-  const [showKiosk, setShowKiosk] = useState(false);
   const [kioskVerificationLevel, setKioskVerificationLevel] =
     useState<VerificationLevel>(VerificationLevel.Device);
 
@@ -59,24 +57,9 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         <hr className="mt-5 w-full border-dashed text-grey-200" />
       </SizingWrapper>
 
-      <SizingWrapper gridClassName="order-2 pt-6 md:pt-10">
-        {showKiosk && data && (
-          <ActiveKioskPage
-            params={params}
-            data={data}
-            toggleKiosk={setShowKiosk}
-            verificationLevel={kioskVerificationLevel}
-          />
-        )}
-      </SizingWrapper>
-
       <SizingWrapper gridClassName="order-2 pt-6 pb-6 md:pt-10 md:pb-10">
         <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
-          <div
-            className={clsx("grid max-w-[480px] gap-y-10", {
-              hidden: showKiosk,
-            })}
-          >
+          <div className={clsx("grid max-w-[480px] gap-y-10")}>
             <div className="grid gap-y-5">
               <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
                 What is Kiosk?
@@ -122,9 +105,8 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
                 </DecoratedButton>
               ) : (
                 <DecoratedButton
-                  type="button"
                   variant="primary"
-                  onClick={() => setShowKiosk(true)}
+                  href={`/kiosk/${appId}/${actionId}?verification-level=${kioskVerificationLevel}`}
                 >
                   Open Kiosk
                 </DecoratedButton>
@@ -141,8 +123,6 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
               )}
             </div>
           </div>
-
-          <div></div>
         </div>
       </SizingWrapper>
     </>
