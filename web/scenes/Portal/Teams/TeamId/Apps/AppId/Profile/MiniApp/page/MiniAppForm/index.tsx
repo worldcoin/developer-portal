@@ -179,7 +179,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
             app_metadata_id: appMetadata?.id ?? "",
             whitelisted_addresses: whitelistedAddresses,
             app_mode: values.app_mode ? "mini-app" : "external",
-            support_link: values.support_link || null,
+            support_link: values.support_link || "",
             supported_countries,
             supported_languages,
           },
@@ -333,9 +333,9 @@ export const MiniAppForm = (props: LinksFormProps) => {
               }
               items={countries}
               label=""
-              disabled={!isEditable || !isEnoughPermissions || !appMode}
+              disabled={!isEditable || !isEnoughPermissions}
               errors={errors.supported_countries}
-              required={appMode}
+              required
               selectAll={() => field.onChange(countries.map((c) => c.value))}
               clearAll={() => field.onChange([])}
               showSelectedList
@@ -393,9 +393,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
               }
               items={languages}
               label=""
-              disabled={!isEditable || !isEnoughPermissions || !appMode}
+              disabled={!isEditable || !isEnoughPermissions}
               errors={errors.supported_languages}
-              required={appMode}
               selectAll={() => field.onChange(languages.map((c) => c.value))}
               clearAll={() => field.onChange([])}
               showSelectedList
