@@ -216,9 +216,9 @@ export const formatAppMetadata = (
       appMetadata.hero_image_url,
     ),
     description: {
-      overview: description.description_overview,
-      how_it_works: description.description_how_it_works,
-      how_to_connect: description.description_connect,
+      overview: description?.description_overview ?? "",
+      how_it_works: description?.description_how_it_works ?? "",
+      how_to_connect: description?.description_connect ?? "",
     },
     ratings_external_nullifier: generateExternalNullifier(
       `${appMetadata.app_id}_app_review`,

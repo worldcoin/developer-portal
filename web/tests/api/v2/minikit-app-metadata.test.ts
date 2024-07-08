@@ -111,12 +111,12 @@ const app_metadata = {
     how_it_works: "Random values",
     how_to_connect: "test",
   },
-  category: [
-    {
-      lokalise_key: "world_id_partner_category_social",
-      name: "Social",
-    },
-  ],
+  category: {
+    id: "social",
+    name: "Social",
+  },
+  ratings_external_nullifier:
+    "0x00d71e72b03eabb446f12650edb5cda22a932cada51bb0a16e0d5ce0ebc09965",
   integration_url: "https://github.com",
   app_website_url: "",
   source_code_url: "",
@@ -203,12 +203,12 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
         how_it_works: "",
         how_to_connect: "",
       },
-      category: [
-        {
-          lokalise_key: "world_id_partner_category_social",
-          name: "Social",
-        },
-      ],
+      category: {
+        id: "social",
+        name: "Social",
+      },
+      ratings_external_nullifier:
+        "0x00d71e72b03eabb446f12650edb5cda22a932cada51bb0a16e0d5ce0ebc09965",
       integration_url: "https://github.com",
       app_website_url: "",
       source_code_url: "",
