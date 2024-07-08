@@ -28,7 +28,7 @@
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
-    "jose": "^5.2.3",
+    "jose": "^5.6.3",
     "jotai": "^2.6.4",
     "jsdom": "^24.0.0",
     "json5": "^2.2.3",
