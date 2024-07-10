@@ -65,6 +65,7 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     grants: "app_staging_44e711bce52215150d0a7f31af4f4f33",
     invites: "app_staging_fb0465348ceb59cba6202685cbdc4120",
     network: "app_staging_44210a8be72aa299410be44232b1ea57",
+    grants_native: "app_staging_39ccc5b13235e4227a7c38b23203e59f",
   },
   production: {
     grants: "app_d2905e660b94ad24d6fc97816182ab35",
@@ -92,6 +93,10 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     [NativeAppToAppIdMapping.staging.network]: {
       app_id: "network",
       integration_url: "worldapp://network",
+    },
+    [NativeAppToAppIdMapping.staging.grants_native]: {
+      app_id: "worldcoin",
+      integration_url: "worldapp://worldcoin",
     },
   },
   production: {
