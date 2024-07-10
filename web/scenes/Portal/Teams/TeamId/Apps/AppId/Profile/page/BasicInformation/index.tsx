@@ -42,6 +42,10 @@ const schema = yup.object({
     .max(35, "Annotation cannot exceed 35 characters")
     .test("no-links", "Links not allowed here", noLinks)
     .required(),
+  world_app_button_text: yup
+    .string()
+    .max(25, "Content cannot exceed 25 characters")
+    .optional(),
   integration_url: yup
     .string()
     .url("Must be a valid https:// URL")
@@ -85,7 +89,7 @@ export const BasicInformation = (props: {
 }) => {
   const { appId, teamId, app, teamName } = props;
   const [viewMode] = useAtom(viewModeAtom);
-  const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation({});
+  const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -127,6 +131,8 @@ export const BasicInformation = (props: {
       world_app_description: appMetaData?.world_app_description,
       integration_url: appMetaData?.integration_url,
       app_website_url: appMetaData?.app_website_url,
+      world_app_button_text: appMetaData?.world_app_button_text,
+
       ...description,
     },
   });
@@ -140,19 +146,10 @@ export const BasicInformation = (props: {
       world_app_description: appMetaData?.world_app_description,
       integration_url: appMetaData?.integration_url,
       app_website_url: appMetaData?.app_website_url,
+      world_app_button_text: appMetaData?.world_app_button_text,
       ...description,
     });
-  }, [
-    viewMode,
-    appMetaData?.name,
-    appMetaData?.category,
-    reset,
-    appMetaData?.world_app_description,
-    appMetaData?.integration_url,
-    appMetaData?.app_website_url,
-    appMetaData?.short_name,
-    description,
-  ]);
+  }, [viewMode, reset, appMetaData, description]);
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
@@ -270,6 +267,22 @@ export const BasicInformation = (props: {
               <RemainingCharacters
                 text={watch("world_app_description")}
                 maxChars={35}
+              />
+            }
+          />
+
+          <Input
+            register={register("world_app_button_text")}
+            errors={errors.name}
+            label="World App Button"
+            disabled={!isEditable || !isEnoughPermissions}
+            required
+            placeholder="Enter your custom button text"
+            maxLength={25}
+            addOnRight={
+              <RemainingCharacters
+                text={watch("world_app_button_text")}
+                maxChars={25}
               />
             }
           />
