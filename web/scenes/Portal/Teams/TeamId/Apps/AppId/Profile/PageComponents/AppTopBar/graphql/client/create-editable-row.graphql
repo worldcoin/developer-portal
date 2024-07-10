@@ -1,6 +1,7 @@
 mutation CreateEditableRow(
   $app_id: String!
   $name: String
+  $short_name: String = ""
   $logo_img_url: String = ""
   $showcase_img_urls: [String!] = null
   $hero_image_url: String = ""
@@ -23,6 +24,7 @@ mutation CreateEditableRow(
     object: {
       app_id: $app_id
       name: $name
+      short_name: $short_name
       logo_img_url: $logo_img_url
       showcase_img_urls: $showcase_img_urls
       hero_image_url: $hero_image_url
@@ -45,6 +47,7 @@ mutation CreateEditableRow(
       constraint: app_metadata_app_id_is_row_verified_key
       update_columns: [
         name
+        short_name
         logo_img_url
         showcase_img_urls
         hero_image_url

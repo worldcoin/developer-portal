@@ -72,6 +72,11 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Int"]>>;
 };
 
+export type InvalidateCacheOutput = {
+  __typename?: "InvalidateCacheOutput";
+  success?: Maybe<Scalars["Boolean"]>;
+};
+
 export type InviteTeamMembersOutput = {
   __typename?: "InviteTeamMembersOutput";
   emails?: Maybe<Array<Scalars["String"]>>;
@@ -1567,6 +1572,7 @@ export type App_Metadata = {
   name: Scalars["String"];
   review_message: Scalars["String"];
   reviewed_by: Scalars["String"];
+  short_name: Scalars["String"];
   showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url: Scalars["String"];
   support_link: Scalars["String"];
@@ -1681,6 +1687,7 @@ export type App_Metadata_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
+  short_name?: InputMaybe<String_Comparison_Exp>;
   showcase_img_urls?: InputMaybe<String_Array_Comparison_Exp>;
   source_code_url?: InputMaybe<String_Comparison_Exp>;
   support_link?: InputMaybe<String_Comparison_Exp>;
@@ -1724,6 +1731,7 @@ export type App_Metadata_Insert_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
+  short_name?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_link?: InputMaybe<Scalars["String"]>;
@@ -1755,6 +1763,7 @@ export type App_Metadata_Max_Fields = {
   name?: Maybe<Scalars["String"]>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
+  short_name?: Maybe<Scalars["String"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url?: Maybe<Scalars["String"]>;
   support_link?: Maybe<Scalars["String"]>;
@@ -1783,6 +1792,7 @@ export type App_Metadata_Max_Order_By = {
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
+  short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_link?: InputMaybe<Order_By>;
@@ -1814,6 +1824,7 @@ export type App_Metadata_Min_Fields = {
   name?: Maybe<Scalars["String"]>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
+  short_name?: Maybe<Scalars["String"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]>>;
   source_code_url?: Maybe<Scalars["String"]>;
   support_link?: Maybe<Scalars["String"]>;
@@ -1842,6 +1853,7 @@ export type App_Metadata_Min_Order_By = {
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
+  short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_link?: InputMaybe<Order_By>;
@@ -1892,6 +1904,7 @@ export type App_Metadata_Order_By = {
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
+  short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_link?: InputMaybe<Order_By>;
@@ -1946,6 +1959,8 @@ export enum App_Metadata_Select_Column {
   ReviewMessage = "review_message",
   /** column name */
   ReviewedBy = "reviewed_by",
+  /** column name */
+  ShortName = "short_name",
   /** column name */
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
@@ -2013,6 +2028,7 @@ export type App_Metadata_Set_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
+  short_name?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_link?: InputMaybe<Scalars["String"]>;
@@ -2074,6 +2090,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
+  short_name?: InputMaybe<Scalars["String"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]>>;
   source_code_url?: InputMaybe<Scalars["String"]>;
   support_link?: InputMaybe<Scalars["String"]>;
@@ -2130,6 +2147,8 @@ export enum App_Metadata_Update_Column {
   ReviewMessage = "review_message",
   /** column name */
   ReviewedBy = "reviewed_by",
+  /** column name */
+  ShortName = "short_name",
   /** column name */
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
@@ -4306,6 +4325,7 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
   /** Reset the given API key for the developer portal */

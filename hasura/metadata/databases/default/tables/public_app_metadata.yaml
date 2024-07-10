@@ -24,19 +24,20 @@ insert_permissions:
                 id:
                   _eq: X-Hasura-Team-Id
       columns:
-        - name
-        - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
-        - description
+        - app_id
+        - app_website_url
         - category
+        - description
+        - hero_image_url
         - integration_url
         - is_developer_allow_listing
-        - world_app_description
-        - app_website_url
+        - logo_img_url
+        - name
+        - short_name
+        - showcase_img_urls
         - source_code_url
-        - app_id
         - verification_status
+        - world_app_description
   - role: user
     permission:
       check:
@@ -65,6 +66,7 @@ insert_permissions:
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - short_name
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -78,25 +80,26 @@ select_permissions:
   - role: api_key
     permission:
       columns:
-        - id
         - app_id
-        - name
-        - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
-        - description
-        - world_app_description
-        - category
-        - is_developer_allow_listing
-        - integration_url
         - app_website_url
-        - source_code_url
-        - verified_at
+        - category
+        - description
+        - hero_image_url
+        - id
+        - integration_url
+        - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
+        - logo_img_url
+        - name
         - review_message
-        - verification_status
+        - short_name
+        - showcase_img_urls
+        - source_code_url
         - updated_at
+        - verification_status
+        - verified_at
+        - world_app_description
       filter:
         app:
           team:
@@ -105,30 +108,31 @@ select_permissions:
   - role: reviewer
     permission:
       columns:
-        - id
         - app_id
-        - name
-        - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
-        - description
-        - world_app_description
-        - category
-        - is_developer_allow_listing
-        - integration_url
+        - app_mode
         - app_website_url
-        - source_code_url
-        - verified_at
-        - reviewed_by
+        - category
+        - created_at
+        - description
+        - hero_image_url
+        - id
+        - integration_url
+        - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
+        - logo_img_url
+        - name
         - review_message
-        - verification_status
-        - created_at
+        - reviewed_by
+        - short_name
+        - showcase_img_urls
+        - source_code_url
         - updated_at
-        - world_app_button_text
+        - verification_status
+        - verified_at
         - whitelisted_addresses
-        - app_mode
+        - world_app_button_text
+        - world_app_description
       filter:
         verification_status:
           _neq: unverified
@@ -148,6 +152,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - name
+        - short_name
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -177,6 +182,7 @@ select_permissions:
         - logo_img_url
         - name
         - review_message
+        - short_name
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -200,18 +206,19 @@ update_permissions:
   - role: api_key
     permission:
       columns:
-        - name
-        - logo_img_url
-        - showcase_img_urls
-        - hero_image_url
-        - description
-        - world_app_description
-        - category
-        - is_developer_allow_listing
-        - integration_url
         - app_website_url
+        - category
+        - description
+        - hero_image_url
+        - integration_url
+        - is_developer_allow_listing
+        - logo_img_url
+        - name
+        - short_name
+        - showcase_img_urls
         - source_code_url
         - verification_status
+        - world_app_description
       filter:
         _and:
           - verification_status:
@@ -262,6 +269,7 @@ update_permissions:
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - short_name
         - showcase_img_urls
         - source_code_url
         - support_link

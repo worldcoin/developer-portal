@@ -41,6 +41,10 @@ const submitSchema = yup.object().shape({
     .string()
     .required("App name is required")
     .max(50, "App name cannot exceed 50 characters"),
+  short_name: yup
+    .string()
+    .required("Short name is required")
+    .max(10, "Short name cannot exceed 10 characters"),
   description_overview: yup
     .string()
     .max(1500, "Overview cannot exceed 1500 characters")
@@ -48,14 +52,14 @@ const submitSchema = yup.object().shape({
   description_how_it_works: yup
     .string()
     .max(1500, "How it works cannot exceed 1500 characters")
-    .required("Description - How it works is required"),
+    .optional(),
   description_connect: yup
     .string()
     .max(1500, "How to connect cannot exceed 1500 characters")
-    .required("Description - How to connect is required"),
+    .optional(),
   world_app_description: yup
     .string()
-    .max(50, "World app description cannot exceed 50 characters")
+    .max(35, "World app description cannot exceed 35 characters")
     .required("World app description is required"),
   logo_img_url: yup.string().required("A logo image is required"),
   hero_image_url: yup.string().optional(),
@@ -73,14 +77,6 @@ const submitSchema = yup.object().shape({
     .url("Official Website URL is not a valid url")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
       message: "Official Website URL is not a valid url",
-      excludeEmptyString: true,
-    })
-    .optional(),
-  source_code_url: yup
-    .string()
-    .url("Github URL is not a valid url")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Github URL is not a valid url",
       excludeEmptyString: true,
     })
     .optional(),

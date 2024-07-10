@@ -1,11 +1,16 @@
-mutation UpdateMiniAppInfo(
+mutation UpdateSetup(
   $app_metadata_id: String!
+  $app_id: String!
   $app_mode: String!
   $whitelisted_addresses: [String!]
   $support_link: String
   $supported_countries: [String!]
   $supported_languages: [String!]
+  $status: String!
 ) {
+  update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
+    id
+  }
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
     _set: {
