@@ -149,6 +149,8 @@ jobs:
   e2e-tests:
     name: End-to-end Tests
     runs-on: ubuntu-20.04
+    environment: development
+
     defaults:
       run:
         working-directory: web
@@ -178,7 +180,6 @@ jobs:
 
       - name: Run end-to-end tests
         run: pnpm test:e2e
-        environment: development
         env:
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
           NEXT_PUBLIC_GRAPHQL_API_URL: ${{ vars.NEXT_PUBLIC_GRAPHQL_API_URL }}
