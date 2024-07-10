@@ -164,7 +164,7 @@ export const SetupForm = (props: LinksFormProps) => {
           );
         }
 
-        const { status, ...formData } = values;
+        const { status } = values;
 
         const supported_countries =
           values.supported_countries && values.supported_countries.length > 0

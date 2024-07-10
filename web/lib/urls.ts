@@ -38,6 +38,9 @@ export const urls = {
   createAction: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions?createAction=true`,
 
+  setup: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/profile/setup`,
+
   teams: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}`,
 
