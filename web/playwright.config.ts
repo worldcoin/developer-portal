@@ -1,5 +1,9 @@
 import { type PlaywrightTestConfig } from "@playwright/test";
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, ".env.test") });
 
 const config: PlaywrightTestConfig = {
   timeout: 60000,
@@ -24,6 +28,12 @@ const config: PlaywrightTestConfig = {
     },
   ],
   reporter: [["list"], ["html", { open: "never" }]],
+  webServer: {
+    command: "pnpm dev",
+    port: 3000,
+    timeout: 60 * 1000,
+    reuseExistingServer: true,
+  },
 };
 
 export default config;
