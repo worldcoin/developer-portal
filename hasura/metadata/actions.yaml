@@ -60,6 +60,15 @@ actions:
       - role: api_key
       - role: user
     comment: Gets the uploaded image to display
+  - name: invalidate_cache
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/invalidate-cache'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: reviewer
   - name: invite_team_members
     definition:
       kind: synchronous
@@ -146,4 +155,5 @@ custom_types:
     - name: DeleteImageOutput
     - name: VerifyAppOutput
     - name: ImageGetAppReviewImagesOutput
+    - name: InvalidateCacheOutput
   scalars: []

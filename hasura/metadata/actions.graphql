@@ -27,6 +27,10 @@ type Query {
 }
 
 type Mutation {
+  invalidate_cache: InvalidateCacheOutput
+}
+
+type Mutation {
   invite_team_members(
     emails: [String!]
     team_id: String!
@@ -126,5 +130,9 @@ type ImageGetAppReviewImagesOutput {
   logo_img_url: String
   hero_image_url: String
   showcase_img_urls: [String!]
+}
+
+type InvalidateCacheOutput {
+  success: Boolean
 }
 
