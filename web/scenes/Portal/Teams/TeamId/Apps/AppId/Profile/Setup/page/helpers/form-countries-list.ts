@@ -219,6 +219,20 @@ const supportedLanguages = [
   },
 ];
 
+export const languageMap = {
+  en: { label: "English", country_code: "GB" },
+  ca: { label: "Catalan", country_code: "AD" },
+  zh_CN: { label: "Chinese Simplified", country_code: "CN" },
+  fr: { label: "French", country_code: "FR" },
+  de: { label: "German", country_code: "DE" },
+  hi: { label: "Hindi", country_code: "IN" },
+  ja: { label: "Japanese", country_code: "JP" },
+  ko: { label: "Korean", country_code: "KR" },
+  pl: { label: "Polish", country_code: "PL" },
+  pt: { label: "Portuguese", country_code: "PT" },
+  es: { label: "Spanish", country_code: "ES" },
+  es_419: { label: "Spanish (Latin America)", country_code: "AR" },
+};
 export const formCountriesList = () =>
   Object.entries(countries)
     .map(([key, value]) => ({

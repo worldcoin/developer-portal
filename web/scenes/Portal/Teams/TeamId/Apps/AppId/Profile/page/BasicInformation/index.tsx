@@ -1,21 +1,27 @@
 "use client";
 import { CategorySelector } from "@/components/Category";
 import { CopyButton } from "@/components/CopyButton";
+import { CountryBadge } from "@/components/CountryBadge";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
 import { Input } from "@/components/Input";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
+import { languageMap } from "../../Setup/page/helpers/form-countries-list";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -91,6 +97,7 @@ export const BasicInformation = (props: {
   const [viewMode] = useAtom(viewModeAtom);
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
   const { user } = useUser() as Auth0SessionUser;
+  const router = useRouter();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -211,6 +218,33 @@ export const BasicInformation = (props: {
                 Warning: You have unsaved changes
               </Typography>
             )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {appMetaData.supported_languages?.map((lang, index) => {
+              const language = languageMap[lang as keyof typeof languageMap];
+              return (
+                <CountryBadge key={index}>
+                  <Image
+                    width={20}
+                    height={20}
+                    className="size-5"
+                    src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${language.country_code}.svg`}
+                    alt={`lang flag`}
+                  />
+                  <Typography variant={TYPOGRAPHY.R5}>
+                    {language.label}
+                  </Typography>
+                </CountryBadge>
+              );
+            })}
+            <CountryBadge
+              onClick={() =>
+                router.push(urls.setup({ team_id: teamId, app_id: appId }))
+              }
+            >
+              <PlusCircleIcon className="size-5 text-gray-300" />
+              <Typography variant={TYPOGRAPHY.R5}>Add translation</Typography>
+            </CountryBadge>
           </div>
           <Controller
             name="category"
