@@ -54,8 +54,8 @@ export const POST = async (req: NextRequest) => {
     DistributionId: process.env.CLOUDFRONT_DISTRIBUTION_ID,
     InvalidationBatch: {
       Paths: {
-        Quantity: 1,
-        Items: ["/api/v2/public/apps"],
+        Quantity: 2,
+        Items: ["/api/v2/public/apps*", "/api/v2/public/apps"],
       },
       CallerReference: Date.now().toString(),
     },
