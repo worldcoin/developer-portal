@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import { TransactionMetadata } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
@@ -41,7 +42,7 @@ export const getTransactionData = async (
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   } catch (error) {
-    console.warn("Error fetching transaction data", error);
+    logger.warn("Error fetching transaction data", { error });
     return [];
   }
 };

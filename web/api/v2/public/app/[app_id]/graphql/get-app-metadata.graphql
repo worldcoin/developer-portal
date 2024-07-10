@@ -6,6 +6,7 @@ query GetAppMetadata($app_id: String!) {
     }
   ) {
     name
+    short_name
     app_id
     logo_img_url
     showcase_img_urls

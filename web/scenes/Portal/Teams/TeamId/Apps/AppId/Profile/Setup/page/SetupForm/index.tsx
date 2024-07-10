@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { OptimismIcon } from "@/components/Icons/OptimismIcon";
 import { Input } from "@/components/Input";
 import { SelectMultiple } from "@/components/SelectMultiple";
+import { SwitcherBox } from "@/components/SwitcherBox";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -28,15 +29,15 @@ import {
   formCountriesList,
   formLanguagesList,
 } from "../helpers/form-countries-list";
-import { useUpdateMiniAppInfoMutation } from "./graphql/client/update-mini-app.generated";
+import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
 
 const urlRegex = /^(https:\/\/|mailto:)/;
 
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
-  // If the whitelist is null then the it is considered disabled
   whitelisted_addresses: yup.string().nullable(),
   is_whitelist_disabled: yup.boolean(),
+  status: yup.boolean().optional(),
   support_link: yup.string().when("app_mode", {
     is: true,
     then: (schema) =>
@@ -77,17 +78,18 @@ type LinksFormProps = {
   appId: string;
   teamId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  status?: string;
 };
 
-export const MiniAppForm = (props: LinksFormProps) => {
+export const SetupForm = (props: LinksFormProps) => {
   const countries = useMemo(() => formCountriesList(), []);
   const languages = useMemo(() => formLanguagesList(), []);
-  const { appId, teamId, appMetadata } = props;
+  const { appId, teamId, appMetadata, status } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
 
-  const [updateMiniAppInfoMutation, { loading: updatingInfo }] =
-    useUpdateMiniAppInfoMutation();
+  const [updateSetupMutation, { loading: updatingInfo }] =
+    useUpdateSetupMutation();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -110,6 +112,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
     defaultValues: {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
+      status: status === "active",
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
       support_link: appMetadata?.support_link ?? undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
@@ -128,6 +131,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+      status: status === "active",
     });
   }, [
     reset,
@@ -136,6 +140,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
     appMetadata?.support_link,
     appMetadata?.supported_countries,
     appMetadata?.supported_languages,
+    status,
   ]);
 
   const submit = useCallback(
@@ -159,6 +164,8 @@ export const MiniAppForm = (props: LinksFormProps) => {
           );
         }
 
+        const { status, ...formData } = values;
+
         const supported_countries =
           values.supported_countries && values.supported_countries.length > 0
             ? convertArrayToHasuraArray(values.supported_countries)
@@ -174,14 +181,16 @@ export const MiniAppForm = (props: LinksFormProps) => {
           ? null
           : formatWhiteListedAddresses(values.whitelisted_addresses);
 
-        const result = await updateMiniAppInfoMutation({
+        const result = await updateSetupMutation({
           variables: {
             app_metadata_id: appMetadata?.id ?? "",
+            app_id: appId,
             whitelisted_addresses: whitelistedAddresses,
             app_mode: values.app_mode ? "mini-app" : "external",
             support_link: values.support_link || "",
             supported_countries,
             supported_languages,
+            status: status ? "active" : "inactive",
           },
 
           refetchQueries: [
@@ -205,7 +214,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
       }
     },
 
-    [appId, appMetadata?.id, setError, updateMiniAppInfoMutation, updatingInfo],
+    [appId, appMetadata?.id, setError, updateSetupMutation, updatingInfo],
   );
 
   const selectedCountries = useWatch({
@@ -226,7 +235,7 @@ export const MiniAppForm = (props: LinksFormProps) => {
   return (
     <form className="grid gap-y-9" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Mini App Configuration</Typography>
+        <Typography variant={TYPOGRAPHY.H7}>Configuration</Typography>
 
         {isDirty && (
           <Typography variant={TYPOGRAPHY.R4} className="text-system-error-500">
@@ -235,84 +244,41 @@ export const MiniAppForm = (props: LinksFormProps) => {
         )}
       </div>
 
-      <label
-        htmlFor="app_mode"
-        className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
-      >
-        <Checkbox
-          id="app_mode"
-          register={register("app_mode")}
-          disabled={!isEditable || !isEnoughPermissions}
+      <div>
+        <Controller
+          name="app_mode"
+          control={control}
+          render={({ field }) => {
+            return (
+              <SwitcherBox
+                status={field.value ?? false}
+                setStatus={field.onChange}
+                disabled={!isEditable || !isEnoughPermissions}
+                title="This is a Mini App"
+                className="rounded-t-xl border"
+                validToggle="Mini App"
+                invalidToggle="External"
+              />
+            );
+          }}
         />
-
-        <div className="grid gap-y-2">
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-            This is a Mini App
-          </Typography>
-
-          <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-            Check this if you have integrated mini-kit into your app and want it
-            to load as a mini-app. Your app will be rejected if this is not
-            true.
-          </Typography>
-        </div>
-      </label>
-
-      <div className="grid gap-y-4">
-        <div className="grid gap-y-5">
-          <div className="grid gap-y-3">
-            <div className="flex flex-row gap-x-2">
-              <OptimismIcon />
-              <Typography variant={TYPOGRAPHY.H7} className="text-center">
-                Whitelisted Payment Addresses
-              </Typography>
-            </div>
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              These addresses are authorised to receive payments for your mini
-              app. Payment requests to other addresses will be rejected. <br />
-            </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className={clsx("text-system-warning-500", {
-                hidden: !isWhitelistDisabled || !appMode,
-              })}
-            >
-              Warning: Disabling the whitelist removes protection from payments
-              to invalid addresses.
-            </Typography>
-          </div>
-          <Input
-            label="Whitelisted Payment Addresses"
-            disabled={
-              !isEditable ||
-              !isEnoughPermissions ||
-              isWhitelistDisabled ||
-              !appMode
-            }
-            placeholder="0x12312321..., 0x12312312..."
-            register={register("whitelisted_addresses")}
-          />
-        </div>
-
-        {errors?.whitelisted_addresses?.message && (
-          <p className="mt-2 text-xs text-system-error-500">
-            {errors?.whitelisted_addresses?.message}
-          </p>
-        )}
-        <label
-          htmlFor="is_whitelist_disabled"
-          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
-        >
-          <Checkbox
-            id="is_whitelist_disabled"
-            register={register("is_whitelist_disabled")}
-            disabled={!isEditable || !isEnoughPermissions || !appMode}
-          />
-
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-            Disable whitelist
-          </Typography>
-        </label>
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => {
+            return (
+              <SwitcherBox
+                status={field.value ?? false}
+                setStatus={field.onChange}
+                disabled={!isEditable || !isEnoughPermissions}
+                title="Enable World ID"
+                className="rounded-b-xl border border-t-0"
+                validToggle="Enabled"
+                invalidToggle="Disabled"
+              />
+            );
+          }}
+        />
       </div>
 
       <div className="grid gap-y-5">
@@ -443,6 +409,62 @@ export const MiniAppForm = (props: LinksFormProps) => {
         />
       </div>
 
+      <div className="grid gap-y-4">
+        <div className="grid gap-y-5">
+          <div className="grid gap-y-3">
+            <div className="flex flex-row gap-x-2">
+              <OptimismIcon />
+              <Typography variant={TYPOGRAPHY.H7} className="text-center">
+                Whitelisted Payment Addresses
+              </Typography>
+            </div>
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              These addresses are authorised to receive payments for your mini
+              app. Payment requests to other addresses will be rejected. <br />
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className={clsx("text-system-warning-500", {
+                hidden: !isWhitelistDisabled || !appMode,
+              })}
+            >
+              Warning: Disabling the whitelist removes protection from payments
+              to invalid addresses.
+            </Typography>
+          </div>
+          <Input
+            label="Whitelisted Payment Addresses"
+            disabled={
+              !isEditable ||
+              !isEnoughPermissions ||
+              isWhitelistDisabled ||
+              !appMode
+            }
+            placeholder="0x12312321..., 0x12312312..."
+            register={register("whitelisted_addresses")}
+          />
+        </div>
+
+        {errors?.whitelisted_addresses?.message && (
+          <p className="mt-2 text-xs text-system-error-500">
+            {errors?.whitelisted_addresses?.message}
+          </p>
+        )}
+        <label
+          htmlFor="is_whitelist_disabled"
+          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
+        >
+          <Checkbox
+            id="is_whitelist_disabled"
+            register={register("is_whitelist_disabled")}
+            disabled={!isEditable || !isEnoughPermissions || !appMode}
+          />
+
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+            Disable whitelist
+          </Typography>
+        </label>
+      </div>
       <DecoratedButton
         type="submit"
         className="h-12 w-40"

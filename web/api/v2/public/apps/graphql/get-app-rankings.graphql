@@ -17,6 +17,7 @@ query GetApps(
     offset: $offset
   ) {
     name
+    short_name
     app_id
     logo_img_url
     showcase_img_urls
@@ -43,6 +44,7 @@ query GetApps(
 
   highlights: app_metadata(where: { app_id: { _in: $highlightsIds } }) {
     name
+    short_name
     app_id
     logo_img_url
     showcase_img_urls

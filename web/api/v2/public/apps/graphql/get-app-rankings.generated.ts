@@ -20,6 +20,7 @@ export type GetAppsQuery = {
   top_apps: Array<{
     __typename?: "app_metadata";
     name: string;
+    short_name: string;
     app_id: string;
     logo_img_url: string;
     showcase_img_urls?: Array<string> | null;
@@ -45,6 +46,7 @@ export type GetAppsQuery = {
   highlights: Array<{
     __typename?: "app_metadata";
     name: string;
+    short_name: string;
     app_id: string;
     logo_img_url: string;
     showcase_img_urls?: Array<string> | null;
@@ -87,6 +89,7 @@ export const GetAppsDocument = gql`
       offset: $offset
     ) {
       name
+      short_name
       app_id
       logo_img_url
       showcase_img_urls
@@ -112,6 +115,7 @@ export const GetAppsDocument = gql`
     }
     highlights: app_metadata(where: { app_id: { _in: $highlightsIds } }) {
       name
+      short_name
       app_id
       logo_img_url
       showcase_img_urls

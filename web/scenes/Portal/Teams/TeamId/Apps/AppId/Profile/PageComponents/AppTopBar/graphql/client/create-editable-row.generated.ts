@@ -7,6 +7,7 @@ const defaultOptions = {} as const;
 export type CreateEditableRowMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
   name?: Types.InputMaybe<Types.Scalars["String"]>;
+  short_name?: Types.InputMaybe<Types.Scalars["String"]>;
   logo_img_url?: Types.InputMaybe<Types.Scalars["String"]>;
   showcase_img_urls?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
@@ -43,6 +44,7 @@ export const CreateEditableRowDocument = gql`
   mutation CreateEditableRow(
     $app_id: String!
     $name: String
+    $short_name: String = ""
     $logo_img_url: String = ""
     $showcase_img_urls: [String!] = null
     $hero_image_url: String = ""
@@ -65,6 +67,7 @@ export const CreateEditableRowDocument = gql`
       object: {
         app_id: $app_id
         name: $name
+        short_name: $short_name
         logo_img_url: $logo_img_url
         showcase_img_urls: $showcase_img_urls
         hero_image_url: $hero_image_url
@@ -87,6 +90,7 @@ export const CreateEditableRowDocument = gql`
         constraint: app_metadata_app_id_is_row_verified_key
         update_columns: [
           name
+          short_name
           logo_img_url
           showcase_img_urls
           hero_image_url
@@ -132,6 +136,7 @@ export type CreateEditableRowMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      app_id: // value for 'app_id'
  *      name: // value for 'name'
+ *      short_name: // value for 'short_name'
  *      logo_img_url: // value for 'logo_img_url'
  *      showcase_img_urls: // value for 'showcase_img_urls'
  *      hero_image_url: // value for 'hero_image_url'

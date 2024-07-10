@@ -27,6 +27,7 @@ query FetchAppMetadata($id: String!) {
       support_link
       supported_countries
       supported_languages
+      short_name
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -53,6 +54,7 @@ query FetchAppMetadata($id: String!) {
       support_link
       supported_countries
       supported_languages
+      short_name
     }
   }
 }

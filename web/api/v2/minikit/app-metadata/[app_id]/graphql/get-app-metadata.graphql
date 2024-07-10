@@ -1,6 +1,7 @@
 query GetAppMetadata($app_id: String!) {
   app_metadata(where: { app_id: { _eq: $app_id } }) {
     name
+    short_name
     app_id
     logo_img_url
     showcase_img_urls

@@ -45,6 +45,14 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
             </Tab>
 
             <Tab
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+              underlined
+              segment={"profile"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>App profile</Typography>
+            </Tab>
+
+            <Tab
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions`}
               underlined
               segment={"actions"}
@@ -64,13 +72,6 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
               </Tab>
             )}
 
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
-              underlined
-              segment={"profile"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>App profile</Typography>
-            </Tab>
             <Tab
               href={`/teams/${params!.teamId}/apps/${params!.appId}/transactions`}
               underlined

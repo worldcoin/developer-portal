@@ -1,5 +1,5 @@
 "use client";
-
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
@@ -8,16 +8,13 @@ import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
-import { UpdateStoreInfoForm } from "./UpdateStoreInfoForm";
-import { SizingWrapper } from "@/components/SizingWrapper";
+import { SetupForm } from "./SetupForm";
 
-type AppProfileStoreInfoProps = {
+type AppProfileSetupPageProps = {
   params: Record<string, string> | null | undefined;
 };
 
-export const AppProfileStoreInfoPage = ({
-  params,
-}: AppProfileStoreInfoProps) => {
+export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
@@ -29,7 +26,6 @@ export const AppProfileStoreInfoPage = ({
   });
 
   const app = data?.app[0];
-
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
       return app?.verified_app_metadata[0];
@@ -55,14 +51,15 @@ export const AppProfileStoreInfoPage = ({
         </SizingWrapper>
 
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">
-          <div className="grid max-w-[600px] grid-cols-1">
+          <div className="grid max-w-[580px] grid-cols-1">
             {loading ? (
-              <FormSkeleton count={4} />
+              <FormSkeleton count={3} />
             ) : (
-              <UpdateStoreInfoForm
-                appMetadata={appMetaData}
-                teamId={teamId}
+              <SetupForm
                 appId={appId}
+                teamId={teamId}
+                appMetadata={appMetaData}
+                status={app?.status}
               />
             )}
           </div>

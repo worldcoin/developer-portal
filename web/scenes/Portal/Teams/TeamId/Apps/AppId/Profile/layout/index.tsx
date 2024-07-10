@@ -38,15 +38,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
               segment={null}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
-            </Tab>
-
-            <Tab
-              className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/store-info`}
-              segment={"store-info"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Store info</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Information</Typography>
             </Tab>
 
             <Tab
@@ -59,17 +51,10 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/links`}
-              segment={"links"}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/setup`}
+              segment={"setup"}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Links</Typography>
-            </Tab>
-            <Tab
-              className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/mini-app`}
-              segment={"mini-app"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Setup</Typography>
             </Tab>
 
             {isEnoughPermissions && (

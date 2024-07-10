@@ -13,6 +13,7 @@ export type GetAppMetadataQuery = {
   app_metadata: Array<{
     __typename?: "app_metadata";
     name: string;
+    short_name: string;
     app_id: string;
     logo_img_url: string;
     showcase_img_urls?: Array<string> | null;
@@ -41,6 +42,7 @@ export const GetAppMetadataDocument = gql`
   query GetAppMetadata($app_id: String!) {
     app_metadata(where: { app_id: { _eq: $app_id } }) {
       name
+      short_name
       app_id
       logo_img_url
       showcase_img_urls
