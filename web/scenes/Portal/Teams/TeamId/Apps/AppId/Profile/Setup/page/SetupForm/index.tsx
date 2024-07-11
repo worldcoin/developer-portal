@@ -53,7 +53,10 @@ const schema = yup.object().shape({
     .array(yup.string().required("This field is required"))
     .min(1, "This field is required")
     .required("This field is required")
-    .default([]),
+    .default(["en"])
+    .test("has-english", "English is a required language", (langs) =>
+      langs.includes("en"),
+    ),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
