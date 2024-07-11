@@ -73,6 +73,7 @@ export const Input = memo(function Input(props: InputInterface) {
         className={twMerge(
           clsx(
             "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
+            { "py-2": !label },
             parentClassNames,
           ),
 

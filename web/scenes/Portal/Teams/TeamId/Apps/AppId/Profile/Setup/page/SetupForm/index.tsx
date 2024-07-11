@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { OptimismIcon } from "@/components/Icons/OptimismIcon";
 import { Input } from "@/components/Input";
+import { Radio } from "@/components/Radio";
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { SwitcherBox } from "@/components/SwitcherBox";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -17,7 +18,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import Image from "next/image";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -31,45 +32,39 @@ import {
 } from "../helpers/form-countries-list";
 import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
 
-const urlRegex = /^(https:\/\/|mailto:)/;
+const formatEmailLink = (email: string | undefined) => {
+  if (!email) return;
+  if (email.startsWith("mailto:")) {
+    return email;
+  }
+  return `mailto:${email}`;
+};
 
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
   whitelisted_addresses: yup.string().nullable(),
   is_whitelist_disabled: yup.boolean(),
   status: yup.boolean().optional(),
-  support_link: yup.string().when("app_mode", {
-    is: true,
-    then: (schema) =>
-      schema.matches(urlRegex, "URL must start with https:// or mailto:"),
-  }),
-
-  supported_countries: yup.array().when("app_mode", {
-    is: true,
-    then: (schema) =>
-      schema
-        .of(
-          yup
-            .string()
-            .required("This field is required")
-            .length(2, "Invalid country code"),
-        )
-        .min(1, "This field is required for Mini Apps")
+  support_link: yup.string().url("Invalid URL"),
+  support_email: yup.string().email("Invalid email address"),
+  supported_countries: yup
+    .array(
+      yup
+        .string()
         .required("This field is required")
-        .default([]),
-    otherwise: (schema) => schema.notRequired().default(null),
-  }),
-
-  supported_languages: yup.array().when("app_mode", {
-    is: true,
-    then: (schema) =>
-      schema
-        .of(yup.string().required("This field is required"))
-        .min(1, "This field is required for Mini Apps")
-        .required("This field is required")
-        .default([]),
-    otherwise: (schema) => schema.notRequired().default(null),
-  }),
+        .length(2, "Invalid country code"),
+    )
+    .min(1, "This field is required")
+    .required("This field is required")
+    .default([]),
+  supported_languages: yup
+    .array(yup.string().required("This field is required"))
+    .min(1, "This field is required")
+    .required("This field is required")
+    .default(["en"])
+    .test("has-english", "English is a required language", (langs) =>
+      langs.includes("en"),
+    ),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -87,6 +82,10 @@ export const SetupForm = (props: LinksFormProps) => {
   const { appId, teamId, appMetadata, status } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
+
+  const [isSupportEmail, setIsSupportEmail] = useState(
+    appMetadata?.support_link?.startsWith("mailto:") ?? false,
+  );
 
   const [updateSetupMutation, { loading: updatingInfo }] =
     useUpdateSetupMutation();
@@ -114,7 +113,12 @@ export const SetupForm = (props: LinksFormProps) => {
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       status: status === "active",
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
-      support_link: appMetadata?.support_link ?? undefined,
+      support_link: appMetadata?.support_link.includes("https://")
+        ? appMetadata?.support_link
+        : undefined,
+      support_email: appMetadata?.support_link.includes("@")
+        ? appMetadata?.support_link.replace("mailto:", "")
+        : undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
@@ -127,7 +131,12 @@ export const SetupForm = (props: LinksFormProps) => {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
-      support_link: appMetadata?.support_link ?? undefined,
+      support_link: appMetadata?.support_link.includes("https://")
+        ? appMetadata?.support_link
+        : undefined,
+      support_email: appMetadata?.support_link.includes("@")
+        ? appMetadata?.support_link.replace("mailto:", "")
+        : undefined,
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
@@ -181,13 +190,17 @@ export const SetupForm = (props: LinksFormProps) => {
           ? null
           : formatWhiteListedAddresses(values.whitelisted_addresses);
 
+        const supportLink = isSupportEmail
+          ? formatEmailLink(values.support_email)
+          : values.support_link;
+
         const result = await updateSetupMutation({
           variables: {
             app_metadata_id: appMetadata?.id ?? "",
             app_id: appId,
             whitelisted_addresses: whitelistedAddresses,
             app_mode: values.app_mode ? "mini-app" : "external",
-            support_link: values.support_link || "",
+            support_link: supportLink,
             supported_countries,
             supported_languages,
             status: status ? "active" : "inactive",
@@ -214,7 +227,14 @@ export const SetupForm = (props: LinksFormProps) => {
       }
     },
 
-    [appId, appMetadata?.id, setError, updateSetupMutation, updatingInfo],
+    [
+      appId,
+      appMetadata?.id,
+      isSupportEmail,
+      setError,
+      updateSetupMutation,
+      updatingInfo,
+    ],
   );
 
   const selectedCountries = useWatch({
@@ -283,7 +303,9 @@ export const SetupForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>Supported Countries</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>
+            Supported Countries <span className="text-system-error-500">*</span>
+          </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Select a list of countries where Mini App will be available
           </Typography>
@@ -318,6 +340,7 @@ export const SetupForm = (props: LinksFormProps) => {
                       alt={`${item.value} flag`}
                     />
                   }
+                  key={index}
                   item={item}
                   index={index}
                   checked={selectedCountries?.includes(item.value)}
@@ -342,7 +365,9 @@ export const SetupForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>Supported Languages</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>
+            Supported Languages <span className="text-system-error-500">*</span>
+          </Typography>
 
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Select a list of languages your Mini App supports
@@ -369,6 +394,7 @@ export const SetupForm = (props: LinksFormProps) => {
               {(item, index) => (
                 <SelectMultiple.Item
                   item={item}
+                  key={index}
                   index={index}
                   checked={field.value?.includes(item.value)}
                   onChange={(value) => {
@@ -392,24 +418,60 @@ export const SetupForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>Support</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>
+            Support <span className="text-system-error-500">*</span>
+          </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Please include a support link where users can reach out to you for
             help. Emails should preceded by mailto:
           </Typography>
         </div>
         {/* Pending designs change this to a switcher */}
-        <Input
-          label="Support Link"
-          disabled={!isEditable || !isEnoughPermissions || !appMode}
-          placeholder="mailto:address@example.com"
-          register={register("support_link")}
-          errors={errors.support_link}
-          required={appMode}
-        />
+        <div className="grid grid-cols-2 gap-x-4">
+          <div>
+            <div className="grid grid-cols-auto/1fr gap-x-2 pb-2">
+              <Radio
+                value={"email"}
+                checked={isSupportEmail}
+                onChange={() => {
+                  setIsSupportEmail(true);
+                }}
+              />
+              <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+                Email
+              </Typography>
+            </div>
+            <Input
+              disabled={!isEditable || !isEnoughPermissions || !isSupportEmail}
+              placeholder="address@example.com"
+              register={register("support_email")}
+              errors={errors.support_email}
+              required={appMode}
+            />
+          </div>
+          <div>
+            <div className="grid grid-cols-auto/1fr gap-x-2 pb-2">
+              <Radio
+                value={"link"}
+                checked={!isSupportEmail}
+                onChange={() => setIsSupportEmail(false)}
+              />
+              <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+                Link
+              </Typography>
+            </div>
+            <Input
+              disabled={!isEditable || !isEnoughPermissions || isSupportEmail}
+              placeholder="https://"
+              register={register("support_link")}
+              errors={errors.support_link}
+              required={appMode}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-y-4">
+      <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
         <div className="grid gap-y-5">
           <div className="grid gap-y-3">
             <div className="flex flex-row gap-x-2">
@@ -468,7 +530,7 @@ export const SetupForm = (props: LinksFormProps) => {
       <DecoratedButton
         type="submit"
         className="h-12 w-40"
-        disabled={!isEditable || !isEnoughPermissions || !isDirty || !isValid}
+        disabled={!isEditable || !isEnoughPermissions || !isValid}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>
