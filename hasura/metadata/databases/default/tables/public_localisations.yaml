@@ -1,0 +1,3 @@
+table:
+  name: localisations
+  schema: public
