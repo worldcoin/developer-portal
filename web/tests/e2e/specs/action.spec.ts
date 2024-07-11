@@ -1,5 +1,6 @@
 import { constants, expect, test } from "@e2e/helpers";
 import { createApp, deleteAppsForTeam } from "@e2e/helpers/hasura/app";
+import { qase } from "playwright-qase-reporter";
 
 test.describe("Action", () => {
   const appName = "World Test!";
@@ -14,6 +15,8 @@ test.describe("Action", () => {
   });
 
   test("Create an Action", async ({ page }) => {
+    qase.id(3);
+
     await page.goto(`/teams/${constants.teamId}/apps/${appId}/actions`);
     await page.click("[data-testid='button-create-action']");
 

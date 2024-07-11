@@ -1,5 +1,6 @@
 import { constants, expect, test } from "@e2e/helpers";
 import { deleteAppsForTeam } from "@e2e/helpers/hasura/app";
+import { qase } from "playwright-qase-reporter";
 
 test.describe("App", () => {
   test.afterAll(async () => {
@@ -7,6 +8,8 @@ test.describe("App", () => {
   });
 
   test("Create an App", async ({ page }) => {
+    qase.id(2);
+
     const appName = "World Test!";
 
     await page.goto("/");

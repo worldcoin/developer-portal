@@ -200,6 +200,8 @@ jobs:
           TEST_USER_AUTH0_ID: ${{ secrets.TEST_USER_AUTH0_ID }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          QASE_MODE: ${{ vars.QASE_MODE }}
+          QASE_TESTOPS_API_TOKEN: ${{ secrets.QASE_TESTOPS_API_TOKEN }}
 
   unit-tests:
     name: Unit Tests
