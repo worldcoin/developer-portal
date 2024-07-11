@@ -295,7 +295,7 @@ export const SelectMultiple = <T extends FieldValues>(
                         },
                       )}
                     >
-                      {item.label}
+                      {item?.label}
                     </Typography>
 
                     <button
