@@ -32,6 +32,14 @@ import {
 } from "../helpers/form-countries-list";
 import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
 
+const formatEmailLink = (email: string | undefined) => {
+  if (!email) return;
+  if (email.startsWith("mailto:")) {
+    return email;
+  }
+  return `mailto:${email}`;
+};
+
 const schema = yup.object().shape({
   app_mode: yup.boolean().required("This field is required"),
   whitelisted_addresses: yup.string().nullable(),
@@ -528,12 +536,4 @@ export const SetupForm = (props: LinksFormProps) => {
       </DecoratedButton>
     </form>
   );
-};
-
-const formatEmailLink = (email: string | undefined) => {
-  if (!email) return;
-  if (email.startsWith("mailto:")) {
-    return email;
-  }
-  return `mailto:${email}`;
 };
