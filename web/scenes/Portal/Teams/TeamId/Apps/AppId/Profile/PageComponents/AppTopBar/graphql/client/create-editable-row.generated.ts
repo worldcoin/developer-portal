@@ -6,113 +6,21 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type CreateEditableRowMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
-  name?: Types.InputMaybe<Types.Scalars["String"]>;
-  short_name?: Types.InputMaybe<Types.Scalars["String"]>;
-  logo_img_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  showcase_img_urls?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
-  hero_image_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  description?: Types.InputMaybe<Types.Scalars["String"]>;
-  world_app_description?: Types.InputMaybe<Types.Scalars["String"]>;
-  category?: Types.InputMaybe<Types.Scalars["String"]>;
-  is_developer_allow_listing?: Types.InputMaybe<Types.Scalars["Boolean"]>;
-  integration_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  app_website_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  source_code_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  verification_status?: Types.InputMaybe<Types.Scalars["String"]>;
-  world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]>;
-  app_mode?: Types.InputMaybe<Types.Scalars["String"]>;
-  whitelisted_addresses?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
-  support_link?: Types.InputMaybe<Types.Scalars["String"]>;
-  supported_countries?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
-  supported_languages?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
+  team_id: Types.Scalars["String"];
 }>;
 
 export type CreateEditableRowMutation = {
   __typename?: "mutation_root";
-  insert_app_metadata_one?: { __typename?: "app_metadata"; id: string } | null;
+  create_new_draft?: {
+    __typename?: "CreateNewDraftOutput";
+    success?: boolean | null;
+  } | null;
 };
 
 export const CreateEditableRowDocument = gql`
-  mutation CreateEditableRow(
-    $app_id: String!
-    $name: String
-    $short_name: String = ""
-    $logo_img_url: String = ""
-    $showcase_img_urls: [String!] = null
-    $hero_image_url: String = ""
-    $description: String = ""
-    $world_app_description: String = ""
-    $category: String = ""
-    $is_developer_allow_listing: Boolean
-    $integration_url: String = ""
-    $app_website_url: String = ""
-    $source_code_url: String = ""
-    $verification_status: String = ""
-    $world_app_button_text: String = ""
-    $app_mode: String = ""
-    $whitelisted_addresses: [String!] = null
-    $support_link: String = ""
-    $supported_countries: [String!] = null
-    $supported_languages: [String!] = null
-  ) {
-    insert_app_metadata_one(
-      object: {
-        app_id: $app_id
-        name: $name
-        short_name: $short_name
-        logo_img_url: $logo_img_url
-        showcase_img_urls: $showcase_img_urls
-        hero_image_url: $hero_image_url
-        description: $description
-        world_app_description: $world_app_description
-        category: $category
-        is_developer_allow_listing: $is_developer_allow_listing
-        integration_url: $integration_url
-        app_website_url: $app_website_url
-        source_code_url: $source_code_url
-        verification_status: $verification_status
-        world_app_button_text: $world_app_button_text
-        app_mode: $app_mode
-        whitelisted_addresses: $whitelisted_addresses
-        support_link: $support_link
-        supported_countries: $supported_countries
-        supported_languages: $supported_languages
-      }
-      on_conflict: {
-        constraint: app_metadata_app_id_is_row_verified_key
-        update_columns: [
-          name
-          short_name
-          logo_img_url
-          showcase_img_urls
-          hero_image_url
-          description
-          world_app_description
-          category
-          is_developer_allow_listing
-          integration_url
-          app_website_url
-          source_code_url
-          verification_status
-          world_app_button_text
-          app_mode
-          whitelisted_addresses
-          support_link
-          supported_countries
-          supported_languages
-        ]
-        where: { verification_status: { _neq: "verified" } }
-      }
-    ) {
-      id
+  mutation CreateEditableRow($app_id: String!, $team_id: String!) {
+    create_new_draft(app_id: $app_id, team_id: $team_id) {
+      success
     }
   }
 `;
@@ -135,25 +43,7 @@ export type CreateEditableRowMutationFn = Apollo.MutationFunction<
  * const [createEditableRowMutation, { data, loading, error }] = useCreateEditableRowMutation({
  *   variables: {
  *      app_id: // value for 'app_id'
- *      name: // value for 'name'
- *      short_name: // value for 'short_name'
- *      logo_img_url: // value for 'logo_img_url'
- *      showcase_img_urls: // value for 'showcase_img_urls'
- *      hero_image_url: // value for 'hero_image_url'
- *      description: // value for 'description'
- *      world_app_description: // value for 'world_app_description'
- *      category: // value for 'category'
- *      is_developer_allow_listing: // value for 'is_developer_allow_listing'
- *      integration_url: // value for 'integration_url'
- *      app_website_url: // value for 'app_website_url'
- *      source_code_url: // value for 'source_code_url'
- *      verification_status: // value for 'verification_status'
- *      world_app_button_text: // value for 'world_app_button_text'
- *      app_mode: // value for 'app_mode'
- *      whitelisted_addresses: // value for 'whitelisted_addresses'
- *      support_link: // value for 'support_link'
- *      supported_countries: // value for 'supported_countries'
- *      supported_languages: // value for 'supported_languages'
+ *      team_id: // value for 'team_id'
  *   },
  * });
  */
