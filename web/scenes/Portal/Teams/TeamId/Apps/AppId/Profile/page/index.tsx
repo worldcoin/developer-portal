@@ -31,7 +31,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const app = data?.app[0];
   const teamName = teamData?.team[0]?.name;
-  
+
   if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
