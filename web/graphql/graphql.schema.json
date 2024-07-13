@@ -1150,6 +1150,29 @@
       },
       {
         "kind": "OBJECT",
+        "name": "ValidateLocalisationOutput",
+        "description": null,
+        "fields": [
+          {
+            "name": "success",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
         "name": "VerifyAppOutput",
         "description": null,
         "fields": [
@@ -15237,6 +15260,45 @@
       },
       {
         "kind": "INPUT_OBJECT",
+        "name": "app_metadata_obj_rel_insert_input",
+        "description": "input type for inserting object relation for remote table \"app_metadata\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "data",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "app_metadata_insert_input",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "on_conflict",
+            "description": "upsert condition",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_metadata_on_conflict",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
         "name": "app_metadata_on_conflict",
         "description": "on_conflict condition type for table \"app_metadata\"",
         "fields": null,
@@ -28483,6 +28545,22 @@
         "description": "columns and relationships of \"localisations\"",
         "fields": [
           {
+            "name": "app_metadata",
+            "description": "An object relationship",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app_metadata",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_metadata_id",
             "description": null,
             "args": [],
@@ -28838,6 +28916,18 @@
             "deprecationReason": null
           },
           {
+            "name": "app_metadata",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_metadata_bool_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_metadata_id",
             "description": null,
             "type": {
@@ -28985,6 +29075,18 @@
         "description": "input type for inserting data into table \"localisations\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "app_metadata",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_metadata_obj_rel_insert_input",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "app_metadata_id",
             "description": null,
@@ -29492,6 +29594,18 @@
         "description": "Ordering options when selecting data from \"localisations\".",
         "fields": null,
         "inputFields": [
+          {
+            "name": "app_metadata",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_metadata_order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "app_metadata_id",
             "description": null,
@@ -31748,6 +31862,22 @@
             "args": [
               {
                 "name": "app_id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "team_id",
                 "description": null,
                 "type": {
                   "kind": "NON_NULL",
@@ -44860,6 +44990,51 @@
             "type": {
               "kind": "OBJECT",
               "name": "user",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "validate_localisation",
+            "description": null,
+            "args": [
+              {
+                "name": "app_metadata_id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "team_id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "ValidateLocalisationOutput",
               "ofType": null
             },
             "isDeprecated": false,

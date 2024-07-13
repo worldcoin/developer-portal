@@ -13,7 +13,11 @@ export const parseDescription = (stringifiedDescription: string) => {
       };
     }
   }
-  return {};
+  return {
+    description_overview: "",
+    description_how_it_works: "",
+    description_connect: "",
+  };
 };
 
 export const encodeDescription = (

@@ -141,12 +141,13 @@ export const BasicInformation = (props: {
   const isEditable = appMetaData?.verification_status === "unverified";
 
   const description = useMemo(() => {
-    if (locale === "en")
+    if (locale === "en") {
       return parseDescription(appMetaData?.description ?? "");
-    else
+    } else {
       return parseDescription(
         localisedData?.localisations?.[0]?.description ?? "",
       );
+    }
   }, [appMetaData?.description, locale, localisedData?.localisations]);
 
   const editableAppMetadata = useMemo(() => {

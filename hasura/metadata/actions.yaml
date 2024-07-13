@@ -135,6 +135,22 @@ actions:
       - role: api_key
       - role: user
     comment: Generates a Signed URL to upload images
+  - name: validate_localisation
+    definition:
+      kind: ""
+      handler: '{{NEXT_API_URL}}/hasura/validate-localisation'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+      request_transform:
+        method: POST
+        query_params:
+          app_metadata_id: '{{$body.input.app_metadata_id}}'
+          team_id: '{{$body.input.team_id}}'
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: user
   - name: verify_app
     definition:
       kind: synchronous
@@ -173,4 +189,5 @@ custom_types:
     - name: ImageGetAppReviewImagesOutput
     - name: InvalidateCacheOutput
     - name: CreateNewDraftOutput
+    - name: ValidateLocalisationOutput
   scalars: []

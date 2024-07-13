@@ -67,6 +67,13 @@ type Query {
   ): PresignedPostOutput
 }
 
+type Query {
+  validate_localisation(
+    app_metadata_id: String!
+    team_id: String!
+  ): ValidateLocalisationOutput
+}
+
 type Mutation {
   verify_app(
     app_id: String!
@@ -144,6 +151,10 @@ type InvalidateCacheOutput {
 }
 
 type CreateNewDraftOutput {
+  success: Boolean
+}
+
+type ValidateLocalisationOutput {
   success: Boolean
 }
 
