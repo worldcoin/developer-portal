@@ -153,6 +153,11 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]>;
 };
 
+export type ValidateLocalisationOutput = {
+  __typename?: "ValidateLocalisationOutput";
+  success?: Maybe<Scalars["Boolean"]>;
+};
+
 export type VerifyAppOutput = {
   __typename?: "VerifyAppOutput";
   success?: Maybe<Scalars["Boolean"]>;
@@ -1879,6 +1884,13 @@ export type App_Metadata_Mutation_Response = {
   affected_rows: Scalars["Int"];
   /** data from the rows affected by the mutation */
   returning: Array<App_Metadata>;
+};
+
+/** input type for inserting object relation for remote table "app_metadata" */
+export type App_Metadata_Obj_Rel_Insert_Input = {
+  data: App_Metadata_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<App_Metadata_On_Conflict>;
 };
 
 /** on_conflict condition type for table "app_metadata" */
@@ -3953,6 +3965,8 @@ export type Jwks_Updates = {
 /** columns and relationships of "localisations" */
 export type Localisations = {
   __typename?: "localisations";
+  /** An object relationship */
+  app_metadata: App_Metadata;
   app_metadata_id: Scalars["String"];
   created_at: Scalars["timestamptz"];
   description: Scalars["String"];
@@ -3991,6 +4005,7 @@ export type Localisations_Bool_Exp = {
   _and?: InputMaybe<Array<Localisations_Bool_Exp>>;
   _not?: InputMaybe<Localisations_Bool_Exp>;
   _or?: InputMaybe<Array<Localisations_Bool_Exp>>;
+  app_metadata?: InputMaybe<App_Metadata_Bool_Exp>;
   app_metadata_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
@@ -4011,6 +4026,7 @@ export enum Localisations_Constraint {
 
 /** input type for inserting data into table "localisations" */
 export type Localisations_Insert_Input = {
+  app_metadata?: InputMaybe<App_Metadata_Obj_Rel_Insert_Input>;
   app_metadata_id?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
@@ -4071,6 +4087,7 @@ export type Localisations_On_Conflict = {
 
 /** Ordering options when selecting data from "localisations". */
 export type Localisations_Order_By = {
+  app_metadata?: InputMaybe<App_Metadata_Order_By>;
   app_metadata_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -4706,6 +4723,7 @@ export type Mutation_Root = {
 /** mutation root */
 export type Mutation_RootCreate_New_DraftArgs = {
   app_id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** mutation root */
@@ -6014,6 +6032,7 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  validate_localisation?: Maybe<ValidateLocalisationOutput>;
 };
 
 export type Query_RootActionArgs = {
@@ -6453,6 +6472,11 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"];
+};
+
+export type Query_RootValidate_LocalisationArgs = {
+  app_metadata_id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** columns and relationships of "redirect" */
