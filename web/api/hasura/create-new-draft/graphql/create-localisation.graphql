@@ -1,4 +1,4 @@
-mutation CreateLocalisation($app_metadata_id: string, locale:string, name:string, description:string, world_app_button_text:string, world_app_description:string, short_name:string) {
+mutation CreateLocalisation($input: localisations_insert_input!) {
   insert_localisations_one(object: $input) {
     id
   }
