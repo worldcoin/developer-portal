@@ -35,6 +35,11 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]>>;
 };
 
+export type CreateNewDraftOutput = {
+  __typename?: "CreateNewDraftOutput";
+  success?: Maybe<Scalars["Boolean"]>;
+};
+
 export type DeleteImageOutput = {
   __typename?: "DeleteImageOutput";
   success?: Maybe<Scalars["Boolean"]>;
@@ -4409,6 +4414,7 @@ export type Membership_Updates = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
+  create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
   /** delete single row from the table: "action" */
@@ -4695,6 +4701,11 @@ export type Mutation_Root = {
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
+};
+
+/** mutation root */
+export type Mutation_RootCreate_New_DraftArgs = {
+  app_id: Scalars["String"];
 };
 
 /** mutation root */

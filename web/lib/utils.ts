@@ -247,3 +247,13 @@ export const rankApps = (
     );
   });
 };
+
+// Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
+export const getImageEndpoint = (imageType: string) => {
+  const fileType = imageType.split(".").pop();
+  if (fileType === "png" || fileType === "jpg") {
+    return fileType;
+  } else {
+    throw new Error("Unsupported image file type");
+  }
+};
