@@ -186,6 +186,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       if (!app || app?.app_metadata?.length > 0) {
         throw new Error("Your app must be already verified for this action");
       }
+
       await createEditableRowMutation({
         variables: {
           app_id: appId,

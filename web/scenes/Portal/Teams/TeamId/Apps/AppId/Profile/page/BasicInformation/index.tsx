@@ -13,6 +13,7 @@ import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -347,6 +348,7 @@ export const BasicInformation = (props: {
               onClick={() =>
                 router.push(urls.setup({ team_id: teamId, app_id: appId }))
               }
+              className={clsx({ hidden: !isEditable })}
             >
               <PlusCircleIcon className="size-5 text-gray-300" />
               <Typography variant={TYPOGRAPHY.R5}>Add translation</Typography>
