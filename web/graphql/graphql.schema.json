@@ -157,6 +157,29 @@
       },
       {
         "kind": "OBJECT",
+        "name": "CreateNewDraftOutput",
+        "description": null,
+        "fields": [
+          {
+            "name": "success",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
         "name": "DeleteImageOutput",
         "description": null,
         "fields": [
@@ -31719,6 +31742,35 @@
         "name": "mutation_root",
         "description": "mutation root",
         "fields": [
+          {
+            "name": "create_new_draft",
+            "description": null,
+            "args": [
+              {
+                "name": "app_id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "CreateNewDraftOutput",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "delete_action",
             "description": "delete data from the table: \"action\"",
