@@ -16,7 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -28,7 +28,10 @@ import {
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { encodeDescription, parseDescription } from "./descriptions/util";
+import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
+import { useInsertLocalisationMutation } from "./graphql/client/insert-localisation.generated";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
+import { useUpdateLocalisationMutation } from "./graphql/client/update-localisation.generated";
 
 function noLinks(value: string | undefined) {
   if (!value) return true;
@@ -94,8 +97,12 @@ export const BasicInformation = (props: {
   teamName: string;
 }) => {
   const { appId, teamId, app, teamName } = props;
-  const [viewMode] = useAtom(viewModeAtom);
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
+  const [updateLocalisationMutation] = useUpdateLocalisationMutation();
+  const [insertLocalisationMutation] = useInsertLocalisationMutation();
+
+  const [locale, setLocale] = useState("en");
+  const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const router = useRouter();
 
@@ -115,11 +122,43 @@ export const BasicInformation = (props: {
     }
   }, [app, viewMode]);
 
+  const [
+    getLocalisationText,
+    { data: localisedData, refetch: refetchLocalisation },
+  ] = useFetchLocalisationLazyQuery();
+
+  const updateLocalisation = async (locale: string) => {
+    await getLocalisationText({
+      variables: {
+        id: appMetaData.id,
+        locale: locale,
+      },
+    });
+    setLocale(locale);
+  };
+
   const isEditable = appMetaData?.verification_status === "unverified";
 
   const description = useMemo(() => {
-    return parseDescription(appMetaData?.description ?? "");
-  }, [appMetaData?.description]);
+    if (locale === "en")
+      return parseDescription(appMetaData?.description ?? "");
+    else
+      return parseDescription(
+        localisedData?.localisations?.[0]?.description ?? "",
+      );
+  }, [appMetaData?.description, locale, localisedData?.localisations]);
+
+  const editableAppMetadata = useMemo(() => {
+    return {
+      name: appMetaData?.name,
+      short_name: appMetaData?.short_name,
+      world_app_description: appMetaData?.world_app_description,
+      world_app_button_text: appMetaData?.world_app_button_text,
+      category: appMetaData?.category,
+      integration_url: appMetaData?.integration_url,
+      app_website_url: appMetaData?.app_website_url,
+    };
+  }, [appMetaData]);
 
   const {
     register,
@@ -132,31 +171,40 @@ export const BasicInformation = (props: {
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      name: appMetaData?.name,
-      short_name: appMetaData?.short_name,
-      category: appMetaData?.category,
-      world_app_description: appMetaData?.world_app_description,
-      integration_url: appMetaData?.integration_url,
-      app_website_url: appMetaData?.app_website_url,
-      world_app_button_text: appMetaData?.world_app_button_text,
-
+      ...editableAppMetadata,
       ...description,
     },
   });
 
   // Used to update the fields when view mode is change
   useEffect(() => {
-    reset({
-      name: appMetaData?.name,
-      short_name: appMetaData?.short_name,
-      category: appMetaData?.category,
-      world_app_description: appMetaData?.world_app_description,
-      integration_url: appMetaData?.integration_url,
-      app_website_url: appMetaData?.app_website_url,
-      world_app_button_text: appMetaData?.world_app_button_text,
-      ...description,
-    });
-  }, [viewMode, reset, appMetaData, description]);
+    if (locale !== "en") {
+      const localisedItem = localisedData?.localisations?.[0];
+      reset({
+        category: editableAppMetadata?.category,
+        integration_url: editableAppMetadata?.integration_url,
+        app_website_url: editableAppMetadata?.app_website_url,
+        name: localisedItem?.name ?? "",
+        short_name: localisedItem?.short_name ?? "",
+        world_app_description: localisedItem?.world_app_description ?? "",
+        world_app_button_text: localisedItem?.world_app_button_text ?? "",
+        ...description,
+      });
+    } else {
+      reset({
+        ...editableAppMetadata,
+        ...description,
+      });
+    }
+  }, [
+    viewMode,
+    reset,
+    appMetaData,
+    description,
+    locale,
+    localisedData?.localisations,
+    editableAppMetadata,
+  ]);
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
@@ -169,27 +217,71 @@ export const BasicInformation = (props: {
           ...formData
         } = data;
 
-        const result = await updateAppInfoMutation({
-          variables: {
-            app_metadata_id: appMetaData?.id,
-            input: {
-              description: encodeDescription(
-                data.description_overview,
-                data.description_how_it_works,
-                data.description_connect,
-              ),
-              ...formData,
-            },
-          },
+        let result;
 
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: { id: appId },
+        if (locale !== "en") {
+          const localisedFormData = {
+            name: formData.name,
+            short_name: formData.short_name,
+            world_app_description: formData.world_app_description,
+            world_app_button_text: formData.world_app_button_text,
+          };
+
+          if (localisedData?.localisations?.length === 0) {
+            result = await insertLocalisationMutation({
+              variables: {
+                input: {
+                  description: encodeDescription(
+                    data.description_overview,
+                    data.description_how_it_works,
+                    data.description_connect,
+                  ),
+                  app_metadata_id: appMetaData?.id ?? "",
+                  locale: locale,
+                  ...localisedFormData,
+                },
+              },
+            });
+          } else {
+            const localisation = localisedData?.localisations?.[0];
+            result = await updateLocalisationMutation({
+              variables: {
+                localisation_id: localisation?.id ?? "",
+                input: {
+                  description: encodeDescription(
+                    data.description_overview,
+                    data.description_how_it_works,
+                    data.description_connect,
+                  ),
+                  ...localisedFormData,
+                },
+              },
+            });
+          }
+          await refetchLocalisation();
+        } else {
+          result = await updateAppInfoMutation({
+            variables: {
+              app_metadata_id: appMetaData?.id,
+              input: {
+                description: encodeDescription(
+                  data.description_overview,
+                  data.description_how_it_works,
+                  data.description_connect,
+                ),
+                ...formData,
+              },
             },
-          ],
-          awaitRefetchQueries: true,
-        });
+
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        }
         if (result instanceof Error) {
           throw result;
         }
@@ -199,7 +291,17 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData?.id, loading, updateAppInfoMutation],
+    [
+      appId,
+      appMetaData?.id,
+      insertLocalisationMutation,
+      loading,
+      locale,
+      localisedData?.localisations,
+      refetchLocalisation,
+      updateAppInfoMutation,
+      updateLocalisationMutation,
+    ],
   );
 
   return (
@@ -223,7 +325,11 @@ export const BasicInformation = (props: {
             {appMetaData.supported_languages?.map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
               return (
-                <CountryBadge key={index}>
+                <CountryBadge
+                  key={index}
+                  onClick={() => updateLocalisation(lang)}
+                  focused={locale === lang}
+                >
                   <Image
                     width={20}
                     height={20}
@@ -254,7 +360,9 @@ export const BasicInformation = (props: {
                 <CategorySelector
                   value={field.value}
                   required
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={
+                    !isEditable || !isEnoughPermissions || locale !== "en"
+                  }
                   onChange={field.onChange}
                   errors={errors.category}
                   label="Category"
@@ -374,7 +482,7 @@ export const BasicInformation = (props: {
             label="Try it out"
             required
             errors={errors.integration_url}
-            disabled={!isEditable || !isEnoughPermissions}
+            disabled={!isEditable || !isEnoughPermissions || locale !== "en"}
             placeholder="https://"
             register={register("integration_url")}
           />
@@ -383,7 +491,7 @@ export const BasicInformation = (props: {
             label="Official website"
             errors={errors.app_website_url}
             required
-            disabled={!isEditable || !isEnoughPermissions}
+            disabled={!isEditable || !isEnoughPermissions || locale !== "en"}
             placeholder="https://"
             register={register("app_website_url")}
           />

@@ -1,3 +1,98 @@
 table:
   name: localisations
   schema: public
+object_relationships:
+  - name: app_metadata
+    using:
+      foreign_key_constraint_on: app_metadata_id
+insert_permissions:
+  - role: user
+    permission:
+      check: 
+        app_metadata:
+          _and:
+            - verification_status:
+                _eq: unverified
+            - app:
+                team:
+                  id:
+                    _eq: X-Hasura-Team-Id
+      columns:
+        - app_metadata_id
+        - description
+        - locale
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+    comment: ""
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - app_metadata_id
+        - description
+        - id
+        - locale
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - app_metadata_id
+        - created_at
+        - description
+        - id
+        - locale
+        - name
+        - short_name
+        - updated_at
+        - world_app_button_text
+        - world_app_description
+      filter: 
+        app_metadata:
+          app:
+            team:
+              memberships:
+                user_id:
+                  _eq: X-Hasura-User-Id
+    comment: ""
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - description
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+      filter:
+        app_metadata:
+          _and:
+            - verification_status:
+                _neq: verified
+            - app:
+                team:
+                  memberships:
+                    _and:
+                      - user_id:
+                          _eq: X-Hasura-User-Id
+                      - _or:
+                          - role:
+                              _eq: OWNER
+                          - role:
+                              _eq: ADMIN
+      check:
+        app_metadata:
+          _and:
+            - verification_status:
+                _in:
+                  - unverified
+                  - awaiting_review
+    comment: ""
