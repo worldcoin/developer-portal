@@ -1,4 +1,11 @@
 type Mutation {
+  create_new_draft(
+    app_id: String!
+    team_id: String!
+  ): CreateNewDraftOutput
+}
+
+type Mutation {
   delete_unverified_images(
     app_id: String!
   ): DeleteImageOutput
@@ -133,6 +140,10 @@ type ImageGetAppReviewImagesOutput {
 }
 
 type InvalidateCacheOutput {
+  success: Boolean
+}
+
+type CreateNewDraftOutput {
   success: Boolean
 }
 
