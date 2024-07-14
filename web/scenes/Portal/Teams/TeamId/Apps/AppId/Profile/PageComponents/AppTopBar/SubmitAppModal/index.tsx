@@ -67,6 +67,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           );
           return;
         }
+
         await validateLocalisationQuery({
           variables: {
             app_metadata_id: appMetadataId,
