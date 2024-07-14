@@ -6,6 +6,7 @@ import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
 import gql from "graphql-tag";
 export type GetAppMetadataQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
+  locale: Types.Scalars["String"];
 }>;
 
 export type GetAppMetadataQuery = {
@@ -31,6 +32,14 @@ export type GetAppMetadataQuery = {
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     app_rating?: number | null;
+    localisations: Array<{
+      __typename?: "localisations";
+      name: string;
+      world_app_button_text: string;
+      world_app_description: string;
+      short_name: string;
+      description: string;
+    }>;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };
@@ -39,7 +48,7 @@ export type GetAppMetadataQuery = {
 };
 
 export const GetAppMetadataDocument = gql`
-  query GetAppMetadata($app_id: String!) {
+  query GetAppMetadata($app_id: String!, $locale: String!) {
     app_metadata(where: { app_id: { _eq: $app_id } }) {
       name
       short_name
@@ -60,6 +69,13 @@ export const GetAppMetadataDocument = gql`
       supported_countries
       supported_languages
       app_rating
+      localisations(where: { locale: { _eq: $locale } }) {
+        name
+        world_app_button_text
+        world_app_description
+        short_name
+        description
+      }
       app {
         team {
           name

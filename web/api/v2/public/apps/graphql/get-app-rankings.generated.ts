@@ -13,6 +13,7 @@ export type GetAppsQueryVariables = Types.Exact<{
   highlightsIds:
     | Array<Types.InputMaybe<Types.Scalars["String"]>>
     | Types.InputMaybe<Types.Scalars["String"]>;
+  locale: Types.Scalars["String"];
 }>;
 
 export type GetAppsQuery = {
@@ -38,6 +39,14 @@ export type GetAppsQuery = {
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     app_rating?: number | null;
+    localisations: Array<{
+      __typename?: "localisations";
+      name: string;
+      world_app_button_text: string;
+      world_app_description: string;
+      short_name: string;
+      description: string;
+    }>;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };
@@ -63,6 +72,15 @@ export type GetAppsQuery = {
     support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
+    app_rating?: number | null;
+    localisations: Array<{
+      __typename?: "localisations";
+      name: string;
+      world_app_button_text: string;
+      world_app_description: string;
+      short_name: string;
+      description: string;
+    }>;
     app: {
       __typename?: "app";
       team: { __typename?: "team"; name?: string | null };
@@ -76,6 +94,7 @@ export const GetAppsDocument = gql`
     $limit: Int!
     $offset: Int!
     $highlightsIds: [String]!
+    $locale: String!
   ) {
     top_apps: app_metadata(
       where: {
@@ -106,6 +125,13 @@ export const GetAppsDocument = gql`
       support_link
       supported_countries
       supported_languages
+      localisations(where: { locale: { _eq: $locale } }) {
+        name
+        world_app_button_text
+        world_app_description
+        short_name
+        description
+      }
       app_rating
       app {
         team {
@@ -132,6 +158,14 @@ export const GetAppsDocument = gql`
       support_link
       supported_countries
       supported_languages
+      localisations(where: { locale: { _eq: $locale } }) {
+        name
+        world_app_button_text
+        world_app_description
+        short_name
+        description
+      }
+      app_rating
       app {
         team {
           name
