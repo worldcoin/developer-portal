@@ -183,17 +183,27 @@ export type AppStoreMetadataFields = {
   integration_url: string;
   app_website_url: string;
   source_code_url: string;
+  short_name: string;
   support_link: string;
   supported_countries?: any | null;
   supported_languages?: any | null;
+  localisations: LocalisedMetadata[];
   app: {
     team: { name?: string | null };
   };
 };
 
+export type LocalisedMetadata = {
+  name: string;
+  world_app_button_text: string;
+  world_app_description: string;
+  short_name: string;
+  description: string;
+};
+
 export type AppStoreFormattedFields = Omit<
   AppStoreMetadataFields,
-  "description" | "category" | "app"
+  "description" | "category" | "app" | "localisations"
 > & {
   ratings_external_nullifier: string;
   unique_users: number;

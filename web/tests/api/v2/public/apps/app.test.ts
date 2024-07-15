@@ -16,6 +16,7 @@ jest.mock(
           {
             name: "Example App",
             app_id: "1",
+            short_name: "test",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
@@ -58,6 +59,7 @@ describe("/api/public/app/[app_id]", () => {
       app_data: {
         name: "Example App",
         app_id: "1",
+        short_name: "test",
         logo_img_url: "https://cdn.test.com/1/logo.png",
         showcase_img_urls: [
           "https://cdn.test.com/1/showcase1.png",
@@ -109,6 +111,7 @@ describe("/api/public/app/[app_id]", () => {
           {
             name: "Example App",
             app_id: "app_test_123",
+            short_name: "test",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
@@ -142,6 +145,7 @@ describe("/api/public/app/[app_id]", () => {
       app_data: {
         name: "Example App",
         app_id: "TEST_APP",
+        short_name: "test",
         logo_img_url: "https://cdn.test.com/app_test_123/logo.png",
         hero_image_url: "https://cdn.test.com/app_test_123/hero.png",
         showcase_img_urls: [

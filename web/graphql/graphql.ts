@@ -1578,6 +1578,10 @@ export type App_Metadata = {
   is_reviewer_app_store_approved: Scalars["Boolean"];
   is_reviewer_world_app_approved: Scalars["Boolean"];
   is_row_verified: Scalars["Boolean"];
+  /** An array relationship */
+  localisations: Array<Localisations>;
+  /** An aggregate relationship */
+  localisations_aggregate: Localisations_Aggregate;
   logo_img_url: Scalars["String"];
   name: Scalars["String"];
   review_message: Scalars["String"];
@@ -1594,6 +1598,24 @@ export type App_Metadata = {
   whitelisted_addresses?: Maybe<Array<Scalars["String"]>>;
   world_app_button_text: Scalars["String"];
   world_app_description: Scalars["String"];
+};
+
+/** columns and relationships of "app_metadata" */
+export type App_MetadataLocalisationsArgs = {
+  distinct_on?: InputMaybe<Array<Localisations_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Localisations_Order_By>>;
+  where?: InputMaybe<Localisations_Bool_Exp>;
+};
+
+/** columns and relationships of "app_metadata" */
+export type App_MetadataLocalisations_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Localisations_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Localisations_Order_By>>;
+  where?: InputMaybe<Localisations_Bool_Exp>;
 };
 
 /** aggregated selection of "app_metadata" */
@@ -1693,6 +1715,8 @@ export type App_Metadata_Bool_Exp = {
   is_reviewer_app_store_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_world_app_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_row_verified?: InputMaybe<Boolean_Comparison_Exp>;
+  localisations?: InputMaybe<Localisations_Bool_Exp>;
+  localisations_aggregate?: InputMaybe<Localisations_Aggregate_Bool_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
@@ -1737,6 +1761,7 @@ export type App_Metadata_Insert_Input = {
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
+  localisations?: InputMaybe<Localisations_Arr_Rel_Insert_Input>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
   review_message?: InputMaybe<Scalars["String"]>;
@@ -1917,6 +1942,7 @@ export type App_Metadata_Order_By = {
   is_reviewer_app_store_approved?: InputMaybe<Order_By>;
   is_reviewer_world_app_approved?: InputMaybe<Order_By>;
   is_row_verified?: InputMaybe<Order_By>;
+  localisations_aggregate?: InputMaybe<Localisations_Aggregate_Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -3986,6 +4012,17 @@ export type Localisations_Aggregate = {
   nodes: Array<Localisations>;
 };
 
+export type Localisations_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Localisations_Aggregate_Bool_Exp_Count>;
+};
+
+export type Localisations_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Localisations_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+  filter?: InputMaybe<Localisations_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "localisations" */
 export type Localisations_Aggregate_Fields = {
   __typename?: "localisations_aggregate_fields";
@@ -3998,6 +4035,20 @@ export type Localisations_Aggregate_Fields = {
 export type Localisations_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Localisations_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** order by aggregate values of table "localisations" */
+export type Localisations_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Localisations_Max_Order_By>;
+  min?: InputMaybe<Localisations_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "localisations" */
+export type Localisations_Arr_Rel_Insert_Input = {
+  data: Array<Localisations_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Localisations_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "localisations". All fields are combined with a logical 'AND'. */
@@ -4054,6 +4105,20 @@ export type Localisations_Max_Fields = {
   world_app_description?: Maybe<Scalars["String"]>;
 };
 
+/** order by max() on columns of table "localisations" */
+export type Localisations_Max_Order_By = {
+  app_metadata_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  locale?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  short_name?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  world_app_button_text?: InputMaybe<Order_By>;
+  world_app_description?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Localisations_Min_Fields = {
   __typename?: "localisations_min_fields";
@@ -4067,6 +4132,20 @@ export type Localisations_Min_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]>;
   world_app_button_text?: Maybe<Scalars["String"]>;
   world_app_description?: Maybe<Scalars["String"]>;
+};
+
+/** order by min() on columns of table "localisations" */
+export type Localisations_Min_Order_By = {
+  app_metadata_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  locale?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  short_name?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  world_app_button_text?: InputMaybe<Order_By>;
+  world_app_description?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "localisations" */
@@ -5988,9 +6067,9 @@ export type Query_Root = {
   jwks_aggregate: Jwks_Aggregate;
   /** fetch data from the table: "jwks" using primary key columns */
   jwks_by_pk?: Maybe<Jwks>;
-  /** fetch data from the table: "localisations" */
+  /** An array relationship */
   localisations: Array<Localisations>;
-  /** fetch aggregated fields from the table: "localisations" */
+  /** An aggregate relationship */
   localisations_aggregate: Localisations_Aggregate;
   /** fetch data from the table: "localisations" using primary key columns */
   localisations_by_pk?: Maybe<Localisations>;
@@ -6953,9 +7032,9 @@ export type Subscription_Root = {
   jwks_by_pk?: Maybe<Jwks>;
   /** fetch data from the table in a streaming manner: "jwks" */
   jwks_stream: Array<Jwks>;
-  /** fetch data from the table: "localisations" */
+  /** An array relationship */
   localisations: Array<Localisations>;
-  /** fetch aggregated fields from the table: "localisations" */
+  /** An aggregate relationship */
   localisations_aggregate: Localisations_Aggregate;
   /** fetch data from the table: "localisations" using primary key columns */
   localisations_by_pk?: Maybe<Localisations>;

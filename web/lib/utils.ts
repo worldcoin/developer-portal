@@ -201,12 +201,23 @@ export const formatAppMetadata = (
     appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
     0;
 
-  const description: AppStoreMetadataDescription = tryParseJSON(
-    appMetadata.description,
-  );
+  const localisedContent = appMetadata.localisations?.[0];
 
+  // We pick default description if localised content is not available
+  const description: AppStoreMetadataDescription = tryParseJSON(
+    localisedContent?.description ?? appMetadata.description,
+  );
+  const { localisations, ...appMetadataWithoutLocalisations } = appMetadata;
   return {
-    ...appMetadata,
+    ...appMetadataWithoutLocalisations,
+    name: localisedContent?.name ?? appMetadata.name,
+    world_app_button_text:
+      localisedContent?.world_app_button_text ??
+      appMetadata.world_app_button_text,
+    world_app_description:
+      localisedContent?.world_app_description ??
+      appMetadata.world_app_description,
+    short_name: localisedContent?.short_name ?? appMetadata.short_name,
     logo_img_url: getCDNImageUrl(appMetadata.app_id, appMetadata.logo_img_url),
     showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
       getCDNImageUrl(appMetadata.app_id, url),

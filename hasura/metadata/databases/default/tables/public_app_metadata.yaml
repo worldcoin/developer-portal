@@ -5,6 +5,14 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
+array_relationships:
+  - name: localisations
+    using:
+      foreign_key_constraint_on:
+        column: app_metadata_id
+        table:
+          name: localisations
+          schema: public
 computed_fields:
   - name: app_rating
     definition:

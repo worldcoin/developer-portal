@@ -81,6 +81,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "1",
             name: "Test App",
+            short_name: "test",
             logo_img_url: "logo.png",
             hero_image_url: "hero1.png",
             showcase_img_urls: ["showcase1.png"],
@@ -103,6 +104,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "2",
             name: "Test App2",
+            short_name: "test",
             logo_img_url: "logo.png",
             hero_image_url: "hero.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
@@ -125,6 +127,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "3",
             name: "Test App3",
+            short_name: "test",
             logo_img_url: "logo.png",
             hero_image_url: "hero.png",
             world_app_button_text: "random",
@@ -167,6 +170,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "1",
             name: "Test App",
+            short_name: "test",
             ratings_external_nullifier:
               "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
             logo_img_url: "https://cdn.test.com/1/logo.png",
@@ -188,6 +192,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "2",
             name: "Test App2",
+            short_name: "test",
             ratings_external_nullifier:
               "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
             logo_img_url: "https://cdn.test.com/2/logo.png",
@@ -212,6 +217,7 @@ describe("/api/v2/public/apps", () => {
           {
             app_id: "3",
             name: "Test App3",
+            short_name: "test",
             logo_img_url: "https://cdn.test.com/3/logo.png",
             hero_image_url: "https://cdn.test.com/3/hero.png",
             ratings_external_nullifier:
@@ -254,6 +260,7 @@ describe("/api/v2/public/apps", () => {
           {
             name: "Example App",
             app_id: "app_test_123",
+            short_name: "test",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
@@ -295,6 +302,7 @@ describe("/api/v2/public/apps", () => {
           {
             name: "Example App",
             app_id: "TEST_APP",
+            short_name: "test",
             logo_img_url: "https://cdn.test.com/app_test_123/logo.png",
             hero_image_url: "https://cdn.test.com/app_test_123/hero.png",
             showcase_img_urls: [

@@ -3,6 +3,7 @@ query GetApps(
   $limit: Int!
   $offset: Int!
   $highlightsIds: [String]!
+  $locale: String!
 ) {
   top_apps: app_metadata(
     # FIXME: Add ordering by the number of users
@@ -34,6 +35,13 @@ query GetApps(
     support_link
     supported_countries
     supported_languages
+    localisations(where: { locale: { _eq: $locale } }) {
+      name
+      world_app_button_text
+      world_app_description
+      short_name
+      description
+    }
     app_rating
     app {
       team {
@@ -61,6 +69,14 @@ query GetApps(
     support_link
     supported_countries
     supported_languages
+    localisations(where: { locale: { _eq: $locale } }) {
+      name
+      world_app_button_text
+      world_app_description
+      short_name
+      description
+    }
+    app_rating
     app {
       team {
         name

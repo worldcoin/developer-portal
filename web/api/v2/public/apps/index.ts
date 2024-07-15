@@ -57,6 +57,7 @@ export const GET = async (request: NextRequest) => {
   }
   const headers = request.headers;
   const country = headers.get("CloudFront-Viewer-Country");
+  const locale = headers.get("x-accept-language") ?? "";
 
   const { page, limit, app_mode } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
@@ -94,6 +95,7 @@ export const GET = async (request: NextRequest) => {
       highlightsIds,
       limit: limit ?? 250,
       offset,
+      locale,
     });
     topApps = top_apps;
     highlightsApps = highlights;
