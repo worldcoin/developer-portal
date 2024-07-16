@@ -10,6 +10,7 @@
 - "!include public_cache.yaml"
 - "!include public_invite.yaml"
 - "!include public_jwks.yaml"
+- "!include public_localisations.yaml"
 - "!include public_membership.yaml"
 - "!include public_nullifier.yaml"
 - "!include public_redirect.yaml"

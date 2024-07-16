@@ -530,7 +530,7 @@ export const SetupForm = (props: LinksFormProps) => {
       <DecoratedButton
         type="submit"
         className="h-12 w-40"
-        disabled={!isEditable || !isEnoughPermissions || !isValid}
+        disabled={!isEditable || !isEnoughPermissions || !isValid || !isDirty}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>

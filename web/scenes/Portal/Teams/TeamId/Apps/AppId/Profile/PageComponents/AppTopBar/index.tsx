@@ -6,7 +6,6 @@ import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { convertArrayToHasuraArray } from "@/lib/utils";
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
@@ -187,34 +186,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
       if (!app || app?.app_metadata?.length > 0) {
         throw new Error("Your app must be already verified for this action");
       }
+
       await createEditableRowMutation({
         variables: {
-          ...appMetaData,
           app_id: appId,
-          logo_img_url: appMetaData?.logo_img_url
-            ? `logo_img.${_getImageEndpoint(appMetaData.logo_img_url)}`
-            : "",
-          hero_image_url: appMetaData?.hero_image_url
-            ? `hero_image.${_getImageEndpoint(appMetaData.hero_image_url)}`
-            : "",
-          showcase_img_urls: appMetaData?.showcase_img_urls
-            ? `{${appMetaData.showcase_img_urls
-                ?.map(
-                  (img: string, index: number) =>
-                    `showcase_img_${index + 1}.${_getImageEndpoint(img)}`,
-                )
-                .join(",")}}`
-            : null,
-          verification_status: "unverified",
-          whitelisted_addresses: convertArrayToHasuraArray(
-            appMetaData?.whitelisted_addresses,
-          ),
-          supported_countries: appMetaData.supported_countries
-            ? convertArrayToHasuraArray(appMetaData.supported_countries)
-            : null,
-          supported_languages: appMetaData.supported_languages
-            ? convertArrayToHasuraArray(appMetaData.supported_languages)
-            : null,
+          team_id: teamId,
         },
         refetchQueries: [FetchAppMetadataDocument],
         awaitRefetchQueries: true,
@@ -245,22 +221,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
     app,
     createEditableRowMutation,
     appId,
-    appMetaData,
     fetchImagesQuery,
     teamId,
     setViewMode,
     setUnverifiedImages,
   ]);
-
-  // Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
-  const _getImageEndpoint = (imageType: string) => {
-    const fileType = imageType.split(".").pop();
-    if (fileType === "png" || fileType === "jpg") {
-      return fileType;
-    } else {
-      throw new Error("Unsupported image file type");
-    }
-  };
 
   if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (

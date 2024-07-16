@@ -1,0 +1,5 @@
+mutation CreateLocalisation($input: localisations_insert_input!) {
+  insert_localisations_one(object: $input) {
+    id
+  }
+}

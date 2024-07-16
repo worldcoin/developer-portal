@@ -1,0 +1,49 @@
+mutation CreateDraft(
+  $app_id: String!
+  $name: String = ""
+  $short_name: String = ""
+  $logo_img_url: String = ""
+  $showcase_img_urls: [String!] = null
+  $hero_image_url: String = ""
+  $description: String = ""
+  $world_app_description: String = ""
+  $category: String = ""
+  $is_developer_allow_listing: Boolean
+  $integration_url: String = ""
+  $app_website_url: String = ""
+  $source_code_url: String = ""
+  $verification_status: String = ""
+  $world_app_button_text: String = ""
+  $app_mode: String = ""
+  $whitelisted_addresses: [String!] = null
+  $support_link: String = ""
+  $supported_countries: [String!] = null
+  $supported_languages: [String!] = null
+) {
+  insert_app_metadata_one(
+    object: {
+      app_id: $app_id
+      name: $name
+      logo_img_url: $logo_img_url
+      showcase_img_urls: $showcase_img_urls
+      hero_image_url: $hero_image_url
+      description: $description
+      world_app_description: $world_app_description
+      category: $category
+      is_developer_allow_listing: $is_developer_allow_listing
+      world_app_button_text: $world_app_button_text
+      integration_url: $integration_url
+      app_website_url: $app_website_url
+      source_code_url: $source_code_url
+      verification_status: $verification_status
+      app_mode: $app_mode
+      whitelisted_addresses: $whitelisted_addresses
+      support_link: $support_link
+      supported_countries: $supported_countries
+      supported_languages: $supported_languages
+      short_name: $short_name
+    }
+  ) {
+    id
+  }
+}

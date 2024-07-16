@@ -91,9 +91,13 @@ export const GET = async (
 
   const client = await getAPIServiceGraphqlClient();
 
+  const headers = req.headers;
+  const locale = headers.get("x-accept-language") ?? "";
+
   // Return the metadata
   const { app_metadata } = await getAppMetadataSdk(client).GetAppMetadata({
     app_id: appId,
+    locale,
   });
 
   if (!app_metadata || app_metadata.length === 0) {

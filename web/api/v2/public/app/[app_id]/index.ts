@@ -28,20 +28,7 @@ export async function GET(
     );
   }
 
-  let app_id = params.app_id;
-
-  // Native Apps have substituted app_ids so we pull their constant ID to get the metadata
-  if (app_id in NativeAppToAppIdMapping[process.env.APP_ENV]) {
-    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
-  }
-
-  const client = await getAPIServiceGraphqlClient();
-  // Return the metadata
-  const { app_metadata } = await getAppMetadataSdk(client).GetAppMetadata({
-    app_id,
-  });
-
-  // // We only accept requests through the distribution origin
+  // We only accept requests through the distribution origin
   if (!isValidHostName(request)) {
     return NextResponse.json(
       {
@@ -50,6 +37,23 @@ export async function GET(
       { status: 400 },
     );
   }
+
+  let app_id = params.app_id;
+
+  // Native Apps have substituted app_ids so we pull their constant ID to get the metadata
+  if (app_id in NativeAppToAppIdMapping[process.env.APP_ENV]) {
+    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
+  }
+
+  const headers = request.headers;
+  const locale = headers.get("x-accept-language") ?? "";
+
+  const client = await getAPIServiceGraphqlClient();
+  // Return the metadata
+  const { app_metadata } = await getAppMetadataSdk(client).GetAppMetadata({
+    app_id,
+    locale,
+  });
 
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
