@@ -3,7 +3,7 @@
  */
 
 import { LoginErrorCode, NativeAppsMap } from "./types";
-
+export { Categories } from "./categories";
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 
@@ -44,18 +44,6 @@ export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.EmailNotVerified]:
     "Your email has not been verified. Please check your email for a verification link.",
 };
-
-export const Categories: Array<{ name: string; id: string }> = [
-  { name: "Social", id: "social" },
-  { name: "Gaming", id: "gaming" },
-  { name: "Business", id: "business" },
-  { name: "Finance", id: "finance" },
-  {
-    name: "Productivity",
-    id: "productivity",
-  },
-  { name: "Other", id: "other" },
-];
 
 export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   dev: {

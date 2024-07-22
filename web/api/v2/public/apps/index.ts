@@ -1,7 +1,8 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { Categories, NativeApps } from "@/lib/constants";
+import { getAllLocalisedCategories } from "@/lib/categories";
+import { NativeApps } from "@/lib/constants";
 import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName, rankApps } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -134,10 +135,10 @@ export const GET = async (request: NextRequest) => {
 
   // Anchor: Format Apps
   let fomattedTopApps = topApps.map((app) =>
-    formatAppMetadata(app, metricsData),
+    formatAppMetadata(app, metricsData, locale),
   );
   let highlightedApps = highlightsApps.map((app) =>
-    formatAppMetadata(app, metricsData),
+    formatAppMetadata(app, metricsData, locale),
   );
 
   fomattedTopApps = fomattedTopApps.map((app) => {
@@ -171,6 +172,6 @@ export const GET = async (request: NextRequest) => {
       top_apps: rankApps(fomattedTopApps, metricsData),
       highlights: rankApps(highlightedApps, metricsData),
     },
-    categories: Categories, // TODO: Localise
+    categories: getAllLocalisedCategories(locale), // TODO: Localise
   });
 };
