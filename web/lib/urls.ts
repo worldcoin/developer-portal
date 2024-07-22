@@ -38,8 +38,12 @@ export const urls = {
   createAction: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions?createAction=true`,
 
-  setup: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/profile/setup`,
+  setup: (params: {
+    team_id: string;
+    app_id: string;
+    language?: boolean;
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/profile/setup${params.language ? "#languages" : ""}`,
 
   teams: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}`,

@@ -68,14 +68,14 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           return;
         }
 
-        await validateLocalisationQuery({
+        const result = await validateLocalisationQuery({
           variables: {
             app_metadata_id: appMetadataId,
             team_id: teamId,
           },
         });
 
-        if (!isValid?.validate_localisation?.success) {
+        if (!result?.data?.validate_localisation?.success) {
           toast.error("Localisation not set for all languages");
           return;
         }
