@@ -24,7 +24,7 @@ import { TYPOGRAPHY, Typography } from "../Typography";
 type Item = { label: string; value: string };
 
 export type SelectMultipleProps<T extends FieldValues> = {
-  items: Item[];
+  items: Item[] | undefined;
   values: PathValue<T, Path<T>>;
   onRemove: (value: string) => void;
   label: string;
@@ -98,13 +98,13 @@ export const SelectMultiple = <T extends FieldValues>(
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   const selectedItems: Item[] = useMemo(
-    () => values?.map((value: string) => items.find((i) => i.value === value)),
+    () => values?.map((value: string) => items?.find((i) => i.value === value)),
     [items, values],
   );
 
   const filteredItems = useMemo(
     () =>
-      items.filter(
+      items?.filter(
         (item) =>
           item.label.toLowerCase().includes(search.toLowerCase()) ||
           item.value.toLowerCase().includes(search.toLowerCase()),
@@ -254,7 +254,7 @@ export const SelectMultiple = <T extends FieldValues>(
         )}
 
         <div className={clsx("grid min-h-0 gap-y-1 overflow-y-auto")}>
-          {filteredItems.map((item, index) => props.children(item, index))}
+          {filteredItems?.map((item, index) => props.children(item, index))}
         </div>
       </div>
 
@@ -282,7 +282,7 @@ export const SelectMultiple = <T extends FieldValues>(
               <div className="flex flex-wrap gap-2">
                 {inputVisibleItems.map((item, index) => (
                   <div
-                    key={`select-multiple-option-${item.label}-${index}`}
+                    key={`select-multiple-option-${item?.label}-${index}`}
                     className="grid grid-cols-1fr/auto items-center overflow-hidden rounded-lg"
                   >
                     <Typography
@@ -360,7 +360,7 @@ const Item = (props: {
       {icon ?? null}
 
       <Typography variant={TYPOGRAPHY.R3} className="select-none">
-        {item.label}
+        {item?.label}
       </Typography>
 
       <div
