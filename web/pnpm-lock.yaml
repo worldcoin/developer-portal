@@ -99,8 +99,8 @@ importers:
         specifier: ^5.2.3
         version: 5.2.3
       jotai:
-        specifier: ^2.6.4
-        version: 2.6.4(@types/react@18.2.55)(react@18.2.0)
+        specifier: ^2.8.4
+        version: 2.8.4(@types/react@18.2.55)(react@18.2.0)
       jsdom:
         specifier: ^24.0.0
         version: 24.0.0
@@ -4716,8 +4716,8 @@ packages:
   jose@5.2.3:
     resolution: {integrity: sha512-KUXdbctm1uHVL8BYhnyHkgp3zDX5KW8ZhAKVFEfUbU2P8Alpzjb+48hHvjOdQIyPshoblhzsuqOwEEAbtHVirA==}
 
-  jotai@2.6.4:
-    resolution: {integrity: sha512-RniwQPX4893YlNR1muOtyUGHYaTD1fhEN4qnOuZJSrDHj6xdEMrqlRSN/hCm2fshwk78ruecB/P2l+NCVWe6TQ==}
+  jotai@2.8.4:
+    resolution: {integrity: sha512-f6jwjhBJcDtpeauT2xH01gnqadKEySwwt1qNBLvAXcnojkmb76EdqRt05Ym8IamfHGAQz2qMKAwftnyjeSoHAA==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=17.0.0'
@@ -13431,7 +13431,7 @@ snapshots:
 
   jose@5.2.3: {}
 
-  jotai@2.6.4(@types/react@18.2.55)(react@18.2.0):
+  jotai@2.8.4(@types/react@18.2.55)(react@18.2.0):
     optionalDependencies:
       '@types/react': 18.2.55
       react: 18.2.0
