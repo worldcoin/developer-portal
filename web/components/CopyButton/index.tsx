@@ -9,8 +9,9 @@ export const CopyButton = (props: {
   fieldName: string;
   fieldValue: string;
   className?: string;
+  disabled?: boolean;
 }) => {
-  const { fieldName, fieldValue, className } = props;
+  const { fieldName, fieldValue, className, disabled } = props;
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const copyToClipboard = (event: any) => {
@@ -28,6 +29,7 @@ export const CopyButton = (props: {
       type="button"
       onClick={copyToClipboard}
       className={clsx("pr-4", className)}
+      disabled={disabled}
     >
       {isCopied ? (
         <CopyCheckIcon className={clsx("size-5 text-grey-900")} />

@@ -118,16 +118,20 @@ export const ApiKeyRow = (props: {
             as="div"
             className="truncate md:!leading-6"
           >
-            {secretKey ?? "api_" + btoa(apiKey.id).substring(0, 15) + "..."}
+            {secretKey
+              ? "api_" + btoa(apiKey.id).substring(0, 20) + "......"
+              : "Reset to view"}
           </Typography>
 
           <CopyButton
             className={clsx(
-              "cursor-pointer !p-0 transition-opacity duration-300 ",
+              "cursor-default !p-0 opacity-0 transition-opacity duration-300",
               {
-                "sm:opacity-0 sm:group-hover:opacity-100": secretKey,
+                "cursor-pointer sm:opacity-0 sm:group-hover:opacity-100":
+                  secretKey,
               },
             )}
+            disabled={!secretKey}
             fieldValue={secretKey ?? ""}
             fieldName="API Key"
           />
