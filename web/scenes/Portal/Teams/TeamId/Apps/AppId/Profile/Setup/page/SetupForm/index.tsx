@@ -133,10 +133,10 @@ export const SetupForm = (props: LinksFormProps) => {
       app_mode: appMetadata?.app_mode === "mini-app" ? true : false,
       support_link: appMetadata?.support_link.includes("https://")
         ? appMetadata?.support_link
-        : undefined,
+        : "",
       support_email: appMetadata?.support_link.includes("@")
         ? appMetadata?.support_link.replace("mailto:", "")
-        : undefined,
+        : "",
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
