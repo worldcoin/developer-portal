@@ -109,8 +109,9 @@ export const Categories: Array<{ name: string; id: string }> = [
   { name: "Other", id: "other" },
 ];
 
-export const getLocalisedCategory = (name: string, locale: string = "en") => {
-  const translation = CategoryTranslations[locale];
+export const getLocalisedCategory = (name: string, locale: string) => {
+  const defaultLocale = locale || "en";
+  const translation = CategoryTranslations[defaultLocale];
   const id = name.toLowerCase();
   return {
     id: id,
@@ -118,8 +119,9 @@ export const getLocalisedCategory = (name: string, locale: string = "en") => {
   };
 };
 
-export const getAllLocalisedCategories = (locale: string = "en") => {
+export const getAllLocalisedCategories = (locale: string) => {
+  const defaultLocale = locale || "en";
   return Categories.map((category) =>
-    getLocalisedCategory(category.name, locale),
+    getLocalisedCategory(category.name, defaultLocale),
   );
 };
