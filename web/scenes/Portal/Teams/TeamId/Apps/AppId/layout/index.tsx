@@ -85,7 +85,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
               underlined
               segment={"API Keys"}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Api Keys</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>
