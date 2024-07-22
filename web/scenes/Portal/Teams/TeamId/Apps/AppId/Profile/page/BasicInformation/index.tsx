@@ -347,7 +347,13 @@ export const BasicInformation = (props: {
             })}
             <CountryBadge
               onClick={() =>
-                router.push(urls.setup({ team_id: teamId, app_id: appId }))
+                router.push(
+                  urls.setup({
+                    team_id: teamId,
+                    app_id: appId,
+                    language: true,
+                  }),
+                )
               }
               className={clsx({ hidden: !isEditable })}
             >

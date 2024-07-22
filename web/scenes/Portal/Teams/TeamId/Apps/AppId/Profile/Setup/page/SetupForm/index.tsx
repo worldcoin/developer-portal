@@ -365,7 +365,7 @@ export const SetupForm = (props: LinksFormProps) => {
 
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>
+          <Typography id="languages" variant={TYPOGRAPHY.H7}>
             Supported Languages <span className="text-system-error-500">*</span>
           </Typography>
 
