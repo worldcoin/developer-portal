@@ -6,7 +6,6 @@ query GetApps(
   $locale: String!
 ) {
   top_apps: app_metadata(
-    # FIXME: Add ordering by the number of users
     where: {
       _and: $topAppsConditions
       _or: [
@@ -50,7 +49,14 @@ query GetApps(
     }
   }
 
-  highlights: app_metadata(where: { app_id: { _in: $highlightsIds } }) {
+  highlights: app_metadata(
+    where: {
+      app_id: { _in: $highlightsIds }
+      verification_status: { _eq: "verified" }
+      is_reviewer_app_store_approved: { _eq: true }
+      is_reviewer_world_app_approved: { _eq: true }
+    }
+  ) {
     name
     short_name
     app_id
