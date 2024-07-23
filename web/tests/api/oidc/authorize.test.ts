@@ -26,6 +26,15 @@ jest.mock("legacy/backend/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
+jest.mock("ioredis", () => {
+  const ioredisMock = jest.requireActual("ioredis-mock");
+  return {
+    __esModule: true,
+    Redis: ioredisMock,
+    Cluster: ioredisMock.Cluster,
+  };
+});
+
 const fetchAppQueryResponse = () => ({
   data: {
     app: [
