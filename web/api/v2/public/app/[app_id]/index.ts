@@ -70,7 +70,7 @@ export async function GET(
   }
 
   const nativeAppMetadata = NativeApps[process.env.APP_ENV];
-  let dataToReturn = formatAppMetadata(app_metadata[0], metricsData);
+  let dataToReturn = formatAppMetadata(app_metadata[0], metricsData, locale);
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];

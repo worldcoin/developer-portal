@@ -233,6 +233,7 @@ export const languageMap = {
   es: { label: "Spanish", country_code: "ES" },
   es_419: { label: "Spanish (Latin America)", country_code: "AR" },
 };
+
 export const formCountriesList = () =>
   Object.entries(countries)
     .map(([key, value]) => ({

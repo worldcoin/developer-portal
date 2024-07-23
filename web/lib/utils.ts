@@ -1,8 +1,8 @@
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import { getLocalisedCategory } from "./categories";
 import {
-  Categories,
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
@@ -195,6 +195,7 @@ export const tryParseJSON = (jsonString: string) => {
 export const formatAppMetadata = (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
+  locale: string = "en",
 ): AppStoreFormattedFields => {
   const { app, ...appMetadata } = appData;
   const appStat: number =
@@ -235,7 +236,7 @@ export const formatAppMetadata = (
       `${appMetadata.app_id}_app_review`,
     ).digest,
     unique_users: appStat,
-    category: Categories.find((c) => c.name === appMetadata.category) ?? {
+    category: getLocalisedCategory(appMetadata.category, locale) ?? {
       id: "other",
       name: "Other",
     },
