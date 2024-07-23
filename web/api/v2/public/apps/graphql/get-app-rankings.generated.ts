@@ -139,7 +139,14 @@ export const GetAppsDocument = gql`
         }
       }
     }
-    highlights: app_metadata(where: { app_id: { _in: $highlightsIds } }) {
+    highlights: app_metadata(
+      where: {
+        app_id: { _in: $highlightsIds }
+        verification_status: { _eq: "verified" }
+        is_reviewer_app_store_approved: { _eq: true }
+        is_reviewer_world_app_approved: { _eq: true }
+      }
+    ) {
       name
       short_name
       app_id
