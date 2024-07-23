@@ -29,6 +29,7 @@
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
+    "ioredis": "^5.4.1",
     "jose": "^5.2.3",
     "jotai": "^2.8.4",
     "jsdom": "^24.0.0",
