@@ -19,9 +19,11 @@ import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { createRedisClient } from "@/lib/redis";
 import { captureEvent } from "@/services/posthogClient";
 import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import { createHash } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
 
@@ -84,6 +86,17 @@ export default async function handleOIDCAuthorize(
 
   if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);
+  }
+
+  if (!process.env.REDIS_URL || !process.env.REDIS_USERNAME) {
+    return errorResponse(
+      res,
+      500,
+      "missing_redis_url",
+      "Redis URL is missing in the environment variables.",
+      "REDIS_URL",
+      req,
+    );
   }
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
@@ -184,6 +197,30 @@ export default async function handleOIDCAuthorize(
     );
   }
 
+  const redis = createRedisClient({
+    url: process.env.REDIS_URL,
+    password: process.env.REDIS_PASSWORD,
+    username: process.env.REDIS_USERNAME,
+  });
+
+  // Anchor: Check the proof hasn't been replayed then save the proof for 1.5 hours
+  const hashedProof = createHash("sha256").update(proof).digest("hex");
+  const proofKey = `oidc:proof:${hashedProof}`;
+  const isProofReplayed = await redis.get(proofKey);
+
+  if (isProofReplayed) {
+    return errorResponse(
+      res,
+      400,
+      "invalid_proof",
+      "This proof has already been used. Please try again",
+      "proof",
+      req,
+    );
+  } else {
+    redis.set(proofKey, "1", "EX", 5400);
+  }
+
   // ANCHOR: Verify the zero-knowledge proof
   const { error: verifyError } = await verifyProof(
     {
@@ -199,6 +236,7 @@ export default async function handleOIDCAuthorize(
       max_age: 3600, // require that root be less than 1 hour old
     },
   );
+
   if (verifyError) {
     return errorResponse(
       res,

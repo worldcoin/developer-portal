@@ -1,6 +1,3 @@
-import { when } from "jest-when";
-import fetchMock from "jest-fetch-mock";
-import { createMocks } from "node-mocks-http";
 import {
   OIDCErrorCodes,
   OIDCScopes,
@@ -8,14 +5,18 @@ import {
   insertAuthCodeQuery,
 } from "@/legacy/backend/oidc";
 import { OIDCResponseType } from "@/legacy/lib/types";
+import { createRedisClient } from "@/lib/redis";
 import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
-import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
-import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
-import { jwtVerify } from "jose";
-import { publicJwk } from "../__mocks__/jwk";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
+import fetchMock from "jest-fetch-mock";
+import { when } from "jest-when";
+import { jwtVerify } from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { publicJwk } from "../__mocks__/jwk";
+import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
+import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
 
 jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
@@ -24,6 +25,15 @@ jest.mock("legacy/backend/kms", () =>
 jest.mock("legacy/backend/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
+
+jest.mock("ioredis", () => {
+  const ioredisMock = jest.requireActual("ioredis-mock");
+  return {
+    __esModule: true,
+    Redis: ioredisMock,
+    Cluster: ioredisMock.Cluster,
+  };
+});
 
 const fetchAppQueryResponse = () => ({
   data: {
@@ -63,7 +73,7 @@ jest.mock(
   })),
 );
 
-beforeEach(() => {
+beforeEach(async () => {
   when(requestReturnFn)
     .calledWith(
       expect.objectContaining({
@@ -98,6 +108,14 @@ beforeEach(() => {
     .mockImplementation((args) => ({
       data: { insert_auth_code_one: { auth_code: args.variables.auth_code } },
     }));
+
+  const redis = createRedisClient({
+    url: process.env.REDIS_URL!,
+    password: process.env.REDIS_PASSWORD,
+    username: process.env.REDIS_USERNAME!,
+  });
+
+  await redis.flushall();
 });
 
 beforeAll(() => {
@@ -229,6 +247,36 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
     const response = res._getJSONData();
     expect(response).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
+    });
+  });
+  test("prevents replayed proofs", async () => {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: { ...VALID_REQUEST },
+    });
+
+    const { req: req2, res: res2 } = createMocks<
+      NextApiRequest,
+      NextApiResponse
+    >({
+      method: "POST",
+      body: { ...VALID_REQUEST },
+    });
+
+    fetchMock
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
+      .mockResponse(JSON.stringify(validSemaphoreProofMock));
+
+    await handleOIDCAuthorize(req, res);
+    await handleOIDCAuthorize(req2, res2);
+
+    expect(res2._getStatusCode()).toBe(400);
+
+    const response = res2._getJSONData();
+    expect(response).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "This proof has already been used. Please try again",
     });
   });
 });

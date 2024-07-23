@@ -20,7 +20,7 @@ const pkceChallenge = (code_verifier: string) => {
     .replace(/=/g, "");
 };
 
-beforeEach(integrationDBClean);
+beforeEach(async () => await integrationDBClean());
 
 describe("/api/v1/oidc/token", () => {
   test("can exchange one-time auth code", async () => {
