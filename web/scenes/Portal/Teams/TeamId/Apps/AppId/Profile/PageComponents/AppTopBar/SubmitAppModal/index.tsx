@@ -8,6 +8,7 @@ import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -47,8 +48,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const [submitAppMutation, { loading: submittingApp }] =
     useSubmitAppMutation();
 
-  const [validateLocalisationQuery, { data: isValid }] =
-    useValidateLocalisationLazyQuery();
+  const [validateLocalisationQuery] = useValidateLocalisationLazyQuery();
 
   const { register, handleSubmit } = useForm<SubmitAppFormValues>({
     resolver: yupResolver(schema),
@@ -109,7 +109,6 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       appId,
       appMetadataId,
       canSubmitAppStore,
-      isValid?.validate_localisation?.success,
       setOpen,
       submitAppMutation,
       submittingApp,
@@ -127,7 +126,10 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         </CircleIconContainer>
         <form className="grid gap-y-10" onSubmit={handleSubmit(submit)}>
           <div className="grid grid-cols-1 justify-items-center gap-y-4">
-            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className={clsx("text-grey-900")}
+            >
               Submit for Review
             </Typography>
             <Typography

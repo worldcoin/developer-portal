@@ -13,6 +13,7 @@ import {
 import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
 import { useAtom, useSetAtom } from "jotai";
 import ErrorComponent from "next/error";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -294,13 +295,15 @@ export const AppTopBar = (props: AppTopBarProps) => {
             (isEditable ? (
               <DecoratedButton
                 type="submit"
-                className="h-12 px-6 py-3"
+                className={clsx("h-12 px-6 py-3", {
+                  hidden: appMetaData.app_id.includes("staging"),
+                })}
                 disabled={viewMode === "verified" || !isSubmitFormValid}
                 onClick={submitForReview}
               >
                 <Typography
                   variant={TYPOGRAPHY.M3}
-                  className="whitespace-nowrap"
+                  className={clsx("whitespace-nowrap")}
                 >
                   Submit for review
                 </Typography>
