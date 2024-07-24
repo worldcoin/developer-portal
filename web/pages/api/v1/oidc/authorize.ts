@@ -92,9 +92,20 @@ export default async function handleOIDCAuthorize(
     return errorResponse(
       res,
       500,
-      "missing_redis_url",
-      "Redis URL is missing in the environment variables.",
-      "REDIS_URL",
+      "missing_redis_config",
+      "Missing ENV variables.",
+      "INVALID_CONFIG",
+      req,
+    );
+  }
+
+  if (process.env.APP_ENV !== "dev" && !process.env.REDIS_USERNAME) {
+    return errorResponse(
+      res,
+      500,
+      "missing_redis_config",
+      "Missing ENV variables.",
+      "INVALID_CONFIG",
       req,
     );
   }
