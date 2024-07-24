@@ -99,7 +99,9 @@ export default async function handleOIDCAuthorize(
     );
   }
 
-  if (process.env.APP_ENV !== "dev" && !process.env.REDIS_USERNAME) {
+  console.warn("process.env.REDIS_URL", process.env.REDIS_URL);
+
+  if (process.env.NODE_ENV !== "development" && !process.env.REDIS_USERNAME) {
     return errorResponse(
       res,
       500,
