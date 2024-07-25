@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 export const CategoryTranslations: Record<string, Record<string, string>> = {
   en: {
     social: "Social",
@@ -110,12 +112,16 @@ export const Categories: Array<{ name: string; id: string }> = [
 ];
 
 export const getLocalisedCategory = (name: string, locale: string) => {
+  if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
+    locale = "en";
+    logger.warn("Missing locale, falling back to default: ", { locale });
+  }
   const defaultLocale = locale || "en";
   const translation = CategoryTranslations[defaultLocale];
   const id = name.toLowerCase();
   return {
     id: id,
-    name: translation?.[id],
+    name: translation?.[id] ?? CategoryTranslations["en"][id],
   };
 };
 
