@@ -326,6 +326,7 @@ export const BasicInformation = (props: {
           <div className="flex flex-wrap gap-2">
             {appMetaData.supported_languages?.map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
+              if (!language) return null;
               return (
                 <CountryBadge
                   key={index}
@@ -336,11 +337,11 @@ export const BasicInformation = (props: {
                     width={20}
                     height={20}
                     className="size-5"
-                    src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${language.country_code}.svg`}
+                    src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${language?.country_code}.svg`}
                     alt={`lang flag`}
                   />
                   <Typography variant={TYPOGRAPHY.R5}>
-                    {language.label}
+                    {language?.label}
                   </Typography>
                 </CountryBadge>
               );
