@@ -296,7 +296,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
               <DecoratedButton
                 type="submit"
                 className={clsx("h-12 px-6 py-3", {
-                  hidden: appMetaData.app_id.includes("staging"),
+                  hidden:
+                    appMetaData.app_id.includes("staging") &&
+                    process.env.APP_ENV === "production",
                 })}
                 disabled={viewMode === "verified" || !isSubmitFormValid}
                 onClick={submitForReview}
