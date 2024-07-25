@@ -111,8 +111,8 @@ export const Categories: Array<{ name: string; id: string }> = [
 
 export const getLocalisedCategory = (name: string, locale: string) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
-    locale = "en";
     console.warn("Missing locale, falling back to default: ", { locale });
+    locale = "en";
   }
   const defaultLocale = locale || "en";
   const translation = CategoryTranslations[defaultLocale];
