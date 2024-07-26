@@ -54,10 +54,7 @@ export const POST = async (req: NextRequest) => {
   let app_id = parsedParams.app_id;
 
   // If native app, map to app_id
-  if (
-    app_id in
-    Object.keys(NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV])
-  ) {
+  if (app_id in NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV]) {
     app_id = NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV][app_id];
   }
 
