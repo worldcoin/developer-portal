@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: { app_id: string } },
 ) {
   if (
-    !process.env.APP_ENV ||
+    !process.env.NEXT_PUBLIC_APP_ENV ||
     !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT
   ) {
     return NextResponse.json(
@@ -41,8 +41,8 @@ export async function GET(
   let app_id = params.app_id;
 
   // Native Apps have substituted app_ids so we pull their constant ID to get the metadata
-  if (app_id in NativeAppToAppIdMapping[process.env.APP_ENV]) {
-    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
+  if (app_id in NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV]) {
+    app_id = NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV][app_id];
   }
 
   const headers = request.headers;
@@ -69,7 +69,7 @@ export async function GET(
     metricsData = [await response.json()];
   }
 
-  const nativeAppMetadata = NativeApps[process.env.APP_ENV];
+  const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
   let dataToReturn = formatAppMetadata(app_metadata[0], metricsData, locale);
 
   if (dataToReturn.app_id in nativeAppMetadata) {
