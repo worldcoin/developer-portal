@@ -34,7 +34,7 @@ export const GET = async (request: NextRequest) => {
   }
 
   if (
-    !process.env.APP_ENV ||
+    !process.env.NEXT_PUBLIC_APP_ENV ||
     !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT
   ) {
     return NextResponse.json(
@@ -131,7 +131,7 @@ export const GET = async (request: NextRequest) => {
   );
 
   const metricsData: AppStatsReturnType = await response.json();
-  const nativeAppMetadata = NativeApps[process.env.APP_ENV];
+  const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Anchor: Format Apps
   let fomattedTopApps = topApps.map((app) =>
