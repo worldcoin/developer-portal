@@ -41,7 +41,7 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  if (!process.env.APP_ENV) {
+  if (!process.env.NEXT_PUBLIC_APP_ENV) {
     return errorResponse({
       statusCode: 400,
       code: "invalid_environment",
@@ -54,8 +54,11 @@ export const POST = async (req: NextRequest) => {
   let app_id = parsedParams.app_id;
 
   // If native app, map to app_id
-  if (app_id in Object.keys(NativeAppToAppIdMapping[process.env.APP_ENV])) {
-    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
+  if (
+    app_id in
+    Object.keys(NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV])
+  ) {
+    app_id = NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV][app_id];
   }
 
   // Fix the signal hash to be empty string
