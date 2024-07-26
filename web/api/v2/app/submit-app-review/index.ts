@@ -2,6 +2,7 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
+import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
@@ -40,11 +41,26 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
+  if (!process.env.APP_ENV) {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_environment",
+      detail: "Invalid Environment Configuration",
+      attribute: null,
+      req,
+    });
+  }
+
+  let app_id = parsedParams.app_id;
+
+  // If native app, map to app_id
+  if (app_id in Object.keys(NativeAppToAppIdMapping[process.env.APP_ENV])) {
+    app_id = NativeAppToAppIdMapping[process.env.APP_ENV][app_id];
+  }
+
   // Fix the signal hash to be empty string
   const signalHash = hashToField(parsedParams.rating.toString());
-  const external_nullifier = generateExternalNullifier(
-    `${parsedParams.app_id}_app_review`,
-  );
+  const external_nullifier = generateExternalNullifier(`${app_id}_app_review`);
 
   const { error, success } = await verifyProof(
     {
@@ -55,7 +71,7 @@ export const POST = async (req: NextRequest) => {
       external_nullifier: external_nullifier.digest,
     },
     {
-      is_staging: parsedParams.app_id.includes("staging"),
+      is_staging: app_id.includes("staging"),
       verification_level: parsedParams.verification_level,
       max_age: 3600, // require that root be less than 1 hour old
     },
@@ -81,7 +97,7 @@ export const POST = async (req: NextRequest) => {
     serviceClient,
   ).UpsertAppReview({
     nullifier_hash: parsedParams.nullifier_hash,
-    app_id: parsedParams.app_id,
+    app_id: app_id,
     country: parsedParams.country?.toLowerCase() ?? "",
     rating: parsedParams.rating,
   });
