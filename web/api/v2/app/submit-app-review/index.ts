@@ -71,7 +71,7 @@ export const POST = async (req: NextRequest) => {
       external_nullifier: external_nullifier.digest,
     },
     {
-      is_staging: app_id.includes("staging"),
+      is_staging: process.env.NEXT_PUBLIC_APP_ENV === "staging",
       verification_level: parsedParams.verification_level,
       max_age: 3600, // require that root be less than 1 hour old
     },
