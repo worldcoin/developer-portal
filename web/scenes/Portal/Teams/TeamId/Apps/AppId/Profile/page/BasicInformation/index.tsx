@@ -8,6 +8,7 @@ import { Input } from "@/components/Input";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { languageMap } from "@/lib/languages";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
@@ -22,7 +23,6 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
-import { languageMap } from "../../Setup/page/helpers/form-countries-list";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
