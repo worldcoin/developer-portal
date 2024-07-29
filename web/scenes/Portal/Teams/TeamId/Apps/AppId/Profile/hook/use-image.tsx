@@ -75,7 +75,8 @@ export const useImage = () => {
         URL.revokeObjectURL(url);
         reject("Error loading image");
       };
-      img.src = url;
+      // Sanitize the URL before assigning it to img.src to prevent XSS
+      img.src = url.replace(/javascript:/gi, "");
     });
   };
   const [uploadImage] = useUploadImageLazyQuery({});
@@ -118,7 +119,7 @@ export const useImage = () => {
     });
 
     if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.text(); // Fix applied: Changed from parsing error response as JSON to directly as text, addressing potential XSS vulnerability.
+      const errorBody = await uploadResponse.text();
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
