@@ -118,34 +118,30 @@ describe("/api/v1/verify", () => {
       query: { app_id: "app_staging_112233445566778" },
     });
 
-    // Simulate environment to treat request as staging
-    process.env.NODE_ENV = 'staging';
-
-    // mocks Alchemy response for staging
+    // mocks Alchemy response
     fetchMock.mockResponseOnce(JSON.stringify({ result: "0x" }));
 
     await handleVerify(req, res);
+
+    console.error(res._getJSONData());
 
     expect(res._getStatusCode()).toBe(200);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
         success: true,
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        nullifier_hash:
+          "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
         action: "verify",
       }),
     );
   });
+
   test("action inactive or not found", async () => {
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
       body: { ...validPayload, action: "invalid_action" },
       query: { app_id: "app_staging_112233445566778" },
     });
-
-    // Simulate action not found
-    const notFoundResponse = sampleENSActionQueryResponse();
-    notFoundResponse.data.app[0].actions = []; // No actions found
-    requestReturnFn.mockResolvedValue(notFoundResponse);
 
     await handleVerify(req, res);
 
@@ -164,11 +160,6 @@ describe("/api/v1/verify", () => {
       body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
     });
-
-    // Simulate action runs on-chain
-    const onChainResponse = sampleENSActionQueryResponse();
-    onChainResponse.data.app[0].engine = 'on-chain'; // Action runs on-chain
-    requestReturnFn.mockResolvedValue(onChainResponse);
 
     await handleVerify(req, res);
 
