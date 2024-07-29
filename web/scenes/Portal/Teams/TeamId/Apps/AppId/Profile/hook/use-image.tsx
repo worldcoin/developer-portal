@@ -47,7 +47,7 @@ export const useImage = () => {
       img.onload = () => {
         URL.revokeObjectURL(url); // Clean up the URL object
 
-        if (!['image/jpeg', 'image/png'].includes(file.type )) {
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
           toast("Image must be a jpeg or png", {
             toastId: "ImageValidationError",
             type: "error",
@@ -72,7 +72,6 @@ export const useImage = () => {
             type: "error",
           });
           reject(new ImageValidationError(`Image size must be under 250KB`));
-
         }
         resolve();
       };
@@ -83,7 +82,7 @@ export const useImage = () => {
       };
 
       const parsedUrl = new URL(url);
-      if (parsedUrl.protocol !== 'blob:') {
+      if (parsedUrl.protocol !== "blob:") {
         reject("Invalid image URL");
       }
 
