@@ -33,7 +33,6 @@ const generateCsp = () => {
       name: "font-src",
       values: [
         "'self'",
-        "https://world-id-public.s3.amazonaws.com",
         "http://world-id-assets.com",
         "http://staging.world-id-assets.com",
       ],
@@ -67,7 +66,6 @@ const generateCsp = () => {
         "'self'",
         "blob:", // Used to enforce image width and height
         "data:",
-        "https://world-id-public.s3.amazonaws.com",
         "https://worldcoin.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
