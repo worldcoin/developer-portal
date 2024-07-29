@@ -112,13 +112,17 @@ export const useImage = () => {
     formData.append("Content-Type", file.type);
     formData.append("file", file);
 
+    // Ensuring that responses are treated as secure plain text
     const uploadResponse = await fetch(url, {
       method: "POST",
       body: formData,
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8",
+      },
     });
 
     if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.json();
+      const errorBody = await uploadResponse.text(); // Changed from json to text to align with the plain text response assumption
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
