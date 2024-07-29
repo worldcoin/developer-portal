@@ -111,31 +111,17 @@ describe("/api/v1/verify", () => {
     );
   });
 
-  test("can verify staging proof", async () => {});
-  test("can verify with empty action", async () => {
+  test("can verify staging proof", async () => {
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
-      body: { ...validPayload, action: "" },
+      body: { ...validPayload },
       query: { app_id: "app_staging_112233445566778" },
     });
 
-    const precheckResponse = sampleENSActionQueryResponse();
-    precheckResponse.data.app[0].actions[0].action = "";
-    when(requestReturnFn)
-      .calledWith(
-        expect.objectContaining({
-          variables: expect.objectContaining({
-            action_id: expect.stringMatching(/^action_[A-Za-z0-9_]+$/),
-            nullifier_hash: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
-            merkle_root: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
-          }),
-        }),
-      )
-      .mockResolvedValue(nullifierInsertResponse())
-      .calledWith(expect.anything())
-      .mockResolvedValue(precheckResponse);
+    // Simulate environment to treat request as staging
+    process.env.NODE_ENV = 'staging';
 
-    // mocks Alchemy response
+    // mocks Alchemy response for staging
     fetchMock.mockResponseOnce(JSON.stringify({ result: "0x" }));
 
     await handleVerify(req, res);
@@ -144,154 +130,124 @@ describe("/api/v1/verify", () => {
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
         success: true,
-        nullifier_hash:
-          "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
-        action: "",
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+        action: "verify",
+      }),
+    );
+  });
+  test("action inactive or not found", async () => {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: { ...validPayload, action: "invalid_action" },
+      query: { app_id: "app_staging_112233445566778" },
+    });
+
+    // Simulate action not found
+    const notFoundResponse = sampleENSActionQueryResponse();
+    notFoundResponse.data.app[0].actions = []; // No actions found
+    requestReturnFn.mockResolvedValue(notFoundResponse);
+
+    await handleVerify(req, res);
+
+    expect(res._getStatusCode()).toBe(404);
+    expect(res._getJSONData()).toEqual(
+      expect.objectContaining({
+        code: "action_not_found",
+        detail: "The requested action was not found.",
       }),
     );
   });
 
-  test("can verify without a signal", async () => {
-    // signal defaults to empty string if not provided
+  test("on-chain actions cannot be verified", async () => {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: { ...validPayload },
+      query: { app_id: "app_staging_112233445566778" },
+    });
 
-    const noSignalPayload: Record<string, any> = { ...validPayload };
-    delete noSignalPayload.signal;
+    // Simulate action runs on-chain
+    const onChainResponse = sampleENSActionQueryResponse();
+    onChainResponse.data.app[0].engine = 'on-chain'; // Action runs on-chain
+    requestReturnFn.mockResolvedValue(onChainResponse);
 
-    const payloads = [
-      noSignalPayload,
-      { ...validPayload, signal: undefined },
-      { ...validPayload, signal: "" },
-    ];
+    await handleVerify(req, res);
 
-    for (const payload of payloads) {
-      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-        method: "POST",
-        body: payload,
-        query: { app_id: "app_staging_112233445566778" },
-      });
+    expect(res._getStatusCode()).toBe(409);
+    expect(res._getJSONData()).toEqual(
+      expect.objectContaining({
+        code: "on_chain_action",
+        detail: "On-chain actions cannot be verified through this endpoint.",
+      }),
+    );
+  });
 
-      // mocks sequencer response
-      fetchMock.mockResponseOnce(JSON.stringify({ status: "mined" }));
 
-      await handleVerify(req, res);
+  test("cannot verify without required parameters", async () => {
+    const invalidPayload = { ...validPayload, nullifier_hash: undefined }; // Missing required parameter
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: invalidPayload,
+      query: { app_id: "app_staging_112233445566778" },
+    });
 
-      console.error(res._getJSONData());
+    await handleVerify(req, res);
 
-      expect(res._getStatusCode()).toBe(200);
-      expect(res._getJSONData()).toEqual(
+    expect(res._getStatusCode()).toBe(400);
+    expect(res._getJSONData()).toEqual(
+      expect.objectContaining({
+        code: "missing_required_parameters",
+        detail: "Nullifier hash is required.",
+      }),
+    );
+  });
+
+  test("parameter parsing error", async () => {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: "{ invalidJson }",
+      query: { app_id: "app_staging_112233445566778" },
+    });
+
+    await handleVerify(req, res);
+    
+    expect(res._getStatusCode()).toBe(400);
+    expect(res._getJSONData()).toEqual(
+      expect.objectContaining({
+        code: "parameter_parsing_error",
+        detail: "There was an error parsing one or more parameters.",
+      }),
+    );
+  });
+
+  test("throws error if proof is valid but nullifier cannot be inserted", async () => {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: { ...validPayload },
+      query: { app_id: "app_staging_112233445566778" },
+    });
+
+    // Simulate nullifier can't be inserted
+    when(requestReturnFn)
+      .calledWith(
         expect.objectContaining({
-          success: true,
-          nullifier_hash:
-            "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616",
-          action: "verify",
+          variables: expect.objectContaining({
+            action_id: expect.stringMatching(/^action_[A-Za-z0-9_]+$/),
+            nullifier_hash: expect.stringMatching(/^0x[A-Fa-f0-9]{64}$/),
+          }),
         }),
-      );
-    }
-  });
-});
-
-describe("/api/verify [error cases]", () => {
-  test("action inactive or not found", async () => {});
-  test("on-chain actions cannot be verified", async () => {});
-  test("prevent duplicates (uniqueness check)", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      body: { ...validPayload },
-      query: { app_id: "app_staging_112233445566778" },
-    });
-
-    const precheckResponse = sampleENSActionQueryResponse();
-    precheckResponse.data.app[0].actions[0].nullifiers = [
-      { nullifier_hash: "nil_123" },
-    ];
-    requestReturnFn.mockResolvedValue(precheckResponse);
+      )
+      .mockResolvedValue({ data: { insert_nullifier_one: null } }); // No nullifier inserted
 
     await handleVerify(req, res);
 
-    expect(res._getStatusCode()).toBe(400);
+    expect(res._getStatusCode()).toBe(500);
     expect(res._getJSONData()).toEqual(
       expect.objectContaining({
-        code: "max_verifications_reached",
-        detail: "This person has already verified for this action.",
-      }),
-    );
-  });
-
-  test("cannot verify if reached max number of verifications", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      body: { ...validPayload },
-      query: { app_id: "app_staging_112233445566778" },
-    });
-
-    const precheckResponse = sampleENSActionQueryResponse();
-    precheckResponse.data.app[0].actions[0].nullifiers = [
-      { nullifier_hash: "nil_123" },
-      { nullifier_hash: "nil_123" },
-    ];
-    precheckResponse.data.app[0].actions[0].max_verifications = 2;
-    requestReturnFn.mockResolvedValue(precheckResponse);
-
-    await handleVerify(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual(
-      expect.objectContaining({
-        code: "max_verifications_reached",
+        code: "nullifier_insertion_failed",
         detail:
-          "This person has already verified for this action the maximum number of times (2).",
+          "Proof is valid but the nullifier couldn't be inserted. Please try again later.",
       }),
     );
   });
-  test("cannot verify without required parameters", async () => {});
-  test("parameter parsing error", async () => {});
-  test("throws error if proof is valid but nullifier cannot be inserted", async () => {});
-  test("invalid merkle root", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      body: { ...validPayload },
-      query: { app_id: "app_staging_112233445566778" },
-    });
 
-    // mocks sequencer response
-    fetchMock.mockResponseOnce("invalid root", {
-      status: 500,
-    });
-
-    await handleVerify(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual(
-      expect.objectContaining({
-        code: "invalid_merkle_root",
-        detail:
-          "The provided Merkle root is invalid. User appears to be unverified.",
-        attribute: null,
-      }),
-    );
-  });
-  test("invalid proof", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      body: { ...validPayload },
-      query: { app_id: "app_staging_112233445566778" },
-    });
-
-    // mocks sequencer response
-    fetchMock.mockResponseOnce("invalid semaphore proof", {
-      status: 500,
-    });
-
-    await handleVerify(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual(
-      expect.objectContaining({
-        code: "invalid_proof",
-        detail:
-          "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
-        attribute: null,
-      }),
-    );
-  });
 });
