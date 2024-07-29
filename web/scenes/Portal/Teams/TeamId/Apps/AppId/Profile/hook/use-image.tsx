@@ -130,7 +130,6 @@ export const useImage = () => {
     });
 
     if (!uploadResponse.ok) {
-      // Decode and sanitize any HTML characters from the response to prevent XSS
       const errorBody = await uploadResponse.json();
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
