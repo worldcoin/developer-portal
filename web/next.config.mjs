@@ -13,12 +13,7 @@ const nextConfig = {
   reactStrictMode: false,
   output: "standalone",
   images: {
-    // TODO: world-id-public.s3.amazonaws.com is deprecated and should be removed
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "world-id-public.s3.amazonaws.com",
-      },
       {
         protocol: "https",
         hostname: cdnURLObject.hostname,
