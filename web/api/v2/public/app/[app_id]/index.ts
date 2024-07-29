@@ -1,5 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
+import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
@@ -46,7 +47,7 @@ export async function GET(
   }
 
   const headers = request.headers;
-  const locale = headers.get("x-accept-language") ?? "";
+  const locale = parseLocale(headers.get("x-accept-language") ?? "");
 
   const client = await getAPIServiceGraphqlClient();
   // Return the metadata

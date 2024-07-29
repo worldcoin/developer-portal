@@ -8,6 +8,7 @@ import { SelectMultiple } from "@/components/SelectMultiple";
 import { SwitcherBox } from "@/components/SwitcherBox";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { formCountriesList, formLanguagesList } from "@/lib/languages";
 import { Auth0SessionUser } from "@/lib/types";
 import {
   checkUserPermissions,
@@ -26,10 +27,6 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import {
-  formCountriesList,
-  formLanguagesList,
-} from "../helpers/form-countries-list";
 import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
 
 const formatEmailLink = (email: string | undefined) => {

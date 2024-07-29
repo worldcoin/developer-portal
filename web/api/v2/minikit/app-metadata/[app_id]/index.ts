@@ -1,6 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
+import { parseLocale } from "@/lib/languages";
 import { formatAppMetadata } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
@@ -92,7 +93,7 @@ export const GET = async (
   const client = await getAPIServiceGraphqlClient();
 
   const headers = req.headers;
-  const locale = headers.get("x-accept-language") ?? "";
+  const locale = parseLocale(headers.get("x-accept-language") ?? "");
 
   // Return the metadata
   const { app_metadata } = await getAppMetadataSdk(client).GetAppMetadata({
