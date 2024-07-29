@@ -9,9 +9,9 @@
   font-display: block;
   font-family: "GT America";
   src:
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-webfont.woff2")
+    url("https://world-id-assets.com/fonts/gt-america-standard-regular-webfont.woff2")
       format("woff2"),
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-webfont.woff")
+    url("https://world-id-assets.com/fonts/gt-america-standard-regular-webfont.woff")
       format("woff");
   font-weight: 400;
   font-style: normal;
@@ -21,9 +21,9 @@
   font-display: block;
   font-family: "GT America";
   src:
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-italic-webfont.woff2")
+    url("https://world-id-assets.com/fonts/gt-america-standard-regular-italic-webfont.woff2")
       format("woff2"),
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-regular-italic-webfont.woff")
+    url("https://world-id-assets.com/fonts/gt-america-standard-regular-italic-webfont.woff")
       format("woff");
   font-weight: 400;
   font-style: italic;
@@ -33,9 +33,9 @@
   font-display: block;
   font-family: "GT America";
   src:
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-medium-webfont.woff2")
+    url("https://world-id-assets.com/fonts/gt-america-standard-medium-webfont.woff2")
       format("woff2"),
-    url("https://world-id-public.s3.amazonaws.com/docs/gt-america-standard-medium-webfont.woff")
+    url("https://world-id-assets.com/fonts/gt-america-standard-medium-webfont.woff")
       format("woff");
   font-weight: 500;
   font-style: normal;
@@ -52,25 +52,7 @@
 
 @font-face {
   font-family: "TWK Lausanne";
-  src: url("https://staging.world-id-assets.com/fonts/TWKLausanne-400.woff2")
-    format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "TWK Lausanne";
   src: url("https://world-id-assets.com/fonts/TWKLausanne-550.woff2")
-    format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "TWK Lausanne";
-  src: url("https://staging.world-id-assets.com/fonts/TWKLausanne-550.woff2")
     format("woff2");
   font-weight: 500;
   font-style: normal;
