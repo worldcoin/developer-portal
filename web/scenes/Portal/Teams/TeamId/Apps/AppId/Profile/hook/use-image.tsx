@@ -46,38 +46,48 @@ export const useImage = () => {
       const img = new window.Image();
       img.onload = () => {
         URL.revokeObjectURL(url); // Clean up the URL object
+
+        if (!['image/jpeg', 'image/png'].includes(file.type )) {
+          toast("Image must be a jpeg or png", {
+            toastId: "ImageValidationError",
+            type: "error",
+          });
+          reject(new ImageValidationError(`Image must be a jpeg or png`));
+        }
+
         const imageAspectRatio = img.naturalWidth / img.naturalHeight;
         const targetAspectRatio = width / height;
-        if (Math.abs(imageAspectRatio - targetAspectRatio) < 0.01) {
-          // Allow a small error margin
-          if (file.size <= 250 * 1024) {
-            resolve();
-          } else {
-            toast("Image size must be under 250KB", {
-              toastId: "ImageValidationError",
-              type: "error",
-            });
-            reject(new ImageValidationError(`Image size must be under 250KB`));
-          }
-        } else {
+
+        if (Math.abs(imageAspectRatio - targetAspectRatio) > 0.01) {
           toast(`Image must have an aspect ratio of ${width}:${height}`, {
             toastId: "ImageValidationError",
             type: "error",
           });
-          reject(
-            new ImageValidationError(
-              `Image must have an aspect ratio of ${width}:${height}`,
-            ),
-          );
+          reject(new ImageValidationError(`Image aspect ratio is incorrect`));
         }
+
+        if (file.size >= 250 * 1024) {
+          toast("Image size must be under 250KB", {
+            toastId: "ImageValidationError",
+            type: "error",
+          });
+          reject(new ImageValidationError(`Image size must be under 250KB`));
+
+        }
+        resolve();
       };
+
       img.onerror = () => {
         URL.revokeObjectURL(url);
         reject("Error loading image");
       };
-      // Sanitize the URL before assigning it to img.src to prevent XSS
-      const sanitizedUrl = new URL(url);
-      img.src = sanitizedUrl.href;
+
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'blob:') {
+        reject("Invalid image URL");
+      }
+
+      img.src = parsedUrl.href;
     });
   };
   const [uploadImage] = useUploadImageLazyQuery({});
@@ -121,11 +131,7 @@ export const useImage = () => {
 
     if (!uploadResponse.ok) {
       // Decode and sanitize any HTML characters from the response to prevent XSS
-      const errorBody = await uploadResponse.text().then(text => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(`<!doctype html><body>${text}`, 'text/html');
-        return doc.body.textContent || "";
-      });
+      const errorBody = await uploadResponse.json();
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
