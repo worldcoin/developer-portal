@@ -76,7 +76,8 @@ export const useImage = () => {
         reject("Error loading image");
       };
       // Sanitize the URL before assigning it to img.src to prevent XSS
-      img.src = url.replace(/javascript:/gi, "");
+      const sanitizedUrl = new URL(url);
+      img.src = sanitizedUrl.href;
     });
   };
   const [uploadImage] = useUploadImageLazyQuery({});
@@ -119,7 +120,12 @@ export const useImage = () => {
     });
 
     if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.text();
+      // Decode and sanitize any HTML characters from the response to prevent XSS
+      const errorBody = await uploadResponse.text().then(text => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<!doctype html><body>${text}`, 'text/html');
+        return doc.body.textContent || "";
+      });
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
