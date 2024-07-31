@@ -4,7 +4,6 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getAllLocalisedCategories } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
-import { logger } from "@/lib/logger";
 import { AppStatsReturnType } from "@/lib/types";
 import { formatAppMetadata, isValidHostName, rankApps } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -61,7 +60,8 @@ export const GET = async (request: NextRequest) => {
   const headers = request.headers;
   const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
-  logger.warn("App Locale", { locale });
+
+  console.warn("App Locale", locale);
 
   const { page, limit, app_mode } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
