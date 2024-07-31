@@ -14,30 +14,6 @@ import { createHash, timingSafeEqual } from "crypto";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
 
-const findAuthCodeQuery = gql`
-  query FindAuthCode(
-    $auth_code: String!
-    $app_id: String!
-    $now: timestamptz!
-  ) {
-    auth_code(
-      where: {
-        app_id: { _eq: $app_id }
-        expires_at: { _gt: $now }
-        auth_code: { _eq: $auth_code }
-      }
-    ) {
-      nullifier_hash
-      verification_level
-      scope
-      code_challenge
-      code_challenge_method
-      redirect_uri
-      nonce
-    }
-  }
-`;
-
 const deleteAuthCodeQuery = gql`
   mutation DeleteAuthCode(
     $auth_code: String!
