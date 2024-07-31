@@ -46,47 +46,36 @@ export const useImage = () => {
       const img = new window.Image();
       img.onload = () => {
         URL.revokeObjectURL(url); // Clean up the URL object
-
-        if (!["image/jpeg", "image/png"].includes(file.type)) {
-          toast("Image must be a jpeg or png", {
-            toastId: "ImageValidationError",
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image must be a jpeg or png`));
-        }
-
         const imageAspectRatio = img.naturalWidth / img.naturalHeight;
         const targetAspectRatio = width / height;
-
-        if (Math.abs(imageAspectRatio - targetAspectRatio) > 0.01) {
+        if (Math.abs(imageAspectRatio - targetAspectRatio) < 0.01) {
+          // Allow a small error margin
+          if (file.size <= 250 * 1024) {
+            resolve();
+          } else {
+            toast("Image size must be under 250KB", {
+              toastId: "ImageValidationError",
+              type: "error",
+            });
+            reject(new ImageValidationError(`Image size must be under 250KB`));
+          }
+        } else {
           toast(`Image must have an aspect ratio of ${width}:${height}`, {
             toastId: "ImageValidationError",
             type: "error",
           });
-          reject(new ImageValidationError(`Image aspect ratio is incorrect`));
+          reject(
+            new ImageValidationError(
+              `Image must have an aspect ratio of ${width}:${height}`,
+            ),
+          );
         }
-
-        if (file.size >= 250 * 1024) {
-          toast("Image size must be under 250KB", {
-            toastId: "ImageValidationError",
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image size must be under 250KB`));
-        }
-        resolve();
       };
-
       img.onerror = () => {
         URL.revokeObjectURL(url);
         reject("Error loading image");
       };
-
-      const parsedUrl = new URL(url);
-      if (parsedUrl.protocol !== "blob:") {
-        reject("Invalid image URL");
-      }
-
-      img.src = parsedUrl.href;
+      img.src = url;
     });
   };
   const [uploadImage] = useUploadImageLazyQuery({});
