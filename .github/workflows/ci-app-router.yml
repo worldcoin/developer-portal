@@ -130,7 +130,7 @@ jobs:
 
       - name: Run services
         run: |
-          docker-compose -f ../docker-compose-test.yaml up -d hasura_test
+          docker compose -f ../docker-compose-test.yaml up -d hasura_test
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
