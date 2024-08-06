@@ -60,7 +60,6 @@ export const GET = async (request: NextRequest) => {
   const headers = request.headers;
   const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
-  console.log("App Locale", headers.get("x-accept-language"));
 
   const { page, limit, app_mode } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
