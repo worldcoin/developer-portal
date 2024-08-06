@@ -100,6 +100,7 @@ const app_metadata = {
   name: "test",
   app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
   logo_img_url: null,
+  short_name: "test",
   showcase_img_urls: null,
   hero_image_url: null,
   world_app_description: "Random Values",
@@ -198,6 +199,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       world_app_button_text: "Use Integration",
       whitelisted_addresses: null,
       app_mode: "external",
+      short_name: "test",
       description: {
         overview: "",
         how_it_works: "",

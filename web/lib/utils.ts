@@ -209,16 +209,17 @@ export const formatAppMetadata = (
     localisedContent?.description ?? appMetadata.description,
   );
   const { localisations, ...appMetadataWithoutLocalisations } = appMetadata;
+  const name = localisedContent?.name ?? appMetadata.name;
   return {
     ...appMetadataWithoutLocalisations,
-    name: localisedContent?.name ?? appMetadata.name,
+    name: name,
     world_app_button_text:
       localisedContent?.world_app_button_text ??
       appMetadata.world_app_button_text,
     world_app_description:
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
-    short_name: localisedContent?.short_name ?? appMetadata.short_name,
+    short_name: localisedContent?.short_name ?? appMetadata.short_name ?? name,
     logo_img_url: getCDNImageUrl(appMetadata.app_id, appMetadata.logo_img_url),
     showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
       getCDNImageUrl(appMetadata.app_id, url),
