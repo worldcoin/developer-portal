@@ -166,7 +166,7 @@ jobs:
 
       - name: Run backend services
         run: |
-          docker-compose -f ../docker-compose.yaml up -d
+          docker compose -f ../docker-compose.yaml up -d
 
       - name: Set up Node 20
         uses: actions/setup-node@v3
