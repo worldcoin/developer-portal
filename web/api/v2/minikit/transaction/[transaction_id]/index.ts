@@ -1,7 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
-import { logger } from "@/lib/logger";
 import { TransactionMetadata } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
 import { createSignedFetcher } from "aws-sigv4-fetch";
@@ -111,7 +110,7 @@ export const GET = async (
   if (!res.ok) {
     const errorData = await res.json(); // Parse the response body to get the error message
 
-    logger.warn("Failed to fetch transaction data", errorData);
+    console.warn("Failed to fetch transaction data", errorData);
 
     let errorMessage;
     if (errorData && errorData.error) {
