@@ -58,9 +58,8 @@ const schema = yup.object({
     .optional(),
   integration_url: yup
     .string()
-    .url("Must be a valid https:// URL")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Link must be a valid HTTPS URL",
+    .matches(/^https?.*/, {
+      message: "Link must be a valid URL",
       excludeEmptyString: true,
     })
     .required("This field is required"),
