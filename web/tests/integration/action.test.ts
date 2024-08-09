@@ -265,4 +265,26 @@ describe("user role", () => {
 
     expect(response.data.update_action_by_pk).toBeNull();
   });
+
+  test("action inactive or not found", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    const query = gql(`query ListActions {
+      action(where: {_or: [{is_active: {_eq: false}}, {id: {_is_null: true}}]}) {
+        id
+        is_active
+      }
+    }`);
+
+    const res = await serviceClient.query({ query });
+
+    // Ensure we get at least one inactive action, implying the query matches inactive conditions
+    expect(res.data.action).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          is_active: false
+        })
+      ])
+    );
+  });
 });
