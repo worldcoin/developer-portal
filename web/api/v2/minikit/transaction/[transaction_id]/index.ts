@@ -106,27 +106,26 @@ export const GET = async (
       },
     },
   );
+  const data = await res.json();
 
   if (!res.ok) {
-    const errorData = await res.json(); // Parse the response body to get the error message
-
-    console.warn("Failed to fetch transaction data", errorData);
+    console.warn("Failed to fetch transaction data", data.message);
 
     let errorMessage;
-    if (errorData && errorData.error) {
-      errorMessage = errorData.error.message;
+    if (data && data.error) {
+      errorMessage = data.error.message;
     } else {
       errorMessage = "Unknown error";
     }
+
     return errorResponse({
       statusCode: res.status,
-      code: "internal_server_error",
-      detail: errorMessage,
+      code: "internal_server_error_transaction",
+      detail: "Transaction fetch to backend failed",
       attribute: "transaction",
       req,
     });
   }
-  const data = await res.json();
 
   if (data?.result?.transactions.length !== 0) {
     const transaction = data?.result?.transactions[0] as TransactionMetadata;
