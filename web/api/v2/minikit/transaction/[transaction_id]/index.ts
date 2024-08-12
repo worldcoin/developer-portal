@@ -106,11 +106,13 @@ export const GET = async (
       },
     },
   );
+
   const data = await res.json();
 
   if (!res.ok) {
-    console.warn("Failed to fetch transaction data", data.message);
-
+    console.warn("Failed to fetch transaction data", res);
+    console.warn("Transaction data", data);
+    console.warn("Transaction ID", await res.text());
     let errorMessage;
     if (data && data.error) {
       errorMessage = data.error.message;
