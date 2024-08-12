@@ -110,9 +110,8 @@ export const GET = async (
   const data = await res.json();
 
   if (!res.ok) {
-    console.warn("Failed to fetch transaction data", res);
-    console.warn("Transaction data", data);
-    console.warn("Transaction ID", await res.text());
+    console.warn("Error fetching transaction", data);
+
     let errorMessage;
     if (data && data.error) {
       errorMessage = data.error.message;
@@ -122,7 +121,7 @@ export const GET = async (
 
     return errorResponse({
       statusCode: res.status,
-      code: "internal_server_error_transaction",
+      code: data.error.code ?? "internal_api_error",
       detail: "Transaction fetch to backend failed",
       attribute: "transaction",
       req,
