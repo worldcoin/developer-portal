@@ -27,7 +27,8 @@ export const getTransactionData = async (
     const response = await signedFetch(url, {
       method: "GET",
       headers: {
-        "Cache-Control": "no-store, max-age=0",
+        "User-Agent": "DevPortal/1.0",
+        "Content-Type": "application/json",
       },
     });
 

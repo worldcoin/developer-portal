@@ -102,7 +102,8 @@ export const GET = async (
     {
       method: "GET",
       headers: {
-        "Cache-Control": "no-store, max-age=0",
+        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+        "Content-Type": "application/json",
       },
     },
   );
