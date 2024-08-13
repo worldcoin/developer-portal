@@ -151,7 +151,7 @@ export const GET = async (request: NextRequest) => {
         integration_url: nativeAppItem.integration_url,
         app_id: nativeAppItem.app_id,
         unique_users:
-          metricsData.find((stat) => stat.app_id === app.app_id)
+          metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,
       };
     }
@@ -167,7 +167,7 @@ export const GET = async (request: NextRequest) => {
         integration_url: nativeAppItem.integration_url,
         app_id: nativeAppItem.app_id,
         unique_users:
-          metricsData.find((stat) => stat.app_id === app.app_id)
+          metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,
       };
     }
