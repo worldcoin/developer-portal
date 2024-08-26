@@ -87,6 +87,7 @@ const validAppMetadataResponse = [
     supported_countries: ["us"],
     supported_languages: ["en"],
     app_rating: 3.2,
+    associated_domains: ["https://worldcoin.com/apps"],
     app: { team: { name: "test" } },
   },
 ];
@@ -124,6 +125,7 @@ const app_metadata = {
   support_link: "mailto:test@test.com",
   supported_countries: ["us"],
   supported_languages: ["en"],
+  associated_domains: ["https://worldcoin.com/apps"],
   app_rating: 3.2,
   unique_users: 0,
   team_name: "test",
@@ -209,6 +211,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
         id: "social",
         name: "Social",
       },
+      associated_domains: ["https://worldcoin.com/apps"],
       ratings_external_nullifier:
         "0x00d71e72b03eabb446f12650edb5cda22a932cada51bb0a16e0d5ce0ebc09965",
       integration_url: "https://github.com",
