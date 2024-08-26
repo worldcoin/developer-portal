@@ -57,7 +57,17 @@ const schema = yup.object({
     .oneOf(Object.values(VerificationLevel))
     .required("This attribute is required."),
   app_id: yup.string().strict().required("This attribute is required."),
-  signal: yup.string().strict().required("This attribute is required."), // `signal` in the context of World ID; `nonce` in the context of OIDC
+  signal: yup // `signal` in the context of World ID; `nonce` in the context of OIDC
+    .string()
+    .ensure()
+    .when("response_type", {
+      is: (response_type: string) =>
+        !["code", "code token"].includes(response_type),
+      then: (nonce) =>
+        nonce.required(
+          "`nonce` required for all response types except `code` and `code token`.",
+        ),
+    }), // NOTE: nonce is required for all response types except `code` and `code token`
   code_challenge: yup.string(),
   code_challenge_method: yup.string(),
   scope: yup.string().strict().required("The openid scope is always required."),
