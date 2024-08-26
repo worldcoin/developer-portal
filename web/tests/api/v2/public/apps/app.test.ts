@@ -76,6 +76,7 @@ describe("/api/public/app/[app_id]", () => {
         team_name: "Example Team",
         whitelisted_addresses: ["0x1234", "0x5678"],
         app_mode: "mini-app",
+        associated_domains: ["https://worldcoin.com/apps"],
         ratings_external_nullifier:
           "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
         support_link: "andy@gmail.com",
@@ -127,6 +128,7 @@ describe("/api/public/app/[app_id]", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             support_link: "andy@gmail.com",
+            associated_domains: ["https://worldcoin.com/apps"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
@@ -162,6 +164,7 @@ describe("/api/public/app/[app_id]", () => {
         support_link: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
+        associated_domains: ["https://worldcoin.com/apps"],
         app_rating: 3.4,
         unique_users: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],

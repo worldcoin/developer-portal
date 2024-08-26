@@ -209,6 +209,7 @@ export type AppStoreFormattedFields = Omit<
   unique_users: number;
   team_name: string;
   category: { id: string; name: string };
+  associated_domains: string[];
   description: {
     overview: string;
     how_it_works: string;

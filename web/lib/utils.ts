@@ -237,6 +237,7 @@ export const formatAppMetadata = (
       `${appMetadata.app_id}_app_review`,
     ).digest,
     unique_users: appStat,
+    associated_domains: ["https://worldcoin.com/apps"],
     category: getLocalisedCategory(appMetadata.category, locale) ?? {
       id: "other",
       name: "Other",
