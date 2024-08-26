@@ -181,7 +181,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             category: { id: "social", name: "Social" },
-            associated_domains: ["https://worldcoin.com"],
+            associated_domains: ["https://worldcoin.org"],
             description: {
               overview: "random string",
               how_it_works: "23423",
@@ -207,7 +207,7 @@ describe("/api/v2/public/apps", () => {
               how_it_works: "fwefw",
               how_to_connect: "fwefw",
             },
-            associated_domains: ["https://worldcoin.com"],
+            associated_domains: ["https://worldcoin.org"],
             showcase_img_urls: [
               "https://cdn.test.com/2/showcase1.png",
               "https://cdn.test.com/2/showcase2.png",
@@ -232,7 +232,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             app_mode: "mini-app",
-            associated_domains: ["https://worldcoin.com"],
+            associated_domains: ["https://worldcoin.org"],
             category: { id: "social", name: "Social" },
             description: {
               how_it_works: "random",
@@ -315,7 +315,7 @@ describe("/api/v2/public/apps", () => {
             team_name: "Example Team",
             app_mode: "native",
             integration_url: "worldapp://test",
-            associated_domains: ["https://worldcoin.com"],
+            associated_domains: ["https://worldcoin.org"],
             app_website_url: "https://example.com",
             source_code_url: "https://github.com/example/app",
             support_link: "andy@gmail.com",
