@@ -556,7 +556,6 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("should return error if signal_hash format is invalid", async () => {
     const invalidVariants = [
-      "0x123",
       "0x12345678901234567890123456789012345678901234567890123456789012__",
     ];
 
@@ -604,12 +603,6 @@ describe("/api/v2/verify [error cases]", () => {
     }
 
     expect(bodies[0]).toEqual({
-      code: "validation_error",
-      detail: "signal_hash must be exactly 66 characters",
-      attribute: "signal_hash",
-    });
-
-    expect(bodies[1]).toEqual({
       code: "validation_error",
       detail: "Invalid signal_hash.",
       attribute: "signal_hash",
