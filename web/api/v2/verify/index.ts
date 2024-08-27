@@ -22,7 +22,6 @@ const schema = yup.object({
     .required("This attribute is required."),
   signal_hash: yup
     .string()
-    .length(66)
     .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
     .default(
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
