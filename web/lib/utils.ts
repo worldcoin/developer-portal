@@ -142,22 +142,24 @@ export const createLocaliseCategory = (category: string) => {
   return `world_id_partner_category_${category.toLowerCase()}`;
 };
 
-export const createLocaliseField = (app_id: string, field: string) => {
-  return `world_id_partner_${app_id}_${field}`;
+export const createLocaliseField = (appId: string, field: string) => {
+  return `world_id_partner_${appId}_${field}`;
 };
 
-// converts the stringified array of addresses to a format that can be used in a query
-export const formatWhiteListedAddresses = (
-  addresses: string | null | undefined,
+// converts the stringified array of string arrays to a format that can be used in a query
+export const formatMultipleStringInput = (
+  stringifiedArray: string | null | undefined,
 ) => {
-  if (!addresses) return null;
+  if (!stringifiedArray) return null;
 
-  const formattedAddresses = `{${addresses
+  const formattedArray = `{${stringifiedArray
     .split(",")
-    .map((address) => `"${address.trim()}"`)
+    .map((str) => str.trim())
+    .filter((str) => str.length > 0) // Remove empty strings
+    .map((str) => `"${str}"`)
     .join(",")}}`;
 
-  return formattedAddresses;
+  return formattedArray;
 };
 
 export const convertArrayToHasuraArray = (
@@ -237,7 +239,6 @@ export const formatAppMetadata = (
       `${appMetadata.app_id}_app_review`,
     ).digest,
     unique_users: appStat,
-    associated_domains: ["https://worldcoin.org"],
     category: getLocalisedCategory(appMetadata.category, locale) ?? {
       id: "other",
       name: "Other",

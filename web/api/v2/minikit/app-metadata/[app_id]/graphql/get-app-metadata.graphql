@@ -19,6 +19,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     supported_countries
     supported_languages
     app_rating
+    associated_domains
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text

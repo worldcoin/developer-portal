@@ -32,6 +32,7 @@ export type GetAppMetadataQuery = {
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     app_rating?: number | null;
+    associated_domains?: Array<string> | null;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -69,6 +70,7 @@ export const GetAppMetadataDocument = gql`
       supported_countries
       supported_languages
       app_rating
+      associated_domains
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

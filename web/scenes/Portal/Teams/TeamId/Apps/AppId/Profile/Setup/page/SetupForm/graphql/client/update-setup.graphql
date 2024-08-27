@@ -6,6 +6,7 @@ mutation UpdateSetup(
   $support_link: String
   $supported_countries: [String!]
   $supported_languages: [String!]
+  $associated_domains: [String!]
   $status: String!
 ) {
   update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
@@ -19,6 +20,7 @@ mutation UpdateSetup(
       support_link: $support_link
       supported_countries: $supported_countries
       supported_languages: $supported_languages
+      associated_domains: $associated_domains
     }
   ) {
     id

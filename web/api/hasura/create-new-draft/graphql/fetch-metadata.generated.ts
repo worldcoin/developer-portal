@@ -37,6 +37,7 @@ export type FetchAppMetadataQuery = {
       supported_countries?: Array<string> | null;
       supported_languages?: Array<string> | null;
       short_name: string;
+      associated_domains?: Array<string> | null;
     }>;
   }>;
 };
@@ -80,6 +81,7 @@ export const FetchAppMetadataDocument = gql`
         supported_countries
         supported_languages
         short_name
+        associated_domains
       }
     }
   }

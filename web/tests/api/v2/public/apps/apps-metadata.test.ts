@@ -90,6 +90,7 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
+            associated_domains: ["https://worldcoin.org"],
             description: JSON.stringify({
               description_overview: "random string",
               description_how_it_works: "23423",
@@ -112,6 +113,7 @@ describe("/api/v2/public/apps", () => {
             world_app_button_text: "random",
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
+            associated_domains: ["https://worldcoin.org"],
             app_mode: "external",
             description: JSON.stringify({
               description_overview: "fwefw",
@@ -133,6 +135,7 @@ describe("/api/v2/public/apps", () => {
             world_app_button_text: "random",
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
+            associated_domains: ["https://worldcoin.org"],
             app_mode: "mini-app",
             showcase_img_urls: [
               "showcase1.png",
@@ -279,6 +282,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             support_link: "andy@gmail.com",
+            associated_domains: ["https://worldcoin.org"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,

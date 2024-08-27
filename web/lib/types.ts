@@ -188,6 +188,7 @@ export type AppStoreMetadataFields = {
   supported_countries?: any | null;
   supported_languages?: any | null;
   localisations: LocalisedMetadata[];
+  associated_domains?: string[] | null;
   app: {
     team: { name?: string | null };
   };
@@ -209,7 +210,6 @@ export type AppStoreFormattedFields = Omit<
   unique_users: number;
   team_name: string;
   category: { id: string; name: string };
-  associated_domains: string[];
   description: {
     overview: string;
     how_it_works: string;
