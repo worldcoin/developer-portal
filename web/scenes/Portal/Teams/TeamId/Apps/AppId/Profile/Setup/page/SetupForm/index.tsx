@@ -19,7 +19,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -243,6 +243,24 @@ export const SetupForm = (props: LinksFormProps) => {
       updatingInfo,
     ],
   );
+
+  const formatArrayInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const inputEvent = e.nativeEvent as InputEvent;
+
+    if (
+      inputValue.length > 0 &&
+      inputValue[inputValue.length - 1] === "," &&
+      inputEvent.inputType !== "deleteContentBackward"
+    ) {
+      const formattedValue = inputValue
+        .split(",")
+        .map((domain) => domain.trim())
+        .join(", ");
+
+      e.target.value = formattedValue;
+    }
+  };
 
   const selectedCountries = useWatch({
     control,
@@ -511,23 +529,7 @@ export const SetupForm = (props: LinksFormProps) => {
             }
             placeholder="0x12312321..., 0x12312312..."
             register={register("whitelisted_addresses")}
-            onChange={(e) => {
-              const inputValue = e.target.value;
-              const inputEvent = e.nativeEvent as InputEvent;
-
-              if (
-                inputValue.length > 0 &&
-                inputValue[inputValue.length - 1] === "," &&
-                inputEvent.inputType !== "deleteContentBackward"
-              ) {
-                const formattedValue = inputValue
-                  .split(",")
-                  .map((domain) => domain.trim())
-                  .join(", ");
-
-                e.target.value = formattedValue;
-              }
-            }}
+            onChange={formatArrayInput}
           />
         </div>
 
@@ -566,23 +568,7 @@ export const SetupForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://example.com, https://example2.com"
           register={register("associated_domains")}
-          onChange={(e) => {
-            const inputValue = e.target.value;
-            const inputEvent = e.nativeEvent as InputEvent;
-
-            if (
-              inputValue.length > 0 &&
-              inputValue[inputValue.length - 1] === "," &&
-              inputEvent.inputType !== "deleteContentBackward"
-            ) {
-              const formattedValue = inputValue
-                .split(",")
-                .map((domain) => domain.trim())
-                .join(", ");
-
-              e.target.value = formattedValue;
-            }
-          }}
+          onChange={formatArrayInput}
         />
       </div>
       <DecoratedButton
