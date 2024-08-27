@@ -188,6 +188,7 @@ export type AppStoreMetadataFields = {
   supported_countries?: any | null;
   supported_languages?: any | null;
   localisations: LocalisedMetadata[];
+  associated_domains?: string[] | null;
   app: {
     team: { name?: string | null };
   };

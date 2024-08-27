@@ -32,6 +32,7 @@ query FetchAppMetadata($team_id: String!, $app_id: String!, $user_id: String!) {
       supported_countries
       supported_languages
       short_name
+      associated_domains
     }
   }
 }

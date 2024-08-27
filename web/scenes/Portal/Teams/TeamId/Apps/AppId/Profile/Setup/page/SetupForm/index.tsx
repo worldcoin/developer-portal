@@ -13,7 +13,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import {
   checkUserPermissions,
   convertArrayToHasuraArray,
-  formatWhiteListedAddresses,
+  formatMultipleStringInput,
 } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -62,6 +62,7 @@ const schema = yup.object().shape({
     .test("has-english", "English is a required language", (langs) =>
       langs.includes("en"),
     ),
+  associated_domains: yup.string().nullable(),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -119,6 +120,7 @@ export const SetupForm = (props: LinksFormProps) => {
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+      associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
     },
   });
 
@@ -137,6 +139,7 @@ export const SetupForm = (props: LinksFormProps) => {
       supported_countries: appMetadata?.supported_countries ?? [],
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+      associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       status: status === "active",
     });
   }, [
@@ -146,6 +149,7 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.support_link,
     appMetadata?.supported_countries,
     appMetadata?.supported_languages,
+    appMetadata?.associated_domains,
     status,
   ]);
 
@@ -182,10 +186,15 @@ export const SetupForm = (props: LinksFormProps) => {
             ? convertArrayToHasuraArray(values.supported_languages)
             : null;
 
+        const associated_domains =
+          values.associated_domains && values.associated_domains.length > 0
+            ? formatMultipleStringInput(values.associated_domains)
+            : null;
+
         // If the user disabled the whitelist, we should set the whitelisted_addresses to null
         const whitelistedAddresses = values.is_whitelist_disabled
           ? null
-          : formatWhiteListedAddresses(values.whitelisted_addresses);
+          : formatMultipleStringInput(values.whitelisted_addresses);
 
         const supportLink = isSupportEmail
           ? formatEmailLink(values.support_email)
@@ -200,6 +209,7 @@ export const SetupForm = (props: LinksFormProps) => {
             support_link: supportLink,
             supported_countries,
             supported_languages,
+            associated_domains,
             status: status ? "active" : "inactive",
           },
 
@@ -467,7 +477,7 @@ export const SetupForm = (props: LinksFormProps) => {
           </div>
         </div>
       </div>
-
+      {/* Whitelist */}
       <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
         <div className="grid gap-y-5">
           <div className="grid gap-y-3">
@@ -501,6 +511,23 @@ export const SetupForm = (props: LinksFormProps) => {
             }
             placeholder="0x12312321..., 0x12312312..."
             register={register("whitelisted_addresses")}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              const inputEvent = e.nativeEvent as InputEvent;
+
+              if (
+                inputValue.length > 0 &&
+                inputValue[inputValue.length - 1] === "," &&
+                inputEvent.inputType !== "deleteContentBackward"
+              ) {
+                const formattedValue = inputValue
+                  .split(",")
+                  .map((domain) => domain.trim())
+                  .join(", ");
+
+                e.target.value = formattedValue;
+              }
+            }}
           />
         </div>
 
@@ -524,10 +551,44 @@ export const SetupForm = (props: LinksFormProps) => {
           </Typography>
         </label>
       </div>
+
+      {/* Associated Domains */}
+      <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Associated Domains</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Add additional domains that your Mini App can interact with. All
+            other domains will be blocked.
+          </Typography>
+        </div>
+        <Input
+          label="Associated Domains"
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="https://example.com, https://example2.com"
+          register={register("associated_domains")}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            const inputEvent = e.nativeEvent as InputEvent;
+
+            if (
+              inputValue.length > 0 &&
+              inputValue[inputValue.length - 1] === "," &&
+              inputEvent.inputType !== "deleteContentBackward"
+            ) {
+              const formattedValue = inputValue
+                .split(",")
+                .map((domain) => domain.trim())
+                .join(", ");
+
+              e.target.value = formattedValue;
+            }
+          }}
+        />
+      </div>
       <DecoratedButton
         type="submit"
         className="h-12 w-40"
-        disabled={!isEditable || !isEnoughPermissions || !isValid || !isDirty}
+        disabled={!isEditable || !isEnoughPermissions || !isValid}
       >
         <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
       </DecoratedButton>

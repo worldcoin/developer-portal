@@ -34,6 +34,7 @@ insert_permissions:
       columns:
         - app_id
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -53,6 +54,7 @@ insert_permissions:
         - app_id
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -93,6 +95,7 @@ insert_permissions:
         - app_id
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -116,6 +119,7 @@ select_permissions:
       columns:
         - app_id
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -145,6 +149,7 @@ select_permissions:
         - app_id
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - created_at
         - description
@@ -176,6 +181,7 @@ select_permissions:
         - app_id
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -205,6 +211,7 @@ select_permissions:
         - app_id
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url
@@ -296,6 +303,7 @@ update_permissions:
       columns:
         - app_mode
         - app_website_url
+        - associated_domains
         - category
         - description
         - hero_image_url

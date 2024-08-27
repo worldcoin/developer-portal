@@ -18,6 +18,9 @@ export type UpdateSetupMutationVariables = Types.Exact<{
   supported_languages?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
+  associated_domains?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
   status: Types.Scalars["String"];
 }>;
 
@@ -39,6 +42,7 @@ export const UpdateSetupDocument = gql`
     $support_link: String
     $supported_countries: [String!]
     $supported_languages: [String!]
+    $associated_domains: [String!]
     $status: String!
   ) {
     update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
@@ -52,6 +56,7 @@ export const UpdateSetupDocument = gql`
         support_link: $support_link
         supported_countries: $supported_countries
         supported_languages: $supported_languages
+        associated_domains: $associated_domains
       }
     ) {
       id
@@ -83,6 +88,7 @@ export type UpdateSetupMutationFn = Apollo.MutationFunction<
  *      support_link: // value for 'support_link'
  *      supported_countries: // value for 'supported_countries'
  *      supported_languages: // value for 'supported_languages'
+ *      associated_domains: // value for 'associated_domains'
  *      status: // value for 'status'
  *   },
  * });

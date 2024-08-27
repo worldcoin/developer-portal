@@ -179,6 +179,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
           app_website_url: "",
           source_code_url: "",
           support_link: "mailto:test@test.com",
+          associated_domains: ["https://worldcoin.org"],
           supported_countries: ["us"],
           supported_languages: ["en"],
           app_rating: 3.2,

@@ -34,6 +34,7 @@ query GetApps(
     support_link
     supported_countries
     supported_languages
+    associated_domains
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
@@ -75,6 +76,7 @@ query GetApps(
     support_link
     supported_countries
     supported_languages
+    associated_domains
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text

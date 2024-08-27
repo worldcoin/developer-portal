@@ -324,7 +324,7 @@ export const BasicInformation = (props: {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {appMetaData.supported_languages?.map((lang, index) => {
+            {appMetaData?.supported_languages?.map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
               if (!language) return null;
               return (
@@ -519,9 +519,7 @@ export const BasicInformation = (props: {
             type="submit"
             variant="primary"
             className=" mr-5 h-12 w-40"
-            disabled={
-              !isEditable || !isEnoughPermissions || !isDirty || !isValid
-            }
+            disabled={!isEditable || !isEnoughPermissions || !isValid}
           >
             <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
           </DecoratedButton>

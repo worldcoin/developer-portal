@@ -33,6 +33,9 @@ export type CreateDraftMutationVariables = Types.Exact<{
   supported_languages?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
+  associated_domains?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
 }>;
 
 export type CreateDraftMutation = {
@@ -62,6 +65,7 @@ export const CreateDraftDocument = gql`
     $support_link: String = ""
     $supported_countries: [String!] = null
     $supported_languages: [String!] = null
+    $associated_domains: [String!] = null
   ) {
     insert_app_metadata_one(
       object: {
@@ -85,6 +89,7 @@ export const CreateDraftDocument = gql`
         supported_countries: $supported_countries
         supported_languages: $supported_languages
         short_name: $short_name
+        associated_domains: $associated_domains
       }
     ) {
       id

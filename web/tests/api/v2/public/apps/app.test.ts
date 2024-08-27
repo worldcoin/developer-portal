@@ -33,6 +33,7 @@ jest.mock(
             app_mode: "mini-app",
             support_link: "andy@gmail.com",
             supported_countries: ["us"],
+            associated_domains: ["https://worldcoin.org"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
             app: {

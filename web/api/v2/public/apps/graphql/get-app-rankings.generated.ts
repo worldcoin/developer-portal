@@ -38,6 +38,7 @@ export type GetAppsQuery = {
     support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
+    associated_domains?: Array<string> | null;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -72,6 +73,7 @@ export type GetAppsQuery = {
     support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
+    associated_domains?: Array<string> | null;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -125,6 +127,7 @@ export const GetAppsDocument = gql`
       support_link
       supported_countries
       supported_languages
+      associated_domains
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
@@ -165,6 +168,7 @@ export const GetAppsDocument = gql`
       support_link
       supported_countries
       supported_languages
+      associated_domains
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

@@ -1568,6 +1568,7 @@ export type App_Metadata = {
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url: Scalars["String"];
+  associated_domains?: Maybe<Array<Scalars["String"]>>;
   category: Scalars["String"];
   created_at: Scalars["timestamptz"];
   description: Scalars["String"];
@@ -1705,6 +1706,7 @@ export type App_Metadata_Bool_Exp = {
   app_mode?: InputMaybe<String_Comparison_Exp>;
   app_rating?: InputMaybe<Numeric_Comparison_Exp>;
   app_website_url?: InputMaybe<String_Comparison_Exp>;
+  associated_domains?: InputMaybe<String_Array_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
@@ -1751,6 +1753,7 @@ export type App_Metadata_Insert_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
+  associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
@@ -1788,6 +1791,7 @@ export type App_Metadata_Max_Fields = {
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url?: Maybe<Scalars["String"]>;
+  associated_domains?: Maybe<Array<Scalars["String"]>>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   description?: Maybe<Scalars["String"]>;
@@ -1817,6 +1821,7 @@ export type App_Metadata_Max_Order_By = {
   app_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
+  associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -1849,6 +1854,7 @@ export type App_Metadata_Min_Fields = {
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url?: Maybe<Scalars["String"]>;
+  associated_domains?: Maybe<Array<Scalars["String"]>>;
   category?: Maybe<Scalars["String"]>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   description?: Maybe<Scalars["String"]>;
@@ -1878,6 +1884,7 @@ export type App_Metadata_Min_Order_By = {
   app_id?: InputMaybe<Order_By>;
   app_mode?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
+  associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -1932,6 +1939,7 @@ export type App_Metadata_Order_By = {
   app_mode?: InputMaybe<Order_By>;
   app_rating?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
+  associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -1974,6 +1982,8 @@ export enum App_Metadata_Select_Column {
   AppMode = "app_mode",
   /** column name */
   AppWebsiteUrl = "app_website_url",
+  /** column name */
+  AssociatedDomains = "associated_domains",
   /** column name */
   Category = "category",
   /** column name */
@@ -2057,6 +2067,7 @@ export type App_Metadata_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
+  associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
@@ -2119,6 +2130,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]>;
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
+  associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
@@ -2162,6 +2174,8 @@ export enum App_Metadata_Update_Column {
   AppMode = "app_mode",
   /** column name */
   AppWebsiteUrl = "app_website_url",
+  /** column name */
+  AssociatedDomains = "associated_domains",
   /** column name */
   Category = "category",
   /** column name */

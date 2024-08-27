@@ -41,6 +41,7 @@ export type FetchAppMetadataQuery = {
       supported_countries?: Array<string> | null;
       supported_languages?: Array<string> | null;
       short_name: string;
+      associated_domains?: Array<string> | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -67,6 +68,7 @@ export type FetchAppMetadataQuery = {
       supported_countries?: Array<string> | null;
       supported_languages?: Array<string> | null;
       short_name: string;
+      associated_domains?: Array<string> | null;
     }>;
   }>;
 };
@@ -102,6 +104,7 @@ export const FetchAppMetadataDocument = gql`
         supported_countries
         supported_languages
         short_name
+        associated_domains
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -129,6 +132,7 @@ export const FetchAppMetadataDocument = gql`
         supported_countries
         supported_languages
         short_name
+        associated_domains
       }
     }
   }
