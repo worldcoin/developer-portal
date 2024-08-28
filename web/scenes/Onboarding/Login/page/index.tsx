@@ -6,7 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { getSession } from "@auth0/nextjs-auth0";
+import { getSession, Session } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import {
   FetchMembershipsQuery,
@@ -14,7 +14,15 @@ import {
 } from "./graphql/server/fetch-memberships.generated";
 
 export const LoginPage = async () => {
-  const session = await getSession();
+  let session: Session | null | undefined;
+
+  try {
+    session = await getSession();
+  } catch (error) {
+    logger.error("Error getting session on login page", { error });
+    return redirect(urls.api.authLogin());
+  }
+
   const user = session?.user as Auth0SessionUser["user"];
 
   if (user) {
