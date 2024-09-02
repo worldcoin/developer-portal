@@ -91,6 +91,8 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             description: JSON.stringify({
               description_overview: "random string",
               description_how_it_works: "23423",
@@ -114,6 +116,8 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             app_mode: "external",
             description: JSON.stringify({
               description_overview: "fwefw",
@@ -136,6 +140,8 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
             whitelisted_addresses: ["0x1234", "0x5678"],
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             app_mode: "mini-app",
             showcase_img_urls: [
               "showcase1.png",
@@ -185,6 +191,8 @@ describe("/api/v2/public/apps", () => {
             app_mode: "mini-app",
             category: { id: "social", name: "Social" },
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             description: {
               overview: "random string",
               how_it_works: "23423",
@@ -211,6 +219,8 @@ describe("/api/v2/public/apps", () => {
               how_to_connect: "fwefw",
             },
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             showcase_img_urls: [
               "https://cdn.test.com/2/showcase1.png",
               "https://cdn.test.com/2/showcase2.png",
@@ -236,6 +246,8 @@ describe("/api/v2/public/apps", () => {
             unique_users: 0,
             app_mode: "mini-app",
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             category: { id: "social", name: "Social" },
             description: {
               how_it_works: "random",
@@ -283,6 +295,8 @@ describe("/api/v2/public/apps", () => {
             app_mode: "mini-app",
             support_link: "andy@gmail.com",
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
@@ -320,6 +334,8 @@ describe("/api/v2/public/apps", () => {
             app_mode: "native",
             integration_url: "worldapp://test",
             associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             app_website_url: "https://example.com",
             source_code_url: "https://github.com/example/app",
             support_link: "andy@gmail.com",

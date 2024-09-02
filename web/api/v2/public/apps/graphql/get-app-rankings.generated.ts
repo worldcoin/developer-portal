@@ -74,6 +74,8 @@ export type GetAppsQuery = {
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     associated_domains?: Array<string> | null;
+    contracts?: Array<string> | null;
+    permit2_tokens?: Array<string> | null;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -169,6 +171,8 @@ export const GetAppsDocument = gql`
       supported_countries
       supported_languages
       associated_domains
+      contracts
+      permit2_tokens
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
