@@ -4,7 +4,7 @@ import { TextareaHTMLAttributes, memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
-interface TextAreaInterface
+export interface TextAreaInterface
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   register: UseFormRegisterReturn;
   required?: boolean;
@@ -16,6 +16,8 @@ interface TextAreaInterface
   addOn?: React.ReactElement;
   className?: string;
   rows?: number;
+  enableResize?: boolean;
+  chunk?: boolean;
 }
 
 export const TextArea = memo(function TextArea(props: TextAreaInterface) {
@@ -30,8 +32,19 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     addOn,
     disabled,
     rows,
+    enableResize = true,
+    chunk = false,
     ...restProps
   } = props;
+
+  // Function to highlight words separated by commas
+  const formatChunkedText = (text: string | undefined) => {
+    if (!text) return "";
+    return text
+      .split(",")
+      .map((word) => word.trim())
+      .join(", ");
+  };
 
   const parentClassNames = clsx(
     "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
@@ -52,6 +65,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
       "placeholder:text-grey-400": !errors,
       "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
         !disabled,
+      "resize-none": !enableResize,
     },
   );
 

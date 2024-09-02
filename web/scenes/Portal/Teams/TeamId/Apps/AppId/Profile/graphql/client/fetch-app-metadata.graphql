@@ -29,6 +29,8 @@ query FetchAppMetadata($id: String!) {
       supported_languages
       short_name
       associated_domains
+      contracts
+      permit2_tokens
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -57,6 +59,8 @@ query FetchAppMetadata($id: String!) {
       supported_languages
       short_name
       associated_domains
+      contracts
+      permit2_tokens
     }
   }
 }

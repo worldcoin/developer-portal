@@ -21,6 +21,12 @@ export type UpdateSetupMutationVariables = Types.Exact<{
   associated_domains?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
+  contracts?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
+  permit2_tokens?: Types.InputMaybe<
+    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+  >;
   status: Types.Scalars["String"];
 }>;
 
@@ -43,6 +49,8 @@ export const UpdateSetupDocument = gql`
     $supported_countries: [String!]
     $supported_languages: [String!]
     $associated_domains: [String!]
+    $contracts: [String!]
+    $permit2_tokens: [String!]
     $status: String!
   ) {
     update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
@@ -57,6 +65,8 @@ export const UpdateSetupDocument = gql`
         supported_countries: $supported_countries
         supported_languages: $supported_languages
         associated_domains: $associated_domains
+        contracts: $contracts
+        permit2_tokens: $permit2_tokens
       }
     ) {
       id
@@ -89,6 +99,8 @@ export type UpdateSetupMutationFn = Apollo.MutationFunction<
  *      supported_countries: // value for 'supported_countries'
  *      supported_languages: // value for 'supported_languages'
  *      associated_domains: // value for 'associated_domains'
+ *      contracts: // value for 'contracts'
+ *      permit2_tokens: // value for 'permit2_tokens'
  *      status: // value for 'status'
  *   },
  * });

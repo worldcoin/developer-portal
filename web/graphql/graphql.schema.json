@@ -12015,6 +12015,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -12379,6 +12399,26 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
               }
             },
             "isDeprecated": false,
@@ -13365,6 +13405,18 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_array_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -13514,6 +13566,18 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_array_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -13809,6 +13873,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -13947,6 +14031,26 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -14243,6 +14347,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -14322,6 +14446,26 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -14599,6 +14743,18 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -14672,6 +14828,18 @@
           },
           {
             "name": "name",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -14941,6 +15109,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "args": [],
@@ -15020,6 +15208,26 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -15297,6 +15505,18 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -15370,6 +15590,18 @@
           },
           {
             "name": "name",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -15797,6 +16029,18 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -15930,6 +16174,18 @@
           },
           {
             "name": "name",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -16179,6 +16435,12 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": "column name",
             "isDeprecated": false,
@@ -16240,6 +16502,12 @@
           },
           {
             "name": "name",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -16476,6 +16744,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -16602,6 +16890,26 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -16995,6 +17303,26 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": null,
             "type": {
@@ -17121,6 +17449,26 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -17393,6 +17741,12 @@
             "deprecationReason": null
           },
           {
+            "name": "contracts",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "created_at",
             "description": "column name",
             "isDeprecated": false,
@@ -17454,6 +17808,12 @@
           },
           {
             "name": "name",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "permit2_tokens",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
