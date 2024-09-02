@@ -9,7 +9,7 @@
     "@aws-sdk/s3-presigned-post": "^3.511.0",
     "@aws-sdk/s3-request-presigner": "^3.511.0",
     "@ethersproject/abi": "^5.7.0",
-    "@floating-ui/react": "^0.26.9",
+    "@floating-ui/react": "^0.26.23",
     "@headlessui/react": "^1.7.18",
     "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
