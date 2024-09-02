@@ -6,6 +6,7 @@ import { Input } from "@/components/Input";
 import { Radio } from "@/components/Radio";
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { SwitcherBox } from "@/components/SwitcherBox";
+import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { formCountriesList, formLanguagesList } from "@/lib/languages";
@@ -63,6 +64,8 @@ const schema = yup.object().shape({
       langs.includes("en"),
     ),
   associated_domains: yup.string().nullable(),
+  contracts: yup.string().nullable(),
+  permit2_tokens: yup.string().nullable(),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -121,6 +124,8 @@ export const SetupForm = (props: LinksFormProps) => {
       supported_languages: appMetadata?.supported_languages ?? [],
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
+      contracts: appMetadata?.contracts?.join(",") ?? null,
+      permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
     },
   });
 
@@ -141,6 +146,8 @@ export const SetupForm = (props: LinksFormProps) => {
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       status: status === "active",
+      contracts: appMetadata?.contracts?.join(",") ?? null,
+      permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
     });
   }, [
     reset,
@@ -150,6 +157,8 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.supported_countries,
     appMetadata?.supported_languages,
     appMetadata?.associated_domains,
+    appMetadata?.contracts,
+    appMetadata?.permit2_tokens,
     status,
   ]);
 
@@ -191,6 +200,16 @@ export const SetupForm = (props: LinksFormProps) => {
             ? formatMultipleStringInput(values.associated_domains)
             : null;
 
+        const contracts =
+          values.contracts && values.contracts.length > 0
+            ? formatMultipleStringInput(values.contracts)
+            : null;
+
+        const permit2_tokens =
+          values.permit2_tokens && values.permit2_tokens.length > 0
+            ? formatMultipleStringInput(values.permit2_tokens)
+            : null;
+
         // If the user disabled the whitelist, we should set the whitelisted_addresses to null
         const whitelistedAddresses = values.is_whitelist_disabled
           ? null
@@ -210,6 +229,8 @@ export const SetupForm = (props: LinksFormProps) => {
             supported_countries,
             supported_languages,
             associated_domains,
+            contracts,
+            permit2_tokens,
             status: status ? "active" : "inactive",
           },
 
@@ -244,7 +265,7 @@ export const SetupForm = (props: LinksFormProps) => {
     ],
   );
 
-  const formatArrayInput = (e: ChangeEvent<HTMLInputElement>) => {
+  const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const inputValue = e.target.value;
     const inputEvent = e.nativeEvent as InputEvent;
 
@@ -495,6 +516,26 @@ export const SetupForm = (props: LinksFormProps) => {
           </div>
         </div>
       </div>
+      {/* Associated Domains */}
+      <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Associated Domains</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Add additional domains that your Mini App can interact with. All
+            other domains will be blocked. You do not need to specify
+            subdomains.
+          </Typography>
+        </div>
+        <TextArea
+          label="Associated Domains"
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="https://example.com, https://example2.com"
+          register={register("associated_domains")}
+          onChange={formatArrayInput}
+          enableResize={false}
+        />
+      </div>
+
       {/* Whitelist */}
       <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
         <div className="grid gap-y-5">
@@ -519,7 +560,7 @@ export const SetupForm = (props: LinksFormProps) => {
               to invalid addresses.
             </Typography>
           </div>
-          <Input
+          <TextArea
             label="Whitelisted Payment Addresses"
             disabled={
               !isEditable ||
@@ -530,6 +571,7 @@ export const SetupForm = (props: LinksFormProps) => {
             placeholder="0x12312321..., 0x12312312..."
             register={register("whitelisted_addresses")}
             onChange={formatArrayInput}
+            enableResize={false}
           />
         </div>
 
@@ -554,21 +596,53 @@ export const SetupForm = (props: LinksFormProps) => {
         </label>
       </div>
 
-      {/* Associated Domains */}
+      <hr className={clsx({ hidden: !appMode })} />
+
+      <div className={clsx("grid grid-cols-1", { hidden: !appMode })}>
+        <Typography variant={TYPOGRAPHY.H6}>
+          Smart Contract Configuration
+        </Typography>
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          These configurations are required for your Mini App to interact with
+          world chain. If you are not using smart contracts, you can skip this
+          section.
+        </Typography>
+      </div>
+
+      {/* Permit2 Tokens */}
       <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
         <div className="grid gap-y-3">
-          <Typography variant={TYPOGRAPHY.H7}>Associated Domains</Typography>
+          <Typography variant={TYPOGRAPHY.H7}>Permit2 Tokens</Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Add additional domains that your Mini App can interact with. All
-            other domains will be blocked.
+            List all the tokens that you intend to use in your Mini App. Any
+            other tokens will be blocked.
           </Typography>
         </div>
-        <Input
-          label="Associated Domains"
+        <TextArea
+          label="Permit2 Tokens"
           disabled={!isEditable || !isEnoughPermissions}
-          placeholder="https://example.com, https://example2.com"
-          register={register("associated_domains")}
+          placeholder="0xad312321..., 0xE901e312..."
+          register={register("permit2_tokens")}
           onChange={formatArrayInput}
+          enableResize={false}
+        />
+      </div>
+
+      {/* Contracts */}
+      <div className={clsx("grid gap-y-4", { hidden: !appMode })}>
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Contract Entrypoints</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            List here contracts that you intend to call functions directly on.
+          </Typography>
+        </div>
+        <TextArea
+          label="Contract Entrypoints"
+          disabled={!isEditable || !isEnoughPermissions}
+          placeholder="0xb731d321..., 0xF2310312..."
+          register={register("contracts")}
+          onChange={formatArrayInput}
+          enableResize={false}
         />
       </div>
       <DecoratedButton

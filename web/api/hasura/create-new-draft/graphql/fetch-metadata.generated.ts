@@ -38,6 +38,8 @@ export type FetchAppMetadataQuery = {
       supported_languages?: Array<string> | null;
       short_name: string;
       associated_domains?: Array<string> | null;
+      contracts?: Array<string> | null;
+      permit2_tokens?: Array<string> | null;
     }>;
   }>;
 };
@@ -82,6 +84,8 @@ export const FetchAppMetadataDocument = gql`
         supported_languages
         short_name
         associated_domains
+        contracts
+        permit2_tokens
       }
     }
   }

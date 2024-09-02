@@ -33,19 +33,27 @@ insert_permissions:
                   _eq: X-Hasura-Team-Id
       columns:
         - app_id
+        - app_mode
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - integration_url
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url
+        - support_link
+        - supported_countries
+        - supported_languages
         - verification_status
+        - whitelisted_addresses
+        - world_app_button_text
         - world_app_description
   - role: service
     permission:
@@ -56,6 +64,7 @@ insert_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - id
@@ -63,6 +72,7 @@ insert_permissions:
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url
@@ -97,12 +107,14 @@ insert_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - integration_url
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url
@@ -121,6 +133,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - id
@@ -130,6 +143,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - name
+        - permit2_tokens
         - review_message
         - short_name
         - showcase_img_urls
@@ -151,6 +165,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - created_at
         - description
         - hero_image_url
@@ -161,6 +176,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - name
+        - permit2_tokens
         - review_message
         - reviewed_by
         - short_name
@@ -183,6 +199,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - id
@@ -192,6 +209,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url
@@ -213,6 +231,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - id
@@ -222,6 +241,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - name
+        - permit2_tokens
         - review_message
         - short_name
         - showcase_img_urls
@@ -248,17 +268,25 @@ update_permissions:
     permission:
       columns:
         - app_website_url
+        - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - integration_url
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url
+        - support_link
+        - supported_countries
+        - supported_languages
         - verification_status
+        - whitelisted_addresses
+        - world_app_button_text
         - world_app_description
       filter:
         _and:
@@ -305,12 +333,14 @@ update_permissions:
         - app_website_url
         - associated_domains
         - category
+        - contracts
         - description
         - hero_image_url
         - integration_url
         - is_developer_allow_listing
         - logo_img_url
         - name
+        - permit2_tokens
         - short_name
         - showcase_img_urls
         - source_code_url

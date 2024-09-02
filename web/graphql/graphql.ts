@@ -1570,6 +1570,7 @@ export type App_Metadata = {
   app_website_url: Scalars["String"];
   associated_domains?: Maybe<Array<Scalars["String"]>>;
   category: Scalars["String"];
+  contracts?: Maybe<Array<Scalars["String"]>>;
   created_at: Scalars["timestamptz"];
   description: Scalars["String"];
   hero_image_url: Scalars["String"];
@@ -1585,6 +1586,7 @@ export type App_Metadata = {
   localisations_aggregate: Localisations_Aggregate;
   logo_img_url: Scalars["String"];
   name: Scalars["String"];
+  permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message: Scalars["String"];
   reviewed_by: Scalars["String"];
   short_name: Scalars["String"];
@@ -1708,6 +1710,7 @@ export type App_Metadata_Bool_Exp = {
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   associated_domains?: InputMaybe<String_Array_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
+  contracts?: InputMaybe<String_Array_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
   hero_image_url?: InputMaybe<String_Comparison_Exp>;
@@ -1721,6 +1724,7 @@ export type App_Metadata_Bool_Exp = {
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Bool_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  permit2_tokens?: InputMaybe<String_Array_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
   short_name?: InputMaybe<String_Comparison_Exp>;
@@ -1755,6 +1759,7 @@ export type App_Metadata_Insert_Input = {
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
   hero_image_url?: InputMaybe<Scalars["String"]>;
@@ -1767,6 +1772,7 @@ export type App_Metadata_Insert_Input = {
   localisations?: InputMaybe<Localisations_Arr_Rel_Insert_Input>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
+  permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   short_name?: InputMaybe<Scalars["String"]>;
@@ -1793,6 +1799,7 @@ export type App_Metadata_Max_Fields = {
   app_website_url?: Maybe<Scalars["String"]>;
   associated_domains?: Maybe<Array<Scalars["String"]>>;
   category?: Maybe<Scalars["String"]>;
+  contracts?: Maybe<Array<Scalars["String"]>>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   description?: Maybe<Scalars["String"]>;
   hero_image_url?: Maybe<Scalars["String"]>;
@@ -1800,6 +1807,7 @@ export type App_Metadata_Max_Fields = {
   integration_url?: Maybe<Scalars["String"]>;
   logo_img_url?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   short_name?: Maybe<Scalars["String"]>;
@@ -1823,6 +1831,7 @@ export type App_Metadata_Max_Order_By = {
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
+  contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
   hero_image_url?: InputMaybe<Order_By>;
@@ -1830,6 +1839,7 @@ export type App_Metadata_Max_Order_By = {
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
@@ -1856,6 +1866,7 @@ export type App_Metadata_Min_Fields = {
   app_website_url?: Maybe<Scalars["String"]>;
   associated_domains?: Maybe<Array<Scalars["String"]>>;
   category?: Maybe<Scalars["String"]>;
+  contracts?: Maybe<Array<Scalars["String"]>>;
   created_at?: Maybe<Scalars["timestamptz"]>;
   description?: Maybe<Scalars["String"]>;
   hero_image_url?: Maybe<Scalars["String"]>;
@@ -1863,6 +1874,7 @@ export type App_Metadata_Min_Fields = {
   integration_url?: Maybe<Scalars["String"]>;
   logo_img_url?: Maybe<Scalars["String"]>;
   name?: Maybe<Scalars["String"]>;
+  permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message?: Maybe<Scalars["String"]>;
   reviewed_by?: Maybe<Scalars["String"]>;
   short_name?: Maybe<Scalars["String"]>;
@@ -1886,6 +1898,7 @@ export type App_Metadata_Min_Order_By = {
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
+  contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
   hero_image_url?: InputMaybe<Order_By>;
@@ -1893,6 +1906,7 @@ export type App_Metadata_Min_Order_By = {
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
@@ -1941,6 +1955,7 @@ export type App_Metadata_Order_By = {
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
+  contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
   hero_image_url?: InputMaybe<Order_By>;
@@ -1953,6 +1968,7 @@ export type App_Metadata_Order_By = {
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
@@ -1987,6 +2003,8 @@ export enum App_Metadata_Select_Column {
   /** column name */
   Category = "category",
   /** column name */
+  Contracts = "contracts",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Description = "description",
@@ -2008,6 +2026,8 @@ export enum App_Metadata_Select_Column {
   LogoImgUrl = "logo_img_url",
   /** column name */
   Name = "name",
+  /** column name */
+  Permit2Tokens = "permit2_tokens",
   /** column name */
   ReviewMessage = "review_message",
   /** column name */
@@ -2069,6 +2089,7 @@ export type App_Metadata_Set_Input = {
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
   hero_image_url?: InputMaybe<Scalars["String"]>;
@@ -2080,6 +2101,7 @@ export type App_Metadata_Set_Input = {
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
+  permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   short_name?: InputMaybe<Scalars["String"]>;
@@ -2132,6 +2154,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
   category?: InputMaybe<Scalars["String"]>;
+  contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
   description?: InputMaybe<Scalars["String"]>;
   hero_image_url?: InputMaybe<Scalars["String"]>;
@@ -2143,6 +2166,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
   name?: InputMaybe<Scalars["String"]>;
+  permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
   reviewed_by?: InputMaybe<Scalars["String"]>;
   short_name?: InputMaybe<Scalars["String"]>;
@@ -2179,6 +2203,8 @@ export enum App_Metadata_Update_Column {
   /** column name */
   Category = "category",
   /** column name */
+  Contracts = "contracts",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Description = "description",
@@ -2200,6 +2226,8 @@ export enum App_Metadata_Update_Column {
   LogoImgUrl = "logo_img_url",
   /** column name */
   Name = "name",
+  /** column name */
+  Permit2Tokens = "permit2_tokens",
   /** column name */
   ReviewMessage = "review_message",
   /** column name */
