@@ -3,7 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { convertArrayToHasuraArray, getImageEndpoint } from "@/lib/utils";
+import { getImageEndpoint } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getCreateDraftSdk } from "./graphql/create-draft.generated";
@@ -121,15 +121,6 @@ export const POST = async (req: NextRequest) => {
               `showcase_img_${index + 1}.${getImageEndpoint(img)}`,
           )
           .join(",")}}`
-      : null,
-    whitelisted_addresses: convertArrayToHasuraArray(
-      newAppMetadata?.whitelisted_addresses,
-    ),
-    supported_countries: newAppMetadata.supported_countries
-      ? convertArrayToHasuraArray(newAppMetadata.supported_countries)
-      : null,
-    supported_languages: newAppMetadata.supported_languages
-      ? convertArrayToHasuraArray(newAppMetadata.supported_languages)
       : null,
   });
 

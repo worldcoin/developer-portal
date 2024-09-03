@@ -20,6 +20,8 @@ mutation CreateDraft(
   $supported_countries: [String!] = null
   $supported_languages: [String!] = null
   $associated_domains: [String!] = null
+  $contracts: [String!] = null
+  $permit2_tokens: [String!] = null
 ) {
   insert_app_metadata_one(
     object: {
@@ -44,6 +46,8 @@ mutation CreateDraft(
       supported_languages: $supported_languages
       short_name: $short_name
       associated_domains: $associated_domains
+      contracts: $contracts
+      permit2_tokens: $permit2_tokens
     }
   ) {
     id
