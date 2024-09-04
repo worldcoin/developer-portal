@@ -35,6 +35,8 @@ query GetApps(
     supported_countries
     supported_languages
     associated_domains
+    contracts
+    permit2_tokens
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
