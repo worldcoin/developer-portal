@@ -1,10 +1,9 @@
-import { GET } from "@/api/v2/minikit/transaction/[transaction_id]";
+import { GET } from "@/api/v2/minikit/transactions/[app_id]";
 import { generateHashedSecret } from "@/legacy/backend/utils";
 import { NextRequest } from "next/server";
 
 // #region Mocks
 const FetchAPIKey = jest.fn();
-const signedFetch = jest.fn();
 
 jest.mock("../../../lib/logger", () => ({
   logger: {
@@ -13,14 +12,11 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock(
-  "../../../api/v2/minikit/transaction/[transaction_id]/graphql/fetch-api-key.generated",
-  () => ({
-    getSdk: () => ({
-      FetchAPIKey,
-    }),
+jest.mock("../../../api/v2/minikit/common/fetch-api-key.generated", () => ({
+  getSdk: () => ({
+    FetchAPIKey,
   }),
-);
+}));
 
 jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
@@ -50,31 +46,11 @@ const transaction = {
 // #endregion
 
 // #region Test Data
-const getUrl = (transaction_id: string, app_id?: string) => {
-  if (!app_id) {
-    return new URL(
-      `/api/v2/minikit/transaction/${transaction_id}`,
-      "http://localhost:3000",
-    );
-  }
+const getUrl = (app_id?: string) => {
   return new URL(
-    `/api/v2/minikit/transaction/${transaction_id}?app_id=${app_id}`,
+    `/api/v2/minikit/transactions/${app_id}`,
     "http://localhost:3000",
   );
-};
-
-const createMockRequest = (params: {
-  url: URL | RequestInfo;
-  api_key: string;
-}) => {
-  const { url, api_key } = params;
-  return new NextRequest(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${api_key}`,
-    },
-  });
 };
 
 const validApiKeyId = "key_667f5fbd4ad943622b4b2d3eb258f89c";
@@ -96,21 +72,34 @@ const validApiKeyResponse = {
   },
 };
 
+const createMockRequest = (params: {
+  url: URL | RequestInfo;
+  api_key: string;
+}) => {
+  const { url, api_key } = params;
+  return new NextRequest(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${api_key}`,
+    },
+  });
+};
+
 const validAppId = validApiKeyResponse.api_key_by_pk.team.apps[0].id;
-const validTransactionId = "transaction_123";
 const validApiKey = `api_${apiKeyValue}`;
 
 // #endregion
 
 // #region Success cases tests
-describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
-  it("can fetch a transaction", async () => {
+describe("/api/v2/minikit/transaction/app_id [success cases]", () => {
+  it("can fetch transactions", async () => {
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, validAppId),
+      url: getUrl(validAppId),
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -123,14 +112,14 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
 // #endregion
 
 // #region Error cases tests
-describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
+describe("/api/v2/minikit/transactions/app_id [error cases]", () => {
   it("returns 401 if no api key is provided", async () => {
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, validAppId),
+      url: getUrl(validAppId),
       api_key: "",
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -139,11 +128,11 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
   it("returns 404 if api key not exists", async () => {
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, validAppId),
+      url: getUrl(validAppId),
       api_key: (Math.random() * 10 ** 10).toFixed(),
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue({});
 
     const res = await GET(mockReq, ctx);
@@ -160,11 +149,11 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
       .replace(/=/g, "");
 
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, validAppId),
+      url: getUrl(validAppId),
       api_key: `api_${apiKeyValueLocal}`,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -173,11 +162,11 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
   it("returns 403 if api key is not valid for the app", async () => {
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, "app_1234"),
+      url: getUrl("app_1234"),
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -186,41 +175,15 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
   it("returns 400 if api key is inactive", async () => {
     const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, validAppId),
+      url: getUrl(validAppId),
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = { params: { app_id: validAppId } };
     FetchAPIKey.mockResolvedValue({
       ...validApiKeyResponse,
       api_key_by_pk: { ...validApiKeyResponse.api_key_by_pk, is_active: false },
     });
-
-    const res = await GET(mockReq, ctx);
-    expect(res.status).toBe(400);
-  });
-
-  it("returns 400 if appId is not provided", async () => {
-    const mockReq = createMockRequest({
-      url: getUrl(validTransactionId),
-      api_key: validApiKey,
-    });
-
-    const ctx = { params: { transaction_id: validTransactionId } };
-    FetchAPIKey.mockResolvedValue(validApiKeyResponse);
-
-    const res = await GET(mockReq, ctx);
-    expect(res.status).toBe(400);
-  });
-
-  it("returns 400 if appId is empty", async () => {
-    const mockReq = createMockRequest({
-      url: getUrl(validTransactionId, ""),
-      api_key: validApiKey,
-    });
-
-    const ctx = { params: { transaction_id: validTransactionId } };
-    FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
     expect(res.status).toBe(400);

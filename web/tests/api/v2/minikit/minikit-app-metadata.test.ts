@@ -14,7 +14,7 @@ jest.mock("../../../lib/logger", () => ({
 }));
 
 jest.mock(
-  "../../../api/v2/minikit/app-metadata/[app_id]/graphql/fetch-api-key.generated",
+  "../../../api/v2/minikit/common/graphql/fetch-api-key.generated",
   () => ({
     getSdk: () => ({
       FetchAPIKey,

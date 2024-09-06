@@ -2,17 +2,15 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { TransactionMetadata } from "@/lib/types";
-import { captureEvent } from "@/services/posthogClient";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getSdk as fetchApiKeySdk } from "../../common/graphql/fetch-api-key.generated";
 
 export const GET = async (
   req: NextRequest,
-  { params: routeParams }: { params: { transaction_id: string } },
+  { params: routeParams }: { params: { app_id: string } },
 ) => {
   const api_key = req.headers.get("authorization")?.split(" ")[1];
-  const { searchParams } = new URL(req.url);
 
   if (!api_key) {
     return errorResponse({
@@ -24,18 +22,7 @@ export const GET = async (
     });
   }
 
-  const appId = searchParams.get("app_id");
-  if (!appId) {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_request",
-      detail: "App ID is required.",
-      attribute: "app_id",
-      req,
-    });
-  }
-
-  const transactionId = routeParams.transaction_id;
+  const appId = routeParams.app_id;
   const keyValue = api_key.replace(/^api_/, "");
   const base64ApiKey = Buffer.from(keyValue, "base64").toString("utf8");
   const [id, secret] = base64ApiKey.split(":");
@@ -43,7 +30,7 @@ export const GET = async (
 
   const { api_key_by_pk } = await fetchApiKeySdk(serviceClient).FetchAPIKey({
     id,
-    appId: appId,
+    appId,
   });
 
   if (!api_key_by_pk) {
@@ -98,7 +85,7 @@ export const GET = async (
   });
 
   const res = await signedFetch(
-    `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}&transaction-id=${transactionId}`,
+    `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}`,
     {
       method: "GET",
       headers: {
@@ -129,25 +116,8 @@ export const GET = async (
     });
   }
 
-  if (data?.result?.transactions.length !== 0) {
-    const transaction = data?.result?.transactions[0] as TransactionMetadata;
-    await captureEvent({
-      event: "miniapp_payment_queried",
-      distinctId: transaction.transactionId,
-      properties: {
-        input_token: transaction.inputToken,
-        token_amount: transaction.inputTokenAmount,
-        appId: transaction.miniappId,
-      },
-    });
-    return NextResponse.json(transaction, { status: 200 });
-  } else {
-    return errorResponse({
-      statusCode: 404,
-      code: "not_found",
-      detail: "Transaction not found.",
-      attribute: "transaction",
-      req,
-    });
-  }
+  return (data?.result?.transactions || []).sort(
+    (a: TransactionMetadata, b: TransactionMetadata) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
 };

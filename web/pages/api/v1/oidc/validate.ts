@@ -22,10 +22,6 @@ export default async function handleOIDCValidate(
   if (!req.method || !["POST"].includes(req.method)) {
     return errorNotAllowed(req.method, res, req);
   }
-  if (process.env.NEXT_PUBLIC_APP_ENV === "staging") {
-    console.log(req.headers["x-forwarded-for"]); // This is the IP address of the client
-    console.log(req.headers["X-Forwarded-For"]); // This is the IP address of the client
-  }
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
