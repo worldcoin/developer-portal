@@ -543,11 +543,9 @@ export const SetupForm = (props: LinksFormProps) => {
           label="Associated Domains"
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://example.com, https://example2.com"
-          register={register("associated_domains")}
-          onChange={(e) => {
-            formatArrayInput(e);
-            register("associated_domains").onChange(e);
-          }}
+          register={register("associated_domains", {
+            onChange: formatArrayInput,
+          })}
           enableResize={false}
           errors={errors.associated_domains}
         />
@@ -586,11 +584,9 @@ export const SetupForm = (props: LinksFormProps) => {
               !appMode
             }
             placeholder="0x12312321..., 0x12312312..."
-            register={register("whitelisted_addresses")}
-            onChange={(e) => {
-              formatArrayInput(e);
-              register("whitelisted_addresses").onChange(e);
-            }}
+            register={register("whitelisted_addresses", {
+              onChange: formatArrayInput,
+            })}
             enableResize={false}
           />
         </div>
@@ -642,11 +638,7 @@ export const SetupForm = (props: LinksFormProps) => {
           label="Permit2 Tokens"
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="0xad312321..., 0xE901e312..."
-          register={register("permit2_tokens")}
-          onChange={(e) => {
-            formatArrayInput(e);
-            register("permit2_tokens").onChange(e);
-          }}
+          register={register("permit2_tokens", { onChange: formatArrayInput })}
           enableResize={false}
         />
       </div>
@@ -663,12 +655,8 @@ export const SetupForm = (props: LinksFormProps) => {
           label="Contract Entrypoints"
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="0xb731d321..., 0xF2310312..."
-          register={register("contracts")}
+          register={register("contracts", { onChange: formatArrayInput })}
           enableResize={false}
-          onChange={(e) => {
-            formatArrayInput(e);
-            register("contracts").onChange(e);
-          }}
         />
       </div>
       <DecoratedButton
