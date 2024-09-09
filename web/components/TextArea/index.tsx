@@ -37,15 +37,6 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     ...restProps
   } = props;
 
-  // Function to highlight words separated by commas
-  const formatChunkedText = (text: string | undefined) => {
-    if (!text) return "";
-    return text
-      .split(",")
-      .map((word) => word.trim())
-      .join(", ");
-  };
-
   const parentClassNames = clsx(
     "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
     {

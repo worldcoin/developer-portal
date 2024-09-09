@@ -63,7 +63,20 @@ const schema = yup.object().shape({
     .test("has-english", "English is a required language", (langs) =>
       langs.includes("en"),
     ),
-  associated_domains: yup.string().nullable(),
+  associated_domains: yup
+    .string()
+    .test(
+      "is-valid-https-url-list",
+      "Each value must be a valid HTTPS URL",
+      function (value) {
+        if (!value) return true;
+
+        const domains = value.split(",").map((domain) => domain.trim());
+        const httpsUrlRegex = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
+        return domains.every((domain) => httpsUrlRegex.test(domain));
+      },
+    )
+    .nullable(),
   contracts: yup.string().nullable(),
   permit2_tokens: yup.string().nullable(),
 });
@@ -531,8 +544,12 @@ export const SetupForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://example.com, https://example2.com"
           register={register("associated_domains")}
-          onChange={formatArrayInput}
+          onChange={(e) => {
+            formatArrayInput(e);
+            register("associated_domains").onChange(e);
+          }}
           enableResize={false}
+          errors={errors.associated_domains}
         />
       </div>
 
@@ -570,7 +587,10 @@ export const SetupForm = (props: LinksFormProps) => {
             }
             placeholder="0x12312321..., 0x12312312..."
             register={register("whitelisted_addresses")}
-            onChange={formatArrayInput}
+            onChange={(e) => {
+              formatArrayInput(e);
+              register("whitelisted_addresses").onChange(e);
+            }}
             enableResize={false}
           />
         </div>
@@ -623,7 +643,10 @@ export const SetupForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="0xad312321..., 0xE901e312..."
           register={register("permit2_tokens")}
-          onChange={formatArrayInput}
+          onChange={(e) => {
+            formatArrayInput(e);
+            register("permit2_tokens").onChange(e);
+          }}
           enableResize={false}
         />
       </div>
@@ -641,8 +664,11 @@ export const SetupForm = (props: LinksFormProps) => {
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="0xb731d321..., 0xF2310312..."
           register={register("contracts")}
-          onChange={formatArrayInput}
           enableResize={false}
+          onChange={(e) => {
+            formatArrayInput(e);
+            register("contracts").onChange(e);
+          }}
         />
       </div>
       <DecoratedButton
