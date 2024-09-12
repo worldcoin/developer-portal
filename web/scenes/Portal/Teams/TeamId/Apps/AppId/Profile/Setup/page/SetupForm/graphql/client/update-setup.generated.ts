@@ -28,6 +28,7 @@ export type UpdateSetupMutationVariables = Types.Exact<{
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
   status: Types.Scalars["String"];
+  canImportAllContacts?: Types.InputMaybe<Types.Scalars["Boolean"]>;
 }>;
 
 export type UpdateSetupMutation = {
@@ -52,6 +53,7 @@ export const UpdateSetupDocument = gql`
     $contracts: [String!]
     $permit2_tokens: [String!]
     $status: String!
+    $canImportAllContacts: Boolean
   ) {
     update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
       id
@@ -67,6 +69,7 @@ export const UpdateSetupDocument = gql`
         associated_domains: $associated_domains
         contracts: $contracts
         permit2_tokens: $permit2_tokens
+        canImportAllContacts: $canImportAllContacts
       }
     ) {
       id
@@ -102,6 +105,7 @@ export type UpdateSetupMutationFn = Apollo.MutationFunction<
  *      contracts: // value for 'contracts'
  *      permit2_tokens: // value for 'permit2_tokens'
  *      status: // value for 'status'
+ *      canImportAllContacts: // value for 'canImportAllContacts'
  *   },
  * });
  */
