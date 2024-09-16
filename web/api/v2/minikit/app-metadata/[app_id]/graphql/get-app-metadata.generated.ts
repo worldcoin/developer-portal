@@ -35,6 +35,7 @@ export type GetAppMetadataQuery = {
     associated_domains?: Array<string> | null;
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
+    is_reviewer_app_store_approved: boolean;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -75,6 +76,7 @@ export const GetAppMetadataDocument = gql`
       associated_domains
       contracts
       permit2_tokens
+      is_reviewer_app_store_approved
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

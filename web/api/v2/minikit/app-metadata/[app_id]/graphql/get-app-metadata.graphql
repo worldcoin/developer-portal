@@ -22,6 +22,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     associated_domains
     contracts
     permit2_tokens
+    is_reviewer_app_store_approved
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
