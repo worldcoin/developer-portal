@@ -31,7 +31,6 @@ query FetchAppMetadata($id: String!) {
       associated_domains
       contracts
       permit2_tokens
-      canImportAllContacts
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -62,7 +61,6 @@ query FetchAppMetadata($id: String!) {
       associated_domains
       contracts
       permit2_tokens
-      canImportAllContacts
     }
   }
 }

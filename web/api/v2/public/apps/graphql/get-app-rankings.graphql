@@ -37,7 +37,6 @@ query GetApps(
     associated_domains
     contracts
     permit2_tokens
-    canImportAllContacts
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
@@ -82,7 +81,6 @@ query GetApps(
     associated_domains
     contracts
     permit2_tokens
-    canImportAllContacts
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text

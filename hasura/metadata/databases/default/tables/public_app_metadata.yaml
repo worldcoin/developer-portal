@@ -36,7 +36,6 @@ insert_permissions:
         - app_mode
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
@@ -107,7 +106,6 @@ insert_permissions:
         - app_mode
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
@@ -134,7 +132,6 @@ select_permissions:
         - app_id
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
@@ -151,14 +148,9 @@ select_permissions:
         - short_name
         - showcase_img_urls
         - source_code_url
-        - support_link
-        - supported_countries
-        - supported_languages
         - updated_at
         - verification_status
         - verified_at
-        - whitelisted_addresses
-        - world_app_button_text
         - world_app_description
       filter:
         app:
@@ -172,7 +164,6 @@ select_permissions:
         - app_mode
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - created_at
@@ -239,7 +230,6 @@ select_permissions:
         - app_mode
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
@@ -279,7 +269,6 @@ update_permissions:
       columns:
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
@@ -343,7 +332,6 @@ update_permissions:
         - app_mode
         - app_website_url
         - associated_domains
-        - canImportAllContacts
         - category
         - contracts
         - description
