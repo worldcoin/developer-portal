@@ -37,6 +37,7 @@ query GetApps(
     associated_domains
     contracts
     permit2_tokens
+    canImportAllContacts
     is_reviewer_app_store_approved
     localisations(where: { locale: { _eq: $locale } }) {
       name
@@ -82,6 +83,7 @@ query GetApps(
     associated_domains
     contracts
     permit2_tokens
+    canImportAllContacts
     is_reviewer_app_store_approved
     localisations(where: { locale: { _eq: $locale } }) {
       name

@@ -1569,6 +1569,7 @@ export type App_Metadata = {
   app_rating?: Maybe<Scalars["numeric"]>;
   app_website_url: Scalars["String"];
   associated_domains?: Maybe<Array<Scalars["String"]>>;
+  canImportAllContacts: Scalars["Boolean"];
   category: Scalars["String"];
   contracts?: Maybe<Array<Scalars["String"]>>;
   created_at: Scalars["timestamptz"];
@@ -1709,6 +1710,7 @@ export type App_Metadata_Bool_Exp = {
   app_rating?: InputMaybe<Numeric_Comparison_Exp>;
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   associated_domains?: InputMaybe<String_Array_Comparison_Exp>;
+  canImportAllContacts?: InputMaybe<Boolean_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   contracts?: InputMaybe<String_Array_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1758,6 +1760,7 @@ export type App_Metadata_Insert_Input = {
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
+  canImportAllContacts?: InputMaybe<Scalars["Boolean"]>;
   category?: InputMaybe<Scalars["String"]>;
   contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -1954,6 +1957,7 @@ export type App_Metadata_Order_By = {
   app_rating?: InputMaybe<Order_By>;
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
+  canImportAllContacts?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -2000,6 +2004,8 @@ export enum App_Metadata_Select_Column {
   AppWebsiteUrl = "app_website_url",
   /** column name */
   AssociatedDomains = "associated_domains",
+  /** column name */
+  CanImportAllContacts = "canImportAllContacts",
   /** column name */
   Category = "category",
   /** column name */
@@ -2061,6 +2067,8 @@ export enum App_Metadata_Select_Column {
 /** select "app_metadata_aggregate_bool_exp_bool_and_arguments_columns" columns of table "app_metadata" */
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
+  CanImportAllContacts = "canImportAllContacts",
+  /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
@@ -2072,6 +2080,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
 
 /** select "app_metadata_aggregate_bool_exp_bool_or_arguments_columns" columns of table "app_metadata" */
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  CanImportAllContacts = "canImportAllContacts",
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
@@ -2088,6 +2098,7 @@ export type App_Metadata_Set_Input = {
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
+  canImportAllContacts?: InputMaybe<Scalars["Boolean"]>;
   category?: InputMaybe<Scalars["String"]>;
   contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -2153,6 +2164,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   app_mode?: InputMaybe<Scalars["String"]>;
   app_website_url?: InputMaybe<Scalars["String"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]>>;
+  canImportAllContacts?: InputMaybe<Scalars["Boolean"]>;
   category?: InputMaybe<Scalars["String"]>;
   contracts?: InputMaybe<Array<Scalars["String"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]>;
@@ -2200,6 +2212,8 @@ export enum App_Metadata_Update_Column {
   AppWebsiteUrl = "app_website_url",
   /** column name */
   AssociatedDomains = "associated_domains",
+  /** column name */
+  CanImportAllContacts = "canImportAllContacts",
   /** column name */
   Category = "category",
   /** column name */
