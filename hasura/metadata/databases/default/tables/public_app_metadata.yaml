@@ -220,6 +220,7 @@ select_permissions:
         - name
         - permit2_tokens
         - short_name
+        - canImportAllContacts
         - showcase_img_urls
         - source_code_url
         - support_link
