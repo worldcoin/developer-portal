@@ -210,7 +210,11 @@ export const formatAppMetadata = (
   const description: AppStoreMetadataDescription = tryParseJSON(
     localisedContent?.description ?? appMetadata.description,
   );
-  const { localisations, ...appMetadataWithoutLocalisations } = appMetadata;
+  const {
+    localisations,
+    is_reviewer_app_store_approved,
+    ...appMetadataWithoutLocalisations
+  } = appMetadata;
   const name = localisedContent?.name ?? appMetadata.name;
   return {
     ...appMetadataWithoutLocalisations,
@@ -243,6 +247,7 @@ export const formatAppMetadata = (
       id: "other",
       name: "Other",
     },
+    show_in_app_store: is_reviewer_app_store_approved,
     team_name: app.team.name ?? "",
   };
 };

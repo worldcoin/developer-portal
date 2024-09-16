@@ -188,6 +188,7 @@ export type AppStoreMetadataFields = {
   supported_countries?: any | null;
   supported_languages?: any | null;
   localisations: LocalisedMetadata[];
+  is_reviewer_app_store_approved: boolean;
   associated_domains?: string[] | null;
   app: {
     team: { name?: string | null };
@@ -204,9 +205,14 @@ export type LocalisedMetadata = {
 
 export type AppStoreFormattedFields = Omit<
   AppStoreMetadataFields,
-  "description" | "category" | "app" | "localisations"
+  | "description"
+  | "category"
+  | "app"
+  | "localisations"
+  | "is_reviewer_app_store_approved"
 > & {
   ratings_external_nullifier: string;
+  show_in_app_store: boolean;
   unique_users: number;
   team_name: string;
   category: { id: string; name: string };

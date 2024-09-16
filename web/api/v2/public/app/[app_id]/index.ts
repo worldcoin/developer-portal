@@ -70,8 +70,18 @@ export async function GET(
     metricsData = [await response.json()];
   }
 
+  let parsedAppMetadata = app_metadata[0];
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
-  let dataToReturn = formatAppMetadata(app_metadata[0], metricsData, locale);
+  if (app_metadata.length > 1) {
+    app_metadata.reduce((acc, current) => {
+      if (current.is_reviewer_app_store_approved) {
+        parsedAppMetadata = current;
+      }
+      return acc;
+    }, null);
+  }
+
+  let dataToReturn = formatAppMetadata(parsedAppMetadata, metricsData, locale);
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];
