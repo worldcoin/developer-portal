@@ -11999,18 +11999,6 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "category",
             "description": null,
             "args": [],
@@ -13405,18 +13393,6 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "Boolean_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "category",
             "description": null,
             "type": {
@@ -13879,18 +13855,6 @@
                   "ofType": null
                 }
               }
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "canImportAllContacts",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -16053,18 +16017,6 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "category",
             "description": null,
             "type": {
@@ -16477,12 +16429,6 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "category",
             "description": "column name",
             "isDeprecated": false,
@@ -16662,12 +16608,6 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "canImportAllContacts",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
@@ -16702,12 +16642,6 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
-          {
-            "name": "canImportAllContacts",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
           {
             "name": "is_developer_allow_listing",
             "description": "column name",
@@ -16792,18 +16726,6 @@
                   "ofType": null
                 }
               }
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "canImportAllContacts",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -17369,18 +17291,6 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "category",
             "description": null,
             "type": {
@@ -17820,12 +17730,6 @@
           },
           {
             "name": "associated_domains",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "canImportAllContacts",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

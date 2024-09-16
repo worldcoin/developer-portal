@@ -41,7 +41,6 @@ export type GetAppsQuery = {
     associated_domains?: Array<string> | null;
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
-    canImportAllContacts?: boolean | null;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -79,7 +78,6 @@ export type GetAppsQuery = {
     associated_domains?: Array<string> | null;
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
-    canImportAllContacts?: boolean | null;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -136,7 +134,6 @@ export const GetAppsDocument = gql`
       associated_domains
       contracts
       permit2_tokens
-      canImportAllContacts
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
@@ -180,7 +177,6 @@ export const GetAppsDocument = gql`
       associated_domains
       contracts
       permit2_tokens
-      canImportAllContacts
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
