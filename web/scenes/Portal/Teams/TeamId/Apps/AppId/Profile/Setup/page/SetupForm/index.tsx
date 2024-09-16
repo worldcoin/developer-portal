@@ -79,6 +79,7 @@ const schema = yup.object().shape({
     .nullable(),
   contracts: yup.string().nullable(),
   permit2_tokens: yup.string().nullable(),
+  canImportAllContacts: yup.boolean().optional(),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -139,6 +140,7 @@ export const SetupForm = (props: LinksFormProps) => {
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+      canImportAllContacts: appMetadata?.canImportAllContacts ?? false,
     },
   });
 
@@ -161,6 +163,7 @@ export const SetupForm = (props: LinksFormProps) => {
       status: status === "active",
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+      canImportAllContacts: appMetadata?.canImportAllContacts ?? false,
     });
   }, [
     reset,
@@ -173,6 +176,7 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.contracts,
     appMetadata?.permit2_tokens,
     status,
+    appMetadata?.canImportAllContacts,
   ]);
 
   const submit = useCallback(
@@ -244,6 +248,7 @@ export const SetupForm = (props: LinksFormProps) => {
             associated_domains,
             contracts,
             permit2_tokens,
+            canImportAllContacts: values.canImportAllContacts,
             status: status ? "active" : "inactive",
           },
 

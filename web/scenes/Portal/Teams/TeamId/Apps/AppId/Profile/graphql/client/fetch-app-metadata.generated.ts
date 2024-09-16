@@ -44,6 +44,7 @@ export type FetchAppMetadataQuery = {
       associated_domains?: Array<string> | null;
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
+      canImportAllContacts?: boolean | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -73,6 +74,7 @@ export type FetchAppMetadataQuery = {
       associated_domains?: Array<string> | null;
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
+      canImportAllContacts?: boolean | null;
     }>;
   }>;
 };
@@ -111,6 +113,7 @@ export const FetchAppMetadataDocument = gql`
         associated_domains
         contracts
         permit2_tokens
+        canImportAllContacts
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -141,6 +144,7 @@ export const FetchAppMetadataDocument = gql`
         associated_domains
         contracts
         permit2_tokens
+        canImportAllContacts
       }
     }
   }
