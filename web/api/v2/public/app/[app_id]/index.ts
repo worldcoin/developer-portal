@@ -62,6 +62,7 @@ export async function GET(
   // ANCHOR: Fetch app stats from metrics service
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/apps/${app_id}.json`,
+    { cache: "no-store" },
   );
 
   let metricsData: AppStatsReturnType = [];
