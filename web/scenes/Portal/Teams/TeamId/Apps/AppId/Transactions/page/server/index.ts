@@ -1,13 +1,13 @@
 "use server";
 
 import { logger } from "@/lib/logger";
-import { TransactionMetadata } from "@/lib/types";
+import { PaymentMetadata } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getTransactionData = async (
   appId: string,
   transactionId?: string,
-): Promise<TransactionMetadata[]> => {
+): Promise<PaymentMetadata[]> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       throw new Error("Internal payments endpoint must be set.");
@@ -18,7 +18,7 @@ export const getTransactionData = async (
       region: process.env.TRANSACTION_BACKEND_REGION,
     });
 
-    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}`;
+    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}`;
 
     if (transactionId) {
       url += `&transaction-id=${transactionId}`;
@@ -39,7 +39,7 @@ export const getTransactionData = async (
       );
     }
     return (data?.result?.transactions || []).sort(
-      (a: TransactionMetadata, b: TransactionMetadata) =>
+      (a: PaymentMetadata, b: PaymentMetadata) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   } catch (error) {

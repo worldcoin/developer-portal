@@ -2,12 +2,12 @@
 
 import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { TransactionMetadata } from "@/lib/types";
+import { PaymentMetadata } from "@/lib/types";
 import { useEffect, useMemo, useState } from "react";
 import { TransactionRow } from "./TransactionRow";
 
 type TransactionsTableProps = {
-  transactionData: TransactionMetadata[];
+  transactionData: PaymentMetadata[];
 };
 export const TransactionsTable = (props: TransactionsTableProps) => {
   const { transactionData } = props;
