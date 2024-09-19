@@ -1,6 +1,6 @@
 import { ExternalLinkIcon } from "@/components/Icons/ExternalLinkIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { TransactionMetadata } from "@/lib/types";
+import { PaymentMetadata } from "@/lib/types";
 import { createTransactionHashUrl } from "@/lib/utils";
 import Link from "next/link";
 import { AddressArrow } from "./AddressArrow";
@@ -8,7 +8,7 @@ import { TransactionStatusBadge } from "./Status";
 import { TokenIcon } from "./Token";
 
 export const TransactionRow = (props: {
-  transaction: TransactionMetadata;
+  transaction: PaymentMetadata;
   index: number;
 }) => {
   const { transaction, index } = props;

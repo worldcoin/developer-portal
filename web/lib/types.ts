@@ -148,10 +148,10 @@ export enum KioskScreen {
   InvalidRequest,
 }
 
-export type TransactionMetadata = {
+export type PaymentMetadata = {
   transactionId: string;
   transactionHash: string | null;
-  transactionStatus: string;
+  transactionStatus: TransactionStatus;
   reference: string;
   miniappId: string;
   updatedAt: string;
@@ -161,6 +161,22 @@ export type TransactionMetadata = {
   inputToken: string;
   inputTokenAmount: string;
 };
+
+export type TransactionMetadata = {
+  transactionId: string;
+  transactionHash: string;
+  transactionStatus: TransactionStatus;
+  miniappId: string;
+  updatedAt: string;
+  network: string;
+  fromWalletAddress: string;
+  toContractAddress: string;
+};
+
+export enum TransactionTypes {
+  Payment = "payment",
+  Transaction = "transaction",
+}
 
 export enum TransactionStatus {
   Pending = "pending",

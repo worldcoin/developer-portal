@@ -1,8 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
-import { TransactionMetadata } from "@/lib/types";
-import { captureEvent } from "@/services/posthogClient";
+import { TransactionTypes } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
@@ -25,6 +24,21 @@ export const GET = async (
   }
 
   const appId = searchParams.get("app_id");
+  const type = searchParams.get("type") ?? TransactionTypes.Payment;
+
+  if (
+    type !== TransactionTypes.Payment &&
+    type !== TransactionTypes.Transaction
+  ) {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_request",
+      detail: "Invalid transaction type.",
+      attribute: "type",
+      req,
+    });
+  }
+
   if (!appId) {
     return errorResponse({
       statusCode: 400,
@@ -96,17 +110,30 @@ export const GET = async (
     service: "execute-api",
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
-
-  const res = await signedFetch(
-    `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}?miniapp-id=${appId}&transaction-id=${transactionId}`,
-    {
-      method: "GET",
-      headers: {
-        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-        "Content-Type": "application/json",
+  let res;
+  if (type === TransactionTypes.Payment) {
+    res = await signedFetch(
+      `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+          "Content-Type": "application/json",
+        },
       },
-    },
-  );
+    );
+  } else {
+    res = await signedFetch(
+      `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}&transaction-id=${transactionId}`,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
 
   const data = await res.json();
 
@@ -117,29 +144,20 @@ export const GET = async (
     if (data && data.error) {
       errorMessage = data.error.message;
     } else {
-      errorMessage = "Unknown error";
+      errorMessage = "Transaction fetch to backend failed";
     }
 
     return errorResponse({
       statusCode: res.status,
       code: data.error.code ?? "internal_api_error",
-      detail: "Transaction fetch to backend failed",
+      detail: errorMessage,
       attribute: "transaction",
       req,
     });
   }
 
   if (data?.result?.transactions.length !== 0) {
-    const transaction = data?.result?.transactions[0] as TransactionMetadata;
-    await captureEvent({
-      event: "miniapp_payment_queried",
-      distinctId: transaction.transactionId,
-      properties: {
-        input_token: transaction.inputToken,
-        token_amount: transaction.inputTokenAmount,
-        appId: transaction.miniappId,
-      },
-    });
+    const transaction = data?.result?.transactions[0];
     return NextResponse.json(transaction, { status: 200 });
   } else {
     return errorResponse({
