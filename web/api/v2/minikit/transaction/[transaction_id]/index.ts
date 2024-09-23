@@ -138,7 +138,7 @@ export const GET = async (
   const data = await res.json();
 
   if (!res.ok) {
-    console.warn("Error fetching transaction", data);
+    console.warn("Error fetching transaction data", data);
 
     let errorMessage;
     if (data && data.error) {
