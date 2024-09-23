@@ -33,6 +33,7 @@ export type GetAppMetadataQuery = {
     supported_languages?: Array<string> | null;
     app_rating?: number | null;
     associated_domains?: Array<string> | null;
+    verification_status: string;
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
     canImportAllContacts: boolean;
@@ -75,6 +76,7 @@ export const GetAppMetadataDocument = gql`
       supported_languages
       app_rating
       associated_domains
+      verification_status
       contracts
       permit2_tokens
       canImportAllContacts
