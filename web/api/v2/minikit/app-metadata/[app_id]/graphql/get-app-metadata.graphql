@@ -20,6 +20,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     supported_languages
     app_rating
     associated_domains
+    verification_status
     contracts
     permit2_tokens
     canImportAllContacts

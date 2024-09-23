@@ -105,9 +105,18 @@ export const GET = async (
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
 
+  let appMetadata = app_metadata[0];
+
+  // Always try to pull unverified metadata
+  if (app_metadata.length > 1) {
+    appMetadata =
+      app_metadata.find((m) => m.verification_status !== "verified") ??
+      app_metadata[0];
+  }
+
   return NextResponse.json(
     {
-      ...formatAppMetadata(app_metadata[0], [], locale),
+      ...formatAppMetadata(appMetadata, [], locale),
       hero_image_url: null,
       showcase_img_urls: null,
       logo_img_url: null,
