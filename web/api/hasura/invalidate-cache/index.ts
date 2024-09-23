@@ -55,7 +55,7 @@ export const POST = async (req: NextRequest) => {
     InvalidationBatch: {
       Paths: {
         Quantity: 2,
-        Items: ["/api/v2/public/apps*", "/api/v2/public/apps"],
+        Items: ["/api/v2/public/app/*", "/api/v2/public/apps*"],
       },
       CallerReference: Date.now().toString(),
     },
