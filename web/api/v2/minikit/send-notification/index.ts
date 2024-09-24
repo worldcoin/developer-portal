@@ -122,6 +122,16 @@ export const POST = async (req: NextRequest) => {
     },
   );
 
+  if (!app_metadata || app_metadata.length === 0) {
+    return errorResponse({
+      statusCode: 404,
+      code: "app_not_verified",
+      detail: "App either doesn't exist or isn't verified",
+      attribute: "app",
+      req,
+    });
+  }
+
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
   if (
@@ -172,7 +182,7 @@ export const POST = async (req: NextRequest) => {
     if (data && data.error) {
       errorMessage = data.error.message;
     } else {
-      errorMessage = "Server Error Occured";
+      errorMessage = "Server Error Occurred";
     }
 
     return errorResponse({
