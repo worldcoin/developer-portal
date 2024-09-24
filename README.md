@@ -34,16 +34,21 @@ docker compose up --detach
 cd web && pnpm dev
 ```
 
+You can also take advantage of the Makefile, `make up`
+
 ### Updating Database Model
 
 If you need to update anything related to the database (model, permissions, events, etc.) the easiest way is with the Hasura console.
 
 1. Follow instructions to install the [Hasura CLI](https://hasura.io/docs/latest/graphql/core/hasura-cli/install-hasura-cli/).
 2. Launch the Hasura console.
+
    ```bash
    cd hasura
    hasura console --endpoint http://localhost:8080 --admin-secret secret!
    ```
+
+   You can also take advantage of the Makefile, `make hasura-console`
 
 > **Warning** Make sure to only make the changes in the Hasura console (usually `http://localhost:9665`), if you make changes on `http://localhost:8080`the migrations will not be generated and your changes will be lost.
 
