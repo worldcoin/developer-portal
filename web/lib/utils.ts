@@ -212,10 +212,12 @@ export const formatAppMetadata = (
   );
   const {
     localisations,
-    is_reviewer_app_store_approved,
+    is_reviewer_world_app_approved,
     ...appMetadataWithoutLocalisations
   } = appMetadata;
+
   const name = localisedContent?.name ?? appMetadata.name;
+
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
@@ -247,7 +249,7 @@ export const formatAppMetadata = (
       id: "other",
       name: "Other",
     },
-    show_in_app_store: is_reviewer_app_store_approved,
+    show_in_app_store: is_reviewer_world_app_approved,
     team_name: app.team.name ?? "",
   };
 };

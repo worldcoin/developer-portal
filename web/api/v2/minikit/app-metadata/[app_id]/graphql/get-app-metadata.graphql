@@ -24,7 +24,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     contracts
     permit2_tokens
     canImportAllContacts
-    is_reviewer_app_store_approved
+    is_reviewer_world_app_approved
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text

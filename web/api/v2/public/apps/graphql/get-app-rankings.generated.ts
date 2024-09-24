@@ -42,7 +42,7 @@ export type GetAppsQuery = {
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
     canImportAllContacts: boolean;
-    is_reviewer_app_store_approved: boolean;
+    is_reviewer_world_app_approved: boolean;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -81,7 +81,7 @@ export type GetAppsQuery = {
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
     canImportAllContacts: boolean;
-    is_reviewer_app_store_approved: boolean;
+    is_reviewer_world_app_approved: boolean;
     app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
@@ -109,10 +109,7 @@ export const GetAppsDocument = gql`
     top_apps: app_metadata(
       where: {
         _and: $topAppsConditions
-        _or: [
-          { is_reviewer_app_store_approved: { _eq: true } }
-          { is_reviewer_world_app_approved: { _eq: true } }
-        ]
+        _or: [{ is_reviewer_world_app_approved: { _eq: true } }]
       }
       limit: $limit
       offset: $offset
@@ -139,7 +136,7 @@ export const GetAppsDocument = gql`
       contracts
       permit2_tokens
       canImportAllContacts
-      is_reviewer_app_store_approved
+      is_reviewer_world_app_approved
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
@@ -158,7 +155,6 @@ export const GetAppsDocument = gql`
       where: {
         app_id: { _in: $highlightsIds }
         verification_status: { _eq: "verified" }
-        is_reviewer_app_store_approved: { _eq: true }
         is_reviewer_world_app_approved: { _eq: true }
       }
     ) {
@@ -184,7 +180,7 @@ export const GetAppsDocument = gql`
       contracts
       permit2_tokens
       canImportAllContacts
-      is_reviewer_app_store_approved
+      is_reviewer_world_app_approved
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
