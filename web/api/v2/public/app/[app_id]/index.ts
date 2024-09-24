@@ -75,7 +75,7 @@ export async function GET(
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
   if (app_metadata.length > 1) {
     app_metadata.reduce((acc, current) => {
-      if (current.is_reviewer_app_store_approved) {
+      if (current.is_reviewer_world_app_approved) {
         parsedAppMetadata = current;
       }
       return acc;
