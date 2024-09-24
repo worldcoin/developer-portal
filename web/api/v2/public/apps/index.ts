@@ -136,14 +136,14 @@ export const GET = async (request: NextRequest) => {
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Anchor: Format Apps
-  let fomattedTopApps = topApps.map((app) =>
+  let formattedTopApps = topApps.map((app) =>
     formatAppMetadata(app, metricsData, locale),
   );
   let highlightedApps = highlightsApps.map((app) =>
     formatAppMetadata(app, metricsData, locale),
   );
 
-  fomattedTopApps = fomattedTopApps.map((app) => {
+  formattedTopApps = formattedTopApps.map((app) => {
     if (app.app_id in nativeAppMetadata) {
       const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
@@ -177,7 +177,7 @@ export const GET = async (request: NextRequest) => {
 
   return NextResponse.json({
     app_rankings: {
-      top_apps: rankApps(fomattedTopApps, metricsData),
+      top_apps: rankApps(formattedTopApps, metricsData),
       highlights: rankApps(highlightedApps, metricsData),
     },
     categories: getAllLocalisedCategories(locale), // TODO: Localise
