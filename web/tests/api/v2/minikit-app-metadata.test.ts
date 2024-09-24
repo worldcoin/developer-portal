@@ -13,14 +13,11 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock(
-  "../../../api/v2/minikit/app-metadata/[app_id]/graphql/fetch-api-key.generated",
-  () => ({
-    getSdk: () => ({
-      FetchAPIKey,
-    }),
+jest.mock("../../../api/v2/minikit/graphql/fetch-api-key.generated", () => ({
+  getSdk: () => ({
+    FetchAPIKey,
   }),
-);
+}));
 
 jest.mock(
   "../../../api/v2/minikit/app-metadata/[app_id]/graphql/get-app-metadata.generated",

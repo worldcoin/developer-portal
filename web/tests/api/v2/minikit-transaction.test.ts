@@ -13,14 +13,11 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock(
-  "../../../api/v2/minikit/transaction/[transaction_id]/graphql/fetch-api-key.generated",
-  () => ({
-    getSdk: () => ({
-      FetchAPIKey,
-    }),
+jest.mock("../../../api/v2/minikit/graphql/fetch-api-key.generated", () => ({
+  getSdk: () => ({
+    FetchAPIKey,
   }),
-);
+}));
 
 jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
@@ -192,7 +189,6 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     const ctx = { params: { transaction_id: validTransactionId } };
     FetchAPIKey.mockResolvedValue({
-      ...validApiKeyResponse,
       api_key_by_pk: { ...validApiKeyResponse.api_key_by_pk, is_active: false },
     });
 

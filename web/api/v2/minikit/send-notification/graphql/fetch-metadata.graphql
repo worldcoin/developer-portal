@@ -1,0 +1,17 @@
+query GetAppMetadata($app_id: String!) {
+  app_metadata(
+    where: {
+      app_id: { _eq: $app_id }
+      verification_status: { _eq: "verified" }
+    }
+  ) {
+    name
+    app_id
+    is_reviewer_app_store_approved
+    app {
+      team {
+        id
+      }
+    }
+  }
+}
