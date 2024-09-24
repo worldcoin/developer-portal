@@ -10,7 +10,6 @@ const customJestConfig: Config = {
   moduleDirectories: ["node_modules", "<rootDir>"],
   testEnvironment: "node",
   setupFiles: ["./jest.setup.ts"],
-  globalSetup: "./tests/setupEnv.js",
   automock: false,
   resetMocks: false,
   preset: "ts-jest",

@@ -102,3 +102,9 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
   },
 };
+
+export const notificationPermissions = {
+  dev: ["team_dd2ecd36c6c45f645e8e5d9a31abdee1"],
+  staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
+  production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
+};

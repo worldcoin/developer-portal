@@ -4,7 +4,7 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { TransactionTypes } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
+import { getSdk as fetchApiKeySdk } from "../../graphql/fetch-api-key.generated";
 
 export const GET = async (
   req: NextRequest,
