@@ -204,7 +204,7 @@ export type AppStoreMetadataFields = {
   supported_countries?: any | null;
   supported_languages?: any | null;
   localisations: LocalisedMetadata[];
-  is_reviewer_app_store_approved: boolean;
+  is_reviewer_world_app_approved: boolean;
   associated_domains?: string[] | null;
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
@@ -228,7 +228,7 @@ export type AppStoreFormattedFields = Omit<
   | "category"
   | "app"
   | "localisations"
-  | "is_reviewer_app_store_approved"
+  | "is_reviewer_world_app_approved"
 > & {
   ratings_external_nullifier: string;
   show_in_app_store: boolean;
