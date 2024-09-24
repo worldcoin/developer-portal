@@ -109,7 +109,7 @@ export const AppSelector = () => {
         )}
       </SelectButton>
 
-      <SelectOptions className="max-w-[200px]">
+      <SelectOptions className="max-h-[50vh] max-w-[200px]">
         {data.app.map((app) => (
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
