@@ -1577,6 +1577,7 @@ export type App_Metadata = {
   hero_image_url: Scalars["String"];
   id: Scalars["String"];
   integration_url: Scalars["String"];
+  isAllowedUnlimitedNotifications?: Maybe<Scalars["Boolean"]>;
   is_developer_allow_listing: Scalars["Boolean"];
   is_reviewer_app_store_approved: Scalars["Boolean"];
   is_reviewer_world_app_approved: Scalars["Boolean"];
@@ -1586,6 +1587,7 @@ export type App_Metadata = {
   /** An aggregate relationship */
   localisations_aggregate: Localisations_Aggregate;
   logo_img_url: Scalars["String"];
+  maxNotificationsPerDay?: Maybe<Scalars["Int"]>;
   name: Scalars["String"];
   permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message: Scalars["String"];
@@ -1680,9 +1682,17 @@ export type App_Metadata_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "app_metadata" */
 export type App_Metadata_Aggregate_Order_By = {
+  avg?: InputMaybe<App_Metadata_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<App_Metadata_Max_Order_By>;
   min?: InputMaybe<App_Metadata_Min_Order_By>;
+  stddev?: InputMaybe<App_Metadata_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<App_Metadata_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<App_Metadata_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<App_Metadata_Sum_Order_By>;
+  var_pop?: InputMaybe<App_Metadata_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<App_Metadata_Var_Samp_Order_By>;
+  variance?: InputMaybe<App_Metadata_Variance_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "app_metadata" */
@@ -1697,6 +1707,12 @@ export type App_Metadata_Avg_Fields = {
   __typename?: "app_metadata_avg_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by avg() on columns of table "app_metadata" */
+export type App_Metadata_Avg_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "app_metadata". All fields are combined with a logical 'AND'. */
@@ -1718,6 +1734,7 @@ export type App_Metadata_Bool_Exp = {
   hero_image_url?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   integration_url?: InputMaybe<String_Comparison_Exp>;
+  isAllowedUnlimitedNotifications?: InputMaybe<Boolean_Comparison_Exp>;
   is_developer_allow_listing?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_app_store_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_world_app_approved?: InputMaybe<Boolean_Comparison_Exp>;
@@ -1725,6 +1742,7 @@ export type App_Metadata_Bool_Exp = {
   localisations?: InputMaybe<Localisations_Bool_Exp>;
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Bool_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
+  maxNotificationsPerDay?: InputMaybe<Int_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   permit2_tokens?: InputMaybe<String_Array_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
@@ -1753,6 +1771,11 @@ export enum App_Metadata_Constraint {
   UniqueVerifiedAppId = "unique_verified_app_id",
 }
 
+/** input type for incrementing numeric columns in table "app_metadata" */
+export type App_Metadata_Inc_Input = {
+  maxNotificationsPerDay?: InputMaybe<Scalars["Int"]>;
+};
+
 /** input type for inserting data into table "app_metadata" */
 export type App_Metadata_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
@@ -1768,12 +1791,14 @@ export type App_Metadata_Insert_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   integration_url?: InputMaybe<Scalars["String"]>;
+  isAllowedUnlimitedNotifications?: InputMaybe<Scalars["Boolean"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   localisations?: InputMaybe<Localisations_Arr_Rel_Insert_Input>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
+  maxNotificationsPerDay?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
@@ -1809,6 +1834,7 @@ export type App_Metadata_Max_Fields = {
   id?: Maybe<Scalars["String"]>;
   integration_url?: Maybe<Scalars["String"]>;
   logo_img_url?: Maybe<Scalars["String"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Int"]>;
   name?: Maybe<Scalars["String"]>;
   permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message?: Maybe<Scalars["String"]>;
@@ -1841,6 +1867,7 @@ export type App_Metadata_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -1876,6 +1903,7 @@ export type App_Metadata_Min_Fields = {
   id?: Maybe<Scalars["String"]>;
   integration_url?: Maybe<Scalars["String"]>;
   logo_img_url?: Maybe<Scalars["String"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Int"]>;
   name?: Maybe<Scalars["String"]>;
   permit2_tokens?: Maybe<Array<Scalars["String"]>>;
   review_message?: Maybe<Scalars["String"]>;
@@ -1908,6 +1936,7 @@ export type App_Metadata_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -1965,12 +1994,14 @@ export type App_Metadata_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
+  isAllowedUnlimitedNotifications?: InputMaybe<Order_By>;
   is_developer_allow_listing?: InputMaybe<Order_By>;
   is_reviewer_app_store_approved?: InputMaybe<Order_By>;
   is_reviewer_world_app_approved?: InputMaybe<Order_By>;
   is_row_verified?: InputMaybe<Order_By>;
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -2021,6 +2052,8 @@ export enum App_Metadata_Select_Column {
   /** column name */
   IntegrationUrl = "integration_url",
   /** column name */
+  IsAllowedUnlimitedNotifications = "isAllowedUnlimitedNotifications",
+  /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
@@ -2030,6 +2063,8 @@ export enum App_Metadata_Select_Column {
   IsRowVerified = "is_row_verified",
   /** column name */
   LogoImgUrl = "logo_img_url",
+  /** column name */
+  MaxNotificationsPerDay = "maxNotificationsPerDay",
   /** column name */
   Name = "name",
   /** column name */
@@ -2069,6 +2104,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   /** column name */
   CanImportAllContacts = "canImportAllContacts",
   /** column name */
+  IsAllowedUnlimitedNotifications = "isAllowedUnlimitedNotifications",
+  /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
@@ -2082,6 +2119,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   CanImportAllContacts = "canImportAllContacts",
+  /** column name */
+  IsAllowedUnlimitedNotifications = "isAllowedUnlimitedNotifications",
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
@@ -2106,11 +2145,13 @@ export type App_Metadata_Set_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   integration_url?: InputMaybe<Scalars["String"]>;
+  isAllowedUnlimitedNotifications?: InputMaybe<Scalars["Boolean"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
+  maxNotificationsPerDay?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
@@ -2134,6 +2175,12 @@ export type App_Metadata_Stddev_Fields = {
   __typename?: "app_metadata_stddev_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev() on columns of table "app_metadata" */
+export type App_Metadata_Stddev_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
@@ -2141,6 +2188,12 @@ export type App_Metadata_Stddev_Pop_Fields = {
   __typename?: "app_metadata_stddev_pop_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev_pop() on columns of table "app_metadata" */
+export type App_Metadata_Stddev_Pop_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
@@ -2148,6 +2201,12 @@ export type App_Metadata_Stddev_Samp_Fields = {
   __typename?: "app_metadata_stddev_samp_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by stddev_samp() on columns of table "app_metadata" */
+export type App_Metadata_Stddev_Samp_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "app_metadata" */
@@ -2172,11 +2231,13 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]>;
   id?: InputMaybe<Scalars["String"]>;
   integration_url?: InputMaybe<Scalars["String"]>;
+  isAllowedUnlimitedNotifications?: InputMaybe<Scalars["Boolean"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]>;
   logo_img_url?: InputMaybe<Scalars["String"]>;
+  maxNotificationsPerDay?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]>>;
   review_message?: InputMaybe<Scalars["String"]>;
@@ -2200,6 +2261,12 @@ export type App_Metadata_Sum_Fields = {
   __typename?: "app_metadata_sum_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Int"]>;
+};
+
+/** order by sum() on columns of table "app_metadata" */
+export type App_Metadata_Sum_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "app_metadata" */
@@ -2229,6 +2296,8 @@ export enum App_Metadata_Update_Column {
   /** column name */
   IntegrationUrl = "integration_url",
   /** column name */
+  IsAllowedUnlimitedNotifications = "isAllowedUnlimitedNotifications",
+  /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
@@ -2238,6 +2307,8 @@ export enum App_Metadata_Update_Column {
   IsRowVerified = "is_row_verified",
   /** column name */
   LogoImgUrl = "logo_img_url",
+  /** column name */
+  MaxNotificationsPerDay = "maxNotificationsPerDay",
   /** column name */
   Name = "name",
   /** column name */
@@ -2273,6 +2344,8 @@ export enum App_Metadata_Update_Column {
 }
 
 export type App_Metadata_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<App_Metadata_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<App_Metadata_Set_Input>;
   /** filter the rows which have to be updated */
@@ -2284,6 +2357,12 @@ export type App_Metadata_Var_Pop_Fields = {
   __typename?: "app_metadata_var_pop_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by var_pop() on columns of table "app_metadata" */
+export type App_Metadata_Var_Pop_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
@@ -2291,6 +2370,12 @@ export type App_Metadata_Var_Samp_Fields = {
   __typename?: "app_metadata_var_samp_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by var_samp() on columns of table "app_metadata" */
+export type App_Metadata_Var_Samp_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
@@ -2298,6 +2383,12 @@ export type App_Metadata_Variance_Fields = {
   __typename?: "app_metadata_variance_fields";
   /** A computed field that returns the rating of an app */
   app_rating?: Maybe<Scalars["numeric"]>;
+  maxNotificationsPerDay?: Maybe<Scalars["Float"]>;
+};
+
+/** order by variance() on columns of table "app_metadata" */
+export type App_Metadata_Variance_Order_By = {
+  maxNotificationsPerDay?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -5376,12 +5467,14 @@ export type Mutation_RootUpdate_App_ManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdate_App_MetadataArgs = {
+  _inc?: InputMaybe<App_Metadata_Inc_Input>;
   _set?: InputMaybe<App_Metadata_Set_Input>;
   where: App_Metadata_Bool_Exp;
 };
 
 /** mutation root */
 export type Mutation_RootUpdate_App_Metadata_By_PkArgs = {
+  _inc?: InputMaybe<App_Metadata_Inc_Input>;
   _set?: InputMaybe<App_Metadata_Set_Input>;
   pk_columns: App_Metadata_Pk_Columns_Input;
 };
