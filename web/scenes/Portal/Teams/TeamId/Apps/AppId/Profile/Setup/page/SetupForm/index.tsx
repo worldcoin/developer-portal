@@ -43,7 +43,13 @@ const schema = yup.object().shape({
   whitelisted_addresses: yup.string().nullable(),
   is_whitelist_disabled: yup.boolean(),
   status: yup.boolean().optional(),
-  support_link: yup.string().url("Invalid URL"),
+  support_link: yup
+    .string()
+    .url("Must be a valid https:// URL")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Link must be a valid HTTPS URL",
+      excludeEmptyString: true,
+    }),
   support_email: yup.string().email("Invalid email address"),
   supported_countries: yup
     .array(
@@ -487,7 +493,7 @@ export const SetupForm = (props: LinksFormProps) => {
           </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Please include a support link where users can reach out to you for
-            help. Emails should preceded by mailto:
+            help. Emails should be preceded by mailto:
           </Typography>
         </div>
         {/* Pending designs change this to a switcher */}
