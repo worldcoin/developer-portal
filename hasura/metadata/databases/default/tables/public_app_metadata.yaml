@@ -180,10 +180,12 @@ select_permissions:
         - hero_image_url
         - id
         - integration_url
+        - isAllowedUnlimitedNotifications
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
+        - maxNotificationsPerDay
         - name
         - permit2_tokens
         - review_message
