@@ -56,8 +56,6 @@ insert_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
   - role: service
     permission:
       check: {}
@@ -86,8 +84,6 @@ insert_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
     comment: ""
   - role: user
     permission:
@@ -131,8 +127,6 @@ insert_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
 select_permissions:
   - role: api_key
     permission:
@@ -166,8 +160,6 @@ select_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       filter:
         app:
           team:
@@ -199,14 +191,15 @@ select_permissions:
         - short_name
         - showcase_img_urls
         - source_code_url
+        - support_link
+        - supported_countries
+        - supported_languages
         - updated_at
         - verification_status
         - verified_at
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       filter:
         verification_status:
           _neq: unverified
@@ -240,8 +233,6 @@ select_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       computed_fields:
         - app_rating
       filter: {}
@@ -278,8 +269,6 @@ select_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       computed_fields:
         - app_rating
       filter:
@@ -314,8 +303,6 @@ update_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       filter:
         _and:
           - verification_status:
@@ -380,8 +367,6 @@ update_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       filter:
         _and:
           - verification_status:
