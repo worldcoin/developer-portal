@@ -43,13 +43,7 @@ const schema = yup.object().shape({
   whitelisted_addresses: yup.string().nullable(),
   is_whitelist_disabled: yup.boolean(),
   status: yup.boolean().optional(),
-  support_link: yup
-    .string()
-    .url("Must be a valid https:// URL")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Link must be a valid HTTPS URL",
-      excludeEmptyString: true,
-    }),
+  support_link: yup.string().url("Invalid URL"),
   support_email: yup.string().email("Invalid email address"),
   supported_countries: yup
     .array(
