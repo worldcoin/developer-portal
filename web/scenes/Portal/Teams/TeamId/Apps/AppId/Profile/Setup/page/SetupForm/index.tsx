@@ -487,7 +487,7 @@ export const SetupForm = (props: LinksFormProps) => {
           </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
             Please include a support link where users can reach out to you for
-            help. Emails should preceded by mailto:
+            help. Emails should be preceded by mailto:
           </Typography>
         </div>
         {/* Pending designs change this to a switcher */}
