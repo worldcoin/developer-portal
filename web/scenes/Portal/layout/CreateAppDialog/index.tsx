@@ -196,6 +196,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                   placeholder="Display name (ex. Voting app)"
                   required
                   errors={errors.appName}
+                  data-testid="input-app-name"
                 />
                 <Input
                   register={register("integration_url")}
