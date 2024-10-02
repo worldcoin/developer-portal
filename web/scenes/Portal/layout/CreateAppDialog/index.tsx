@@ -216,6 +216,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                         onChange={field.onChange}
                         errors={errors.category}
                         label="Category"
+                        data-testid="category-selector"
                       />
                     );
                   }}
