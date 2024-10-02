@@ -61,12 +61,12 @@ const config: PermissionsConfig = {
     Admin: false,
     Member: false,
   },
-  "View app profile": {
+  "View app configuration": {
     Owner: true,
     Admin: true,
     Member: true,
   },
-  "Create & Edit app profile": {
+  "Create & Edit app configuration": {
     Owner: true,
     Admin: true,
     Member: false,
