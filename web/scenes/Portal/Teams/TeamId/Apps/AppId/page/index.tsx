@@ -108,7 +108,7 @@ export const AppIdPage = (props: {
                 icon={<CheckmarkBadge className="size-[22px]" />}
                 title="Get your app verified"
                 description="Display a verified app badge"
-                href={urls.appProfile({ team_id: teamId, app_id: appId })}
+                href={urls.configuration({ team_id: teamId, app_id: appId })}
               />
             )}
 
@@ -127,7 +127,7 @@ export const AppIdPage = (props: {
           <ReviewMessageDialog
             message={verificationData?.review_message ?? ""}
             metadataId={verificationData?.id}
-            goTo={urls.appProfile({ team_id: teamId, app_id: appId })}
+            goTo={urls.configuration({ team_id: teamId, app_id: appId })}
           />
         )}
       </SizingWrapper>

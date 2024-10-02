@@ -9,8 +9,8 @@ export const urls = {
   apps: (params: { team_id: string }): string =>
     `/teams/${params.team_id}/apps`,
 
-  appProfile: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/profile`,
+  configuration: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
