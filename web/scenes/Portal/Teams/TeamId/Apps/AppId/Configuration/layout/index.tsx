@@ -38,23 +38,23 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
               href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
               segment={null}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Information</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Basic</Typography>
             </Tab>
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/gallery`}
-              segment={"gallery"}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/app-store`}
+              segment={"app-store"}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Gallery</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>App Store</Typography>
             </Tab>
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/setup`}
-              segment={"setup"}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/advanced`}
+              segment={"advanced"}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Setup</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Advanced</Typography>
             </Tab>
 
             {isEnoughPermissions && (

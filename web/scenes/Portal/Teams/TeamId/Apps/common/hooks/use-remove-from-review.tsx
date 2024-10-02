@@ -1,6 +1,6 @@
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
-import { FetchAppMetadataDocument } from "../../AppId/Profile/graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "../../AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
 

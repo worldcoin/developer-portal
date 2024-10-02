@@ -8,7 +8,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
-import { showReviewStatusAtom } from "../../AppId/Profile/layout/ImagesProvider";
+import { showReviewStatusAtom } from "../../AppId/Configuration/layout/ImagesProvider";
 import { reviewMessageDialogOpenedAtom } from "../ReviewMessageDialog";
 
 type ReviewStatusProps = {

@@ -188,10 +188,12 @@ select_permissions:
         - hero_image_url
         - id
         - integration_url
+        - isAllowedUnlimitedNotifications
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
+        - maxNotificationsPerDay
         - name
         - permit2_tokens
         - review_message
@@ -199,14 +201,15 @@ select_permissions:
         - short_name
         - showcase_img_urls
         - source_code_url
+        - support_link
+        - supported_countries
+        - supported_languages
         - updated_at
         - verification_status
         - verified_at
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       filter:
         verification_status:
           _neq: unverified
