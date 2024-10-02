@@ -35,7 +35,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
           <Tabs className="px-6 py-4 font-gta md:py-0">
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration`}
               segment={null}
             >
               <Typography variant={TYPOGRAPHY.R4}>Basic</Typography>
@@ -43,7 +43,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/app-store`}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store`}
               segment={"app-store"}
             >
               <Typography variant={TYPOGRAPHY.R4}>App Store</Typography>
@@ -51,7 +51,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/advanced`}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/advanced`}
               segment={"advanced"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Advanced</Typography>
@@ -60,7 +60,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
             {isEnoughPermissions && (
               <Tab
                 className="md:py-4"
-                href={`/teams/${params!.teamId}/apps/${params!.appId}/profile/danger`}
+                href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/danger`}
                 segment={"danger"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
