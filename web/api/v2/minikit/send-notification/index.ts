@@ -9,7 +9,10 @@ import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../graphql/fetch-api-key.generated";
-import { getSdk as createNotificationLogSdk } from "./graphql/create-notification-log.generated";
+import {
+  CreateNotificationLogMutationVariables,
+  getSdk as createNotificationLogSdk,
+} from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
 const sendNotificationBodySchema = yup.object({
@@ -34,25 +37,30 @@ export const logNotification = async (
     return;
   }
 
-  const { insert_notification_log_one } = await createNotificationLogSdk(
-    serviceClient,
-  ).CreateNotificationLog({
+  const walletAddresses = wallet_addresses?.filter((w) => w) as string[];
+
+  let notificationLog: CreateNotificationLogMutationVariables = {
     app_id,
     mini_app_path,
-    message,
-  });
+  };
+  if (walletAddresses.length > 10) {
+    notificationLog.message = message;
+  }
 
-  const walletAddresses = wallet_addresses?.filter((w) => w) as string[];
+  const { insert_notification_log_one } =
+    await createNotificationLogSdk(serviceClient).CreateNotificationLog(
+      notificationLog,
+    );
+
   const notificationLogId = insert_notification_log_one?.id;
-  console.log(
-    "logNotif",
-    walletAddresses,
-    notificationLogId,
-    walletAddresses.map((wallet_address) => ({
-      wallet_address,
-      notification_log_id: notificationLogId,
-    })),
-  );
+
+  if (!notificationLogId) {
+    logger.error(
+      "NotificationLog - failed to create notification log, skipping wallet address log",
+    );
+    return;
+  }
+
   createNotificationLogSdk(serviceClient).CreateWalletAdressNotificationLogs({
     objects: walletAddresses.map((wallet_address) => ({
       wallet_address,
@@ -237,16 +245,14 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
-  if ((wallet_addresses?.length || 0) > 10) {
-    logNotification(
-      serviceClient,
-      app_id,
-      wallet_addresses,
-      mini_app_path,
-      message,
-    );
-  } else {
-    logNotification(serviceClient, app_id, wallet_addresses, mini_app_path);
-  }
+
+  logNotification(
+    serviceClient,
+    app_id,
+    wallet_addresses,
+    mini_app_path,
+    message,
+  );
+
   return NextResponse.json({ success: true, status: 200 });
 };
