@@ -12,6 +12,8 @@
 - "!include public_jwks.yaml"
 - "!include public_localisations.yaml"
 - "!include public_membership.yaml"
+- "!include public_notification_log.yaml"
+- "!include public_notification_log_wallet_address.yaml"
 - "!include public_nullifier.yaml"
 - "!include public_redirect.yaml"
 - "!include public_role.yaml"

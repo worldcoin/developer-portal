@@ -4714,6 +4714,14 @@ export type Mutation_Root = {
   delete_membership?: Maybe<Membership_Mutation_Response>;
   /** delete single row from the table: "membership" */
   delete_membership_by_pk?: Maybe<Membership>;
+  /** delete data from the table: "notification_log" */
+  delete_notification_log?: Maybe<Notification_Log_Mutation_Response>;
+  /** delete single row from the table: "notification_log" */
+  delete_notification_log_by_pk?: Maybe<Notification_Log>;
+  /** delete data from the table: "notification_log_wallet_address" */
+  delete_notification_log_wallet_address?: Maybe<Notification_Log_Wallet_Address_Mutation_Response>;
+  /** delete single row from the table: "notification_log_wallet_address" */
+  delete_notification_log_wallet_address_by_pk?: Maybe<Notification_Log_Wallet_Address>;
   /** delete data from the table: "nullifier" */
   delete_nullifier?: Maybe<Nullifier_Mutation_Response>;
   /** delete single row from the table: "nullifier" */
@@ -4791,6 +4799,14 @@ export type Mutation_Root = {
   insert_membership?: Maybe<Membership_Mutation_Response>;
   /** insert a single row into the table: "membership" */
   insert_membership_one?: Maybe<Membership>;
+  /** insert data into the table: "notification_log" */
+  insert_notification_log?: Maybe<Notification_Log_Mutation_Response>;
+  /** insert a single row into the table: "notification_log" */
+  insert_notification_log_one?: Maybe<Notification_Log>;
+  /** insert data into the table: "notification_log_wallet_address" */
+  insert_notification_log_wallet_address?: Maybe<Notification_Log_Wallet_Address_Mutation_Response>;
+  /** insert a single row into the table: "notification_log_wallet_address" */
+  insert_notification_log_wallet_address_one?: Maybe<Notification_Log_Wallet_Address>;
   /** insert data into the table: "nullifier" */
   insert_nullifier?: Maybe<Nullifier_Mutation_Response>;
   /** insert a single row into the table: "nullifier" */
@@ -4912,6 +4928,22 @@ export type Mutation_Root = {
   update_membership_by_pk?: Maybe<Membership>;
   /** update multiples rows of table: "membership" */
   update_membership_many?: Maybe<Array<Maybe<Membership_Mutation_Response>>>;
+  /** update data of the table: "notification_log" */
+  update_notification_log?: Maybe<Notification_Log_Mutation_Response>;
+  /** update single row of the table: "notification_log" */
+  update_notification_log_by_pk?: Maybe<Notification_Log>;
+  /** update multiples rows of table: "notification_log" */
+  update_notification_log_many?: Maybe<
+    Array<Maybe<Notification_Log_Mutation_Response>>
+  >;
+  /** update data of the table: "notification_log_wallet_address" */
+  update_notification_log_wallet_address?: Maybe<Notification_Log_Wallet_Address_Mutation_Response>;
+  /** update single row of the table: "notification_log_wallet_address" */
+  update_notification_log_wallet_address_by_pk?: Maybe<Notification_Log_Wallet_Address>;
+  /** update multiples rows of table: "notification_log_wallet_address" */
+  update_notification_log_wallet_address_many?: Maybe<
+    Array<Maybe<Notification_Log_Wallet_Address_Mutation_Response>>
+  >;
   /** update data of the table: "nullifier" */
   update_nullifier?: Maybe<Nullifier_Mutation_Response>;
   /** update single row of the table: "nullifier" */
@@ -5089,6 +5121,26 @@ export type Mutation_RootDelete_MembershipArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Membership_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Notification_LogArgs = {
+  where: Notification_Log_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Notification_Log_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Notification_Log_Wallet_AddressArgs = {
+  where: Notification_Log_Wallet_Address_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Notification_Log_Wallet_Address_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -5313,6 +5365,30 @@ export type Mutation_RootInsert_MembershipArgs = {
 export type Mutation_RootInsert_Membership_OneArgs = {
   object: Membership_Insert_Input;
   on_conflict?: InputMaybe<Membership_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Notification_LogArgs = {
+  objects: Array<Notification_Log_Insert_Input>;
+  on_conflict?: InputMaybe<Notification_Log_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Notification_Log_OneArgs = {
+  object: Notification_Log_Insert_Input;
+  on_conflict?: InputMaybe<Notification_Log_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Notification_Log_Wallet_AddressArgs = {
+  objects: Array<Notification_Log_Wallet_Address_Insert_Input>;
+  on_conflict?: InputMaybe<Notification_Log_Wallet_Address_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Notification_Log_Wallet_Address_OneArgs = {
+  object: Notification_Log_Wallet_Address_Insert_Input;
+  on_conflict?: InputMaybe<Notification_Log_Wallet_Address_On_Conflict>;
 };
 
 /** mutation root */
@@ -5662,6 +5738,40 @@ export type Mutation_RootUpdate_Membership_ManyArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootUpdate_Notification_LogArgs = {
+  _set?: InputMaybe<Notification_Log_Set_Input>;
+  where: Notification_Log_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Notification_Log_By_PkArgs = {
+  _set?: InputMaybe<Notification_Log_Set_Input>;
+  pk_columns: Notification_Log_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Notification_Log_ManyArgs = {
+  updates: Array<Notification_Log_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Notification_Log_Wallet_AddressArgs = {
+  _set?: InputMaybe<Notification_Log_Wallet_Address_Set_Input>;
+  where: Notification_Log_Wallet_Address_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Notification_Log_Wallet_Address_By_PkArgs = {
+  _set?: InputMaybe<Notification_Log_Wallet_Address_Set_Input>;
+  pk_columns: Notification_Log_Wallet_Address_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Notification_Log_Wallet_Address_ManyArgs = {
+  updates: Array<Notification_Log_Wallet_Address_Updates>;
+};
+
+/** mutation root */
 export type Mutation_RootUpdate_NullifierArgs = {
   _inc?: InputMaybe<Nullifier_Inc_Input>;
   _set?: InputMaybe<Nullifier_Set_Input>;
@@ -5754,6 +5864,332 @@ export type Mutation_RootVerify_AppArgs = {
   is_reviewer_app_store_approved: Scalars["Boolean"];
   is_reviewer_world_app_approved: Scalars["Boolean"];
   reviewer_name: Scalars["String"];
+};
+
+/** columns and relationships of "notification_log" */
+export type Notification_Log = {
+  __typename?: "notification_log";
+  app_id: Scalars["String"];
+  created_at: Scalars["timestamptz"];
+  id: Scalars["String"];
+  message?: Maybe<Scalars["String"]>;
+  mini_app_path: Scalars["String"];
+};
+
+/** aggregated selection of "notification_log" */
+export type Notification_Log_Aggregate = {
+  __typename?: "notification_log_aggregate";
+  aggregate?: Maybe<Notification_Log_Aggregate_Fields>;
+  nodes: Array<Notification_Log>;
+};
+
+/** aggregate fields of "notification_log" */
+export type Notification_Log_Aggregate_Fields = {
+  __typename?: "notification_log_aggregate_fields";
+  count: Scalars["Int"];
+  max?: Maybe<Notification_Log_Max_Fields>;
+  min?: Maybe<Notification_Log_Min_Fields>;
+};
+
+/** aggregate fields of "notification_log" */
+export type Notification_Log_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** Boolean expression to filter rows from the table "notification_log". All fields are combined with a logical 'AND'. */
+export type Notification_Log_Bool_Exp = {
+  _and?: InputMaybe<Array<Notification_Log_Bool_Exp>>;
+  _not?: InputMaybe<Notification_Log_Bool_Exp>;
+  _or?: InputMaybe<Array<Notification_Log_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  message?: InputMaybe<String_Comparison_Exp>;
+  mini_app_path?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "notification_log" */
+export enum Notification_Log_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  NotificationLogPkey = "notification_log_pkey",
+}
+
+/** input type for inserting data into table "notification_log" */
+export type Notification_Log_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  message?: InputMaybe<Scalars["String"]>;
+  mini_app_path?: InputMaybe<Scalars["String"]>;
+};
+
+/** aggregate max on columns */
+export type Notification_Log_Max_Fields = {
+  __typename?: "notification_log_max_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  message?: Maybe<Scalars["String"]>;
+  mini_app_path?: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type Notification_Log_Min_Fields = {
+  __typename?: "notification_log_min_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  message?: Maybe<Scalars["String"]>;
+  mini_app_path?: Maybe<Scalars["String"]>;
+};
+
+/** response of any mutation on the table "notification_log" */
+export type Notification_Log_Mutation_Response = {
+  __typename?: "notification_log_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Notification_Log>;
+};
+
+/** on_conflict condition type for table "notification_log" */
+export type Notification_Log_On_Conflict = {
+  constraint: Notification_Log_Constraint;
+  update_columns?: Array<Notification_Log_Update_Column>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "notification_log". */
+export type Notification_Log_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  mini_app_path?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: notification_log */
+export type Notification_Log_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "notification_log" */
+export enum Notification_Log_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Message = "message",
+  /** column name */
+  MiniAppPath = "mini_app_path",
+}
+
+/** input type for updating data in table "notification_log" */
+export type Notification_Log_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  message?: InputMaybe<Scalars["String"]>;
+  mini_app_path?: InputMaybe<Scalars["String"]>;
+};
+
+/** Streaming cursor of the table "notification_log" */
+export type Notification_Log_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Notification_Log_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Notification_Log_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  message?: InputMaybe<Scalars["String"]>;
+  mini_app_path?: InputMaybe<Scalars["String"]>;
+};
+
+/** update columns of table "notification_log" */
+export enum Notification_Log_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Message = "message",
+  /** column name */
+  MiniAppPath = "mini_app_path",
+}
+
+export type Notification_Log_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Notification_Log_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Notification_Log_Bool_Exp;
+};
+
+/** columns and relationships of "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address = {
+  __typename?: "notification_log_wallet_address";
+  created_at: Scalars["timestamptz"];
+  id: Scalars["String"];
+  notification_log_id: Scalars["String"];
+  wallet_address: Scalars["String"];
+};
+
+/** aggregated selection of "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Aggregate = {
+  __typename?: "notification_log_wallet_address_aggregate";
+  aggregate?: Maybe<Notification_Log_Wallet_Address_Aggregate_Fields>;
+  nodes: Array<Notification_Log_Wallet_Address>;
+};
+
+/** aggregate fields of "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Aggregate_Fields = {
+  __typename?: "notification_log_wallet_address_aggregate_fields";
+  count: Scalars["Int"];
+  max?: Maybe<Notification_Log_Wallet_Address_Max_Fields>;
+  min?: Maybe<Notification_Log_Wallet_Address_Min_Fields>;
+};
+
+/** aggregate fields of "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Notification_Log_Wallet_Address_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** Boolean expression to filter rows from the table "notification_log_wallet_address". All fields are combined with a logical 'AND'. */
+export type Notification_Log_Wallet_Address_Bool_Exp = {
+  _and?: InputMaybe<Array<Notification_Log_Wallet_Address_Bool_Exp>>;
+  _not?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+  _or?: InputMaybe<Array<Notification_Log_Wallet_Address_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  notification_log_id?: InputMaybe<String_Comparison_Exp>;
+  wallet_address?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "notification_log_wallet_address" */
+export enum Notification_Log_Wallet_Address_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  NotificationLogWalletAddressPkey = "notification_log_wallet_address_pkey",
+}
+
+/** input type for inserting data into table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Insert_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  notification_log_id?: InputMaybe<Scalars["String"]>;
+  wallet_address?: InputMaybe<Scalars["String"]>;
+};
+
+/** aggregate max on columns */
+export type Notification_Log_Wallet_Address_Max_Fields = {
+  __typename?: "notification_log_wallet_address_max_fields";
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  notification_log_id?: Maybe<Scalars["String"]>;
+  wallet_address?: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type Notification_Log_Wallet_Address_Min_Fields = {
+  __typename?: "notification_log_wallet_address_min_fields";
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  id?: Maybe<Scalars["String"]>;
+  notification_log_id?: Maybe<Scalars["String"]>;
+  wallet_address?: Maybe<Scalars["String"]>;
+};
+
+/** response of any mutation on the table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Mutation_Response = {
+  __typename?: "notification_log_wallet_address_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Notification_Log_Wallet_Address>;
+};
+
+/** on_conflict condition type for table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_On_Conflict = {
+  constraint: Notification_Log_Wallet_Address_Constraint;
+  update_columns?: Array<Notification_Log_Wallet_Address_Update_Column>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "notification_log_wallet_address". */
+export type Notification_Log_Wallet_Address_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  notification_log_id?: InputMaybe<Order_By>;
+  wallet_address?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: notification_log_wallet_address */
+export type Notification_Log_Wallet_Address_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "notification_log_wallet_address" */
+export enum Notification_Log_Wallet_Address_Select_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  NotificationLogId = "notification_log_id",
+  /** column name */
+  WalletAddress = "wallet_address",
+}
+
+/** input type for updating data in table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Set_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  notification_log_id?: InputMaybe<Scalars["String"]>;
+  wallet_address?: InputMaybe<Scalars["String"]>;
+};
+
+/** Streaming cursor of the table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Notification_Log_Wallet_Address_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Notification_Log_Wallet_Address_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  notification_log_id?: InputMaybe<Scalars["String"]>;
+  wallet_address?: InputMaybe<Scalars["String"]>;
+};
+
+/** update columns of table "notification_log_wallet_address" */
+export enum Notification_Log_Wallet_Address_Update_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  NotificationLogId = "notification_log_id",
+  /** column name */
+  WalletAddress = "wallet_address",
+}
+
+export type Notification_Log_Wallet_Address_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Notification_Log_Wallet_Address_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Notification_Log_Wallet_Address_Bool_Exp;
 };
 
 /** columns and relationships of "nullifier" */
@@ -6228,6 +6664,18 @@ export type Query_Root = {
   membership_aggregate: Membership_Aggregate;
   /** fetch data from the table: "membership" using primary key columns */
   membership_by_pk?: Maybe<Membership>;
+  /** fetch data from the table: "notification_log" */
+  notification_log: Array<Notification_Log>;
+  /** fetch aggregated fields from the table: "notification_log" */
+  notification_log_aggregate: Notification_Log_Aggregate;
+  /** fetch data from the table: "notification_log" using primary key columns */
+  notification_log_by_pk?: Maybe<Notification_Log>;
+  /** fetch data from the table: "notification_log_wallet_address" */
+  notification_log_wallet_address: Array<Notification_Log_Wallet_Address>;
+  /** fetch aggregated fields from the table: "notification_log_wallet_address" */
+  notification_log_wallet_address_aggregate: Notification_Log_Wallet_Address_Aggregate;
+  /** fetch data from the table: "notification_log_wallet_address" using primary key columns */
+  notification_log_wallet_address_by_pk?: Maybe<Notification_Log_Wallet_Address>;
   /** fetch data from the table: "nullifier" */
   nullifier: Array<Nullifier>;
   /** fetch aggregated fields from the table: "nullifier" */
@@ -6592,6 +7040,50 @@ export type Query_RootMembership_AggregateArgs = {
 };
 
 export type Query_RootMembership_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Query_RootNotification_LogArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+export type Query_RootNotification_Log_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+export type Query_RootNotification_Log_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Query_RootNotification_Log_Wallet_AddressArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+export type Query_RootNotification_Log_Wallet_Address_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+export type Query_RootNotification_Log_Wallet_Address_By_PkArgs = {
   id: Scalars["String"];
 };
 
@@ -7197,6 +7689,22 @@ export type Subscription_Root = {
   membership_by_pk?: Maybe<Membership>;
   /** fetch data from the table in a streaming manner: "membership" */
   membership_stream: Array<Membership>;
+  /** fetch data from the table: "notification_log" */
+  notification_log: Array<Notification_Log>;
+  /** fetch aggregated fields from the table: "notification_log" */
+  notification_log_aggregate: Notification_Log_Aggregate;
+  /** fetch data from the table: "notification_log" using primary key columns */
+  notification_log_by_pk?: Maybe<Notification_Log>;
+  /** fetch data from the table in a streaming manner: "notification_log" */
+  notification_log_stream: Array<Notification_Log>;
+  /** fetch data from the table: "notification_log_wallet_address" */
+  notification_log_wallet_address: Array<Notification_Log_Wallet_Address>;
+  /** fetch aggregated fields from the table: "notification_log_wallet_address" */
+  notification_log_wallet_address_aggregate: Notification_Log_Wallet_Address_Aggregate;
+  /** fetch data from the table: "notification_log_wallet_address" using primary key columns */
+  notification_log_wallet_address_by_pk?: Maybe<Notification_Log_Wallet_Address>;
+  /** fetch data from the table in a streaming manner: "notification_log_wallet_address" */
+  notification_log_wallet_address_stream: Array<Notification_Log_Wallet_Address>;
   /** fetch data from the table: "nullifier" */
   nullifier: Array<Nullifier>;
   /** fetch aggregated fields from the table: "nullifier" */
@@ -7637,6 +8145,64 @@ export type Subscription_RootMembership_StreamArgs = {
   batch_size: Scalars["Int"];
   cursor: Array<InputMaybe<Membership_Stream_Cursor_Input>>;
   where?: InputMaybe<Membership_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_LogArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_Log_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_Log_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootNotification_Log_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<Notification_Log_Stream_Cursor_Input>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_Log_Wallet_AddressArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_Log_Wallet_Address_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+export type Subscription_RootNotification_Log_Wallet_Address_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootNotification_Log_Wallet_Address_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<
+    InputMaybe<Notification_Log_Wallet_Address_Stream_Cursor_Input>
+  >;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
 };
 
 export type Subscription_RootNullifierArgs = {
