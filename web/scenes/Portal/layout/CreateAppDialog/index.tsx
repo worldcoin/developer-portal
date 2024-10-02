@@ -95,7 +95,7 @@ export const CreateAppDialog = (props: DialogProps) => {
 
           const redirect =
             appMode == "mini-app"
-              ? urls.appProfile({
+              ? urls.configuration({
                   team_id: teamId,
                   app_id: data.insert_app_one?.id ?? "",
                 })
