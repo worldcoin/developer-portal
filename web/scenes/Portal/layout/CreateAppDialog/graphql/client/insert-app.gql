@@ -3,11 +3,21 @@ mutation InsertApp(
   $engine: String!
   $is_staging: Boolean!
   $team_id: String!
+  $category: String!
+  $integration_url: String!
+  $app_mode: String!
 ) {
   insert_app_one(
     object: {
       engine: $engine
-      app_metadata: { data: { name: $name } }
+      app_metadata: {
+        data: {
+          name: $name
+          integration_url: $integration_url
+          app_mode: $app_mode
+          category: $category
+        }
+      }
       name: $name
       is_staging: $is_staging
       team_id: $team_id
