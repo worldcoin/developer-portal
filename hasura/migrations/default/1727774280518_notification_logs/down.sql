@@ -1,0 +1,2 @@
+DROP TABLE notification_log CASCADE;
+DROP TABLE notification_log_wallet_address;

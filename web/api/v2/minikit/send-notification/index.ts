@@ -3,10 +3,16 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { notificationPermissions } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../graphql/fetch-api-key.generated";
+import {
+  CreateNotificationLogMutationVariables,
+  getSdk as createNotificationLogSdk,
+} from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
 const sendNotificationBodySchema = yup.object({
@@ -16,6 +22,52 @@ const sendNotificationBodySchema = yup.object({
   title: yup.string().strict().optional(),
   mini_app_path: yup.string().strict().required(),
 });
+
+export const logNotification = async (
+  serviceClient: GraphQLClient,
+  app_id: string,
+  wallet_addresses: (string | undefined)[] | undefined,
+  mini_app_path: string | undefined,
+  message?: string | undefined,
+) => {
+  if (!wallet_addresses || !mini_app_path) {
+    logger.warn(
+      "NotificationLog - missing wallet_addresses or mini_app_path, skipping log",
+    );
+    return;
+  }
+
+  const walletAddresses = wallet_addresses?.filter((w) => w) as string[];
+
+  let notificationLog: CreateNotificationLogMutationVariables = {
+    app_id,
+    mini_app_path,
+  };
+  if (walletAddresses.length > 10) {
+    notificationLog.message = message;
+  }
+
+  const { insert_notification_log_one } =
+    await createNotificationLogSdk(serviceClient).CreateNotificationLog(
+      notificationLog,
+    );
+
+  const notificationLogId = insert_notification_log_one?.id;
+
+  if (!notificationLogId) {
+    logger.error(
+      "NotificationLog - failed to create notification log, skipping wallet address log",
+    );
+    return;
+  }
+
+  createNotificationLogSdk(serviceClient).CreateWalletAdressNotificationLogs({
+    objects: walletAddresses.map((wallet_address) => ({
+      wallet_address,
+      notification_log_id: notificationLogId,
+    })),
+  });
+};
 
 // TODO: Open to outside of studios and check permissions
 export const POST = async (req: NextRequest) => {
@@ -193,6 +245,14 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
+
+  logNotification(
+    serviceClient,
+    app_id,
+    wallet_addresses,
+    mini_app_path,
+    message,
+  );
 
   return NextResponse.json({ success: true, status: 200 });
 };

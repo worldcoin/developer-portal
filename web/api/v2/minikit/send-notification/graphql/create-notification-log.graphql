@@ -1,0 +1,23 @@
+mutation CreateNotificationLog(
+  $app_id: String!
+  $mini_app_path: String!
+  $message: String
+) {
+  insert_notification_log_one(
+    object: {
+      app_id: $app_id
+      mini_app_path: $mini_app_path
+      message: $message
+    }
+  ) {
+    id
+  }
+}
+# even though I pass an object array, it only inserts one record, why?
+mutation CreateWalletAdressNotificationLogs(
+  $objects: [notification_log_wallet_address_insert_input!]!
+) {
+  insert_notification_log_wallet_address(objects: $objects) {
+    affected_rows
+  }
+}
