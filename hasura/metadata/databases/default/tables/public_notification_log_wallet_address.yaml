@@ -9,6 +9,13 @@ insert_permissions:
         - notification_log_id
         - wallet_address
         - created_at
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - notification_log_id
+        - wallet_address
+        - created_at
 select_permissions:
   - role: service
     permission:
@@ -18,7 +25,18 @@ select_permissions:
         - wallet_address
         - created_at
       filter: {}
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - notification_log_id
+        - wallet_address
+        - created_at
+      filter: {}
 delete_permissions:
   - role: service
+    permission:
+      filter: {}
+  - role: reviewer
     permission:
       filter: {}

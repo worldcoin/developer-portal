@@ -11,6 +11,15 @@ insert_permissions:
         - message
         - mini_app_path
         - created_at
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - id
+        - message
+        - mini_app_path
+        - created_at
 select_permissions:
   - role: service
     permission:
@@ -21,7 +30,19 @@ select_permissions:
         - mini_app_path
         - created_at
       filter: {}
+  - role: reviewer
+    permission:
+      columns:
+        - app_id
+        - id
+        - message
+        - mini_app_path
+        - created_at
+      filter: {}
 delete_permissions:
   - role: service
+    permission:
+      filter: {}
+  - role: reviewer
     permission:
       filter: {}
