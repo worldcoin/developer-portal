@@ -19,7 +19,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import {
@@ -129,24 +129,24 @@ export const AppStoreForm = (props: {
   }, [isDirty]);
 
   useEffect(() => {
-    if (locale !== "en") {
-      const localisedItem = localisedData?.localisations?.[0];
-      reset({
-        name: localisedItem?.name ?? "",
-        short_name: localisedItem?.short_name ?? "",
-        world_app_description: localisedItem?.world_app_description ?? "",
-        world_app_button_text: localisedItem?.world_app_button_text ?? "",
-        ...description,
-      });
-    } else {
-      reset({
-        name: appMetadata?.name ?? "",
-        short_name: appMetadata?.short_name ?? "",
-        world_app_description: appMetadata?.world_app_description ?? "",
-        world_app_button_text: appMetadata?.world_app_button_text ?? "",
-        ...description,
-      });
-    }
+    const localisedItem =
+      locale !== "en" ? localisedData?.localisations?.[0] : appMetadata;
+
+    reset({
+      name: localisedItem?.name ?? "",
+      short_name: localisedItem?.short_name ?? "",
+      world_app_description: localisedItem?.world_app_description ?? "",
+      world_app_button_text: localisedItem?.world_app_button_text ?? "",
+      supported_languages: appMetadata?.supported_languages ?? [],
+      app_website_url: appMetadata?.app_website_url ?? "",
+      support_link: appMetadata?.support_link.includes("https://")
+        ? appMetadata?.support_link
+        : "",
+      support_email: appMetadata?.support_link.includes("@")
+        ? appMetadata?.support_link.replace("mailto:", "")
+        : "",
+      ...description,
+    });
   }, [
     viewMode,
     reset,
@@ -155,11 +155,6 @@ export const AppStoreForm = (props: {
     locale,
     localisedData?.localisations,
   ]);
-
-  // const selectedCountries = useWatch({
-  //   control,
-  //   name: "supported_countries",
-  // });
 
   const saveLocalisation = useCallback(async () => {
     const data = getValues();
@@ -285,6 +280,11 @@ export const AppStoreForm = (props: {
       updateAppInfoMutation,
     ],
   );
+
+  const supportedLanguages = useWatch({
+    control,
+    name: "supported_languages",
+  });
 
   return (
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
@@ -457,18 +457,17 @@ export const AppStoreForm = (props: {
               render={({ field }) => (
                 <SelectMultiple
                   values={field.value}
-                  onRemove={(value) => {
+                  onRemove={async (value) => {
                     field.onChange(
                       field.value?.filter((v) => v !== value) ?? [],
                     );
 
-                    addLocaleMutation({
+                    setLocale("en");
+                    await addLocaleMutation({
                       variables: {
                         app_metadata_id: appMetadata.id,
                         supported_languages:
-                          appMetadata?.supported_languages?.filter(
-                            (lang) => lang !== value,
-                          ),
+                          field.value?.filter((v) => v !== value) ?? [],
                       },
                       refetchQueries: [
                         {
@@ -486,7 +485,6 @@ export const AppStoreForm = (props: {
                   errors={errors.supported_languages}
                   selectAll={() => {
                     const languageValues = languages.map((c) => c.value);
-                    field.onChange(languageValues);
                     addLocaleMutation({
                       variables: {
                         app_metadata_id: appMetadata.id,
@@ -501,6 +499,7 @@ export const AppStoreForm = (props: {
                         },
                       ],
                     });
+                    field.onChange(languageValues);
                   }}
                   clearAll={() => {
                     field.onChange([]);
@@ -563,7 +562,7 @@ export const AppStoreForm = (props: {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {appMetadata?.supported_languages?.map((lang, index) => {
+            {supportedLanguages?.map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
               if (!language) return null;
 
