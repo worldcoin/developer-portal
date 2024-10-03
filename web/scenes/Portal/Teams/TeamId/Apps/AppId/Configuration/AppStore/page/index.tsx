@@ -1,18 +1,19 @@
 "use client";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../PageComponents/AppTopBar";
-import { FormSkeleton } from "../../PageComponents/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
+import { AppStoreForm } from "../AppStoreLocalised";
 import { ImageForm } from "./ImageForm";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
 };
+
 export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
@@ -26,7 +27,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
 
   const app = data?.app[0];
 
-  const appMetaData = useMemo(() => {
+  const appMetadata = useMemo(() => {
     if (viewMode === "verified") {
       return app?.verified_app_metadata[0];
     } else {
@@ -35,33 +36,39 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     }
   }, [app, viewMode]);
 
-  if (!loading && (error || !app)) {
+  if (loading) {
+    return (
+      <SizingWrapper gridClassName="order-1 pt-8">
+        <div className="grid gap-y-10">
+          <Skeleton count={2} height={50} />
+          <Skeleton count={3} height={80} />
+        </div>
+      </SizingWrapper>
+    );
+  }
+
+  if (error || !app || !appMetadata) {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-8">
-          {loading ? (
-            <Skeleton count={2} height={50} />
-          ) : (
-            <AppTopBar appId={appId} teamId={teamId} app={app!} />
-          )}
-
+          <AppTopBar appId={appId} teamId={teamId} app={app!} />
           <hr className="my-5 w-full border-dashed text-grey-200 " />
         </SizingWrapper>
-
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">
           <div className="grid max-w-[580px] grid-cols-1">
-            {loading ? (
-              <FormSkeleton count={2} />
-            ) : (
-              <ImageForm
-                appId={appId}
-                teamId={teamId}
-                appMetadataId={appMetaData?.id ?? ""}
-                appMetadata={appMetaData}
-              />
-            )}
+            <ImageForm
+              appId={appId}
+              teamId={teamId}
+              appMetadataId={appMetadata?.id ?? ""}
+              appMetadata={appMetadata}
+            />
+            <AppStoreForm
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata}
+            />
           </div>
         </SizingWrapper>
       </>

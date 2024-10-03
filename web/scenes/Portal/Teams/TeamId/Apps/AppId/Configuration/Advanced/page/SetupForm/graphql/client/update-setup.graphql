@@ -1,28 +1,17 @@
 mutation UpdateSetup(
   $app_metadata_id: String!
-  $app_id: String!
   $app_mode: String!
   $whitelisted_addresses: [String!]
-  $support_link: String
-  $supported_countries: [String!]
-  $supported_languages: [String!]
   $associated_domains: [String!]
   $contracts: [String!]
   $permit2_tokens: [String!]
-  $status: String!
   $canImportAllContacts: Boolean
 ) {
-  update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
-    id
-  }
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
     _set: {
       app_mode: $app_mode
       whitelisted_addresses: $whitelisted_addresses
-      support_link: $support_link
-      supported_countries: $supported_countries
-      supported_languages: $supported_languages
       associated_domains: $associated_domains
       contracts: $contracts
       permit2_tokens: $permit2_tokens

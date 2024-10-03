@@ -6,16 +6,8 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateSetupMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
-  app_id: Types.Scalars["String"];
   app_mode: Types.Scalars["String"];
   whitelisted_addresses?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
-  support_link?: Types.InputMaybe<Types.Scalars["String"]>;
-  supported_countries?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
-  >;
-  supported_languages?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
   associated_domains?: Types.InputMaybe<
@@ -27,13 +19,11 @@ export type UpdateSetupMutationVariables = Types.Exact<{
   permit2_tokens?: Types.InputMaybe<
     Array<Types.Scalars["String"]> | Types.Scalars["String"]
   >;
-  status: Types.Scalars["String"];
   canImportAllContacts?: Types.InputMaybe<Types.Scalars["Boolean"]>;
 }>;
 
 export type UpdateSetupMutation = {
   __typename?: "mutation_root";
-  update_app_by_pk?: { __typename?: "app"; id: string } | null;
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
     id: string;
@@ -43,29 +33,18 @@ export type UpdateSetupMutation = {
 export const UpdateSetupDocument = gql`
   mutation UpdateSetup(
     $app_metadata_id: String!
-    $app_id: String!
     $app_mode: String!
     $whitelisted_addresses: [String!]
-    $support_link: String
-    $supported_countries: [String!]
-    $supported_languages: [String!]
     $associated_domains: [String!]
     $contracts: [String!]
     $permit2_tokens: [String!]
-    $status: String!
     $canImportAllContacts: Boolean
   ) {
-    update_app_by_pk(pk_columns: { id: $app_id }, _set: { status: $status }) {
-      id
-    }
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
       _set: {
         app_mode: $app_mode
         whitelisted_addresses: $whitelisted_addresses
-        support_link: $support_link
-        supported_countries: $supported_countries
-        supported_languages: $supported_languages
         associated_domains: $associated_domains
         contracts: $contracts
         permit2_tokens: $permit2_tokens
@@ -95,16 +74,11 @@ export type UpdateSetupMutationFn = Apollo.MutationFunction<
  * const [updateSetupMutation, { data, loading, error }] = useUpdateSetupMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
- *      app_id: // value for 'app_id'
  *      app_mode: // value for 'app_mode'
  *      whitelisted_addresses: // value for 'whitelisted_addresses'
- *      support_link: // value for 'support_link'
- *      supported_countries: // value for 'supported_countries'
- *      supported_languages: // value for 'supported_languages'
  *      associated_domains: // value for 'associated_domains'
  *      contracts: // value for 'contracts'
  *      permit2_tokens: // value for 'permit2_tokens'
- *      status: // value for 'status'
  *      canImportAllContacts: // value for 'canImportAllContacts'
  *   },
  * });
