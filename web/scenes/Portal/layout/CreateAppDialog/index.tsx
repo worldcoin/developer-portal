@@ -46,7 +46,7 @@ export const CreateAppDialog = (props: DialogProps) => {
 
   const defaultValues: Partial<FormValues> = useMemo(
     () => ({
-      build: "staging",
+      build: "production",
       verification: "cloud",
       app_mode: "mini-app",
       image: "/default.png", // FIXME: remove once image upload is implemented
