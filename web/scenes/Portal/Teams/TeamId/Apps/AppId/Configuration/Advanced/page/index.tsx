@@ -59,7 +59,6 @@ export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
                 appId={appId}
                 teamId={teamId}
                 appMetadata={appMetaData}
-                status={app?.status}
               />
             )}
           </div>
