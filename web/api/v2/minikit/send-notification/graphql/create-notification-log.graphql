@@ -13,7 +13,7 @@ mutation CreateNotificationLog(
     id
   }
 }
-# even though I pass an object array, it only inserts one record, why?
+
 mutation CreateWalletAdressNotificationLogs(
   $objects: [notification_log_wallet_address_insert_input!]!
 ) {
