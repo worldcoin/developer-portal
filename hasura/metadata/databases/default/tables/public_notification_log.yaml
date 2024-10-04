@@ -2,7 +2,7 @@ table:
   name: notification_log
   schema: public
 insert_permissions:
-  - role: service
+  - role: reviewer
     permission:
       check: {}
       columns:
@@ -11,7 +11,7 @@ insert_permissions:
         - message
         - mini_app_path
         - created_at
-  - role: reviewer
+  - role: service
     permission:
       check: {}
       columns:
@@ -21,7 +21,7 @@ insert_permissions:
         - mini_app_path
         - created_at
 select_permissions:
-  - role: service
+  - role: reviewer
     permission:
       columns:
         - app_id
@@ -30,7 +30,7 @@ select_permissions:
         - mini_app_path
         - created_at
       filter: {}
-  - role: reviewer
+  - role: service
     permission:
       columns:
         - app_id
@@ -40,9 +40,9 @@ select_permissions:
         - created_at
       filter: {}
 delete_permissions:
-  - role: service
+  - role: reviewer
     permission:
       filter: {}
-  - role: reviewer
+  - role: service
     permission:
       filter: {}

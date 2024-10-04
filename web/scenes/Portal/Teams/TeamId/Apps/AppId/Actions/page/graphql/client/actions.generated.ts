@@ -7,8 +7,7 @@ const defaultOptions = {} as const;
 export type GetActionsQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"];
   condition?: Types.InputMaybe<
-    | Array<Types.InputMaybe<Types.Action_Bool_Exp>>
-    | Types.InputMaybe<Types.Action_Bool_Exp>
+    Array<Types.Action_Bool_Exp> | Types.Action_Bool_Exp
   >;
 }>;
 
@@ -42,7 +41,7 @@ export type GetActionsQuery = {
 };
 
 export const GetActionsDocument = gql`
-  query GetActions($app_id: String!, $condition: [action_bool_exp]) {
+  query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
     actions: action(
       order_by: { created_at: asc }
       where: { app_id: { _eq: $app_id }, action: { _neq: "" }, _or: $condition }

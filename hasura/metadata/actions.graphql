@@ -67,7 +67,7 @@ type Query {
   ): PresignedPostOutput
 }
 
-type Query {
+type Mutation {
   validate_localisation(
     app_metadata_id: String!
     team_id: String!
