@@ -5,6 +5,7 @@ query FetchAppMetadata($team_id: String!, $app_id: String!, $user_id: String!) {
       team: {
         id: { _eq: $team_id }
         memberships: { user_id: { _eq: $user_id }, role: { _neq: MEMBER } }
+        is_banned: { _eq: false }
       }
     }
   ) {
