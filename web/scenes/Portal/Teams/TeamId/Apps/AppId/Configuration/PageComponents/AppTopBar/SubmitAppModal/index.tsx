@@ -76,7 +76,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           fetchPolicy: "network-only",
         });
 
-      if (!data?.validate_localisation?.success) {
+        if (!data?.validate_localisation?.success) {
           toast.error("Localisation not set for all languages");
           return;
         }
