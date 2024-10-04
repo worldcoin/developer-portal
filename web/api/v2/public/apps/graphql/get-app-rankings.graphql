@@ -7,9 +7,9 @@ query GetApps(
 ) {
   top_apps: app_metadata(
     where: {
+      is_banned: { _eq: false }
       _and: $topAppsConditions
       _or: [{ is_reviewer_world_app_approved: { _eq: true } }]
-      is_banned: { _eq: false }
     }
     limit: $limit
     offset: $offset
