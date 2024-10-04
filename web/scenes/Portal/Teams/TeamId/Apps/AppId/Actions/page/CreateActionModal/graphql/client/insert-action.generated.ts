@@ -5,12 +5,12 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertActionMutationVariables = Types.Exact<{
-  name: Types.Scalars["String"];
-  description?: Types.InputMaybe<Types.Scalars["String"]>;
-  action?: Types.InputMaybe<Types.Scalars["String"]>;
-  app_id: Types.Scalars["String"];
-  external_nullifier: Types.Scalars["String"];
-  max_verifications?: Types.InputMaybe<Types.Scalars["Int"]>;
+  name: Types.Scalars["String"]["input"];
+  description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  action?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  app_id: Types.Scalars["String"]["input"];
+  external_nullifier: Types.Scalars["String"]["input"];
+  max_verifications?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
 }>;
 
 export type InsertActionMutation = {
