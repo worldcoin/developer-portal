@@ -129,8 +129,8 @@ importers:
         specifier: ^2.0.6
         version: 2.0.6(@playwright/test@1.43.1)
       posthog-js:
-        specifier: ^1.105.8
-        version: 1.105.8
+        specifier: ^1.166.1
+        version: 1.166.1
       posthog-node:
         specifier: ^4.2.0
         version: 4.2.0
@@ -4339,9 +4339,6 @@ packages:
   joi@17.12.1:
     resolution: {integrity: sha512-vtxmq+Lsc5SlfqotnfVjlViWfOL9nt/avKNbKYizwf6gsCfq9NYY/ceYRMFD8XDdrjJ9abJyScWmhmIiy+XRtQ==}
 
-  jose@4.15.4:
-    resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
-
   jose@5.3.0:
     resolution: {integrity: sha512-IChe9AtAE79ru084ow8jzkN2lNrG3Ntfiv65Cvj9uOCE2m5LNsdHG+9EbxWxAoWRF9TgDOqLN5jm08++owDVRg==}
 
@@ -4808,8 +4805,8 @@ packages:
     resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
     engines: {node: '>=6'}
 
-  openid-client@5.6.4:
-    resolution: {integrity: sha512-T1h3B10BRPKfcObdBklX639tVz+xh34O7GjofqrqiAQdm7eHsQ00ih18x6wuJ/E6FxdtS2u3FmUGPDeEcMwzNA==}
+  openid-client@5.7.0:
+    resolution: {integrity: sha512-4GCCGZt1i2kTHpwvaC/sCpTpQqDnBzDzuJcJMbH+y1Q5qI8U8RBvoSh28svarXszZHR5BAMXbJPX1PGPRE3VOA==}
 
   optimism@0.18.0:
     resolution: {integrity: sha512-tGn8+REwLRNFnb9WmcY5IfpOqeX2kpaYJ1s6Ae3mn12AeydLkR3j+jSCmVQFoXqU8D41PAJ1RG1rCRNWmNZVmQ==}
@@ -5075,9 +5072,8 @@ packages:
   postgres-range@1.1.4:
     resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
 
-  posthog-js@1.105.8:
-    resolution: {integrity: sha512-zKZKNVLLQQgkJyY3DnzHHTasu6x4xM4MOvH7UbMz6BmrgUPboS6/3akgz+WKD+JV6qFj68bm80iJw0Jtj+pt8Q==}
-    deprecated: This version of posthog-js is deprecated, please update posthog-js, and do not use this version! Check out our JS docs at https://posthog.com/docs/libraries/js
+  posthog-js@1.166.1:
+    resolution: {integrity: sha512-K8IpV8FJTCdwhsXFSbKj5vZ6IXNV079lukpG3cRtst2q5vMmUXRQiks7W3lOZLrjWyuJLKZDUiCeeDIUFORRuQ==}
 
   posthog-node@4.2.0:
     resolution: {integrity: sha512-hgyCYMyzMvuF3qWMw6JvS8gT55v7Mtp5wKWcnDrw+nu39D0Tk9BXD7I0LOBp0lGlHEPaXCEVYUtviNKrhMALGA==}
@@ -6079,6 +6075,9 @@ packages:
     resolution: {integrity: sha512-3pRGuxRF5gpuZc0W+EpwQRmCD7gRqcDOMt688KmdlDAgAyaB1XlN0zq2njfDNm44XVdIouE7pZ6GzbdyH47uIQ==}
     engines: {node: '>= 8'}
 
+  web-vitals@4.2.3:
+    resolution: {integrity: sha512-/CFAm1mNxSmOj6i0Co+iGFJ58OS4NRGVP+AWS/l509uIK5a1bSoIVaHz/ZumpHTfHSZBpgrJ+wjfpAOrTHok5Q==}
+
   webcrypto-core@1.7.8:
     resolution: {integrity: sha512-eBR98r9nQXTqXt/yDRtInszPMjTaSAMJAFDg2AHsgrnczawT1asx9YNBX6k5p+MekbPF4+s/UJJrr88zsTqkSg==}
 
@@ -6388,10 +6387,10 @@ snapshots:
       cookie: 0.6.0
       debug: 4.3.4
       joi: 17.12.1
-      jose: 4.15.4
+      jose: 5.3.0
       next: 14.2.13(@babel/core@7.23.9)(@playwright/test@1.43.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
       oauth4webapi: 2.10.3
-      openid-client: 5.6.4
+      openid-client: 5.7.0
       tslib: 2.6.2
       url-join: 4.0.1
     transitivePeerDependencies:
@@ -9908,7 +9907,7 @@ snapshots:
 
   auth0@4.10.0:
     dependencies:
-      jose: 4.15.4
+      jose: 5.3.0
       undici-types: 6.19.8
       uuid: 9.0.1
 
@@ -12057,7 +12056,6 @@ snapshots:
       '@sideway/formula': 3.0.1
       '@sideway/pinpoint': 2.0.0
 
-  jose@4.15.4: {}
 
   jose@5.3.0: {}
 
@@ -12531,9 +12529,9 @@ snapshots:
     dependencies:
       mimic-fn: 2.1.0
 
-  openid-client@5.6.4:
+  openid-client@5.7.0:
     dependencies:
-      jose: 4.15.4
+      jose: 5.3.0
       lru-cache: 6.0.0
       object-hash: 2.2.0
       oidc-token-hash: 5.0.3
@@ -12804,10 +12802,11 @@ snapshots:
 
   postgres-range@1.1.4: {}
 
-  posthog-js@1.105.8:
+  posthog-js@1.166.1:
     dependencies:
       fflate: 0.4.8
       preact: 10.19.4
+      web-vitals: 4.2.3
 
   posthog-node@4.2.0:
     dependencies:
@@ -13780,6 +13779,8 @@ snapshots:
       defaults: 1.0.4
 
   web-streams-polyfill@3.3.2: {}
+
+  web-vitals@4.2.3: {}
 
   webcrypto-core@1.7.8:
     dependencies:
