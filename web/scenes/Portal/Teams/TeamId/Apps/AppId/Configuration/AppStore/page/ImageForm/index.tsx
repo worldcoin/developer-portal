@@ -385,9 +385,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           Showcase images
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Upload up to 3 images to showcase your application. These images will
-          be displayed at the top of your app’s profile page in the app store
-          and should show the integration being used.
+          Upload up to 3 images to showcase your application.
         </Typography>
       </div>
       {showcaseImgUrls &&

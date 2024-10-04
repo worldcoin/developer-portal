@@ -1,13 +1,12 @@
 "use client";
-import clsx from "clsx";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import Error from "next/error";
 import Skeleton from "react-loading-skeleton";
+import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { AppTopBar } from "../PageComponents/AppTopBar";
 import { FormSkeleton } from "../PageComponents/AppTopBar/FormSkeleton";
-import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { BasicInformation } from "./BasicInformation";
 import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;

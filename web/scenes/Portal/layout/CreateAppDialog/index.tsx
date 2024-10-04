@@ -66,6 +66,11 @@ export const CreateAppDialog = (props: DialogProps) => {
     defaultValues,
   });
 
+  const appMode = useWatch({
+    control: control,
+    name: "app_mode",
+  });
+
   const [insertApp] = useInsertAppMutation();
 
   const submit = useCallback(
@@ -129,18 +134,13 @@ export const CreateAppDialog = (props: DialogProps) => {
         },
       });
     },
-    [defaultValues, insertApp, props, reset, router, teamId],
+    [appMode, defaultValues, insertApp, props, reset, router, teamId],
   );
 
   const onClose = useCallback(() => {
     reset(defaultValues);
     props.onClose(false);
   }, [defaultValues, props, reset]);
-
-  const appMode = useWatch({
-    control: control,
-    name: "app_mode",
-  });
 
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50 ">

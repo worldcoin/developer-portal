@@ -81,30 +81,9 @@ export const POST = async (req: NextRequest) => {
 
   const client = await getAPIServiceGraphqlClient();
 
-  // Anchor: Create a new draft
-
   const { localisations } = await getLocalisationsSdk(client).GetLocalisations({
     app_metadata_id: app_metadata_id,
   });
-
-  // Require that for every language locale we have all fields filled out
-  for (const localisation of localisations) {
-    if (
-      localisation.name &&
-      localisation.short_name &&
-      localisation.world_app_button_text &&
-      localisation.world_app_description &&
-      localisation.description
-    ) {
-      continue;
-    } else {
-      return errorHasuraQuery({
-        req,
-        detail: "Missing localisation fields",
-        code: "missing_localisation_fields",
-      });
-    }
-  }
 
   const { app_metadata_by_pk: app_locales } = await getLocalesSdk(
     client,
@@ -121,7 +100,17 @@ export const POST = async (req: NextRequest) => {
         const matchingLocalization = localisations.find(
           (localisation) => localisation.locale === languageCode,
         );
-        return !!matchingLocalization;
+        if (!matchingLocalization) return false;
+        if (
+          matchingLocalization.name &&
+          matchingLocalization.short_name &&
+          matchingLocalization.world_app_description &&
+          matchingLocalization.description
+        ) {
+          return true;
+        } else {
+          return false;
+        }
       })
     ) {
       return errorHasuraQuery({
@@ -131,6 +120,5 @@ export const POST = async (req: NextRequest) => {
       });
     }
   }
-
   return NextResponse.json({ success: true });
 };

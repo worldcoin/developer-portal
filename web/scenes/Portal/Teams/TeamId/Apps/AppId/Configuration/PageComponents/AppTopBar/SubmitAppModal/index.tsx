@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useSubmitAppMutation } from "./graphql/client/submit-app.generated";
-import { useValidateLocalisationLazyQuery } from "./graphql/client/validate-localisations.generated";
+import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
 const schema = yup.object().shape({
   is_developer_allow_listing: yup.boolean(),
@@ -48,7 +48,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const [submitAppMutation, { loading: submittingApp }] =
     useSubmitAppMutation();
 
-  const [validateLocalisationQuery] = useValidateLocalisationLazyQuery();
+  const [validateLocalisation, {}] = useValidateLocalisationMutation();
 
   const { register, handleSubmit } = useForm<SubmitAppFormValues>({
     resolver: yupResolver(schema),
@@ -68,14 +68,15 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           return;
         }
 
-        const result = await validateLocalisationQuery({
+        const { data } = await validateLocalisation({
           variables: {
             app_metadata_id: appMetadataId,
             team_id: teamId,
           },
+          fetchPolicy: "network-only",
         });
 
-        if (!result?.data?.validate_localisation?.success) {
+        if (!data?.validate_localisation?.success) {
           toast.error("Localisation not set for all languages");
           return;
         }
@@ -113,7 +114,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       submitAppMutation,
       submittingApp,
       teamId,
-      validateLocalisationQuery,
+      validateLocalisation,
     ],
   );
 
