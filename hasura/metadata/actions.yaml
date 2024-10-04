@@ -137,7 +137,7 @@ actions:
     comment: Generates a Signed URL to upload images
   - name: validate_localisation
     definition:
-      kind: ""
+      kind: synchronous
       handler: '{{NEXT_API_URL}}/hasura/validate-localisation'
       headers:
         - name: Authorization
