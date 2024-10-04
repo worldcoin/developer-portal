@@ -1,4 +1,10 @@
 type Mutation {
+  ban_app(
+    app_id: String!
+  ): Boolean!
+}
+
+type Mutation {
   create_new_draft(
     app_id: String!
     team_id: String!
@@ -155,6 +161,10 @@ type CreateNewDraftOutput {
 }
 
 type ValidateLocalisationOutput {
+  success: Boolean
+}
+
+type BanAppOutput {
   success: Boolean
 }
 

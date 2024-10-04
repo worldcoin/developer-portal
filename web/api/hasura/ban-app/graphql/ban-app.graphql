@@ -1,0 +1,8 @@
+mutation BanApp($app_id: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_id }
+    _set: { is_banned: true }
+  ) {
+    id
+  }
+}

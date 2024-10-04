@@ -2635,6 +2635,187 @@ export type App_Rankings_Updates = {
   where: App_Rankings_Bool_Exp;
 };
 
+/** columns and relationships of "app_report" */
+export type App_Report = {
+  __typename?: "app_report";
+  app_id: Scalars["String"];
+  app_name: Scalars["String"];
+  created_at: Scalars["timestamptz"];
+  details: Scalars["String"];
+  id: Scalars["String"];
+  reporter_email?: Maybe<Scalars["String"]>;
+};
+
+/** aggregated selection of "app_report" */
+export type App_Report_Aggregate = {
+  __typename?: "app_report_aggregate";
+  aggregate?: Maybe<App_Report_Aggregate_Fields>;
+  nodes: Array<App_Report>;
+};
+
+/** aggregate fields of "app_report" */
+export type App_Report_Aggregate_Fields = {
+  __typename?: "app_report_aggregate_fields";
+  count: Scalars["Int"];
+  max?: Maybe<App_Report_Max_Fields>;
+  min?: Maybe<App_Report_Min_Fields>;
+};
+
+/** aggregate fields of "app_report" */
+export type App_Report_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Report_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_report". All fields are combined with a logical 'AND'. */
+export type App_Report_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Report_Bool_Exp>>;
+  _not?: InputMaybe<App_Report_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Report_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  app_name?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  details?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  reporter_email?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_report" */
+export enum App_Report_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AppReportsPkey = "app_report_pkey",
+}
+
+/** input type for inserting data into table "app_report" */
+export type App_Report_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  app_name?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  details?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  reporter_email?: InputMaybe<Scalars["String"]>;
+};
+
+/** aggregate max on columns */
+export type App_Report_Max_Fields = {
+  __typename?: "app_report_max_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  app_name?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  details?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
+  reporter_email?: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type App_Report_Min_Fields = {
+  __typename?: "app_report_min_fields";
+  app_id?: Maybe<Scalars["String"]>;
+  app_name?: Maybe<Scalars["String"]>;
+  created_at?: Maybe<Scalars["timestamptz"]>;
+  details?: Maybe<Scalars["String"]>;
+  id?: Maybe<Scalars["String"]>;
+  reporter_email?: Maybe<Scalars["String"]>;
+};
+
+/** response of any mutation on the table "app_report" */
+export type App_Report_Mutation_Response = {
+  __typename?: "app_report_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Report>;
+};
+
+/** on_conflict condition type for table "app_report" */
+export type App_Report_On_Conflict = {
+  constraint: App_Report_Constraint;
+  update_columns?: Array<App_Report_Update_Column>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_report". */
+export type App_Report_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_name?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  details?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  reporter_email?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_report */
+export type App_Report_Pk_Columns_Input = {
+  id: Scalars["String"];
+};
+
+/** select columns of table "app_report" */
+export enum App_Report_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppName = "app_name",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Details = "details",
+  /** column name */
+  Id = "id",
+  /** column name */
+  ReporterEmail = "reporter_email",
+}
+
+/** input type for updating data in table "app_report" */
+export type App_Report_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  app_name?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  details?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  reporter_email?: InputMaybe<Scalars["String"]>;
+};
+
+/** Streaming cursor of the table "app_report" */
+export type App_Report_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Report_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Report_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]>;
+  app_name?: InputMaybe<Scalars["String"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]>;
+  details?: InputMaybe<Scalars["String"]>;
+  id?: InputMaybe<Scalars["String"]>;
+  reporter_email?: InputMaybe<Scalars["String"]>;
+};
+
+/** update columns of table "app_report" */
+export enum App_Report_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  AppName = "app_name",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Details = "details",
+  /** column name */
+  Id = "id",
+  /** column name */
+  ReporterEmail = "reporter_email",
+}
+
+export type App_Report_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Report_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Report_Bool_Exp;
+};
+
 /** columns and relationships of "app_reviews" */
 export type App_Reviews = {
   __typename?: "app_reviews";
@@ -4666,6 +4847,8 @@ export type Membership_Updates = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
+  /** Bans app by app_id */
+  ban_app: Scalars["Boolean"];
   create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
@@ -4691,6 +4874,10 @@ export type Mutation_Root = {
   delete_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
   /** delete single row from the table: "app_rankings" */
   delete_app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** delete data from the table: "app_report" */
+  delete_app_report?: Maybe<App_Report_Mutation_Response>;
+  /** delete single row from the table: "app_report" */
+  delete_app_report_by_pk?: Maybe<App_Report>;
   /** delete data from the table: "app_reviews" */
   delete_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
   /** delete single row from the table: "app_reviews" */
@@ -4776,6 +4963,10 @@ export type Mutation_Root = {
   insert_app_rankings?: Maybe<App_Rankings_Mutation_Response>;
   /** insert a single row into the table: "app_rankings" */
   insert_app_rankings_one?: Maybe<App_Rankings>;
+  /** insert data into the table: "app_report" */
+  insert_app_report?: Maybe<App_Report_Mutation_Response>;
+  /** insert a single row into the table: "app_report" */
+  insert_app_report_one?: Maybe<App_Report>;
   /** insert data into the table: "app_reviews" */
   insert_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
   /** insert a single row into the table: "app_reviews" */
@@ -4885,6 +5076,12 @@ export type Mutation_Root = {
   update_app_rankings_many?: Maybe<
     Array<Maybe<App_Rankings_Mutation_Response>>
   >;
+  /** update data of the table: "app_report" */
+  update_app_report?: Maybe<App_Report_Mutation_Response>;
+  /** update single row of the table: "app_report" */
+  update_app_report_by_pk?: Maybe<App_Report>;
+  /** update multiples rows of table: "app_report" */
+  update_app_report_many?: Maybe<Array<Maybe<App_Report_Mutation_Response>>>;
   /** update data of the table: "app_reviews" */
   update_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
   /** update single row of the table: "app_reviews" */
@@ -4989,6 +5186,11 @@ export type Mutation_Root = {
 };
 
 /** mutation root */
+export type Mutation_RootBan_AppArgs = {
+  app_id: Scalars["String"];
+};
+
+/** mutation root */
 export type Mutation_RootCreate_New_DraftArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
@@ -5052,6 +5254,16 @@ export type Mutation_RootDelete_App_RankingsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_App_Rankings_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_ReportArgs = {
+  where: App_Report_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Report_By_PkArgs = {
+  id: Scalars["String"];
 };
 
 /** mutation root */
@@ -5279,6 +5491,18 @@ export type Mutation_RootInsert_App_RankingsArgs = {
 export type Mutation_RootInsert_App_Rankings_OneArgs = {
   object: App_Rankings_Insert_Input;
   on_conflict?: InputMaybe<App_Rankings_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_ReportArgs = {
+  objects: Array<App_Report_Insert_Input>;
+  on_conflict?: InputMaybe<App_Report_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Report_OneArgs = {
+  object: App_Report_Insert_Input;
+  on_conflict?: InputMaybe<App_Report_On_Conflict>;
 };
 
 /** mutation root */
@@ -5585,6 +5809,23 @@ export type Mutation_RootUpdate_App_Rankings_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_App_Rankings_ManyArgs = {
   updates: Array<App_Rankings_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_ReportArgs = {
+  _set?: InputMaybe<App_Report_Set_Input>;
+  where: App_Report_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Report_By_PkArgs = {
+  _set?: InputMaybe<App_Report_Set_Input>;
+  pk_columns: App_Report_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Report_ManyArgs = {
+  updates: Array<App_Report_Updates>;
 };
 
 /** mutation root */
@@ -6623,6 +6864,12 @@ export type Query_Root = {
   app_rankings_aggregate: App_Rankings_Aggregate;
   /** fetch data from the table: "app_rankings" using primary key columns */
   app_rankings_by_pk?: Maybe<App_Rankings>;
+  /** fetch data from the table: "app_report" */
+  app_report: Array<App_Report>;
+  /** fetch aggregated fields from the table: "app_report" */
+  app_report_aggregate: App_Report_Aggregate;
+  /** fetch data from the table: "app_report" using primary key columns */
+  app_report_by_pk?: Maybe<App_Report>;
   /** fetch data from the table: "app_reviews" */
   app_reviews: Array<App_Reviews>;
   /** fetch aggregated fields from the table: "app_reviews" */
@@ -6724,6 +6971,7 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  validate_localisation?: Maybe<ValidateLocalisationOutput>;
 };
 
 export type Query_RootActionArgs = {
@@ -6862,6 +7110,26 @@ export type Query_RootApp_Rankings_AggregateArgs = {
 
 export type Query_RootApp_Rankings_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootApp_ReportArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+export type Query_RootApp_Report_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+export type Query_RootApp_Report_By_PkArgs = {
+  id: Scalars["String"];
 };
 
 export type Query_RootApp_ReviewsArgs = {
@@ -7207,6 +7475,11 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootValidate_LocalisationArgs = {
+  app_metadata_id: Scalars["String"];
+  team_id: Scalars["String"];
 };
 
 /** columns and relationships of "redirect" */
@@ -7629,6 +7902,14 @@ export type Subscription_Root = {
   app_rankings_by_pk?: Maybe<App_Rankings>;
   /** fetch data from the table in a streaming manner: "app_rankings" */
   app_rankings_stream: Array<App_Rankings>;
+  /** fetch data from the table: "app_report" */
+  app_report: Array<App_Report>;
+  /** fetch aggregated fields from the table: "app_report" */
+  app_report_aggregate: App_Report_Aggregate;
+  /** fetch data from the table: "app_report" using primary key columns */
+  app_report_by_pk?: Maybe<App_Report>;
+  /** fetch data from the table in a streaming manner: "app_report" */
+  app_report_stream: Array<App_Report>;
   /** fetch data from the table: "app_reviews" */
   app_reviews: Array<App_Reviews>;
   /** fetch aggregated fields from the table: "app_reviews" */
@@ -7923,6 +8204,32 @@ export type Subscription_RootApp_Rankings_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<App_Rankings_Stream_Cursor_Input>>;
   where?: InputMaybe<App_Rankings_Bool_Exp>;
+};
+
+export type Subscription_RootApp_ReportArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Report_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]>;
+  offset?: InputMaybe<Scalars["Int"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Report_By_PkArgs = {
+  id: Scalars["String"];
+};
+
+export type Subscription_RootApp_Report_StreamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<InputMaybe<App_Report_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
 };
 
 export type Subscription_RootApp_ReviewsArgs = {
