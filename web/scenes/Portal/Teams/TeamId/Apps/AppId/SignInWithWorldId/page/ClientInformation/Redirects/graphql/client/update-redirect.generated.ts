@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateRedirectMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-  uri: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
+  uri: Types.Scalars["String"]["input"];
 }>;
 
 export type UpdateRedirectMutation = {

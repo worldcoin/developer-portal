@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetAppQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
+  app_id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetAppQuery = {
@@ -52,7 +52,8 @@ export const GetAppDocument = gql`
  * });
  */
 export function useGetAppQuery(
-  baseOptions: Apollo.QueryHookOptions<GetAppQuery, GetAppQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<GetAppQuery, GetAppQueryVariables> &
+    ({ variables: GetAppQueryVariables; skip?: boolean } | { skip: boolean }),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<GetAppQuery, GetAppQueryVariables>(
@@ -69,8 +70,25 @@ export function useGetAppLazyQuery(
     options,
   );
 }
+export function useGetAppSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetAppQuery, GetAppQueryVariables>,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetAppQuery, GetAppQueryVariables>(
+    GetAppDocument,
+    options,
+  );
+}
 export type GetAppQueryHookResult = ReturnType<typeof useGetAppQuery>;
 export type GetAppLazyQueryHookResult = ReturnType<typeof useGetAppLazyQuery>;
+export type GetAppSuspenseQueryHookResult = ReturnType<
+  typeof useGetAppSuspenseQuery
+>;
 export type GetAppQueryResult = Apollo.QueryResult<
   GetAppQuery,
   GetAppQueryVariables

@@ -1,11 +1,11 @@
 /* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchLocalisationsQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchLocalisationsQuery = {
@@ -42,12 +42,14 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
   _operationType,
+  _variables,
 ) => action();
 
 export function getSdk(
@@ -68,6 +70,7 @@ export function getSdk(
           ),
         "FetchLocalisations",
         "query",
+        variables,
       );
     },
   };

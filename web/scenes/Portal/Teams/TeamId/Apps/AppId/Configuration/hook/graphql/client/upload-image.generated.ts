@@ -5,10 +5,10 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UploadImageQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
-  image_type: Types.Scalars["String"];
-  content_type_ending: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  app_id: Types.Scalars["String"]["input"];
+  image_type: Types.Scalars["String"]["input"];
+  content_type_ending: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type UploadImageQuery = {
@@ -62,7 +62,11 @@ export function useUploadImageQuery(
   baseOptions: Apollo.QueryHookOptions<
     UploadImageQuery,
     UploadImageQueryVariables
-  >,
+  > &
+    (
+      | { variables: UploadImageQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<UploadImageQuery, UploadImageQueryVariables>(
@@ -82,9 +86,29 @@ export function useUploadImageLazyQuery(
     options,
   );
 }
+export function useUploadImageSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        UploadImageQuery,
+        UploadImageQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<UploadImageQuery, UploadImageQueryVariables>(
+    UploadImageDocument,
+    options,
+  );
+}
 export type UploadImageQueryHookResult = ReturnType<typeof useUploadImageQuery>;
 export type UploadImageLazyQueryHookResult = ReturnType<
   typeof useUploadImageLazyQuery
+>;
+export type UploadImageSuspenseQueryHookResult = ReturnType<
+  typeof useUploadImageSuspenseQuery
 >;
 export type UploadImageQueryResult = Apollo.QueryResult<
   UploadImageQuery,

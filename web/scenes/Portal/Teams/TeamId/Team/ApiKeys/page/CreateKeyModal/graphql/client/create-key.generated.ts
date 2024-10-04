@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertKeyMutationVariables = Types.Exact<{
-  name: Types.Scalars["String"];
-  teamId: Types.Scalars["String"];
+  name: Types.Scalars["String"]["input"];
+  teamId: Types.Scalars["String"]["input"];
 }>;
 
 export type InsertKeyMutation = {

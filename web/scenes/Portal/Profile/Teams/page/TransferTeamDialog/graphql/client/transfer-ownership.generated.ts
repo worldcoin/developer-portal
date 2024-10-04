@@ -5,9 +5,9 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type TransferOwnershipMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
   role?: Types.InputMaybe<Types.Role_Enum>;
-  user_member_id: Types.Scalars["String"];
+  user_member_id: Types.Scalars["String"]["input"];
   user_role?: Types.InputMaybe<Types.Role_Enum>;
 }>;
 

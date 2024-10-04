@@ -59,9 +59,29 @@ export function useFetchTeamsLazyQuery(
     options,
   );
 }
+export function useFetchTeamsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchTeamsQuery,
+        FetchTeamsQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<FetchTeamsQuery, FetchTeamsQueryVariables>(
+    FetchTeamsDocument,
+    options,
+  );
+}
 export type FetchTeamsQueryHookResult = ReturnType<typeof useFetchTeamsQuery>;
 export type FetchTeamsLazyQueryHookResult = ReturnType<
   typeof useFetchTeamsLazyQuery
+>;
+export type FetchTeamsSuspenseQueryHookResult = ReturnType<
+  typeof useFetchTeamsSuspenseQuery
 >;
 export type FetchTeamsQueryResult = Apollo.QueryResult<
   FetchTeamsQuery,

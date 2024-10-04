@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type DeleteInviteMutationVariables = Types.Exact<{
-  inviteId: Types.Scalars["String"];
+  inviteId: Types.Scalars["String"]["input"];
 }>;
 
 export type DeleteInviteMutation = {

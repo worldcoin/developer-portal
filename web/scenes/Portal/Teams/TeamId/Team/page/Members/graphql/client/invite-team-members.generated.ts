@@ -6,9 +6,9 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InviteTeamMembersMutationVariables = Types.Exact<{
   emails?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  team_id: Types.Scalars["String"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type InviteTeamMembersMutation = {

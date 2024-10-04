@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertRedirectMutationVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
-  uri: Types.Scalars["String"];
+  action_id: Types.Scalars["String"]["input"];
+  uri: Types.Scalars["String"]["input"];
 }>;
 
 export type InsertRedirectMutation = {

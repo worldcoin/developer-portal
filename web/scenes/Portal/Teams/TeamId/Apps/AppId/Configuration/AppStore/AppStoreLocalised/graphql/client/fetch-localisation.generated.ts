@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchLocalisationQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-  locale: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
+  locale: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchLocalisationQuery = {
@@ -62,7 +62,11 @@ export function useFetchLocalisationQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchLocalisationQuery,
     FetchLocalisationQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchLocalisationQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<
@@ -82,11 +86,31 @@ export function useFetchLocalisationLazyQuery(
     FetchLocalisationQueryVariables
   >(FetchLocalisationDocument, options);
 }
+export function useFetchLocalisationSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchLocalisationQuery,
+        FetchLocalisationQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    FetchLocalisationQuery,
+    FetchLocalisationQueryVariables
+  >(FetchLocalisationDocument, options);
+}
 export type FetchLocalisationQueryHookResult = ReturnType<
   typeof useFetchLocalisationQuery
 >;
 export type FetchLocalisationLazyQueryHookResult = ReturnType<
   typeof useFetchLocalisationLazyQuery
+>;
+export type FetchLocalisationSuspenseQueryHookResult = ReturnType<
+  typeof useFetchLocalisationSuspenseQuery
 >;
 export type FetchLocalisationQueryResult = Apollo.QueryResult<
   FetchLocalisationQuery,

@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchMembersQueryVariables = Types.Exact<{
-  user_id: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  user_id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchMembersQuery = {
@@ -63,7 +63,11 @@ export function useFetchMembersQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchMembersQuery,
     FetchMembersQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchMembersQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchMembersQuery, FetchMembersQueryVariables>(
@@ -83,11 +87,31 @@ export function useFetchMembersLazyQuery(
     options,
   );
 }
+export function useFetchMembersSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchMembersQuery,
+        FetchMembersQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<FetchMembersQuery, FetchMembersQueryVariables>(
+    FetchMembersDocument,
+    options,
+  );
+}
 export type FetchMembersQueryHookResult = ReturnType<
   typeof useFetchMembersQuery
 >;
 export type FetchMembersLazyQueryHookResult = ReturnType<
   typeof useFetchMembersLazyQuery
+>;
+export type FetchMembersSuspenseQueryHookResult = ReturnType<
+  typeof useFetchMembersSuspenseQuery
 >;
 export type FetchMembersQueryResult = Apollo.QueryResult<
   FetchMembersQuery,

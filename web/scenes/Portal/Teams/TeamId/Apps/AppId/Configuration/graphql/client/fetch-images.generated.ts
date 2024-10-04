@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchImagesQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchImagesQuery = {
@@ -53,7 +53,11 @@ export function useFetchImagesQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchImagesQuery,
     FetchImagesQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchImagesQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchImagesQuery, FetchImagesQueryVariables>(
@@ -73,9 +77,29 @@ export function useFetchImagesLazyQuery(
     options,
   );
 }
+export function useFetchImagesSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchImagesQuery,
+        FetchImagesQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<FetchImagesQuery, FetchImagesQueryVariables>(
+    FetchImagesDocument,
+    options,
+  );
+}
 export type FetchImagesQueryHookResult = ReturnType<typeof useFetchImagesQuery>;
 export type FetchImagesLazyQueryHookResult = ReturnType<
   typeof useFetchImagesLazyQuery
+>;
+export type FetchImagesSuspenseQueryHookResult = ReturnType<
+  typeof useFetchImagesSuspenseQuery
 >;
 export type FetchImagesQueryResult = Apollo.QueryResult<
   FetchImagesQuery,

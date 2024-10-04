@@ -5,9 +5,9 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type AddLocaleMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
   supported_languages?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
 }>;
 

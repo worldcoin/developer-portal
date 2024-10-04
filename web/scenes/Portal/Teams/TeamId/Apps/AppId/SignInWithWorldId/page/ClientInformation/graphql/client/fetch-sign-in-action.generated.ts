@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchSignInActionQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
+  app_id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchSignInActionQuery = {
@@ -56,7 +56,11 @@ export function useFetchSignInActionQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchSignInActionQuery,
     FetchSignInActionQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchSignInActionQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<
@@ -76,11 +80,31 @@ export function useFetchSignInActionLazyQuery(
     FetchSignInActionQueryVariables
   >(FetchSignInActionDocument, options);
 }
+export function useFetchSignInActionSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchSignInActionQuery,
+        FetchSignInActionQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    FetchSignInActionQuery,
+    FetchSignInActionQueryVariables
+  >(FetchSignInActionDocument, options);
+}
 export type FetchSignInActionQueryHookResult = ReturnType<
   typeof useFetchSignInActionQuery
 >;
 export type FetchSignInActionLazyQueryHookResult = ReturnType<
   typeof useFetchSignInActionLazyQuery
+>;
+export type FetchSignInActionSuspenseQueryHookResult = ReturnType<
+  typeof useFetchSignInActionSuspenseQuery
 >;
 export type FetchSignInActionQueryResult = Apollo.QueryResult<
   FetchSignInActionQuery,

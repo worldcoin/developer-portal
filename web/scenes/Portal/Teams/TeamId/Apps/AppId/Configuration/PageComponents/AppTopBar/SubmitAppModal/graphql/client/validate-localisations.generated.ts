@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type ValidateLocalisationMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type ValidateLocalisationMutation = {
