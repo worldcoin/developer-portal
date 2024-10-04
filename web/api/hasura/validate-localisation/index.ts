@@ -81,8 +81,6 @@ export const POST = async (req: NextRequest) => {
 
   const client = await getAPIServiceGraphqlClient();
 
-  // Anchor: Create a new draft
-
   const { localisations } = await getLocalisationsSdk(client).GetLocalisations({
     app_metadata_id: app_metadata_id,
   });
@@ -115,7 +113,6 @@ export const POST = async (req: NextRequest) => {
         }
       })
     ) {
-      console.log("here");
       return errorHasuraQuery({
         req,
         detail: "Missing localisation for language code",
@@ -123,6 +120,5 @@ export const POST = async (req: NextRequest) => {
       });
     }
   }
-
   return NextResponse.json({ success: true });
 };

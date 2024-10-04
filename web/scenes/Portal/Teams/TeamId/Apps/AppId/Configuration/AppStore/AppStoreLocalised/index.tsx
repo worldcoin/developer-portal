@@ -607,7 +607,7 @@ export const AppStoreForm = (props: {
 
           <Input
             register={register("short_name")}
-            errors={errors.name}
+            errors={errors.short_name}
             label="Short name"
             disabled={!isEditable || !isEnoughPermissions}
             required
@@ -620,7 +620,7 @@ export const AppStoreForm = (props: {
 
           <Input
             register={register("world_app_description")}
-            errors={errors.name}
+            errors={errors.world_app_description}
             label="App tag line"
             disabled={!isEditable || !isEnoughPermissions}
             required

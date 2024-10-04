@@ -4942,6 +4942,7 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
 };
@@ -5749,6 +5750,12 @@ export type Mutation_RootUpdate_User_ManyArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootValidate_LocalisationArgs = {
+  app_metadata_id: Scalars["String"];
+  team_id: Scalars["String"];
+};
+
+/** mutation root */
 export type Mutation_RootVerify_AppArgs = {
   app_id: Scalars["String"];
   is_reviewer_app_store_approved: Scalars["Boolean"];
@@ -6260,7 +6267,6 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
-  validate_localisation?: Maybe<ValidateLocalisationOutput>;
 };
 
 export type Query_RootActionArgs = {
@@ -6700,11 +6706,6 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"];
-};
-
-export type Query_RootValidate_LocalisationArgs = {
-  app_metadata_id: Scalars["String"];
-  team_id: Scalars["String"];
 };
 
 /** columns and relationships of "redirect" */

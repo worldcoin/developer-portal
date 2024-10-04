@@ -4,13 +4,13 @@ import * as Types from "@/graphql/graphql";
 import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
-export type ValidateLocalisationQueryVariables = Types.Exact<{
+export type ValidateLocalisationMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"];
   team_id: Types.Scalars["String"];
 }>;
 
-export type ValidateLocalisationQuery = {
-  __typename?: "query_root";
+export type ValidateLocalisationMutation = {
+  __typename?: "mutation_root";
   validate_localisation?: {
     __typename?: "ValidateLocalisationOutput";
     success?: boolean | null;
@@ -18,7 +18,7 @@ export type ValidateLocalisationQuery = {
 };
 
 export const ValidateLocalisationDocument = gql`
-  query ValidateLocalisation($app_metadata_id: String!, $team_id: String!) {
+  mutation ValidateLocalisation($app_metadata_id: String!, $team_id: String!) {
     validate_localisation(
       app_metadata_id: $app_metadata_id
       team_id: $team_id
@@ -27,55 +27,47 @@ export const ValidateLocalisationDocument = gql`
     }
   }
 `;
+export type ValidateLocalisationMutationFn = Apollo.MutationFunction<
+  ValidateLocalisationMutation,
+  ValidateLocalisationMutationVariables
+>;
 
 /**
- * __useValidateLocalisationQuery__
+ * __useValidateLocalisationMutation__
  *
- * To run a query within a React component, call `useValidateLocalisationQuery` and pass it any options that fit your needs.
- * When your component renders, `useValidateLocalisationQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
+ * To run a mutation, you first call `useValidateLocalisationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useValidateLocalisationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
  *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const { data, loading, error } = useValidateLocalisationQuery({
+ * const [validateLocalisationMutation, { data, loading, error }] = useValidateLocalisationMutation({
  *   variables: {
  *      app_metadata_id: // value for 'app_metadata_id'
  *      team_id: // value for 'team_id'
  *   },
  * });
  */
-export function useValidateLocalisationQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    ValidateLocalisationQuery,
-    ValidateLocalisationQueryVariables
+export function useValidateLocalisationMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    ValidateLocalisationMutation,
+    ValidateLocalisationMutationVariables
   >,
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    ValidateLocalisationQuery,
-    ValidateLocalisationQueryVariables
+  return Apollo.useMutation<
+    ValidateLocalisationMutation,
+    ValidateLocalisationMutationVariables
   >(ValidateLocalisationDocument, options);
 }
-export function useValidateLocalisationLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    ValidateLocalisationQuery,
-    ValidateLocalisationQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    ValidateLocalisationQuery,
-    ValidateLocalisationQueryVariables
-  >(ValidateLocalisationDocument, options);
-}
-export type ValidateLocalisationQueryHookResult = ReturnType<
-  typeof useValidateLocalisationQuery
+export type ValidateLocalisationMutationHookResult = ReturnType<
+  typeof useValidateLocalisationMutation
 >;
-export type ValidateLocalisationLazyQueryHookResult = ReturnType<
-  typeof useValidateLocalisationLazyQuery
->;
-export type ValidateLocalisationQueryResult = Apollo.QueryResult<
-  ValidateLocalisationQuery,
-  ValidateLocalisationQueryVariables
+export type ValidateLocalisationMutationResult =
+  Apollo.MutationResult<ValidateLocalisationMutation>;
+export type ValidateLocalisationMutationOptions = Apollo.BaseMutationOptions<
+  ValidateLocalisationMutation,
+  ValidateLocalisationMutationVariables
 >;
