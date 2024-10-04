@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateUserMutationVariables = Types.Exact<{
-  user_id: Types.Scalars["String"];
+  user_id: Types.Scalars["String"]["input"];
   input?: Types.InputMaybe<Types.User_Set_Input>;
 }>;
 

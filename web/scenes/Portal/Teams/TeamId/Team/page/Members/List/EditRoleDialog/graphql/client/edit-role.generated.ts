@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type EditRoleMutationVariables = Types.Exact<{
-  membershipId: Types.Scalars["String"];
+  membershipId: Types.Scalars["String"]["input"];
   role?: Types.InputMaybe<Types.Role_Enum>;
 }>;
 

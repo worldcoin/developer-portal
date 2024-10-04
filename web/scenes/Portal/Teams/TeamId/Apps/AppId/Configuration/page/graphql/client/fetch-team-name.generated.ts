@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchTeamNameQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchTeamNameQuery = {
@@ -41,7 +41,11 @@ export function useFetchTeamNameQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchTeamNameQuery,
     FetchTeamNameQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchTeamNameQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchTeamNameQuery, FetchTeamNameQueryVariables>(
@@ -61,11 +65,31 @@ export function useFetchTeamNameLazyQuery(
     options,
   );
 }
+export function useFetchTeamNameSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchTeamNameQuery,
+        FetchTeamNameQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    FetchTeamNameQuery,
+    FetchTeamNameQueryVariables
+  >(FetchTeamNameDocument, options);
+}
 export type FetchTeamNameQueryHookResult = ReturnType<
   typeof useFetchTeamNameQuery
 >;
 export type FetchTeamNameLazyQueryHookResult = ReturnType<
   typeof useFetchTeamNameLazyQuery
+>;
+export type FetchTeamNameSuspenseQueryHookResult = ReturnType<
+  typeof useFetchTeamNameSuspenseQuery
 >;
 export type FetchTeamNameQueryResult = Apollo.QueryResult<
   FetchTeamNameQuery,

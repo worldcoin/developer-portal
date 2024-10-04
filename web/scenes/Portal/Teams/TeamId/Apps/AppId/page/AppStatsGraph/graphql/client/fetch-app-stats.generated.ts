@@ -5,9 +5,9 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchAppStatsQueryVariables = Types.Exact<{
-  appId: Types.Scalars["String"];
-  startsAt: Types.Scalars["timestamptz"];
-  timeSpan: Types.Scalars["String"];
+  appId: Types.Scalars["String"]["input"];
+  startsAt: Types.Scalars["timestamptz"]["input"];
+  timeSpan: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchAppStatsQuery = {
@@ -65,7 +65,11 @@ export function useFetchAppStatsQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchAppStatsQuery,
     FetchAppStatsQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchAppStatsQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchAppStatsQuery, FetchAppStatsQueryVariables>(
@@ -85,11 +89,31 @@ export function useFetchAppStatsLazyQuery(
     options,
   );
 }
+export function useFetchAppStatsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchAppStatsQuery,
+        FetchAppStatsQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    FetchAppStatsQuery,
+    FetchAppStatsQueryVariables
+  >(FetchAppStatsDocument, options);
+}
 export type FetchAppStatsQueryHookResult = ReturnType<
   typeof useFetchAppStatsQuery
 >;
 export type FetchAppStatsLazyQueryHookResult = ReturnType<
   typeof useFetchAppStatsLazyQuery
+>;
+export type FetchAppStatsSuspenseQueryHookResult = ReturnType<
+  typeof useFetchAppStatsSuspenseQuery
 >;
 export type FetchAppStatsQueryResult = Apollo.QueryResult<
   FetchAppStatsQuery,

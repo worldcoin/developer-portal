@@ -5,10 +5,10 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetUploadedImageQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
-  image_type: Types.Scalars["String"];
-  content_type_ending: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  app_id: Types.Scalars["String"]["input"];
+  image_type: Types.Scalars["String"]["input"];
+  content_type_ending: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetUploadedImageQuery = {
@@ -60,7 +60,11 @@ export function useGetUploadedImageQuery(
   baseOptions: Apollo.QueryHookOptions<
     GetUploadedImageQuery,
     GetUploadedImageQueryVariables
-  >,
+  > &
+    (
+      | { variables: GetUploadedImageQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<GetUploadedImageQuery, GetUploadedImageQueryVariables>(
@@ -80,11 +84,31 @@ export function useGetUploadedImageLazyQuery(
     GetUploadedImageQueryVariables
   >(GetUploadedImageDocument, options);
 }
+export function useGetUploadedImageSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetUploadedImageQuery,
+        GetUploadedImageQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetUploadedImageQuery,
+    GetUploadedImageQueryVariables
+  >(GetUploadedImageDocument, options);
+}
 export type GetUploadedImageQueryHookResult = ReturnType<
   typeof useGetUploadedImageQuery
 >;
 export type GetUploadedImageLazyQueryHookResult = ReturnType<
   typeof useGetUploadedImageLazyQuery
+>;
+export type GetUploadedImageSuspenseQueryHookResult = ReturnType<
+  typeof useGetUploadedImageSuspenseQuery
 >;
 export type GetUploadedImageQueryResult = Apollo.QueryResult<
   GetUploadedImageQuery,

@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateHeroImageMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
-  hero_image_url: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  hero_image_url: Types.Scalars["String"]["input"];
 }>;
 
 export type UpdateHeroImageMutation = {

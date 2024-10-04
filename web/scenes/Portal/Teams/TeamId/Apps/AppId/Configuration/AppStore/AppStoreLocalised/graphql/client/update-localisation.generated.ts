@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateLocalisationMutationVariables = Types.Exact<{
-  localisation_id: Types.Scalars["String"];
+  localisation_id: Types.Scalars["String"]["input"];
   input?: Types.InputMaybe<Types.Localisations_Set_Input>;
 }>;
 

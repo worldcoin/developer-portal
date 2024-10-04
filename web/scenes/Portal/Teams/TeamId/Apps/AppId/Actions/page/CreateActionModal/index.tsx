@@ -22,7 +22,7 @@ import slugify from "slugify";
 import * as yup from "yup";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
-import { useInsertActionMutation } from "./graphql/insert-action.generated";
+import { useInsertActionMutation } from "./graphql/client/insert-action.generated";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
@@ -67,7 +67,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     },
   });
 
-  const [insertActionQuery, { loading }] = useInsertActionMutation({});
+  const [insertActionMutation, { loading }] = useInsertActionMutation({});
 
   useEffect(() => {
     setFocus("name");
@@ -89,7 +89,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
-        const result = await insertActionQuery({
+        const result = await insertActionMutation({
           variables: {
             name: values.name,
             description: values.description,
@@ -148,7 +148,15 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [insertActionQuery, appId, reset, firstAction, router, pathname, setError],
+    [
+      insertActionMutation,
+      appId,
+      reset,
+      firstAction,
+      router,
+      pathname,
+      setError,
+    ],
   );
 
   return (

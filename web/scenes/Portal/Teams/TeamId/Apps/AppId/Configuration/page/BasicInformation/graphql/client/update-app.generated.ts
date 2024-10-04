@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateAppInfoMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
   input?: Types.InputMaybe<Types.App_Metadata_Set_Input>;
 }>;
 

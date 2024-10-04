@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type DebuggerQueryVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
+  action_id: Types.Scalars["String"]["input"];
 }>;
 
 export type DebuggerQuery = {
@@ -51,7 +51,8 @@ export const DebuggerDocument = gql`
  * });
  */
 export function useDebuggerQuery(
-  baseOptions: Apollo.QueryHookOptions<DebuggerQuery, DebuggerQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<DebuggerQuery, DebuggerQueryVariables> &
+    ({ variables: DebuggerQueryVariables; skip?: boolean } | { skip: boolean }),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<DebuggerQuery, DebuggerQueryVariables>(
@@ -71,9 +72,26 @@ export function useDebuggerLazyQuery(
     options,
   );
 }
+export function useDebuggerSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<DebuggerQuery, DebuggerQueryVariables>,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<DebuggerQuery, DebuggerQueryVariables>(
+    DebuggerDocument,
+    options,
+  );
+}
 export type DebuggerQueryHookResult = ReturnType<typeof useDebuggerQuery>;
 export type DebuggerLazyQueryHookResult = ReturnType<
   typeof useDebuggerLazyQuery
+>;
+export type DebuggerSuspenseQueryHookResult = ReturnType<
+  typeof useDebuggerSuspenseQuery
 >;
 export type DebuggerQueryResult = Apollo.QueryResult<
   DebuggerQuery,

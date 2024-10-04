@@ -1,8 +1,8 @@
 query GetApps(
-  $topAppsConditions: [app_metadata_bool_exp]!
+  $topAppsConditions: [app_metadata_bool_exp!]
   $limit: Int!
   $offset: Int!
-  $highlightsIds: [String]!
+  $highlightsIds: [String!]
   $locale: String!
 ) {
   top_apps: app_metadata(

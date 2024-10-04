@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetVerificationDataQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetVerificationDataQuery = {
@@ -76,7 +76,11 @@ export function useGetVerificationDataQuery(
   baseOptions: Apollo.QueryHookOptions<
     GetVerificationDataQuery,
     GetVerificationDataQueryVariables
-  >,
+  > &
+    (
+      | { variables: GetVerificationDataQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<
@@ -96,11 +100,31 @@ export function useGetVerificationDataLazyQuery(
     GetVerificationDataQueryVariables
   >(GetVerificationDataDocument, options);
 }
+export function useGetVerificationDataSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetVerificationDataQuery,
+        GetVerificationDataQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetVerificationDataQuery,
+    GetVerificationDataQueryVariables
+  >(GetVerificationDataDocument, options);
+}
 export type GetVerificationDataQueryHookResult = ReturnType<
   typeof useGetVerificationDataQuery
 >;
 export type GetVerificationDataLazyQueryHookResult = ReturnType<
   typeof useGetVerificationDataLazyQuery
+>;
+export type GetVerificationDataSuspenseQueryHookResult = ReturnType<
+  typeof useGetVerificationDataSuspenseQuery
 >;
 export type GetVerificationDataQueryResult = Apollo.QueryResult<
   GetVerificationDataQuery,

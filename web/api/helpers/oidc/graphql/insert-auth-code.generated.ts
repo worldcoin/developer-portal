@@ -1,20 +1,20 @@
 /* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type InsertAuthCodeMutationVariables = Types.Exact<{
-  auth_code: Types.Scalars["String"];
-  code_challenge?: Types.InputMaybe<Types.Scalars["String"]>;
-  code_challenge_method?: Types.InputMaybe<Types.Scalars["String"]>;
-  expires_at: Types.Scalars["timestamptz"];
-  nullifier_hash: Types.Scalars["String"];
-  app_id: Types.Scalars["String"];
-  verification_level: Types.Scalars["String"];
-  scope: Types.Scalars["jsonb"];
-  nonce?: Types.InputMaybe<Types.Scalars["String"]>;
-  redirect_uri?: Types.InputMaybe<Types.Scalars["String"]>;
+  auth_code: Types.Scalars["String"]["input"];
+  code_challenge?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  code_challenge_method?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  expires_at: Types.Scalars["timestamptz"]["input"];
+  nullifier_hash: Types.Scalars["String"]["input"];
+  app_id: Types.Scalars["String"]["input"];
+  verification_level: Types.Scalars["String"]["input"];
+  scope: Types.Scalars["jsonb"]["input"];
+  nonce?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  redirect_uri?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type InsertAuthCodeMutation = {
@@ -63,12 +63,14 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
   _operationType,
+  _variables,
 ) => action();
 
 export function getSdk(
@@ -89,6 +91,7 @@ export function getSdk(
           ),
         "InsertAuthCode",
         "mutation",
+        variables,
       );
     },
   };

@@ -5,13 +5,13 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type InsertAppMutationVariables = Types.Exact<{
-  name: Types.Scalars["String"];
-  engine: Types.Scalars["String"];
-  is_staging: Types.Scalars["Boolean"];
-  team_id: Types.Scalars["String"];
-  category: Types.Scalars["String"];
-  integration_url: Types.Scalars["String"];
-  app_mode: Types.Scalars["String"];
+  name: Types.Scalars["String"]["input"];
+  engine: Types.Scalars["String"]["input"];
+  is_staging: Types.Scalars["Boolean"]["input"];
+  team_id: Types.Scalars["String"]["input"];
+  category: Types.Scalars["String"]["input"];
+  integration_url: Types.Scalars["String"]["input"];
+  app_mode: Types.Scalars["String"]["input"];
 }>;
 
 export type InsertAppMutation = {

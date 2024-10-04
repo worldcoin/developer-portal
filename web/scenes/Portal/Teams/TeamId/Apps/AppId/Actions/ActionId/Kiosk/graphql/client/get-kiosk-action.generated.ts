@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetKioskActionQueryVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
-  app_id: Types.Scalars["String"];
+  action_id: Types.Scalars["String"]["input"];
+  app_id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetKioskActionQuery = {
@@ -67,7 +67,11 @@ export function useGetKioskActionQuery(
   baseOptions: Apollo.QueryHookOptions<
     GetKioskActionQuery,
     GetKioskActionQueryVariables
-  >,
+  > &
+    (
+      | { variables: GetKioskActionQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<GetKioskActionQuery, GetKioskActionQueryVariables>(
@@ -87,11 +91,31 @@ export function useGetKioskActionLazyQuery(
     options,
   );
 }
+export function useGetKioskActionSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetKioskActionQuery,
+        GetKioskActionQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetKioskActionQuery,
+    GetKioskActionQueryVariables
+  >(GetKioskActionDocument, options);
+}
 export type GetKioskActionQueryHookResult = ReturnType<
   typeof useGetKioskActionQuery
 >;
 export type GetKioskActionLazyQueryHookResult = ReturnType<
   typeof useGetKioskActionLazyQuery
+>;
+export type GetKioskActionSuspenseQueryHookResult = ReturnType<
+  typeof useGetKioskActionSuspenseQuery
 >;
 export type GetKioskActionQueryResult = Apollo.QueryResult<
   GetKioskActionQuery,

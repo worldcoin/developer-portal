@@ -1,46 +1,48 @@
 /* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type CreateDraftMutationVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
-  name?: Types.InputMaybe<Types.Scalars["String"]>;
-  short_name?: Types.InputMaybe<Types.Scalars["String"]>;
-  logo_img_url?: Types.InputMaybe<Types.Scalars["String"]>;
+  app_id: Types.Scalars["String"]["input"];
+  name?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  short_name?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  logo_img_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   showcase_img_urls?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  hero_image_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  description?: Types.InputMaybe<Types.Scalars["String"]>;
-  world_app_description?: Types.InputMaybe<Types.Scalars["String"]>;
-  category?: Types.InputMaybe<Types.Scalars["String"]>;
-  is_developer_allow_listing?: Types.InputMaybe<Types.Scalars["Boolean"]>;
-  integration_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  app_website_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  source_code_url?: Types.InputMaybe<Types.Scalars["String"]>;
-  verification_status?: Types.InputMaybe<Types.Scalars["String"]>;
-  world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]>;
-  app_mode?: Types.InputMaybe<Types.Scalars["String"]>;
+  hero_image_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  world_app_description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  category?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  is_developer_allow_listing?: Types.InputMaybe<
+    Types.Scalars["Boolean"]["input"]
+  >;
+  integration_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  app_website_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  source_code_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  verification_status?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  world_app_button_text?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  app_mode?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   whitelisted_addresses?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  support_link?: Types.InputMaybe<Types.Scalars["String"]>;
+  support_link?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   supported_countries?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   supported_languages?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   associated_domains?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   contracts?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   permit2_tokens?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
 }>;
 
@@ -111,12 +113,14 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
   _operationType,
+  _variables,
 ) => action();
 
 export function getSdk(
@@ -136,6 +140,7 @@ export function getSdk(
           }),
         "CreateDraft",
         "mutation",
+        variables,
       );
     },
   };

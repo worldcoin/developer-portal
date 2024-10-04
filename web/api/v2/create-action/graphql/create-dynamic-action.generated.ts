@@ -1,16 +1,16 @@
 /* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type CreateDynamicActionMutationVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
-  external_nullifier: Types.Scalars["String"];
-  action: Types.Scalars["String"];
-  name: Types.Scalars["String"];
-  description: Types.Scalars["String"];
-  max_verifications: Types.Scalars["Int"];
+  app_id: Types.Scalars["String"]["input"];
+  external_nullifier: Types.Scalars["String"]["input"];
+  action: Types.Scalars["String"]["input"];
+  name: Types.Scalars["String"]["input"];
+  description: Types.Scalars["String"]["input"];
+  max_verifications: Types.Scalars["Int"]["input"];
 }>;
 
 export type CreateDynamicActionMutation = {
@@ -62,12 +62,14 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
   _operationType,
+  _variables,
 ) => action();
 
 export function getSdk(
@@ -88,6 +90,7 @@ export function getSdk(
           ),
         "CreateDynamicAction",
         "mutation",
+        variables,
       );
     },
   };

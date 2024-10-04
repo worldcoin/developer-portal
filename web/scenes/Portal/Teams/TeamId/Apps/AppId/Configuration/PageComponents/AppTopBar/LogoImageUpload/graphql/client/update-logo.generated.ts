@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateLogoMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-  fileName: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
+  fileName: Types.Scalars["String"]["input"];
 }>;
 
 export type UpdateLogoMutation = {

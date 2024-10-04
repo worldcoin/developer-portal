@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchKeysQueryVariables = Types.Exact<{
-  teamId: Types.Scalars["String"];
+  teamId: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchKeysQuery = {
@@ -54,7 +54,14 @@ export const FetchKeysDocument = gql`
  * });
  */
 export function useFetchKeysQuery(
-  baseOptions: Apollo.QueryHookOptions<FetchKeysQuery, FetchKeysQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<
+    FetchKeysQuery,
+    FetchKeysQueryVariables
+  > &
+    (
+      | { variables: FetchKeysQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchKeysQuery, FetchKeysQueryVariables>(
@@ -74,9 +81,26 @@ export function useFetchKeysLazyQuery(
     options,
   );
 }
+export function useFetchKeysSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<FetchKeysQuery, FetchKeysQueryVariables>,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<FetchKeysQuery, FetchKeysQueryVariables>(
+    FetchKeysDocument,
+    options,
+  );
+}
 export type FetchKeysQueryHookResult = ReturnType<typeof useFetchKeysQuery>;
 export type FetchKeysLazyQueryHookResult = ReturnType<
   typeof useFetchKeysLazyQuery
+>;
+export type FetchKeysSuspenseQueryHookResult = ReturnType<
+  typeof useFetchKeysSuspenseQuery
 >;
 export type FetchKeysQueryResult = Apollo.QueryResult<
   FetchKeysQuery,

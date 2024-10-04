@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type GetSingleActionAndNullifiersQueryVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
+  action_id: Types.Scalars["String"]["input"];
 }>;
 
 export type GetSingleActionAndNullifiersQuery = {
@@ -62,7 +62,14 @@ export function useGetSingleActionAndNullifiersQuery(
   baseOptions: Apollo.QueryHookOptions<
     GetSingleActionAndNullifiersQuery,
     GetSingleActionAndNullifiersQueryVariables
-  >,
+  > &
+    (
+      | {
+          variables: GetSingleActionAndNullifiersQueryVariables;
+          skip?: boolean;
+        }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<
@@ -82,11 +89,31 @@ export function useGetSingleActionAndNullifiersLazyQuery(
     GetSingleActionAndNullifiersQueryVariables
   >(GetSingleActionAndNullifiersDocument, options);
 }
+export function useGetSingleActionAndNullifiersSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetSingleActionAndNullifiersQuery,
+        GetSingleActionAndNullifiersQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetSingleActionAndNullifiersQuery,
+    GetSingleActionAndNullifiersQueryVariables
+  >(GetSingleActionAndNullifiersDocument, options);
+}
 export type GetSingleActionAndNullifiersQueryHookResult = ReturnType<
   typeof useGetSingleActionAndNullifiersQuery
 >;
 export type GetSingleActionAndNullifiersLazyQueryHookResult = ReturnType<
   typeof useGetSingleActionAndNullifiersLazyQuery
+>;
+export type GetSingleActionAndNullifiersSuspenseQueryHookResult = ReturnType<
+  typeof useGetSingleActionAndNullifiersSuspenseQuery
 >;
 export type GetSingleActionAndNullifiersQueryResult = Apollo.QueryResult<
   GetSingleActionAndNullifiersQuery,

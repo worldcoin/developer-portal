@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type RedirectsQueryVariables = Types.Exact<{
-  action_id: Types.Scalars["String"];
+  action_id: Types.Scalars["String"]["input"];
 }>;
 
 export type RedirectsQuery = {
@@ -52,7 +52,14 @@ export const RedirectsDocument = gql`
  * });
  */
 export function useRedirectsQuery(
-  baseOptions: Apollo.QueryHookOptions<RedirectsQuery, RedirectsQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<
+    RedirectsQuery,
+    RedirectsQueryVariables
+  > &
+    (
+      | { variables: RedirectsQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<RedirectsQuery, RedirectsQueryVariables>(
@@ -72,9 +79,26 @@ export function useRedirectsLazyQuery(
     options,
   );
 }
+export function useRedirectsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<RedirectsQuery, RedirectsQueryVariables>,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<RedirectsQuery, RedirectsQueryVariables>(
+    RedirectsDocument,
+    options,
+  );
+}
 export type RedirectsQueryHookResult = ReturnType<typeof useRedirectsQuery>;
 export type RedirectsLazyQueryHookResult = ReturnType<
   typeof useRedirectsLazyQuery
+>;
+export type RedirectsSuspenseQueryHookResult = ReturnType<
+  typeof useRedirectsSuspenseQuery
 >;
 export type RedirectsQueryResult = Apollo.QueryResult<
   RedirectsQuery,

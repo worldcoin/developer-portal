@@ -5,21 +5,21 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateSetupMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
-  app_mode: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  app_mode: Types.Scalars["String"]["input"];
   whitelisted_addresses?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   associated_domains?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   contracts?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   permit2_tokens?: Types.InputMaybe<
-    Array<Types.Scalars["String"]> | Types.Scalars["String"]
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  canImportAllContacts?: Types.InputMaybe<Types.Scalars["Boolean"]>;
+  canImportAllContacts?: Types.InputMaybe<Types.Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpdateSetupMutation = {

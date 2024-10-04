@@ -1,19 +1,19 @@
 /* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
-import { GraphQLClient } from "graphql-request";
-import { GraphQLClientRequestHeaders } from "graphql-request/build/cjs/types";
+import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
+type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetAppsQueryVariables = Types.Exact<{
-  topAppsConditions:
-    | Array<Types.InputMaybe<Types.App_Metadata_Bool_Exp>>
-    | Types.InputMaybe<Types.App_Metadata_Bool_Exp>;
-  limit: Types.Scalars["Int"];
-  offset: Types.Scalars["Int"];
-  highlightsIds:
-    | Array<Types.InputMaybe<Types.Scalars["String"]>>
-    | Types.InputMaybe<Types.Scalars["String"]>;
-  locale: Types.Scalars["String"];
+  topAppsConditions?: Types.InputMaybe<
+    Array<Types.App_Metadata_Bool_Exp> | Types.App_Metadata_Bool_Exp
+  >;
+  limit: Types.Scalars["Int"]["input"];
+  offset: Types.Scalars["Int"]["input"];
+  highlightsIds?: Types.InputMaybe<
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
+  >;
+  locale: Types.Scalars["String"]["input"];
 }>;
 
 export type GetAppsQuery = {
@@ -100,10 +100,10 @@ export type GetAppsQuery = {
 
 export const GetAppsDocument = gql`
   query GetApps(
-    $topAppsConditions: [app_metadata_bool_exp]!
+    $topAppsConditions: [app_metadata_bool_exp!]
     $limit: Int!
     $offset: Int!
-    $highlightsIds: [String]!
+    $highlightsIds: [String!]
     $locale: String!
   ) {
     top_apps: app_metadata(
@@ -202,12 +202,14 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
+  variables?: any,
 ) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (
   action,
   _operationName,
   _operationType,
+  _variables,
 ) => action();
 
 export function getSdk(
@@ -227,6 +229,7 @@ export function getSdk(
           }),
         "GetApps",
         "query",
+        variables,
       );
     },
   };

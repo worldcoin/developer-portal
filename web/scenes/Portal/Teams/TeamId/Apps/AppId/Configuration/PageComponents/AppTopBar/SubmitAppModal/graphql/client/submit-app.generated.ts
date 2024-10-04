@@ -5,9 +5,9 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type SubmitAppMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
-  verification_status: Types.Scalars["String"];
-  is_developer_allow_listing: Types.Scalars["Boolean"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  verification_status: Types.Scalars["String"]["input"];
+  is_developer_allow_listing: Types.Scalars["Boolean"]["input"];
 }>;
 
 export type SubmitAppMutation = {

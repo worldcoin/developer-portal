@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type UpdateAppVerificationStatusMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"];
-  verification_status: Types.Scalars["String"];
+  app_metadata_id: Types.Scalars["String"]["input"];
+  verification_status: Types.Scalars["String"]["input"];
 }>;
 
 export type UpdateAppVerificationStatusMutation = {

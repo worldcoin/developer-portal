@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type ResetClientSecretMutationVariables = Types.Exact<{
-  app_id: Types.Scalars["String"];
-  team_id: Types.Scalars["String"];
+  app_id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
 }>;
 
 export type ResetClientSecretMutation = {

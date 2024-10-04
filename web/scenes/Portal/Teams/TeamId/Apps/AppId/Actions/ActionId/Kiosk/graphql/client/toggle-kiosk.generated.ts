@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type ToggleKioskMutationVariables = Types.Exact<{
-  id: Types.Scalars["String"];
-  kiosk_status: Types.Scalars["Boolean"];
+  id: Types.Scalars["String"]["input"];
+  kiosk_status: Types.Scalars["Boolean"]["input"];
 }>;
 
 export type ToggleKioskMutation = {

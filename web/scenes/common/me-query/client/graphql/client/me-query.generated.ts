@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchMeQueryVariables = Types.Exact<{
-  userId: Types.Scalars["String"];
+  userId: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchMeQuery = {
@@ -63,7 +63,8 @@ export const FetchMeDocument = gql`
  * });
  */
 export function useFetchMeQuery(
-  baseOptions: Apollo.QueryHookOptions<FetchMeQuery, FetchMeQueryVariables>,
+  baseOptions: Apollo.QueryHookOptions<FetchMeQuery, FetchMeQueryVariables> &
+    ({ variables: FetchMeQueryVariables; skip?: boolean } | { skip: boolean }),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchMeQuery, FetchMeQueryVariables>(
@@ -83,8 +84,25 @@ export function useFetchMeLazyQuery(
     options,
   );
 }
+export function useFetchMeSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<FetchMeQuery, FetchMeQueryVariables>,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<FetchMeQuery, FetchMeQueryVariables>(
+    FetchMeDocument,
+    options,
+  );
+}
 export type FetchMeQueryHookResult = ReturnType<typeof useFetchMeQuery>;
 export type FetchMeLazyQueryHookResult = ReturnType<typeof useFetchMeLazyQuery>;
+export type FetchMeSuspenseQueryHookResult = ReturnType<
+  typeof useFetchMeSuspenseQuery
+>;
 export type FetchMeQueryResult = Apollo.QueryResult<
   FetchMeQuery,
   FetchMeQueryVariables

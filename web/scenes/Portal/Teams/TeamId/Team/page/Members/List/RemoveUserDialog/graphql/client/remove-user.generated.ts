@@ -5,8 +5,8 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type RemoveUserMutationVariables = Types.Exact<{
-  userId: Types.Scalars["String"];
-  teamId: Types.Scalars["String"];
+  userId: Types.Scalars["String"]["input"];
+  teamId: Types.Scalars["String"]["input"];
 }>;
 
 export type RemoveUserMutation = {

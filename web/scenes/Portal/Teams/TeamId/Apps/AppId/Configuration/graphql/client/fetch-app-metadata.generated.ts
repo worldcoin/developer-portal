@@ -5,7 +5,7 @@ import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchAppMetadataQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"];
+  id: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchAppMetadataQuery = {
@@ -170,7 +170,11 @@ export function useFetchAppMetadataQuery(
   baseOptions: Apollo.QueryHookOptions<
     FetchAppMetadataQuery,
     FetchAppMetadataQueryVariables
-  >,
+  > &
+    (
+      | { variables: FetchAppMetadataQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
   return Apollo.useQuery<FetchAppMetadataQuery, FetchAppMetadataQueryVariables>(
@@ -190,11 +194,31 @@ export function useFetchAppMetadataLazyQuery(
     FetchAppMetadataQueryVariables
   >(FetchAppMetadataDocument, options);
 }
+export function useFetchAppMetadataSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        FetchAppMetadataQuery,
+        FetchAppMetadataQueryVariables
+      >,
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    FetchAppMetadataQuery,
+    FetchAppMetadataQueryVariables
+  >(FetchAppMetadataDocument, options);
+}
 export type FetchAppMetadataQueryHookResult = ReturnType<
   typeof useFetchAppMetadataQuery
 >;
 export type FetchAppMetadataLazyQueryHookResult = ReturnType<
   typeof useFetchAppMetadataLazyQuery
+>;
+export type FetchAppMetadataSuspenseQueryHookResult = ReturnType<
+  typeof useFetchAppMetadataSuspenseQuery
 >;
 export type FetchAppMetadataQueryResult = Apollo.QueryResult<
   FetchAppMetadataQuery,
