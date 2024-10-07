@@ -5,9 +5,6 @@ const cdnURLObject = new URL(
     "https://world-id-assets.com",
 );
 
-const publicAppURL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://developer.worldcoin.org";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
