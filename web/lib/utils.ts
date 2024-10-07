@@ -79,9 +79,14 @@ export const isSSR = () => typeof window === "undefined";
 export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
   user.sub.startsWith("email|");
 
-export const getCDNImageUrl = (app_id: string, path: string) => {
-  return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`;
-};
+export const getCDNImageUrl = (
+  app_id: string,
+  path: string,
+  isAppVerified = true,
+) =>
+  isAppVerified
+    ? `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`
+    : `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
 
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
@@ -228,13 +233,18 @@ export const formatAppMetadata = (
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
     short_name: localisedContent?.short_name ?? appMetadata.short_name ?? name,
-    logo_img_url: getCDNImageUrl(appMetadata.app_id, appMetadata.logo_img_url),
+    logo_img_url: getCDNImageUrl(
+      appMetadata.app_id,
+      appMetadata.logo_img_url,
+      is_reviewer_world_app_approved,
+    ),
     showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
-      getCDNImageUrl(appMetadata.app_id, url),
+      getCDNImageUrl(appMetadata.app_id, url, is_reviewer_world_app_approved),
     ),
     hero_image_url: getCDNImageUrl(
       appMetadata.app_id,
       appMetadata.hero_image_url,
+      is_reviewer_world_app_approved,
     ),
     description: {
       overview: description?.description_overview ?? "",
