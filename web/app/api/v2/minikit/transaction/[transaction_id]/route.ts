@@ -1,1 +1,1 @@
-export { GET } from "@/api/v2/minikit/transaction/[transaction_id]";
+export { GET, OPTIONS } from "@/api/v2/minikit/transaction/[transaction_id]";
