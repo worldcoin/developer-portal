@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 function corsHandler(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET");
+  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
   return response;
 }
 
@@ -107,3 +107,7 @@ export const GET = async (
     });
   }
 };
+
+export async function OPTIONS(request: NextRequest) {
+  return corsHandler(new NextResponse(null, { status: 204 }));
+}
