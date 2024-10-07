@@ -9,6 +9,8 @@ function corsHandler(response: NextResponse) {
   return response;
 }
 
+// TODO: Improve Rate Limiting on this endpoint
+
 export const GET = async (
   req: NextRequest,
   { params: routeParams }: { params: { transaction_id: string } },
@@ -22,23 +24,27 @@ export const GET = async (
     type !== TransactionTypes.Payment &&
     type !== TransactionTypes.Transaction
   ) {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_request",
-      detail: "Invalid transaction type.",
-      attribute: "type",
-      req,
-    });
+    return corsHandler(
+      errorResponse({
+        statusCode: 400,
+        code: "invalid_request",
+        detail: "Invalid transaction type.",
+        attribute: "type",
+        req,
+      }),
+    );
   }
 
   if (!appId) {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_request",
-      detail: "App ID is required.",
-      attribute: "app_id",
-      req,
-    });
+    return corsHandler(
+      errorResponse({
+        statusCode: 400,
+        code: "invalid_request",
+        detail: "App ID is required.",
+        attribute: "app_id",
+        req,
+      }),
+    );
   }
 
   const transactionId = routeParams.transaction_id;
@@ -47,6 +53,7 @@ export const GET = async (
     service: "execute-api",
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
+
   let res;
   if (type === TransactionTypes.Payment) {
     res = await signedFetch(
@@ -84,13 +91,15 @@ export const GET = async (
       errorMessage = "Transaction fetch to backend failed";
     }
 
-    return errorResponse({
-      statusCode: res.status,
-      code: data.error.code ?? "internal_api_error",
-      detail: errorMessage,
-      attribute: "transaction",
-      req,
-    });
+    return corsHandler(
+      errorResponse({
+        statusCode: res.status,
+        code: data.error.code ?? "internal_api_error",
+        detail: errorMessage,
+        attribute: "transaction",
+        req,
+      }),
+    );
   }
 
   if (data?.result?.transactions.length !== 0) {
@@ -98,13 +107,15 @@ export const GET = async (
     const response = NextResponse.json(transaction, { status: 200 });
     return corsHandler(response);
   } else {
-    return errorResponse({
-      statusCode: 404,
-      code: "not_found",
-      detail: "Transaction not found.",
-      attribute: "transaction",
-      req,
-    });
+    return corsHandler(
+      errorResponse({
+        statusCode: 404,
+        code: "not_found",
+        detail: "Transaction not found.",
+        attribute: "transaction",
+        req,
+      }),
+    );
   }
 };
 
