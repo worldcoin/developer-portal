@@ -71,11 +71,11 @@ export const POST = async (req: NextRequest) => {
 
   const client = await getAPIServiceGraphqlClient();
 
-  const { update_app_metadata_by_pk } = await getBanAppSdk(client).BanApp({
+  const { update_app_by_pk } = await getBanAppSdk(client).BanApp({
     app_id,
   });
 
-  if (!update_app_metadata_by_pk) {
+  if (!update_app_by_pk) {
     return errorHasuraQuery({
       req,
       detail: "Failed to ban app",

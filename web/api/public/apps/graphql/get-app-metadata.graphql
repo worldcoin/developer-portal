@@ -1,7 +1,7 @@
 query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
   ranked_apps: app_metadata(
     where: {
-      is_banned: { _eq: false }
+      app: { is_banned: { _eq: false } }
       app_id: { _in: $app_ids }
       verification_status: { _eq: "verified" }
       _or: [
@@ -36,7 +36,7 @@ query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
 
   unranked_apps: app_metadata(
     where: {
-      is_banned: { _eq: false }
+      app: { is_banned: { _eq: false } }
       app_id: { _nin: $app_ids }
       verification_status: { _eq: "verified" }
       _or: [

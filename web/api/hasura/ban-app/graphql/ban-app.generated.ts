@@ -10,18 +10,15 @@ export type BanAppMutationVariables = Types.Exact<{
 
 export type BanAppMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
+  update_app_by_pk?: {
+    __typename?: "app";
     id: string;
   } | null;
 };
 
 export const BanAppDocument = gql`
   mutation BanApp($app_id: String!) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_id }
-      _set: { is_banned: true }
-    ) {
+    update_app_by_pk(pk_columns: { id: $app_id }, _set: { is_banned: true }) {
       id
     }
   }

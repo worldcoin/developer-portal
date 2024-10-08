@@ -10554,6 +10554,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_banned",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_staging",
             "description": null,
             "args": [],
@@ -11327,6 +11339,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_banned",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "Boolean_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_staging",
             "description": null,
             "type": {
@@ -11524,6 +11548,18 @@
           },
           {
             "name": "is_archived",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_banned",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -12132,18 +12168,6 @@
           },
           {
             "name": "isAllowedUnlimitedNotifications",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_banned",
             "description": null,
             "args": [],
             "type": {
@@ -13684,18 +13708,6 @@
             "deprecationReason": null
           },
           {
-            "name": "is_banned",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "Boolean_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": null,
             "type": {
@@ -14220,18 +14232,6 @@
           },
           {
             "name": "isAllowedUnlimitedNotifications",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_banned",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -16475,18 +16475,6 @@
             "deprecationReason": null
           },
           {
-            "name": "is_banned",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": null,
             "type": {
@@ -16881,12 +16869,6 @@
             "deprecationReason": null
           },
           {
-            "name": "is_banned",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
@@ -17042,12 +17024,6 @@
             "deprecationReason": null
           },
           {
-            "name": "is_banned",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
@@ -17090,12 +17066,6 @@
           },
           {
             "name": "isAllowedUnlimitedNotifications",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_banned",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17295,18 +17265,6 @@
           },
           {
             "name": "isAllowedUnlimitedNotifications",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_banned",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18018,18 +17976,6 @@
             "deprecationReason": null
           },
           {
-            "name": "is_banned",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_developer_allow_listing",
             "description": null,
             "type": {
@@ -18478,12 +18424,6 @@
           },
           {
             "name": "isAllowedUnlimitedNotifications",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_banned",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -19343,6 +19283,18 @@
           },
           {
             "name": "is_archived",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_banned",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -23378,6 +23330,12 @@
             "deprecationReason": null
           },
           {
+            "name": "is_banned",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_staging",
             "description": "column name",
             "isDeprecated": false,
@@ -23437,6 +23395,12 @@
             "deprecationReason": null
           },
           {
+            "name": "is_banned",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_staging",
             "description": "column name",
             "isDeprecated": false,
@@ -23455,6 +23419,12 @@
         "enumValues": [
           {
             "name": "is_archived",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_banned",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -23524,6 +23494,18 @@
           },
           {
             "name": "is_archived",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_banned",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -25228,6 +25210,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_banned",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_staging",
             "description": null,
             "type": {
@@ -25350,6 +25344,12 @@
           },
           {
             "name": "is_archived",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_banned",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
