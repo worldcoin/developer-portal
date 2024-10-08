@@ -189,7 +189,6 @@ select_permissions:
         - id
         - integration_url
         - isAllowedUnlimitedNotifications
-        - is_banned
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
@@ -229,7 +228,6 @@ select_permissions:
         - id
         - integration_url
         - isAllowedUnlimitedNotifications
-        - is_banned
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
