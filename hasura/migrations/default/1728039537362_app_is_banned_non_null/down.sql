@@ -1,3 +1,9 @@
-ALTER TABLE "public"."app" DROP COLUMN "is_banned";
+-- Remove the NOT NULL constraint
+ALTER TABLE "public"."app"
+ALTER COLUMN "is_banned"
+DROP NOT NULL;
 
-DROP TABLE "public"."app_report";
+-- Remove the default value
+ALTER TABLE "public"."app"
+ALTER COLUMN "is_banned"
+DROP DEFAULT;
