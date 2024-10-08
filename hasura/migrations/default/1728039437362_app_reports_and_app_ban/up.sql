@@ -1,3 +1,5 @@
+ALTER TABLE "public"."app" ADD COLUMN "is_banned" boolean NULL;
+
 CREATE TABLE "public"."app_report" (
     "id" varchar(50) NOT NULL DEFAULT gen_random_friendly_id('report'),
     "created_at" timestamptz NOT NULL DEFAULT now(), 
