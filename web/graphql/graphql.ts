@@ -1380,6 +1380,7 @@ export type App = {
   engine: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   is_archived: Scalars["Boolean"]["output"];
+  is_banned?: Maybe<Scalars["Boolean"]["output"]>;
   is_staging: Scalars["Boolean"]["output"];
   logo_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
@@ -1503,6 +1504,7 @@ export type App_Bool_Exp = {
   engine?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   is_archived?: InputMaybe<Boolean_Comparison_Exp>;
+  is_banned?: InputMaybe<Boolean_Comparison_Exp>;
   is_staging?: InputMaybe<Boolean_Comparison_Exp>;
   logo_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -1528,6 +1530,7 @@ export type App_Insert_Input = {
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -2461,6 +2464,7 @@ export type App_Order_By = {
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   is_archived?: InputMaybe<Order_By>;
+  is_banned?: InputMaybe<Order_By>;
   is_staging?: InputMaybe<Order_By>;
   logo_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
@@ -2638,12 +2642,12 @@ export type App_Rankings_Updates = {
 /** columns and relationships of "app_report" */
 export type App_Report = {
   __typename?: "app_report";
-  app_id: Scalars["String"];
-  app_name: Scalars["String"];
-  created_at: Scalars["timestamptz"];
-  details: Scalars["String"];
-  id: Scalars["String"];
-  reporter_email?: Maybe<Scalars["String"]>;
+  app_id: Scalars["String"]["output"];
+  app_name: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  details: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  reporter_email?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregated selection of "app_report" */
@@ -2656,7 +2660,7 @@ export type App_Report_Aggregate = {
 /** aggregate fields of "app_report" */
 export type App_Report_Aggregate_Fields = {
   __typename?: "app_report_aggregate_fields";
-  count: Scalars["Int"];
+  count: Scalars["Int"]["output"];
   max?: Maybe<App_Report_Max_Fields>;
   min?: Maybe<App_Report_Min_Fields>;
 };
@@ -2664,7 +2668,7 @@ export type App_Report_Aggregate_Fields = {
 /** aggregate fields of "app_report" */
 export type App_Report_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<App_Report_Select_Column>>;
-  distinct?: InputMaybe<Scalars["Boolean"]>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** Boolean expression to filter rows from the table "app_report". All fields are combined with a logical 'AND'. */
@@ -2683,46 +2687,46 @@ export type App_Report_Bool_Exp = {
 /** unique or primary key constraints on table "app_report" */
 export enum App_Report_Constraint {
   /** unique or primary key constraint on columns "id" */
-  AppReportsPkey = "app_report_pkey",
+  AppReportPkey = "app_report_pkey",
 }
 
 /** input type for inserting data into table "app_report" */
 export type App_Report_Insert_Input = {
-  app_id?: InputMaybe<Scalars["String"]>;
-  app_name?: InputMaybe<Scalars["String"]>;
-  created_at?: InputMaybe<Scalars["timestamptz"]>;
-  details?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  reporter_email?: InputMaybe<Scalars["String"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_name?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  details?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  reporter_email?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
 export type App_Report_Max_Fields = {
   __typename?: "app_report_max_fields";
-  app_id?: Maybe<Scalars["String"]>;
-  app_name?: Maybe<Scalars["String"]>;
-  created_at?: Maybe<Scalars["timestamptz"]>;
-  details?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["String"]>;
-  reporter_email?: Maybe<Scalars["String"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  app_name?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  details?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  reporter_email?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type App_Report_Min_Fields = {
   __typename?: "app_report_min_fields";
-  app_id?: Maybe<Scalars["String"]>;
-  app_name?: Maybe<Scalars["String"]>;
-  created_at?: Maybe<Scalars["timestamptz"]>;
-  details?: Maybe<Scalars["String"]>;
-  id?: Maybe<Scalars["String"]>;
-  reporter_email?: Maybe<Scalars["String"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  app_name?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  details?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  reporter_email?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** response of any mutation on the table "app_report" */
 export type App_Report_Mutation_Response = {
   __typename?: "app_report_mutation_response";
   /** number of rows affected by the mutation */
-  affected_rows: Scalars["Int"];
+  affected_rows: Scalars["Int"]["output"];
   /** data from the rows affected by the mutation */
   returning: Array<App_Report>;
 };
@@ -2746,7 +2750,7 @@ export type App_Report_Order_By = {
 
 /** primary key columns input for table: app_report */
 export type App_Report_Pk_Columns_Input = {
-  id: Scalars["String"];
+  id: Scalars["String"]["input"];
 };
 
 /** select columns of table "app_report" */
@@ -2767,12 +2771,12 @@ export enum App_Report_Select_Column {
 
 /** input type for updating data in table "app_report" */
 export type App_Report_Set_Input = {
-  app_id?: InputMaybe<Scalars["String"]>;
-  app_name?: InputMaybe<Scalars["String"]>;
-  created_at?: InputMaybe<Scalars["timestamptz"]>;
-  details?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  reporter_email?: InputMaybe<Scalars["String"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_name?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  details?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  reporter_email?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Streaming cursor of the table "app_report" */
@@ -2785,12 +2789,12 @@ export type App_Report_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type App_Report_Stream_Cursor_Value_Input = {
-  app_id?: InputMaybe<Scalars["String"]>;
-  app_name?: InputMaybe<Scalars["String"]>;
-  created_at?: InputMaybe<Scalars["timestamptz"]>;
-  details?: InputMaybe<Scalars["String"]>;
-  id?: InputMaybe<Scalars["String"]>;
-  reporter_email?: InputMaybe<Scalars["String"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_name?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  details?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  reporter_email?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "app_report" */
@@ -3087,6 +3091,8 @@ export enum App_Select_Column {
   /** column name */
   IsArchived = "is_archived",
   /** column name */
+  IsBanned = "is_banned",
+  /** column name */
   IsStaging = "is_staging",
   /** column name */
   LogoUrl = "logo_url",
@@ -3107,6 +3113,8 @@ export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_And_Arguments_Columns 
   /** column name */
   IsArchived = "is_archived",
   /** column name */
+  IsBanned = "is_banned",
+  /** column name */
   IsStaging = "is_staging",
 }
 
@@ -3114,6 +3122,8 @@ export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_And_Arguments_Columns 
 export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   IsArchived = "is_archived",
+  /** column name */
+  IsBanned = "is_banned",
   /** column name */
   IsStaging = "is_staging",
 }
@@ -3125,6 +3135,7 @@ export type App_Set_Input = {
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -3388,6 +3399,7 @@ export type App_Stream_Cursor_Value_Input = {
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
+  is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -3409,6 +3421,8 @@ export enum App_Update_Column {
   Id = "id",
   /** column name */
   IsArchived = "is_archived",
+  /** column name */
+  IsBanned = "is_banned",
   /** column name */
   IsStaging = "is_staging",
   /** column name */
@@ -4848,7 +4862,7 @@ export type Membership_Updates = {
 export type Mutation_Root = {
   __typename?: "mutation_root";
   /** Bans app by app_id */
-  ban_app: Scalars["Boolean"];
+  ban_app: Scalars["Boolean"]["output"];
   create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
@@ -5187,7 +5201,7 @@ export type Mutation_Root = {
 
 /** mutation root */
 export type Mutation_RootBan_AppArgs = {
-  app_id: Scalars["String"];
+  app_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -5263,7 +5277,7 @@ export type Mutation_RootDelete_App_ReportArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_App_Report_By_PkArgs = {
-  id: Scalars["String"];
+  id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -6971,7 +6985,6 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
-  validate_localisation?: Maybe<ValidateLocalisationOutput>;
 };
 
 export type Query_RootActionArgs = {
@@ -7114,22 +7127,22 @@ export type Query_RootApp_Rankings_By_PkArgs = {
 
 export type Query_RootApp_ReportArgs = {
   distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Report_Order_By>>;
   where?: InputMaybe<App_Report_Bool_Exp>;
 };
 
 export type Query_RootApp_Report_AggregateArgs = {
   distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Report_Order_By>>;
   where?: InputMaybe<App_Report_Bool_Exp>;
 };
 
 export type Query_RootApp_Report_By_PkArgs = {
-  id: Scalars["String"];
+  id: Scalars["String"]["input"];
 };
 
 export type Query_RootApp_ReviewsArgs = {
@@ -7475,11 +7488,6 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
-};
-
-export type Query_RootValidate_LocalisationArgs = {
-  app_metadata_id: Scalars["String"];
-  team_id: Scalars["String"];
 };
 
 /** columns and relationships of "redirect" */
@@ -8208,26 +8216,26 @@ export type Subscription_RootApp_Rankings_StreamArgs = {
 
 export type Subscription_RootApp_ReportArgs = {
   distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Report_Order_By>>;
   where?: InputMaybe<App_Report_Bool_Exp>;
 };
 
 export type Subscription_RootApp_Report_AggregateArgs = {
   distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]>;
-  offset?: InputMaybe<Scalars["Int"]>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Report_Order_By>>;
   where?: InputMaybe<App_Report_Bool_Exp>;
 };
 
 export type Subscription_RootApp_Report_By_PkArgs = {
-  id: Scalars["String"];
+  id: Scalars["String"]["input"];
 };
 
 export type Subscription_RootApp_Report_StreamArgs = {
-  batch_size: Scalars["Int"];
+  batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<App_Report_Stream_Cursor_Input>>;
   where?: InputMaybe<App_Report_Bool_Exp>;
 };

@@ -53,6 +53,7 @@ export const FetchAppMetadataDocument = gql`
     app(
       where: {
         id: { _eq: $app_id }
+        is_banned: { _eq: false }
         team: {
           id: { _eq: $team_id }
           memberships: { user_id: { _eq: $user_id }, role: { _neq: MEMBER } }

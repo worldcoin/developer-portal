@@ -108,6 +108,7 @@ export const GetAppsDocument = gql`
   ) {
     top_apps: app_metadata(
       where: {
+        app: { is_banned: { _eq: false } }
         _and: $topAppsConditions
         _or: [{ is_reviewer_world_app_approved: { _eq: true } }]
       }
@@ -156,6 +157,7 @@ export const GetAppsDocument = gql`
         app_id: { _in: $highlightsIds }
         verification_status: { _eq: "verified" }
         is_reviewer_world_app_approved: { _eq: true }
+        app: { is_banned: { _eq: false } }
       }
     ) {
       name

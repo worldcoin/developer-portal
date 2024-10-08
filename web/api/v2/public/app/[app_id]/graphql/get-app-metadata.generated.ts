@@ -54,7 +54,9 @@ export type GetAppMetadataQuery = {
 
 export const GetAppMetadataDocument = gql`
   query GetAppMetadata($app_id: String!, $locale: String!) {
-    app_metadata(where: { app_id: { _eq: $app_id } }) {
+    app_metadata(
+      where: { app_id: { _eq: $app_id }, app: { is_banned: { _eq: false } } }
+    ) {
       name
       short_name
       app_id
