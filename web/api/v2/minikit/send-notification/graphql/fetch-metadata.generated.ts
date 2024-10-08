@@ -25,6 +25,7 @@ export const GetAppMetadataDocument = gql`
       where: {
         app_id: { _eq: $app_id }
         verification_status: { _eq: "verified" }
+        app: { is_banned: { _eq: false } }
       }
     ) {
       name

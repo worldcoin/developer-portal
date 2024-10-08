@@ -1,4 +1,14 @@
 actions:
+  - name: ban_app
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/ban-app'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: reviewer
+    comment: Bans app by app_id
   - name: create_new_draft
     definition:
       kind: synchronous
@@ -190,4 +200,5 @@ custom_types:
     - name: InvalidateCacheOutput
     - name: CreateNewDraftOutput
     - name: ValidateLocalisationOutput
+    - name: BanAppOutput
   scalars: []

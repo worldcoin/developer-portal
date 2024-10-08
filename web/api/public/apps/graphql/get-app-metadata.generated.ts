@@ -68,6 +68,7 @@ export const GetAppMetadataDocument = gql`
   query GetAppMetadata($app_ids: [String!], $limit: Int!, $offset: Int!) {
     ranked_apps: app_metadata(
       where: {
+        app: { is_banned: { _eq: false } }
         app_id: { _in: $app_ids }
         verification_status: { _eq: "verified" }
         _or: [
@@ -101,6 +102,7 @@ export const GetAppMetadataDocument = gql`
     }
     unranked_apps: app_metadata(
       where: {
+        app: { is_banned: { _eq: false } }
         app_id: { _nin: $app_ids }
         verification_status: { _eq: "verified" }
         _or: [

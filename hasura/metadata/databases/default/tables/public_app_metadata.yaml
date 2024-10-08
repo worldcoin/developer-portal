@@ -189,6 +189,7 @@ select_permissions:
         - id
         - integration_url
         - isAllowedUnlimitedNotifications
+        - is_banned
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
@@ -220,20 +221,23 @@ select_permissions:
         - app_mode
         - app_website_url
         - associated_domains
+        - canImportAllContacts
         - category
         - contracts
         - description
         - hero_image_url
         - id
         - integration_url
+        - isAllowedUnlimitedNotifications
+        - is_banned
         - is_developer_allow_listing
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
+        - maxNotificationsPerDay
         - name
         - permit2_tokens
         - short_name
-        - canImportAllContacts
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -243,8 +247,6 @@ select_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - isAllowedUnlimitedNotifications
-        - maxNotificationsPerDay
       computed_fields:
         - app_rating
       filter: {}
