@@ -1,5 +1,7 @@
 "use server";
 
+import { type GetAppsResponse } from "@/api/v2/public/apps";
+
 export type AppMetricsData = {
   impressions: number;
   impressions_7days: number;
@@ -53,4 +55,49 @@ export const getAppMetricsData = async (
     unique_users: appMetrics.unique_users,
     unique_users_7days: appMetrics.unique_users_last_7_days,
   };
+};
+
+export const getAppRanking = async (appId: string) => {
+  // TODO replace with arg appId
+  const testAppId = "network";
+  const apps = (await (
+    await fetch(
+      new URL(
+        "/api/v2/public/apps",
+        // TODO
+        // process.env.NEXT_PUBLIC_APP_URL
+        "https://world-id-assets.com/",
+      ),
+    )
+  ).json()) as GetAppsResponse;
+
+  const metrics = (await (
+    await fetch(
+      new URL(
+        "/miniapps/stats/data.json",
+        // TODO
+        // process.env.NEXT_PUBLIC_APP_URL
+        "https://metrics.worldcoin.org",
+      ),
+    )
+  ).json()) as any[];
+
+  const totalApps = metrics.length;
+
+  if (apps.app_rankings.top_apps.length === 0) {
+    throw new Error("No apps found");
+  }
+
+  const app = apps.app_rankings.top_apps.find(
+    (app) => app.app_id === testAppId,
+  );
+
+  if (!app) {
+    throw new Error(`App with id ${testAppId} not found`);
+  }
+
+  const appIndex = apps.app_rankings.top_apps.indexOf(app);
+  const appRanking = `${appIndex + 1} / ${totalApps}`;
+
+  return appRanking as `${number} / ${number}`;
 };

@@ -36,7 +36,7 @@ export const AppIdPage = (props: {
           </Typography>
         </div>
       </div>
-      <AppStatsGraph />
+      <AppStatsGraph appId={appId} />
       <QuickActionsSection appId={appId} />
 
       <ReviewMessageDialog
