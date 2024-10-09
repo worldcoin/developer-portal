@@ -71,18 +71,7 @@ export const getAppRanking = async (appId: string) => {
     )
   ).json()) as GetAppsResponse;
 
-  const metrics = (await (
-    await fetch(
-      new URL(
-        "/miniapps/stats/data.json",
-        // TODO
-        // process.env.NEXT_PUBLIC_APP_URL
-        "https://metrics.worldcoin.org",
-      ),
-    )
-  ).json()) as any[];
-
-  const totalApps = metrics.length;
+  const totalApps = apps.app_rankings.top_apps.length;
 
   if (apps.app_rankings.top_apps.length === 0) {
     throw new Error("No apps found");
