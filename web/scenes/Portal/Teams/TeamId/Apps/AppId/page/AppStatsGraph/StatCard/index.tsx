@@ -5,7 +5,7 @@ import Skeleton from "react-loading-skeleton";
 export const StatCard = (props: {
   mainColorClassName: string;
   title: string;
-  value: number | null;
+  value: number | undefined;
   changePercentage?: number;
 }) => {
   return (

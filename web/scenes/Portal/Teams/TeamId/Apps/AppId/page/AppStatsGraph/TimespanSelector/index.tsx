@@ -6,12 +6,11 @@ import {
   SelectOptions,
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { OpUnitType } from "dayjs";
 import { WritableAtom, useAtom } from "jotai";
 
 export type Timespan = {
   label: string;
-  value: OpUnitType;
+  value: "all-time" | "week";
 };
 
 export const TimespanSelector = <T extends Timespan>(props: {
