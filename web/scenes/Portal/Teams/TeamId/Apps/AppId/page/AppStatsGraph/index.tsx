@@ -1,5 +1,4 @@
 "use client";
-
 import { atom, useAtom } from "jotai";
 
 import {
@@ -122,7 +121,36 @@ export const AppStatsGraph = () => {
     }
   }, [timespan.value]);
 
-  const formattedData = useMemo(() => {
+  const formattedVerificationsChartData = useMemo(() => {
+    if (!stats || !stats.length) {
+      return null;
+    }
+
+    const formattedData: ChartProps["data"] = {
+      y: [
+        {
+          ...verificationsDatasetConfig,
+          data: [],
+        },
+        {
+          ...uniqueUsersDatasetConfig,
+          data: [],
+        },
+      ],
+
+      x: [],
+    };
+
+    stats.forEach((stat) => {
+      formattedData.x.push(dayjs(stat.date).format(labelDateFormat));
+      formattedData.y[0].data.push(stat.verifications);
+      formattedData.y[1].data.push(stat.unique_users);
+    });
+
+    return formattedData;
+  }, [labelDateFormat, stats]);
+
+  const formattedTransactionsChartData = useMemo(() => {
     if (!stats || !stats.length) {
       return null;
     }
@@ -180,43 +208,59 @@ export const AppStatsGraph = () => {
     [stats],
   );
 
-  const uniquePercentageChange = useMemo(
-    () => calculatePercentageChange(stats, "unique_users"),
-    [stats],
-  );
-
   return (
     <div className="grid gap-y-6">
-      <div className="flex flex-col items-center justify-between gap-y-4 md:flex-row">
-        <div className="flex w-full items-center gap-x-6">
-          <StatCard
-            mainColorClassName="bg-blue-500"
-            title="Verifications"
-            value={totalVerifications}
-            changePercentage={verificationPercentageChange}
-          />
-
-          <div className="h-6 w-px bg-grey-200" />
-
-          <StatCard
-            mainColorClassName="bg-[#00C3B6]"
-            title="Unique users"
-            value={totalUnique}
-            changePercentage={uniquePercentageChange}
-          />
-        </div>
-
+      {/* <StatCardGlobalRanking appId={appId} /> */}
+      <div className="flex flex-col items-end">
         <TimespanSelector options={timespans} atom={timespanAtom} />
       </div>
+      <div className="flex w-full items-center justify-between gap-x-6">
+        <StatCard
+          mainColorClassName="bg-blue-500"
+          title="Impressions"
+          value={totalVerifications}
+          changePercentage={verificationPercentageChange}
+        />
+        <StatCard
+          mainColorClassName="bg-blue-500"
+          title="Installs"
+          value={totalVerifications}
+        />
+        <StatCard
+          mainColorClassName="bg-blue-500"
+          title="Uses"
+          value={totalVerifications}
+        />
+        <div className="h-6 w-px bg-grey-200" />
+      </div>
 
-      {formattedData && (
+      <hr className="border border-grey-200" />
+
+      {formattedVerificationsChartData && (
         <div className="block sm:hidden">
-          <Chart data={formattedData} options={{ aspectRatio: 580 / 350 }} />
+          <Chart
+            data={formattedVerificationsChartData}
+            options={{ aspectRatio: 580 / 350 }}
+          />
         </div>
       )}
-      {formattedData && (
+      {formattedVerificationsChartData && (
         <div className="hidden sm:block">
-          <Chart data={formattedData} />
+          <Chart data={formattedVerificationsChartData} />
+        </div>
+      )}
+
+      {formattedTransactionsChartData && (
+        <div className="block sm:hidden">
+          <Chart
+            data={formattedTransactionsChartData}
+            options={{ aspectRatio: 580 / 350 }}
+          />
+        </div>
+      )}
+      {formattedTransactionsChartData && (
+        <div className="hidden sm:block">
+          <Chart data={formattedTransactionsChartData} />
         </div>
       )}
 
@@ -225,22 +269,44 @@ export const AppStatsGraph = () => {
           <Skeleton className=" inset-0 size-full rounded-2xl" />
         </div>
       )}
+      <div className="flex flex-row gap-2">
+        {!loading && !formattedVerificationsChartData && (
+          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12 sm:aspect-[1180/350]">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+              {engine === EngineType.OnChain
+                ? "Analytics are not available for on-chain apps yet"
+                : "No data available yet"}
+            </Typography>
 
-      {!loading && !formattedData && (
-        <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12 sm:aspect-[1180/350]">
-          <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-            {engine === EngineType.OnChain
-              ? "Analytics are not available for on-chain apps yet"
-              : "No data available yet"}
-          </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-14 text-grey-400"
+            >
+              {engine === EngineType.OnChain
+                ? "Please refer to your smart contract for verification data"
+                : "Your verification numbers will show up here."}
+            </Typography>
+          </div>
+        )}
+        {!loading && !formattedTransactionsChartData && (
+          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12 sm:aspect-[1180/350]">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+              {engine === EngineType.OnChain
+                ? "Analytics are not available for on-chain apps yet"
+                : "No data available yet"}
+            </Typography>
 
-          <Typography variant={TYPOGRAPHY.R4} className="text-14 text-grey-400">
-            {engine === EngineType.OnChain
-              ? "Please refer to your smart contract for verification data"
-              : "Your verification numbers will show up here."}
-          </Typography>
-        </div>
-      )}
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-14 text-grey-400"
+            >
+              {engine === EngineType.OnChain
+                ? "Please refer to your smart contract for verification data"
+                : "Your verification numbers will show up here."}
+            </Typography>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
