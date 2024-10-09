@@ -5,7 +5,7 @@ import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/Re
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { AppStatsGraph } from "./AppStatsGraph";
-import { QuickActionsSection } from "./AppStatsGraph/QuickActionsSection";
+import { QuickActionsSection } from "./QuickActionsSection";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 
 dayjs.extend(advancedFormat);

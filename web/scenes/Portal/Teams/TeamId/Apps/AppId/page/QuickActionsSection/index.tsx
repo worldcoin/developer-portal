@@ -8,9 +8,9 @@ import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { teamId } from "@/tests/e2e/helpers/constants";
 import { useMemo } from "react";
-import { VerificationStatus } from "../..";
-import { QuickAction } from "../../QuickAction";
-import { useGetVerificationDataQuery } from "../../graphql/client/get-verification-data.generated";
+import { VerificationStatus } from "..";
+import { QuickAction } from "../QuickAction";
+import { useGetVerificationDataQuery } from "../graphql/client/get-verification-data.generated";
 
 export const QuickActionsSection = ({ appId }: { appId: string }) => {
   const { data } = useGetVerificationDataQuery({
