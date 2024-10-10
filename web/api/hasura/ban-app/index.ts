@@ -38,15 +38,6 @@ export const POST = async (req: NextRequest) => {
       return errorHasuraQuery({ req });
     }
 
-    const userId = body.session_variables["x-hasura-user-id"];
-    if (!userId) {
-      return errorHasuraQuery({
-        req,
-        detail: "userId must be set.",
-        code: "required",
-      });
-    }
-
     const { isValid, parsedParams } = await validateRequestSchema({
       value: Object.fromEntries(body.input),
       schema,
