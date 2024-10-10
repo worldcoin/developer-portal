@@ -7,7 +7,7 @@ export const AppStatsGraph = ({ appId }: { appId: string }) => {
     <div className="grid gap-y-6">
       <StatCardGlobalRanking appId={appId} />
       <StatCards appId={appId} />
-      <GraphsSection appId={appId} />
+      <GraphsSection />
     </div>
   );
 };
