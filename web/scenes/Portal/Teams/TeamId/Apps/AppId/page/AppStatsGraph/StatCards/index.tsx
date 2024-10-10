@@ -60,7 +60,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
       <div className="flex flex-col items-end gap-y-6">
         <TimespanSelector options={timespans} atom={timespanAtom} />
 
-        <div className="flex w-full items-center justify-between gap-x-6">
+        <div className="grid w-full grid-cols-1 grid-rows-4 items-start justify-between gap-x-6 sm:grid-cols-2 sm:grid-rows-2 md:flex-row md:items-center lg:grid-cols-4 lg:grid-rows-1">
           <StatCard
             mainColorClassName="bg-blue-500"
             title="Impressions"
