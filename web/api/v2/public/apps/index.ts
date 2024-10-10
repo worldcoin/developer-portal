@@ -14,6 +14,14 @@ import {
 } from "./graphql/get-app-rankings.generated";
 import { getSdk as getHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
+export type GetAppsResponse = {
+  app_rankings: {
+    top_apps: ReturnType<typeof rankApps>;
+    highlights: ReturnType<typeof rankApps>;
+  };
+  categories: ReturnType<typeof getAllLocalisedCategories>;
+};
+
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
   limit: yup.number().integer().min(1).max(500).notRequired().default(250),

@@ -6,12 +6,11 @@ import {
   SelectOptions,
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { OpUnitType } from "dayjs";
 import { WritableAtom, useAtom } from "jotai";
 
 export type Timespan = {
   label: string;
-  value: OpUnitType;
+  value: "all-time" | "week";
 };
 
 export const TimespanSelector = <T extends Timespan>(props: {
@@ -22,7 +21,7 @@ export const TimespanSelector = <T extends Timespan>(props: {
 
   return (
     <Select value={value} onChange={setValue}>
-      <SelectButton className="w-full min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
+      <SelectButton className="min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
         {({ value }) => (
           <div className="grid grid-cols-1fr/auto items-center gap-x-2">
             <Typography

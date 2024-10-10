@@ -1,5 +1,6 @@
 "use client";
 
+import { mergeDeep } from "@apollo/client/utilities";
 import {
   CategoryScale,
   ChartData,
@@ -105,7 +106,6 @@ const defaultOptions: ChartOptions<"line"> = {
           size: 12,
         },
         precision: 0,
-
         maxTicksLimit: 5,
       },
     },
@@ -117,7 +117,6 @@ export const Chart = (props: ChartProps) => {
     () => ({
       labels: props.data.x,
       datasets: props.data.y.map((dataset) => ({
-        ...dataset,
         pointRadius: dataset.data.length === 1 ? 5 : dataset.pointRadius,
         pointHoverRadius:
           dataset.data.length === 1 ? 5 : dataset.pointHoverRadius,
@@ -134,6 +133,7 @@ export const Chart = (props: ChartProps) => {
           gradient.addColorStop(1, "rgba(251, 251, 252, 0)");
           return gradient;
         },
+        ...dataset,
       })),
     }),
     [props.data.x, props.data.y],
@@ -144,10 +144,7 @@ export const Chart = (props: ChartProps) => {
       return defaultOptions;
     }
 
-    return {
-      ...defaultOptions,
-      ...props.options,
-    };
+    return mergeDeep(defaultOptions, props.options);
   }, [props.options]);
 
   return <Line options={options} data={data} />;
