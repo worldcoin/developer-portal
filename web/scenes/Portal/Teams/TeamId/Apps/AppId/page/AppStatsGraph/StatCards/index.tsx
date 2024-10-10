@@ -11,8 +11,8 @@ export const timespans: Timespan[] = [
 
 export const timespanAtom = atom(timespans[0]);
 const calculatePercentChange = (
-  current: number | undefined,
-  previous: number | undefined,
+  current: number | undefined | null,
+  previous: number | undefined | null,
 ) => {
   if (!current || !previous) {
     return 0;
@@ -25,8 +25,8 @@ const resolveStatValue = ({
   weekValue,
   timespanValue,
 }: {
-  allTimeValue: number | undefined;
-  weekValue: number | undefined;
+  allTimeValue: number | undefined | null;
+  weekValue: number | undefined | null;
   timespanValue: Timespan["value"];
 }) => {
   return timespanValue === "all-time" ? allTimeValue : weekValue;
@@ -50,10 +50,8 @@ export const StatCards = ({ appId }: { appId: string }) => {
 
   const usersTotal = appMetrics?.users;
   const usersLast7Days = appMetrics?.users_7days;
-  const usersPercentageChange = calculatePercentChange(
-    usersTotal,
-    usersLast7Days,
-  );
+
+  const newUsersLast7Days = appMetrics?.new_users_last_7_days;
 
   return (
     <>
@@ -76,10 +74,9 @@ export const StatCards = ({ appId }: { appId: string }) => {
             title="New users"
             value={resolveStatValue({
               allTimeValue: usersTotal,
-              weekValue: usersLast7Days,
+              weekValue: newUsersLast7Days,
               timespanValue,
             })}
-            changePercentage={usersPercentageChange}
           />
           <StatCard
             mainColorClassName="bg-blue-500"

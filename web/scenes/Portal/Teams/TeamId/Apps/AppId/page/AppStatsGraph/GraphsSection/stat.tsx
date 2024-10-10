@@ -5,9 +5,16 @@ import Skeleton from "react-loading-skeleton";
 export const Stat = (props: {
   mainColorClassName?: string;
   title: string;
-  value: number | string | null;
-  changePercentage: number;
+  value: number | string | undefined | null;
+  valuePrefix?: string;
+  // TODO DEV-1153
+  // changePercentage: number;
 }) => {
+  const localizedValue = props.value?.toLocaleString();
+
+  const statValue = props?.valuePrefix
+    ? `${props.valuePrefix} ${localizedValue}`
+    : localizedValue;
   return (
     <div>
       <div className="grid grid-cols-auto/1fr items-center gap-x-1">
@@ -26,7 +33,8 @@ export const Stat = (props: {
             {props.title}
           </Typography>
         </div>
-        <div
+        {/* TODO DEV-1153 */}
+        {/* <div
           className={clsx("grid grid-cols-auto/1fr items-center gap-x-1", {
             "text-system-success-500": props.changePercentage > 0,
             "text-system-error-500": props.changePercentage < 0,
@@ -44,12 +52,12 @@ export const Stat = (props: {
               {props.changePercentage.toFixed(1)}%
             </Typography>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="flex items-center gap-x-2">
         <Typography variant={TYPOGRAPHY.H5} className="text-grey-900">
-          {props.value?.toLocaleString() ?? <Skeleton width={65} />}
+          {localizedValue ? statValue : <Skeleton width={65} />}
         </Typography>
       </div>
     </div>

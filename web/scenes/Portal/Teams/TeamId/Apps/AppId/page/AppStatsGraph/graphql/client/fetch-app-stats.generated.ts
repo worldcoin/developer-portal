@@ -19,6 +19,17 @@ export type FetchAppStatsQuery = {
     verifications: number;
     unique_users: number;
   }>;
+  app_stats_aggregate: {
+    __typename?: "app_stats_returning_aggregate";
+    aggregate?: {
+      __typename?: "app_stats_returning_aggregate_fields";
+      sum?: {
+        __typename?: "app_stats_returning_sum_fields";
+        verifications?: number | null;
+        unique_users?: number | null;
+      } | null;
+    } | null;
+  };
   app: Array<{ __typename?: "app"; id: string; engine: string }>;
 };
 
@@ -35,6 +46,16 @@ export const FetchAppStatsDocument = gql`
       date
       verifications
       unique_users
+    }
+    app_stats_aggregate(
+      args: { appId: $appId, startsAt: $startsAt, timespan: $timeSpan }
+    ) {
+      aggregate {
+        sum {
+          verifications
+          unique_users
+        }
+      }
     }
     app(where: { id: { _eq: $appId } }) {
       id

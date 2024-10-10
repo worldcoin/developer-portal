@@ -76,21 +76,32 @@ export const GraphsSection = () => {
     });
 
   const { transactions: transactionsData, loading: transactionsLoading } =
-    useGetAccumulativeTransactions("network");
+    useGetAccumulativeTransactions(appId);
 
   const transactions = useMemo(
     () => transactionsData?.accumulativeTransactions,
     [transactionsData?.accumulativeTransactions],
   );
-  const accumulatedTransactionAmount = useMemo(
-    () => transactionsData?.accumulatedAmount,
-    [transactionsData?.accumulatedAmount],
+  const accumulatedTransactionAmountUSD = useMemo(
+    () => transactionsData?.accumulatedAmountUSD,
+    [transactionsData?.accumulatedAmountUSD],
   );
 
   const stats = useMemo(
     () => appStatsData?.app_stats,
     [appStatsData?.app_stats],
   );
+
+  const totalVerifications = useMemo(
+    () => appStatsData?.app_stats_aggregate.aggregate?.sum?.verifications ?? 0,
+    [appStatsData?.app_stats_aggregate.aggregate?.sum?.verifications],
+  );
+  const totalUniqueUsers = useMemo(
+    () => appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users ?? 0,
+    [appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users],
+  );
+  console.log({ totalVerifications, totalUniqueUsers });
+
   const engine = useMemo(
     () => appStatsData?.app?.[0]?.engine,
     [appStatsData?.app],
@@ -123,7 +134,7 @@ export const GraphsSection = () => {
     });
 
     return formattedData;
-  }, [stats, labelDateFormat]);
+  }, [stats]);
 
   const formattedTransactionsChartData = useMemo(() => {
     if (!transactions || !transactions.length) {
@@ -149,10 +160,10 @@ export const GraphsSection = () => {
     });
 
     return formattedData;
-  }, [transactions, labelDateFormat]);
+  }, [transactions]);
 
   return (
-    <div className="grid flex-1 grid-cols-1 grid-rows-2 gap-2 sm:grid-cols-2 sm:grid-rows-1">
+    <div className="grid flex-1 grid-cols-1 grid-rows-2 gap-2 lg:grid-cols-2 lg:grid-rows-1">
       <div className="flex-1">
         {appStatsLoading && (
           <div className="aspect-[580/350] w-full rounded-2xl">
@@ -182,14 +193,16 @@ export const GraphsSection = () => {
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
-                changePercentage={0}
-                value={12}
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={totalVerifications}
               />
               <Stat
                 title="Unique users"
                 mainColorClassName="bg-additional-sea-500"
-                changePercentage={0}
-                value={12}
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={totalUniqueUsers}
               />
             </div>
             <Chart
@@ -207,14 +220,16 @@ export const GraphsSection = () => {
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
-                changePercentage={0}
-                value={12}
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={totalVerifications}
               />
               <Stat
                 title="Unique users"
                 mainColorClassName="bg-additional-sea-500"
-                changePercentage={0}
-                value={12}
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={totalUniqueUsers}
               />
             </div>
             <Chart
@@ -251,7 +266,13 @@ export const GraphsSection = () => {
         {!transactionsLoading && formattedTransactionsChartData && (
           <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
             <div className="pl-6">
-              <Stat title="Transactions" changePercentage={0} value={12} />
+              <Stat
+                title="Transactions"
+                valuePrefix="$"
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={accumulatedTransactionAmountUSD}
+              />
             </div>
             <Chart
               data={formattedTransactionsChartData}
@@ -265,7 +286,13 @@ export const GraphsSection = () => {
         {!transactionsLoading && formattedTransactionsChartData && (
           <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
             <div className="pl-6">
-              <Stat title="Transactions" changePercentage={0} value={12} />
+              <Stat
+                title="Transactions"
+                valuePrefix="$"
+                // TODO DEV-1153
+                // changePercentage={0}
+                value={accumulatedTransactionAmountUSD}
+              />
             </div>
             <Chart
               data={formattedTransactionsChartData}

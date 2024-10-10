@@ -1,13 +1,13 @@
 "use server";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
-import { getAppRanking } from "../../server";
+import { getAppMetricsData } from "../../server";
 
 const title = "Global ranking";
 
 export const StatCardGlobalRanking = async (props: { appId: string }) => {
-  const value = await getAppRanking(props.appId);
-  const splitValue = value.split(" / ") as [string, string];
+  const value = await getAppMetricsData(props.appId);
+  const splitValue = value.appRanking.split(" / ") as [string, string];
 
   return (
     <div className="flex flex-col gap-y-2">
