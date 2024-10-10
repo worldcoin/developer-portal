@@ -170,7 +170,7 @@ export const CreateAppDialog = (props: DialogProps) => {
           >
             <form
               onSubmit={handleSubmit(submit)}
-              className="grid w-full max-w-[580px] gap-y-10 justify-self-center py-10"
+              className="grid w-full max-w-[580px] gap-y-6 justify-self-center py-10"
             >
               <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
               <div className="grid gap-y-6">
@@ -189,6 +189,50 @@ export const CreateAppDialog = (props: DialogProps) => {
                   />
                 </div>
               </div>
+
+              <div className={clsx("grid gap-y-6")}>
+                <div className="grid gap-2 md:grid-cols-2">
+                  <RadioCard
+                    register={register("verification")}
+                    option={{ value: "cloud", label: "Cloud" }}
+                    description={`Verify your proofs using our public API endpoint.`}
+                    stampText="Easiest"
+                    testId="verification-cloud"
+                  />
+
+                  <RadioCard
+                    register={register("verification")}
+                    option={{ value: "on-chain", label: "On-chain" }}
+                    description="Validate and store your proofs on the blockchain."
+                    testId="verification-on-chain"
+                  />
+                </div>
+              </div>
+
+              <div
+                className={clsx("grid gap-y-6", {
+                  hidden: appMode === "mini-app",
+                })}
+              >
+                <Typography variant={TYPOGRAPHY.H7}>Environment</Typography>
+
+                <div className="grid gap-2 md:grid-cols-2">
+                  <RadioCard
+                    register={register("build")}
+                    option={{ value: "staging", label: "Staging" }}
+                    description="Development environment for testing and debugging. Verify with the simulator."
+                    testId="build-staging"
+                  />
+
+                  <RadioCard
+                    register={register("build")}
+                    option={{ value: "production", label: "Production" }}
+                    description="Verify real humans. Use World App to verify."
+                    testId="build-production"
+                  />
+                </div>
+              </div>
+
               <div className="grid gap-y-8">
                 <Input
                   register={register("appName")}
@@ -221,56 +265,6 @@ export const CreateAppDialog = (props: DialogProps) => {
                     );
                   }}
                 />
-              </div>
-
-              <div
-                className={clsx("grid gap-y-6", {
-                  hidden: appMode === "mini-app",
-                })}
-              >
-                <Typography variant={TYPOGRAPHY.H7}>Build</Typography>
-
-                <div className="grid gap-2 md:grid-cols-2">
-                  <RadioCard
-                    register={register("build")}
-                    option={{ value: "staging", label: "Staging" }}
-                    description="Development environment for testing and debugging. Verify with the simulator."
-                    stampText="Recommended"
-                    testId="build-staging"
-                  />
-
-                  <RadioCard
-                    register={register("build")}
-                    option={{ value: "production", label: "Production" }}
-                    description="Verify real humans. Use World App to verify."
-                    testId="build-production"
-                  />
-                </div>
-              </div>
-
-              <div
-                className={clsx("grid gap-y-6", {
-                  hidden: appMode === "mini-app",
-                })}
-              >
-                <Typography variant={TYPOGRAPHY.H7}>Verification</Typography>
-
-                <div className="grid gap-2 md:grid-cols-2">
-                  <RadioCard
-                    register={register("verification")}
-                    option={{ value: "cloud", label: "Cloud" }}
-                    description={`Verify your proofs using our public API endpoint.`}
-                    stampText="Easiest"
-                    testId="verification-cloud"
-                  />
-
-                  <RadioCard
-                    register={register("verification")}
-                    option={{ value: "on-chain", label: "On-chain" }}
-                    description="Validate and store your proofs on the blockchain."
-                    testId="verification-on-chain"
-                  />
-                </div>
               </div>
 
               <DecoratedButton
