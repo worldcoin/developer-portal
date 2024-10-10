@@ -19,7 +19,7 @@ export const useGetMetrics = (appId: string) => {
     };
 
     fetchMetrics();
-  }, []);
+  }, [appId]);
 
   return { metrics, loading, error };
 };
