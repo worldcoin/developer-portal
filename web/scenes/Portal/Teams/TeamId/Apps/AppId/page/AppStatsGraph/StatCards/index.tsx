@@ -36,7 +36,8 @@ export const StatCards = ({ appId }: { appId: string }) => {
   const [timespan] = useAtom(timespanAtom);
   const timespanValue = timespan.value;
 
-  const { metrics: appMetrics } = useGetMetrics(appId);
+  const { metrics: appMetrics, loading: isMetricsLoading } =
+    useGetMetrics(appId);
 
   const impressionsTotal = appMetrics?.impressions;
   const impressionsLast7Days = appMetrics?.impressions_7days;
@@ -68,6 +69,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
               timespanValue,
             })}
             changePercentage={impressionsPercentageChange}
+            isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
@@ -77,6 +79,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
               weekValue: newUsersLast7Days,
               timespanValue,
             })}
+            isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
@@ -86,6 +89,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
               weekValue: usersLast7Days,
               timespanValue,
             })}
+            isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
@@ -95,8 +99,8 @@ export const StatCards = ({ appId }: { appId: string }) => {
               weekValue: uniqueUsersLast7Days,
               timespanValue,
             })}
+            isLoading={isMetricsLoading}
           />
-          <div className="h-6 w-px bg-grey-200" />
         </div>
       </div>
       <hr className="border border-grey-200" />
