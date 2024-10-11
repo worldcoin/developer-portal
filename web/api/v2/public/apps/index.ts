@@ -83,19 +83,19 @@ export const GET = async (request: NextRequest) => {
   let topApps: GetAppsQuery["top_apps"] = [];
   let highlightsApps: GetAppsQuery["highlights"] = [];
 
-  const limitValue = limit ?? 250;
+  const limitValue = limit ?? 500;
   const offset = page ? (page - 1) * limitValue : 0;
 
   // ANCHOR: Fetch app rankings
   try {
     const { top_apps, highlights } = await getAppsSdk(client).GetApps({
       topAppsConditions: {
+        app: { is_banned: { _eq: false } },
         verification_status: { _eq: "verified" },
-        ...(app_mode ? { app_mode: { _eq: app_mode } } : {}),
+        is_reviewer_world_app_approved: { _eq: true },
       },
-
       highlightsIds,
-      limit: limit ?? 250,
+      limit: limitValue,
       offset,
       locale,
     });
