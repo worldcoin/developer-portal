@@ -4,14 +4,16 @@ import { FetchAppMetadataDocument } from "../../AppId/Configuration/graphql/clie
 import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
 import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
 
-export const useRemoveFromReview = (props: { metadataId: string }) => {
+export const useRemoveFromReview = (props: {
+  metadataId: string | undefined;
+}) => {
   const { teamId, appId } = useParams() as { teamId: string; appId: string };
 
   const [updateAppVerificationStatusMutation, { loading }] =
     useUpdateAppVerificationStatusMutation();
 
   const removeFromReview = useCallback(async () => {
-    if (loading) {
+    if (loading || !props.metadataId) {
       return;
     }
 

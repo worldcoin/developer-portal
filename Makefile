@@ -5,3 +5,12 @@ up:
 
 hasura-console:
 	cd hasura; hasura console --endpoint http://localhost:8080 --admin-secret secret!
+
+hasura-migrate:
+	cd hasura; hasura migrate apply --admin-secret secret!
+
+hasura-seed:
+	cd hasura; hasura seed apply --admin-secret secret!
+
+hasura-metadata:
+	cd hasura; hasura metadata export --admin-secret secret!

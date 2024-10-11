@@ -8,23 +8,36 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
+import ErrorComponent from "next/error";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useGetVerificationDataQuery } from "../../AppId/page/graphql/client/get-verification-data.generated";
 import { useRemoveFromReview } from "../hooks/use-remove-from-review";
 
 export const reviewMessageDialogOpenedAtom = atom<boolean>(false);
 
 export const ReviewMessageDialog = (props: {
-  message: string;
-  metadataId: string;
   goTo?: string;
+  appId: string;
 }) => {
   const router = useRouter();
   const [isOpened, setIsOpened] = useAtom(reviewMessageDialogOpenedAtom);
-  const { message } = props;
+
+  const { loading: verificationDataLoading, data } =
+    useGetVerificationDataQuery({
+      variables: {
+        id: props.appId,
+      },
+    });
+
+  const verificationData = useMemo(
+    () => data?.verificationData?.app_metadata?.[0],
+    [data],
+  );
+  const message = verificationData?.review_message;
 
   const { removeFromReview, loading } = useRemoveFromReview({
-    metadataId: props.metadataId,
+    metadataId: verificationData?.id,
   });
 
   const closeModal = useCallback(() => {
@@ -44,52 +57,63 @@ export const ReviewMessageDialog = (props: {
     }
   }, [closeModal, props.goTo, removeFromReview, router]);
 
-  return (
-    <Dialog onClose={closeModal} open={isOpened}>
-      <DialogOverlay />
+  if (!verificationDataLoading && !data?.hasApp?.id) {
+    return (
+      <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
+    );
+  } else if (verificationData?.id) {
+    return null;
+  } else {
+    return (
+      <Dialog onClose={closeModal} open={isOpened}>
+        <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
-        <CircleIconContainer variant={"error"}>
-          <CloseIcon className="size-5 text-system-error-600" strokeWidth={3} />
-        </CircleIconContainer>
+        <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
+          <CircleIconContainer variant={"error"}>
+            <CloseIcon
+              className="size-5 text-system-error-600"
+              strokeWidth={3}
+            />
+          </CircleIconContainer>
 
-        <div className="grid w-full items-center justify-center gap-y-4">
-          <Typography
-            variant={TYPOGRAPHY.H6}
-            className="text-center text-grey-900"
-          >
-            App was rejected
-          </Typography>
+          <div className="grid w-full items-center justify-center gap-y-4">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className="text-center text-grey-900"
+            >
+              App was rejected
+            </Typography>
 
-          <Typography
-            variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500 "
-          >
-            Unfortunately, your app was evaluated by our team, and it was
-            rejected for the following reason
-          </Typography>
-        </div>
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-center text-grey-500 "
+            >
+              Unfortunately, your app was evaluated by our team, and it was
+              rejected for the following reason
+            </Typography>
+          </div>
 
-        <div className="w-full rounded-lg border border-grey-200 bg-grey-25 px-5 py-4">
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
-            {message}
-          </Typography>
-        </div>
+          <div className="w-full rounded-lg border border-grey-200 bg-grey-25 px-5 py-4">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
+              {message}
+            </Typography>
+          </div>
 
-        <div className="grid w-full grid-cols-2 gap-x-4">
-          <DecoratedButton
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpened(false)}
-          >
-            Cancel
-          </DecoratedButton>
+          <div className="grid w-full grid-cols-2 gap-x-4">
+            <DecoratedButton
+              type="button"
+              variant="secondary"
+              onClick={() => setIsOpened(false)}
+            >
+              Cancel
+            </DecoratedButton>
 
-          <DecoratedButton onClick={removeAndClose} type="button">
-            Resolve issues
-          </DecoratedButton>
-        </div>
-      </DialogPanel>
-    </Dialog>
-  );
+            <DecoratedButton onClick={removeAndClose} type="button">
+              Resolve issues
+            </DecoratedButton>
+          </div>
+        </DialogPanel>
+      </Dialog>
+    );
+  }
 };

@@ -9,6 +9,16 @@ query FetchAppStats(
     verifications
     unique_users
   }
+  app_stats_aggregate(
+    args: { appId: $appId, startsAt: $startsAt, timespan: $timeSpan }
+  ) {
+    aggregate {
+      sum {
+        verifications
+        unique_users
+      }
+    }
+  }
   app(where: { id: { _eq: $appId } }) {
     id
     engine

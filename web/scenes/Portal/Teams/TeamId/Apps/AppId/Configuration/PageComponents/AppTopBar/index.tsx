@@ -251,10 +251,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
       />
       <div className="grid items-center justify-items-center gap-y-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-8">
-        <ReviewMessageDialog
-          message={appMetaData.review_message}
-          metadataId={appMetaData.id}
-        />
+        <ReviewMessageDialog appId={appId} />
         <div className="flex w-full justify-end sm:hidden">
           <AppStatus
             className=""
