@@ -22,6 +22,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const body = await req.json();
+
     if (body?.action.name !== "ban_app") {
       return errorHasuraQuery({
         req,
@@ -39,7 +40,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const { isValid, parsedParams } = await validateRequestSchema({
-      value: Object.fromEntries(body.input),
+      value: body.input,
       schema,
     });
 
