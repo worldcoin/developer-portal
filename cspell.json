@@ -23,7 +23,6 @@
     "pnpm-lock.yaml"
   ],
   "words": [
-    "lokalise",
     "arrayify",
     "chartjs",
     "clsx",
@@ -43,6 +42,7 @@
     "JWTs",
     "keccak",
     "Localise",
+    "lokalise",
     "merkle",
     "nextjs",
     "nullifer",
@@ -58,6 +58,7 @@
     "timestamptz",
     "toastify",
     "unarchived",
+    "USDCE",
     "Worldcoin",
     "zustand"
   ]

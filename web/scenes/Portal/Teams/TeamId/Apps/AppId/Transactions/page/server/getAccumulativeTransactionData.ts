@@ -8,11 +8,19 @@ export type GetAccumulativeTransactionDataReturnType = Awaited<
   ReturnType<typeof getAccumulativeTransactionData>
 >;
 
+const calculateUSDAmount = (
+  tokenAmount: number,
+  tokenPrice: number,
+  tokenDecimals: number,
+) => {
+  return (tokenAmount * tokenPrice) / 10 ** tokenDecimals;
+};
+
 export const getAccumulativeTransactionData = async (
   appId: string,
 ): Promise<{
   accumulativeTransactions: PaymentMetadata[];
-  accumulatedAmountUSD: number;
+  accumulatedTokenAmountUSD: number;
 }> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
@@ -46,41 +54,61 @@ export const getAccumulativeTransactionData = async (
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     ) as PaymentMetadata[];
 
-    let accumulatedTokenAmount = 0;
-    const accumulativeTransactions = sortedTransactions.map((transaction) => {
-      // TODO - floating point issues here? test on real data
-      accumulatedTokenAmount += Number(transaction.inputTokenAmount);
-
-      return {
-        ...transaction,
-        inputTokenAmount: String(accumulatedTokenAmount),
-      };
-    });
-
+    // NOTE fetch all tokens, we need to know them before we can calculate the accumulated amount
     const tokenPriceResponse = (await (
       await fetch(
-        `${process.env.NEXT_PUBLIC_PRICES_ENDPOINT}?cryptoCurrencies=WLD&fiatCurrencies=USD`,
+        `${process.env.NEXT_PUBLIC_PRICES_ENDPOINT}?cryptoCurrencies=WLD,USDCE&fiatCurrencies=USD`,
       )
     ).json()) as {
       result: {
-        prices: { WLD: { USD: { amount: string; decimals: number } } };
+        prices: {
+          WLD?: { USD: { amount: string; decimals: number } };
+          USDCE?: { USD: { amount: string; decimals: number } };
+        };
       };
     };
 
-    const accumulatedAmountUSD =
-      (accumulatedTokenAmount *
-        Number(tokenPriceResponse.result.prices.WLD.USD.amount)) /
-      10 ** tokenPriceResponse.result.prices.WLD.USD.decimals;
+    let accumulatedTokenAmountWLD = 0;
+    let accumulatedTokenAmountUSDCE = 0;
+    let accumulatedTokenAmountUSD = 0;
+    const cryptoCurrencies = new Set<"WLD" | "USDCE">();
+    const accumulativeTransactions = sortedTransactions.map((transaction) => {
+      cryptoCurrencies.add(transaction.inputToken as "WLD" | "USDCE");
+      // TODO - floating point issues here? test on real data
+
+      if (transaction.inputToken === "WLD") {
+        accumulatedTokenAmountWLD += Number(transaction.inputTokenAmount);
+
+        accumulatedTokenAmountUSD += calculateUSDAmount(
+          accumulatedTokenAmountWLD,
+          Number(tokenPriceResponse!.result.prices.WLD!.USD.amount),
+          tokenPriceResponse!.result.prices.WLD!.USD.decimals,
+        );
+      } else if (transaction.inputToken === "USDCE") {
+        accumulatedTokenAmountUSDCE += Number(transaction.inputTokenAmount);
+
+        accumulatedTokenAmountUSD += calculateUSDAmount(
+          accumulatedTokenAmountUSDCE,
+          Number(tokenPriceResponse!.result.prices.USDCE!.USD.amount),
+          tokenPriceResponse!.result.prices.USDCE!.USD.decimals,
+        );
+      }
+
+      return {
+        ...transaction,
+        inputTokenAmount: String(accumulatedTokenAmountUSD),
+      };
+    });
 
     return {
       accumulativeTransactions,
-      accumulatedAmountUSD,
+      accumulatedTokenAmountUSD,
     };
   } catch (error) {
     logger.warn("Error fetching transaction data", { error });
     return {
       accumulativeTransactions: [],
-      accumulatedAmountUSD: 0,
+      accumulatedTokenAmountUSD: 0,
     };
   }
 };

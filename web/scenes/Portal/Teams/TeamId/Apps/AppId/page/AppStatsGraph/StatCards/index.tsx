@@ -103,7 +103,6 @@ export const StatCards = ({ appId }: { appId: string }) => {
           />
         </div>
       </div>
-      <hr className="border border-grey-200" />
     </>
   );
 };
