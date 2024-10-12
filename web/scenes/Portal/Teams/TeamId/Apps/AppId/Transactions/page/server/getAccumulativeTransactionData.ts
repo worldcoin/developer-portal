@@ -62,8 +62,8 @@ export const getAccumulativeTransactionData = async (
     ).json()) as {
       result: {
         prices: {
-          WLD?: { USD: { amount: string; decimals: number } };
-          USDCE?: { USD: { amount: string; decimals: number } };
+          WLD: { USD: { amount: string; decimals: number } };
+          USDCE: { USD: { amount: string; decimals: number } };
         };
       };
     };
@@ -74,15 +74,15 @@ export const getAccumulativeTransactionData = async (
     const cryptoCurrencies = new Set<"WLD" | "USDCE">();
     const accumulativeTransactions = sortedTransactions.map((transaction) => {
       cryptoCurrencies.add(transaction.inputToken as "WLD" | "USDCE");
-      // TODO - floating point issues here? test on real data
 
       if (transaction.inputToken === "WLD") {
+        // TODO - floating point issues here? test on real data
         accumulatedTokenAmountWLD += Number(transaction.inputTokenAmount);
 
         accumulatedTokenAmountUSD += calculateUSDAmount(
           accumulatedTokenAmountWLD,
-          Number(tokenPriceResponse!.result.prices.WLD!.USD.amount),
-          tokenPriceResponse!.result.prices.WLD!.USD.decimals,
+          Number(tokenPriceResponse.result.prices.WLD.USD.amount),
+          tokenPriceResponse.result.prices.WLD.USD.decimals,
         );
       } else if (transaction.inputToken === "USDCE") {
         accumulatedTokenAmountUSDCE += Number(transaction.inputTokenAmount);
