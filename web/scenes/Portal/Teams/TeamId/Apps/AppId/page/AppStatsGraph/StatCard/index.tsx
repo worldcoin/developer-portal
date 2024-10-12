@@ -6,6 +6,7 @@ export const StatCard = (props: {
   mainColorClassName: string;
   title: string;
   value: number | undefined | null;
+  isLoading: boolean;
   changePercentage?: number;
 }) => {
   return (
@@ -31,7 +32,8 @@ export const StatCard = (props: {
       </div>
       <div className="flex items-center gap-x-2">
         <Typography variant={TYPOGRAPHY.H3} className="text-grey-700">
-          {props.value?.toLocaleString() ?? <Skeleton width={65} />}
+          {props.value?.toLocaleString() ??
+            (props.isLoading ? <Skeleton width={65} /> : 0)}
         </Typography>
       </div>
     </div>

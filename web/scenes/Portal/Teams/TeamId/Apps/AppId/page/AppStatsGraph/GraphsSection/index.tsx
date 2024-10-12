@@ -6,6 +6,7 @@ import { Chart, ChartProps } from "@/components/Chart";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType, TransactionStatus } from "@/lib/types";
 import { ChartData, ChartOptions } from "chart.js";
+import clsx from "clsx";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -83,8 +84,8 @@ export const GraphsSection = () => {
     [transactionsData?.accumulativeTransactions],
   );
   const accumulatedTransactionAmountUSD = useMemo(
-    () => transactionsData?.accumulatedAmountUSD,
-    [transactionsData?.accumulatedAmountUSD],
+    () => transactionsData?.accumulatedTokenAmountUSD,
+    [transactionsData?.accumulatedTokenAmountUSD],
   );
 
   const stats = useMemo(
@@ -100,7 +101,6 @@ export const GraphsSection = () => {
     () => appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users ?? 0,
     [appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users],
   );
-  console.log({ totalVerifications, totalUniqueUsers });
 
   const engine = useMemo(
     () => appStatsData?.app?.[0]?.engine,
@@ -171,7 +171,17 @@ export const GraphsSection = () => {
           </div>
         )}
         {!appStatsLoading && !formattedVerificationsChartData && (
-          <div className="pointer-events-none grid size-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12">
+          <div
+            className={clsx(
+              {
+                "size-full":
+                  transactionsLoading || formattedTransactionsChartData,
+                "aspect-[580/350]":
+                  !transactionsLoading && !formattedTransactionsChartData,
+              },
+              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
+            )}
+          >
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
               {engine === EngineType.OnChain
                 ? "Analytics are not available for on-chain apps yet"
@@ -189,7 +199,7 @@ export const GraphsSection = () => {
         )}
         {!appStatsLoading && formattedVerificationsChartData && (
           <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
-            <div className="flex flex-row gap-x-8 pl-6">
+            <div className="pl-6">
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
@@ -215,8 +225,8 @@ export const GraphsSection = () => {
           </div>
         )}
         {!appStatsLoading && formattedVerificationsChartData && (
-          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block">
-            <div className="flex flex-row gap-x-8 pl-6">
+          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
+            <div className="pl-6">
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
@@ -246,7 +256,16 @@ export const GraphsSection = () => {
           </div>
         )}
         {!transactionsLoading && !formattedTransactionsChartData && (
-          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12">
+          <div
+            className={clsx(
+              {
+                "size-full": appStatsLoading || formattedVerificationsChartData,
+                "aspect-[580/350]":
+                  !appStatsLoading && !formattedVerificationsChartData,
+              },
+              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
+            )}
+          >
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
               {engine === EngineType.OnChain
                 ? "Analytics are not available for on-chain apps yet"
