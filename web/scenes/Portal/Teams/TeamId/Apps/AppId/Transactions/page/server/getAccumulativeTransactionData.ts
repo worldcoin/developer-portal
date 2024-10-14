@@ -1,6 +1,5 @@
 "use server";
 
-import { logger } from "@/lib/logger";
 import { PaymentMetadata } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
@@ -105,7 +104,7 @@ export const getAccumulativeTransactionData = async (
       accumulatedTokenAmountUSD,
     };
   } catch (error) {
-    logger.warn("Error fetching transaction data", { error });
+    console.warn("Error fetching transaction data", { error });
     return {
       accumulativeTransactions: [],
       accumulatedTokenAmountUSD: 0,

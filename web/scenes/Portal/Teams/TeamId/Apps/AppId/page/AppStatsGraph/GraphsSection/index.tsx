@@ -58,7 +58,9 @@ const commonChartConfig: ChartOptions<"line"> = {
         lineWidth: 0,
       },
     },
-    x: { ticks: { maxTicksLimit: 3 } },
+    x: {
+      ticks: { maxTicksLimit: 3, crossAlign: "center" },
+    },
   },
 };
 
@@ -72,7 +74,7 @@ export const GraphsSection = () => {
       variables: {
         appId,
         startsAt,
-        timeSpan: "month",
+        timeSpan: "day",
       },
     });
 
@@ -93,14 +95,23 @@ export const GraphsSection = () => {
     [appStatsData?.app_stats],
   );
 
-  const totalVerifications = useMemo(
-    () => appStatsData?.app_stats_aggregate.aggregate?.sum?.verifications ?? 0,
-    [appStatsData?.app_stats_aggregate.aggregate?.sum?.verifications],
-  );
-  const totalUniqueUsers = useMemo(
-    () => appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users ?? 0,
-    [appStatsData?.app_stats_aggregate.aggregate?.sum?.unique_users],
-  );
+  const totalVerifications = useMemo(() => {
+    const appStatsLength = appStatsData?.app_stats.length;
+    if (!appStatsLength) return 0;
+
+    const verifications =
+      appStatsData?.app_stats[appStatsLength - 1].verifications ?? 0;
+    return verifications;
+  }, [appStatsData?.app_stats]);
+
+  const totalUniqueUsers = useMemo(() => {
+    const appStatsLength = appStatsData?.app_stats.length;
+    if (!appStatsLength) return 0;
+
+    const unique_users =
+      appStatsData?.app_stats[appStatsLength - 1].unique_users ?? 0;
+    return unique_users;
+  }, [appStatsData?.app_stats]);
 
   const engine = useMemo(
     () => appStatsData?.app?.[0]?.engine,
@@ -199,7 +210,7 @@ export const GraphsSection = () => {
         )}
         {!appStatsLoading && formattedVerificationsChartData && (
           <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
-            <div className="pl-6">
+            <div className="grid grid-cols-2 pl-6">
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
@@ -226,7 +237,7 @@ export const GraphsSection = () => {
         )}
         {!appStatsLoading && formattedVerificationsChartData && (
           <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
-            <div className="pl-6">
+            <div className="grid grid-cols-2 pl-6">
               <Stat
                 title="Verifications"
                 mainColorClassName="bg-additional-blue-500"
@@ -283,7 +294,7 @@ export const GraphsSection = () => {
           </div>
         )}
         {!transactionsLoading && formattedTransactionsChartData && (
-          <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
+          <div className="block rounded-2xl border border-grey-200 py-5 pr-6 sm:hidden">
             <div className="pl-6">
               <Stat
                 title="Transactions"
