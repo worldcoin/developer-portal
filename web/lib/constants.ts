@@ -8,7 +8,9 @@ export { Categories } from "./categories";
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 
 export const ORB_SEQUENCER_STAGING =
-  "https://signup-orb-ethereum.stage-crypto.worldcoin.org";
+  process.env.NEXT_PUBLIC_APP_ENV === "production"
+    ? "https://signup-orb-ethereum.stage-crypto.worldcoin.org"
+    : "https://signup-app.stage-crypto.worldcoin.dev";
 
 // ANCHOR: Phone credential
 export const PHONE_SEQUENCER =
