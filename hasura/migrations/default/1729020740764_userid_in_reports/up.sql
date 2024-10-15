@@ -1,2 +1,2 @@
-ALTER TABLE app_metadata
+ALTER TABLE app_report
   ADD COLUMN "user_id" TEXT;
