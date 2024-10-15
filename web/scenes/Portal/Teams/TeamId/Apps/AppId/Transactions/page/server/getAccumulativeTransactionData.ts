@@ -1,6 +1,6 @@
 "use server";
 
-import { PaymentMetadata } from "@/lib/types";
+import { PaymentMetadata, TokenPrecision } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativeTransactionDataReturnType = Awaited<
@@ -9,11 +9,14 @@ export type GetAccumulativeTransactionDataReturnType = Awaited<
 
 const calculateUSDAmount = (
   tokenAmount: number,
+  tokenPrecision: TokenPrecision,
   tokenPrice: number,
-  tokenDecimals: number,
-) => {
-  return (tokenAmount * tokenPrice) / 10 ** tokenDecimals;
-};
+  tokenPricePrecision: number,
+) =>
+  (tokenAmount * tokenPrice) / 10 ** tokenPrecision / 10 ** tokenPricePrecision;
+
+const safelyAdd = (a: number, b: number) =>
+  (a / 10 ** 18 + b / 10 ** 18) / 10 ** 18;
 
 export const getAccumulativeTransactionData = async (
   appId: string,
@@ -56,7 +59,7 @@ export const getAccumulativeTransactionData = async (
     // NOTE fetch all tokens, we need to know them before we can calculate the accumulated amount
     const tokenPriceResponse = (await (
       await fetch(
-        `${process.env.NEXT_PUBLIC_PRICES_ENDPOINT}?cryptoCurrencies=WLD,USDCE&fiatCurrencies=USD`,
+        `https://app-backend.worldcoin.dev/public/v1/miniapps/prices?cryptoCurrencies=WLD,USDCE&fiatCurrencies=USD`,
       )
     ).json()) as {
       result: {
@@ -77,21 +80,24 @@ export const getAccumulativeTransactionData = async (
       if (transaction.inputToken === "WLD") {
         // TODO - floating point issues here? test on real data
         accumulatedTokenAmountWLD += Number(transaction.inputTokenAmount);
-
-        accumulatedTokenAmountUSD += calculateUSDAmount(
-          accumulatedTokenAmountWLD,
-          Number(tokenPriceResponse.result.prices.WLD.USD.amount),
-          tokenPriceResponse.result.prices.WLD.USD.decimals,
-        );
       } else if (transaction.inputToken === "USDCE") {
         accumulatedTokenAmountUSDCE += Number(transaction.inputTokenAmount);
-
-        accumulatedTokenAmountUSD += calculateUSDAmount(
-          accumulatedTokenAmountUSDCE,
-          Number(tokenPriceResponse!.result.prices.USDCE!.USD.amount),
-          tokenPriceResponse!.result.prices.USDCE!.USD.decimals,
-        );
       }
+
+      accumulatedTokenAmountUSD = safelyAdd(
+        calculateUSDAmount(
+          accumulatedTokenAmountWLD,
+          TokenPrecision.WLD,
+          Number(tokenPriceResponse.result.prices.WLD.USD.amount),
+          tokenPriceResponse.result.prices.WLD.USD.decimals,
+        ),
+        calculateUSDAmount(
+          accumulatedTokenAmountWLD,
+          TokenPrecision.USDCE,
+          Number(tokenPriceResponse.result.prices.USDCE.USD.amount),
+          tokenPriceResponse.result.prices.USDCE.USD.decimals,
+        ),
+      );
 
       return {
         ...transaction,
@@ -111,11 +117,6 @@ export const getAccumulativeTransactionData = async (
         errorStack: error.stack,
       });
     }
-
-    console.warn("Error fetching transaction data", {
-      error,
-      errorStringified: JSON.stringify(error),
-    });
     return {
       accumulativeTransactions: [],
       accumulatedTokenAmountUSD: 0,

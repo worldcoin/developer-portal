@@ -265,3 +265,8 @@ export type AppStoreMetadataDescription = {
   description_how_it_works: string;
   description_connect: string;
 };
+
+export enum TokenPrecision {
+  WLD = 18,
+  USDCE = 6,
+}
