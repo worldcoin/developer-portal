@@ -1,7 +1,7 @@
 type Mutation {
   ban_app(
     app_id: String!
-  ): Boolean!
+  ): BanAppOutput!
 }
 
 type Mutation {
