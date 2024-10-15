@@ -6,11 +6,7 @@ query GetApps(
   $locale: String!
 ) {
   top_apps: app_metadata(
-    where: {
-      app: { is_banned: { _eq: false } }
-      _and: $topAppsConditions
-      _or: [{ is_reviewer_world_app_approved: { _eq: true } }]
-    }
+    where: { $topAppsConditions }
     limit: $limit
     offset: $offset
   ) {
