@@ -12,8 +12,7 @@ const calculateUSDAmount = (
   tokenPrecision: TokenPrecision,
   tokenPrice: number,
   tokenPricePrecision: number,
-) =>
-  (tokenAmount * tokenPrice) / 10 ** tokenPrecision / 10 ** tokenPricePrecision;
+) => (tokenAmount * tokenPrice) / 10 ** (tokenPrecision + tokenPricePrecision);
 
 const safelyAdd = (a: number, b: number) =>
   (a / 10 ** 18 + b / 10 ** 18) / 10 ** 18;
