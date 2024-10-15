@@ -1380,7 +1380,7 @@ export type App = {
   engine: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   is_archived: Scalars["Boolean"]["output"];
-  is_banned?: Maybe<Scalars["Boolean"]["output"]>;
+  is_banned: Scalars["Boolean"]["output"];
   is_staging: Scalars["Boolean"]["output"];
   logo_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
