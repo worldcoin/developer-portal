@@ -104,7 +104,18 @@ export const getAccumulativeTransactionData = async (
       accumulatedTokenAmountUSD,
     };
   } catch (error) {
-    console.warn("Error fetching transaction data", { error });
+    if (error instanceof Error) {
+      console.warn("Error fetching transaction data", {
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
+      });
+    }
+
+    console.warn("Error fetching transaction data", {
+      error,
+      errorStringified: JSON.stringify(error),
+    });
     return {
       accumulativeTransactions: [],
       accumulatedTokenAmountUSD: 0,
