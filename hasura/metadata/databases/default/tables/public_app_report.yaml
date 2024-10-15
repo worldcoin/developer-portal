@@ -9,7 +9,9 @@ insert_permissions:
         - app_id
         - app_name
         - details
+        - id
         - reporter_email
+        - user_id
     comment: ""
 select_permissions:
   - role: reviewer
@@ -21,5 +23,6 @@ select_permissions:
         - details
         - id
         - reporter_email
+        - user_id
       filter: {}
     comment: ""

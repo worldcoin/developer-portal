@@ -31,6 +31,11 @@ export type Scalars = {
   timestamptz: { input: string; output: string };
 };
 
+export type BanAppOutput = {
+  __typename?: "BanAppOutput";
+  success?: Maybe<Scalars["Boolean"]["output"]>;
+};
+
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
 export type Boolean_Comparison_Exp = {
   _eq?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -2648,6 +2653,7 @@ export type App_Report = {
   details: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregated selection of "app_report" */
@@ -2682,6 +2688,7 @@ export type App_Report_Bool_Exp = {
   details?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   reporter_email?: InputMaybe<String_Comparison_Exp>;
+  user_id?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_report" */
@@ -2698,6 +2705,7 @@ export type App_Report_Insert_Input = {
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -2709,6 +2717,7 @@ export type App_Report_Max_Fields = {
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
@@ -2720,6 +2729,7 @@ export type App_Report_Min_Fields = {
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** response of any mutation on the table "app_report" */
@@ -2746,6 +2756,7 @@ export type App_Report_Order_By = {
   details?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   reporter_email?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: app_report */
@@ -2767,6 +2778,8 @@ export enum App_Report_Select_Column {
   Id = "id",
   /** column name */
   ReporterEmail = "reporter_email",
+  /** column name */
+  UserId = "user_id",
 }
 
 /** input type for updating data in table "app_report" */
@@ -2777,6 +2790,7 @@ export type App_Report_Set_Input = {
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Streaming cursor of the table "app_report" */
@@ -2795,6 +2809,7 @@ export type App_Report_Stream_Cursor_Value_Input = {
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "app_report" */
@@ -2811,6 +2826,8 @@ export enum App_Report_Update_Column {
   Id = "id",
   /** column name */
   ReporterEmail = "reporter_email",
+  /** column name */
+  UserId = "user_id",
 }
 
 export type App_Report_Updates = {
@@ -4862,7 +4879,7 @@ export type Membership_Updates = {
 export type Mutation_Root = {
   __typename?: "mutation_root";
   /** Bans app by app_id */
-  ban_app: Scalars["Boolean"]["output"];
+  ban_app: BanAppOutput;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
