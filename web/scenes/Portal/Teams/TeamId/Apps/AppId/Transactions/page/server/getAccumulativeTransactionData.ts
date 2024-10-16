@@ -1,6 +1,10 @@
 "use server";
 
-import { PaymentMetadata, TokenPrecision } from "@/lib/types";
+import {
+  PaymentMetadata,
+  TokenPrecision,
+  TransactionStatus,
+} from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativeTransactionDataReturnType = Awaited<
@@ -14,8 +18,9 @@ const calculateUSDAmount = (
   tokenPricePrecision: number,
 ) => (tokenAmount * tokenPrice) / 10 ** (tokenPrecision + tokenPricePrecision);
 
+// account for erc20 token precision
 const safelyAdd = (a: number, b: number) =>
-  (a / 10 ** 18 + b / 10 ** 18) / 10 ** 18;
+  (a * 10 ** 18 + b * 10 ** 18) / 10 ** 18;
 
 export const getAccumulativeTransactionData = async (
   appId: string,
@@ -44,6 +49,7 @@ export const getAccumulativeTransactionData = async (
     });
 
     const data = await response.json();
+
     if (!response.ok) {
       throw new Error(
         `Failed to fetch transaction data. Status: ${response.status}. Error: ${data}`,
@@ -69,40 +75,52 @@ export const getAccumulativeTransactionData = async (
       };
     };
 
-    let accumulatedTokenAmountWLD = 0;
-    let accumulatedTokenAmountUSDCE = 0;
-    let accumulatedTokenAmountUSD = 0;
-    const cryptoCurrencies = new Set<"WLD" | "USDCE">();
-    const accumulativeTransactions = sortedTransactions.map((transaction) => {
-      cryptoCurrencies.add(transaction.inputToken as "WLD" | "USDCE");
+    const { accumulativeTransactions, accumulatedTokenAmountUSD } =
+      sortedTransactions.reduce(
+        (acc, transaction) => {
+          if (transaction.transactionStatus !== TransactionStatus.Mined) {
+            return acc;
+          }
 
-      if (transaction.inputToken === "WLD") {
-        // TODO - floating point issues here? test on real data
-        accumulatedTokenAmountWLD += Number(transaction.inputTokenAmount);
-      } else if (transaction.inputToken === "USDCE") {
-        accumulatedTokenAmountUSDCE += Number(transaction.inputTokenAmount);
-      }
+          if (transaction.inputToken === "WLD") {
+            acc.accumulatedTokenAmountWLD += Number(
+              transaction.inputTokenAmount,
+            );
+          } else if (transaction.inputToken === "USDCE") {
+            acc.accumulatedTokenAmountUSDCE += Number(
+              transaction.inputTokenAmount,
+            );
+          }
 
-      accumulatedTokenAmountUSD = safelyAdd(
-        calculateUSDAmount(
-          accumulatedTokenAmountWLD,
-          TokenPrecision.WLD,
-          Number(tokenPriceResponse.result.prices.WLD.USD.amount),
-          tokenPriceResponse.result.prices.WLD.USD.decimals,
-        ),
-        calculateUSDAmount(
-          accumulatedTokenAmountWLD,
-          TokenPrecision.USDCE,
-          Number(tokenPriceResponse.result.prices.USDCE.USD.amount),
-          tokenPriceResponse.result.prices.USDCE.USD.decimals,
-        ),
+          acc.accumulatedTokenAmountUSD = safelyAdd(
+            calculateUSDAmount(
+              acc.accumulatedTokenAmountWLD,
+              TokenPrecision.WLD,
+              Number(tokenPriceResponse.result.prices.WLD.USD.amount),
+              tokenPriceResponse.result.prices.WLD.USD.decimals,
+            ),
+            calculateUSDAmount(
+              acc.accumulatedTokenAmountUSDCE,
+              TokenPrecision.USDCE,
+              Number(tokenPriceResponse.result.prices.USDCE.USD.amount),
+              tokenPriceResponse.result.prices.USDCE.USD.decimals,
+            ),
+          );
+
+          acc.accumulativeTransactions.push({
+            ...transaction,
+            inputTokenAmount: String(acc.accumulatedTokenAmountUSD),
+          });
+
+          return acc;
+        },
+        {
+          accumulatedTokenAmountWLD: 0,
+          accumulatedTokenAmountUSDCE: 0,
+          accumulatedTokenAmountUSD: 0,
+          accumulativeTransactions: [] as PaymentMetadata[],
+        },
       );
-
-      return {
-        ...transaction,
-        inputTokenAmount: String(accumulatedTokenAmountUSD),
-      };
-    });
 
     return {
       accumulativeTransactions,
