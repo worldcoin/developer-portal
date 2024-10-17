@@ -6,6 +6,7 @@ import { LoginErrorCode, NativeAppsMap } from "./types";
 export { Categories } from "./categories";
 // ANCHOR: Orb credential
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
+export const temp = "redeploy";
 
 export const ORB_SEQUENCER_STAGING =
   process.env.NEXT_PUBLIC_APP_ENV === "production"
