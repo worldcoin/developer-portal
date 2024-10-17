@@ -59,7 +59,7 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   },
   production: {
     grants: "app_d2905e660b94ad24d6fc97816182ab35",
-    invites: "app_432af83feb4051e72fd7ee682f365c39",
+    invites: "app_b48c2001175096fffeb805f0dc57a371",
     network: "app_a23c6398432498825962a9b96294dde1",
   },
 };
