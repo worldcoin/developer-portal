@@ -336,7 +336,11 @@ export default async function handleOIDCAuthorize(
     hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
   } catch (error) {
     // Temp Fix to reduce on call alerts
-    logger.warn("Generic Error fetching nullifier", { req, error });
+    logger.warn("Query error nullifier.", {
+      nullifier_hash,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
   }
 
   if (!hasNullifier) {
