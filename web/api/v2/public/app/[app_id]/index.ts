@@ -59,16 +59,19 @@ export async function GET(
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
-  // ANCHOR: Fetch app stats from metrics service
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/apps/${app_id}.json`,
-    { cache: "no-store" },
-  );
 
   let metricsData: AppStatsReturnType = [];
 
-  if (response.status == 200) {
-    metricsData = [await response.json()];
+  if (app_metadata[0].is_reviewer_world_app_approved) {
+    // ANCHOR: Fetch app stats from metrics service
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/apps/${app_id}.json`,
+      { cache: "no-store" },
+    );
+
+    if (response.status == 200) {
+      metricsData = [await response.json()];
+    }
   }
 
   let parsedAppMetadata = app_metadata[0];
