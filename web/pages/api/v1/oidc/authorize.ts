@@ -331,9 +331,9 @@ export default async function handleOIDCAuthorize(
 
     if (!fetchNullifierResult?.data?.nullifier) {
       logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
+      hasNullifier = false;
     }
-
-    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0].id);
+    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0]?.id);
   } catch (error) {
     // Temp Fix to reduce on call alerts
     logger.warn("Query error nullifier.", {
