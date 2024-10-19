@@ -5,6 +5,7 @@ import { verifyProof } from "@/api/helpers/verify";
 import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
+import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { NextRequest, NextResponse } from "next/server";
@@ -111,6 +112,18 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
+
+  await captureEvent({
+    event: "action_verify_success",
+    distinctId: `app_review_${app_id}`,
+    properties: {
+      action_id: "app_review",
+      app_id: app_id,
+      verification_level: parsedParams.verification_level,
+      environment: "production",
+      type: "unlimited",
+    },
+  });
 
   return NextResponse.json({ status: 200 });
 };
