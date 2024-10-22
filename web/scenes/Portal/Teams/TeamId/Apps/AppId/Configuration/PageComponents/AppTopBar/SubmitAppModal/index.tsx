@@ -101,9 +101,13 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
 
         toast.success("App submitted for review");
         setOpen(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Submit App Modal Failed: ", error);
-        toast.error("Failed to submit app for review");
+        let errorMessage = "Failed to submit app for review";
+        if (error.message === "Missing localisation for language code") {
+          errorMessage = error.message;
+        }
+        toast.error(errorMessage);
       }
     },
     [
