@@ -23,22 +23,19 @@ export const ReviewMessageDialog = (props: {
   const router = useRouter();
   const [isOpened, setIsOpened] = useAtom(reviewMessageDialogOpenedAtom);
 
-  const { loading: verificationDataLoading, data } =
-    useGetVerificationDataQuery({
-      variables: {
-        id: props.appId,
-      },
-    });
+  const { data } = useGetVerificationDataQuery({
+    variables: {
+      id: props.appId,
+    },
+  });
 
-  const verificationData = useMemo(
-    () => data?.verificationData?.app_metadata?.[0],
-    [data],
-  );
-  const message = verificationData?.review_message;
+  const verificationData = useMemo(() => data?.app?.app_metadata?.[0], [data]);
 
   const { removeFromReview, loading } = useRemoveFromReview({
     metadataId: verificationData?.id,
   });
+
+  const message = verificationData?.review_message;
 
   const closeModal = useCallback(() => {
     if (loading) {
@@ -49,20 +46,18 @@ export const ReviewMessageDialog = (props: {
   }, [loading, setIsOpened]);
 
   const removeAndClose = useCallback(() => {
-    removeFromReview();
-    closeModal();
-
     if (props.goTo) {
       router.push(props.goTo);
+    } else {
+      removeFromReview();
     }
+    closeModal();
   }, [closeModal, props.goTo, removeFromReview, router]);
 
-  if (!verificationDataLoading && !data?.hasApp?.id) {
+  if (!data?.app) {
     return (
       <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
     );
-  } else if (verificationData?.id) {
-    return null;
   } else {
     return (
       <Dialog onClose={closeModal} open={isOpened}>
@@ -89,7 +84,8 @@ export const ReviewMessageDialog = (props: {
               className="text-center text-grey-500 "
             >
               Unfortunately, your app was evaluated by our team, and it was
-              rejected for the following reason
+              rejected for the following reason. <br />
+              <b>Questions? Reachout on Telegram @MateoSauton</b>
             </Typography>
           </div>
 
