@@ -10,15 +10,9 @@ export type GetVerificationDataQueryVariables = Types.Exact<{
 
 export type GetVerificationDataQuery = {
   __typename?: "query_root";
-  verificationStatus?: {
+  app?: {
     __typename?: "app";
-    app_metadata: Array<{
-      __typename?: "app_metadata";
-      verification_status: string;
-    }>;
-  } | null;
-  verificationData?: {
-    __typename?: "app";
+    id: string;
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
@@ -26,17 +20,12 @@ export type GetVerificationDataQuery = {
       verification_status: string;
     }>;
   } | null;
-  hasApp?: { __typename?: "app"; id: string } | null;
 };
 
 export const GetVerificationDataDocument = gql`
   query GetVerificationData($id: String!) {
-    verificationStatus: app_by_pk(id: $id) {
-      app_metadata {
-        verification_status
-      }
-    }
-    verificationData: app_by_pk(id: $id) {
+    app: app_by_pk(id: $id) {
+      id
       app_metadata(
         where: {
           _or: [
@@ -49,9 +38,6 @@ export const GetVerificationDataDocument = gql`
         review_message
         verification_status
       }
-    }
-    hasApp: app_by_pk(id: $id) {
-      id
     }
   }
 `;
