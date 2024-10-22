@@ -9,7 +9,7 @@ import { urls } from "@/lib/urls";
 import { teamId } from "@/tests/e2e/helpers/constants";
 import { useMemo } from "react";
 import { VerificationStatus } from "..";
-import { QuickAction } from "../QuickAction";
+import { QuickAction } from "../../../../../../../../components/QuickAction";
 import { useGetVerificationDataQuery } from "../graphql/client/get-verification-data.generated";
 
 export const QuickActionsSection = ({ appId }: { appId: string }) => {
