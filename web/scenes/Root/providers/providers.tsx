@@ -31,7 +31,7 @@ if (typeof window !== "undefined") {
 }
 
 const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
-  const { user, isLoading } = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
     // Fetch the PostHog ID for the current user
