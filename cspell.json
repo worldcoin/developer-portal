@@ -50,6 +50,7 @@
     "partialize",
     "PKCE",
     "pkey",
+    "qrcode",
     "RSASSA",
     "secp256k1",
     "signup",
