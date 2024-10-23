@@ -251,6 +251,7 @@ export const CreateAppDialog = (props: DialogProps) => {
                 <Controller
                   name="category"
                   control={control}
+                  data-testid="category-selector"
                   render={({ field }) => {
                     return (
                       <CategorySelector
@@ -260,7 +261,6 @@ export const CreateAppDialog = (props: DialogProps) => {
                         onChange={field.onChange}
                         errors={errors.category}
                         label="Category"
-                        data-testid="category-selector"
                       />
                     );
                   }}
