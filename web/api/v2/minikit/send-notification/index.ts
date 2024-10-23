@@ -227,6 +227,7 @@ export const POST = async (req: NextRequest) => {
     },
   );
   const data = await res.json();
+
   if (!res.ok) {
     console.warn("Error sending notification", data);
 
@@ -245,6 +246,8 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
+
+  logger.info("Notification sent successfully", { app_id });
 
   logNotification(
     serviceClient,
