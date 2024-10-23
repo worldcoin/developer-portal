@@ -5,8 +5,8 @@ import { Timespan, TimespanSelector } from "../TimespanSelector";
 import { useGetMetrics } from "./use-get-metrics";
 
 export const timespans: Timespan[] = [
-  { label: "All time", value: "all-time" },
   { label: "Weekly", value: "week" },
+  { label: "All time", value: "all-time" },
 ];
 
 export const timespanAtom = atom(timespans[0]);
@@ -39,18 +39,18 @@ export const StatCards = ({ appId }: { appId: string }) => {
   const { metrics: appMetrics, loading: isMetricsLoading } =
     useGetMetrics(appId);
 
-  const impressionsTotal = appMetrics?.impressions;
-  const impressionsLast7Days = appMetrics?.impressions_7days;
+  const impressionsTotal = appMetrics?.total_impressions;
+  const impressionsLast7Days = appMetrics?.total_impressions_last_7_days;
   const impressionsPercentageChange = calculatePercentChange(
     impressionsTotal,
     impressionsLast7Days,
   );
 
   const uniqueUsers = appMetrics?.unique_users;
-  const uniqueUsersLast7Days = appMetrics?.unique_users_7days;
+  const uniqueUsersLast7Days = appMetrics?.unique_users_last_7_days;
 
-  const usersTotal = appMetrics?.users;
-  const usersLast7Days = appMetrics?.users_7days;
+  const usersTotal = appMetrics?.total_users;
+  const usersLast7Days = appMetrics?.total_users_last_7_days;
 
   const newUsersLast7Days = appMetrics?.new_users_last_7_days;
 
@@ -73,16 +73,6 @@ export const StatCards = ({ appId }: { appId: string }) => {
           />
           <StatCard
             mainColorClassName="bg-blue-500"
-            title="New users"
-            value={resolveStatValue({
-              allTimeValue: usersTotal,
-              weekValue: newUsersLast7Days,
-              timespanValue,
-            })}
-            isLoading={isMetricsLoading}
-          />
-          <StatCard
-            mainColorClassName="bg-blue-500"
             title="Sessions"
             value={resolveStatValue({
               allTimeValue: usersTotal,
@@ -101,6 +91,18 @@ export const StatCards = ({ appId }: { appId: string }) => {
             })}
             isLoading={isMetricsLoading}
           />
+          {timespanValue === "week" && (
+            <StatCard
+              mainColorClassName="bg-blue-500"
+              title="New users"
+              value={resolveStatValue({
+                allTimeValue: uniqueUsers,
+                weekValue: newUsersLast7Days,
+                timespanValue,
+              })}
+              isLoading={isMetricsLoading}
+            />
+          )}
         </div>
       </div>
     </>
