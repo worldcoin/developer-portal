@@ -5,8 +5,8 @@ import { Timespan, TimespanSelector } from "../TimespanSelector";
 import { useGetMetrics } from "./use-get-metrics";
 
 export const timespans: Timespan[] = [
-  { label: "All time", value: "all-time" },
   { label: "Weekly", value: "week" },
+  { label: "All time", value: "all-time" },
 ];
 
 export const timespanAtom = atom(timespans[0]);
@@ -75,7 +75,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
             mainColorClassName="bg-blue-500"
             title="New users"
             value={resolveStatValue({
-              allTimeValue: usersTotal,
+              allTimeValue: uniqueUsers,
               weekValue: newUsersLast7Days,
               timespanValue,
             })}
