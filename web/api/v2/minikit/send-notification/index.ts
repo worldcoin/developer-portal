@@ -67,6 +67,8 @@ export const logNotification = async (
       notification_log_id: notificationLogId,
     })),
   });
+
+  logger.info(`Notification sent successfully, ${app_id}`);
 };
 
 // TODO: Open to outside of studios and check permissions
@@ -246,8 +248,6 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
-
-  logger.info("Notification sent successfully", { app_id });
 
   logNotification(
     serviceClient,
