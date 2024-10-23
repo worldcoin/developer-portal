@@ -2,9 +2,8 @@ import { Nullifier } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { toBeHex } from "ethers";
+import { AbiCoder, toBeHex } from "ethers";
 
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
@@ -51,8 +50,10 @@ export interface IVerifyParams {
 }
 
 function decodeProof(encodedProof: string) {
-  const binArray = abi.decode(["uint256[8]"], encodedProof)[0] as BigInt[];
-  console.log("arry", binArray);
+  const binArray = AbiCoder.defaultAbiCoder().decode(
+    ["uint256[8]"],
+    encodedProof,
+  )[0] as BigInt[];
   const hexArray = binArray.map((item) => toBeHex(item as bigint));
 
   if (hexArray.length !== 8) {
@@ -99,7 +100,7 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     nullifier_hash = toBeHex(
-      abi.decode(
+      AbiCoder.defaultAbiCoder().decode(
         ["uint256"],
         `0x${params.nullifier_hash.slice(2).padStart(64, "0")}`,
       )[0],
@@ -119,7 +120,7 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     merkle_root = toBeHex(
-      abi.decode(
+      AbiCoder.defaultAbiCoder().decode(
         ["uint256"],
         `0x${params.merkle_root.slice(2).padStart(64, "0")}`,
       )[0],
@@ -139,7 +140,7 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     external_nullifier = toBeHex(
-      abi.decode(
+      AbiCoder.defaultAbiCoder().decode(
         ["uint256"],
         `0x${params.external_nullifier.slice(2).padStart(64, "0")}`,
       )[0],
@@ -159,7 +160,7 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     signal_hash = toBeHex(
-      abi.decode(
+      AbiCoder.defaultAbiCoder().decode(
         ["uint256"],
         `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
       )[0],
