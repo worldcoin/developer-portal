@@ -51,7 +51,7 @@ export const _generateJWT = async (
     .setProtectedHeader({ alg: HASURA_GRAPHQL_JWT_SECRET.type })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime(expiration)
-    .sign(Buffer.from(key));
+    .sign(new Uint8Array(Buffer.from(key)));
 
   return token;
 };
@@ -89,9 +89,13 @@ export const generateUserJWT = async (
  */
 export const verifyUserJWT = async (token: string) => {
   try {
-    await jose.jwtVerify(token, Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key), {
-      issuer: JWT_ISSUER,
-    });
+    await jose.jwtVerify(
+      token,
+      new Uint8Array(Buffer.from(HASURA_GRAPHQL_JWT_SECRET.key)),
+      {
+        issuer: JWT_ISSUER,
+      },
+    );
   } catch {
     return false;
   }
@@ -184,7 +188,7 @@ export const generateSignUpJWT = async (nullifier_hash: string) => {
     .setProtectedHeader({ alg: "HS512" })
     .setIssuer(JWT_ISSUER)
     .setExpirationTime("1h")
-    .sign(Buffer.from(GENERAL_SECRET_KEY));
+    .sign(new Uint8Array(Buffer.from(GENERAL_SECRET_KEY)));
 
   return token;
 };
@@ -196,7 +200,7 @@ export const generateSignUpJWT = async (nullifier_hash: string) => {
 export const verifySignUpJWT = async (token: string) => {
   const { payload } = await jose.jwtVerify(
     token,
-    Buffer.from(GENERAL_SECRET_KEY),
+    new Uint8Array(Buffer.from(GENERAL_SECRET_KEY)),
     {
       issuer: JWT_ISSUER,
     },
