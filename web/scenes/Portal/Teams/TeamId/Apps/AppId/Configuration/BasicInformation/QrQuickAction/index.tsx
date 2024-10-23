@@ -20,7 +20,7 @@ export const QrQuickAction = (props: { app_id: string }) => {
   const { app_id } = props;
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string | null>(null);
 
-  const url = `https://world.org/mini-app?app_id=${app_id}`;
+  const url = `https://worldcoin.org/mini-app?app_id=${app_id}`;
 
   useEffect(() => {
     getQRCode(url).then(setQrCodeDataURL);
