@@ -4,7 +4,7 @@ import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { BigNumber, ethers } from "ethers";
+import { toBeHex } from "ethers";
 
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
@@ -52,9 +52,8 @@ export interface IVerifyParams {
 
 function decodeProof(encodedProof: string) {
   const binArray = abi.decode(["uint256[8]"], encodedProof)[0] as BigInt[];
-  const hexArray = binArray.map((item) =>
-    ethers.utils.hexlify(item as bigint).toString(),
-  );
+  console.log("arry", binArray);
+  const hexArray = binArray.map((item) => toBeHex(item as bigint));
 
   if (hexArray.length !== 8) {
     throw new Error("Input array must have exactly 8 elements.");
@@ -99,12 +98,12 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    nullifier_hash = (
+    nullifier_hash = toBeHex(
       abi.decode(
         ["uint256"],
         `0x${params.nullifier_hash.slice(2).padStart(64, "0")}`,
-      )[0] as BigNumber
-    ).toHexString();
+      )[0],
+    );
   } catch (error) {
     logger.error("Error create nullifier hash", { error });
     return {
@@ -119,12 +118,12 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    merkle_root = (
+    merkle_root = toBeHex(
       abi.decode(
         ["uint256"],
         `0x${params.merkle_root.slice(2).padStart(64, "0")}`,
-      )[0] as BigNumber
-    ).toHexString();
+      )[0],
+    );
   } catch (error) {
     logger.error("Error create merkle root", { error });
     return {
@@ -139,12 +138,12 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    external_nullifier = (
+    external_nullifier = toBeHex(
       abi.decode(
         ["uint256"],
         `0x${params.external_nullifier.slice(2).padStart(64, "0")}`,
-      )[0] as BigNumber
-    ).toHexString();
+      )[0],
+    );
   } catch (error) {
     logger.error("Error create external nullifier", { error });
     return {
@@ -159,12 +158,12 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    signal_hash = (
+    signal_hash = toBeHex(
       abi.decode(
         ["uint256"],
         `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
-      )[0] as BigNumber
-    ).toHexString();
+      )[0],
+    );
   } catch (error) {
     logger.error("Error create signal hash", { error });
     return {

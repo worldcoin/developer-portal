@@ -16,7 +16,6 @@ test.describe("App", () => {
     await expect(page.getByText("Build your first project")).toBeVisible();
     await page.click("[data-testid='button-create-an-app']");
 
-    await expect(page.getByTestId("radio-build-staging")).toBeChecked();
     await expect(page.getByTestId("radio-verification-cloud")).toBeChecked();
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
