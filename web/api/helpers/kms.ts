@@ -98,7 +98,7 @@ export const signJWTWithKMSKey = async (
     const response = await client.send(
       new SignCommand({
         KeyId: kms_id,
-        Message: Buffer.from(encodedHeaderPayload),
+        Message: new Uint8Array(Buffer.from(encodedHeaderPayload)),
         MessageType: "RAW",
         SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
       }),
