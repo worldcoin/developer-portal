@@ -22,6 +22,8 @@ const calculateUSDAmount = (
 const safelyAdd = (a: number, b: number) =>
   (a * 10 ** 18 + b * 10 ** 18) / 10 ** 18;
 
+const roundToTwoDecimals = (num: number) => Math.round(num * 100) / 100;
+
 export const getAccumulativeTransactionData = async (
   appId: string,
 ): Promise<{
@@ -124,7 +126,7 @@ export const getAccumulativeTransactionData = async (
 
     return {
       accumulativeTransactions,
-      accumulatedTokenAmountUSD,
+      accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
     };
   } catch (error) {
     if (error instanceof Error) {
