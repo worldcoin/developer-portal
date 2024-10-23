@@ -1,11 +1,11 @@
 "use client";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
+import { QuickAction } from "@/components/QuickAction";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { teamId } from "@/tests/e2e/helpers/constants";
-import { QuickAction } from "../QuickAction";
 
 export const QuickActionsSection = ({ appId }: { appId: string }) => {
   return (

@@ -16,10 +16,11 @@ import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../layout/ImagesProvider";
-import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
+} from "../graphql/client/fetch-app-metadata.generated";
+import { viewModeAtom } from "../layout/ImagesProvider";
+import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
+import { QrQuickAction } from "./QrQuickAction";
 
 const schema = yup.object({
   name: yup
@@ -186,6 +187,9 @@ export const BasicInformation = (props: {
             <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
           </DecoratedButton>
         </form>
+        <div className="mt-7 flex justify-center sm:justify-start">
+          <QrQuickAction app_id={appId} />
+        </div>
       </div>
     </div>
   );
