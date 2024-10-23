@@ -20,7 +20,7 @@ test.describe("App", () => {
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
     await page.fill("[data-testid='input-app-name']", appName);
-    await page.selectOption("[data-testid='category-selector']", "social");
+    await page.selectOption("[data-testid='category-selector']", "Social");
     await expect(page.getByTestId("button-create-app")).toBeEnabled();
     await page.getByTestId("button-create-app").click();
 
