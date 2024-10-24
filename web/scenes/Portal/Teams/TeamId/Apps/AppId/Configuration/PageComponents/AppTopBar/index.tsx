@@ -270,6 +270,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <Typography
               variant={TYPOGRAPHY.H6}
               className=" max-w-[250px] truncate sm:max-w-[500px]"
+              data-testid="title-app-name"
             >
               {appMetaData.name}
             </Typography>

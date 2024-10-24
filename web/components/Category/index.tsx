@@ -86,6 +86,7 @@ export const CategorySelector = (props: {
               "grid grid-cols-1fr/auto",
               className,
             )}
+            data-testid="button-select-category"
           >
             <Typography variant={TYPOGRAPHY.R0}>
               {value || "Select a category"}
