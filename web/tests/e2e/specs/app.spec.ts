@@ -20,14 +20,12 @@ test.describe("App", () => {
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
     await page.fill("[data-testid='input-app-name']", appName);
-    await page.fill("[data-testid='category-selector']", "social");
+    await page.click("[data-testid='button-select-category']");
+    await page.locator("li", { hasText: "Social" }).click();
     await expect(page.getByTestId("button-create-app")).toBeEnabled();
     await page.getByTestId("button-create-app").click();
 
-    await expect(
-      page.getByText("Create your first incognito action"),
-    ).toBeVisible();
-    await expect(page.getByTestId("title-app-1")).toHaveText(appName);
-    await expect(page.getByTestId("title-app-1")).toBeVisible();
+    expect(page).toHaveURL(/.*configuration/);
+    await expect(page.getByTestId("title-app-name")).toHaveText(appName);
   });
 });
