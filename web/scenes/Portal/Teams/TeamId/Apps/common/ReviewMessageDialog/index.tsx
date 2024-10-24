@@ -23,11 +23,12 @@ export const ReviewMessageDialog = (props: {
   const router = useRouter();
   const [isOpened, setIsOpened] = useAtom(reviewMessageDialogOpenedAtom);
 
-  const { data } = useGetVerificationDataQuery({
-    variables: {
-      id: props.appId,
-    },
-  });
+  const { loading: loadingGetVerificationQuery, data } =
+    useGetVerificationDataQuery({
+      variables: {
+        id: props.appId,
+      },
+    });
 
   const verificationData = useMemo(() => data?.app?.app_metadata?.[0], [data]);
 
@@ -54,7 +55,7 @@ export const ReviewMessageDialog = (props: {
     closeModal();
   }, [closeModal, props.goTo, removeFromReview, router]);
 
-  if (!data?.app) {
+  if (!loadingGetVerificationQuery && !data?.app) {
     return (
       <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
     );
