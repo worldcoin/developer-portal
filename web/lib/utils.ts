@@ -7,6 +7,7 @@ import {
   ORB_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
+  whitelistedAppsPermit2,
 } from "./constants";
 import { generateExternalNullifier } from "./hashing";
 import {
@@ -215,6 +216,7 @@ export const formatAppMetadata = (
   const description: AppStoreMetadataDescription = tryParseJSON(
     localisedContent?.description ?? appMetadata.description,
   );
+
   const {
     localisations,
     is_reviewer_world_app_approved,
@@ -222,6 +224,11 @@ export const formatAppMetadata = (
   } = appMetadata;
 
   const name = localisedContent?.name ?? appMetadata.name;
+
+  // Check if the app is whitelisted for permit2
+  const permit2Tokens = whitelistedAppsPermit2.includes(appMetadata.app_id)
+    ? ["all"]
+    : appMetadata.permit2_tokens;
 
   return {
     ...appMetadataWithoutLocalisations,
@@ -261,6 +268,7 @@ export const formatAppMetadata = (
     },
     show_in_app_store: is_reviewer_world_app_approved,
     team_name: app.team.name ?? "",
+    permit2_tokens: permit2Tokens,
   };
 };
 
