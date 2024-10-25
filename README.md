@@ -36,6 +36,30 @@ cd web && pnpm dev
 
 You can also take advantage of the Makefile, `make up`
 
+### Running end-to-end tests
+
+End-to-end tests require Docker containers from previous block (Hasura & Postgres) to be running. You can start web app as well, but Playwright can start it for you automatically, if it won't find the app running on its default port.
+
+> [!IMPORTANT]  
+> Make sure you set up required credentials in `.env` -- you can find some of them in our shared password vault.
+
+Install browsers for end-to-end tests runs if you run tests for the first time or haven't ran them for a long time:
+
+```bash
+cd web && npx playwright install
+```
+
+> [!NOTE]  
+> These binaries are different than those executables and/or installation packages that you download the regular way. They are being stored in [**Playwright** cache folder](https://playwright.dev/docs/browsers#managing-browser-binaries).
+
+Run tests:
+
+```bash
+cd web && pnpm test:e2e
+```
+
+It's also recommended to use **Playwright** extension in **Visual Studio Code** if you debug or develop new tests. This extension helps you run individual tests or test groups and launch a debug mode with stops on breakpoints.
+
 ### Updating Database Model
 
 If you need to update anything related to the database (model, permissions, events, etc.) the easiest way is with the Hasura console.
