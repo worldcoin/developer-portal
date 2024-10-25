@@ -43,6 +43,7 @@ export async function GET(
   }
 
   const { app, ...appMetadataReturned } = app_metadata[0];
+
   const dataToReturn = {
     ...appMetadataReturned,
     description: {

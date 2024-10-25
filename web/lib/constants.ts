@@ -110,3 +110,8 @@ export const notificationPermissions = {
   staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
   production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
 };
+
+// These are addresses that have been whitelisted from the permit2 restriction
+export const whitelistedAppsPermit2 = [
+  "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
+];
