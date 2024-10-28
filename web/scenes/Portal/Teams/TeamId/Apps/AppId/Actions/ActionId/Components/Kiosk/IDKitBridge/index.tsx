@@ -44,56 +44,36 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       return;
     }
 
-    let isSubscribed = true;
-
     // Check if any interval currently exists and clear it
     if (intervalIdRef.current) {
       clearInterval(intervalIdRef.current);
-      intervalIdRef.current = undefined;
     }
 
-    const startPolling = async () => {
-      try {
-        await createClient({
-          app_id: props.app_id,
-          action: props.action,
-          bridge_url,
-          verification_level: verificationLevel ?? VerificationLevel.Device,
-          action_description: props.action_description,
-        });
-
-        if (isSubscribed) {
-          intervalIdRef.current = setInterval(async () => {
+    createClient({
+      app_id: props.app_id,
+      action: props.action,
+      bridge_url,
+      verification_level: verificationLevel ?? VerificationLevel.Device,
+      action_description: props.action_description,
+    })
+      .then(() => {
+        intervalIdRef.current = setInterval(() => {
+          (async () => {
             try {
-              if (isSubscribed) {
-                await pollForUpdates();
-              }
+              await pollForUpdates();
             } catch (error) {
-              if (intervalIdRef.current) {
-                clearInterval(intervalIdRef.current);
-                intervalIdRef.current = undefined;
-              }
+              clearInterval(intervalIdRef.current);
+              intervalIdRef.current = undefined;
             }
-          }, 3000);
-        }
-      } catch (error) {
+          })();
+        }, 3000);
+      })
+      .catch((error) => {
         if (process.env.NODE_ENV === "development") {
           console.log("Error creating client");
           console.error(error);
         }
-      }
-    };
-
-    startPolling();
-
-    // Cleanup function
-    return () => {
-      isSubscribed = false;
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-        intervalIdRef.current = undefined;
-      }
-    };
+      });
   }, [
     bridge_url,
     createClient,
@@ -106,7 +86,17 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
   ]);
 
   useEffect(() => {
-    // Change the shown screen based on current verificationState and errorCode
+    // Cleanup function using ref
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = undefined;
+      }
+    };
+  }, []);
+
+  // Change the shown screen based on current verificationState and errorCode
+  useEffect(() => {
     switch (idKitVerificationState) {
       case VerificationState.WaitingForConnection:
         setScreen(KioskScreen.Waiting);
