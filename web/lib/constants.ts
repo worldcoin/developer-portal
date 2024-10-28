@@ -97,7 +97,7 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
     [NativeAppToAppIdMapping.staging["world-chat"]]: {
       app_id: "world-chat",
-      integration_url: "worldapp://world-chat",
+      integration_url: "",
       app_mode: "mini-app",
     },
   },
@@ -119,7 +119,7 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
     [NativeAppToAppIdMapping.production["world-chat"]]: {
       app_id: "world-chat",
-      integration_url: "worldapp://world-chat",
+      integration_url: "",
       app_mode: "mini-app",
     },
   },
