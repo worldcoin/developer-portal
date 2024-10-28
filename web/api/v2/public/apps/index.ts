@@ -155,9 +155,12 @@ export const GET = async (request: NextRequest) => {
       const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
         ...app,
-        app_mode: "native",
-        integration_url: nativeAppItem.integration_url,
+        integration_url:
+          nativeAppItem.integration_url !== ""
+            ? nativeAppItem.integration_url
+            : app.integration_url,
         app_id: nativeAppItem.app_id,
+        app_mode: nativeAppItem.app_mode,
         unique_users:
           metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,
@@ -171,9 +174,9 @@ export const GET = async (request: NextRequest) => {
       const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
         ...app,
-        app_mode: "native",
         integration_url: nativeAppItem.integration_url,
         app_id: nativeAppItem.app_id,
+        app_mode: nativeAppItem.app_mode,
         unique_users:
           metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,

@@ -89,8 +89,11 @@ export async function GET(
 
     dataToReturn = {
       ...dataToReturn,
-      app_mode: "native",
-      integration_url: nativeAppItem.integration_url,
+      app_mode: nativeAppItem.app_mode,
+      integration_url:
+        nativeAppItem.integration_url !== ""
+          ? nativeAppItem.integration_url
+          : dataToReturn.integration_url,
       app_id: nativeAppItem.app_id,
     };
   }
