@@ -64,7 +64,6 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
 
         if (isSubscribed) {
           intervalIdRef.current = setInterval(async () => {
-            console.log("here");
             try {
               if (isSubscribed) {
                 await pollForUpdates();
