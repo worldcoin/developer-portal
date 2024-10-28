@@ -50,7 +50,7 @@ const _logger = winston.createLogger({
   level: "info",
   exitOnError: false,
   format: winston.format.combine(
-    // errorFormatter(),
+    errorFormatter(),
     winston.format.timestamp(),
     winston.format.json(),
   ),

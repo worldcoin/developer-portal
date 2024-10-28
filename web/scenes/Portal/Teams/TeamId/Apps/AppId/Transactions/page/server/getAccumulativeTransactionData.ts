@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logger";
 import {
   PaymentMetadata,
   TokenPrecision,
@@ -130,7 +131,7 @@ export const getAccumulativeTransactionData = async (
     };
   } catch (error) {
     if (error instanceof Error) {
-      console.warn("Error fetching transaction data", {
+      logger.warn("Error fetching transaction data", {
         errorName: error.name,
         errorMessage: error.message,
         errorStack: error.stack,

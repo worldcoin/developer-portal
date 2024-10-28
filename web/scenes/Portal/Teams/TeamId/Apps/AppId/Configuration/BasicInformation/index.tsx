@@ -163,7 +163,7 @@ export const BasicInformation = (props: {
           />
 
           <Input
-            label="Try it out"
+            label="App URL"
             required
             errors={errors.integration_url}
             disabled={!isEditable || !isEnoughPermissions}
