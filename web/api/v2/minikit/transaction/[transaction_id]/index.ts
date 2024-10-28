@@ -1,4 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { logger } from "@/lib/logger";
 import { TransactionTypes } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
@@ -82,7 +83,7 @@ export const GET = async (
   const data = await res.json();
 
   if (!res.ok) {
-    console.warn("Error fetching transaction data", data);
+    logger.warn("Error fetching transaction data", data);
 
     let errorMessage;
     if (data && data.error) {

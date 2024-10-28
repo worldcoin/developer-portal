@@ -66,12 +66,12 @@ const submitSchema = yup.object().shape({
   showcase_img_urls: yup.array().nullable().optional(),
   integration_url: yup
     .string()
-    .url("Try it out URL is not a valid url")
+    .url("App URL is not a valid url")
     .matches(
       /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "Integration URL is not a valid url",
+      "App URL is not a valid url",
     )
-    .required("Try it out URL is required"),
+    .required("App URL is required"),
   app_website_url: yup
     .string()
     .url("Official Website URL is not a valid url")
