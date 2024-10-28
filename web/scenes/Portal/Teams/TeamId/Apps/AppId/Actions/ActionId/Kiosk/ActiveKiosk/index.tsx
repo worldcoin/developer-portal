@@ -168,7 +168,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
     }
   }, [proofResult, verifyProof]);
   return (
-    <div className={clsx("fixed inset-0 grid w-full justify-center bg-white")}>
+    (<div className={clsx("fixed inset-0 grid w-full justify-center bg-white")}>
       <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr overflow-auto">
         <header className="relative flex min-h-[80px] items-center justify-between">
           <div className="left-0 flex w-1/3 items-center pl-4">
@@ -269,13 +269,13 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
             {logo && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              (<img
                 src={getCDNImageUrl(appId, logo) ?? ""}
                 alt="logo"
                 width={200}
                 height={200}
                 className="size-8 rounded-full"
-              />
+              />)
             )}
 
             <Typography
@@ -401,6 +401,6 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>)
   );
 };

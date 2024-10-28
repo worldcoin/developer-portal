@@ -13,24 +13,23 @@ export const Logo = (props: {
   const [image, setImage] = useState<string | null | undefined>(props.src);
 
   return (
-    <div
+    (<div
       className={twMerge(
         clsx("size-20 overflow-hidden rounded-2xl", props.className),
       )}
     >
       {image && (
         // FIXME: update src
-        <Image
+        (<Image
           src={image}
           alt="Team logo"
           onError={() => setImage(null)}
           className="size-full object-contain"
           width={80}
           height={80}
-        />
+        />)
       )}
-
       {!image && <WorldcoinBlueprintIcon className="size-full" />}
-    </div>
+    </div>)
   );
 };

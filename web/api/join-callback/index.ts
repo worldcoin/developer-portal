@@ -74,7 +74,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   try {
     const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
-    const headersList = nextHeaders();
+    const headersList = await nextHeaders();
     let headers: Record<string, string> = {};
 
     headersList.forEach((v, k) => {

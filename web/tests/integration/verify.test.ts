@@ -23,12 +23,13 @@ jest.mock(
 );
 
 const validParams = (app_id: string, action: string) =>
-  ({
+  (({
     // proof verification is mocked
     ...semaphoreProofParamsMock,
+
     app_id: app_id,
-    action: action,
-  }) as Record<string, string>;
+    action: action
+  }) as Record<string, string>);
 
 describe("/api/v1/verify/[app_id]", () => {
   test("can verify a valid request", async () => {

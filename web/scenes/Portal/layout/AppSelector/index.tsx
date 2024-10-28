@@ -67,7 +67,7 @@ export const AppSelector = () => {
   }
 
   return (
-    <Select
+    (<Select
       value={data.app.find((app) => app.id === appId) ?? null}
       onChange={onChange}
       by={(
@@ -81,7 +81,7 @@ export const AppSelector = () => {
             {value?.verified_app_metadata?.[0]?.logo_img_url ? (
               // CDN urls should not use Next Image
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              (<img
                 src={
                   getCDNImageUrl(
                     appId ?? "",
@@ -90,7 +90,7 @@ export const AppSelector = () => {
                 }
                 alt="app logo"
                 className="size-6 rounded-lg"
-              />
+              />)
             ) : (
               <Placeholder
                 name={value?.app_metadata[0].name ?? "Select app"}
@@ -108,7 +108,6 @@ export const AppSelector = () => {
           </div>
         )}
       </SelectButton>
-
       <SelectOptions className="max-h-[50vh] max-w-[200px]">
         {data.app.map((app) => (
           <SelectOption key={app.id} value={app}>
@@ -117,7 +116,7 @@ export const AppSelector = () => {
                 {app?.verified_app_metadata?.[0]?.logo_img_url ? (
                   // CDN urls should not use Next Image
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  (<img
                     src={
                       getCDNImageUrl(
                         app.id,
@@ -126,7 +125,7 @@ export const AppSelector = () => {
                     }
                     alt="app logo"
                     className="size-6 rounded-lg"
-                  />
+                  />)
                 ) : (
                   <Placeholder
                     name={app?.app_metadata[0].name ?? "Select app"}
@@ -156,6 +155,6 @@ export const AppSelector = () => {
           </SelectOption>
         )}
       </SelectOptions>
-    </Select>
+    </Select>)
   );
 };

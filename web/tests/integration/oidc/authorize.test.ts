@@ -44,21 +44,23 @@ const pkceChallenge = (code_verifier: string) => {
 };
 
 const validParams = (app_id: string, pkce = false) =>
-  ({
+  (({
     // proof verification is mocked
     ...semaphoreProofParamsMock,
+
     app_id: app_id,
     scope: "openid email",
     response_type: "code",
     redirect_uri: "http://localhost:3000/login",
     state: "my_state",
+
     ...(pkce
       ? {
           code_challenge: pkceChallenge("my_code_challenge"),
           code_challenge_method: "S256",
         }
-      : {}),
-  }) as Record<string, string>;
+      : {})
+  }) as Record<string, string>);
 
 // TODO: Add additional test cases
 describe("/api/v1/oidc/authorize", () => {

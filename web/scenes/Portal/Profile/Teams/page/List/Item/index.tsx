@@ -60,7 +60,7 @@ export const Item = (props: ItemsProps) => {
   };
 
   return (
-    <Component
+    (<Component
       className={clsx(
         "md:group rounded-2xl border border-grey-100 max-md:grid max-md:grid-cols-[1fr_auto] md:contents md:max-w-full",
         {
@@ -92,7 +92,7 @@ export const Item = (props: ItemsProps) => {
               {!item ? (
                 <Skeleton width={200} />
               ) : (
-                item.team.name ?? "" /*FIXME: team.name must be non nullable*/
+                (item.team.name ?? "") /*FIXME: team.name must be non nullable*/
               )}
             </Typography>
           </div>
@@ -204,8 +204,7 @@ export const Item = (props: ItemsProps) => {
           )}
         </div>
       </div>
-
       <hr className="max-md:hidden md:col-span-4 md:border-t md:border-grey-100" />
-    </Component>
+    </Component>)
   );
 };

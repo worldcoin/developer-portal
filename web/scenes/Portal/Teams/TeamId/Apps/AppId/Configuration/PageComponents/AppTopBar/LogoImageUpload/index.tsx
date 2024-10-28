@@ -142,7 +142,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   }, [appId, logoFile, viewMode]);
 
   return (
-    <div className={clsx("relative flex size-20 items-center justify-center")}>
+    (<div className={clsx("relative flex size-20 items-center justify-center")}>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
         <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
@@ -218,12 +218,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          (<img
             src={verifiedImageURL}
             alt="logo"
             className="rounded-2xl drop-shadow-lg"
             onError={() => setVerifiedImageError(true)}
-          />
+          />)
         ))}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
@@ -253,6 +253,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       >
         <EditIcon className="size-3" />
       </Button>
-    </div>
+    </div>)
   );
 };
