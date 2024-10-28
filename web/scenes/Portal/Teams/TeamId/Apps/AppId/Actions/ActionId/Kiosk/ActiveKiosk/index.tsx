@@ -82,24 +82,25 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   }, [reset]);
 
   useEffect(() => {
-    if (screen === KioskScreen.Success && resetInterval > 0) {
+    if (screen !== KioskScreen.Success || resetInterval <= 0) {
+      return;
+    }
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    timerRef.current = setTimeout(() => {
+      resetKiosk();
+    }, resetInterval);
+
+    return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
-
-      if (resetInterval === 0) {
-        return;
-      }
-
-      timerRef.current = setTimeout(() => {
-        resetKiosk();
-      }, resetInterval);
-      return () => {
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-        }
-      };
-    }
+    };
   }, [screen, resetInterval, resetKiosk]);
 
   // Reset kiosk if the action changes
