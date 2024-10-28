@@ -1,33 +1,25 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 const ImageLoader = (props: { name: string; className?: string }) => {
   const { name } = props;
   const [progress, setProgress] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    timerRef.current = setInterval(() => {
+    const timer = setInterval(() => {
       setProgress((oldProgress) => {
         if (oldProgress >= 99) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
+          clearInterval(timer);
           return 99;
         }
-        return Math.min(oldProgress + 9, 99);
+        const newProgress = oldProgress + 9;
+        return Math.min(newProgress, 99);
       });
     }, 150);
-
-    // Cleanup function
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      clearInterval(timer);
     };
   }, []);
 
