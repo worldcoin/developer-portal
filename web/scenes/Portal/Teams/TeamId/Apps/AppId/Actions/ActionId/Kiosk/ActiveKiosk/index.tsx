@@ -92,7 +92,6 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
     }
 
     timerRef.current = setTimeout(() => {
-      console.log("here");
       resetKiosk();
     }, resetInterval);
 
