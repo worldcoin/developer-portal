@@ -98,134 +98,140 @@ export default async function handleOIDCAuthorize(
     return errorNotAllowed(req.method, res, req);
   }
 
-  if (!process.env.REDIS_URL || !process.env.REDIS_USERNAME) {
-    return errorResponse(
-      res,
-      500,
-      "missing_redis_config",
-      "Missing ENV variables.",
-      "INVALID_CONFIG",
-      req,
-    );
-  }
+  let redis;
 
-  if (process.env.NODE_ENV !== "development" && !process.env.REDIS_USERNAME) {
-    return errorResponse(
-      res,
-      500,
-      "missing_redis_config",
-      "Missing ENV variables.",
-      "INVALID_CONFIG",
-      req,
-    );
-  }
+  try {
+    // Initial validations...
+    if (!process.env.REDIS_URL || !process.env.REDIS_USERNAME) {
+      return errorResponse(
+        res,
+        500,
+        "missing_redis_config",
+        "Missing ENV variables.",
+        "INVALID_CONFIG",
+        req,
+      );
+    }
 
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema,
-    value: req.body,
-  });
+    if (process.env.NODE_ENV !== "development" && !process.env.REDIS_USERNAME) {
+      return errorResponse(
+        res,
+        500,
+        "missing_redis_config",
+        "Missing ENV variables.",
+        "INVALID_CONFIG",
+        req,
+      );
+    }
 
-  if (!isValid) {
-    return handleError(req, res);
-  }
+    const { isValid, parsedParams, handleError } = await validateRequestSchema({
+      schema,
+      value: req.body,
+    });
 
-  const {
-    proof,
-    nullifier_hash,
-    merkle_root,
-    signal,
-    verification_level,
-    response_type,
-    app_id,
-    scope,
-    redirect_uri,
-    code_challenge,
-    code_challenge_method,
-  } = parsedParams;
+    if (!isValid) {
+      return handleError(req, res);
+    }
 
-  const response_types = decodeURIComponent(
-    (response_type as string | string[]).toString(),
-  ).split(" ");
+    const {
+      proof,
+      nullifier_hash,
+      merkle_root,
+      signal,
+      verification_level,
+      response_type,
+      app_id,
+      scope,
+      redirect_uri,
+      code_challenge,
+      code_challenge_method,
+    } = parsedParams;
 
-  for (const response_type of response_types) {
-    if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
+    const response_types = decodeURIComponent(
+      (response_type as string | string[]).toString(),
+    ).split(" ");
+
+    for (const response_type of response_types) {
+      if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
+        return errorValidation(
+          OIDCErrorCodes.UnsupportedResponseType,
+          `Invalid response type: ${response_type}.`,
+          "response_type",
+          res,
+          req,
+        );
+      }
+    }
+
+    if (code_challenge && code_challenge_method !== "S256") {
       return errorValidation(
-        OIDCErrorCodes.UnsupportedResponseType,
-        `Invalid response type: ${response_type}.`,
-        "response_type",
+        OIDCErrorCodes.InvalidRequest,
+        `Invalid code_challenge_method: ${code_challenge_method}.`,
+        "code_challenge_method",
         res,
         req,
       );
     }
-  }
 
-  if (code_challenge && code_challenge_method !== "S256") {
-    return errorValidation(
-      OIDCErrorCodes.InvalidRequest,
-      `Invalid code_challenge_method: ${code_challenge_method}.`,
-      "code_challenge_method",
-      res,
-      req,
+    const scopes = decodeURIComponent(
+      (scope as string | string[])?.toString(),
+    ).split(" ") as OIDCScopes[];
+    const sanitizedScopes: OIDCScopes[] = scopes.length
+      ? [
+          ...new Set(
+            // NOTE: Invalid scopes are ignored per spec (3.1.2.1)
+            scopes.filter((scope) => Object.values(OIDCScopes).includes(scope)),
+          ),
+        ]
+      : [];
+
+    if (
+      !sanitizedScopes.length ||
+      !sanitizedScopes.includes(OIDCScopes.OpenID)
+    ) {
+      return errorValidation(
+        OIDCErrorCodes.InvalidScope,
+        `The ${OIDCScopes.OpenID} scope is always required.`,
+        "scope",
+        res,
+        req,
+      );
+    }
+
+    // ANCHOR: Check the app is valid and fetch information
+    const { app, error: fetchAppError } = await fetchOIDCApp(
+      app_id,
+      redirect_uri,
     );
-  }
+    if (!app || fetchAppError) {
+      return errorResponse(
+        res,
+        fetchAppError?.statusCode ?? 400,
+        fetchAppError?.code ?? "error",
+        fetchAppError?.message ?? "Error fetching app.",
+        fetchAppError?.attribute ?? "app_id",
+        req,
+      );
+    }
 
-  const scopes = decodeURIComponent(
-    (scope as string | string[])?.toString(),
-  ).split(" ") as OIDCScopes[];
-  const sanitizedScopes: OIDCScopes[] = scopes.length
-    ? [
-        ...new Set(
-          // NOTE: Invalid scopes are ignored per spec (3.1.2.1)
-          scopes.filter((scope) => Object.values(OIDCScopes).includes(scope)),
-        ),
-      ]
-    : [];
+    // ANCHOR: Verify redirect URI is valid
+    if (app.registered_redirect_uri !== redirect_uri) {
+      return errorValidation(
+        OIDCErrorCodes.InvalidRedirectURI,
+        "Invalid redirect URI.",
+        "redirect_uri",
+        res,
+        req,
+      );
+    }
 
-  if (!sanitizedScopes.length || !sanitizedScopes.includes(OIDCScopes.OpenID)) {
-    return errorValidation(
-      OIDCErrorCodes.InvalidScope,
-      `The ${OIDCScopes.OpenID} scope is always required.`,
-      "scope",
-      res,
-      req,
-    );
-  }
+    redis = createRedisClient({
+      url: process.env.REDIS_URL,
+      password: process.env.REDIS_PASSWORD,
+      username: process.env.REDIS_USERNAME,
+    });
 
-  // ANCHOR: Check the app is valid and fetch information
-  const { app, error: fetchAppError } = await fetchOIDCApp(
-    app_id,
-    redirect_uri,
-  );
-  if (!app || fetchAppError) {
-    return errorResponse(
-      res,
-      fetchAppError?.statusCode ?? 400,
-      fetchAppError?.code ?? "error",
-      fetchAppError?.message ?? "Error fetching app.",
-      fetchAppError?.attribute ?? "app_id",
-      req,
-    );
-  }
-
-  // ANCHOR: Verify redirect URI is valid
-  if (app.registered_redirect_uri !== redirect_uri) {
-    return errorValidation(
-      OIDCErrorCodes.InvalidRedirectURI,
-      "Invalid redirect URI.",
-      "redirect_uri",
-      res,
-      req,
-    );
-  }
-
-  const redis = createRedisClient({
-    url: process.env.REDIS_URL,
-    password: process.env.REDIS_PASSWORD,
-    username: process.env.REDIS_USERNAME,
-  });
-
-  try {
-    // Anchor: Check the proof hasn't been replayed then save the proof for 1.5 hours
+    // Anchor: Check the proof hasn't been replayed
     const hashedProof = createHash("sha256").update(proof).digest("hex");
     const proofKey = `oidc:proof:${hashedProof}`;
     const isProofReplayed = await redis.get(proofKey);
@@ -239,9 +245,10 @@ export default async function handleOIDCAuthorize(
         "proof",
         req,
       );
-    } else {
-      redis.set(proofKey, "1", "EX", 5400);
     }
+
+    // Set the proof before continuing with other operations
+    await redis.set(proofKey, "1", "EX", 5400);
 
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
@@ -384,7 +391,29 @@ export default async function handleOIDCAuthorize(
     });
 
     res.status(200).json(response);
+  } catch (error) {
+    // Handle any unexpected errors
+    logger.error("Unexpected error in OIDC authorize", { error });
+
+    // If we haven't sent a response yet, send a generic error
+    if (!res.writableEnded) {
+      return errorResponse(
+        res,
+        500,
+        "internal_server_error",
+        "An unexpected error occurred",
+        "server",
+        req,
+      );
+    }
   } finally {
-    await redis.quit();
+    // Safe cleanup of Redis connection
+    if (redis) {
+      try {
+        await redis.quit();
+      } catch (redisError) {
+        logger.error("Error closing Redis connection", { redisError });
+      }
+    }
   }
 }
