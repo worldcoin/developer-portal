@@ -104,11 +104,9 @@ export const GetAppsDocument = gql`
   ) {
     top_apps: app_metadata(
       where: {
-        _and: [
-          { app: { is_banned: { _eq: false } } }
-          { is_reviewer_world_app_approved: { _eq: true } }
-          { verification_status: { _eq: "verified" } }
-        ]
+        app: { is_banned: { _eq: false } }
+        is_reviewer_world_app_approved: { _eq: true }
+        verification_status: { _eq: "verified" }
       }
       limit: $limit
       offset: $offset
