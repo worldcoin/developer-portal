@@ -1,5 +1,5 @@
 # https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
-FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:20-alpine AS base
+FROM --platform=linux/amd64 public.ecr.aws/docker/library/node:20.15.1-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
