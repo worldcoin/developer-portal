@@ -5,9 +5,6 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetAppsQueryVariables = Types.Exact<{
-  topAppsConditions?: Types.InputMaybe<
-    Array<Types.App_Metadata_Bool_Exp> | Types.App_Metadata_Bool_Exp
-  >;
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
   highlightsIds?: Types.InputMaybe<
@@ -100,7 +97,6 @@ export type GetAppsQuery = {
 
 export const GetAppsDocument = gql`
   query GetApps(
-    $topAppsConditions: [app_metadata_bool_exp!]
     $limit: Int!
     $offset: Int!
     $highlightsIds: [String!]
@@ -109,8 +105,8 @@ export const GetAppsDocument = gql`
     top_apps: app_metadata(
       where: {
         app: { is_banned: { _eq: false } }
-        _and: $topAppsConditions
-        _or: [{ is_reviewer_world_app_approved: { _eq: true } }]
+        is_reviewer_world_app_approved: { _eq: true }
+        verification_status: { _eq: "verified" }
       }
       limit: $limit
       offset: $offset

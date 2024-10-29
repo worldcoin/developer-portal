@@ -89,11 +89,6 @@ export const GET = async (request: NextRequest) => {
   // ANCHOR: Fetch app rankings
   try {
     const { top_apps, highlights } = await getAppsSdk(client).GetApps({
-      topAppsConditions: {
-        app: { is_banned: { _eq: false } },
-        verification_status: { _eq: "verified" },
-        is_reviewer_world_app_approved: { _eq: true },
-      },
       highlightsIds,
       limit: limitValue,
       offset,
