@@ -224,160 +224,167 @@ export default async function handleOIDCAuthorize(
     username: process.env.REDIS_USERNAME,
   });
 
-  // Anchor: Check the proof hasn't been replayed then save the proof for 1.5 hours
-  const hashedProof = createHash("sha256").update(proof).digest("hex");
-  const proofKey = `oidc:proof:${hashedProof}`;
-  const isProofReplayed = await redis.get(proofKey);
-
-  if (isProofReplayed) {
-    return errorResponse(
-      res,
-      400,
-      "invalid_proof",
-      "This proof has already been used. Please try again",
-      "proof",
-      req,
-    );
-  } else {
-    redis.set(proofKey, "1", "EX", 5400);
-  }
-
-  // ANCHOR: Verify the zero-knowledge proof
-  const { error: verifyError } = await verifyProof(
-    {
-      proof,
-      nullifier_hash,
-      merkle_root,
-      signal,
-      external_nullifier: app.external_nullifier,
-    },
-    {
-      is_staging: app.is_staging,
-      verification_level,
-      max_age: 3600, // require that root be less than 1 hour old
-    },
-  );
-
-  if (verifyError) {
-    return errorResponse(
-      res,
-      verifyError.statusCode ?? 400,
-      verifyError.code ?? "invalid_proof",
-      verifyError.message ?? "Verification request error. Please try again.",
-      verifyError.attribute,
-      req,
-    );
-  }
-
-  // ANCHOR: Proof is valid, issue relevant codes
-  const response = {} as { code?: string; id_token?: string; token?: string };
-
-  if (response_types.includes(OIDCResponseType.Code)) {
-    const shouldStoreSignal =
-      checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
-      signal;
-
-    response.code = await generateOIDCCode(
-      app.id,
-      nullifier_hash,
-      verification_level,
-      sanitizedScopes,
-      redirect_uri,
-      code_challenge,
-      code_challenge_method,
-      shouldStoreSignal ? signal : null,
-    );
-  }
-
-  let jwt: string | undefined;
-  for (const response_type of response_types) {
-    if (
-      OIDCResponseTypeMapping[
-        response_type as keyof typeof OIDCResponseTypeMapping
-      ] === OIDCResponseType.JWT
-    ) {
-      if (!jwt) {
-        const jwk = await fetchActiveJWK();
-
-        jwt = await generateOIDCJWT({
-          app_id: app.id,
-          nullifier_hash,
-          verification_level,
-          nonce: signal,
-          scope: sanitizedScopes,
-          ...jwk,
-        });
-      }
-
-      response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
-    }
-  }
-
-  const client = await getAPIServiceClient();
-
-  let hasNullifier: boolean = false;
-
   try {
-    const fetchNullifierResult = await client.query<{
-      nullifier: {
-        id: string;
-      }[];
-    }>({
-      query: Nullifier,
-      variables: {
-        nullifier_hash,
-      },
-    });
+    // Anchor: Check the proof hasn't been replayed then save the proof for 1.5 hours
+    const hashedProof = createHash("sha256").update(proof).digest("hex");
+    const proofKey = `oidc:proof:${hashedProof}`;
+    const isProofReplayed = await redis.get(proofKey);
 
-    if (!fetchNullifierResult?.data?.nullifier) {
-      logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
-      hasNullifier = false;
+    if (isProofReplayed) {
+      return errorResponse(
+        res,
+        400,
+        "invalid_proof",
+        "This proof has already been used. Please try again",
+        "proof",
+        req,
+      );
+    } else {
+      redis.set(proofKey, "1", "EX", 5400);
     }
-    hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0]?.id);
-  } catch (error) {
-    // Temp Fix to reduce on call alerts
-    logger.warn("Query error nullifier.", {
-      nullifier_hash,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-  }
 
-  if (!hasNullifier) {
-    try {
-      const { data: insertNullifierResult } = await client.mutate<{
-        insert_nullifier_one: {
-          id: string;
-          nullifier_hash: string;
-        };
-      }>({
-        mutation: UpsertNullifier,
-        variables: {
-          object: {
+    // ANCHOR: Verify the zero-knowledge proof
+    const { error: verifyError } = await verifyProof(
+      {
+        proof,
+        nullifier_hash,
+        merkle_root,
+        signal,
+        external_nullifier: app.external_nullifier,
+      },
+      {
+        is_staging: app.is_staging,
+        verification_level,
+        max_age: 3600, // require that root be less than 1 hour old
+      },
+    );
+
+    if (verifyError) {
+      return errorResponse(
+        res,
+        verifyError.statusCode ?? 400,
+        verifyError.code ?? "invalid_proof",
+        verifyError.message ?? "Verification request error. Please try again.",
+        verifyError.attribute,
+        req,
+      );
+    }
+
+    // ANCHOR: Proof is valid, issue relevant codes
+    const response = {} as { code?: string; id_token?: string; token?: string };
+
+    if (response_types.includes(OIDCResponseType.Code)) {
+      const shouldStoreSignal =
+        checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
+        signal;
+
+      response.code = await generateOIDCCode(
+        app.id,
+        nullifier_hash,
+        verification_level,
+        sanitizedScopes,
+        redirect_uri,
+        code_challenge,
+        code_challenge_method,
+        shouldStoreSignal ? signal : null,
+      );
+    }
+
+    let jwt: string | undefined;
+    for (const response_type of response_types) {
+      if (
+        OIDCResponseTypeMapping[
+          response_type as keyof typeof OIDCResponseTypeMapping
+        ] === OIDCResponseType.JWT
+      ) {
+        if (!jwt) {
+          const jwk = await fetchActiveJWK();
+
+          jwt = await generateOIDCJWT({
+            app_id: app.id,
             nullifier_hash,
-            action_id: app.action_id,
-          },
-          on_conflict: {
-            constraint: "nullifier_pkey",
-          },
+            verification_level,
+            nonce: signal,
+            scope: sanitizedScopes,
+            ...jwk,
+          });
+        }
+
+        response[response_type as keyof typeof OIDCResponseTypeMapping] = jwt;
+      }
+    }
+
+    const client = await getAPIServiceClient();
+
+    let hasNullifier: boolean = false;
+
+    try {
+      const fetchNullifierResult = await client.query<{
+        nullifier: {
+          id: string;
+        }[];
+      }>({
+        query: Nullifier,
+        variables: {
+          nullifier_hash,
         },
       });
 
-      if (!insertNullifierResult?.insert_nullifier_one) {
-        logger.error("Error inserting nullifier.", insertNullifierResult ?? {});
+      if (!fetchNullifierResult?.data?.nullifier) {
+        logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
+        hasNullifier = false;
       }
+      hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0]?.id);
     } catch (error) {
-      logger.error("Generic Error inserting nullifier", { req, error });
+      // Temp Fix to reduce on call alerts
+      logger.warn("Query error nullifier.", {
+        nullifier_hash,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
+
+    if (!hasNullifier) {
+      try {
+        const { data: insertNullifierResult } = await client.mutate<{
+          insert_nullifier_one: {
+            id: string;
+            nullifier_hash: string;
+          };
+        }>({
+          mutation: UpsertNullifier,
+          variables: {
+            object: {
+              nullifier_hash,
+              action_id: app.action_id,
+            },
+            on_conflict: {
+              constraint: "nullifier_pkey",
+            },
+          },
+        });
+
+        if (!insertNullifierResult?.insert_nullifier_one) {
+          logger.error(
+            "Error inserting nullifier.",
+            insertNullifierResult ?? {},
+          );
+        }
+      } catch (error) {
+        logger.error("Generic Error inserting nullifier", { req, error });
+      }
+    }
+
+    await captureEvent({
+      event: "world_id_sign_in_success",
+      distinctId: app.id,
+      properties: {
+        verification_level: verification_level,
+      },
+    });
+
+    res.status(200).json(response);
+  } finally {
+    await redis.quit();
   }
-
-  await captureEvent({
-    event: "world_id_sign_in_success",
-    distinctId: app.id,
-    properties: {
-      verification_level: verification_level,
-    },
-  });
-
-  res.status(200).json(response);
 }
