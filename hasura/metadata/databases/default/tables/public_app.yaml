@@ -140,7 +140,6 @@ update_permissions:
     permission:
       columns:
         - description_internal
-        - engine
         - is_archived
         - status
       filter:
