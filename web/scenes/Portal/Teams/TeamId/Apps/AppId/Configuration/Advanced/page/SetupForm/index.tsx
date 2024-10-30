@@ -19,6 +19,11 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
+import {
+  GetEngineDocument,
+  useGetEngineQuery,
+} from "./graphql/client/get-engine.generated";
+import { useUpdateEngineMutation } from "./graphql/client/switch-engine.generated";
 import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
 
 const schema = yup.object().shape({
@@ -59,6 +64,29 @@ export const SetupForm = (props: LinksFormProps) => {
 
   const [updateSetupMutation, { loading: updatingInfo }] =
     useUpdateSetupMutation();
+
+  const [updateEngineMutation, { loading: updatingEngine }] =
+    useUpdateEngineMutation();
+
+  const updateEngine = async () => {
+    const engine =
+      engineData?.app_by_pk?.engine === "cloud" ? "on-chain" : "cloud";
+
+    await updateEngineMutation({
+      variables: {
+        app_id: appId,
+        engine: engine,
+      },
+      refetchQueries: [GetEngineDocument],
+    });
+    toast.success("Engine switched successfully");
+  };
+
+  const { data: engineData } = useGetEngineQuery({
+    variables: {
+      app_id: appId,
+    },
+  });
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -363,6 +391,9 @@ export const SetupForm = (props: LinksFormProps) => {
           enableResize={false}
         />
       </div>
+      <DecoratedButton type="button" onClick={updateEngine}>
+        Switch Engine - Current Engine: {engineData?.app_by_pk?.engine}
+      </DecoratedButton>
       <DecoratedButton
         type="submit"
         className="h-12 w-40"
