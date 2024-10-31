@@ -223,8 +223,8 @@ export const POST = async (req: NextRequest) => {
         title,
         message,
         miniAppPath: mini_app_path,
-        maxNotificationsPerDay: 1,
-        isAllowedUnlimitedNotifications: true, // This is temporary while the API is restricted to studios
+        max_notifications_per_day: 1,
+        is_allowed_unlimited_notifications: true, // This is temporary while the API is restricted to studios
       }),
     },
   );
