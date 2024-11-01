@@ -271,7 +271,7 @@ export const SetupForm = (props: LinksFormProps) => {
         <div className="grid gap-y-5">
           <div className="grid gap-y-3">
             <div className="flex flex-row gap-x-2">
-              <WLDIcon />
+              <WLDIcon className="pb-1" />
               <Typography variant={TYPOGRAPHY.H7} className="text-center">
                 Whitelisted Payment Addresses
               </Typography>
