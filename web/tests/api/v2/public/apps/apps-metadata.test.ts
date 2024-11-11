@@ -2,7 +2,8 @@ import { GET } from "@/api/v2/public/apps";
 import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
-import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
+import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
+import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated";
 
 // Mock the external dependencies
 jest.mock("@/api/helpers/graphql", () => ({
@@ -15,7 +16,6 @@ jest.mock(
     getSdk: jest.fn(() => ({
       GetApps: jest.fn().mockResolvedValue({
         top_apps: [],
-        highlights: [],
       }),
     })),
   }),
@@ -32,15 +32,32 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated",
+  () => ({
+    getSdk: jest.fn(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        highlights: [],
+      }),
+    })),
+  }),
+);
+
 beforeEach(() => {
   jest.resetAllMocks();
 });
 
 describe("/api/v2/public/apps", () => {
   test("should handle empty rankings correctly", async () => {
-    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+    jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
         app_rankings: [{ rankings: [] }],
+      }),
+    }));
+
+    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        highlights: [],
       }),
     }));
 
@@ -69,12 +86,16 @@ describe("/api/v2/public/apps", () => {
 
   test("Valid payload", async () => {
     // Mocking the response to simulate non-empty rankings
-    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+    jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
         app_rankings: [{ rankings: [] }],
       }),
     }));
-
+    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        highlights: [],
+      }),
+    }));
     jest.mocked(getAppsSdk).mockImplementation(() => ({
       GetApps: jest.fn().mockResolvedValue({
         top_apps: [
@@ -161,7 +182,6 @@ describe("/api/v2/public/apps", () => {
             },
           },
         ],
-        highlights: [],
       }),
     }));
 
@@ -175,6 +195,7 @@ describe("/api/v2/public/apps", () => {
 
     expect(await response.json()).toEqual({
       app_rankings: {
+        highlights: [],
         top_apps: [
           {
             app_id: "1",
@@ -259,16 +280,20 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
           },
         ],
-        highlights: [],
       },
       categories: Categories,
     });
   });
 
   test("Native Apps", async () => {
-    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+    jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
         app_rankings: [{ rankings: [] }],
+      }),
+    }));
+    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        highlights: [],
       }),
     }));
 
@@ -307,9 +332,9 @@ describe("/api/v2/public/apps", () => {
             },
           },
         ],
-        highlights: [],
       }),
     }));
+
     const request = new NextRequest("https://cdn.test.com/api/v2/public/apps", {
       headers: {
         host: "cdn.test.com",
