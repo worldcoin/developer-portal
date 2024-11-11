@@ -6,8 +6,8 @@
         from_env: HASURA_GRAPHQL_DATABASE_URL
       isolation_level: read-committed
       pool_settings:
-        connection_lifetime: 600
-        max_connections: 35
+        connection_lifetime: 300
+        max_connections: 30
       use_prepared_statements: true
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
