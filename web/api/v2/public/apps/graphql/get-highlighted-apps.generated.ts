@@ -4,15 +4,18 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetAppsQueryVariables = Types.Exact<{
+export type GetHighlightsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
+  highlightsIds?: Types.InputMaybe<
+    Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
+  >;
   locale: Types.Scalars["String"]["input"];
 }>;
 
-export type GetAppsQuery = {
+export type GetHighlightsQuery = {
   __typename?: "query_root";
-  top_apps: Array<{
+  highlights: Array<{
     __typename?: "app_metadata";
     name: string;
     short_name: string;
@@ -53,13 +56,19 @@ export type GetAppsQuery = {
   }>;
 };
 
-export const GetAppsDocument = gql`
-  query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
-    top_apps: app_metadata(
+export const GetHighlightsDocument = gql`
+  query GetHighlights(
+    $limit: Int!
+    $offset: Int!
+    $highlightsIds: [String!]
+    $locale: String!
+  ) {
+    highlights: app_metadata(
       where: {
-        app: { is_banned: { _eq: false } }
-        is_reviewer_world_app_approved: { _eq: true }
+        app_id: { _in: $highlightsIds }
         verification_status: { _eq: "verified" }
+        is_reviewer_world_app_approved: { _eq: true }
+        app: { is_banned: { _eq: false } }
       }
       limit: $limit
       offset: $offset
@@ -123,17 +132,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetApps(
-      variables: GetAppsQueryVariables,
+    GetHighlights(
+      variables: GetHighlightsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetAppsQuery> {
+    ): Promise<GetHighlightsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetAppsQuery>(GetAppsDocument, variables, {
+          client.request<GetHighlightsQuery>(GetHighlightsDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "GetApps",
+        "GetHighlights",
         "query",
         variables,
       );

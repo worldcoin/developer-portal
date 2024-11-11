@@ -12,7 +12,12 @@ import {
   GetAppsQuery,
   getSdk as getAppsSdk,
 } from "./graphql/get-app-rankings.generated";
-import { getSdk as getHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
+import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
+
+import {
+  GetHighlightsQuery,
+  getSdk as getHighlightsSdk,
+} from "./graphql/get-highlighted-apps.generated";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
@@ -67,7 +72,7 @@ export const GET = async (request: NextRequest) => {
   let highlightsIds: string[] = [];
 
   try {
-    const { app_rankings } = await getHighlightsSdk(client).GetHighlights();
+    const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
     highlightsIds = app_rankings[0]?.rankings ?? [];
   } catch (error) {
     console.log(error);
@@ -81,20 +86,25 @@ export const GET = async (request: NextRequest) => {
   }
 
   let topApps: GetAppsQuery["top_apps"] = [];
-  let highlightsApps: GetAppsQuery["highlights"] = [];
+  let highlightsApps: GetHighlightsQuery["highlights"] = [];
 
   const limitValue = limit ?? 500;
   const offset = page ? (page - 1) * limitValue : 0;
 
   // ANCHOR: Fetch app rankings
   try {
-    const { top_apps, highlights } = await getAppsSdk(client).GetApps({
-      highlightsIds,
+    const { top_apps } = await getAppsSdk(client).GetApps({
       limit: limitValue,
       offset,
       locale,
     });
     topApps = top_apps;
+    const { highlights } = await getHighlightsSdk(client).GetHighlights({
+      limit: limitValue,
+      offset,
+      highlightsIds,
+      locale,
+    });
     highlightsApps = highlights;
   } catch (error) {
     console.log(error);
