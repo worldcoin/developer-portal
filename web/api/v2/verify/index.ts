@@ -271,7 +271,7 @@ export async function POST(
       return errorResponse({
         statusCode: 400,
         code: "verification_error",
-        detail: "There was an error inserting the nullifier. Please try again.",
+        detail: e.message,
         attribute: null,
         req,
       });
