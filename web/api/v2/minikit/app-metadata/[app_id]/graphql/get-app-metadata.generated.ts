@@ -38,7 +38,6 @@ export type GetAppMetadataQuery = {
     permit2_tokens?: Array<string> | null;
     can_import_all_contacts: boolean;
     is_reviewer_world_app_approved: boolean;
-    canImportAllContacts: boolean;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -83,7 +82,6 @@ export const GetAppMetadataDocument = gql`
       contracts
       permit2_tokens
       can_import_all_contacts
-      canImportAllContacts: can_import_all_contacts
       is_reviewer_world_app_approved
       localisations(where: { locale: { _eq: $locale } }) {
         name

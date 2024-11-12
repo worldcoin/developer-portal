@@ -12220,7 +12220,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "args": [],
             "type": {
@@ -12352,7 +12352,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "args": [],
             "type": {
@@ -12638,7 +12638,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -13623,7 +13623,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -13648,7 +13648,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -13796,7 +13796,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -13892,7 +13892,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -13988,7 +13988,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -14228,7 +14228,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -14320,7 +14320,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -14424,7 +14424,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -14508,7 +14508,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -14935,7 +14935,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -15336,7 +15336,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -15723,7 +15723,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -16124,7 +16124,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -16568,7 +16568,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -16664,7 +16664,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -16748,7 +16748,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17018,7 +17018,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17066,7 +17066,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17102,7 +17102,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17216,13 +17216,13 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17264,13 +17264,13 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -17366,7 +17366,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -17470,7 +17470,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -17542,7 +17542,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -17809,7 +17809,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -17834,7 +17834,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17869,7 +17869,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -17894,7 +17894,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17929,7 +17929,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -17954,7 +17954,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18074,7 +18074,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18178,7 +18178,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18250,7 +18250,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18517,7 +18517,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -18542,7 +18542,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18592,7 +18592,7 @@
             "deprecationReason": null
           },
           {
-            "name": "canImportAllContacts",
+            "name": "can_import_all_contacts",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18640,7 +18640,7 @@
             "deprecationReason": null
           },
           {
-            "name": "isAllowedUnlimitedNotifications",
+            "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18676,7 +18676,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18851,7 +18851,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -18876,7 +18876,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18911,7 +18911,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -18936,7 +18936,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18971,7 +18971,7 @@
             "deprecationReason": null
           },
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "args": [],
             "type": {
@@ -18996,7 +18996,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "maxNotificationsPerDay",
+            "name": "max_notifications_per_day",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -32595,12 +32595,6 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
-          {
-            "name": "app_metadata_id_locale",
-            "description": "unique or primary key constraint on columns \"locale\", \"app_metadata_id\"",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
           {
             "name": "localisations_pkey",
             "description": "unique or primary key constraint on columns \"id\"",
