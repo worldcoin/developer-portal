@@ -35,7 +35,7 @@ export type GetAppsQuery = {
     associated_domains?: Array<string> | null;
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
-    canImportAllContacts: boolean;
+    can_import_all_contacts: boolean;
     is_reviewer_world_app_approved: boolean;
     app_rating?: number | null;
     localisations: Array<{
@@ -85,7 +85,7 @@ export const GetAppsDocument = gql`
       associated_domains
       contracts
       permit2_tokens
-      canImportAllContacts
+      can_import_all_contacts
       is_reviewer_world_app_approved
       localisations(where: { locale: { _eq: $locale } }) {
         name

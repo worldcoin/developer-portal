@@ -208,7 +208,7 @@ export type AppStoreMetadataFields = {
   associated_domains?: string[] | null;
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
-  canImportAllContacts?: boolean | null;
+  can_import_all_contacts?: boolean | null;
   app: {
     team: { name?: string | null };
   };

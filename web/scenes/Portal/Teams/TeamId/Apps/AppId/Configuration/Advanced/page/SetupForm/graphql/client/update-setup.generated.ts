@@ -19,7 +19,7 @@ export type UpdateSetupMutationVariables = Types.Exact<{
   permit2_tokens?: Types.InputMaybe<
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  canImportAllContacts?: Types.InputMaybe<Types.Scalars["Boolean"]["input"]>;
+  can_import_all_contacts?: Types.InputMaybe<Types.Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpdateSetupMutation = {
@@ -38,7 +38,7 @@ export const UpdateSetupDocument = gql`
     $associated_domains: [String!]
     $contracts: [String!]
     $permit2_tokens: [String!]
-    $canImportAllContacts: Boolean
+    $can_import_all_contacts: Boolean
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
@@ -48,7 +48,7 @@ export const UpdateSetupDocument = gql`
         associated_domains: $associated_domains
         contracts: $contracts
         permit2_tokens: $permit2_tokens
-        canImportAllContacts: $canImportAllContacts
+        can_import_all_contacts: $can_import_all_contacts
       }
     ) {
       id
@@ -79,7 +79,7 @@ export type UpdateSetupMutationFn = Apollo.MutationFunction<
  *      associated_domains: // value for 'associated_domains'
  *      contracts: // value for 'contracts'
  *      permit2_tokens: // value for 'permit2_tokens'
- *      canImportAllContacts: // value for 'canImportAllContacts'
+ *      can_import_all_contacts: // value for 'can_import_all_contacts'
  *   },
  * });
  */

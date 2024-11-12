@@ -1,0 +1,3 @@
+ALTER TABLE app_metadata RENAME COLUMN can_import_all_contacts TO canImportAllContacts;
+ALTER TABLE app_metadata RENAME COLUMN is_allowed_unlimited_notifications TO isAllowedUnlimitedNotifications;
+ALTER TABLE app_metadata RENAME COLUMN max_notifications_per_day TO maxNotificationsPerDay;

@@ -5,7 +5,7 @@ mutation UpdateSetup(
   $associated_domains: [String!]
   $contracts: [String!]
   $permit2_tokens: [String!]
-  $canImportAllContacts: Boolean
+  $can_import_all_contacts: Boolean
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
@@ -15,7 +15,7 @@ mutation UpdateSetup(
       associated_domains: $associated_domains
       contracts: $contracts
       permit2_tokens: $permit2_tokens
-      canImportAllContacts: $canImportAllContacts
+      can_import_all_contacts: $can_import_all_contacts
     }
   ) {
     id

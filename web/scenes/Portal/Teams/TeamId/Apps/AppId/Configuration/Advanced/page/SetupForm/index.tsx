@@ -41,7 +41,7 @@ const schema = yup.object().shape({
     .nullable(),
   contracts: yup.string().nullable(),
   permit2_tokens: yup.string().nullable(),
-  canImportAllContacts: yup.boolean().optional(),
+  can_import_all_contacts: yup.boolean().optional(),
 });
 
 type LinksFormValues = yup.Asserts<typeof schema>;
@@ -86,7 +86,7 @@ export const SetupForm = (props: LinksFormProps) => {
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      canImportAllContacts: appMetadata?.canImportAllContacts ?? false,
+      can_import_all_contacts: appMetadata?.can_import_all_contacts ?? false,
     },
   });
 
@@ -100,7 +100,7 @@ export const SetupForm = (props: LinksFormProps) => {
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      canImportAllContacts: appMetadata?.canImportAllContacts ?? false,
+      can_import_all_contacts: appMetadata?.can_import_all_contacts ?? false,
     });
   }, [
     reset,
@@ -109,7 +109,7 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.associated_domains,
     appMetadata?.contracts,
     appMetadata?.permit2_tokens,
-    appMetadata?.canImportAllContacts,
+    appMetadata?.can_import_all_contacts,
   ]);
 
   const submit = useCallback(
@@ -161,7 +161,7 @@ export const SetupForm = (props: LinksFormProps) => {
             associated_domains,
             contracts,
             permit2_tokens,
-            canImportAllContacts: values.canImportAllContacts,
+            can_import_all_contacts: values.can_import_all_contacts,
           },
 
           refetchQueries: [
