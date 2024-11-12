@@ -6,6 +6,7 @@ import {
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
+import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -226,6 +227,9 @@ export async function POST(
         insertResponse.insert_nullifier_one?.nullifier_hash !==
         parsedParams.nullifier_hash
       ) {
+        logger.warn(
+          `Nullifier hash mismatch for action ${action.id}. Expected ${parsedParams.nullifier_hash}, got ${insertResponse.insert_nullifier_one?.nullifier_hash}.`,
+        );
         return errorResponse({
           statusCode: 400,
           code: "verification_error",
