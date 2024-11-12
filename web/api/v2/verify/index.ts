@@ -264,7 +264,10 @@ export async function POST(
         },
         { status: 200 },
       );
-    } catch (e) {
+    } catch (e: any) {
+      logger.warn(
+        `Error inserting nullifier for action ${action.id}. Error: ${e.message}`,
+      );
       return errorResponse({
         statusCode: 400,
         code: "verification_error",
