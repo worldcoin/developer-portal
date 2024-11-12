@@ -209,6 +209,7 @@ export type AppStoreMetadataFields = {
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
   can_import_all_contacts?: boolean | null;
+  verification_status: string;
   app: {
     team: { name?: string | null };
   };

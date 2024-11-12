@@ -37,6 +37,7 @@ query GetHighlights(
     permit2_tokens
     can_import_all_contacts
     is_reviewer_world_app_approved
+    verification_status
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
