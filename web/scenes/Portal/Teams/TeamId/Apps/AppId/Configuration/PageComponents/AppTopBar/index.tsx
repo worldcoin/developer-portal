@@ -19,6 +19,7 @@ import ErrorComponent from "next/error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { formSubmitStateAtom } from "../../AppStore/AppStoreLocalised/FormSubmitStateProvider";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -88,6 +89,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
+  const [formSubmitState] = useAtom(formSubmitStateAtom);
 
   useEffect(() => {
     if (app?.app_metadata.length === 0) {
@@ -264,6 +266,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
           appMetadataId={appMetaData.id}
           editable={isEditable && isEnoughPermissions}
           logoFile={appMetaData.logo_img_url}
+          isError={
+            formSubmitState.isSubmitted && appMetaData.logo_img_url === ""
+          }
         />
         <div className="grid grid-cols-1 gap-y-1">
           <div className="flex flex-col items-center gap-x-3 sm:flex-row">

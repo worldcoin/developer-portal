@@ -28,6 +28,7 @@ import {
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
+import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
 import { useInsertLocalisationMutation } from "./graphql/client/insert-localisation.generated";
@@ -63,6 +64,7 @@ export const AppStoreForm = (props: {
   );
 
   const [viewMode] = useAtom(viewModeAtom);
+  const [, setFormSubmitState] = useAtom(formSubmitStateAtom);
 
   const isEditable = appMetadata?.verification_status === "unverified";
 
@@ -106,7 +108,13 @@ export const AppStoreForm = (props: {
     reset,
     watch,
     getValues,
-    formState: { errors, isDirty },
+    formState: {
+      errors,
+      isDirty,
+      isSubmitSuccessful,
+      isSubmitting,
+      isSubmitted,
+    },
   } = useForm<AppStoreLocalisedForm>({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -155,6 +163,10 @@ export const AppStoreForm = (props: {
     locale,
     localisedData?.localisations,
   ]);
+
+  useEffect(() => {
+    setFormSubmitState({ isSubmitted });
+  }, [isSubmitted, setFormSubmitState]);
 
   const saveLocalisation = useCallback(async () => {
     const data = getValues();

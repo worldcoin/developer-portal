@@ -11,7 +11,6 @@ import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
@@ -28,10 +27,11 @@ type LogoImageUploadProps = {
   appMetadataId: string;
   teamId: string;
   editable: boolean;
+  isError: boolean;
   logoFile?: string;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const { appId, appMetadataId, teamId, editable, logoFile } = props;
+  const { appId, appMetadataId, teamId, editable, isError, logoFile } = props;
   const [showDialog, setShowDialog] = useState(false);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
@@ -42,7 +42,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();
-  const router = useRouter();
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
@@ -142,7 +141,11 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   }, [appId, logoFile, viewMode]);
 
   return (
-    <div className={clsx("relative flex size-20 items-center justify-center")}>
+    <div
+      className={clsx(
+        "relative flex w-20 flex-col items-center justify-center",
+      )}
+    >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
         <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
@@ -239,7 +242,14 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             />
           )
         ) : (
-          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
+          <div
+            className={clsx(
+              "flex size-20 items-center justify-center rounded-2xl bg-blue-100",
+              {
+                "border-2 border-system-error-500": isError,
+              },
+            )}
+          >
             <WorldcoinIcon className="size-10  text-blue-500" />
           </div>
         ))}
@@ -249,10 +259,19 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         className={clsx(
           "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
           { hidden: !editable || viewMode === "verified" },
+          { "bottom-6": isError },
         )}
       >
         <EditIcon className="size-3" />
       </Button>
+      {isError && (
+        <Typography
+          variant={TYPOGRAPHY.R5}
+          className="left-0 top-20 flex max-w-20 shrink text-red-500"
+        >
+          Logo is required.
+        </Typography>
+      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { AppTopBar } from "../../PageComponents/AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppStoreForm } from "../AppStoreLocalised";
+import { FormSubmitStateProvider } from "../AppStoreLocalised/FormSubmitStateProvider";
 import { ImageForm } from "./ImageForm";
 
 type AppProfileGalleryProps = {
@@ -51,7 +52,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <>
+      <FormSubmitStateProvider>
         <SizingWrapper gridClassName="order-1 pt-8">
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
           <hr className="my-5 w-full border-dashed text-grey-200 " />
@@ -71,7 +72,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
             />
           </div>
         </SizingWrapper>
-      </>
+      </FormSubmitStateProvider>
     );
   }
 };
