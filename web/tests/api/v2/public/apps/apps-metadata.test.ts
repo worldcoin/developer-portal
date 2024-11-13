@@ -119,6 +119,7 @@ describe("/api/v2/public/apps", () => {
               description_how_it_works: "23423",
               description_connect: "4fwfewf",
             }),
+            verification_status: "verified",
             app: {
               team: {
                 name: "Example Team",
@@ -140,6 +141,7 @@ describe("/api/v2/public/apps", () => {
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             app_mode: "external",
+            verification_status: "verified",
             description: JSON.stringify({
               description_overview: "fwefw",
               description_how_it_works: "fwefw",
@@ -170,6 +172,7 @@ describe("/api/v2/public/apps", () => {
               "showcase3.png",
             ],
             category: "Social",
+            verification_status: "unverified",
             description: JSON.stringify({
               description_overview: "random",
               description_how_it_works: "random",
@@ -221,6 +224,7 @@ describe("/api/v2/public/apps", () => {
             },
             world_app_button_text: "random",
             world_app_description: "random",
+            verification_status: "verified",
           },
           {
             app_id: "2",
@@ -249,19 +253,20 @@ describe("/api/v2/public/apps", () => {
             team_name: "Example Team",
             world_app_button_text: "random",
             world_app_description: "random",
+            verification_status: "verified",
           },
           {
             app_id: "3",
             name: "Test App3",
             short_name: "test",
-            logo_img_url: "https://cdn.test.com/3/logo.png",
-            hero_image_url: "https://cdn.test.com/3/hero.png",
+            logo_img_url: "https://cdn.test.com/unverified/3/logo.png",
+            hero_image_url: "https://cdn.test.com/unverified/3/hero.png",
             ratings_external_nullifier:
               "0x00a8ca23f766684e799bbbf19666342bb13b830c80aba71b9e25036990b539f1",
             showcase_img_urls: [
-              "https://cdn.test.com/3/showcase1.png",
-              "https://cdn.test.com/3/showcase2.png",
-              "https://cdn.test.com/3/showcase3.png",
+              "https://cdn.test.com/unverified/3/showcase1.png",
+              "https://cdn.test.com/unverified/3/showcase2.png",
+              "https://cdn.test.com/unverified/3/showcase3.png",
             ],
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
@@ -278,6 +283,7 @@ describe("/api/v2/public/apps", () => {
             team_name: "Example Team",
             world_app_button_text: "random",
             world_app_description: "random",
+            verification_status: "unverified",
           },
         ],
       },
@@ -325,6 +331,7 @@ describe("/api/v2/public/apps", () => {
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
+            verification_status: "verified",
             app: {
               team: {
                 name: "Example Team",
@@ -380,6 +387,7 @@ describe("/api/v2/public/apps", () => {
             world_app_button_text: "Use Integration",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
+            verification_status: "verified",
           },
         ],
         highlights: [],

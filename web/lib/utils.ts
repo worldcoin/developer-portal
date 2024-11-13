@@ -243,15 +243,19 @@ export const formatAppMetadata = (
     logo_img_url: getCDNImageUrl(
       appMetadata.app_id,
       appMetadata.logo_img_url,
-      is_reviewer_world_app_approved,
+      appMetadata.verification_status === "verified",
     ),
     showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
-      getCDNImageUrl(appMetadata.app_id, url, is_reviewer_world_app_approved),
+      getCDNImageUrl(
+        appMetadata.app_id,
+        url,
+        appMetadata.verification_status === "verified",
+      ),
     ),
     hero_image_url: getCDNImageUrl(
       appMetadata.app_id,
       appMetadata.hero_image_url,
-      is_reviewer_world_app_approved,
+      appMetadata.verification_status === "verified",
     ),
     description: {
       overview: description?.description_overview ?? "",
