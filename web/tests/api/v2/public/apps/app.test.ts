@@ -15,6 +15,100 @@ jest.mock(
         app_metadata: [
           {
             name: "Example App",
+            app_id: "2",
+            short_name: "test",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            world_app_description:
+              "This is an example app designed to showcase the capabilities of our platform.",
+            world_app_button_text: "Use Integration",
+            category: "Productivity",
+            description:
+              '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+            integration_url: "https://example.com/integration",
+            app_website_url: "https://example.com",
+            source_code_url: "https://github.com/example/app",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
+            support_link: "andy@gmail.com",
+            supported_countries: ["us"],
+            associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            supported_languages: ["en", "es"],
+            app_rating: 3.4,
+            verification_status: "unverified",
+            app: {
+              team: {
+                name: "Example Team",
+              },
+            },
+          },
+        ],
+      }),
+    })),
+  }),
+);
+
+describe("/api/public/app/[app_id]", () => {
+  test("Returns correct value for valid unverified app", async () => {
+    const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
+      headers: {
+        host: "cdn.test.com",
+      },
+    });
+    const response = await GET(request, { params: { app_id: "2" } });
+    expect(await response.json()).toEqual({
+      app_data: {
+        name: "Example App",
+        app_id: "2",
+        short_name: "test",
+        logo_img_url: "https://cdn.test.com/unverified/2/logo.png",
+        showcase_img_urls: [
+          "https://cdn.test.com/unverified/2/showcase1.png",
+          "https://cdn.test.com/unverified/2/showcase2.png",
+        ],
+        hero_image_url: "https://cdn.test.com/unverified/2/hero.png",
+        category: {
+          id: "productivity",
+          name: "Productivity",
+        },
+        integration_url: "https://example.com/integration",
+        app_website_url: "https://example.com",
+        source_code_url: "https://github.com/example/app",
+        team_name: "Example Team",
+        whitelisted_addresses: ["0x1234", "0x5678"],
+        app_mode: "mini-app",
+        associated_domains: ["https://worldcoin.org"],
+        contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+        permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+        ratings_external_nullifier:
+          "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
+        support_link: "andy@gmail.com",
+        supported_countries: ["us"],
+        supported_languages: ["en", "es"],
+        app_rating: 3.4,
+        unique_users: 0,
+        verification_status: "unverified",
+        description: {
+          how_it_works: "few",
+          how_to_connect: "fewf",
+          overview: "fewf",
+        },
+        world_app_button_text: "Use Integration",
+        world_app_description:
+          "This is an example app designed to showcase the capabilities of our platform.",
+      },
+    });
+  });
+
+  test("Returns correct value for valid verified app", async () => {
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Example App",
             app_id: "1",
             short_name: "test",
             logo_img_url: "logo.png",
@@ -38,6 +132,7 @@ jest.mock(
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
             app_rating: 3.4,
+            verification_status: "verified",
             app: {
               team: {
                 name: "Example Team",
@@ -46,12 +141,8 @@ jest.mock(
           },
         ],
       }),
-    })),
-  }),
-);
+    }));
 
-describe("/api/public/app/[app_id]", () => {
-  test("Returns correct value for valid app", async () => {
     const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
       headers: {
         host: "cdn.test.com",
@@ -89,6 +180,7 @@ describe("/api/public/app/[app_id]", () => {
         supported_languages: ["en", "es"],
         app_rating: 3.4,
         unique_users: 0,
+        verification_status: "verified",
         description: {
           how_it_works: "few",
           how_to_connect: "fewf",
@@ -155,11 +247,11 @@ describe("/api/public/app/[app_id]", () => {
         name: "Example App",
         app_id: "TEST_APP",
         short_name: "test",
-        logo_img_url: "https://cdn.test.com/app_test_123/logo.png",
-        hero_image_url: "https://cdn.test.com/app_test_123/hero.png",
+        logo_img_url: "https://cdn.test.com/unverified/app_test_123/logo.png",
+        hero_image_url: "https://cdn.test.com/unverified/app_test_123/hero.png",
         showcase_img_urls: [
-          "https://cdn.test.com/app_test_123/showcase1.png",
-          "https://cdn.test.com/app_test_123/showcase2.png",
+          "https://cdn.test.com/unverified/app_test_123/showcase1.png",
+          "https://cdn.test.com/unverified/app_test_123/showcase2.png",
         ],
         team_name: "Example Team",
         app_mode: "native",

@@ -11,7 +11,6 @@ import {
 } from "./constants";
 import { generateExternalNullifier } from "./hashing";
 import {
-  AppReviewStatus,
   AppStatsReturnType,
   AppStoreFormattedFields,
   AppStoreMetadataDescription,
@@ -244,19 +243,19 @@ export const formatAppMetadata = (
     logo_img_url: getCDNImageUrl(
       appMetadata.app_id,
       appMetadata.logo_img_url,
-      appMetadata.verification_status === AppReviewStatus.verified,
+      appMetadata.verification_status === "verified",
     ),
     showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
       getCDNImageUrl(
         appMetadata.app_id,
         url,
-        appMetadata.verification_status === AppReviewStatus.verified,
+        appMetadata.verification_status === "verified",
       ),
     ),
     hero_image_url: getCDNImageUrl(
       appMetadata.app_id,
       appMetadata.hero_image_url,
-      appMetadata.verification_status === AppReviewStatus.verified,
+      appMetadata.verification_status === "verified",
     ),
     description: {
       overview: description?.description_overview ?? "",
