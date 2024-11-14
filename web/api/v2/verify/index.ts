@@ -118,6 +118,7 @@ export async function POST(
     });
   }
 
+  // Check so we don't verify proof if the person has already verified before and exceeded the max number of times to verify
   if (!canVerifyForAction(nullifier, action.max_verifications)) {
     // Return error response if person has already verified before and exceeded the max number of times to verify
     const errorMsg =
@@ -201,7 +202,7 @@ export async function POST(
         app_id: app.id,
         verification_level: parsedParams.verification_level,
         environment: app.is_staging ? "staging" : "production",
-        type: nullifier.uses,
+        type: upsertResponse.update_nullifier?.returning[0]?.uses,
       },
     });
 
