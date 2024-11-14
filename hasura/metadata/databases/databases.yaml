@@ -9,20 +9,5 @@
         connection_lifetime: 300
         max_connections: 60
       use_prepared_statements: true
-  logical_models:
-    - fields:
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: nullifier_hash
-          type:
-            nullable: false
-            scalar: text
-        - name: uses
-          type:
-            nullable: false
-            scalar: integer
-      name: verify_atomic_return
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
