@@ -193,6 +193,18 @@ export async function POST(
       });
     }
 
+    await captureEvent({
+      event: "action_verify_success",
+      distinctId: action.id,
+      properties: {
+        action_id: action.id,
+        app_id: app.id,
+        verification_level: parsedParams.verification_level,
+        environment: app.is_staging ? "staging" : "production",
+        type: nullifier.uses,
+      },
+    });
+
     return NextResponse.json(
       {
         uses: upsertResponse.update_nullifier?.returning[0]?.uses,
