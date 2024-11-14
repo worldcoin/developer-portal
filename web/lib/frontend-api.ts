@@ -12,7 +12,7 @@ export const restAPIRequest = async <T>(
     requestOptions || {};
 
   try {
-    response = await fetch(`/api/v1${path}`, {
+    response = await fetch(`/api/v2${path}`, {
       ...restOfRequestOptions,
       body: json ? JSON.stringify(json) : undefined,
       headers: { ...headers, "Content-Type": "application/json" },
