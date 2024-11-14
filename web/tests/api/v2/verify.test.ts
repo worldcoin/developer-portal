@@ -5,8 +5,7 @@ import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
 
 // #region Mocks
 const FetchAppAction = jest.fn();
-const InsertNullifier = jest.fn();
-const UpdateNullifierUses = jest.fn();
+const AtomicUpsertNullifier = jest.fn();
 
 jest.mock(
   "../../../api/v2/verify/graphql/fetch-app-action.generated",
@@ -18,22 +17,14 @@ jest.mock(
 );
 
 jest.mock(
-  "../../../api/v2/verify/graphql/insert-nullifier.generated",
+  "../../../api/v2/verify/graphql/atomic-upsert-nullifier.generated",
   jest.fn(() => ({
     getSdk: () => ({
-      InsertNullifier,
+      AtomicUpsertNullifier,
     }),
   })),
 );
 
-jest.mock(
-  "../../../api/v2/verify/graphql/update-nullifier-uses.generated",
-  jest.fn(() => ({
-    getSdk: () => ({
-      UpdateNullifierUses,
-    }),
-  })),
-);
 jest.mock("../../../lib/logger", () => ({
   logger: {
     error: jest.fn(),
@@ -150,10 +141,16 @@ describe("/api/v2/verify", () => {
 
     FetchAppAction.mockResolvedValue(fetchAppResponse);
 
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: {
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-        created_at: validNullifier.created_at,
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
       },
     });
 
@@ -200,10 +197,16 @@ describe("/api/v2/verify", () => {
       status: 200,
     });
 
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: {
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-        created_at: validNullifier.created_at,
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
       },
     });
 
@@ -252,10 +255,16 @@ describe("/api/v2/verify", () => {
       status: 200,
     });
 
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: {
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-        created_at: validNullifier.created_at,
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
       },
     });
 
@@ -306,10 +315,16 @@ describe("/api/v2/verify [error cases]", () => {
 
     FetchAppAction.mockResolvedValue(fetchAppResponse);
 
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: {
-        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-        created_at: validNullifier.created_at,
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
       },
     });
 
@@ -504,8 +519,11 @@ describe("/api/v2/verify [error cases]", () => {
       status: 200,
     });
 
-    InsertNullifier.mockResolvedValue({
-      insert_nullifier_one: null,
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: null,
+      },
     });
 
     const response = await POST(mockReq, ctx);
@@ -515,7 +533,7 @@ describe("/api/v2/verify [error cases]", () => {
     expect(body).toEqual({
       attribute: null,
       code: "verification_error",
-      detail: "There was an error inserting the nullifier. Please try again.",
+      detail: "There was an error upserting the nullifier.",
     });
   });
 
@@ -589,10 +607,15 @@ describe("/api/v2/verify [error cases]", () => {
         status: 200,
       });
 
-      InsertNullifier.mockResolvedValue({
-        insert_nullifier_one: {
-          nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-          created_at: validNullifier.created_at,
+      AtomicUpsertNullifier.mockResolvedValue({
+        update_nullifier: {
+          affected_rows: 1,
+          returning: [
+            {
+              nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+              created_at: validNullifier.created_at,
+            },
+          ],
         },
       });
 

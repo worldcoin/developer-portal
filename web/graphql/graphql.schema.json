@@ -14,6 +14,7 @@
         "kind": "OBJECT",
         "name": "BanAppOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -37,6 +38,7 @@
         "kind": "SCALAR",
         "name": "Boolean",
         "description": "The `Boolean` scalar type represents `true` or `false`.",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -47,6 +49,7 @@
         "kind": "INPUT_OBJECT",
         "name": "Boolean_comparison_exp",
         "description": "Boolean expression to compare columns of type \"Boolean\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -182,6 +185,7 @@
         "kind": "OBJECT",
         "name": "CreateNewDraftOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -205,6 +209,7 @@
         "kind": "OBJECT",
         "name": "DeleteImageOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -228,6 +233,7 @@
         "kind": "SCALAR",
         "name": "Float",
         "description": "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -238,6 +244,7 @@
         "kind": "OBJECT",
         "name": "GetUploadedImageOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "url",
@@ -265,6 +272,7 @@
         "kind": "OBJECT",
         "name": "ImageGetAllUnverifiedImagesOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "hero_image_url",
@@ -320,6 +328,7 @@
         "kind": "OBJECT",
         "name": "ImageGetAppReviewImagesOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "hero_image_url",
@@ -375,6 +384,7 @@
         "kind": "SCALAR",
         "name": "Int",
         "description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -385,6 +395,7 @@
         "kind": "INPUT_OBJECT",
         "name": "Int_comparison_exp",
         "description": "Boolean expression to compare columns of type \"Int\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -520,6 +531,7 @@
         "kind": "OBJECT",
         "name": "InvalidateCacheOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -543,6 +555,7 @@
         "kind": "OBJECT",
         "name": "InviteTeamMembersOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "emails",
@@ -574,6 +587,7 @@
         "kind": "OBJECT",
         "name": "PresignedPostOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "stringifiedFields",
@@ -617,6 +631,7 @@
         "kind": "OBJECT",
         "name": "ResetAPIOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "api_key",
@@ -644,6 +659,7 @@
         "kind": "OBJECT",
         "name": "ResetClientOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "client_secret",
@@ -671,6 +687,7 @@
         "kind": "SCALAR",
         "name": "String",
         "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -681,6 +698,7 @@
         "kind": "INPUT_OBJECT",
         "name": "String_array_comparison_exp",
         "description": "Boolean expression to compare columns of type \"String\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -920,6 +938,7 @@
         "kind": "INPUT_OBJECT",
         "name": "String_comparison_exp",
         "description": "Boolean expression to compare columns of type \"String\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -1175,6 +1194,7 @@
         "kind": "OBJECT",
         "name": "ValidateLocalisationOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -1198,6 +1218,7 @@
         "kind": "OBJECT",
         "name": "VerifyAppOutput",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "success",
@@ -1221,6 +1242,7 @@
         "kind": "OBJECT",
         "name": "__Directive",
         "description": "A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "name",
@@ -1337,6 +1359,7 @@
         "kind": "ENUM",
         "name": "__DirectiveLocation",
         "description": "A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -1462,6 +1485,7 @@
         "kind": "OBJECT",
         "name": "__EnumValue",
         "description": "One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "name",
@@ -1529,6 +1553,7 @@
         "kind": "OBJECT",
         "name": "__Field",
         "description": "Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "name",
@@ -1649,6 +1674,7 @@
         "kind": "OBJECT",
         "name": "__InputValue",
         "description": "Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "name",
@@ -1744,6 +1770,7 @@
         "kind": "OBJECT",
         "name": "__Schema",
         "description": "A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "description",
@@ -1855,6 +1882,7 @@
         "kind": "OBJECT",
         "name": "__Type",
         "description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByURL`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
+        "isOneOf": null,
         "fields": [
           {
             "name": "kind",
@@ -2058,6 +2086,18 @@
             },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "isOneOf",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
@@ -2069,6 +2109,7 @@
         "kind": "ENUM",
         "name": "__TypeKind",
         "description": "An enum describing what kind of type a given `__Type` is.",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -2128,6 +2169,7 @@
         "kind": "OBJECT",
         "name": "action",
         "description": "columns and relationships of \"action\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -2803,6 +2845,7 @@
         "kind": "OBJECT",
         "name": "action_aggregate",
         "description": "aggregated selection of \"action\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -2850,6 +2893,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -2897,6 +2941,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_aggregate_bool_exp_bool_and",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -2964,6 +3009,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_aggregate_bool_exp_bool_or",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3031,6 +3077,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3102,6 +3149,7 @@
         "kind": "OBJECT",
         "name": "action_aggregate_fields",
         "description": "aggregate fields of \"action\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -3282,6 +3330,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_aggregate_order_by",
         "description": "order by aggregate values of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3425,6 +3474,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3472,6 +3522,7 @@
         "kind": "OBJECT",
         "name": "action_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -3519,6 +3570,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_avg_order_by",
         "description": "order by avg() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3554,6 +3606,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_bool_exp",
         "description": "Boolean expression to filter rows from the table \"action\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3881,6 +3934,7 @@
         "kind": "ENUM",
         "name": "action_constraint",
         "description": "unique or primary key constraints on table \"action\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -3910,6 +3964,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_inc_input",
         "description": "input type for incrementing numeric columns in table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -3945,6 +4000,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_insert_input",
         "description": "input type for inserting data into table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -4184,6 +4240,7 @@
         "kind": "OBJECT",
         "name": "action_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -4387,6 +4444,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_max_order_by",
         "description": "order by max() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -4578,6 +4636,7 @@
         "kind": "OBJECT",
         "name": "action_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -4781,6 +4840,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_min_order_by",
         "description": "order by min() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -4972,6 +5032,7 @@
         "kind": "OBJECT",
         "name": "action_mutation_response",
         "description": "response of any mutation on the table \"action\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -5023,6 +5084,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_obj_rel_insert_input",
         "description": "input type for inserting object relation for remote table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5062,6 +5124,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_on_conflict",
         "description": "on_conflict condition type for table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5125,6 +5188,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_order_by",
         "description": "Ordering options when selecting data from \"action\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5376,6 +5440,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_pk_columns_input",
         "description": "primary key columns input for table: action",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5403,6 +5468,7 @@
         "kind": "ENUM",
         "name": "action_select_column",
         "description": "select columns of table \"action\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -5510,6 +5576,7 @@
         "kind": "ENUM",
         "name": "action_select_column_action_aggregate_bool_exp_bool_and_arguments_columns",
         "description": "select \"action_aggregate_bool_exp_bool_and_arguments_columns\" columns of table \"action\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -5527,6 +5594,7 @@
         "kind": "ENUM",
         "name": "action_select_column_action_aggregate_bool_exp_bool_or_arguments_columns",
         "description": "select \"action_aggregate_bool_exp_bool_or_arguments_columns\" columns of table \"action\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -5544,6 +5612,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_set_input",
         "description": "input type for updating data in table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5747,6 +5816,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_args",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -5794,6 +5864,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning",
         "description": "Returning value of action_stats function",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -5885,6 +5956,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_aggregate",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -5932,6 +6004,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_aggregate_fields",
         "description": "aggregate fields of \"action_stats_returning\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -6112,6 +6185,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -6147,6 +6221,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_bool_exp",
         "description": "Boolean expression to filter rows from the table \"action_stats_returning\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6270,6 +6345,7 @@
         "kind": "ENUM",
         "name": "action_stats_returning_constraint",
         "description": "unique or primary key constraints on table \"action_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -6287,6 +6363,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_inc_input",
         "description": "input type for incrementing numeric columns in table \"action_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6322,6 +6399,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_insert_input",
         "description": "input type for inserting data into table \"action_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6393,6 +6471,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -6452,6 +6531,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -6511,6 +6591,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_mutation_response",
         "description": "response of any mutation on the table \"action_stats_returning\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -6562,6 +6643,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_on_conflict",
         "description": "on_conflict condition type for table \"action_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6625,6 +6707,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_order_by",
         "description": "Ordering options when selecting data from \"action_stats_returning\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6696,6 +6779,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_pk_columns_input",
         "description": "primary key columns input for table: action_stats_returning",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6723,6 +6807,7 @@
         "kind": "ENUM",
         "name": "action_stats_returning_select_column",
         "description": "select columns of table \"action_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -6758,6 +6843,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_set_input",
         "description": "input type for updating data in table \"action_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6817,6 +6903,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -6852,6 +6939,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -6887,6 +6975,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -6922,6 +7011,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_stream_cursor_input",
         "description": "Streaming cursor of the table \"action_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -6961,6 +7051,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7020,6 +7111,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -7055,6 +7147,7 @@
         "kind": "ENUM",
         "name": "action_stats_returning_update_column",
         "description": "update columns of table \"action_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -7090,6 +7183,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stats_returning_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7141,6 +7235,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -7176,6 +7271,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -7211,6 +7307,7 @@
         "kind": "OBJECT",
         "name": "action_stats_returning_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -7246,6 +7343,7 @@
         "kind": "OBJECT",
         "name": "action_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -7293,6 +7391,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stddev_order_by",
         "description": "order by stddev() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7328,6 +7427,7 @@
         "kind": "OBJECT",
         "name": "action_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -7375,6 +7475,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stddev_pop_order_by",
         "description": "order by stddev_pop() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7410,6 +7511,7 @@
         "kind": "OBJECT",
         "name": "action_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -7457,6 +7559,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stddev_samp_order_by",
         "description": "order by stddev_samp() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7492,6 +7595,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stream_cursor_input",
         "description": "Streaming cursor of the table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7531,6 +7635,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7734,6 +7839,7 @@
         "kind": "OBJECT",
         "name": "action_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -7781,6 +7887,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_sum_order_by",
         "description": "order by sum() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7816,6 +7923,7 @@
         "kind": "ENUM",
         "name": "action_update_column",
         "description": "update columns of table \"action\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -7923,6 +8031,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -7974,6 +8083,7 @@
         "kind": "OBJECT",
         "name": "action_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -8021,6 +8131,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_var_pop_order_by",
         "description": "order by var_pop() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8056,6 +8167,7 @@
         "kind": "OBJECT",
         "name": "action_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -8103,6 +8215,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_var_samp_order_by",
         "description": "order by var_samp() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8138,6 +8251,7 @@
         "kind": "OBJECT",
         "name": "action_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "max_accounts_per_user",
@@ -8185,6 +8299,7 @@
         "kind": "INPUT_OBJECT",
         "name": "action_variance_order_by",
         "description": "order by variance() on columns of table \"action\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8220,6 +8335,7 @@
         "kind": "OBJECT",
         "name": "api_key",
         "description": "columns and relationships of \"api_key\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "api_key",
@@ -8359,6 +8475,7 @@
         "kind": "OBJECT",
         "name": "api_key_aggregate",
         "description": "aggregated selection of \"api_key\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -8406,6 +8523,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8453,6 +8571,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_aggregate_bool_exp_bool_and",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8520,6 +8639,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_aggregate_bool_exp_bool_or",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8587,6 +8707,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8658,6 +8779,7 @@
         "kind": "OBJECT",
         "name": "api_key_aggregate_fields",
         "description": "aggregate fields of \"api_key\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -8742,6 +8864,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_aggregate_order_by",
         "description": "order by aggregate values of table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8789,6 +8912,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8836,6 +8960,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_bool_exp",
         "description": "Boolean expression to filter rows from the table \"api_key\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -8995,6 +9120,7 @@
         "kind": "ENUM",
         "name": "api_key_constraint",
         "description": "unique or primary key constraints on table \"api_key\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -9012,6 +9138,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_insert_input",
         "description": "input type for inserting data into table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9119,6 +9246,7 @@
         "kind": "OBJECT",
         "name": "api_key_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "api_key",
@@ -9202,6 +9330,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_max_order_by",
         "description": "order by max() on columns of table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9285,6 +9414,7 @@
         "kind": "OBJECT",
         "name": "api_key_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "api_key",
@@ -9368,6 +9498,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_min_order_by",
         "description": "order by min() on columns of table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9451,6 +9582,7 @@
         "kind": "OBJECT",
         "name": "api_key_mutation_response",
         "description": "response of any mutation on the table \"api_key\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -9502,6 +9634,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_on_conflict",
         "description": "on_conflict condition type for table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9565,6 +9698,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_order_by",
         "description": "Ordering options when selecting data from \"api_key\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9672,6 +9806,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_pk_columns_input",
         "description": "primary key columns input for table: api_key",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9699,6 +9834,7 @@
         "kind": "ENUM",
         "name": "api_key_select_column",
         "description": "select columns of table \"api_key\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -9752,6 +9888,7 @@
         "kind": "ENUM",
         "name": "api_key_select_column_api_key_aggregate_bool_exp_bool_and_arguments_columns",
         "description": "select \"api_key_aggregate_bool_exp_bool_and_arguments_columns\" columns of table \"api_key\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -9769,6 +9906,7 @@
         "kind": "ENUM",
         "name": "api_key_select_column_api_key_aggregate_bool_exp_bool_or_arguments_columns",
         "description": "select \"api_key_aggregate_bool_exp_bool_or_arguments_columns\" columns of table \"api_key\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -9786,6 +9924,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_set_input",
         "description": "input type for updating data in table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9881,6 +10020,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_stream_cursor_input",
         "description": "Streaming cursor of the table \"api_key\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -9920,6 +10060,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -10015,6 +10156,7 @@
         "kind": "ENUM",
         "name": "api_key_update_column",
         "description": "update columns of table \"api_key\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -10068,6 +10210,7 @@
         "kind": "INPUT_OBJECT",
         "name": "api_key_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -10107,6 +10250,7 @@
         "kind": "OBJECT",
         "name": "app",
         "description": "columns and relationships of \"app\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "actions",
@@ -10726,6 +10870,7 @@
         "kind": "OBJECT",
         "name": "app_aggregate",
         "description": "aggregated selection of \"app\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -10773,6 +10918,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -10820,6 +10966,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_aggregate_bool_exp_bool_and",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -10887,6 +11034,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_aggregate_bool_exp_bool_or",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -10954,6 +11102,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11025,6 +11174,7 @@
         "kind": "OBJECT",
         "name": "app_aggregate_fields",
         "description": "aggregate fields of \"app\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -11109,6 +11259,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_aggregate_order_by",
         "description": "order by aggregate values of table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11156,6 +11307,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11203,6 +11355,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11482,6 +11635,7 @@
         "kind": "ENUM",
         "name": "app_constraint",
         "description": "unique or primary key constraints on table \"app\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -11499,6 +11653,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_insert_input",
         "description": "input type for inserting data into table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11702,6 +11857,7 @@
         "kind": "OBJECT",
         "name": "app_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -11833,6 +11989,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_max_order_by",
         "description": "order by max() on columns of table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -11964,6 +12121,7 @@
         "kind": "OBJECT",
         "name": "app_metadata",
         "description": "columns and relationships of \"app_metadata\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app",
@@ -12773,6 +12931,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_aggregate",
         "description": "aggregated selection of \"app_metadata\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -12820,6 +12979,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -12867,6 +13027,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_aggregate_bool_exp_bool_and",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -12934,6 +13095,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_aggregate_bool_exp_bool_or",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -13001,6 +13163,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -13072,6 +13235,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_aggregate_fields",
         "description": "aggregate fields of \"app_metadata\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -13252,6 +13416,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_aggregate_order_by",
         "description": "order by aggregate values of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -13395,6 +13560,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -13442,6 +13608,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -13477,6 +13644,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_avg_order_by",
         "description": "order by avg() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -13500,6 +13668,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_metadata\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -14031,6 +14200,7 @@
         "kind": "ENUM",
         "name": "app_metadata_constraint",
         "description": "unique or primary key constraints on table \"app_metadata\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -14054,6 +14224,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_inc_input",
         "description": "input type for incrementing numeric columns in table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -14077,6 +14248,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_insert_input",
         "description": "input type for inserting data into table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -14588,6 +14760,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -15015,6 +15188,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_max_order_by",
         "description": "order by max() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -15374,6 +15548,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -15801,6 +15976,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_min_order_by",
         "description": "order by min() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -16160,6 +16336,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_mutation_response",
         "description": "response of any mutation on the table \"app_metadata\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -16211,6 +16388,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_obj_rel_insert_input",
         "description": "input type for inserting object relation for remote table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -16250,6 +16428,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_on_conflict",
         "description": "on_conflict condition type for table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -16313,6 +16492,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_order_by",
         "description": "Ordering options when selecting data from \"app_metadata\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -16780,6 +16960,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_pk_columns_input",
         "description": "primary key columns input for table: app_metadata",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -16807,6 +16988,7 @@
         "kind": "ENUM",
         "name": "app_metadata_select_column",
         "description": "select columns of table \"app_metadata\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -17028,6 +17210,7 @@
         "kind": "ENUM",
         "name": "app_metadata_select_column_app_metadata_aggregate_bool_exp_bool_and_arguments_columns",
         "description": "select \"app_metadata_aggregate_bool_exp_bool_and_arguments_columns\" columns of table \"app_metadata\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -17075,6 +17258,7 @@
         "kind": "ENUM",
         "name": "app_metadata_select_column_app_metadata_aggregate_bool_exp_bool_or_arguments_columns",
         "description": "select \"app_metadata_aggregate_bool_exp_bool_or_arguments_columns\" columns of table \"app_metadata\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -17122,6 +17306,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_set_input",
         "description": "input type for updating data in table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -17609,6 +17794,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -17644,6 +17830,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_stddev_order_by",
         "description": "order by stddev() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -17667,6 +17854,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -17702,6 +17890,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_stddev_pop_order_by",
         "description": "order by stddev_pop() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -17725,6 +17914,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -17760,6 +17950,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_stddev_samp_order_by",
         "description": "order by stddev_samp() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -17783,6 +17974,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_stream_cursor_input",
         "description": "Streaming cursor of the table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -17822,6 +18014,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18309,6 +18502,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -18344,6 +18538,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_sum_order_by",
         "description": "order by sum() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18367,6 +18562,7 @@
         "kind": "ENUM",
         "name": "app_metadata_update_column",
         "description": "update columns of table \"app_metadata\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -18588,6 +18784,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18639,6 +18836,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -18674,6 +18872,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_var_pop_order_by",
         "description": "order by var_pop() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18697,6 +18896,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -18732,6 +18932,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_var_samp_order_by",
         "description": "order by var_samp() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18755,6 +18956,7 @@
         "kind": "OBJECT",
         "name": "app_metadata_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_rating",
@@ -18790,6 +18992,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_metadata_variance_order_by",
         "description": "order by variance() on columns of table \"app_metadata\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -18813,6 +19016,7 @@
         "kind": "OBJECT",
         "name": "app_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -18944,6 +19148,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_min_order_by",
         "description": "order by min() on columns of table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19075,6 +19280,7 @@
         "kind": "OBJECT",
         "name": "app_mutation_response",
         "description": "response of any mutation on the table \"app\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -19126,6 +19332,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_obj_rel_insert_input",
         "description": "input type for inserting object relation for remote table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19165,6 +19372,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_on_conflict",
         "description": "on_conflict condition type for table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19228,6 +19436,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_order_by",
         "description": "Ordering options when selecting data from \"app\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19431,6 +19640,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_pk_columns_input",
         "description": "primary key columns input for table: app",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19458,6 +19668,7 @@
         "kind": "OBJECT",
         "name": "app_rankings",
         "description": "columns and relationships of \"app_rankings\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "country",
@@ -19537,6 +19748,7 @@
         "kind": "OBJECT",
         "name": "app_rankings_aggregate",
         "description": "aggregated selection of \"app_rankings\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -19584,6 +19796,7 @@
         "kind": "OBJECT",
         "name": "app_rankings_aggregate_fields",
         "description": "aggregate fields of \"app_rankings\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -19668,6 +19881,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_rankings\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19779,6 +19993,7 @@
         "kind": "ENUM",
         "name": "app_rankings_constraint",
         "description": "unique or primary key constraints on table \"app_rankings\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -19802,6 +20017,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_insert_input",
         "description": "input type for inserting data into table \"app_rankings\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -19869,6 +20085,7 @@
         "kind": "OBJECT",
         "name": "app_rankings_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "country",
@@ -19936,6 +20153,7 @@
         "kind": "OBJECT",
         "name": "app_rankings_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "country",
@@ -20003,6 +20221,7 @@
         "kind": "OBJECT",
         "name": "app_rankings_mutation_response",
         "description": "response of any mutation on the table \"app_rankings\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -20054,6 +20273,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_on_conflict",
         "description": "on_conflict condition type for table \"app_rankings\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20117,6 +20337,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_order_by",
         "description": "Ordering options when selecting data from \"app_rankings\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20176,6 +20397,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_pk_columns_input",
         "description": "primary key columns input for table: app_rankings",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20203,6 +20425,7 @@
         "kind": "ENUM",
         "name": "app_rankings_select_column",
         "description": "select columns of table \"app_rankings\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -20238,6 +20461,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_set_input",
         "description": "input type for updating data in table \"app_rankings\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20305,6 +20529,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_stream_cursor_input",
         "description": "Streaming cursor of the table \"app_rankings\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20344,6 +20569,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20411,6 +20637,7 @@
         "kind": "ENUM",
         "name": "app_rankings_update_column",
         "description": "update columns of table \"app_rankings\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -20446,6 +20673,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_rankings_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20485,6 +20713,7 @@
         "kind": "OBJECT",
         "name": "app_report",
         "description": "columns and relationships of \"app_report\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -20600,6 +20829,7 @@
         "kind": "OBJECT",
         "name": "app_report_aggregate",
         "description": "aggregated selection of \"app_report\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -20647,6 +20877,7 @@
         "kind": "OBJECT",
         "name": "app_report_aggregate_fields",
         "description": "aggregate fields of \"app_report\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -20731,6 +20962,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_report\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20878,6 +21110,7 @@
         "kind": "ENUM",
         "name": "app_report_constraint",
         "description": "unique or primary key constraints on table \"app_report\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -20895,6 +21128,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_insert_input",
         "description": "input type for inserting data into table \"app_report\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -20990,6 +21224,7 @@
         "kind": "OBJECT",
         "name": "app_report_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -21085,6 +21320,7 @@
         "kind": "OBJECT",
         "name": "app_report_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -21180,6 +21416,7 @@
         "kind": "OBJECT",
         "name": "app_report_mutation_response",
         "description": "response of any mutation on the table \"app_report\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -21231,6 +21468,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_on_conflict",
         "description": "on_conflict condition type for table \"app_report\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21294,6 +21532,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_order_by",
         "description": "Ordering options when selecting data from \"app_report\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21389,6 +21628,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_pk_columns_input",
         "description": "primary key columns input for table: app_report",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21416,6 +21656,7 @@
         "kind": "ENUM",
         "name": "app_report_select_column",
         "description": "select columns of table \"app_report\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -21469,6 +21710,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_set_input",
         "description": "input type for updating data in table \"app_report\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21564,6 +21806,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_stream_cursor_input",
         "description": "Streaming cursor of the table \"app_report\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21603,6 +21846,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21698,6 +21942,7 @@
         "kind": "ENUM",
         "name": "app_report_update_column",
         "description": "update columns of table \"app_report\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -21751,6 +21996,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_report_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -21790,6 +22036,7 @@
         "kind": "OBJECT",
         "name": "app_reviews",
         "description": "columns and relationships of \"app_reviews\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -21913,6 +22160,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_aggregate",
         "description": "aggregated selection of \"app_reviews\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -21960,6 +22208,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_aggregate_fields",
         "description": "aggregate fields of \"app_reviews\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -22140,6 +22389,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -22163,6 +22413,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_reviews\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22310,6 +22561,7 @@
         "kind": "ENUM",
         "name": "app_reviews_constraint",
         "description": "unique or primary key constraints on table \"app_reviews\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -22333,6 +22585,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_inc_input",
         "description": "input type for incrementing numeric columns in table \"app_reviews\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22356,6 +22609,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_insert_input",
         "description": "input type for inserting data into table \"app_reviews\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22451,6 +22705,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -22546,6 +22801,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -22641,6 +22897,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_mutation_response",
         "description": "response of any mutation on the table \"app_reviews\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -22692,6 +22949,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_on_conflict",
         "description": "on_conflict condition type for table \"app_reviews\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22755,6 +23013,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_order_by",
         "description": "Ordering options when selecting data from \"app_reviews\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22850,6 +23109,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_pk_columns_input",
         "description": "primary key columns input for table: app_reviews",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -22877,6 +23137,7 @@
         "kind": "ENUM",
         "name": "app_reviews_select_column",
         "description": "select columns of table \"app_reviews\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -22930,6 +23191,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_set_input",
         "description": "input type for updating data in table \"app_reviews\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23025,6 +23287,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23048,6 +23311,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23071,6 +23335,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23094,6 +23359,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_stream_cursor_input",
         "description": "Streaming cursor of the table \"app_reviews\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23133,6 +23399,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23228,6 +23495,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23251,6 +23519,7 @@
         "kind": "ENUM",
         "name": "app_reviews_update_column",
         "description": "update columns of table \"app_reviews\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -23304,6 +23573,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_reviews_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23355,6 +23625,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23378,6 +23649,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23401,6 +23673,7 @@
         "kind": "OBJECT",
         "name": "app_reviews_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "rating",
@@ -23424,6 +23697,7 @@
         "kind": "ENUM",
         "name": "app_select_column",
         "description": "select columns of table \"app\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -23513,6 +23787,7 @@
         "kind": "ENUM",
         "name": "app_select_column_app_aggregate_bool_exp_bool_and_arguments_columns",
         "description": "select \"app_aggregate_bool_exp_bool_and_arguments_columns\" columns of table \"app\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -23542,6 +23817,7 @@
         "kind": "ENUM",
         "name": "app_select_column_app_aggregate_bool_exp_bool_or_arguments_columns",
         "description": "select \"app_aggregate_bool_exp_bool_or_arguments_columns\" columns of table \"app\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -23571,6 +23847,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_set_input",
         "description": "input type for updating data in table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23738,6 +24015,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_args",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -23785,6 +24063,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning",
         "description": "Returning value of app_stats function",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app",
@@ -23876,6 +24155,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_aggregate",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -23923,6 +24203,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_aggregate_fields",
         "description": "aggregate fields of \"app_stats_returning\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -24103,6 +24384,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -24138,6 +24420,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_stats_returning\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24261,6 +24544,7 @@
         "kind": "ENUM",
         "name": "app_stats_returning_constraint",
         "description": "unique or primary key constraints on table \"app_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -24278,6 +24562,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_inc_input",
         "description": "input type for incrementing numeric columns in table \"app_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24313,6 +24598,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_insert_input",
         "description": "input type for inserting data into table \"app_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24384,6 +24670,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -24443,6 +24730,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -24502,6 +24790,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_mutation_response",
         "description": "response of any mutation on the table \"app_stats_returning\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -24553,6 +24842,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_on_conflict",
         "description": "on_conflict condition type for table \"app_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24616,6 +24906,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_order_by",
         "description": "Ordering options when selecting data from \"app_stats_returning\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24687,6 +24978,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_pk_columns_input",
         "description": "primary key columns input for table: app_stats_returning",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24714,6 +25006,7 @@
         "kind": "ENUM",
         "name": "app_stats_returning_select_column",
         "description": "select columns of table \"app_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -24749,6 +25042,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_set_input",
         "description": "input type for updating data in table \"app_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24808,6 +25102,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -24843,6 +25138,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -24878,6 +25174,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -24913,6 +25210,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_stream_cursor_input",
         "description": "Streaming cursor of the table \"app_stats_returning\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -24952,6 +25250,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25011,6 +25310,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -25046,6 +25346,7 @@
         "kind": "ENUM",
         "name": "app_stats_returning_update_column",
         "description": "update columns of table \"app_stats_returning\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -25081,6 +25382,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stats_returning_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25132,6 +25434,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -25167,6 +25470,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -25202,6 +25506,7 @@
         "kind": "OBJECT",
         "name": "app_stats_returning_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "unique_users",
@@ -25237,6 +25542,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stream_cursor_input",
         "description": "Streaming cursor of the table \"app\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25276,6 +25582,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25443,6 +25750,7 @@
         "kind": "ENUM",
         "name": "app_update_column",
         "description": "update columns of table \"app\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -25532,6 +25840,7 @@
         "kind": "INPUT_OBJECT",
         "name": "app_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25571,6 +25880,7 @@
         "kind": "OBJECT",
         "name": "auth_code",
         "description": "columns and relationships of \"auth_code\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -25787,6 +26097,7 @@
         "kind": "OBJECT",
         "name": "auth_code_aggregate",
         "description": "aggregated selection of \"auth_code\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -25834,6 +26145,7 @@
         "kind": "OBJECT",
         "name": "auth_code_aggregate_fields",
         "description": "aggregate fields of \"auth_code\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -25918,6 +26230,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_append_input",
         "description": "append existing jsonb value of filtered columns with new jsonb value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -25941,6 +26254,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_bool_exp",
         "description": "Boolean expression to filter rows from the table \"auth_code\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26160,6 +26474,7 @@
         "kind": "ENUM",
         "name": "auth_code_constraint",
         "description": "unique or primary key constraints on table \"auth_code\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -26177,6 +26492,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_delete_at_path_input",
         "description": "delete the field or element with specified path (for JSON arrays, negative integers count from the end)",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26208,6 +26524,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_delete_elem_input",
         "description": "delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26231,6 +26548,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_delete_key_input",
         "description": "delete key/value pair or string element. key/value pairs are matched based on their key value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26254,6 +26572,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_insert_input",
         "description": "input type for inserting data into table \"auth_code\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26421,6 +26740,7 @@
         "kind": "OBJECT",
         "name": "auth_code_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -26576,6 +26896,7 @@
         "kind": "OBJECT",
         "name": "auth_code_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -26731,6 +27052,7 @@
         "kind": "OBJECT",
         "name": "auth_code_mutation_response",
         "description": "response of any mutation on the table \"auth_code\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -26782,6 +27104,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_on_conflict",
         "description": "on_conflict condition type for table \"auth_code\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -26845,6 +27168,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_order_by",
         "description": "Ordering options when selecting data from \"auth_code\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27012,6 +27336,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_pk_columns_input",
         "description": "primary key columns input for table: auth_code",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27039,6 +27364,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_prepend_input",
         "description": "prepend existing jsonb value of filtered columns with new jsonb value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27062,6 +27388,7 @@
         "kind": "ENUM",
         "name": "auth_code_select_column",
         "description": "select columns of table \"auth_code\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -27151,6 +27478,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_set_input",
         "description": "input type for updating data in table \"auth_code\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27318,6 +27646,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_stream_cursor_input",
         "description": "Streaming cursor of the table \"auth_code\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27357,6 +27686,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27524,6 +27854,7 @@
         "kind": "ENUM",
         "name": "auth_code_update_column",
         "description": "update columns of table \"auth_code\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -27613,6 +27944,7 @@
         "kind": "INPUT_OBJECT",
         "name": "auth_code_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -27712,6 +28044,7 @@
         "kind": "OBJECT",
         "name": "cache",
         "description": "columns and relationships of \"cache\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -27799,6 +28132,7 @@
         "kind": "OBJECT",
         "name": "cache_aggregate",
         "description": "aggregated selection of \"cache\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -27846,6 +28180,7 @@
         "kind": "OBJECT",
         "name": "cache_aggregate_fields",
         "description": "aggregate fields of \"cache\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -27930,6 +28265,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_bool_exp",
         "description": "Boolean expression to filter rows from the table \"cache\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28053,6 +28389,7 @@
         "kind": "ENUM",
         "name": "cache_constraint",
         "description": "unique or primary key constraints on table \"cache\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -28076,6 +28413,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_insert_input",
         "description": "input type for inserting data into table \"cache\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28147,6 +28485,7 @@
         "kind": "OBJECT",
         "name": "cache_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -28218,6 +28557,7 @@
         "kind": "OBJECT",
         "name": "cache_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -28289,6 +28629,7 @@
         "kind": "OBJECT",
         "name": "cache_mutation_response",
         "description": "response of any mutation on the table \"cache\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -28340,6 +28681,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_on_conflict",
         "description": "on_conflict condition type for table \"cache\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28403,6 +28745,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_order_by",
         "description": "Ordering options when selecting data from \"cache\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28474,6 +28817,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_pk_columns_input",
         "description": "primary key columns input for table: cache",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28501,6 +28845,7 @@
         "kind": "ENUM",
         "name": "cache_select_column",
         "description": "select columns of table \"cache\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -28542,6 +28887,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_set_input",
         "description": "input type for updating data in table \"cache\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28613,6 +28959,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_stream_cursor_input",
         "description": "Streaming cursor of the table \"cache\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28652,6 +28999,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28723,6 +29071,7 @@
         "kind": "ENUM",
         "name": "cache_update_column",
         "description": "update columns of table \"cache\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -28764,6 +29113,7 @@
         "kind": "INPUT_OBJECT",
         "name": "cache_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -28803,6 +29153,7 @@
         "kind": "ENUM",
         "name": "cursor_ordering",
         "description": "ordering argument of a cursor",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -28826,6 +29177,7 @@
         "kind": "OBJECT",
         "name": "invite",
         "description": "Invites",
+        "isOneOf": null,
         "fields": [
           {
             "name": "email",
@@ -28917,6 +29269,7 @@
         "kind": "OBJECT",
         "name": "invite_aggregate",
         "description": "aggregated selection of \"invite\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -28964,6 +29317,7 @@
         "kind": "OBJECT",
         "name": "invite_aggregate_fields",
         "description": "aggregate fields of \"invite\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -29048,6 +29402,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_bool_exp",
         "description": "Boolean expression to filter rows from the table \"invite\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29171,6 +29526,7 @@
         "kind": "ENUM",
         "name": "invite_constraint",
         "description": "unique or primary key constraints on table \"invite\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29188,6 +29544,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_insert_input",
         "description": "input type for inserting data into table \"invite\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29259,6 +29616,7 @@
         "kind": "OBJECT",
         "name": "invite_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "email",
@@ -29318,6 +29676,7 @@
         "kind": "OBJECT",
         "name": "invite_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "email",
@@ -29377,6 +29736,7 @@
         "kind": "OBJECT",
         "name": "invite_mutation_response",
         "description": "response of any mutation on the table \"invite\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -29428,6 +29788,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_on_conflict",
         "description": "on_conflict condition type for table \"invite\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29491,6 +29852,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_order_by",
         "description": "Ordering options when selecting data from \"invite\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29562,6 +29924,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_pk_columns_input",
         "description": "primary key columns input for table: invite",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29589,6 +29952,7 @@
         "kind": "ENUM",
         "name": "invite_select_column",
         "description": "select columns of table \"invite\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29624,6 +29988,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_set_input",
         "description": "input type for updating data in table \"invite\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29683,6 +30048,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_stream_cursor_input",
         "description": "Streaming cursor of the table \"invite\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29722,6 +30088,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29781,6 +30148,7 @@
         "kind": "ENUM",
         "name": "invite_update_column",
         "description": "update columns of table \"invite\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29816,6 +30184,7 @@
         "kind": "INPUT_OBJECT",
         "name": "invite_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29855,6 +30224,7 @@
         "kind": "SCALAR",
         "name": "jsonb",
         "description": null,
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29865,6 +30235,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jsonb_cast_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -29888,6 +30259,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jsonb_comparison_exp",
         "description": "Boolean expression to compare columns of type \"jsonb\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30111,6 +30483,7 @@
         "kind": "OBJECT",
         "name": "jwks",
         "description": "Stores valid JWKs used for offline signature verification",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -30227,6 +30600,7 @@
         "kind": "OBJECT",
         "name": "jwks_aggregate",
         "description": "aggregated selection of \"jwks\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -30274,6 +30648,7 @@
         "kind": "OBJECT",
         "name": "jwks_aggregate_fields",
         "description": "aggregate fields of \"jwks\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -30358,6 +30733,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_append_input",
         "description": "append existing jsonb value of filtered columns with new jsonb value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30381,6 +30757,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_bool_exp",
         "description": "Boolean expression to filter rows from the table \"jwks\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30516,6 +30893,7 @@
         "kind": "ENUM",
         "name": "jwks_constraint",
         "description": "unique or primary key constraints on table \"jwks\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -30539,6 +30917,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_delete_at_path_input",
         "description": "delete the field or element with specified path (for JSON arrays, negative integers count from the end)",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30570,6 +30949,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_delete_elem_input",
         "description": "delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30593,6 +30973,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_delete_key_input",
         "description": "delete key/value pair or string element. key/value pairs are matched based on their key value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30616,6 +30997,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_insert_input",
         "description": "input type for inserting data into table \"jwks\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30699,6 +31081,7 @@
         "kind": "OBJECT",
         "name": "jwks_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -30770,6 +31153,7 @@
         "kind": "OBJECT",
         "name": "jwks_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -30841,6 +31225,7 @@
         "kind": "OBJECT",
         "name": "jwks_mutation_response",
         "description": "response of any mutation on the table \"jwks\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -30892,6 +31277,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_on_conflict",
         "description": "on_conflict condition type for table \"jwks\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -30955,6 +31341,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_order_by",
         "description": "Ordering options when selecting data from \"jwks\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31038,6 +31425,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_pk_columns_input",
         "description": "primary key columns input for table: jwks",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31065,6 +31453,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_prepend_input",
         "description": "prepend existing jsonb value of filtered columns with new jsonb value",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31088,6 +31477,7 @@
         "kind": "ENUM",
         "name": "jwks_select_column",
         "description": "select columns of table \"jwks\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -31135,6 +31525,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_set_input",
         "description": "input type for updating data in table \"jwks\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31218,6 +31609,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_stream_cursor_input",
         "description": "Streaming cursor of the table \"jwks\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31257,6 +31649,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31340,6 +31733,7 @@
         "kind": "ENUM",
         "name": "jwks_update_column",
         "description": "update columns of table \"jwks\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -31387,6 +31781,7 @@
         "kind": "INPUT_OBJECT",
         "name": "jwks_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31486,6 +31881,7 @@
         "kind": "OBJECT",
         "name": "localisations",
         "description": "columns and relationships of \"localisations\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_metadata",
@@ -31673,6 +32069,7 @@
         "kind": "OBJECT",
         "name": "localisations_aggregate",
         "description": "aggregated selection of \"localisations\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -31720,6 +32117,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31743,6 +32141,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31814,6 +32213,7 @@
         "kind": "OBJECT",
         "name": "localisations_aggregate_fields",
         "description": "aggregate fields of \"localisations\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -31898,6 +32298,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_aggregate_order_by",
         "description": "order by aggregate values of table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31945,6 +32346,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -31992,6 +32394,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_bool_exp",
         "description": "Boolean expression to filter rows from the table \"localisations\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -32187,6 +32590,7 @@
         "kind": "ENUM",
         "name": "localisations_constraint",
         "description": "unique or primary key constraints on table \"localisations\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -32204,6 +32608,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_insert_input",
         "description": "input type for inserting data into table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -32347,6 +32752,7 @@
         "kind": "OBJECT",
         "name": "localisations_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_metadata_id",
@@ -32478,6 +32884,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_max_order_by",
         "description": "order by max() on columns of table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -32609,6 +33016,7 @@
         "kind": "OBJECT",
         "name": "localisations_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_metadata_id",
@@ -32740,6 +33148,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_min_order_by",
         "description": "order by min() on columns of table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -32871,6 +33280,7 @@
         "kind": "OBJECT",
         "name": "localisations_mutation_response",
         "description": "response of any mutation on the table \"localisations\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -32922,6 +33332,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_on_conflict",
         "description": "on_conflict condition type for table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -32985,6 +33396,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_order_by",
         "description": "Ordering options when selecting data from \"localisations\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33128,6 +33540,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_pk_columns_input",
         "description": "primary key columns input for table: localisations",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33155,6 +33568,7 @@
         "kind": "ENUM",
         "name": "localisations_select_column",
         "description": "select columns of table \"localisations\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -33226,6 +33640,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_set_input",
         "description": "input type for updating data in table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33357,6 +33772,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_stream_cursor_input",
         "description": "Streaming cursor of the table \"localisations\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33396,6 +33812,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33527,6 +33944,7 @@
         "kind": "ENUM",
         "name": "localisations_update_column",
         "description": "update columns of table \"localisations\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -33598,6 +34016,7 @@
         "kind": "INPUT_OBJECT",
         "name": "localisations_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33637,6 +34056,7 @@
         "kind": "OBJECT",
         "name": "membership",
         "description": "columns and relationships of \"membership\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -33776,6 +34196,7 @@
         "kind": "OBJECT",
         "name": "membership_aggregate",
         "description": "aggregated selection of \"membership\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -33823,6 +34244,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33846,6 +34268,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -33917,6 +34340,7 @@
         "kind": "OBJECT",
         "name": "membership_aggregate_fields",
         "description": "aggregate fields of \"membership\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -34001,6 +34425,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_aggregate_order_by",
         "description": "order by aggregate values of table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34048,6 +34473,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34095,6 +34521,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_bool_exp",
         "description": "Boolean expression to filter rows from the table \"membership\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34254,6 +34681,7 @@
         "kind": "ENUM",
         "name": "membership_constraint",
         "description": "unique or primary key constraints on table \"membership\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -34271,6 +34699,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_insert_input",
         "description": "input type for inserting data into table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34378,6 +34807,7 @@
         "kind": "OBJECT",
         "name": "membership_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -34449,6 +34879,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_max_order_by",
         "description": "order by max() on columns of table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34520,6 +34951,7 @@
         "kind": "OBJECT",
         "name": "membership_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -34591,6 +35023,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_min_order_by",
         "description": "order by min() on columns of table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34662,6 +35095,7 @@
         "kind": "OBJECT",
         "name": "membership_mutation_response",
         "description": "response of any mutation on the table \"membership\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -34713,6 +35147,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_on_conflict",
         "description": "on_conflict condition type for table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34776,6 +35211,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_order_by",
         "description": "Ordering options when selecting data from \"membership\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34883,6 +35319,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_pk_columns_input",
         "description": "primary key columns input for table: membership",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -34910,6 +35347,7 @@
         "kind": "ENUM",
         "name": "membership_select_column",
         "description": "select columns of table \"membership\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -34957,6 +35395,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_set_input",
         "description": "input type for updating data in table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -35040,6 +35479,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_stream_cursor_input",
         "description": "Streaming cursor of the table \"membership\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -35079,6 +35519,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -35162,6 +35603,7 @@
         "kind": "ENUM",
         "name": "membership_update_column",
         "description": "update columns of table \"membership\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -35209,6 +35651,7 @@
         "kind": "INPUT_OBJECT",
         "name": "membership_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -35248,6 +35691,7 @@
         "kind": "OBJECT",
         "name": "mutation_root",
         "description": "mutation root",
+        "isOneOf": null,
         "fields": [
           {
             "name": "ban_app",
@@ -41985,6 +42429,7 @@
         "kind": "OBJECT",
         "name": "notification_log",
         "description": "columns and relationships of \"notification_log\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -42072,6 +42517,7 @@
         "kind": "OBJECT",
         "name": "notification_log_aggregate",
         "description": "aggregated selection of \"notification_log\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -42119,6 +42565,7 @@
         "kind": "OBJECT",
         "name": "notification_log_aggregate_fields",
         "description": "aggregate fields of \"notification_log\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -42203,6 +42650,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_bool_exp",
         "description": "Boolean expression to filter rows from the table \"notification_log\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42326,6 +42774,7 @@
         "kind": "ENUM",
         "name": "notification_log_constraint",
         "description": "unique or primary key constraints on table \"notification_log\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -42343,6 +42792,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_insert_input",
         "description": "input type for inserting data into table \"notification_log\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42414,6 +42864,7 @@
         "kind": "OBJECT",
         "name": "notification_log_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -42485,6 +42936,7 @@
         "kind": "OBJECT",
         "name": "notification_log_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "app_id",
@@ -42556,6 +43008,7 @@
         "kind": "OBJECT",
         "name": "notification_log_mutation_response",
         "description": "response of any mutation on the table \"notification_log\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -42607,6 +43060,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_on_conflict",
         "description": "on_conflict condition type for table \"notification_log\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42670,6 +43124,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_order_by",
         "description": "Ordering options when selecting data from \"notification_log\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42741,6 +43196,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_pk_columns_input",
         "description": "primary key columns input for table: notification_log",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42768,6 +43224,7 @@
         "kind": "ENUM",
         "name": "notification_log_select_column",
         "description": "select columns of table \"notification_log\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -42809,6 +43266,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_set_input",
         "description": "input type for updating data in table \"notification_log\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42880,6 +43338,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_stream_cursor_input",
         "description": "Streaming cursor of the table \"notification_log\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42919,6 +43378,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -42990,6 +43450,7 @@
         "kind": "ENUM",
         "name": "notification_log_update_column",
         "description": "update columns of table \"notification_log\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -43031,6 +43492,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43070,6 +43532,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address",
         "description": "columns and relationships of \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -43145,6 +43608,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address_aggregate",
         "description": "aggregated selection of \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -43192,6 +43656,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address_aggregate_fields",
         "description": "aggregate fields of \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -43276,6 +43741,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_bool_exp",
         "description": "Boolean expression to filter rows from the table \"notification_log_wallet_address\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43387,6 +43853,7 @@
         "kind": "ENUM",
         "name": "notification_log_wallet_address_constraint",
         "description": "unique or primary key constraints on table \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -43404,6 +43871,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_insert_input",
         "description": "input type for inserting data into table \"notification_log_wallet_address\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43463,6 +43931,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -43522,6 +43991,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -43581,6 +44051,7 @@
         "kind": "OBJECT",
         "name": "notification_log_wallet_address_mutation_response",
         "description": "response of any mutation on the table \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -43632,6 +44103,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_on_conflict",
         "description": "on_conflict condition type for table \"notification_log_wallet_address\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43695,6 +44167,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_order_by",
         "description": "Ordering options when selecting data from \"notification_log_wallet_address\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43754,6 +44227,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_pk_columns_input",
         "description": "primary key columns input for table: notification_log_wallet_address",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43781,6 +44255,7 @@
         "kind": "ENUM",
         "name": "notification_log_wallet_address_select_column",
         "description": "select columns of table \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -43816,6 +44291,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_set_input",
         "description": "input type for updating data in table \"notification_log_wallet_address\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43875,6 +44351,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_stream_cursor_input",
         "description": "Streaming cursor of the table \"notification_log_wallet_address\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43914,6 +44391,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -43973,6 +44451,7 @@
         "kind": "ENUM",
         "name": "notification_log_wallet_address_update_column",
         "description": "update columns of table \"notification_log_wallet_address\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -44008,6 +44487,7 @@
         "kind": "INPUT_OBJECT",
         "name": "notification_log_wallet_address_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44047,6 +44527,7 @@
         "kind": "OBJECT",
         "name": "nullifier",
         "description": "columns and relationships of \"nullifier\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -44170,6 +44651,7 @@
         "kind": "OBJECT",
         "name": "nullifier_aggregate",
         "description": "aggregated selection of \"nullifier\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -44217,6 +44699,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44240,6 +44723,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44311,6 +44795,7 @@
         "kind": "OBJECT",
         "name": "nullifier_aggregate_fields",
         "description": "aggregate fields of \"nullifier\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -44491,6 +44976,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_aggregate_order_by",
         "description": "order by aggregate values of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44634,6 +45120,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44681,6 +45168,7 @@
         "kind": "OBJECT",
         "name": "nullifier_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -44704,6 +45192,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_avg_order_by",
         "description": "order by avg() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44727,6 +45216,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_bool_exp",
         "description": "Boolean expression to filter rows from the table \"nullifier\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44874,6 +45364,7 @@
         "kind": "ENUM",
         "name": "nullifier_constraint",
         "description": "unique or primary key constraints on table \"nullifier\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -44897,6 +45388,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_inc_input",
         "description": "input type for incrementing numeric columns in table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -44920,6 +45412,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_insert_input",
         "description": "input type for inserting data into table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45015,6 +45508,7 @@
         "kind": "OBJECT",
         "name": "nullifier_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -45098,6 +45592,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_max_order_by",
         "description": "order by max() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45181,6 +45676,7 @@
         "kind": "OBJECT",
         "name": "nullifier_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -45264,6 +45760,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_min_order_by",
         "description": "order by min() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45347,6 +45844,7 @@
         "kind": "OBJECT",
         "name": "nullifier_mutation_response",
         "description": "response of any mutation on the table \"nullifier\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -45398,6 +45896,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_on_conflict",
         "description": "on_conflict condition type for table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45461,6 +45960,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_order_by",
         "description": "Ordering options when selecting data from \"nullifier\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45556,6 +46056,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_pk_columns_input",
         "description": "primary key columns input for table: nullifier",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45583,6 +46084,7 @@
         "kind": "ENUM",
         "name": "nullifier_select_column",
         "description": "select columns of table \"nullifier\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -45630,6 +46132,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_set_input",
         "description": "input type for updating data in table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45713,6 +46216,7 @@
         "kind": "OBJECT",
         "name": "nullifier_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -45736,6 +46240,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_stddev_order_by",
         "description": "order by stddev() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45759,6 +46264,7 @@
         "kind": "OBJECT",
         "name": "nullifier_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -45782,6 +46288,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_stddev_pop_order_by",
         "description": "order by stddev_pop() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45805,6 +46312,7 @@
         "kind": "OBJECT",
         "name": "nullifier_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -45828,6 +46336,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_stddev_samp_order_by",
         "description": "order by stddev_samp() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45851,6 +46360,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_stream_cursor_input",
         "description": "Streaming cursor of the table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45890,6 +46400,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -45973,6 +46484,7 @@
         "kind": "OBJECT",
         "name": "nullifier_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -45996,6 +46508,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_sum_order_by",
         "description": "order by sum() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46019,6 +46532,7 @@
         "kind": "ENUM",
         "name": "nullifier_update_column",
         "description": "update columns of table \"nullifier\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -46066,6 +46580,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46117,6 +46632,7 @@
         "kind": "OBJECT",
         "name": "nullifier_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -46140,6 +46656,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_var_pop_order_by",
         "description": "order by var_pop() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46163,6 +46680,7 @@
         "kind": "OBJECT",
         "name": "nullifier_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -46186,6 +46704,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_var_samp_order_by",
         "description": "order by var_samp() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46209,6 +46728,7 @@
         "kind": "OBJECT",
         "name": "nullifier_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "uses",
@@ -46232,6 +46752,7 @@
         "kind": "INPUT_OBJECT",
         "name": "nullifier_variance_order_by",
         "description": "order by variance() on columns of table \"nullifier\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46255,6 +46776,7 @@
         "kind": "SCALAR",
         "name": "numeric",
         "description": null,
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -46265,6 +46787,7 @@
         "kind": "INPUT_OBJECT",
         "name": "numeric_comparison_exp",
         "description": "Boolean expression to compare columns of type \"numeric\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -46400,6 +46923,7 @@
         "kind": "ENUM",
         "name": "order_by",
         "description": "column ordering options",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -46447,6 +46971,7 @@
         "kind": "OBJECT",
         "name": "query_root",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -52044,6 +52569,7 @@
         "kind": "OBJECT",
         "name": "redirect",
         "description": "columns and relationships of \"redirect\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -52147,6 +52673,7 @@
         "kind": "OBJECT",
         "name": "redirect_aggregate",
         "description": "aggregated selection of \"redirect\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -52194,6 +52721,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_aggregate_bool_exp",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52217,6 +52745,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_aggregate_bool_exp_count",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52288,6 +52817,7 @@
         "kind": "OBJECT",
         "name": "redirect_aggregate_fields",
         "description": "aggregate fields of \"redirect\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -52372,6 +52902,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_aggregate_order_by",
         "description": "order by aggregate values of table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52419,6 +52950,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_arr_rel_insert_input",
         "description": "input type for inserting array relation for remote table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52466,6 +52998,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_bool_exp",
         "description": "Boolean expression to filter rows from the table \"redirect\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52601,6 +53134,7 @@
         "kind": "ENUM",
         "name": "redirect_constraint",
         "description": "unique or primary key constraints on table \"redirect\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -52618,6 +53152,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_insert_input",
         "description": "input type for inserting data into table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52701,6 +53236,7 @@
         "kind": "OBJECT",
         "name": "redirect_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -52772,6 +53308,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_max_order_by",
         "description": "order by max() on columns of table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52843,6 +53380,7 @@
         "kind": "OBJECT",
         "name": "redirect_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "action_id",
@@ -52914,6 +53452,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_min_order_by",
         "description": "order by min() on columns of table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -52985,6 +53524,7 @@
         "kind": "OBJECT",
         "name": "redirect_mutation_response",
         "description": "response of any mutation on the table \"redirect\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -53036,6 +53576,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_on_conflict",
         "description": "on_conflict condition type for table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53099,6 +53640,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_order_by",
         "description": "Ordering options when selecting data from \"redirect\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53182,6 +53724,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_pk_columns_input",
         "description": "primary key columns input for table: redirect",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53209,6 +53752,7 @@
         "kind": "ENUM",
         "name": "redirect_select_column",
         "description": "select columns of table \"redirect\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -53250,6 +53794,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_set_input",
         "description": "input type for updating data in table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53321,6 +53866,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_stream_cursor_input",
         "description": "Streaming cursor of the table \"redirect\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53360,6 +53906,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53431,6 +53978,7 @@
         "kind": "ENUM",
         "name": "redirect_update_column",
         "description": "update columns of table \"redirect\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -53472,6 +54020,7 @@
         "kind": "INPUT_OBJECT",
         "name": "redirect_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53511,6 +54060,7 @@
         "kind": "OBJECT",
         "name": "role",
         "description": "columns and relationships of \"role\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "comment",
@@ -53550,6 +54100,7 @@
         "kind": "OBJECT",
         "name": "role_aggregate",
         "description": "aggregated selection of \"role\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -53597,6 +54148,7 @@
         "kind": "OBJECT",
         "name": "role_aggregate_fields",
         "description": "aggregate fields of \"role\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -53681,6 +54233,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_bool_exp",
         "description": "Boolean expression to filter rows from the table \"role\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53768,6 +54321,7 @@
         "kind": "ENUM",
         "name": "role_constraint",
         "description": "unique or primary key constraints on table \"role\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -53785,6 +54339,7 @@
         "kind": "ENUM",
         "name": "role_enum",
         "description": null,
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -53814,6 +54369,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_enum_comparison_exp",
         "description": "Boolean expression to compare columns of type \"role_enum\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53901,6 +54457,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_insert_input",
         "description": "input type for inserting data into table \"role\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -53936,6 +54493,7 @@
         "kind": "OBJECT",
         "name": "role_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "comment",
@@ -53971,6 +54529,7 @@
         "kind": "OBJECT",
         "name": "role_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "comment",
@@ -54006,6 +54565,7 @@
         "kind": "OBJECT",
         "name": "role_mutation_response",
         "description": "response of any mutation on the table \"role\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -54057,6 +54617,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_on_conflict",
         "description": "on_conflict condition type for table \"role\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54120,6 +54681,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_order_by",
         "description": "Ordering options when selecting data from \"role\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54155,6 +54717,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_pk_columns_input",
         "description": "primary key columns input for table: role",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54182,6 +54745,7 @@
         "kind": "ENUM",
         "name": "role_select_column",
         "description": "select columns of table \"role\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -54205,6 +54769,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_set_input",
         "description": "input type for updating data in table \"role\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54240,6 +54805,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_stream_cursor_input",
         "description": "Streaming cursor of the table \"role\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54279,6 +54845,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54314,6 +54881,7 @@
         "kind": "ENUM",
         "name": "role_update_column",
         "description": "update columns of table \"role\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -54337,6 +54905,7 @@
         "kind": "INPUT_OBJECT",
         "name": "role_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -54376,6 +54945,7 @@
         "kind": "OBJECT",
         "name": "subscription_root",
         "description": null,
+        "isOneOf": null,
         "fields": [
           {
             "name": "action",
@@ -61351,6 +61921,7 @@
         "kind": "OBJECT",
         "name": "team",
         "description": "columns and relationships of \"team\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "api_keys",
@@ -62016,6 +62587,7 @@
         "kind": "OBJECT",
         "name": "team_aggregate",
         "description": "aggregated selection of \"team\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -62063,6 +62635,7 @@
         "kind": "OBJECT",
         "name": "team_aggregate_fields",
         "description": "aggregate fields of \"team\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "avg",
@@ -62243,6 +62816,7 @@
         "kind": "OBJECT",
         "name": "team_avg_fields",
         "description": "aggregate avg on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -62266,6 +62840,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_bool_exp",
         "description": "Boolean expression to filter rows from the table \"team\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -62461,6 +63036,7 @@
         "kind": "ENUM",
         "name": "team_constraint",
         "description": "unique or primary key constraints on table \"team\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -62478,6 +63054,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_insert_input",
         "description": "input type for inserting data into table \"team\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -62573,6 +63150,7 @@
         "kind": "OBJECT",
         "name": "team_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -62644,6 +63222,7 @@
         "kind": "OBJECT",
         "name": "team_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "created_at",
@@ -62715,6 +63294,7 @@
         "kind": "OBJECT",
         "name": "team_mutation_response",
         "description": "response of any mutation on the table \"team\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -62766,6 +63346,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_obj_rel_insert_input",
         "description": "input type for inserting object relation for remote table \"team\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -62805,6 +63386,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_on_conflict",
         "description": "on_conflict condition type for table \"team\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -62868,6 +63450,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_order_by",
         "description": "Ordering options when selecting data from \"team\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -62975,6 +63558,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_pk_columns_input",
         "description": "primary key columns input for table: team",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63002,6 +63586,7 @@
         "kind": "ENUM",
         "name": "team_select_column",
         "description": "select columns of table \"team\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -63037,6 +63622,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_set_input",
         "description": "input type for updating data in table \"team\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63096,6 +63682,7 @@
         "kind": "OBJECT",
         "name": "team_stddev_fields",
         "description": "aggregate stddev on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63119,6 +63706,7 @@
         "kind": "OBJECT",
         "name": "team_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63142,6 +63730,7 @@
         "kind": "OBJECT",
         "name": "team_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63165,6 +63754,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_stream_cursor_input",
         "description": "Streaming cursor of the table \"team\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63204,6 +63794,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63263,6 +63854,7 @@
         "kind": "OBJECT",
         "name": "team_sum_fields",
         "description": "aggregate sum on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63286,6 +63878,7 @@
         "kind": "ENUM",
         "name": "team_update_column",
         "description": "update columns of table \"team\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -63321,6 +63914,7 @@
         "kind": "INPUT_OBJECT",
         "name": "team_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63360,6 +63954,7 @@
         "kind": "OBJECT",
         "name": "team_var_pop_fields",
         "description": "aggregate var_pop on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63383,6 +63978,7 @@
         "kind": "OBJECT",
         "name": "team_var_samp_fields",
         "description": "aggregate var_samp on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63406,6 +64002,7 @@
         "kind": "OBJECT",
         "name": "team_variance_fields",
         "description": "aggregate variance on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "team_owners_count",
@@ -63429,6 +64026,7 @@
         "kind": "SCALAR",
         "name": "timestamptz",
         "description": null,
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -63439,6 +64037,7 @@
         "kind": "INPUT_OBJECT",
         "name": "timestamptz_comparison_exp",
         "description": "Boolean expression to compare columns of type \"timestamptz\". All fields are combined with logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -63574,6 +64173,7 @@
         "kind": "OBJECT",
         "name": "user",
         "description": "columns and relationships of \"user\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "auth0Id",
@@ -63959,6 +64559,7 @@
         "kind": "OBJECT",
         "name": "user_aggregate",
         "description": "aggregated selection of \"user\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "aggregate",
@@ -64006,6 +64607,7 @@
         "kind": "OBJECT",
         "name": "user_aggregate_fields",
         "description": "aggregate fields of \"user\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "count",
@@ -64090,6 +64692,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_bool_exp",
         "description": "Boolean expression to filter rows from the table \"user\". All fields are combined with a logical 'AND'.",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -64333,6 +64936,7 @@
         "kind": "ENUM",
         "name": "user_constraint",
         "description": "unique or primary key constraints on table \"user\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -64368,6 +64972,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_insert_input",
         "description": "input type for inserting data into table \"user\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -64547,6 +65152,7 @@
         "kind": "OBJECT",
         "name": "user_max_fields",
         "description": "aggregate max on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "auth0Id",
@@ -64678,6 +65284,7 @@
         "kind": "OBJECT",
         "name": "user_min_fields",
         "description": "aggregate min on columns",
+        "isOneOf": null,
         "fields": [
           {
             "name": "auth0Id",
@@ -64809,6 +65416,7 @@
         "kind": "OBJECT",
         "name": "user_mutation_response",
         "description": "response of any mutation on the table \"user\"",
+        "isOneOf": null,
         "fields": [
           {
             "name": "affected_rows",
@@ -64860,6 +65468,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_obj_rel_insert_input",
         "description": "input type for inserting object relation for remote table \"user\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -64899,6 +65508,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_on_conflict",
         "description": "on_conflict condition type for table \"user\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -64962,6 +65572,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_order_by",
         "description": "Ordering options when selecting data from \"user\".",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -65141,6 +65752,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_pk_columns_input",
         "description": "primary key columns input for table: user",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -65168,6 +65780,7 @@
         "kind": "ENUM",
         "name": "user_select_column",
         "description": "select columns of table \"user\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -65251,6 +65864,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_set_input",
         "description": "input type for updating data in table \"user\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -65406,6 +66020,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_stream_cursor_input",
         "description": "Streaming cursor of the table \"user\"",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -65445,6 +66060,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {
@@ -65600,6 +66216,7 @@
         "kind": "ENUM",
         "name": "user_update_column",
         "description": "update columns of table \"user\"",
+        "isOneOf": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -65683,6 +66300,7 @@
         "kind": "INPUT_OBJECT",
         "name": "user_updates",
         "description": null,
+        "isOneOf": false,
         "fields": null,
         "inputFields": [
           {

@@ -1,8 +1,0 @@
-mutation InsertNullifier($action_id: String!, $nullifier_hash: String!) {
-  insert_nullifier_one(
-    object: { action_id: $action_id, nullifier_hash: $nullifier_hash }
-  ) {
-    created_at
-    nullifier_hash
-  }
-}
