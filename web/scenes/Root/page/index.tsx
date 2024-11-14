@@ -15,7 +15,6 @@ export const RootPage = async () => {
   const auth0User = session?.user as Auth0SessionUser["user"];
 
   if (!auth0User) {
-    console.log("redirect");
     return redirect(urls.login());
   }
 
