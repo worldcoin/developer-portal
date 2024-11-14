@@ -1784,6 +1784,8 @@ export enum App_Metadata_Constraint {
   AppMetadataAppIdIsRowVerifiedKey = "app_metadata_app_id_is_row_verified_key",
   /** unique or primary key constraint on columns "id" */
   AppMetadataPkey = "app_metadata_pkey",
+  /** unique or primary key constraint on columns "app_id" */
+  UniqueVerifiedAppId = "unique_verified_app_id",
 }
 
 /** input type for incrementing numeric columns in table "app_metadata" */
