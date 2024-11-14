@@ -219,12 +219,11 @@ export async function POST(
       { status: 200 },
     );
   } catch (e: any) {
-    // Can get noisy with error since this is being blocked by a trigger
+    // TODO: Currently hasura doesn't return raised exceptions well. https://github.com/hasura/graphql-engine/issues/2599
     const isMaxUsesError = e.message?.includes(
       "Maximum uses exceeded for this action",
     );
 
-    // TODO: Currently hasura doesn't return raised exceptions well. https://github.com/hasura/graphql-engine/issues/2599
     return errorResponse({
       statusCode: 400,
       code: "verification_error",
