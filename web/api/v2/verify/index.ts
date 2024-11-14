@@ -202,19 +202,19 @@ export async function POST(
         app_id: app.id,
         verification_level: parsedParams.verification_level,
         environment: app.is_staging ? "staging" : "production",
-        type: upsertResponse.update_nullifier?.returning[0]?.uses,
+        type: upsertResponse.update_nullifier.returning[0].uses,
       },
     });
 
     return NextResponse.json(
       {
-        uses: upsertResponse.update_nullifier?.returning[0]?.uses,
+        uses: upsertResponse.update_nullifier.returning[0].uses,
         success: true,
         action: action.action ?? null,
         max_uses: action.max_verifications,
         nullifier_hash:
-          upsertResponse.update_nullifier?.returning[0]?.nullifier_hash,
-        created_at: upsertResponse.update_nullifier?.returning[0]?.created_at,
+          upsertResponse.update_nullifier.returning[0].nullifier_hash,
+        created_at: upsertResponse.update_nullifier.returning[0].created_at,
         verification_level: parsedParams.verification_level,
       },
       { status: 200 },
