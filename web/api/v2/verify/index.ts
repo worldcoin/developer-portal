@@ -6,14 +6,12 @@ import {
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
-import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
-import { getSdk as insertNullifierSdk } from "./graphql/insert-nullifier.generated";
-import { getSdk as updateNullifierUsesSdk } from "./graphql/update-nullifier-uses.generated";
 
 const schema = yup.object({
   action: yup
@@ -176,105 +174,53 @@ export async function POST(
     });
   }
 
-  if (nullifier) {
-    const updateResponse = await updateNullifierUsesSdk(
+  let upsertResponse;
+  try {
+    upsertResponse = await atomicUpsertNullifierSdk(
       client,
-    ).UpdateNullifierUses({
-      nullifier_hash: nullifier.nullifier_hash,
-      uses: nullifier.uses,
+    ).AtomicUpsertNullifier({
+      action_id: action.id,
+      nullifier_hash: parsedParams.nullifier_hash,
     });
 
-    if (updateResponse.update_nullifier?.affected_rows === 0) {
-      return errorValidation(
-        AppErrorCodes.MaxVerificationsReached,
-        "This person has already verified for this particular action the maximum number of times allowed.",
-        null,
-        req,
-      );
-    }
-
-    await captureEvent({
-      event: "action_verify_success",
-      distinctId: action.id,
-      properties: {
-        action_id: action.id,
-        app_id: app.id,
-        verification_level: parsedParams.verification_level,
-        environment: app.is_staging ? "staging" : "production",
-        type: nullifier.uses,
-      },
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        uses: nullifier.uses + 1,
-        action: action.action ?? null,
-        created_at: nullifier.created_at,
-        max_uses: action.max_verifications,
-        nullifier_hash: nullifier.nullifier_hash,
-      },
-      { status: 200 },
-    );
-  } else {
-    try {
-      const insertResponse = await insertNullifierSdk(client).InsertNullifier({
-        action_id: action.id,
-        nullifier_hash: parsedParams.nullifier_hash,
-      });
-
-      if (
-        insertResponse.insert_nullifier_one?.nullifier_hash !==
-        parsedParams.nullifier_hash
-      ) {
-        logger.warn(
-          `Nullifier hash mismatch for action ${action.id}. Expected ${parsedParams.nullifier_hash}, got ${insertResponse.insert_nullifier_one?.nullifier_hash}.`,
-        );
-        return errorResponse({
-          statusCode: 400,
-          code: "verification_error",
-          detail:
-            "There was an error inserting the nullifier. Please try again.",
-          attribute: null,
-          req,
-        });
-      }
-
-      await captureEvent({
-        event: "action_verify_success",
-        distinctId: action.id,
-        properties: {
-          action_id: action.id,
-          app_id: app.id,
-          verification_level: parsedParams.verification_level,
-          environment: app.is_staging ? "staging" : "production",
-          type: "unique",
-        },
-      });
-
-      return NextResponse.json(
-        {
-          uses: 1,
-          success: true,
-          action: action.action ?? null,
-          max_uses: action.max_verifications,
-          nullifier_hash: insertResponse.insert_nullifier_one.nullifier_hash,
-          created_at: insertResponse.insert_nullifier_one.created_at,
-          verification_level: parsedParams.verification_level,
-        },
-        { status: 200 },
-      );
-    } catch (e: any) {
-      logger.warn(
-        `Error inserting nullifier for action ${action.id}. Error: ${e.message}`,
-      );
+    if (!upsertResponse?.update_nullifier?.returning?.length) {
       return errorResponse({
         statusCode: 400,
         code: "verification_error",
-        detail: e.message,
+        detail: "There was an error upserting the nullifier.",
         attribute: null,
         req,
       });
     }
+
+    return NextResponse.json(
+      {
+        uses: upsertResponse.update_nullifier?.returning[0]?.uses,
+        success: true,
+        action: action.action ?? null,
+        max_uses: action.max_verifications,
+        nullifier_hash:
+          upsertResponse.update_nullifier?.returning[0]?.nullifier_hash,
+        created_at: upsertResponse.update_nullifier?.returning[0]?.created_at,
+        verification_level: parsedParams.verification_level,
+      },
+      { status: 200 },
+    );
+  } catch (e: any) {
+    // Can get noisy with error since this is being blocked by a trigger
+    const isMaxUsesError = e.message?.includes(
+      "Maximum uses exceeded for this action",
+    );
+
+    // TODO: Currently hasura doesn't return raised exceptions well. https://github.com/hasura/graphql-engine/issues/2599
+    return errorResponse({
+      statusCode: 400,
+      code: "verification_error",
+      detail: isMaxUsesError
+        ? `This action has reached its maximum number of allowed verifications.`
+        : e.message,
+      attribute: null,
+      req,
+    });
   }
 }

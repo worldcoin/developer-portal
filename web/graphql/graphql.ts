@@ -7002,6 +7002,7 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  verify_atomic: Array<Verify_Atomic_Return>;
 };
 
 export type Query_RootActionArgs = {
@@ -7505,6 +7506,15 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootVerify_AtomicArgs = {
+  args: Verify_Atomic_Arguments;
+  distinct_on?: InputMaybe<Array<Verify_Atomic_Return_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verify_Atomic_Return_Order_By>>;
+  where?: InputMaybe<Verify_Atomic_Return_Bool_Exp_Bool_Exp>;
 };
 
 /** columns and relationships of "redirect" */
@@ -8061,6 +8071,7 @@ export type Subscription_Root = {
   user_by_pk?: Maybe<User>;
   /** fetch data from the table in a streaming manner: "user" */
   user_stream: Array<User>;
+  verify_atomic: Array<Verify_Atomic_Return>;
 };
 
 export type Subscription_RootActionArgs = {
@@ -8675,6 +8686,15 @@ export type Subscription_RootUser_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<User_Stream_Cursor_Input>>;
   where?: InputMaybe<User_Bool_Exp>;
+};
+
+export type Subscription_RootVerify_AtomicArgs = {
+  args: Verify_Atomic_Arguments;
+  distinct_on?: InputMaybe<Array<Verify_Atomic_Return_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verify_Atomic_Return_Order_By>>;
+  where?: InputMaybe<Verify_Atomic_Return_Bool_Exp_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -9295,4 +9315,43 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** verify_atomicNative Query Arguments */
+export type Verify_Atomic_Arguments = {
+  action_id: Scalars["String"]["input"];
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+export type Verify_Atomic_Return = {
+  __typename?: "verify_atomic_return";
+  created_at: Scalars["timestamptz"]["output"];
+  nullifier_hash: Scalars["String"]["output"];
+  uses: Scalars["Int"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "verify_atomic_return". All fields are combined with a logical 'AND'. */
+export type Verify_Atomic_Return_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Verify_Atomic_Return_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Verify_Atomic_Return_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Verify_Atomic_Return_Bool_Exp_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+  uses?: InputMaybe<Int_Comparison_Exp>;
+};
+
+export enum Verify_Atomic_Return_Enum_Name {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+  /** column name */
+  Uses = "uses",
+}
+
+/** Ordering options when selecting data from "verify_atomic_return". */
+export type Verify_Atomic_Return_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  uses?: InputMaybe<Order_By>;
 };
