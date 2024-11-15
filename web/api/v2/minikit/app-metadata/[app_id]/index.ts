@@ -116,7 +116,7 @@ export const GET = async (
 
   return NextResponse.json(
     {
-      ...(await formatAppMetadata({ ...appMetadata }, [], locale)),
+      ...(await formatAppMetadata(appMetadata, [], locale)),
       hero_image_url: null,
       showcase_img_urls: null,
       logo_img_url: null,
