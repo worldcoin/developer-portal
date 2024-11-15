@@ -6,6 +6,7 @@ import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { tryParseJSON } from "@/lib/utils";
 import {
   ReviewMessageDialog,
   reviewMessageDialogOpenedAtom,
@@ -119,7 +120,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   }, [viewMode, app.app_metadata, app.verified_app_metadata]);
 
   const isSubmitFormValid = useMemo(() => {
-    const description = JSON.parse(
+    const description = tryParseJSON(
       appMetaData?.description ? appMetaData.description : "{}",
     );
     try {
@@ -161,7 +162,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const submitForReview = useCallback(async () => {
     if (appMetaData?.verification_status !== "unverified") return;
     try {
-      const description = JSON.parse(
+      const description = tryParseJSON(
         appMetaData?.description ? appMetaData.description : "{}",
       );
 
