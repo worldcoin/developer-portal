@@ -82,7 +82,11 @@ export async function GET(
     }, null);
   }
 
-  let dataToReturn = formatAppMetadata(parsedAppMetadata, metricsData, locale);
+  let dataToReturn = await formatAppMetadata(
+    { ...parsedAppMetadata },
+    metricsData,
+    locale,
+  );
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];

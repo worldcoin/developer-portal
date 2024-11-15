@@ -1,0 +1,5 @@
+query GetAppRating($app_id: String!) {
+  app_metadata(where: { app_id: { _eq: $app_id } }) {
+    app_rating
+  }
+}

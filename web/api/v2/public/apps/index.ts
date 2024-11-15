@@ -147,12 +147,13 @@ export const GET = async (request: NextRequest) => {
   const metricsData: AppStatsReturnType = await response.json();
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  // Anchor: Format Apps
-  let formattedTopApps = topApps.map((app) =>
-    formatAppMetadata(app, metricsData, locale),
+  // Format all apps concurrently using Promise.all
+  let formattedTopApps = await Promise.all(
+    topApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
-  let highlightedApps = highlightsApps.map((app) =>
-    formatAppMetadata(app, metricsData, locale),
+
+  let highlightedApps = await Promise.all(
+    highlightsApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
 
   formattedTopApps = formattedTopApps.map((app) => {

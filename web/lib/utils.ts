@@ -1,3 +1,4 @@
+import { getAppRating } from "@/api/helpers/app-ratings/app-ratings";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
@@ -200,15 +201,17 @@ export const tryParseJSON = (jsonString: string) => {
   return null;
 };
 
-export const formatAppMetadata = (
+export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
   locale: string = "en",
-): AppStoreFormattedFields => {
+): Promise<AppStoreFormattedFields> => {
   const { app, ...appMetadata } = appData;
   const appStat: number =
     appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
     0;
+
+  const appRating = await getAppRating(appMetadata.app_id);
 
   const localisedContent = appMetadata.localisations?.[0];
 
@@ -233,6 +236,7 @@ export const formatAppMetadata = (
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
+    app_rating: appRating,
     world_app_button_text:
       localisedContent?.world_app_button_text ??
       appMetadata.world_app_button_text,
