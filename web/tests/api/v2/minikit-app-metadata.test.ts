@@ -28,6 +28,10 @@ jest.mock(
   }),
 );
 
+jest.mock("@/api/helpers/app-rating", () => ({
+  getAppRating: jest.fn().mockResolvedValue(3.4),
+}));
+
 // #endregion
 
 const createMockRequest = (params: {
@@ -83,7 +87,7 @@ const validAppMetadataResponse = [
     support_link: "mailto:test@test.com",
     supported_countries: ["us"],
     supported_languages: ["en"],
-    app_rating: 3.2,
+    app_rating: 3.4,
     associated_domains: ["https://worldcoin.org"],
     app: { team: { name: "test" } },
   },
@@ -123,7 +127,7 @@ const app_metadata = {
   supported_countries: ["us"],
   supported_languages: ["en"],
   associated_domains: ["https://worldcoin.org"],
-  app_rating: 3.2,
+  app_rating: 3.4,
   unique_users: 0,
   team_name: "test",
 };
@@ -179,7 +183,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
           associated_domains: ["https://worldcoin.org"],
           supported_countries: ["us"],
           supported_languages: ["en"],
-          app_rating: 3.2,
+          app_rating: 3.4,
           app: { team: { name: "test" } },
         },
       ],
@@ -218,7 +222,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       support_link: "mailto:test@test.com",
       supported_countries: ["us"],
       supported_languages: ["en"],
-      app_rating: 3.2,
+      app_rating: 3.4,
       unique_users: 0,
       team_name: "test",
     });
