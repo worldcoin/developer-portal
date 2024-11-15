@@ -21,7 +21,6 @@ export const formatAppMetadata = async (
     0;
 
   const appRating = await getAppRating(appMetadata.app_id);
-  console.log("appRating", appRating);
 
   const localisedContent = appMetadata.localisations?.[0];
 
