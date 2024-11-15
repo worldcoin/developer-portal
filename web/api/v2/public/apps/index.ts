@@ -5,7 +5,7 @@ import { getAllLocalisedCategories } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
-import { formatAppMetadata, isValidHostName, rankApps } from "@/lib/utils";
+import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -14,6 +14,7 @@ import {
 } from "./graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
+import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
