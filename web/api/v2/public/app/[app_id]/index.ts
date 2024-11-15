@@ -1,8 +1,9 @@
+import { formatAppMetadata } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
-import { formatAppMetadata, isValidHostName } from "@/lib/utils";
+import { isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
@@ -82,7 +83,11 @@ export async function GET(
     }, null);
   }
 
-  let dataToReturn = formatAppMetadata(parsedAppMetadata, metricsData, locale);
+  let dataToReturn = await formatAppMetadata(
+    { ...parsedAppMetadata },
+    metricsData,
+    locale,
+  );
 
   if (dataToReturn.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];

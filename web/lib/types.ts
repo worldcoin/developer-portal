@@ -231,6 +231,7 @@ export type AppStoreFormattedFields = Omit<
   | "localisations"
   | "is_reviewer_world_app_approved"
 > & {
+  app_rating: number;
   ratings_external_nullifier: string;
   show_in_app_store: boolean;
   unique_users: number;

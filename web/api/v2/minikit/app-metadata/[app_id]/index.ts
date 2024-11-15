@@ -1,8 +1,8 @@
+import { formatAppMetadata } from "@/api/helpers/app-store";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { parseLocale } from "@/lib/languages";
-import { formatAppMetadata } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "../../graphql/fetch-api-key.generated";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -116,7 +116,7 @@ export const GET = async (
 
   return NextResponse.json(
     {
-      ...formatAppMetadata(appMetadata, [], locale),
+      ...(await formatAppMetadata(appMetadata, [], locale)),
       hero_image_url: null,
       showcase_img_urls: null,
       logo_img_url: null,

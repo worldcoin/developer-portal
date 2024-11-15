@@ -20,7 +20,6 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     support_link
     supported_countries
     supported_languages
-    app_rating
     associated_domains
     verification_status
     contracts
