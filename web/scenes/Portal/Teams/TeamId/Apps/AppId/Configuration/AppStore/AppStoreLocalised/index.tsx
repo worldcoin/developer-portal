@@ -1,6 +1,8 @@
 import { CategorySelector } from "@/components/Category";
 import { CountryBadge } from "@/components/CountryBadge";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
+import { ChevronRightIcon } from "@/components/Icons/ChevronRightIcon";
 import { Input } from "@/components/Input";
 import { Radio } from "@/components/Radio";
 import { SelectMultiple } from "@/components/SelectMultiple";
@@ -74,15 +76,18 @@ export const AppStoreForm = (props: {
     { data: localisedData, refetch: refetchLocalisation },
   ] = useFetchLocalisationLazyQuery();
 
-  const updateLocalisation = async (locale: string) => {
-    await getLocalisationText({
-      variables: {
-        id: appMetadata.id,
-        locale: locale,
-      },
-    });
-    setLocale(locale);
-  };
+  const updateLocalisation = useCallback(
+    async (locale: string) => {
+      await getLocalisationText({
+        variables: {
+          id: appMetadata.id,
+          locale: locale,
+        },
+      });
+      setLocale(locale);
+    },
+    [appMetadata.id, getLocalisationText],
+  );
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -108,13 +113,7 @@ export const AppStoreForm = (props: {
     reset,
     watch,
     getValues,
-    formState: {
-      errors,
-      isDirty,
-      isSubmitSuccessful,
-      isSubmitting,
-      isSubmitted,
-    },
+    formState: { errors, isDirty, isSubmitted },
   } = useForm<AppStoreLocalisedForm>({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -235,6 +234,7 @@ export const AppStoreForm = (props: {
           },
         },
       });
+      refetchLocalisation();
     }
   }, [
     appMetadata?.id,
@@ -297,6 +297,50 @@ export const AppStoreForm = (props: {
     control,
     name: "supported_languages",
   });
+
+  const handleSelectNextLocalisation = useCallback(async () => {
+    if (isDirty) {
+      await saveLocalisation();
+    }
+
+    const currentLocaleIdx = supportedLanguages.indexOf(locale);
+    const nextLocaleIdx = currentLocaleIdx + 1;
+    const nextLocale = supportedLanguages[nextLocaleIdx];
+    if (nextLocale) {
+      return updateLocalisation(nextLocale);
+    } else {
+      const firstLocale = supportedLanguages[0];
+      return updateLocalisation(firstLocale);
+    }
+  }, [
+    isDirty,
+    locale,
+    saveLocalisation,
+    supportedLanguages,
+    updateLocalisation,
+  ]);
+
+  const handleSelectPreviousLocalisation = useCallback(async () => {
+    if (isDirty) {
+      await saveLocalisation();
+    }
+
+    const currentLocaleIdx = supportedLanguages.indexOf(locale);
+    const previousLocaleIdx = currentLocaleIdx - 1;
+    const previousLocale = supportedLanguages[previousLocaleIdx];
+    if (previousLocale) {
+      return updateLocalisation(previousLocale);
+    } else {
+      const lastLocale = supportedLanguages[supportedLanguages.length - 1];
+      return updateLocalisation(lastLocale);
+    }
+  }, [
+    isDirty,
+    locale,
+    saveLocalisation,
+    supportedLanguages,
+    updateLocalisation,
+  ]);
 
   return (
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
@@ -469,6 +513,12 @@ export const AppStoreForm = (props: {
               render={({ field }) => (
                 <SelectMultiple
                   values={field.value}
+                  items={languages}
+                  label=""
+                  disabled={!isEditable || !isEnoughPermissions}
+                  errors={errors.supported_languages}
+                  showSelectedList
+                  searchPlaceholder="Start by typing language..."
                   onRemove={async (value) => {
                     field.onChange(
                       field.value?.filter((v) => v !== value) ?? [],
@@ -491,10 +541,6 @@ export const AppStoreForm = (props: {
                       ],
                     });
                   }}
-                  items={languages}
-                  label=""
-                  disabled={!isEditable || !isEnoughPermissions}
-                  errors={errors.supported_languages}
                   selectAll={() => {
                     const languageValues = languages.map((c) => c.value);
                     addLocaleMutation({
@@ -530,8 +576,6 @@ export const AppStoreForm = (props: {
                       ],
                     });
                   }}
-                  showSelectedList
-                  searchPlaceholder="Start by typing language..."
                 >
                   {(item, index) => (
                     <SelectMultiple.Item
@@ -572,7 +616,6 @@ export const AppStoreForm = (props: {
               )}
             />
           </div>
-
           <div className="flex flex-wrap gap-2">
             {supportedLanguages?.map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
@@ -603,65 +646,74 @@ export const AppStoreForm = (props: {
               );
             })}
           </div>
-
-          <Input
-            register={register("name")}
-            errors={errors.name}
-            label="App name"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            placeholder="Enter your App Name"
-            maxLength={50}
-            addOnRight={
-              <RemainingCharacters text={watch("name")} maxChars={50} />
-            }
-          />
-
-          <Input
-            register={register("short_name")}
-            errors={errors.short_name}
-            label="Short name"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            placeholder="Enter your short app name"
-            maxLength={10}
-            addOnRight={
-              <RemainingCharacters text={watch("short_name")} maxChars={10} />
-            }
-          />
-
-          <Input
-            register={register("world_app_description")}
-            errors={errors.world_app_description}
-            label="App tag line"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            placeholder="Short app store tagline"
-            maxLength={35}
-            addOnRight={
-              <RemainingCharacters
-                text={watch("world_app_description")}
-                maxChars={35}
+          <div className="flex flex-row items-center">
+            <button type="button" onClick={handleSelectPreviousLocalisation}>
+              <ChevronLeftIcon className="mr-2 size-8" />
+            </button>
+            <div>
+              <Input
+                register={register("name")}
+                errors={errors.name}
+                label="App name"
+                disabled={!isEditable || !isEnoughPermissions}
+                required
+                placeholder="Enter your App Name"
+                maxLength={50}
+                addOnRight={
+                  <RemainingCharacters text={watch("name")} maxChars={50} />
+                }
               />
-            }
-          />
-
-          <TextArea
-            label="Overview"
-            required
-            rows={5}
-            maxLength={1500}
-            errors={errors.description_overview}
-            disabled={!isEditable || !isEnoughPermissions}
-            addOn={
-              <RemainingCharacters
-                text={watch("description_overview")}
-                maxChars={1500}
+              <Input
+                register={register("short_name")}
+                errors={errors.short_name}
+                label="Short name"
+                disabled={!isEditable || !isEnoughPermissions}
+                required
+                placeholder="Enter your short app name"
+                maxLength={10}
+                addOnRight={
+                  <RemainingCharacters
+                    text={watch("short_name")}
+                    maxChars={10}
+                  />
+                }
               />
-            }
-            placeholder="Give an overview of your app to potential users. What does it do? Why should they use it?"
-            register={register("description_overview")}
-          />
+              <Input
+                register={register("world_app_description")}
+                errors={errors.world_app_description}
+                label="App tag line"
+                disabled={!isEditable || !isEnoughPermissions}
+                required
+                placeholder="Short app store tagline"
+                maxLength={35}
+                addOnRight={
+                  <RemainingCharacters
+                    text={watch("world_app_description")}
+                    maxChars={35}
+                  />
+                }
+              />
+              <TextArea
+                label="Overview"
+                required
+                rows={5}
+                maxLength={1500}
+                errors={errors.description_overview}
+                disabled={!isEditable || !isEnoughPermissions}
+                addOn={
+                  <RemainingCharacters
+                    text={watch("description_overview")}
+                    maxChars={1500}
+                  />
+                }
+                placeholder="Give an overview of your app to potential users. What does it do? Why should they use it?"
+                register={register("description_overview")}
+              />
+            </div>
+            <button type="button" onClick={handleSelectNextLocalisation}>
+              <ChevronRightIcon className="ml-2 size-8" />
+            </button>
+          </div>
 
           <DecoratedButton
             type="submit"
