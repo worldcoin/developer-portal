@@ -76,15 +76,18 @@ export const AppStoreForm = (props: {
     { data: localisedData, refetch: refetchLocalisation },
   ] = useFetchLocalisationLazyQuery();
 
-  const updateLocalisation = async (locale: string) => {
-    await getLocalisationText({
-      variables: {
-        id: appMetadata.id,
-        locale: locale,
-      },
-    });
-    setLocale(locale);
-  };
+  const updateLocalisation = useCallback(
+    async (locale: string) => {
+      await getLocalisationText({
+        variables: {
+          id: appMetadata.id,
+          locale: locale,
+        },
+      });
+      setLocale(locale);
+    },
+    [appMetadata.id, getLocalisationText],
+  );
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -295,7 +298,7 @@ export const AppStoreForm = (props: {
     name: "supported_languages",
   });
 
-  const handleSelectNextLocalisation = async () => {
+  const handleSelectNextLocalisation = useCallback(async () => {
     if (isDirty) {
       await saveLocalisation();
     }
@@ -309,9 +312,15 @@ export const AppStoreForm = (props: {
       const firstLocale = supportedLanguages[0];
       return updateLocalisation(firstLocale);
     }
-  };
+  }, [
+    isDirty,
+    locale,
+    saveLocalisation,
+    supportedLanguages,
+    updateLocalisation,
+  ]);
 
-  const handleSelectPreviousLocalisation = async () => {
+  const handleSelectPreviousLocalisation = useCallback(async () => {
     if (isDirty) {
       await saveLocalisation();
     }
@@ -325,7 +334,13 @@ export const AppStoreForm = (props: {
       const lastLocale = supportedLanguages[supportedLanguages.length - 1];
       return updateLocalisation(lastLocale);
     }
-  };
+  }, [
+    isDirty,
+    locale,
+    saveLocalisation,
+    supportedLanguages,
+    updateLocalisation,
+  ]);
 
   return (
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
