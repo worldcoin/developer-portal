@@ -27,7 +27,11 @@ export const formatAppMetadata = async (
   // We pick default description if localised content is not available
   const description: AppStoreMetadataDescription = tryParseJSON(
     localisedContent?.description ?? appMetadata.description,
-  );
+  ) ?? {
+    description_overview: "",
+    description_how_it_works: "",
+    description_connect: "",
+  };
 
   const {
     localisations,
