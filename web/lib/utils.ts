@@ -7,6 +7,7 @@ import {
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
 } from "./constants";
+import { logger } from "./logger";
 import { Auth0SessionUser } from "./types";
 
 // Sequencer mapping
@@ -185,7 +186,7 @@ export const tryParseJSON = (jsonString: string) => {
       return o;
     }
   } catch (e) {
-    console.warn("Error parsing JSON", { error: e, jsonString });
+    logger.warn("Error parsing JSON", { error: e, jsonString });
     return null;
   }
 

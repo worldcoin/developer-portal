@@ -115,6 +115,10 @@ export const useImage = () => {
 
     const fields = tryParseJSON(stringifiedFields);
 
+    if (!fields) {
+      throw new Error("Failed to parse fields");
+    }
+
     const formData = new FormData();
 
     Object.entries(fields).forEach(([key, value]) =>
