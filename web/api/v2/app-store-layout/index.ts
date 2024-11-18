@@ -8,39 +8,25 @@ import {
   Layout_Banner_Insert_Input,
   Layout_Secondary_Category_Insert_Input,
 } from "@/graphql/graphql";
+import { parseLocale } from "@/lib/languages";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as getInsertLayoutSdk } from "./grapqhl/insert-layout.generated";
-import { AppStoreLayoutSchema } from "./validation";
+import {
+  getSdk as getGetLayoutSdk,
+  GetLayoutQuery,
+} from "./graphql/get-layout.generated";
+import {
+  getSdk as getInsertLayoutSdk,
+  InsertLayoutMutation,
+} from "./graphql/insert-layout.generated";
+import { AppStoreLayoutSchema } from "./post-app-store-layout-validation";
 
-export const POST = async (req: NextRequest) => {
-  const body = await req.json();
-  const { isValid, parsedParams } = await validateRequestSchema({
-    value: body,
-    schema: AppStoreLayoutSchema,
-  });
-
-  if (!isValid || !parsedParams) {
-    return NextResponse.json({
-      status: 400,
-      body: {
-        error: "Invalid request body.",
-      },
-    });
-  }
-  const AppStoreLayoutElements =
-    parsedParams.elements as AppStoreLayout["elements"];
-
+const resolveLayoutElements = (elements: AppStoreLayout["elements"]) => {
   let apps: Layout_App_Insert_Input[] = [];
   let banners: Layout_Banner_Insert_Input[] = [];
   let appCollections: Layout_App_Collection_Insert_Input[] = [];
   let bannerCollections: Layout_Banner_Collection_Insert_Input[] = [];
   let secondaryCategories: Layout_Secondary_Category_Insert_Input[] = [];
-
-  // order of elements in arrays is the order in which they should be displayed
-  // indexed are guaranteed to be in ascending order
-  // first index value is not guaranteed, e.g. indexes can start from 10 or 69
-  // the number can reach values of a few thousand
-  AppStoreLayoutElements.forEach((element, topLevelElementIndex) => {
+  elements.forEach((element, topLevelElementIndex) => {
     switch (element.elementType) {
       case "app":
         console.log("App Element");
@@ -99,35 +85,140 @@ export const POST = async (req: NextRequest) => {
           },
         });
         break;
-      // case "secondary-category":
-      //   console.log("Secondary Category Element");
+      case "secondary-category":
+        console.log("Secondary Category Element");
 
-      //   secondaryCategories.push({
-      //     // ...element,
-      //     // elements: element.elements.map((secondaryCategory, jndex) => ({
-      //     //   ...secondaryCategory,
-      //     //   location_index: topLevelElementIndex + jndex + 1,
-      //     // })),
-      //   });
-      //   break;
+        const resolvedLayoutElements = resolveLayoutElements(element.elements);
+
+        secondaryCategories.push({
+          location_index: topLevelElementIndex,
+          title: element.title,
+          subtitle: element.subtitle,
+          background_color_hex: element.backgroundColorHex,
+          background_image_url: element.backgroundImageUrl,
+          layout_apps: { data: resolvedLayoutElements.layoutApps },
+          layout_banners: {
+            data: resolvedLayoutElements.layoutBanners,
+          },
+          layout_app_collections: {
+            data: resolvedLayoutElements.layoutAppCollections,
+          },
+          layout_banner_collections: {
+            data: resolvedLayoutElements.layoutBannerCollections,
+          },
+        });
+        break;
       default:
         console.log("Unknown Element");
         break;
     }
   });
-
-  const client = await getAPIServiceGraphqlClient();
-  const data = await getInsertLayoutSdk(client).InsertLayout({
+  return {
     layoutApps: apps,
     layoutBanners: banners,
     layoutAppCollections: appCollections,
     layoutBannerCollections: bannerCollections,
-    layoutSecondaryCategories: {},
-  });
-
-  return NextResponse.json(data);
+    layoutSecondaryCategories: secondaryCategories,
+  } as const;
 };
 
-export const GET = async (req: NextRequest) => {
-  return NextResponse.json({ success: true });
+export const POST = async (
+  req: NextRequest,
+): Promise<NextResponse<{ layout_id: string } | { error: string }>> => {
+  let body = {};
+  try {
+    body = await req.json();
+  } catch (error) {
+    console.log("app-store-layout - error parsing req body", {
+      error: JSON.stringify(error),
+      body,
+    });
+    return NextResponse.json(
+      {
+        error: "Invalid request body.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const { isValid, parsedParams: parsedBody } = await validateRequestSchema({
+    value: body,
+    schema: AppStoreLayoutSchema,
+  });
+
+  if (!isValid || !parsedBody) {
+    console.log("app-store-layout - invalid request body", { body });
+    return NextResponse.json(
+      {
+        error: "Invalid request body.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const AppStoreLayoutElements =
+    parsedBody.elements as AppStoreLayout["elements"];
+  const resolvedLayoutElements = resolveLayoutElements(AppStoreLayoutElements);
+
+  const client = await getAPIServiceGraphqlClient();
+  let insertLayoutData = {} as InsertLayoutMutation;
+  try {
+    insertLayoutData = await getInsertLayoutSdk(client).InsertLayout(
+      resolvedLayoutElements,
+    );
+  } catch (error) {
+    console.error("app-store-layout - error inserting layout", {
+      error: JSON.stringify(error),
+      parsedBody,
+      resolvedLayoutElements,
+    });
+  }
+
+  if (
+    !insertLayoutData.insert_layout_one ||
+    !insertLayoutData.insert_layout_one.id
+  ) {
+    return NextResponse.json(
+      {
+        error: "app-store-layout - unknown error inserting layout.",
+      },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({
+    layout_id: insertLayoutData.insert_layout_one.id,
+  });
+};
+
+export const GET = async (
+  req: NextRequest,
+): Promise<NextResponse<GetLayoutQuery | { error: string }>> => {
+  const layout_id = req.nextUrl.searchParams.get("layout_id");
+  const headers = req.headers;
+  const locale = parseLocale(headers.get("x-accept-language") ?? "");
+
+  if (!layout_id) {
+    console.log("app-store-layout - no layout_id provided.");
+    return NextResponse.json(
+      {
+        error: "Invalid request, missing layout_id param.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const client = await getAPIServiceGraphqlClient();
+  let layoutData = {} as GetLayoutQuery;
+  try {
+    layoutData = await getGetLayoutSdk(client).GetLayout({ layout_id, locale });
+  } catch (error) {
+    console.error("app-store-layout - error getting layout", {
+      error: JSON.stringify(error),
+      layout_id,
+      locale,
+    });
+  }
+
+  return NextResponse.json(layoutData);
 };

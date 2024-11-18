@@ -35782,6 +35782,22 @@
         "description": "columns and relationships of \"layout_app\"",
         "fields": [
           {
+            "name": "app",
+            "description": "An object relationship",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_id",
             "description": null,
             "args": [],
@@ -36529,6 +36545,18 @@
                   "ofType": null
                 }
               }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_bool_exp",
+              "ofType": null
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -39501,6 +39529,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "app",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_obj_rel_insert_input",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_id",
             "description": null,
             "type": {
@@ -40125,6 +40165,18 @@
         "description": "Ordering options when selecting data from \"layout_app\".",
         "fields": null,
         "inputFields": [
+          {
+            "name": "app",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "app_id",
             "description": null,

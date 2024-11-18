@@ -4879,6 +4879,8 @@ export type Layout_Aggregate_FieldsCountArgs = {
 /** columns and relationships of "layout_app" */
 export type Layout_App = {
   __typename?: "layout_app";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
@@ -4972,6 +4974,7 @@ export type Layout_App_Bool_Exp = {
   _and?: InputMaybe<Array<Layout_App_Bool_Exp>>;
   _not?: InputMaybe<Layout_App_Bool_Exp>;
   _or?: InputMaybe<Array<Layout_App_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -5415,6 +5418,7 @@ export type Layout_App_Inc_Input = {
 
 /** input type for inserting data into table "layout_app" */
 export type Layout_App_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -5491,6 +5495,7 @@ export type Layout_App_On_Conflict = {
 
 /** Ordering options when selecting data from "layout_app". */
 export type Layout_App_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
