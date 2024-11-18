@@ -138,39 +138,50 @@ export async function POST(
     });
   }
 
-  // ANCHOR: Verify the proof with the World ID smart contract
-  const { error, success } = await verifyProof(
-    {
-      signal_hash: parsedParams.signal_hash,
-      proof: parsedParams.proof,
-      merkle_root: parsedParams.merkle_root,
-      nullifier_hash: parsedParams.nullifier_hash,
-      external_nullifier: action.external_nullifier,
-    },
-    {
-      is_staging: app.is_staging,
-      verification_level: parsedParams.verification_level,
-      max_age: parsedParams.max_age,
-    },
-  );
-
-  if (error || !success) {
-    await captureEvent({
-      event: "action_verify_failed",
-      distinctId: action.id,
-      properties: {
-        action_id: action.id,
-        app_id: app.id,
-        environment: app.is_staging ? "staging" : "production",
-        verification_level: parsedParams.verification_level,
-        error: error,
+  try {
+    // ANCHOR: Verify the proof with the World ID smart contract
+    const { error, success } = await verifyProof(
+      {
+        signal_hash: parsedParams.signal_hash,
+        proof: parsedParams.proof,
+        merkle_root: parsedParams.merkle_root,
+        nullifier_hash: parsedParams.nullifier_hash,
+        external_nullifier: action.external_nullifier,
       },
-    });
+      {
+        is_staging: app.is_staging,
+        verification_level: parsedParams.verification_level,
+        max_age: parsedParams.max_age,
+      },
+    );
+
+    if (error || !success) {
+      await captureEvent({
+        event: "action_verify_failed",
+        distinctId: action.id,
+        properties: {
+          action_id: action.id,
+          app_id: app.id,
+          environment: app.is_staging ? "staging" : "production",
+          verification_level: parsedParams.verification_level,
+          error: error,
+        },
+      });
+      return errorResponse({
+        statusCode: error?.statusCode || 400,
+        code: error?.code || AppErrorCodes.GenericError,
+        detail: error?.message || "There was an error verifying this proof.",
+        attribute: error?.attribute || null,
+        req,
+      });
+    }
+  } catch (e: any) {
+    console.warn("Error verifying proof", { error: e });
     return errorResponse({
-      statusCode: error?.statusCode || 400,
-      code: error?.code || AppErrorCodes.GenericError,
-      detail: error?.message || "There was an error verifying this proof.",
-      attribute: error?.attribute || null,
+      statusCode: 400,
+      code: "verification_error",
+      detail: e.message,
+      attribute: null,
       req,
     });
   }
