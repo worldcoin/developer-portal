@@ -45,7 +45,7 @@ query GetHighlights(
       short_name
       description
     }
-    app_rating
+
     app {
       team {
         name

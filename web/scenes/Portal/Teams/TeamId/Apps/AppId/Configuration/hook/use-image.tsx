@@ -1,3 +1,4 @@
+import { tryParseJSON } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
@@ -112,7 +113,11 @@ export const useImage = () => {
 
     const { url, stringifiedFields } = response.data.upload_image;
 
-    const fields = JSON.parse(stringifiedFields);
+    const fields = tryParseJSON(stringifiedFields);
+
+    if (!fields) {
+      throw new Error("Failed to parse fields");
+    }
 
     const formData = new FormData();
 

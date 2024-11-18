@@ -38,7 +38,6 @@ export type GetAppsQuery = {
     can_import_all_contacts: boolean;
     is_reviewer_world_app_approved: boolean;
     verification_status: string;
-    app_rating?: number | null;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -96,7 +95,6 @@ export const GetAppsDocument = gql`
         short_name
         description
       }
-      app_rating
       app {
         team {
           name

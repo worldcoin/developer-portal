@@ -51,6 +51,10 @@ jest.mock(
   }),
 );
 
+jest.mock("@/api/helpers/app-rating", () => ({
+  getAppRating: jest.fn().mockResolvedValue(3.4),
+}));
+
 describe("/api/public/app/[app_id]", () => {
   test("Returns correct value for valid unverified app", async () => {
     const request = new NextRequest("https://cdn.test.com/api/public/app/1", {

@@ -73,7 +73,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   );
 
   return (
-    <div className={"inline-grid font-gta"}>
+    <div className={"inline-grid w-full font-gta"}>
       <fieldset
         className={twMerge(
           clsx("group relative grid pb-2", parentClassNames),

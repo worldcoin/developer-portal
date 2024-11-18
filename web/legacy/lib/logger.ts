@@ -1,3 +1,4 @@
+import { tryParseJSON } from "@/lib/utils";
 import { IncomingMessage } from "http";
 import { NextApiRequest } from "next";
 import winston from "winston";
@@ -91,9 +92,7 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
   }
 
   if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch {}
+    body = tryParseJSON(body);
   }
 
   if (
