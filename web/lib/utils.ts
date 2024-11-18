@@ -185,7 +185,10 @@ export const tryParseJSON = (jsonString: string) => {
       return o;
     }
   } catch (e) {
-    console.warn("Error parsing JSON", { error: e, jsonString });
+    console.warn("Error parsing JSON", {
+      error: JSON.stringify(e),
+      jsonString,
+    });
     return null;
   }
 
