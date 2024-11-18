@@ -1,7 +1,6 @@
 "use server";
 import { createRedisClient } from "@/lib/redis";
 import { getAPIServiceGraphqlClient } from "../graphql";
-import { getSdk as getAppRatingSdk } from "./graphql/get-app-rating.generated";
 
 // Helper function to get rating with Redis caching
 export async function getAppRating(appId: string): Promise<number> {
@@ -39,9 +38,9 @@ export async function getAppRating(appId: string): Promise<number> {
     const client = await getAPIServiceGraphqlClient();
 
     // Calculate rating from DB
-    const result = await getAppRatingSdk(client).GetAppRating({
-      app_id: appId,
-    });
+    // const result = await getAppRatingSdk(client).GetAppRating({
+    //   app_id: appId,
+    // });
 
     const calculatedRating = result.app_metadata[0].app_rating ?? 0;
 
