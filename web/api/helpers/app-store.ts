@@ -8,7 +8,6 @@ import {
   AppStoreMetadataFields,
 } from "@/lib/types";
 import { getCDNImageUrl, tryParseJSON } from "@/lib/utils";
-import { getAppRating } from "./app-rating";
 
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
@@ -20,7 +19,9 @@ export const formatAppMetadata = async (
     appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
     0;
 
-  const appRating = await getAppRating(appMetadata.app_id);
+  // const appRating = await getAppRating(appMetadata.app_id);
+
+  const appRating = 0;
 
   const localisedContent = appMetadata.localisations?.[0];
 

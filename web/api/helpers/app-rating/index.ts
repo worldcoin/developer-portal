@@ -36,6 +36,7 @@ export async function getAppRating(appId: string): Promise<number> {
 
       console.warn("Lock timeout for app rating calculation", { appId });
     }
+
     const client = await getAPIServiceGraphqlClient();
 
     // Calculate rating from DB
