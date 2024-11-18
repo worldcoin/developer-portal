@@ -183,6 +183,8 @@ export type Action = {
   /** Raw action value as passed by the dev to IDKit. */
   action: Scalars["String"]["output"];
   /** An object relationship */
+  action_stats_returning?: Maybe<Action_Stats_Returning>;
+  /** An object relationship */
   app: App;
   app_id: Scalars["String"]["output"];
   client_secret: Scalars["String"]["output"];
@@ -354,6 +356,7 @@ export type Action_Bool_Exp = {
   _not?: InputMaybe<Action_Bool_Exp>;
   _or?: InputMaybe<Array<Action_Bool_Exp>>;
   action?: InputMaybe<String_Comparison_Exp>;
+  action_stats_returning?: InputMaybe<Action_Stats_Returning_Bool_Exp>;
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   client_secret?: InputMaybe<String_Comparison_Exp>;
@@ -399,6 +402,7 @@ export type Action_Inc_Input = {
 export type Action_Insert_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
+  action_stats_returning?: InputMaybe<Action_Stats_Returning_Obj_Rel_Insert_Input>;
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
@@ -551,6 +555,7 @@ export type Action_On_Conflict = {
 /** Ordering options when selecting data from "action". */
 export type Action_Order_By = {
   action?: InputMaybe<Order_By>;
+  action_stats_returning?: InputMaybe<Action_Stats_Returning_Order_By>;
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
@@ -760,6 +765,13 @@ export type Action_Stats_Returning_Mutation_Response = {
   affected_rows: Scalars["Int"]["output"];
   /** data from the rows affected by the mutation */
   returning: Array<Action_Stats_Returning>;
+};
+
+/** input type for inserting object relation for remote table "action_stats_returning" */
+export type Action_Stats_Returning_Obj_Rel_Insert_Input = {
+  data: Action_Stats_Returning_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Action_Stats_Returning_On_Conflict>;
 };
 
 /** on_conflict condition type for table "action_stats_returning" */
@@ -1380,6 +1392,20 @@ export type App = {
   app_metadata: Array<App_Metadata>;
   /** An aggregate relationship */
   app_metadata_aggregate: App_Metadata_Aggregate;
+  /** An array relationship */
+  app_reports: Array<App_Report>;
+  /** An aggregate relationship */
+  app_reports_aggregate: App_Report_Aggregate;
+  /** An array relationship */
+  app_reviews: Array<App_Reviews>;
+  /** An aggregate relationship */
+  app_reviews_aggregate: App_Reviews_Aggregate;
+  /** An object relationship */
+  app_stats_returning?: Maybe<App_Stats_Returning>;
+  /** An array relationship */
+  auth_codes: Array<Auth_Code>;
+  /** An aggregate relationship */
+  auth_codes_aggregate: Auth_Code_Aggregate;
   created_at: Scalars["timestamptz"]["output"];
   description_internal: Scalars["String"]["output"];
   engine: Scalars["String"]["output"];
@@ -1389,6 +1415,10 @@ export type App = {
   is_staging: Scalars["Boolean"]["output"];
   logo_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
+  /** An array relationship */
+  notification_logs: Array<Notification_Log>;
+  /** An aggregate relationship */
+  notification_logs_aggregate: Notification_Log_Aggregate;
   status: Scalars["String"]["output"];
   /** An object relationship */
   team: Team;
@@ -1431,6 +1461,78 @@ export type AppApp_Metadata_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Metadata_Order_By>>;
   where?: InputMaybe<App_Metadata_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppApp_ReportsArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppApp_Reports_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Report_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Report_Order_By>>;
+  where?: InputMaybe<App_Report_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppApp_ReviewsArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppApp_Reviews_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Reviews_Order_By>>;
+  where?: InputMaybe<App_Reviews_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppAuth_CodesArgs = {
+  distinct_on?: InputMaybe<Array<Auth_Code_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Auth_Code_Order_By>>;
+  where?: InputMaybe<Auth_Code_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppAuth_Codes_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Auth_Code_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Auth_Code_Order_By>>;
+  where?: InputMaybe<Auth_Code_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppNotification_LogsArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppNotification_Logs_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Order_By>>;
+  where?: InputMaybe<Notification_Log_Bool_Exp>;
 };
 
 /** aggregated selection of "app" */
@@ -1504,6 +1606,13 @@ export type App_Bool_Exp = {
   actions_aggregate?: InputMaybe<Action_Aggregate_Bool_Exp>;
   app_metadata?: InputMaybe<App_Metadata_Bool_Exp>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Bool_Exp>;
+  app_reports?: InputMaybe<App_Report_Bool_Exp>;
+  app_reports_aggregate?: InputMaybe<App_Report_Aggregate_Bool_Exp>;
+  app_reviews?: InputMaybe<App_Reviews_Bool_Exp>;
+  app_reviews_aggregate?: InputMaybe<App_Reviews_Aggregate_Bool_Exp>;
+  app_stats_returning?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  auth_codes?: InputMaybe<Auth_Code_Bool_Exp>;
+  auth_codes_aggregate?: InputMaybe<Auth_Code_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description_internal?: InputMaybe<String_Comparison_Exp>;
   engine?: InputMaybe<String_Comparison_Exp>;
@@ -1513,6 +1622,8 @@ export type App_Bool_Exp = {
   is_staging?: InputMaybe<Boolean_Comparison_Exp>;
   logo_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
+  notification_logs?: InputMaybe<Notification_Log_Bool_Exp>;
+  notification_logs_aggregate?: InputMaybe<Notification_Log_Aggregate_Bool_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
@@ -1530,6 +1641,10 @@ export enum App_Constraint {
 export type App_Insert_Input = {
   actions?: InputMaybe<Action_Arr_Rel_Insert_Input>;
   app_metadata?: InputMaybe<App_Metadata_Arr_Rel_Insert_Input>;
+  app_reports?: InputMaybe<App_Report_Arr_Rel_Insert_Input>;
+  app_reviews?: InputMaybe<App_Reviews_Arr_Rel_Insert_Input>;
+  app_stats_returning?: InputMaybe<App_Stats_Returning_Obj_Rel_Insert_Input>;
+  auth_codes?: InputMaybe<Auth_Code_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
@@ -1539,6 +1654,7 @@ export type App_Insert_Input = {
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
+  notification_logs?: InputMaybe<Notification_Log_Arr_Rel_Insert_Input>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
@@ -1784,8 +1900,6 @@ export enum App_Metadata_Constraint {
   AppMetadataAppIdIsRowVerifiedKey = "app_metadata_app_id_is_row_verified_key",
   /** unique or primary key constraint on columns "id" */
   AppMetadataPkey = "app_metadata_pkey",
-  /** unique or primary key constraint on columns "app_id" */
-  UniqueVerifiedAppId = "unique_verified_app_id",
 }
 
 /** input type for incrementing numeric columns in table "app_metadata" */
@@ -2464,6 +2578,10 @@ export type App_On_Conflict = {
 export type App_Order_By = {
   actions_aggregate?: InputMaybe<Action_Aggregate_Order_By>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Order_By>;
+  app_reports_aggregate?: InputMaybe<App_Report_Aggregate_Order_By>;
+  app_reviews_aggregate?: InputMaybe<App_Reviews_Aggregate_Order_By>;
+  app_stats_returning?: InputMaybe<App_Stats_Returning_Order_By>;
+  auth_codes_aggregate?: InputMaybe<Auth_Code_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
   description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
@@ -2473,6 +2591,7 @@ export type App_Order_By = {
   is_staging?: InputMaybe<Order_By>;
   logo_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  notification_logs_aggregate?: InputMaybe<Notification_Log_Aggregate_Order_By>;
   status?: InputMaybe<Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
@@ -2647,6 +2766,8 @@ export type App_Rankings_Updates = {
 /** columns and relationships of "app_report" */
 export type App_Report = {
   __typename?: "app_report";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   app_name: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
@@ -2663,6 +2784,17 @@ export type App_Report_Aggregate = {
   nodes: Array<App_Report>;
 };
 
+export type App_Report_Aggregate_Bool_Exp = {
+  count?: InputMaybe<App_Report_Aggregate_Bool_Exp_Count>;
+};
+
+export type App_Report_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<App_Report_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<App_Report_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "app_report" */
 export type App_Report_Aggregate_Fields = {
   __typename?: "app_report_aggregate_fields";
@@ -2677,11 +2809,26 @@ export type App_Report_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "app_report" */
+export type App_Report_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<App_Report_Max_Order_By>;
+  min?: InputMaybe<App_Report_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "app_report" */
+export type App_Report_Arr_Rel_Insert_Input = {
+  data: Array<App_Report_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<App_Report_On_Conflict>;
+};
+
 /** Boolean expression to filter rows from the table "app_report". All fields are combined with a logical 'AND'. */
 export type App_Report_Bool_Exp = {
   _and?: InputMaybe<Array<App_Report_Bool_Exp>>;
   _not?: InputMaybe<App_Report_Bool_Exp>;
   _or?: InputMaybe<Array<App_Report_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   app_name?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -2699,6 +2846,7 @@ export enum App_Report_Constraint {
 
 /** input type for inserting data into table "app_report" */
 export type App_Report_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   app_name?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -2720,6 +2868,17 @@ export type App_Report_Max_Fields = {
   user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "app_report" */
+export type App_Report_Max_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_name?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  details?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  reporter_email?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type App_Report_Min_Fields = {
   __typename?: "app_report_min_fields";
@@ -2730,6 +2889,17 @@ export type App_Report_Min_Fields = {
   id?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "app_report" */
+export type App_Report_Min_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  app_name?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  details?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  reporter_email?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "app_report" */
@@ -2750,6 +2920,7 @@ export type App_Report_On_Conflict = {
 
 /** Ordering options when selecting data from "app_report". */
 export type App_Report_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   app_name?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -2840,6 +3011,8 @@ export type App_Report_Updates = {
 /** columns and relationships of "app_reviews" */
 export type App_Reviews = {
   __typename?: "app_reviews";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   country: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
@@ -2854,6 +3027,17 @@ export type App_Reviews_Aggregate = {
   __typename?: "app_reviews_aggregate";
   aggregate?: Maybe<App_Reviews_Aggregate_Fields>;
   nodes: Array<App_Reviews>;
+};
+
+export type App_Reviews_Aggregate_Bool_Exp = {
+  count?: InputMaybe<App_Reviews_Aggregate_Bool_Exp_Count>;
+};
+
+export type App_Reviews_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<App_Reviews_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<App_Reviews_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "app_reviews" */
@@ -2878,10 +3062,37 @@ export type App_Reviews_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "app_reviews" */
+export type App_Reviews_Aggregate_Order_By = {
+  avg?: InputMaybe<App_Reviews_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<App_Reviews_Max_Order_By>;
+  min?: InputMaybe<App_Reviews_Min_Order_By>;
+  stddev?: InputMaybe<App_Reviews_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<App_Reviews_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<App_Reviews_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<App_Reviews_Sum_Order_By>;
+  var_pop?: InputMaybe<App_Reviews_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<App_Reviews_Var_Samp_Order_By>;
+  variance?: InputMaybe<App_Reviews_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "app_reviews" */
+export type App_Reviews_Arr_Rel_Insert_Input = {
+  data: Array<App_Reviews_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<App_Reviews_On_Conflict>;
+};
+
 /** aggregate avg on columns */
 export type App_Reviews_Avg_Fields = {
   __typename?: "app_reviews_avg_fields";
   rating?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "app_reviews" */
+export type App_Reviews_Avg_Order_By = {
+  rating?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "app_reviews". All fields are combined with a logical 'AND'. */
@@ -2889,6 +3100,7 @@ export type App_Reviews_Bool_Exp = {
   _and?: InputMaybe<Array<App_Reviews_Bool_Exp>>;
   _not?: InputMaybe<App_Reviews_Bool_Exp>;
   _or?: InputMaybe<Array<App_Reviews_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   country?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -2913,6 +3125,7 @@ export type App_Reviews_Inc_Input = {
 
 /** input type for inserting data into table "app_reviews" */
 export type App_Reviews_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   country?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -2934,6 +3147,17 @@ export type App_Reviews_Max_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
 
+/** order by max() on columns of table "app_reviews" */
+export type App_Reviews_Max_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  country?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  rating?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type App_Reviews_Min_Fields = {
   __typename?: "app_reviews_min_fields";
@@ -2944,6 +3168,17 @@ export type App_Reviews_Min_Fields = {
   nullifier_hash?: Maybe<Scalars["String"]["output"]>;
   rating?: Maybe<Scalars["Int"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** order by min() on columns of table "app_reviews" */
+export type App_Reviews_Min_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  country?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  rating?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "app_reviews" */
@@ -2964,6 +3199,7 @@ export type App_Reviews_On_Conflict = {
 
 /** Ordering options when selecting data from "app_reviews". */
 export type App_Reviews_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   country?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -3013,16 +3249,31 @@ export type App_Reviews_Stddev_Fields = {
   rating?: Maybe<Scalars["Float"]["output"]>;
 };
 
+/** order by stddev() on columns of table "app_reviews" */
+export type App_Reviews_Stddev_Order_By = {
+  rating?: InputMaybe<Order_By>;
+};
+
 /** aggregate stddev_pop on columns */
 export type App_Reviews_Stddev_Pop_Fields = {
   __typename?: "app_reviews_stddev_pop_fields";
   rating?: Maybe<Scalars["Float"]["output"]>;
 };
 
+/** order by stddev_pop() on columns of table "app_reviews" */
+export type App_Reviews_Stddev_Pop_Order_By = {
+  rating?: InputMaybe<Order_By>;
+};
+
 /** aggregate stddev_samp on columns */
 export type App_Reviews_Stddev_Samp_Fields = {
   __typename?: "app_reviews_stddev_samp_fields";
   rating?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "app_reviews" */
+export type App_Reviews_Stddev_Samp_Order_By = {
+  rating?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "app_reviews" */
@@ -3048,6 +3299,11 @@ export type App_Reviews_Stream_Cursor_Value_Input = {
 export type App_Reviews_Sum_Fields = {
   __typename?: "app_reviews_sum_fields";
   rating?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "app_reviews" */
+export type App_Reviews_Sum_Order_By = {
+  rating?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "app_reviews" */
@@ -3083,16 +3339,31 @@ export type App_Reviews_Var_Pop_Fields = {
   rating?: Maybe<Scalars["Float"]["output"]>;
 };
 
+/** order by var_pop() on columns of table "app_reviews" */
+export type App_Reviews_Var_Pop_Order_By = {
+  rating?: InputMaybe<Order_By>;
+};
+
 /** aggregate var_samp on columns */
 export type App_Reviews_Var_Samp_Fields = {
   __typename?: "app_reviews_var_samp_fields";
   rating?: Maybe<Scalars["Float"]["output"]>;
 };
 
+/** order by var_samp() on columns of table "app_reviews" */
+export type App_Reviews_Var_Samp_Order_By = {
+  rating?: InputMaybe<Order_By>;
+};
+
 /** aggregate variance on columns */
 export type App_Reviews_Variance_Fields = {
   __typename?: "app_reviews_variance_fields";
   rating?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "app_reviews" */
+export type App_Reviews_Variance_Order_By = {
+  rating?: InputMaybe<Order_By>;
 };
 
 /** select columns of table "app" */
@@ -3272,6 +3543,13 @@ export type App_Stats_Returning_Mutation_Response = {
   affected_rows: Scalars["Int"]["output"];
   /** data from the rows affected by the mutation */
   returning: Array<App_Stats_Returning>;
+};
+
+/** input type for inserting object relation for remote table "app_stats_returning" */
+export type App_Stats_Returning_Obj_Rel_Insert_Input = {
+  data: App_Stats_Returning_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<App_Stats_Returning_On_Conflict>;
 };
 
 /** on_conflict condition type for table "app_stats_returning" */
@@ -3466,6 +3744,8 @@ export type App_Updates = {
 /** columns and relationships of "auth_code" */
 export type Auth_Code = {
   __typename?: "auth_code";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   auth_code: Scalars["String"]["output"];
   code_challenge?: Maybe<Scalars["String"]["output"]>;
@@ -3493,6 +3773,17 @@ export type Auth_Code_Aggregate = {
   nodes: Array<Auth_Code>;
 };
 
+export type Auth_Code_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Auth_Code_Aggregate_Bool_Exp_Count>;
+};
+
+export type Auth_Code_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Auth_Code_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Auth_Code_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "auth_code" */
 export type Auth_Code_Aggregate_Fields = {
   __typename?: "auth_code_aggregate_fields";
@@ -3507,9 +3798,23 @@ export type Auth_Code_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "auth_code" */
+export type Auth_Code_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Auth_Code_Max_Order_By>;
+  min?: InputMaybe<Auth_Code_Min_Order_By>;
+};
+
 /** append existing jsonb value of filtered columns with new jsonb value */
 export type Auth_Code_Append_Input = {
   scope?: InputMaybe<Scalars["jsonb"]["input"]>;
+};
+
+/** input type for inserting array relation for remote table "auth_code" */
+export type Auth_Code_Arr_Rel_Insert_Input = {
+  data: Array<Auth_Code_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Auth_Code_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "auth_code". All fields are combined with a logical 'AND'. */
@@ -3517,6 +3822,7 @@ export type Auth_Code_Bool_Exp = {
   _and?: InputMaybe<Array<Auth_Code_Bool_Exp>>;
   _not?: InputMaybe<Auth_Code_Bool_Exp>;
   _or?: InputMaybe<Array<Auth_Code_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   auth_code?: InputMaybe<String_Comparison_Exp>;
   code_challenge?: InputMaybe<String_Comparison_Exp>;
@@ -3555,6 +3861,7 @@ export type Auth_Code_Delete_Key_Input = {
 
 /** input type for inserting data into table "auth_code" */
 export type Auth_Code_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   auth_code?: InputMaybe<Scalars["String"]["input"]>;
   code_challenge?: InputMaybe<Scalars["String"]["input"]>;
@@ -3587,6 +3894,22 @@ export type Auth_Code_Max_Fields = {
   verification_level?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "auth_code" */
+export type Auth_Code_Max_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  auth_code?: InputMaybe<Order_By>;
+  code_challenge?: InputMaybe<Order_By>;
+  code_challenge_method?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  redirect_uri?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verification_level?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Auth_Code_Min_Fields = {
   __typename?: "auth_code_min_fields";
@@ -3602,6 +3925,22 @@ export type Auth_Code_Min_Fields = {
   redirect_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   verification_level?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "auth_code" */
+export type Auth_Code_Min_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  auth_code?: InputMaybe<Order_By>;
+  code_challenge?: InputMaybe<Order_By>;
+  code_challenge_method?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+  redirect_uri?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verification_level?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "auth_code" */
@@ -3622,6 +3961,7 @@ export type Auth_Code_On_Conflict = {
 
 /** Ordering options when selecting data from "auth_code". */
 export type Auth_Code_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   auth_code?: InputMaybe<Order_By>;
   code_challenge?: InputMaybe<Order_By>;
@@ -3963,6 +4303,17 @@ export type Invite_Aggregate = {
   nodes: Array<Invite>;
 };
 
+export type Invite_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Invite_Aggregate_Bool_Exp_Count>;
+};
+
+export type Invite_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Invite_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Invite_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "invite" */
 export type Invite_Aggregate_Fields = {
   __typename?: "invite_aggregate_fields";
@@ -3975,6 +4326,20 @@ export type Invite_Aggregate_Fields = {
 export type Invite_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Invite_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "invite" */
+export type Invite_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Invite_Max_Order_By>;
+  min?: InputMaybe<Invite_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "invite" */
+export type Invite_Arr_Rel_Insert_Input = {
+  data: Array<Invite_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "invite". All fields are combined with a logical 'AND'. */
@@ -4013,6 +4378,14 @@ export type Invite_Max_Fields = {
   team_id?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "invite" */
+export type Invite_Max_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Invite_Min_Fields = {
   __typename?: "invite_min_fields";
@@ -4020,6 +4393,14 @@ export type Invite_Min_Fields = {
   expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "invite" */
+export type Invite_Min_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "invite" */
@@ -4356,6 +4737,2383 @@ export type Jwks_Updates = {
   where: Jwks_Bool_Exp;
 };
 
+/** columns and relationships of "layout" */
+export type Layout = {
+  __typename?: "layout";
+  category: Scalars["String"]["output"];
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  /** An array relationship */
+  layout_app_collections: Array<Layout_App_Collection>;
+  /** An aggregate relationship */
+  layout_app_collections_aggregate: Layout_App_Collection_Aggregate;
+  /** An array relationship */
+  layout_apps: Array<Layout_App>;
+  /** An aggregate relationship */
+  layout_apps_aggregate: Layout_App_Aggregate;
+  /** An array relationship */
+  layout_banner_collections: Array<Layout_Banner_Collection>;
+  /** An aggregate relationship */
+  layout_banner_collections_aggregate: Layout_Banner_Collection_Aggregate;
+  /** An array relationship */
+  layout_banners: Array<Layout_Banner>;
+  /** An aggregate relationship */
+  layout_banners_aggregate: Layout_Banner_Aggregate;
+  /** An array relationship */
+  layout_secondary_categories: Array<Layout_Secondary_Category>;
+  /** An aggregate relationship */
+  layout_secondary_categories_aggregate: Layout_Secondary_Category_Aggregate;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_App_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_App_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_AppsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Apps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Banner_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Banner_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_BannersArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Banners_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Secondary_CategoriesArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+/** columns and relationships of "layout" */
+export type LayoutLayout_Secondary_Categories_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+/** aggregated selection of "layout" */
+export type Layout_Aggregate = {
+  __typename?: "layout_aggregate";
+  aggregate?: Maybe<Layout_Aggregate_Fields>;
+  nodes: Array<Layout>;
+};
+
+/** aggregate fields of "layout" */
+export type Layout_Aggregate_Fields = {
+  __typename?: "layout_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_Max_Fields>;
+  min?: Maybe<Layout_Min_Fields>;
+};
+
+/** aggregate fields of "layout" */
+export type Layout_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** columns and relationships of "layout_app" */
+export type Layout_App = {
+  __typename?: "layout_app";
+  app_id: Scalars["String"]["output"];
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout?: Maybe<Layout>;
+  /** An object relationship */
+  layout_app_collection?: Maybe<Layout_App_Collection>;
+  layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_secondary_category?: Maybe<Layout_Secondary_Category>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index: Scalars["Int"]["output"];
+};
+
+/** aggregated selection of "layout_app" */
+export type Layout_App_Aggregate = {
+  __typename?: "layout_app_aggregate";
+  aggregate?: Maybe<Layout_App_Aggregate_Fields>;
+  nodes: Array<Layout_App>;
+};
+
+export type Layout_App_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Layout_App_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_App_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_App_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_App_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_app" */
+export type Layout_App_Aggregate_Fields = {
+  __typename?: "layout_app_aggregate_fields";
+  avg?: Maybe<Layout_App_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_App_Max_Fields>;
+  min?: Maybe<Layout_App_Min_Fields>;
+  stddev?: Maybe<Layout_App_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_App_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_App_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_App_Sum_Fields>;
+  var_pop?: Maybe<Layout_App_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_App_Var_Samp_Fields>;
+  variance?: Maybe<Layout_App_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_app" */
+export type Layout_App_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_App_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_app" */
+export type Layout_App_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_App_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_App_Max_Order_By>;
+  min?: InputMaybe<Layout_App_Min_Order_By>;
+  stddev?: InputMaybe<Layout_App_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_App_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_App_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_App_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_App_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_App_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_App_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_app" */
+export type Layout_App_Arr_Rel_Insert_Input = {
+  data: Array<Layout_App_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_App_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_App_Avg_Fields = {
+  __typename?: "layout_app_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_app" */
+export type Layout_App_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_app". All fields are combined with a logical 'AND'. */
+export type Layout_App_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_App_Bool_Exp>>;
+  _not?: InputMaybe<Layout_App_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_App_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
+  layout_app_collection?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  layout_app_collection_id?: InputMaybe<String_Comparison_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+};
+
+/** columns and relationships of "layout_app_collection" */
+export type Layout_App_Collection = {
+  __typename?: "layout_app_collection";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  indexed: Scalars["Boolean"]["output"];
+  /** An object relationship */
+  layout?: Maybe<Layout>;
+  /** An array relationship */
+  layout_apps: Array<Layout_App>;
+  /** An aggregate relationship */
+  layout_apps_aggregate: Layout_App_Aggregate;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_secondary_category?: Maybe<Layout_Secondary_Category>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index: Scalars["Int"]["output"];
+  title: Scalars["String"]["output"];
+};
+
+/** columns and relationships of "layout_app_collection" */
+export type Layout_App_CollectionLayout_AppsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_app_collection" */
+export type Layout_App_CollectionLayout_Apps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** aggregated selection of "layout_app_collection" */
+export type Layout_App_Collection_Aggregate = {
+  __typename?: "layout_app_collection_aggregate";
+  aggregate?: Maybe<Layout_App_Collection_Aggregate_Fields>;
+  nodes: Array<Layout_App_Collection>;
+};
+
+export type Layout_App_Collection_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_App_Collection_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Layout_App_Collection_Select_Column_Layout_App_Collection_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Layout_App_Collection_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Layout_App_Collection_Select_Column_Layout_App_Collection_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Layout_App_Collection_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_app_collection" */
+export type Layout_App_Collection_Aggregate_Fields = {
+  __typename?: "layout_app_collection_aggregate_fields";
+  avg?: Maybe<Layout_App_Collection_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_App_Collection_Max_Fields>;
+  min?: Maybe<Layout_App_Collection_Min_Fields>;
+  stddev?: Maybe<Layout_App_Collection_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_App_Collection_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_App_Collection_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_App_Collection_Sum_Fields>;
+  var_pop?: Maybe<Layout_App_Collection_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_App_Collection_Var_Samp_Fields>;
+  variance?: Maybe<Layout_App_Collection_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_app_collection" */
+export type Layout_App_Collection_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_app_collection" */
+export type Layout_App_Collection_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_App_Collection_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_App_Collection_Max_Order_By>;
+  min?: InputMaybe<Layout_App_Collection_Min_Order_By>;
+  stddev?: InputMaybe<Layout_App_Collection_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_App_Collection_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_App_Collection_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_App_Collection_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_App_Collection_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_App_Collection_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_App_Collection_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_app_collection" */
+export type Layout_App_Collection_Arr_Rel_Insert_Input = {
+  data: Array<Layout_App_Collection_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_App_Collection_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_App_Collection_Avg_Fields = {
+  __typename?: "layout_app_collection_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_app_collection". All fields are combined with a logical 'AND'. */
+export type Layout_App_Collection_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_App_Collection_Bool_Exp>>;
+  _not?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_App_Collection_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  indexed?: InputMaybe<Boolean_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
+  layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Bool_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "layout_app_collection" */
+export enum Layout_App_Collection_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutAppCollectionPkey = "layout_app_collection_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_app_collection" */
+export type Layout_App_Collection_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_app_collection" */
+export type Layout_App_Collection_Insert_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_App_Collection_Max_Fields = {
+  __typename?: "layout_app_collection_max_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_App_Collection_Min_Fields = {
+  __typename?: "layout_app_collection_min_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_app_collection" */
+export type Layout_App_Collection_Mutation_Response = {
+  __typename?: "layout_app_collection_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_App_Collection>;
+};
+
+/** input type for inserting object relation for remote table "layout_app_collection" */
+export type Layout_App_Collection_Obj_Rel_Insert_Input = {
+  data: Layout_App_Collection_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_App_Collection_On_Conflict>;
+};
+
+/** on_conflict condition type for table "layout_app_collection" */
+export type Layout_App_Collection_On_Conflict = {
+  constraint: Layout_App_Collection_Constraint;
+  update_columns?: Array<Layout_App_Collection_Update_Column>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_app_collection". */
+export type Layout_App_Collection_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  indexed?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_app_collection */
+export type Layout_App_Collection_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_app_collection" */
+export enum Layout_App_Collection_Select_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Indexed = "indexed",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Title = "title",
+}
+
+/** select "layout_app_collection_aggregate_bool_exp_bool_and_arguments_columns" columns of table "layout_app_collection" */
+export enum Layout_App_Collection_Select_Column_Layout_App_Collection_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Indexed = "indexed",
+}
+
+/** select "layout_app_collection_aggregate_bool_exp_bool_or_arguments_columns" columns of table "layout_app_collection" */
+export enum Layout_App_Collection_Select_Column_Layout_App_Collection_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Indexed = "indexed",
+}
+
+/** input type for updating data in table "layout_app_collection" */
+export type Layout_App_Collection_Set_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_App_Collection_Stddev_Fields = {
+  __typename?: "layout_app_collection_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_App_Collection_Stddev_Pop_Fields = {
+  __typename?: "layout_app_collection_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_App_Collection_Stddev_Samp_Fields = {
+  __typename?: "layout_app_collection_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_app_collection" */
+export type Layout_App_Collection_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_App_Collection_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_App_Collection_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_App_Collection_Sum_Fields = {
+  __typename?: "layout_app_collection_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_app_collection" */
+export enum Layout_App_Collection_Update_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Indexed = "indexed",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Title = "title",
+}
+
+export type Layout_App_Collection_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_App_Collection_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_App_Collection_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_App_Collection_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_App_Collection_Var_Pop_Fields = {
+  __typename?: "layout_app_collection_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_App_Collection_Var_Samp_Fields = {
+  __typename?: "layout_app_collection_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_App_Collection_Variance_Fields = {
+  __typename?: "layout_app_collection_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_app_collection" */
+export type Layout_App_Collection_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** unique or primary key constraints on table "layout_app" */
+export enum Layout_App_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutAppPkey = "layout_app_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_app" */
+export type Layout_App_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_app" */
+export type Layout_App_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_app_collection?: InputMaybe<Layout_App_Collection_Obj_Rel_Insert_Input>;
+  layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_App_Max_Fields = {
+  __typename?: "layout_app_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_app" */
+export type Layout_App_Max_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_app_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_App_Min_Fields = {
+  __typename?: "layout_app_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_app" */
+export type Layout_App_Min_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_app_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_app" */
+export type Layout_App_Mutation_Response = {
+  __typename?: "layout_app_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_App>;
+};
+
+/** on_conflict condition type for table "layout_app" */
+export type Layout_App_On_Conflict = {
+  constraint: Layout_App_Constraint;
+  update_columns?: Array<Layout_App_Update_Column>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_app". */
+export type Layout_App_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_app_collection?: InputMaybe<Layout_App_Collection_Order_By>;
+  layout_app_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_app */
+export type Layout_App_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_app" */
+export enum Layout_App_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutAppCollectionId = "layout_app_collection_id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+}
+
+/** input type for updating data in table "layout_app" */
+export type Layout_App_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_App_Stddev_Fields = {
+  __typename?: "layout_app_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_app" */
+export type Layout_App_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_App_Stddev_Pop_Fields = {
+  __typename?: "layout_app_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_app" */
+export type Layout_App_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_App_Stddev_Samp_Fields = {
+  __typename?: "layout_app_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_app" */
+export type Layout_App_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_app" */
+export type Layout_App_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_App_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_App_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_App_Sum_Fields = {
+  __typename?: "layout_app_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_app" */
+export type Layout_App_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_app" */
+export enum Layout_App_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutAppCollectionId = "layout_app_collection_id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+}
+
+export type Layout_App_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_App_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_App_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_App_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_App_Var_Pop_Fields = {
+  __typename?: "layout_app_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_app" */
+export type Layout_App_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_App_Var_Samp_Fields = {
+  __typename?: "layout_app_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_app" */
+export type Layout_App_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_App_Variance_Fields = {
+  __typename?: "layout_app_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_app" */
+export type Layout_App_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** columns and relationships of "layout_banner" */
+export type Layout_Banner = {
+  __typename?: "layout_banner";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  highlight_color_hex: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout?: Maybe<Layout>;
+  /** An object relationship */
+  layout_banner_collection?: Maybe<Layout_Banner_Collection>;
+  layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_secondary_category?: Maybe<Layout_Secondary_Category>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index: Scalars["Int"]["output"];
+  subtitle: Scalars["String"]["output"];
+  subtitle_color_hex: Scalars["String"]["output"];
+  title: Scalars["String"]["output"];
+  title_color_hex: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "layout_banner" */
+export type Layout_Banner_Aggregate = {
+  __typename?: "layout_banner_aggregate";
+  aggregate?: Maybe<Layout_Banner_Aggregate_Fields>;
+  nodes: Array<Layout_Banner>;
+};
+
+export type Layout_Banner_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_Banner_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_Banner_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_banner" */
+export type Layout_Banner_Aggregate_Fields = {
+  __typename?: "layout_banner_aggregate_fields";
+  avg?: Maybe<Layout_Banner_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_Banner_Max_Fields>;
+  min?: Maybe<Layout_Banner_Min_Fields>;
+  stddev?: Maybe<Layout_Banner_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_Banner_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_Banner_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_Banner_Sum_Fields>;
+  var_pop?: Maybe<Layout_Banner_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_Banner_Var_Samp_Fields>;
+  variance?: Maybe<Layout_Banner_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_banner" */
+export type Layout_Banner_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_banner" */
+export type Layout_Banner_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_Banner_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_Banner_Max_Order_By>;
+  min?: InputMaybe<Layout_Banner_Min_Order_By>;
+  stddev?: InputMaybe<Layout_Banner_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_Banner_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_Banner_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_Banner_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_Banner_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_Banner_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_Banner_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_banner" */
+export type Layout_Banner_Arr_Rel_Insert_Input = {
+  data: Array<Layout_Banner_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Banner_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_Banner_Avg_Fields = {
+  __typename?: "layout_banner_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_banner" */
+export type Layout_Banner_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_banner". All fields are combined with a logical 'AND'. */
+export type Layout_Banner_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_Banner_Bool_Exp>>;
+  _not?: InputMaybe<Layout_Banner_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_Banner_Bool_Exp>>;
+  background_color_hex?: InputMaybe<String_Comparison_Exp>;
+  background_image_url?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  highlight_color_hex?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
+  layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+  layout_banner_collection_id?: InputMaybe<String_Comparison_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+  subtitle?: InputMaybe<String_Comparison_Exp>;
+  subtitle_color_hex?: InputMaybe<String_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  title_color_hex?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** columns and relationships of "layout_banner_collection" */
+export type Layout_Banner_Collection = {
+  __typename?: "layout_banner_collection";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout?: Maybe<Layout>;
+  /** An array relationship */
+  layout_banners: Array<Layout_Banner>;
+  /** An aggregate relationship */
+  layout_banners_aggregate: Layout_Banner_Aggregate;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_secondary_category?: Maybe<Layout_Secondary_Category>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index: Scalars["Int"]["output"];
+  title: Scalars["String"]["output"];
+};
+
+/** columns and relationships of "layout_banner_collection" */
+export type Layout_Banner_CollectionLayout_BannersArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_banner_collection" */
+export type Layout_Banner_CollectionLayout_Banners_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** aggregated selection of "layout_banner_collection" */
+export type Layout_Banner_Collection_Aggregate = {
+  __typename?: "layout_banner_collection_aggregate";
+  aggregate?: Maybe<Layout_Banner_Collection_Aggregate_Fields>;
+  nodes: Array<Layout_Banner_Collection>;
+};
+
+export type Layout_Banner_Collection_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Layout_Banner_Collection_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_Banner_Collection_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_banner_collection" */
+export type Layout_Banner_Collection_Aggregate_Fields = {
+  __typename?: "layout_banner_collection_aggregate_fields";
+  avg?: Maybe<Layout_Banner_Collection_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_Banner_Collection_Max_Fields>;
+  min?: Maybe<Layout_Banner_Collection_Min_Fields>;
+  stddev?: Maybe<Layout_Banner_Collection_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_Banner_Collection_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_Banner_Collection_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_Banner_Collection_Sum_Fields>;
+  var_pop?: Maybe<Layout_Banner_Collection_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_Banner_Collection_Var_Samp_Fields>;
+  variance?: Maybe<Layout_Banner_Collection_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_banner_collection" */
+export type Layout_Banner_Collection_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_Banner_Collection_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_Banner_Collection_Max_Order_By>;
+  min?: InputMaybe<Layout_Banner_Collection_Min_Order_By>;
+  stddev?: InputMaybe<Layout_Banner_Collection_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_Banner_Collection_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_Banner_Collection_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_Banner_Collection_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_Banner_Collection_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_Banner_Collection_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_Banner_Collection_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_banner_collection" */
+export type Layout_Banner_Collection_Arr_Rel_Insert_Input = {
+  data: Array<Layout_Banner_Collection_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Banner_Collection_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_Banner_Collection_Avg_Fields = {
+  __typename?: "layout_banner_collection_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_banner_collection". All fields are combined with a logical 'AND'. */
+export type Layout_Banner_Collection_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_Banner_Collection_Bool_Exp>>;
+  _not?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_Banner_Collection_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
+  layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "layout_banner_collection" */
+export enum Layout_Banner_Collection_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutBannerCollectionPkey = "layout_banner_collection_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_banner_collection" */
+export type Layout_Banner_Collection_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_banner_collection" */
+export type Layout_Banner_Collection_Insert_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_Banner_Collection_Max_Fields = {
+  __typename?: "layout_banner_collection_max_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_Banner_Collection_Min_Fields = {
+  __typename?: "layout_banner_collection_min_fields";
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_banner_collection" */
+export type Layout_Banner_Collection_Mutation_Response = {
+  __typename?: "layout_banner_collection_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_Banner_Collection>;
+};
+
+/** input type for inserting object relation for remote table "layout_banner_collection" */
+export type Layout_Banner_Collection_Obj_Rel_Insert_Input = {
+  data: Layout_Banner_Collection_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Banner_Collection_On_Conflict>;
+};
+
+/** on_conflict condition type for table "layout_banner_collection" */
+export type Layout_Banner_Collection_On_Conflict = {
+  constraint: Layout_Banner_Collection_Constraint;
+  update_columns?: Array<Layout_Banner_Collection_Update_Column>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_banner_collection". */
+export type Layout_Banner_Collection_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_banner_collection */
+export type Layout_Banner_Collection_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_banner_collection" */
+export enum Layout_Banner_Collection_Select_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Title = "title",
+}
+
+/** input type for updating data in table "layout_banner_collection" */
+export type Layout_Banner_Collection_Set_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_Banner_Collection_Stddev_Fields = {
+  __typename?: "layout_banner_collection_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_Banner_Collection_Stddev_Pop_Fields = {
+  __typename?: "layout_banner_collection_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_Banner_Collection_Stddev_Samp_Fields = {
+  __typename?: "layout_banner_collection_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_banner_collection" */
+export type Layout_Banner_Collection_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_Banner_Collection_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_Banner_Collection_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_Banner_Collection_Sum_Fields = {
+  __typename?: "layout_banner_collection_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_banner_collection" */
+export enum Layout_Banner_Collection_Update_Column {
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Title = "title",
+}
+
+export type Layout_Banner_Collection_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_Banner_Collection_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_Banner_Collection_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_Banner_Collection_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_Banner_Collection_Var_Pop_Fields = {
+  __typename?: "layout_banner_collection_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_Banner_Collection_Var_Samp_Fields = {
+  __typename?: "layout_banner_collection_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_Banner_Collection_Variance_Fields = {
+  __typename?: "layout_banner_collection_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_banner_collection" */
+export type Layout_Banner_Collection_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** unique or primary key constraints on table "layout_banner" */
+export enum Layout_Banner_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutBannerPkey = "layout_banner_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_banner" */
+export type Layout_Banner_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_banner" */
+export type Layout_Banner_Insert_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Obj_Rel_Insert_Input>;
+  layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  subtitle_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+  title_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_Banner_Max_Fields = {
+  __typename?: "layout_banner_max_fields";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  highlight_color_hex?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  subtitle?: Maybe<Scalars["String"]["output"]>;
+  subtitle_color_hex?: Maybe<Scalars["String"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+  title_color_hex?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_banner" */
+export type Layout_Banner_Max_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  highlight_color_hex?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_banner_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  subtitle_color_hex?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  title_color_hex?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_Banner_Min_Fields = {
+  __typename?: "layout_banner_min_fields";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  highlight_color_hex?: Maybe<Scalars["String"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  subtitle?: Maybe<Scalars["String"]["output"]>;
+  subtitle_color_hex?: Maybe<Scalars["String"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+  title_color_hex?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_banner" */
+export type Layout_Banner_Min_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  highlight_color_hex?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_banner_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  subtitle_color_hex?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  title_color_hex?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_banner" */
+export type Layout_Banner_Mutation_Response = {
+  __typename?: "layout_banner_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_Banner>;
+};
+
+/** on_conflict condition type for table "layout_banner" */
+export type Layout_Banner_On_Conflict = {
+  constraint: Layout_Banner_Constraint;
+  update_columns?: Array<Layout_Banner_Update_Column>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_banner". */
+export type Layout_Banner_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  highlight_color_hex?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Order_By>;
+  layout_banner_collection_id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
+  layout_secondary_category_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  subtitle_color_hex?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  title_color_hex?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_banner */
+export type Layout_Banner_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_banner" */
+export enum Layout_Banner_Select_Column {
+  /** column name */
+  BackgroundColorHex = "background_color_hex",
+  /** column name */
+  BackgroundImageUrl = "background_image_url",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  HighlightColorHex = "highlight_color_hex",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutBannerCollectionId = "layout_banner_collection_id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Subtitle = "subtitle",
+  /** column name */
+  SubtitleColorHex = "subtitle_color_hex",
+  /** column name */
+  Title = "title",
+  /** column name */
+  TitleColorHex = "title_color_hex",
+}
+
+/** input type for updating data in table "layout_banner" */
+export type Layout_Banner_Set_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  subtitle_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+  title_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_Banner_Stddev_Fields = {
+  __typename?: "layout_banner_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_banner" */
+export type Layout_Banner_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_Banner_Stddev_Pop_Fields = {
+  __typename?: "layout_banner_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_banner" */
+export type Layout_Banner_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_Banner_Stddev_Samp_Fields = {
+  __typename?: "layout_banner_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_banner" */
+export type Layout_Banner_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_banner" */
+export type Layout_Banner_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_Banner_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_Banner_Stream_Cursor_Value_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  subtitle_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+  title_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_Banner_Sum_Fields = {
+  __typename?: "layout_banner_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_banner" */
+export type Layout_Banner_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_banner" */
+export enum Layout_Banner_Update_Column {
+  /** column name */
+  BackgroundColorHex = "background_color_hex",
+  /** column name */
+  BackgroundImageUrl = "background_image_url",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  HighlightColorHex = "highlight_color_hex",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutBannerCollectionId = "layout_banner_collection_id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LayoutSecondaryCategoryId = "layout_secondary_category_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Subtitle = "subtitle",
+  /** column name */
+  SubtitleColorHex = "subtitle_color_hex",
+  /** column name */
+  Title = "title",
+  /** column name */
+  TitleColorHex = "title_color_hex",
+}
+
+export type Layout_Banner_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_Banner_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_Banner_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_Banner_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_Banner_Var_Pop_Fields = {
+  __typename?: "layout_banner_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_banner" */
+export type Layout_Banner_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_Banner_Var_Samp_Fields = {
+  __typename?: "layout_banner_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_banner" */
+export type Layout_Banner_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_Banner_Variance_Fields = {
+  __typename?: "layout_banner_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_banner" */
+export type Layout_Banner_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout". All fields are combined with a logical 'AND'. */
+export type Layout_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_Bool_Exp>>;
+  _not?: InputMaybe<Layout_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_Bool_Exp>>;
+  category?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout_app_collections?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp>;
+  layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Bool_Exp>;
+  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Bool_Exp>;
+  layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
+  layout_secondary_categories?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  layout_secondary_categories_aggregate?: InputMaybe<Layout_Secondary_Category_Aggregate_Bool_Exp>;
+};
+
+/** unique or primary key constraints on table "layout" */
+export enum Layout_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutPkey = "layout_pkey",
+}
+
+/** input type for inserting data into table "layout" */
+export type Layout_Insert_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_app_collections?: InputMaybe<Layout_App_Collection_Arr_Rel_Insert_Input>;
+  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
+  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Arr_Rel_Insert_Input>;
+  layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
+  layout_secondary_categories?: InputMaybe<Layout_Secondary_Category_Arr_Rel_Insert_Input>;
+};
+
+/** aggregate max on columns */
+export type Layout_Max_Fields = {
+  __typename?: "layout_max_fields";
+  category?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Layout_Min_Fields = {
+  __typename?: "layout_min_fields";
+  category?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "layout" */
+export type Layout_Mutation_Response = {
+  __typename?: "layout_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout>;
+};
+
+/** input type for inserting object relation for remote table "layout" */
+export type Layout_Obj_Rel_Insert_Input = {
+  data: Layout_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_On_Conflict>;
+};
+
+/** on_conflict condition type for table "layout" */
+export type Layout_On_Conflict = {
+  constraint: Layout_Constraint;
+  update_columns?: Array<Layout_Update_Column>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout". */
+export type Layout_Order_By = {
+  category?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Order_By>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
+  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Order_By>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
+  layout_secondary_categories_aggregate?: InputMaybe<Layout_Secondary_Category_Aggregate_Order_By>;
+};
+
+/** primary key columns input for table: layout */
+export type Layout_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_Category = {
+  __typename?: "layout_secondary_category";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout: Layout;
+  /** An array relationship */
+  layout_app_collections: Array<Layout_App_Collection>;
+  /** An aggregate relationship */
+  layout_app_collections_aggregate: Layout_App_Collection_Aggregate;
+  /** An array relationship */
+  layout_apps: Array<Layout_App>;
+  /** An aggregate relationship */
+  layout_apps_aggregate: Layout_App_Aggregate;
+  /** An array relationship */
+  layout_banner_collections: Array<Layout_Banner_Collection>;
+  /** An aggregate relationship */
+  layout_banner_collections_aggregate: Layout_Banner_Collection_Aggregate;
+  /** An array relationship */
+  layout_banners: Array<Layout_Banner>;
+  /** An aggregate relationship */
+  layout_banners_aggregate: Layout_Banner_Aggregate;
+  layout_id: Scalars["String"]["output"];
+  location_index: Scalars["Int"]["output"];
+  subtitle: Scalars["String"]["output"];
+  title: Scalars["String"]["output"];
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_App_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_App_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_AppsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_Apps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_Banner_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_Banner_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_BannersArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_secondary_category" */
+export type Layout_Secondary_CategoryLayout_Banners_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** aggregated selection of "layout_secondary_category" */
+export type Layout_Secondary_Category_Aggregate = {
+  __typename?: "layout_secondary_category_aggregate";
+  aggregate?: Maybe<Layout_Secondary_Category_Aggregate_Fields>;
+  nodes: Array<Layout_Secondary_Category>;
+};
+
+export type Layout_Secondary_Category_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Layout_Secondary_Category_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_Secondary_Category_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_secondary_category" */
+export type Layout_Secondary_Category_Aggregate_Fields = {
+  __typename?: "layout_secondary_category_aggregate_fields";
+  avg?: Maybe<Layout_Secondary_Category_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_Secondary_Category_Max_Fields>;
+  min?: Maybe<Layout_Secondary_Category_Min_Fields>;
+  stddev?: Maybe<Layout_Secondary_Category_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_Secondary_Category_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_Secondary_Category_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_Secondary_Category_Sum_Fields>;
+  var_pop?: Maybe<Layout_Secondary_Category_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_Secondary_Category_Var_Samp_Fields>;
+  variance?: Maybe<Layout_Secondary_Category_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_secondary_category" */
+export type Layout_Secondary_Category_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_Secondary_Category_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_Secondary_Category_Max_Order_By>;
+  min?: InputMaybe<Layout_Secondary_Category_Min_Order_By>;
+  stddev?: InputMaybe<Layout_Secondary_Category_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_Secondary_Category_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_Secondary_Category_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_Secondary_Category_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_Secondary_Category_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_Secondary_Category_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_Secondary_Category_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_secondary_category" */
+export type Layout_Secondary_Category_Arr_Rel_Insert_Input = {
+  data: Array<Layout_Secondary_Category_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Secondary_Category_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_Secondary_Category_Avg_Fields = {
+  __typename?: "layout_secondary_category_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_secondary_category". All fields are combined with a logical 'AND'. */
+export type Layout_Secondary_Category_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_Secondary_Category_Bool_Exp>>;
+  _not?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_Secondary_Category_Bool_Exp>>;
+  background_color_hex?: InputMaybe<String_Comparison_Exp>;
+  background_image_url?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
+  layout_app_collections?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp>;
+  layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Bool_Exp>;
+  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Bool_Exp>;
+  layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+  subtitle?: InputMaybe<String_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "layout_secondary_category" */
+export enum Layout_Secondary_Category_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutSecondaryCategoryPkey = "layout_secondary_category_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_secondary_category" */
+export type Layout_Secondary_Category_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_secondary_category" */
+export type Layout_Secondary_Category_Insert_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_app_collections?: InputMaybe<Layout_App_Collection_Arr_Rel_Insert_Input>;
+  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
+  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Arr_Rel_Insert_Input>;
+  layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_Secondary_Category_Max_Fields = {
+  __typename?: "layout_secondary_category_max_fields";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  subtitle?: Maybe<Scalars["String"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Max_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_Secondary_Category_Min_Fields = {
+  __typename?: "layout_secondary_category_min_fields";
+  background_color_hex?: Maybe<Scalars["String"]["output"]>;
+  background_image_url?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+  subtitle?: Maybe<Scalars["String"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Min_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_secondary_category" */
+export type Layout_Secondary_Category_Mutation_Response = {
+  __typename?: "layout_secondary_category_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_Secondary_Category>;
+};
+
+/** input type for inserting object relation for remote table "layout_secondary_category" */
+export type Layout_Secondary_Category_Obj_Rel_Insert_Input = {
+  data: Layout_Secondary_Category_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Secondary_Category_On_Conflict>;
+};
+
+/** on_conflict condition type for table "layout_secondary_category" */
+export type Layout_Secondary_Category_On_Conflict = {
+  constraint: Layout_Secondary_Category_Constraint;
+  update_columns?: Array<Layout_Secondary_Category_Update_Column>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_secondary_category". */
+export type Layout_Secondary_Category_Order_By = {
+  background_color_hex?: InputMaybe<Order_By>;
+  background_image_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Order_By>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
+  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Order_By>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+  subtitle?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_secondary_category */
+export type Layout_Secondary_Category_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_secondary_category" */
+export enum Layout_Secondary_Category_Select_Column {
+  /** column name */
+  BackgroundColorHex = "background_color_hex",
+  /** column name */
+  BackgroundImageUrl = "background_image_url",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Subtitle = "subtitle",
+  /** column name */
+  Title = "title",
+}
+
+/** input type for updating data in table "layout_secondary_category" */
+export type Layout_Secondary_Category_Set_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_Secondary_Category_Stddev_Fields = {
+  __typename?: "layout_secondary_category_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_Secondary_Category_Stddev_Pop_Fields = {
+  __typename?: "layout_secondary_category_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_Secondary_Category_Stddev_Samp_Fields = {
+  __typename?: "layout_secondary_category_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_secondary_category" */
+export type Layout_Secondary_Category_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_Secondary_Category_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_Secondary_Category_Stream_Cursor_Value_Input = {
+  background_color_hex?: InputMaybe<Scalars["String"]["input"]>;
+  background_image_url?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+  subtitle?: InputMaybe<Scalars["String"]["input"]>;
+  title?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_Secondary_Category_Sum_Fields = {
+  __typename?: "layout_secondary_category_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_secondary_category" */
+export enum Layout_Secondary_Category_Update_Column {
+  /** column name */
+  BackgroundColorHex = "background_color_hex",
+  /** column name */
+  BackgroundImageUrl = "background_image_url",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LocationIndex = "location_index",
+  /** column name */
+  Subtitle = "subtitle",
+  /** column name */
+  Title = "title",
+}
+
+export type Layout_Secondary_Category_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_Secondary_Category_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_Secondary_Category_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_Secondary_Category_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_Secondary_Category_Var_Pop_Fields = {
+  __typename?: "layout_secondary_category_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_Secondary_Category_Var_Samp_Fields = {
+  __typename?: "layout_secondary_category_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_Secondary_Category_Variance_Fields = {
+  __typename?: "layout_secondary_category_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_secondary_category" */
+export type Layout_Secondary_Category_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "layout" */
+export enum Layout_Select_Column {
+  /** column name */
+  Category = "category",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+}
+
+/** input type for updating data in table "layout" */
+export type Layout_Set_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Streaming cursor of the table "layout" */
+export type Layout_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_Stream_Cursor_Value_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "layout" */
+export enum Layout_Update_Column {
+  /** column name */
+  Category = "category",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+}
+
+export type Layout_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_Bool_Exp;
+};
+
 /** columns and relationships of "localisations" */
 export type Localisations = {
   __typename?: "localisations";
@@ -4650,6 +7408,8 @@ export type Membership = {
   id: Scalars["String"]["output"];
   role: Role_Enum;
   /** An object relationship */
+  roleByRole: Role;
+  /** An object relationship */
   team: Team;
   team_id: Scalars["String"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
@@ -4712,6 +7472,7 @@ export type Membership_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   role?: InputMaybe<Role_Enum_Comparison_Exp>;
+  roleByRole?: InputMaybe<Role_Bool_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -4730,6 +7491,7 @@ export type Membership_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   role?: InputMaybe<Role_Enum>;
+  roleByRole?: InputMaybe<Role_Obj_Rel_Insert_Input>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -4796,6 +7558,7 @@ export type Membership_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   role?: InputMaybe<Order_By>;
+  roleByRole?: InputMaybe<Role_Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -4933,6 +7696,30 @@ export type Mutation_Root = {
   delete_jwks?: Maybe<Jwks_Mutation_Response>;
   /** delete single row from the table: "jwks" */
   delete_jwks_by_pk?: Maybe<Jwks>;
+  /** delete data from the table: "layout" */
+  delete_layout?: Maybe<Layout_Mutation_Response>;
+  /** delete data from the table: "layout_app" */
+  delete_layout_app?: Maybe<Layout_App_Mutation_Response>;
+  /** delete single row from the table: "layout_app" */
+  delete_layout_app_by_pk?: Maybe<Layout_App>;
+  /** delete data from the table: "layout_app_collection" */
+  delete_layout_app_collection?: Maybe<Layout_App_Collection_Mutation_Response>;
+  /** delete single row from the table: "layout_app_collection" */
+  delete_layout_app_collection_by_pk?: Maybe<Layout_App_Collection>;
+  /** delete data from the table: "layout_banner" */
+  delete_layout_banner?: Maybe<Layout_Banner_Mutation_Response>;
+  /** delete single row from the table: "layout_banner" */
+  delete_layout_banner_by_pk?: Maybe<Layout_Banner>;
+  /** delete data from the table: "layout_banner_collection" */
+  delete_layout_banner_collection?: Maybe<Layout_Banner_Collection_Mutation_Response>;
+  /** delete single row from the table: "layout_banner_collection" */
+  delete_layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
+  /** delete single row from the table: "layout" */
+  delete_layout_by_pk?: Maybe<Layout>;
+  /** delete data from the table: "layout_secondary_category" */
+  delete_layout_secondary_category?: Maybe<Layout_Secondary_Category_Mutation_Response>;
+  /** delete single row from the table: "layout_secondary_category" */
+  delete_layout_secondary_category_by_pk?: Maybe<Layout_Secondary_Category>;
   /** delete data from the table: "localisations" */
   delete_localisations?: Maybe<Localisations_Mutation_Response>;
   /** delete single row from the table: "localisations" */
@@ -5022,6 +7809,30 @@ export type Mutation_Root = {
   insert_jwks?: Maybe<Jwks_Mutation_Response>;
   /** insert a single row into the table: "jwks" */
   insert_jwks_one?: Maybe<Jwks>;
+  /** insert data into the table: "layout" */
+  insert_layout?: Maybe<Layout_Mutation_Response>;
+  /** insert data into the table: "layout_app" */
+  insert_layout_app?: Maybe<Layout_App_Mutation_Response>;
+  /** insert data into the table: "layout_app_collection" */
+  insert_layout_app_collection?: Maybe<Layout_App_Collection_Mutation_Response>;
+  /** insert a single row into the table: "layout_app_collection" */
+  insert_layout_app_collection_one?: Maybe<Layout_App_Collection>;
+  /** insert a single row into the table: "layout_app" */
+  insert_layout_app_one?: Maybe<Layout_App>;
+  /** insert data into the table: "layout_banner" */
+  insert_layout_banner?: Maybe<Layout_Banner_Mutation_Response>;
+  /** insert data into the table: "layout_banner_collection" */
+  insert_layout_banner_collection?: Maybe<Layout_Banner_Collection_Mutation_Response>;
+  /** insert a single row into the table: "layout_banner_collection" */
+  insert_layout_banner_collection_one?: Maybe<Layout_Banner_Collection>;
+  /** insert a single row into the table: "layout_banner" */
+  insert_layout_banner_one?: Maybe<Layout_Banner>;
+  /** insert a single row into the table: "layout" */
+  insert_layout_one?: Maybe<Layout>;
+  /** insert data into the table: "layout_secondary_category" */
+  insert_layout_secondary_category?: Maybe<Layout_Secondary_Category_Mutation_Response>;
+  /** insert a single row into the table: "layout_secondary_category" */
+  insert_layout_secondary_category_one?: Maybe<Layout_Secondary_Category>;
   /** insert data into the table: "localisations" */
   insert_localisations?: Maybe<Localisations_Mutation_Response>;
   /** insert a single row into the table: "localisations" */
@@ -5151,6 +7962,50 @@ export type Mutation_Root = {
   update_jwks_by_pk?: Maybe<Jwks>;
   /** update multiples rows of table: "jwks" */
   update_jwks_many?: Maybe<Array<Maybe<Jwks_Mutation_Response>>>;
+  /** update data of the table: "layout" */
+  update_layout?: Maybe<Layout_Mutation_Response>;
+  /** update data of the table: "layout_app" */
+  update_layout_app?: Maybe<Layout_App_Mutation_Response>;
+  /** update single row of the table: "layout_app" */
+  update_layout_app_by_pk?: Maybe<Layout_App>;
+  /** update data of the table: "layout_app_collection" */
+  update_layout_app_collection?: Maybe<Layout_App_Collection_Mutation_Response>;
+  /** update single row of the table: "layout_app_collection" */
+  update_layout_app_collection_by_pk?: Maybe<Layout_App_Collection>;
+  /** update multiples rows of table: "layout_app_collection" */
+  update_layout_app_collection_many?: Maybe<
+    Array<Maybe<Layout_App_Collection_Mutation_Response>>
+  >;
+  /** update multiples rows of table: "layout_app" */
+  update_layout_app_many?: Maybe<Array<Maybe<Layout_App_Mutation_Response>>>;
+  /** update data of the table: "layout_banner" */
+  update_layout_banner?: Maybe<Layout_Banner_Mutation_Response>;
+  /** update single row of the table: "layout_banner" */
+  update_layout_banner_by_pk?: Maybe<Layout_Banner>;
+  /** update data of the table: "layout_banner_collection" */
+  update_layout_banner_collection?: Maybe<Layout_Banner_Collection_Mutation_Response>;
+  /** update single row of the table: "layout_banner_collection" */
+  update_layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
+  /** update multiples rows of table: "layout_banner_collection" */
+  update_layout_banner_collection_many?: Maybe<
+    Array<Maybe<Layout_Banner_Collection_Mutation_Response>>
+  >;
+  /** update multiples rows of table: "layout_banner" */
+  update_layout_banner_many?: Maybe<
+    Array<Maybe<Layout_Banner_Mutation_Response>>
+  >;
+  /** update single row of the table: "layout" */
+  update_layout_by_pk?: Maybe<Layout>;
+  /** update multiples rows of table: "layout" */
+  update_layout_many?: Maybe<Array<Maybe<Layout_Mutation_Response>>>;
+  /** update data of the table: "layout_secondary_category" */
+  update_layout_secondary_category?: Maybe<Layout_Secondary_Category_Mutation_Response>;
+  /** update single row of the table: "layout_secondary_category" */
+  update_layout_secondary_category_by_pk?: Maybe<Layout_Secondary_Category>;
+  /** update multiples rows of table: "layout_secondary_category" */
+  update_layout_secondary_category_many?: Maybe<
+    Array<Maybe<Layout_Secondary_Category_Mutation_Response>>
+  >;
   /** update data of the table: "localisations" */
   update_localisations?: Maybe<Localisations_Mutation_Response>;
   /** update single row of the table: "localisations" */
@@ -5354,6 +8209,66 @@ export type Mutation_RootDelete_JwksArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Jwks_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_LayoutArgs = {
+  where: Layout_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_AppArgs = {
+  where: Layout_App_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_App_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_App_CollectionArgs = {
+  where: Layout_App_Collection_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_App_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_BannerArgs = {
+  where: Layout_Banner_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Banner_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Banner_CollectionArgs = {
+  where: Layout_Banner_Collection_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Banner_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Secondary_CategoryArgs = {
+  where: Layout_Secondary_Category_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Secondary_Category_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -5606,6 +8521,78 @@ export type Mutation_RootInsert_JwksArgs = {
 export type Mutation_RootInsert_Jwks_OneArgs = {
   object: Jwks_Insert_Input;
   on_conflict?: InputMaybe<Jwks_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_LayoutArgs = {
+  objects: Array<Layout_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_AppArgs = {
+  objects: Array<Layout_App_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_App_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_App_CollectionArgs = {
+  objects: Array<Layout_App_Collection_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_App_Collection_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_App_Collection_OneArgs = {
+  object: Layout_App_Collection_Insert_Input;
+  on_conflict?: InputMaybe<Layout_App_Collection_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_App_OneArgs = {
+  object: Layout_App_Insert_Input;
+  on_conflict?: InputMaybe<Layout_App_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_BannerArgs = {
+  objects: Array<Layout_Banner_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_Banner_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Banner_CollectionArgs = {
+  objects: Array<Layout_Banner_Collection_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_Banner_Collection_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Banner_Collection_OneArgs = {
+  object: Layout_Banner_Collection_Insert_Input;
+  on_conflict?: InputMaybe<Layout_Banner_Collection_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Banner_OneArgs = {
+  object: Layout_Banner_Insert_Input;
+  on_conflict?: InputMaybe<Layout_Banner_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_OneArgs = {
+  object: Layout_Insert_Input;
+  on_conflict?: InputMaybe<Layout_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Secondary_CategoryArgs = {
+  objects: Array<Layout_Secondary_Category_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_Secondary_Category_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Secondary_Category_OneArgs = {
+  object: Layout_Secondary_Category_Insert_Input;
+  on_conflict?: InputMaybe<Layout_Secondary_Category_On_Conflict>;
 };
 
 /** mutation root */
@@ -5986,6 +8973,118 @@ export type Mutation_RootUpdate_Jwks_ManyArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootUpdate_LayoutArgs = {
+  _set?: InputMaybe<Layout_Set_Input>;
+  where: Layout_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_AppArgs = {
+  _inc?: InputMaybe<Layout_App_Inc_Input>;
+  _set?: InputMaybe<Layout_App_Set_Input>;
+  where: Layout_App_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_App_By_PkArgs = {
+  _inc?: InputMaybe<Layout_App_Inc_Input>;
+  _set?: InputMaybe<Layout_App_Set_Input>;
+  pk_columns: Layout_App_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_App_CollectionArgs = {
+  _inc?: InputMaybe<Layout_App_Collection_Inc_Input>;
+  _set?: InputMaybe<Layout_App_Collection_Set_Input>;
+  where: Layout_App_Collection_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_App_Collection_By_PkArgs = {
+  _inc?: InputMaybe<Layout_App_Collection_Inc_Input>;
+  _set?: InputMaybe<Layout_App_Collection_Set_Input>;
+  pk_columns: Layout_App_Collection_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_App_Collection_ManyArgs = {
+  updates: Array<Layout_App_Collection_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_App_ManyArgs = {
+  updates: Array<Layout_App_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_BannerArgs = {
+  _inc?: InputMaybe<Layout_Banner_Inc_Input>;
+  _set?: InputMaybe<Layout_Banner_Set_Input>;
+  where: Layout_Banner_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Banner_By_PkArgs = {
+  _inc?: InputMaybe<Layout_Banner_Inc_Input>;
+  _set?: InputMaybe<Layout_Banner_Set_Input>;
+  pk_columns: Layout_Banner_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Banner_CollectionArgs = {
+  _inc?: InputMaybe<Layout_Banner_Collection_Inc_Input>;
+  _set?: InputMaybe<Layout_Banner_Collection_Set_Input>;
+  where: Layout_Banner_Collection_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Banner_Collection_By_PkArgs = {
+  _inc?: InputMaybe<Layout_Banner_Collection_Inc_Input>;
+  _set?: InputMaybe<Layout_Banner_Collection_Set_Input>;
+  pk_columns: Layout_Banner_Collection_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Banner_Collection_ManyArgs = {
+  updates: Array<Layout_Banner_Collection_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Banner_ManyArgs = {
+  updates: Array<Layout_Banner_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_By_PkArgs = {
+  _set?: InputMaybe<Layout_Set_Input>;
+  pk_columns: Layout_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_ManyArgs = {
+  updates: Array<Layout_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Secondary_CategoryArgs = {
+  _inc?: InputMaybe<Layout_Secondary_Category_Inc_Input>;
+  _set?: InputMaybe<Layout_Secondary_Category_Set_Input>;
+  where: Layout_Secondary_Category_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Secondary_Category_By_PkArgs = {
+  _inc?: InputMaybe<Layout_Secondary_Category_Inc_Input>;
+  _set?: InputMaybe<Layout_Secondary_Category_Set_Input>;
+  pk_columns: Layout_Secondary_Category_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Secondary_Category_ManyArgs = {
+  updates: Array<Layout_Secondary_Category_Updates>;
+};
+
+/** mutation root */
 export type Mutation_RootUpdate_LocalisationsArgs = {
   _set?: InputMaybe<Localisations_Set_Input>;
   where: Localisations_Bool_Exp;
@@ -6157,11 +9256,39 @@ export type Mutation_RootVerify_AppArgs = {
 /** columns and relationships of "notification_log" */
 export type Notification_Log = {
   __typename?: "notification_log";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   message?: Maybe<Scalars["String"]["output"]>;
   mini_app_path: Scalars["String"]["output"];
+  /** An array relationship */
+  notification_log_wallet_addresses: Array<Notification_Log_Wallet_Address>;
+  /** An aggregate relationship */
+  notification_log_wallet_addresses_aggregate: Notification_Log_Wallet_Address_Aggregate;
+};
+
+/** columns and relationships of "notification_log" */
+export type Notification_LogNotification_Log_Wallet_AddressesArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+};
+
+/** columns and relationships of "notification_log" */
+export type Notification_LogNotification_Log_Wallet_Addresses_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Notification_Log_Wallet_Address_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Notification_Log_Wallet_Address_Order_By>>;
+  where?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
 };
 
 /** aggregated selection of "notification_log" */
@@ -6169,6 +9296,17 @@ export type Notification_Log_Aggregate = {
   __typename?: "notification_log_aggregate";
   aggregate?: Maybe<Notification_Log_Aggregate_Fields>;
   nodes: Array<Notification_Log>;
+};
+
+export type Notification_Log_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Notification_Log_Aggregate_Bool_Exp_Count>;
+};
+
+export type Notification_Log_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Notification_Log_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Notification_Log_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "notification_log" */
@@ -6185,16 +9323,33 @@ export type Notification_Log_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "notification_log" */
+export type Notification_Log_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Notification_Log_Max_Order_By>;
+  min?: InputMaybe<Notification_Log_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "notification_log" */
+export type Notification_Log_Arr_Rel_Insert_Input = {
+  data: Array<Notification_Log_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Notification_Log_On_Conflict>;
+};
+
 /** Boolean expression to filter rows from the table "notification_log". All fields are combined with a logical 'AND'. */
 export type Notification_Log_Bool_Exp = {
   _and?: InputMaybe<Array<Notification_Log_Bool_Exp>>;
   _not?: InputMaybe<Notification_Log_Bool_Exp>;
   _or?: InputMaybe<Array<Notification_Log_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   message?: InputMaybe<String_Comparison_Exp>;
   mini_app_path?: InputMaybe<String_Comparison_Exp>;
+  notification_log_wallet_addresses?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+  notification_log_wallet_addresses_aggregate?: InputMaybe<Notification_Log_Wallet_Address_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "notification_log" */
@@ -6205,11 +9360,13 @@ export enum Notification_Log_Constraint {
 
 /** input type for inserting data into table "notification_log" */
 export type Notification_Log_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   message?: InputMaybe<Scalars["String"]["input"]>;
   mini_app_path?: InputMaybe<Scalars["String"]["input"]>;
+  notification_log_wallet_addresses?: InputMaybe<Notification_Log_Wallet_Address_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
@@ -6222,6 +9379,15 @@ export type Notification_Log_Max_Fields = {
   mini_app_path?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "notification_log" */
+export type Notification_Log_Max_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  mini_app_path?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Notification_Log_Min_Fields = {
   __typename?: "notification_log_min_fields";
@@ -6230,6 +9396,15 @@ export type Notification_Log_Min_Fields = {
   id?: Maybe<Scalars["String"]["output"]>;
   message?: Maybe<Scalars["String"]["output"]>;
   mini_app_path?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "notification_log" */
+export type Notification_Log_Min_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  mini_app_path?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "notification_log" */
@@ -6241,6 +9416,13 @@ export type Notification_Log_Mutation_Response = {
   returning: Array<Notification_Log>;
 };
 
+/** input type for inserting object relation for remote table "notification_log" */
+export type Notification_Log_Obj_Rel_Insert_Input = {
+  data: Notification_Log_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Notification_Log_On_Conflict>;
+};
+
 /** on_conflict condition type for table "notification_log" */
 export type Notification_Log_On_Conflict = {
   constraint: Notification_Log_Constraint;
@@ -6250,11 +9432,13 @@ export type Notification_Log_On_Conflict = {
 
 /** Ordering options when selecting data from "notification_log". */
 export type Notification_Log_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   message?: InputMaybe<Order_By>;
   mini_app_path?: InputMaybe<Order_By>;
+  notification_log_wallet_addresses_aggregate?: InputMaybe<Notification_Log_Wallet_Address_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: notification_log */
@@ -6328,6 +9512,8 @@ export type Notification_Log_Wallet_Address = {
   __typename?: "notification_log_wallet_address";
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
+  /** An object relationship */
+  notification_log: Notification_Log;
   notification_log_id: Scalars["String"]["output"];
   wallet_address: Scalars["String"]["output"];
 };
@@ -6337,6 +9523,17 @@ export type Notification_Log_Wallet_Address_Aggregate = {
   __typename?: "notification_log_wallet_address_aggregate";
   aggregate?: Maybe<Notification_Log_Wallet_Address_Aggregate_Fields>;
   nodes: Array<Notification_Log_Wallet_Address>;
+};
+
+export type Notification_Log_Wallet_Address_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Notification_Log_Wallet_Address_Aggregate_Bool_Exp_Count>;
+};
+
+export type Notification_Log_Wallet_Address_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Notification_Log_Wallet_Address_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Notification_Log_Wallet_Address_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "notification_log_wallet_address" */
@@ -6353,6 +9550,20 @@ export type Notification_Log_Wallet_Address_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Notification_Log_Wallet_Address_Max_Order_By>;
+  min?: InputMaybe<Notification_Log_Wallet_Address_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Arr_Rel_Insert_Input = {
+  data: Array<Notification_Log_Wallet_Address_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Notification_Log_Wallet_Address_On_Conflict>;
+};
+
 /** Boolean expression to filter rows from the table "notification_log_wallet_address". All fields are combined with a logical 'AND'. */
 export type Notification_Log_Wallet_Address_Bool_Exp = {
   _and?: InputMaybe<Array<Notification_Log_Wallet_Address_Bool_Exp>>;
@@ -6360,6 +9571,7 @@ export type Notification_Log_Wallet_Address_Bool_Exp = {
   _or?: InputMaybe<Array<Notification_Log_Wallet_Address_Bool_Exp>>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  notification_log?: InputMaybe<Notification_Log_Bool_Exp>;
   notification_log_id?: InputMaybe<String_Comparison_Exp>;
   wallet_address?: InputMaybe<String_Comparison_Exp>;
 };
@@ -6374,6 +9586,7 @@ export enum Notification_Log_Wallet_Address_Constraint {
 export type Notification_Log_Wallet_Address_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  notification_log?: InputMaybe<Notification_Log_Obj_Rel_Insert_Input>;
   notification_log_id?: InputMaybe<Scalars["String"]["input"]>;
   wallet_address?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -6387,6 +9600,14 @@ export type Notification_Log_Wallet_Address_Max_Fields = {
   wallet_address?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  notification_log_id?: InputMaybe<Order_By>;
+  wallet_address?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Notification_Log_Wallet_Address_Min_Fields = {
   __typename?: "notification_log_wallet_address_min_fields";
@@ -6394,6 +9615,14 @@ export type Notification_Log_Wallet_Address_Min_Fields = {
   id?: Maybe<Scalars["String"]["output"]>;
   notification_log_id?: Maybe<Scalars["String"]["output"]>;
   wallet_address?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "notification_log_wallet_address" */
+export type Notification_Log_Wallet_Address_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  notification_log_id?: InputMaybe<Order_By>;
+  wallet_address?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "notification_log_wallet_address" */
@@ -6416,6 +9645,7 @@ export type Notification_Log_Wallet_Address_On_Conflict = {
 export type Notification_Log_Wallet_Address_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  notification_log?: InputMaybe<Notification_Log_Order_By>;
   notification_log_id?: InputMaybe<Order_By>;
   wallet_address?: InputMaybe<Order_By>;
 };
@@ -6901,9 +10131,9 @@ export type Query_Root = {
   app_report_aggregate: App_Report_Aggregate;
   /** fetch data from the table: "app_report" using primary key columns */
   app_report_by_pk?: Maybe<App_Report>;
-  /** fetch data from the table: "app_reviews" */
+  /** An array relationship */
   app_reviews: Array<App_Reviews>;
-  /** fetch aggregated fields from the table: "app_reviews" */
+  /** An aggregate relationship */
   app_reviews_aggregate: App_Reviews_Aggregate;
   /** fetch data from the table: "app_reviews" using primary key columns */
   app_reviews_by_pk?: Maybe<App_Reviews>;
@@ -6946,6 +10176,42 @@ export type Query_Root = {
   jwks_aggregate: Jwks_Aggregate;
   /** fetch data from the table: "jwks" using primary key columns */
   jwks_by_pk?: Maybe<Jwks>;
+  /** fetch data from the table: "layout" */
+  layout: Array<Layout>;
+  /** fetch aggregated fields from the table: "layout" */
+  layout_aggregate: Layout_Aggregate;
+  /** fetch data from the table: "layout_app" */
+  layout_app: Array<Layout_App>;
+  /** fetch aggregated fields from the table: "layout_app" */
+  layout_app_aggregate: Layout_App_Aggregate;
+  /** fetch data from the table: "layout_app" using primary key columns */
+  layout_app_by_pk?: Maybe<Layout_App>;
+  /** fetch data from the table: "layout_app_collection" */
+  layout_app_collection: Array<Layout_App_Collection>;
+  /** fetch aggregated fields from the table: "layout_app_collection" */
+  layout_app_collection_aggregate: Layout_App_Collection_Aggregate;
+  /** fetch data from the table: "layout_app_collection" using primary key columns */
+  layout_app_collection_by_pk?: Maybe<Layout_App_Collection>;
+  /** fetch data from the table: "layout_banner" */
+  layout_banner: Array<Layout_Banner>;
+  /** fetch aggregated fields from the table: "layout_banner" */
+  layout_banner_aggregate: Layout_Banner_Aggregate;
+  /** fetch data from the table: "layout_banner" using primary key columns */
+  layout_banner_by_pk?: Maybe<Layout_Banner>;
+  /** fetch data from the table: "layout_banner_collection" */
+  layout_banner_collection: Array<Layout_Banner_Collection>;
+  /** fetch aggregated fields from the table: "layout_banner_collection" */
+  layout_banner_collection_aggregate: Layout_Banner_Collection_Aggregate;
+  /** fetch data from the table: "layout_banner_collection" using primary key columns */
+  layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
+  /** fetch data from the table: "layout" using primary key columns */
+  layout_by_pk?: Maybe<Layout>;
+  /** fetch data from the table: "layout_secondary_category" */
+  layout_secondary_category: Array<Layout_Secondary_Category>;
+  /** fetch aggregated fields from the table: "layout_secondary_category" */
+  layout_secondary_category_aggregate: Layout_Secondary_Category_Aggregate;
+  /** fetch data from the table: "layout_secondary_category" using primary key columns */
+  layout_secondary_category_by_pk?: Maybe<Layout_Secondary_Category>;
   /** An array relationship */
   localisations: Array<Localisations>;
   /** An aggregate relationship */
@@ -7313,6 +10579,126 @@ export type Query_RootJwks_AggregateArgs = {
 };
 
 export type Query_RootJwks_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayoutArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Order_By>>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
+export type Query_RootLayout_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Order_By>>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
+export type Query_RootLayout_AppArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+export type Query_RootLayout_App_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+export type Query_RootLayout_App_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_App_CollectionArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+export type Query_RootLayout_App_Collection_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+export type Query_RootLayout_App_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_BannerArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+export type Query_RootLayout_Banner_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+export type Query_RootLayout_Banner_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_Banner_CollectionArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+export type Query_RootLayout_Banner_Collection_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+export type Query_RootLayout_Banner_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_Secondary_CategoryArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+export type Query_RootLayout_Secondary_Category_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+export type Query_RootLayout_Secondary_Category_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -7728,7 +11114,29 @@ export type Redirect_Updates = {
 export type Role = {
   __typename?: "role";
   comment?: Maybe<Scalars["String"]["output"]>;
+  /** An array relationship */
+  memberships: Array<Membership>;
+  /** An aggregate relationship */
+  memberships_aggregate: Membership_Aggregate;
   value: Scalars["String"]["output"];
+};
+
+/** columns and relationships of "role" */
+export type RoleMembershipsArgs = {
+  distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Membership_Order_By>>;
+  where?: InputMaybe<Membership_Bool_Exp>;
+};
+
+/** columns and relationships of "role" */
+export type RoleMemberships_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Membership_Order_By>>;
+  where?: InputMaybe<Membership_Bool_Exp>;
 };
 
 /** aggregated selection of "role" */
@@ -7758,6 +11166,8 @@ export type Role_Bool_Exp = {
   _not?: InputMaybe<Role_Bool_Exp>;
   _or?: InputMaybe<Array<Role_Bool_Exp>>;
   comment?: InputMaybe<String_Comparison_Exp>;
+  memberships?: InputMaybe<Membership_Bool_Exp>;
+  memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -7788,6 +11198,7 @@ export type Role_Enum_Comparison_Exp = {
 /** input type for inserting data into table "role" */
 export type Role_Insert_Input = {
   comment?: InputMaybe<Scalars["String"]["input"]>;
+  memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   value?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -7814,6 +11225,13 @@ export type Role_Mutation_Response = {
   returning: Array<Role>;
 };
 
+/** input type for inserting object relation for remote table "role" */
+export type Role_Obj_Rel_Insert_Input = {
+  data: Role_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Role_On_Conflict>;
+};
+
 /** on_conflict condition type for table "role" */
 export type Role_On_Conflict = {
   constraint: Role_Constraint;
@@ -7824,6 +11242,7 @@ export type Role_On_Conflict = {
 /** Ordering options when selecting data from "role". */
 export type Role_Order_By = {
   comment?: InputMaybe<Order_By>;
+  memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -7935,9 +11354,9 @@ export type Subscription_Root = {
   app_report_by_pk?: Maybe<App_Report>;
   /** fetch data from the table in a streaming manner: "app_report" */
   app_report_stream: Array<App_Report>;
-  /** fetch data from the table: "app_reviews" */
+  /** An array relationship */
   app_reviews: Array<App_Reviews>;
-  /** fetch aggregated fields from the table: "app_reviews" */
+  /** An aggregate relationship */
   app_reviews_aggregate: App_Reviews_Aggregate;
   /** fetch data from the table: "app_reviews" using primary key columns */
   app_reviews_by_pk?: Maybe<App_Reviews>;
@@ -7989,6 +11408,54 @@ export type Subscription_Root = {
   jwks_by_pk?: Maybe<Jwks>;
   /** fetch data from the table in a streaming manner: "jwks" */
   jwks_stream: Array<Jwks>;
+  /** fetch data from the table: "layout" */
+  layout: Array<Layout>;
+  /** fetch aggregated fields from the table: "layout" */
+  layout_aggregate: Layout_Aggregate;
+  /** fetch data from the table: "layout_app" */
+  layout_app: Array<Layout_App>;
+  /** fetch aggregated fields from the table: "layout_app" */
+  layout_app_aggregate: Layout_App_Aggregate;
+  /** fetch data from the table: "layout_app" using primary key columns */
+  layout_app_by_pk?: Maybe<Layout_App>;
+  /** fetch data from the table: "layout_app_collection" */
+  layout_app_collection: Array<Layout_App_Collection>;
+  /** fetch aggregated fields from the table: "layout_app_collection" */
+  layout_app_collection_aggregate: Layout_App_Collection_Aggregate;
+  /** fetch data from the table: "layout_app_collection" using primary key columns */
+  layout_app_collection_by_pk?: Maybe<Layout_App_Collection>;
+  /** fetch data from the table in a streaming manner: "layout_app_collection" */
+  layout_app_collection_stream: Array<Layout_App_Collection>;
+  /** fetch data from the table in a streaming manner: "layout_app" */
+  layout_app_stream: Array<Layout_App>;
+  /** fetch data from the table: "layout_banner" */
+  layout_banner: Array<Layout_Banner>;
+  /** fetch aggregated fields from the table: "layout_banner" */
+  layout_banner_aggregate: Layout_Banner_Aggregate;
+  /** fetch data from the table: "layout_banner" using primary key columns */
+  layout_banner_by_pk?: Maybe<Layout_Banner>;
+  /** fetch data from the table: "layout_banner_collection" */
+  layout_banner_collection: Array<Layout_Banner_Collection>;
+  /** fetch aggregated fields from the table: "layout_banner_collection" */
+  layout_banner_collection_aggregate: Layout_Banner_Collection_Aggregate;
+  /** fetch data from the table: "layout_banner_collection" using primary key columns */
+  layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
+  /** fetch data from the table in a streaming manner: "layout_banner_collection" */
+  layout_banner_collection_stream: Array<Layout_Banner_Collection>;
+  /** fetch data from the table in a streaming manner: "layout_banner" */
+  layout_banner_stream: Array<Layout_Banner>;
+  /** fetch data from the table: "layout" using primary key columns */
+  layout_by_pk?: Maybe<Layout>;
+  /** fetch data from the table: "layout_secondary_category" */
+  layout_secondary_category: Array<Layout_Secondary_Category>;
+  /** fetch aggregated fields from the table: "layout_secondary_category" */
+  layout_secondary_category_aggregate: Layout_Secondary_Category_Aggregate;
+  /** fetch data from the table: "layout_secondary_category" using primary key columns */
+  layout_secondary_category_by_pk?: Maybe<Layout_Secondary_Category>;
+  /** fetch data from the table in a streaming manner: "layout_secondary_category" */
+  layout_secondary_category_stream: Array<Layout_Secondary_Category>;
+  /** fetch data from the table in a streaming manner: "layout" */
+  layout_stream: Array<Layout>;
   /** An array relationship */
   localisations: Array<Localisations>;
   /** An aggregate relationship */
@@ -8437,6 +11904,162 @@ export type Subscription_RootJwks_StreamArgs = {
   where?: InputMaybe<Jwks_Bool_Exp>;
 };
 
+export type Subscription_RootLayoutArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Order_By>>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Order_By>>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_AppArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_App_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_App_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_App_CollectionArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_App_Collection_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_App_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_App_Collection_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_App_Collection_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_App_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_App_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_BannerArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Banner_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Banner_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_Banner_CollectionArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Banner_Collection_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Banner_Collection_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_Banner_Collection_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_Banner_Collection_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Banner_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_Banner_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_Secondary_CategoryArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Secondary_Category_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Secondary_Category_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_Secondary_Category_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_Secondary_Category_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_Bool_Exp>;
+};
+
 export type Subscription_RootLocalisationsArgs = {
   distinct_on?: InputMaybe<Array<Localisations_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -8691,6 +12314,10 @@ export type Team = {
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   /** An array relationship */
+  invites: Array<Invite>;
+  /** An aggregate relationship */
+  invites_aggregate: Invite_Aggregate;
+  /** An array relationship */
   memberships: Array<Membership>;
   /** An aggregate relationship */
   memberships_aggregate: Membership_Aggregate;
@@ -8698,6 +12325,10 @@ export type Team = {
   /** A computed field that returns a quantity of team owners */
   team_owners_count?: Maybe<Scalars["Int"]["output"]>;
   updated_at: Scalars["timestamptz"]["output"];
+  /** An array relationship */
+  users: Array<User>;
+  /** An aggregate relationship */
+  users_aggregate: User_Aggregate;
 };
 
 /** columns and relationships of "team" */
@@ -8737,6 +12368,24 @@ export type TeamApps_AggregateArgs = {
 };
 
 /** columns and relationships of "team" */
+export type TeamInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvites_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
 export type TeamMembershipsArgs = {
   distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -8752,6 +12401,24 @@ export type TeamMemberships_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Membership_Order_By>>;
   where?: InputMaybe<Membership_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamUsersArgs = {
+  distinct_on?: InputMaybe<Array<User_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<User_Order_By>>;
+  where?: InputMaybe<User_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamUsers_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<User_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<User_Order_By>>;
+  where?: InputMaybe<User_Bool_Exp>;
 };
 
 /** aggregated selection of "team" */
@@ -8801,11 +12468,15 @@ export type Team_Bool_Exp = {
   apps_aggregate?: InputMaybe<App_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  invites?: InputMaybe<Invite_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Bool_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   team_owners_count?: InputMaybe<Int_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  users?: InputMaybe<User_Bool_Exp>;
+  users_aggregate?: InputMaybe<User_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "team" */
@@ -8820,9 +12491,11 @@ export type Team_Insert_Input = {
   apps?: InputMaybe<App_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  invites?: InputMaybe<Invite_Arr_Rel_Insert_Input>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  users?: InputMaybe<User_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
@@ -8876,10 +12549,12 @@ export type Team_Order_By = {
   apps_aggregate?: InputMaybe<App_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   team_owners_count?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  users_aggregate?: InputMaybe<User_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: team */
@@ -9052,6 +12727,33 @@ export type User_Aggregate = {
   nodes: Array<User>;
 };
 
+export type User_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<User_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<User_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<User_Aggregate_Bool_Exp_Count>;
+};
+
+export type User_Aggregate_Bool_Exp_Bool_And = {
+  arguments: User_Select_Column_User_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<User_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type User_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: User_Select_Column_User_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<User_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type User_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<User_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<User_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "user" */
 export type User_Aggregate_Fields = {
   __typename?: "user_aggregate_fields";
@@ -9064,6 +12766,20 @@ export type User_Aggregate_Fields = {
 export type User_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<User_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "user" */
+export type User_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<User_Max_Order_By>;
+  min?: InputMaybe<User_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "user" */
+export type User_Arr_Rel_Insert_Input = {
+  data: Array<User_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<User_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "user". All fields are combined with a logical 'AND'. */
@@ -9133,6 +12849,20 @@ export type User_Max_Fields = {
   world_id_nullifier?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "user" */
+export type User_Max_Order_By = {
+  auth0Id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  ironclad_id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  world_id_nullifier?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type User_Min_Fields = {
   __typename?: "user_min_fields";
@@ -9146,6 +12876,20 @@ export type User_Min_Fields = {
   team_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   world_id_nullifier?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "user" */
+export type User_Min_Order_By = {
+  auth0Id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  ironclad_id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  posthog_id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  world_id_nullifier?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "user" */
@@ -9220,6 +12964,22 @@ export enum User_Select_Column {
   UpdatedAt = "updated_at",
   /** column name */
   WorldIdNullifier = "world_id_nullifier",
+}
+
+/** select "user_aggregate_bool_exp_bool_and_arguments_columns" columns of table "user" */
+export enum User_Select_Column_User_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsAllowTracking = "is_allow_tracking",
+  /** column name */
+  IsSubscribed = "is_subscribed",
+}
+
+/** select "user_aggregate_bool_exp_bool_or_arguments_columns" columns of table "user" */
+export enum User_Select_Column_User_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsAllowTracking = "is_allow_tracking",
+  /** column name */
+  IsSubscribed = "is_subscribed",
 }
 
 /** input type for updating data in table "user" */

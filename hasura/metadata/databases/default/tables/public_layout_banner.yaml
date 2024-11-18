@@ -1,0 +1,49 @@
+table:
+  name: layout_banner
+  schema: public
+object_relationships:
+  - name: layout
+    using:
+      foreign_key_constraint_on: layout_id
+  - name: layout_banner_collection
+    using:
+      foreign_key_constraint_on: layout_banner_collection_id
+  - name: layout_secondary_category
+    using:
+      foreign_key_constraint_on: layout_secondary_category_id
+insert_permissions:
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - background_color_hex
+        - background_image_url
+        - highlight_color_hex
+        - layout_banner_collection_id
+        - layout_id
+        - layout_secondary_category_id
+        - location_index
+        - subtitle
+        - subtitle_color_hex
+        - title
+        - title_color_hex
+    comment: ""
+select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - id
+        - location_index
+        - background_color_hex
+        - background_image_url
+        - highlight_color_hex
+        - layout_banner_collection_id
+        - layout_id
+        - layout_secondary_category_id
+        - subtitle
+        - subtitle_color_hex
+        - title
+        - title_color_hex
+        - created_at
+      filter: {}
+    comment: ""

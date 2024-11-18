@@ -1,0 +1,19 @@
+mutation InsertLayout(
+  $layoutBanners: [layout_banner_insert_input!]!
+  $layoutApps: [layout_app_insert_input!]!
+  $layoutAppCollections: [layout_app_collection_insert_input!]!
+  $layoutBannerCollections: [layout_banner_collection_insert_input!]!
+  $layoutSecondaryCategories: [layout_secondary_category_insert_input!]!
+) {
+  insert_layout_one(
+    object: {
+      layout_apps: { data: $layoutApps }
+      layout_banners: { data: $layoutBanners }
+      layout_banner_collections: { data: $layoutBannerCollections }
+      layout_app_collections: { data: $layoutAppCollections }
+      layout_secondary_categories: { data: $layoutSecondaryCategories }
+    }
+  ) {
+    id
+  }
+}

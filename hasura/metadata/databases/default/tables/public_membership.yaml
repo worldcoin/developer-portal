@@ -2,6 +2,9 @@ table:
   name: membership
   schema: public
 object_relationships:
+  - name: roleByRole
+    using:
+      foreign_key_constraint_on: role
   - name: team
     using:
       foreign_key_constraint_on: team_id

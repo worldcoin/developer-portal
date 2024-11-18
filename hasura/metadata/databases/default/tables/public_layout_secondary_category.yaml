@@ -1,0 +1,60 @@
+table:
+  name: layout_secondary_category
+  schema: public
+object_relationships:
+  - name: layout
+    using:
+      foreign_key_constraint_on: layout_id
+array_relationships:
+  - name: layout_app_collections
+    using:
+      foreign_key_constraint_on:
+        column: layout_secondary_category_id
+        table:
+          name: layout_app_collection
+          schema: public
+  - name: layout_apps
+    using:
+      foreign_key_constraint_on:
+        column: layout_secondary_category_id
+        table:
+          name: layout_app
+          schema: public
+  - name: layout_banner_collections
+    using:
+      foreign_key_constraint_on:
+        column: layout_secondary_category_id
+        table:
+          name: layout_banner_collection
+          schema: public
+  - name: layout_banners
+    using:
+      foreign_key_constraint_on:
+        column: layout_secondary_category_id
+        table:
+          name: layout_banner
+          schema: public
+insert_permissions:
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - background_color_hex
+        - background_image_url
+        - layout_id
+        - location_index
+        - subtitle
+        - title
+    comment: ""
+select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - background_color_hex
+        - background_image_url
+        - layout_id
+        - location_index
+        - subtitle
+        - title
+      filter: {}
+    comment: ""

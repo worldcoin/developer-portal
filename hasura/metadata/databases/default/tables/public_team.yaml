@@ -16,12 +16,26 @@ array_relationships:
         table:
           name: app
           schema: public
+  - name: invites
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          name: invite
+          schema: public
   - name: memberships
     using:
       foreign_key_constraint_on:
         column: team_id
         table:
           name: membership
+          schema: public
+  - name: users
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          name: user
           schema: public
 computed_fields:
   - name: team_owners_count

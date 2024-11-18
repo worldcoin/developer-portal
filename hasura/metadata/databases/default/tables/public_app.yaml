@@ -2,6 +2,13 @@ table:
   name: app
   schema: public
 object_relationships:
+  - name: app_stats_returning
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: app_stats_returning
+          schema: public
   - name: team
     using:
       foreign_key_constraint_on: team_id
@@ -21,6 +28,34 @@ array_relationships:
         insertion_order: null
         remote_table:
           name: app_metadata
+          schema: public
+  - name: app_reports
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: app_report
+          schema: public
+  - name: app_reviews
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: app_reviews
+          schema: public
+  - name: auth_codes
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: auth_code
+          schema: public
+  - name: notification_logs
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: notification_log
           schema: public
 insert_permissions:
   - role: api_key

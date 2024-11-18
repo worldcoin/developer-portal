@@ -2,6 +2,13 @@ table:
   name: action
   schema: public
 object_relationships:
+  - name: action_stats_returning
+    using:
+      foreign_key_constraint_on:
+        column: action_id
+        table:
+          name: action_stats_returning
+          schema: public
   - name: app
     using:
       foreign_key_constraint_on: app_id

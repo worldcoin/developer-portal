@@ -1,6 +1,10 @@
 table:
   name: notification_log_wallet_address
   schema: public
+object_relationships:
+  - name: notification_log
+    using:
+      foreign_key_constraint_on: notification_log_id
 insert_permissions:
   - role: reviewer
     permission:

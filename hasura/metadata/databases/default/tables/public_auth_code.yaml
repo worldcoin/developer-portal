@@ -1,6 +1,10 @@
 table:
   name: auth_code
   schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
 insert_permissions:
   - role: service
     permission:
