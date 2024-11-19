@@ -4,8 +4,9 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetLayoutAppFragment = {
+export type GetLatestLayoutAppFragment = {
   __typename?: "layout_app";
+  location_index: number;
   app: {
     __typename?: "app";
     name: string;
@@ -47,7 +48,7 @@ export type GetLayoutAppFragment = {
   };
 };
 
-export type GetLayoutBannerFragment = {
+export type GetLatestLayoutBannerFragment = {
   __typename?: "layout_banner";
   location_index: number;
   title: string;
@@ -55,23 +56,26 @@ export type GetLayoutBannerFragment = {
   subtitle: string;
   subtitle_color_hex: string;
   highlight_color_hex: string;
+  background_color_hex?: string | null;
+  background_image_url?: string | null;
 };
 
-export type GetLayoutQueryVariables = Types.Exact<{
-  layout_id: Types.Scalars["String"]["input"];
+export type GetLatestLayoutQueryVariables = Types.Exact<{
   locale: Types.Scalars["String"]["input"];
 }>;
 
-export type GetLayoutQuery = {
+export type GetLatestLayoutQuery = {
   __typename?: "query_root";
-  layout_by_pk?: {
+  layout: Array<{
     __typename?: "layout";
     id: string;
     layout_categories: Array<{
       __typename?: "layout_category";
+      location_index: number;
       category: string;
       layout_apps: Array<{
         __typename?: "layout_app";
+        location_index: number;
         app: {
           __typename?: "app";
           name: string;
@@ -120,6 +124,8 @@ export type GetLayoutQuery = {
         subtitle: string;
         subtitle_color_hex: string;
         highlight_color_hex: string;
+        background_color_hex?: string | null;
+        background_image_url?: string | null;
       }>;
       layout_app_collections: Array<{
         __typename?: "layout_app_collection";
@@ -128,6 +134,7 @@ export type GetLayoutQuery = {
         title: string;
         layout_apps: Array<{
           __typename?: "layout_app";
+          location_index: number;
           app: {
             __typename?: "app";
             name: string;
@@ -175,6 +182,8 @@ export type GetLayoutQuery = {
         title: string;
         layout_banners: Array<{
           __typename?: "layout_banner";
+          background_color_hex?: string | null;
+          background_image_url?: string | null;
           location_index: number;
           title: string;
           title_color_hex: string;
@@ -192,6 +201,7 @@ export type GetLayoutQuery = {
         background_image_url?: string | null;
         layout_apps: Array<{
           __typename?: "layout_app";
+          location_index: number;
           app: {
             __typename?: "app";
             name: string;
@@ -240,6 +250,8 @@ export type GetLayoutQuery = {
           subtitle: string;
           subtitle_color_hex: string;
           highlight_color_hex: string;
+          background_color_hex?: string | null;
+          background_image_url?: string | null;
         }>;
         layout_app_collections: Array<{
           __typename?: "layout_app_collection";
@@ -248,6 +260,7 @@ export type GetLayoutQuery = {
           title: string;
           layout_apps: Array<{
             __typename?: "layout_app";
+            location_index: number;
             app: {
               __typename?: "app";
               name: string;
@@ -295,6 +308,8 @@ export type GetLayoutQuery = {
           title: string;
           layout_banners: Array<{
             __typename?: "layout_banner";
+            background_color_hex?: string | null;
+            background_image_url?: string | null;
             location_index: number;
             title: string;
             title_color_hex: string;
@@ -305,11 +320,12 @@ export type GetLayoutQuery = {
         }>;
       }>;
     }>;
-  } | null;
+  }>;
 };
 
-export const GetLayoutAppFragmentDoc = gql`
-  fragment GetLayoutApp on layout_app {
+export const GetLatestLayoutAppFragmentDoc = gql`
+  fragment GetLatestLayoutApp on layout_app {
+    location_index
     app {
       app_metadata {
         name
@@ -348,41 +364,48 @@ export const GetLayoutAppFragmentDoc = gql`
     }
   }
 `;
-export const GetLayoutBannerFragmentDoc = gql`
-  fragment GetLayoutBanner on layout_banner {
+export const GetLatestLayoutBannerFragmentDoc = gql`
+  fragment GetLatestLayoutBanner on layout_banner {
     location_index
     title
     title_color_hex
     subtitle
     subtitle_color_hex
     highlight_color_hex
+    background_color_hex
+    background_image_url
   }
 `;
-export const GetLayoutDocument = gql`
-  query GetLayout($layout_id: String!, $locale: String!) {
-    layout_by_pk(id: $layout_id) {
+export const GetLatestLayoutDocument = gql`
+  query GetLatestLayout($locale: String!) {
+    layout(order_by: { created_at: desc }, limit: 1) {
       id
       layout_categories {
+        location_index
         category
         layout_apps {
-          ...GetLayoutApp
+          location_index
+          ...GetLatestLayoutApp
         }
         layout_banners {
-          ...GetLayoutBanner
+          location_index
+          ...GetLatestLayoutBanner
         }
         layout_app_collections {
           location_index
           indexed
           title
           layout_apps {
-            ...GetLayoutApp
+            ...GetLatestLayoutApp
           }
         }
         layout_banner_collections {
           location_index
           title
           layout_banners {
-            ...GetLayoutBanner
+            background_color_hex
+            background_image_url
+            ...GetLatestLayoutBanner
           }
         }
         layout_secondary_categories {
@@ -392,32 +415,36 @@ export const GetLayoutDocument = gql`
           background_color_hex
           background_image_url
           layout_apps {
-            ...GetLayoutApp
+            location_index
+            ...GetLatestLayoutApp
           }
           layout_banners {
-            ...GetLayoutBanner
+            location_index
+            ...GetLatestLayoutBanner
           }
           layout_app_collections {
             location_index
             indexed
             title
             layout_apps {
-              ...GetLayoutApp
+              ...GetLatestLayoutApp
             }
           }
           layout_banner_collections {
             location_index
             title
             layout_banners {
-              ...GetLayoutBanner
+              background_color_hex
+              background_image_url
+              ...GetLatestLayoutBanner
             }
           }
         }
       }
     }
   }
-  ${GetLayoutAppFragmentDoc}
-  ${GetLayoutBannerFragmentDoc}
+  ${GetLatestLayoutAppFragmentDoc}
+  ${GetLatestLayoutBannerFragmentDoc}
 `;
 
 export type SdkFunctionWrapper = <T>(
@@ -439,17 +466,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetLayout(
-      variables: GetLayoutQueryVariables,
+    GetLatestLayout(
+      variables: GetLatestLayoutQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetLayoutQuery> {
+    ): Promise<GetLatestLayoutQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetLayoutQuery>(GetLayoutDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "GetLayout",
+          client.request<GetLatestLayoutQuery>(
+            GetLatestLayoutDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "GetLatestLayout",
         "query",
         variables,
       );

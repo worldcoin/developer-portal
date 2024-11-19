@@ -2,50 +2,13 @@ table:
   name: layout
   schema: public
 array_relationships:
-  - name: layout_app_collections
+  - name: layout_categories
     using:
       foreign_key_constraint_on:
         column: layout_id
         table:
-          name: layout_app_collection
+          name: layout_category
           schema: public
-  - name: layout_apps
-    using:
-      foreign_key_constraint_on:
-        column: layout_id
-        table:
-          name: layout_app
-          schema: public
-  - name: layout_banner_collections
-    using:
-      foreign_key_constraint_on:
-        column: layout_id
-        table:
-          name: layout_banner_collection
-          schema: public
-  - name: layout_banners
-    using:
-      foreign_key_constraint_on:
-        column: layout_id
-        table:
-          name: layout_banner
-          schema: public
-  - name: layout_secondary_categories
-    using:
-      foreign_key_constraint_on:
-        column: layout_id
-        table:
-          name: layout_secondary_category
-          schema: public
-select_permissions:
-  - role: reviewer
-    permission:
-      columns:
-        - category
-        - created_at
-        - id
-      filter: {}
-    comment: ""
 update_permissions:
   - role: reviewer
     permission:

@@ -5,7 +5,7 @@ const AppStoreLayoutElementMap = {
   banner: "banner",
   "app-collection": "app-collection",
   "banner-collection": "banner-collection",
-  secondary_category: "secondary-category",
+  "secondary-category": "secondary-category",
 };
 
 const AppSchema = yup.object().shape({
@@ -68,7 +68,7 @@ const AppStoreLayoutSecondaryCategoryElementSchema = yup
   .shape({
     elementType: yup
       .mixed()
-      .oneOf([AppStoreLayoutElementMap.secondary_category])
+      .oneOf([AppStoreLayoutElementMap["secondary-category"]])
       .required(),
     title: yup.string().required(),
     subtitle: yup.string().required(),
@@ -105,29 +105,32 @@ const AppStoreLayoutSecondaryCategoryElementSchema = yup
     },
   );
 
-const AppStoreLayoutSchema = yup.object().shape({
-  elements: yup
-    .array()
-    .of(
-      yup.lazy((value) => {
-        switch (value.elementType) {
-          case AppStoreLayoutElementMap.app:
-            return AppStoreLayoutAppElementSchema;
-          case AppStoreLayoutElementMap.banner:
-            return AppStoreLayoutBannerElementSchema;
-          case AppStoreLayoutElementMap["app-collection"]:
-            return AppStoreLayoutAppCollectionElementSchema;
-          case AppStoreLayoutElementMap["banner-collection"]:
-            return AppStoreLayoutBannerCollectionElementSchema;
-          case AppStoreLayoutElementMap.secondary_category:
-            return AppStoreLayoutSecondaryCategoryElementSchema;
-          default:
-            return yup.mixed().notRequired();
-        }
-      }),
-    )
-    .required(),
-});
+const AppStoreLayoutSchema = yup.array(
+  yup.object().shape({
+    category: yup.string().required(),
+    elements: yup
+      .array()
+      .of(
+        yup.lazy((value) => {
+          switch (value.elementType) {
+            case AppStoreLayoutElementMap.app:
+              return AppStoreLayoutAppElementSchema;
+            case AppStoreLayoutElementMap.banner:
+              return AppStoreLayoutBannerElementSchema;
+            case AppStoreLayoutElementMap["app-collection"]:
+              return AppStoreLayoutAppCollectionElementSchema;
+            case AppStoreLayoutElementMap["banner-collection"]:
+              return AppStoreLayoutBannerCollectionElementSchema;
+            case AppStoreLayoutElementMap["secondary-category"]:
+              return AppStoreLayoutSecondaryCategoryElementSchema;
+            default:
+              return yup.mixed().notRequired();
+          }
+        }),
+      )
+      .required(),
+  }),
+);
 
 export {
   AppSchema,

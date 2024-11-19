@@ -2,9 +2,9 @@ table:
   name: layout_app_collection
   schema: public
 object_relationships:
-  - name: layout
+  - name: layout_category
     using:
-      foreign_key_constraint_on: layout_id
+      foreign_key_constraint_on: layout_category_id
   - name: layout_secondary_category
     using:
       foreign_key_constraint_on: layout_secondary_category_id
@@ -16,25 +16,3 @@ array_relationships:
         table:
           name: layout_app
           schema: public
-insert_permissions:
-  - role: reviewer
-    permission:
-      check: {}
-      columns:
-        - indexed
-        - layout_id
-        - layout_secondary_category_id
-        - location_index
-        - title
-    comment: ""
-select_permissions:
-  - role: reviewer
-    permission:
-      columns:
-        - indexed
-        - layout_id
-        - layout_secondary_category_id
-        - location_index
-        - title
-      filter: {}
-    comment: ""

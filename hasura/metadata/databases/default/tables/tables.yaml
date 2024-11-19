@@ -16,6 +16,7 @@
 - "!include public_layout_app_collection.yaml"
 - "!include public_layout_banner.yaml"
 - "!include public_layout_banner_collection.yaml"
+- "!include public_layout_category.yaml"
 - "!include public_layout_secondary_category.yaml"
 - "!include public_localisations.yaml"
 - "!include public_membership.yaml"

@@ -5,21 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type InsertLayoutMutationVariables = Types.Exact<{
-  layoutBanners:
-    | Array<Types.Layout_Banner_Insert_Input>
-    | Types.Layout_Banner_Insert_Input;
-  layoutApps:
-    | Array<Types.Layout_App_Insert_Input>
-    | Types.Layout_App_Insert_Input;
-  layoutAppCollections:
-    | Array<Types.Layout_App_Collection_Insert_Input>
-    | Types.Layout_App_Collection_Insert_Input;
-  layoutBannerCollections:
-    | Array<Types.Layout_Banner_Collection_Insert_Input>
-    | Types.Layout_Banner_Collection_Insert_Input;
-  layoutSecondaryCategories:
-    | Array<Types.Layout_Secondary_Category_Insert_Input>
-    | Types.Layout_Secondary_Category_Insert_Input;
+  layout: Types.Layout_Insert_Input;
 }>;
 
 export type InsertLayoutMutation = {
@@ -28,22 +14,8 @@ export type InsertLayoutMutation = {
 };
 
 export const InsertLayoutDocument = gql`
-  mutation InsertLayout(
-    $layoutBanners: [layout_banner_insert_input!]!
-    $layoutApps: [layout_app_insert_input!]!
-    $layoutAppCollections: [layout_app_collection_insert_input!]!
-    $layoutBannerCollections: [layout_banner_collection_insert_input!]!
-    $layoutSecondaryCategories: [layout_secondary_category_insert_input!]!
-  ) {
-    insert_layout_one(
-      object: {
-        layout_apps: { data: $layoutApps }
-        layout_banners: { data: $layoutBanners }
-        layout_banner_collections: { data: $layoutBannerCollections }
-        layout_app_collections: { data: $layoutAppCollections }
-        layout_secondary_categories: { data: $layoutSecondaryCategories }
-      }
-    ) {
+  mutation InsertLayout($layout: layout_insert_input!) {
+    insert_layout_one(object: $layout) {
       id
     }
   }

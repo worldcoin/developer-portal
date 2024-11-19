@@ -1413,6 +1413,10 @@ export type App = {
   is_archived: Scalars["Boolean"]["output"];
   is_banned: Scalars["Boolean"]["output"];
   is_staging: Scalars["Boolean"]["output"];
+  /** An array relationship */
+  layout_apps: Array<Layout_App>;
+  /** An aggregate relationship */
+  layout_apps_aggregate: Layout_App_Aggregate;
   logo_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   /** An array relationship */
@@ -1518,6 +1522,24 @@ export type AppAuth_Codes_AggregateArgs = {
 };
 
 /** columns and relationships of "app" */
+export type AppLayout_AppsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
+export type AppLayout_Apps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "app" */
 export type AppNotification_LogsArgs = {
   distinct_on?: InputMaybe<Array<Notification_Log_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -1620,6 +1642,8 @@ export type App_Bool_Exp = {
   is_archived?: InputMaybe<Boolean_Comparison_Exp>;
   is_banned?: InputMaybe<Boolean_Comparison_Exp>;
   is_staging?: InputMaybe<Boolean_Comparison_Exp>;
+  layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Bool_Exp>;
   logo_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   notification_logs?: InputMaybe<Notification_Log_Bool_Exp>;
@@ -1652,6 +1676,7 @@ export type App_Insert_Input = {
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
+  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   notification_logs?: InputMaybe<Notification_Log_Arr_Rel_Insert_Input>;
@@ -2589,6 +2614,7 @@ export type App_Order_By = {
   is_archived?: InputMaybe<Order_By>;
   is_banned?: InputMaybe<Order_By>;
   is_staging?: InputMaybe<Order_By>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
   logo_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   notification_logs_aggregate?: InputMaybe<Notification_Log_Aggregate_Order_By>;
@@ -4740,119 +4766,30 @@ export type Jwks_Updates = {
 /** columns and relationships of "layout" */
 export type Layout = {
   __typename?: "layout";
-  category: Scalars["String"]["output"];
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
-  layout_app_collections: Array<Layout_App_Collection>;
+  layout_categories: Array<Layout_Category>;
   /** An aggregate relationship */
-  layout_app_collections_aggregate: Layout_App_Collection_Aggregate;
-  /** An array relationship */
-  layout_apps: Array<Layout_App>;
-  /** An aggregate relationship */
-  layout_apps_aggregate: Layout_App_Aggregate;
-  /** An array relationship */
-  layout_banner_collections: Array<Layout_Banner_Collection>;
-  /** An aggregate relationship */
-  layout_banner_collections_aggregate: Layout_Banner_Collection_Aggregate;
-  /** An array relationship */
-  layout_banners: Array<Layout_Banner>;
-  /** An aggregate relationship */
-  layout_banners_aggregate: Layout_Banner_Aggregate;
-  /** An array relationship */
-  layout_secondary_categories: Array<Layout_Secondary_Category>;
-  /** An aggregate relationship */
-  layout_secondary_categories_aggregate: Layout_Secondary_Category_Aggregate;
+  layout_categories_aggregate: Layout_Category_Aggregate;
 };
 
 /** columns and relationships of "layout" */
-export type LayoutLayout_App_CollectionsArgs = {
-  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+export type LayoutLayout_CategoriesArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
-  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
 };
 
 /** columns and relationships of "layout" */
-export type LayoutLayout_App_Collections_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+export type LayoutLayout_Categories_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
-  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_AppsArgs = {
-  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
-  where?: InputMaybe<Layout_App_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Apps_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
-  where?: InputMaybe<Layout_App_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Banner_CollectionsArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
-  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Banner_Collections_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
-  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_BannersArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
-  where?: InputMaybe<Layout_Banner_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Banners_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
-  where?: InputMaybe<Layout_Banner_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Secondary_CategoriesArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
-  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
-};
-
-/** columns and relationships of "layout" */
-export type LayoutLayout_Secondary_Categories_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
-  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
 };
 
 /** aggregated selection of "layout" */
@@ -4885,11 +4822,11 @@ export type Layout_App = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An object relationship */
-  layout?: Maybe<Layout>;
-  /** An object relationship */
   layout_app_collection?: Maybe<Layout_App_Collection>;
   layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_category?: Maybe<Layout_Category>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   layout_secondary_category?: Maybe<Layout_Secondary_Category>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
@@ -4978,10 +4915,10 @@ export type Layout_App_Bool_Exp = {
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_app_collection?: InputMaybe<Layout_App_Collection_Bool_Exp>;
   layout_app_collection_id?: InputMaybe<String_Comparison_Exp>;
-  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_category?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_category_id?: InputMaybe<String_Comparison_Exp>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
   layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
   location_index?: InputMaybe<Int_Comparison_Exp>;
@@ -4993,13 +4930,13 @@ export type Layout_App_Collection = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   indexed: Scalars["Boolean"]["output"];
-  /** An object relationship */
-  layout?: Maybe<Layout>;
   /** An array relationship */
   layout_apps: Array<Layout_App>;
   /** An aggregate relationship */
   layout_apps_aggregate: Layout_App_Aggregate;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_category?: Maybe<Layout_Category>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   layout_secondary_category?: Maybe<Layout_Secondary_Category>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
@@ -5122,10 +5059,10 @@ export type Layout_App_Collection_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   indexed?: InputMaybe<Boolean_Comparison_Exp>;
-  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
   layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Bool_Exp>;
-  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_category?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_category_id?: InputMaybe<String_Comparison_Exp>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
   layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
   location_index?: InputMaybe<Int_Comparison_Exp>;
@@ -5148,9 +5085,9 @@ export type Layout_App_Collection_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
-  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
   layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category?: InputMaybe<Layout_Category_Obj_Rel_Insert_Input>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
@@ -5162,7 +5099,7 @@ export type Layout_App_Collection_Max_Fields = {
   __typename?: "layout_app_collection_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -5172,7 +5109,7 @@ export type Layout_App_Collection_Max_Fields = {
 export type Layout_App_Collection_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -5183,7 +5120,7 @@ export type Layout_App_Collection_Min_Fields = {
   __typename?: "layout_app_collection_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -5193,7 +5130,7 @@ export type Layout_App_Collection_Min_Fields = {
 export type Layout_App_Collection_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -5227,9 +5164,9 @@ export type Layout_App_Collection_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   indexed?: InputMaybe<Order_By>;
-  layout?: InputMaybe<Layout_Order_By>;
   layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category?: InputMaybe<Layout_Category_Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
@@ -5250,7 +5187,7 @@ export enum Layout_App_Collection_Select_Column {
   /** column name */
   Indexed = "indexed",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -5276,7 +5213,7 @@ export type Layout_App_Collection_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -5328,7 +5265,7 @@ export type Layout_App_Collection_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   indexed?: InputMaybe<Scalars["Boolean"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -5354,7 +5291,7 @@ export enum Layout_App_Collection_Update_Column {
   /** column name */
   Indexed = "indexed",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -5422,10 +5359,10 @@ export type Layout_App_Insert_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
   layout_app_collection?: InputMaybe<Layout_App_Collection_Obj_Rel_Insert_Input>;
   layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category?: InputMaybe<Layout_Category_Obj_Rel_Insert_Input>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
@@ -5438,7 +5375,7 @@ export type Layout_App_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -5449,7 +5386,7 @@ export type Layout_App_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   layout_app_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
 };
@@ -5461,7 +5398,7 @@ export type Layout_App_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   layout_app_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -5472,7 +5409,7 @@ export type Layout_App_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   layout_app_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
 };
@@ -5499,10 +5436,10 @@ export type Layout_App_Order_By = {
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout?: InputMaybe<Layout_Order_By>;
   layout_app_collection?: InputMaybe<Layout_App_Collection_Order_By>;
   layout_app_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category?: InputMaybe<Layout_Category_Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
@@ -5524,7 +5461,7 @@ export enum Layout_App_Select_Column {
   /** column name */
   LayoutAppCollectionId = "layout_app_collection_id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -5537,7 +5474,7 @@ export type Layout_App_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -5589,7 +5526,7 @@ export type Layout_App_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   layout_app_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -5616,7 +5553,7 @@ export enum Layout_App_Update_Column {
   /** column name */
   LayoutAppCollectionId = "layout_app_collection_id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -5674,11 +5611,11 @@ export type Layout_Banner = {
   highlight_color_hex: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   /** An object relationship */
-  layout?: Maybe<Layout>;
-  /** An object relationship */
   layout_banner_collection?: Maybe<Layout_Banner_Collection>;
   layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_category?: Maybe<Layout_Category>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   layout_secondary_category?: Maybe<Layout_Secondary_Category>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
@@ -5772,10 +5709,10 @@ export type Layout_Banner_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   highlight_color_hex?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
   layout_banner_collection_id?: InputMaybe<String_Comparison_Exp>;
-  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_category?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_category_id?: InputMaybe<String_Comparison_Exp>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
   layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
   location_index?: InputMaybe<Int_Comparison_Exp>;
@@ -5790,13 +5727,13 @@ export type Layout_Banner_Collection = {
   __typename?: "layout_banner_collection";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
-  /** An object relationship */
-  layout?: Maybe<Layout>;
   /** An array relationship */
   layout_banners: Array<Layout_Banner>;
   /** An aggregate relationship */
   layout_banners_aggregate: Layout_Banner_Aggregate;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  /** An object relationship */
+  layout_category?: Maybe<Layout_Category>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   /** An object relationship */
   layout_secondary_category?: Maybe<Layout_Secondary_Category>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
@@ -5902,10 +5839,10 @@ export type Layout_Banner_Collection_Bool_Exp = {
   _or?: InputMaybe<Array<Layout_Banner_Collection_Bool_Exp>>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
   layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
-  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_category?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_category_id?: InputMaybe<String_Comparison_Exp>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
   layout_secondary_category_id?: InputMaybe<String_Comparison_Exp>;
   location_index?: InputMaybe<Int_Comparison_Exp>;
@@ -5927,9 +5864,9 @@ export type Layout_Banner_Collection_Inc_Input = {
 export type Layout_Banner_Collection_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
   layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category?: InputMaybe<Layout_Category_Obj_Rel_Insert_Input>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
@@ -5941,7 +5878,7 @@ export type Layout_Banner_Collection_Max_Fields = {
   __typename?: "layout_banner_collection_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -5951,7 +5888,7 @@ export type Layout_Banner_Collection_Max_Fields = {
 export type Layout_Banner_Collection_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -5962,7 +5899,7 @@ export type Layout_Banner_Collection_Min_Fields = {
   __typename?: "layout_banner_collection_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -5972,7 +5909,7 @@ export type Layout_Banner_Collection_Min_Fields = {
 export type Layout_Banner_Collection_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -6005,9 +5942,9 @@ export type Layout_Banner_Collection_On_Conflict = {
 export type Layout_Banner_Collection_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout?: InputMaybe<Layout_Order_By>;
   layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category?: InputMaybe<Layout_Category_Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
@@ -6026,7 +5963,7 @@ export enum Layout_Banner_Collection_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -6039,7 +5976,7 @@ export enum Layout_Banner_Collection_Select_Column {
 export type Layout_Banner_Collection_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -6090,7 +6027,7 @@ export type Layout_Banner_Collection_Stream_Cursor_Input = {
 export type Layout_Banner_Collection_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -6114,7 +6051,7 @@ export enum Layout_Banner_Collection_Update_Column {
   /** column name */
   Id = "id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -6183,10 +6120,10 @@ export type Layout_Banner_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
   layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Obj_Rel_Insert_Input>;
   layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category?: InputMaybe<Layout_Category_Obj_Rel_Insert_Input>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Obj_Rel_Insert_Input>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
@@ -6205,7 +6142,7 @@ export type Layout_Banner_Max_Fields = {
   highlight_color_hex?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   subtitle?: Maybe<Scalars["String"]["output"]>;
@@ -6222,7 +6159,7 @@ export type Layout_Banner_Max_Order_By = {
   highlight_color_hex?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   layout_banner_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   subtitle?: InputMaybe<Order_By>;
@@ -6240,7 +6177,7 @@ export type Layout_Banner_Min_Fields = {
   highlight_color_hex?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   layout_banner_collection_id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   layout_secondary_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   subtitle?: Maybe<Scalars["String"]["output"]>;
@@ -6257,7 +6194,7 @@ export type Layout_Banner_Min_Order_By = {
   highlight_color_hex?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   layout_banner_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   subtitle?: InputMaybe<Order_By>;
@@ -6289,10 +6226,10 @@ export type Layout_Banner_Order_By = {
   created_at?: InputMaybe<Order_By>;
   highlight_color_hex?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout?: InputMaybe<Layout_Order_By>;
   layout_banner_collection?: InputMaybe<Layout_Banner_Collection_Order_By>;
   layout_banner_collection_id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category?: InputMaybe<Layout_Category_Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   layout_secondary_category?: InputMaybe<Layout_Secondary_Category_Order_By>;
   layout_secondary_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
@@ -6322,7 +6259,7 @@ export enum Layout_Banner_Select_Column {
   /** column name */
   LayoutBannerCollectionId = "layout_banner_collection_id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -6345,7 +6282,7 @@ export type Layout_Banner_Set_Input = {
   highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   subtitle?: InputMaybe<Scalars["String"]["input"]>;
@@ -6403,7 +6340,7 @@ export type Layout_Banner_Stream_Cursor_Value_Input = {
   highlight_color_hex?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   layout_banner_collection_id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   layout_secondary_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   subtitle?: InputMaybe<Scalars["String"]["input"]>;
@@ -6438,7 +6375,7 @@ export enum Layout_Banner_Update_Column {
   /** column name */
   LayoutBannerCollectionId = "layout_banner_collection_id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LayoutSecondaryCategoryId = "layout_secondary_category_id",
   /** column name */
@@ -6500,9 +6437,216 @@ export type Layout_Bool_Exp = {
   _and?: InputMaybe<Array<Layout_Bool_Exp>>;
   _not?: InputMaybe<Layout_Bool_Exp>;
   _or?: InputMaybe<Array<Layout_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  layout_categories?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_categories_aggregate?: InputMaybe<Layout_Category_Aggregate_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_Category = {
+  __typename?: "layout_category";
+  category: Scalars["String"]["output"];
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout: Layout;
+  /** An array relationship */
+  layout_app_collections: Array<Layout_App_Collection>;
+  /** An aggregate relationship */
+  layout_app_collections_aggregate: Layout_App_Collection_Aggregate;
+  /** An array relationship */
+  layout_apps: Array<Layout_App>;
+  /** An aggregate relationship */
+  layout_apps_aggregate: Layout_App_Aggregate;
+  /** An array relationship */
+  layout_banner_collections: Array<Layout_Banner_Collection>;
+  /** An aggregate relationship */
+  layout_banner_collections_aggregate: Layout_Banner_Collection_Aggregate;
+  /** An array relationship */
+  layout_banners: Array<Layout_Banner>;
+  /** An aggregate relationship */
+  layout_banners_aggregate: Layout_Banner_Aggregate;
+  layout_id: Scalars["String"]["output"];
+  /** An array relationship */
+  layout_secondary_categories: Array<Layout_Secondary_Category>;
+  /** An aggregate relationship */
+  layout_secondary_categories_aggregate: Layout_Secondary_Category_Aggregate;
+  location_index: Scalars["Int"]["output"];
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_App_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_App_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Collection_Order_By>>;
+  where?: InputMaybe<Layout_App_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_AppsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Apps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_App_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_App_Order_By>>;
+  where?: InputMaybe<Layout_App_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Banner_CollectionsArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Banner_Collections_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Collection_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Collection_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Collection_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_BannersArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Banners_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Banner_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Banner_Order_By>>;
+  where?: InputMaybe<Layout_Banner_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Secondary_CategoriesArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+/** columns and relationships of "layout_category" */
+export type Layout_CategoryLayout_Secondary_Categories_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Secondary_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Secondary_Category_Order_By>>;
+  where?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
+};
+
+/** aggregated selection of "layout_category" */
+export type Layout_Category_Aggregate = {
+  __typename?: "layout_category_aggregate";
+  aggregate?: Maybe<Layout_Category_Aggregate_Fields>;
+  nodes: Array<Layout_Category>;
+};
+
+export type Layout_Category_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Layout_Category_Aggregate_Bool_Exp_Count>;
+};
+
+export type Layout_Category_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Layout_Category_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "layout_category" */
+export type Layout_Category_Aggregate_Fields = {
+  __typename?: "layout_category_aggregate_fields";
+  avg?: Maybe<Layout_Category_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Layout_Category_Max_Fields>;
+  min?: Maybe<Layout_Category_Min_Fields>;
+  stddev?: Maybe<Layout_Category_Stddev_Fields>;
+  stddev_pop?: Maybe<Layout_Category_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Layout_Category_Stddev_Samp_Fields>;
+  sum?: Maybe<Layout_Category_Sum_Fields>;
+  var_pop?: Maybe<Layout_Category_Var_Pop_Fields>;
+  var_samp?: Maybe<Layout_Category_Var_Samp_Fields>;
+  variance?: Maybe<Layout_Category_Variance_Fields>;
+};
+
+/** aggregate fields of "layout_category" */
+export type Layout_Category_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "layout_category" */
+export type Layout_Category_Aggregate_Order_By = {
+  avg?: InputMaybe<Layout_Category_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Layout_Category_Max_Order_By>;
+  min?: InputMaybe<Layout_Category_Min_Order_By>;
+  stddev?: InputMaybe<Layout_Category_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Layout_Category_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Layout_Category_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Layout_Category_Sum_Order_By>;
+  var_pop?: InputMaybe<Layout_Category_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Layout_Category_Var_Samp_Order_By>;
+  variance?: InputMaybe<Layout_Category_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "layout_category" */
+export type Layout_Category_Arr_Rel_Insert_Input = {
+  data: Array<Layout_Category_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Category_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Layout_Category_Avg_Fields = {
+  __typename?: "layout_category_avg_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "layout_category" */
+export type Layout_Category_Avg_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "layout_category". All fields are combined with a logical 'AND'. */
+export type Layout_Category_Bool_Exp = {
+  _and?: InputMaybe<Array<Layout_Category_Bool_Exp>>;
+  _not?: InputMaybe<Layout_Category_Bool_Exp>;
+  _or?: InputMaybe<Array<Layout_Category_Bool_Exp>>;
   category?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_app_collections?: InputMaybe<Layout_App_Collection_Bool_Exp>;
   layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp>;
   layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
@@ -6511,8 +6655,257 @@ export type Layout_Bool_Exp = {
   layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Bool_Exp>;
   layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
   layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
+  layout_id?: InputMaybe<String_Comparison_Exp>;
   layout_secondary_categories?: InputMaybe<Layout_Secondary_Category_Bool_Exp>;
   layout_secondary_categories_aggregate?: InputMaybe<Layout_Secondary_Category_Aggregate_Bool_Exp>;
+  location_index?: InputMaybe<Int_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "layout_category" */
+export enum Layout_Category_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  LayoutCategoryPkey = "layout_category_pkey",
+}
+
+/** input type for incrementing numeric columns in table "layout_category" */
+export type Layout_Category_Inc_Input = {
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "layout_category" */
+export type Layout_Category_Insert_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
+  layout_app_collections?: InputMaybe<Layout_App_Collection_Arr_Rel_Insert_Input>;
+  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
+  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Arr_Rel_Insert_Input>;
+  layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_secondary_categories?: InputMaybe<Layout_Secondary_Category_Arr_Rel_Insert_Input>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Layout_Category_Max_Fields = {
+  __typename?: "layout_category_max_fields";
+  category?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by max() on columns of table "layout_category" */
+export type Layout_Category_Max_Order_By = {
+  category?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Layout_Category_Min_Fields = {
+  __typename?: "layout_category_min_fields";
+  category?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  layout_id?: Maybe<Scalars["String"]["output"]>;
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by min() on columns of table "layout_category" */
+export type Layout_Category_Min_Order_By = {
+  category?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "layout_category" */
+export type Layout_Category_Mutation_Response = {
+  __typename?: "layout_category_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Layout_Category>;
+};
+
+/** input type for inserting object relation for remote table "layout_category" */
+export type Layout_Category_Obj_Rel_Insert_Input = {
+  data: Layout_Category_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Layout_Category_On_Conflict>;
+};
+
+/** on_conflict condition type for table "layout_category" */
+export type Layout_Category_On_Conflict = {
+  constraint: Layout_Category_Constraint;
+  update_columns?: Array<Layout_Category_Update_Column>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "layout_category". */
+export type Layout_Category_Order_By = {
+  category?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  layout?: InputMaybe<Layout_Order_By>;
+  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Order_By>;
+  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
+  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Order_By>;
+  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
+  layout_id?: InputMaybe<Order_By>;
+  layout_secondary_categories_aggregate?: InputMaybe<Layout_Secondary_Category_Aggregate_Order_By>;
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: layout_category */
+export type Layout_Category_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "layout_category" */
+export enum Layout_Category_Select_Column {
+  /** column name */
+  Category = "category",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LocationIndex = "location_index",
+}
+
+/** input type for updating data in table "layout_category" */
+export type Layout_Category_Set_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Layout_Category_Stddev_Fields = {
+  __typename?: "layout_category_stddev_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "layout_category" */
+export type Layout_Category_Stddev_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Layout_Category_Stddev_Pop_Fields = {
+  __typename?: "layout_category_stddev_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "layout_category" */
+export type Layout_Category_Stddev_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Layout_Category_Stddev_Samp_Fields = {
+  __typename?: "layout_category_stddev_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "layout_category" */
+export type Layout_Category_Stddev_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "layout_category" */
+export type Layout_Category_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Layout_Category_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Layout_Category_Stream_Cursor_Value_Input = {
+  category?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  location_index?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Layout_Category_Sum_Fields = {
+  __typename?: "layout_category_sum_fields";
+  location_index?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** order by sum() on columns of table "layout_category" */
+export type Layout_Category_Sum_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "layout_category" */
+export enum Layout_Category_Update_Column {
+  /** column name */
+  Category = "category",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  LayoutId = "layout_id",
+  /** column name */
+  LocationIndex = "location_index",
+}
+
+export type Layout_Category_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Layout_Category_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Layout_Category_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Layout_Category_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Layout_Category_Var_Pop_Fields = {
+  __typename?: "layout_category_var_pop_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "layout_category" */
+export type Layout_Category_Var_Pop_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Layout_Category_Var_Samp_Fields = {
+  __typename?: "layout_category_var_samp_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "layout_category" */
+export type Layout_Category_Var_Samp_Order_By = {
+  location_index?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Layout_Category_Variance_Fields = {
+  __typename?: "layout_category_variance_fields";
+  location_index?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "layout_category" */
+export type Layout_Category_Variance_Order_By = {
+  location_index?: InputMaybe<Order_By>;
 };
 
 /** unique or primary key constraints on table "layout" */
@@ -6523,20 +6916,14 @@ export enum Layout_Constraint {
 
 /** input type for inserting data into table "layout" */
 export type Layout_Insert_Input = {
-  category?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_app_collections?: InputMaybe<Layout_App_Collection_Arr_Rel_Insert_Input>;
-  layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
-  layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Arr_Rel_Insert_Input>;
-  layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
-  layout_secondary_categories?: InputMaybe<Layout_Secondary_Category_Arr_Rel_Insert_Input>;
+  layout_categories?: InputMaybe<Layout_Category_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
 export type Layout_Max_Fields = {
   __typename?: "layout_max_fields";
-  category?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
 };
@@ -6544,7 +6931,6 @@ export type Layout_Max_Fields = {
 /** aggregate min on columns */
 export type Layout_Min_Fields = {
   __typename?: "layout_min_fields";
-  category?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
 };
@@ -6574,14 +6960,9 @@ export type Layout_On_Conflict = {
 
 /** Ordering options when selecting data from "layout". */
 export type Layout_Order_By = {
-  category?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Order_By>;
-  layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
-  layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Order_By>;
-  layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
-  layout_secondary_categories_aggregate?: InputMaybe<Layout_Secondary_Category_Aggregate_Order_By>;
+  layout_categories_aggregate?: InputMaybe<Layout_Category_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: layout */
@@ -6596,8 +6977,6 @@ export type Layout_Secondary_Category = {
   background_image_url?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
-  /** An object relationship */
-  layout: Layout;
   /** An array relationship */
   layout_app_collections: Array<Layout_App_Collection>;
   /** An aggregate relationship */
@@ -6614,7 +6993,9 @@ export type Layout_Secondary_Category = {
   layout_banners: Array<Layout_Banner>;
   /** An aggregate relationship */
   layout_banners_aggregate: Layout_Banner_Aggregate;
-  layout_id: Scalars["String"]["output"];
+  /** An object relationship */
+  layout_category: Layout_Category;
+  layout_category_id: Scalars["String"]["output"];
   location_index: Scalars["Int"]["output"];
   subtitle: Scalars["String"]["output"];
   title: Scalars["String"]["output"];
@@ -6774,7 +7155,6 @@ export type Layout_Secondary_Category_Bool_Exp = {
   background_image_url?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  layout?: InputMaybe<Layout_Bool_Exp>;
   layout_app_collections?: InputMaybe<Layout_App_Collection_Bool_Exp>;
   layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Bool_Exp>;
   layout_apps?: InputMaybe<Layout_App_Bool_Exp>;
@@ -6783,7 +7163,8 @@ export type Layout_Secondary_Category_Bool_Exp = {
   layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Bool_Exp>;
   layout_banners?: InputMaybe<Layout_Banner_Bool_Exp>;
   layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Bool_Exp>;
-  layout_id?: InputMaybe<String_Comparison_Exp>;
+  layout_category?: InputMaybe<Layout_Category_Bool_Exp>;
+  layout_category_id?: InputMaybe<String_Comparison_Exp>;
   location_index?: InputMaybe<Int_Comparison_Exp>;
   subtitle?: InputMaybe<String_Comparison_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
@@ -6806,12 +7187,12 @@ export type Layout_Secondary_Category_Insert_Input = {
   background_image_url?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout?: InputMaybe<Layout_Obj_Rel_Insert_Input>;
   layout_app_collections?: InputMaybe<Layout_App_Collection_Arr_Rel_Insert_Input>;
   layout_apps?: InputMaybe<Layout_App_Arr_Rel_Insert_Input>;
   layout_banner_collections?: InputMaybe<Layout_Banner_Collection_Arr_Rel_Insert_Input>;
   layout_banners?: InputMaybe<Layout_Banner_Arr_Rel_Insert_Input>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category?: InputMaybe<Layout_Category_Obj_Rel_Insert_Input>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   subtitle?: InputMaybe<Scalars["String"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -6824,7 +7205,7 @@ export type Layout_Secondary_Category_Max_Fields = {
   background_image_url?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   subtitle?: Maybe<Scalars["String"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -6836,7 +7217,7 @@ export type Layout_Secondary_Category_Max_Order_By = {
   background_image_url?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   subtitle?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -6849,7 +7230,7 @@ export type Layout_Secondary_Category_Min_Fields = {
   background_image_url?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  layout_id?: Maybe<Scalars["String"]["output"]>;
+  layout_category_id?: Maybe<Scalars["String"]["output"]>;
   location_index?: Maybe<Scalars["Int"]["output"]>;
   subtitle?: Maybe<Scalars["String"]["output"]>;
   title?: Maybe<Scalars["String"]["output"]>;
@@ -6861,7 +7242,7 @@ export type Layout_Secondary_Category_Min_Order_By = {
   background_image_url?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   subtitle?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -6896,12 +7277,12 @@ export type Layout_Secondary_Category_Order_By = {
   background_image_url?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  layout?: InputMaybe<Layout_Order_By>;
   layout_app_collections_aggregate?: InputMaybe<Layout_App_Collection_Aggregate_Order_By>;
   layout_apps_aggregate?: InputMaybe<Layout_App_Aggregate_Order_By>;
   layout_banner_collections_aggregate?: InputMaybe<Layout_Banner_Collection_Aggregate_Order_By>;
   layout_banners_aggregate?: InputMaybe<Layout_Banner_Aggregate_Order_By>;
-  layout_id?: InputMaybe<Order_By>;
+  layout_category?: InputMaybe<Layout_Category_Order_By>;
+  layout_category_id?: InputMaybe<Order_By>;
   location_index?: InputMaybe<Order_By>;
   subtitle?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
@@ -6923,7 +7304,7 @@ export enum Layout_Secondary_Category_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LocationIndex = "location_index",
   /** column name */
@@ -6938,7 +7319,7 @@ export type Layout_Secondary_Category_Set_Input = {
   background_image_url?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   subtitle?: InputMaybe<Scalars["String"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -6991,7 +7372,7 @@ export type Layout_Secondary_Category_Stream_Cursor_Value_Input = {
   background_image_url?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  layout_id?: InputMaybe<Scalars["String"]["input"]>;
+  layout_category_id?: InputMaybe<Scalars["String"]["input"]>;
   location_index?: InputMaybe<Scalars["Int"]["input"]>;
   subtitle?: InputMaybe<Scalars["String"]["input"]>;
   title?: InputMaybe<Scalars["String"]["input"]>;
@@ -7019,7 +7400,7 @@ export enum Layout_Secondary_Category_Update_Column {
   /** column name */
   Id = "id",
   /** column name */
-  LayoutId = "layout_id",
+  LayoutCategoryId = "layout_category_id",
   /** column name */
   LocationIndex = "location_index",
   /** column name */
@@ -7073,8 +7454,6 @@ export type Layout_Secondary_Category_Variance_Order_By = {
 /** select columns of table "layout" */
 export enum Layout_Select_Column {
   /** column name */
-  Category = "category",
-  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Id = "id",
@@ -7082,7 +7461,6 @@ export enum Layout_Select_Column {
 
 /** input type for updating data in table "layout" */
 export type Layout_Set_Input = {
-  category?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -7097,15 +7475,12 @@ export type Layout_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Layout_Stream_Cursor_Value_Input = {
-  category?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "layout" */
 export enum Layout_Update_Column {
-  /** column name */
-  Category = "category",
   /** column name */
   CreatedAt = "created_at",
   /** column name */
@@ -7721,6 +8096,10 @@ export type Mutation_Root = {
   delete_layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
   /** delete single row from the table: "layout" */
   delete_layout_by_pk?: Maybe<Layout>;
+  /** delete data from the table: "layout_category" */
+  delete_layout_category?: Maybe<Layout_Category_Mutation_Response>;
+  /** delete single row from the table: "layout_category" */
+  delete_layout_category_by_pk?: Maybe<Layout_Category>;
   /** delete data from the table: "layout_secondary_category" */
   delete_layout_secondary_category?: Maybe<Layout_Secondary_Category_Mutation_Response>;
   /** delete single row from the table: "layout_secondary_category" */
@@ -7832,6 +8211,10 @@ export type Mutation_Root = {
   insert_layout_banner_collection_one?: Maybe<Layout_Banner_Collection>;
   /** insert a single row into the table: "layout_banner" */
   insert_layout_banner_one?: Maybe<Layout_Banner>;
+  /** insert data into the table: "layout_category" */
+  insert_layout_category?: Maybe<Layout_Category_Mutation_Response>;
+  /** insert a single row into the table: "layout_category" */
+  insert_layout_category_one?: Maybe<Layout_Category>;
   /** insert a single row into the table: "layout" */
   insert_layout_one?: Maybe<Layout>;
   /** insert data into the table: "layout_secondary_category" */
@@ -8001,6 +8384,14 @@ export type Mutation_Root = {
   >;
   /** update single row of the table: "layout" */
   update_layout_by_pk?: Maybe<Layout>;
+  /** update data of the table: "layout_category" */
+  update_layout_category?: Maybe<Layout_Category_Mutation_Response>;
+  /** update single row of the table: "layout_category" */
+  update_layout_category_by_pk?: Maybe<Layout_Category>;
+  /** update multiples rows of table: "layout_category" */
+  update_layout_category_many?: Maybe<
+    Array<Maybe<Layout_Category_Mutation_Response>>
+  >;
   /** update multiples rows of table: "layout" */
   update_layout_many?: Maybe<Array<Maybe<Layout_Mutation_Response>>>;
   /** update data of the table: "layout_secondary_category" */
@@ -8264,6 +8655,16 @@ export type Mutation_RootDelete_Layout_Banner_Collection_By_PkArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Layout_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_CategoryArgs = {
+  where: Layout_Category_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Layout_Category_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -8580,6 +8981,18 @@ export type Mutation_RootInsert_Layout_Banner_Collection_OneArgs = {
 export type Mutation_RootInsert_Layout_Banner_OneArgs = {
   object: Layout_Banner_Insert_Input;
   on_conflict?: InputMaybe<Layout_Banner_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_CategoryArgs = {
+  objects: Array<Layout_Category_Insert_Input>;
+  on_conflict?: InputMaybe<Layout_Category_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Layout_Category_OneArgs = {
+  object: Layout_Category_Insert_Input;
+  on_conflict?: InputMaybe<Layout_Category_On_Conflict>;
 };
 
 /** mutation root */
@@ -9063,6 +9476,25 @@ export type Mutation_RootUpdate_Layout_Banner_ManyArgs = {
 export type Mutation_RootUpdate_Layout_By_PkArgs = {
   _set?: InputMaybe<Layout_Set_Input>;
   pk_columns: Layout_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_CategoryArgs = {
+  _inc?: InputMaybe<Layout_Category_Inc_Input>;
+  _set?: InputMaybe<Layout_Category_Set_Input>;
+  where: Layout_Category_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Category_By_PkArgs = {
+  _inc?: InputMaybe<Layout_Category_Inc_Input>;
+  _set?: InputMaybe<Layout_Category_Set_Input>;
+  pk_columns: Layout_Category_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Layout_Category_ManyArgs = {
+  updates: Array<Layout_Category_Updates>;
 };
 
 /** mutation root */
@@ -10211,6 +10643,12 @@ export type Query_Root = {
   layout_banner_collection_by_pk?: Maybe<Layout_Banner_Collection>;
   /** fetch data from the table: "layout" using primary key columns */
   layout_by_pk?: Maybe<Layout>;
+  /** fetch data from the table: "layout_category" */
+  layout_category: Array<Layout_Category>;
+  /** fetch aggregated fields from the table: "layout_category" */
+  layout_category_aggregate: Layout_Category_Aggregate;
+  /** fetch data from the table: "layout_category" using primary key columns */
+  layout_category_by_pk?: Maybe<Layout_Category>;
   /** fetch data from the table: "layout_secondary_category" */
   layout_secondary_category: Array<Layout_Secondary_Category>;
   /** fetch aggregated fields from the table: "layout_secondary_category" */
@@ -10684,6 +11122,26 @@ export type Query_RootLayout_Banner_Collection_By_PkArgs = {
 };
 
 export type Query_RootLayout_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Query_RootLayout_CategoryArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
+};
+
+export type Query_RootLayout_Category_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
+};
+
+export type Query_RootLayout_Category_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
@@ -11451,6 +11909,14 @@ export type Subscription_Root = {
   layout_banner_stream: Array<Layout_Banner>;
   /** fetch data from the table: "layout" using primary key columns */
   layout_by_pk?: Maybe<Layout>;
+  /** fetch data from the table: "layout_category" */
+  layout_category: Array<Layout_Category>;
+  /** fetch aggregated fields from the table: "layout_category" */
+  layout_category_aggregate: Layout_Category_Aggregate;
+  /** fetch data from the table: "layout_category" using primary key columns */
+  layout_category_by_pk?: Maybe<Layout_Category>;
+  /** fetch data from the table in a streaming manner: "layout_category" */
+  layout_category_stream: Array<Layout_Category>;
   /** fetch data from the table: "layout_secondary_category" */
   layout_secondary_category: Array<Layout_Secondary_Category>;
   /** fetch aggregated fields from the table: "layout_secondary_category" */
@@ -12031,6 +12497,32 @@ export type Subscription_RootLayout_Banner_StreamArgs = {
 
 export type Subscription_RootLayout_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_CategoryArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Category_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Layout_Category_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Layout_Category_Order_By>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
+};
+
+export type Subscription_RootLayout_Category_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootLayout_Category_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Layout_Category_Stream_Cursor_Input>>;
+  where?: InputMaybe<Layout_Category_Bool_Exp>;
 };
 
 export type Subscription_RootLayout_Secondary_CategoryArgs = {

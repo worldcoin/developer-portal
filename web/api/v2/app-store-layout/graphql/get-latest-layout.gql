@@ -1,4 +1,5 @@
-fragment GetLayoutApp on layout_app {
+fragment GetLatestLayoutApp on layout_app {
+  location_index
   app {
     app_metadata {
       name
@@ -37,40 +38,46 @@ fragment GetLayoutApp on layout_app {
   }
 }
 
-fragment GetLayoutBanner on layout_banner {
+fragment GetLatestLayoutBanner on layout_banner {
   location_index
   title
   title_color_hex
   subtitle
   subtitle_color_hex
   highlight_color_hex
+  background_color_hex
+  background_image_url
 }
 
-query GetLayout($layout_id: String!, $locale: String!) {
-  layout_by_pk(id: $layout_id) {
+query GetLatestLayout($locale: String!) {
+  layout(order_by: { created_at: desc }, limit: 1) {
     id
     layout_categories {
+      location_index
       category
-
       layout_apps {
-        ...GetLayoutApp
+        location_index
+        ...GetLatestLayoutApp
       }
       layout_banners {
-        ...GetLayoutBanner
+        location_index
+        ...GetLatestLayoutBanner
       }
       layout_app_collections {
         location_index
         indexed
         title
         layout_apps {
-          ...GetLayoutApp
+          ...GetLatestLayoutApp
         }
       }
       layout_banner_collections {
         location_index
         title
         layout_banners {
-          ...GetLayoutBanner
+          background_color_hex
+          background_image_url
+          ...GetLatestLayoutBanner
         }
       }
       layout_secondary_categories {
@@ -80,24 +87,28 @@ query GetLayout($layout_id: String!, $locale: String!) {
         background_color_hex
         background_image_url
         layout_apps {
-          ...GetLayoutApp
+          location_index
+          ...GetLatestLayoutApp
         }
         layout_banners {
-          ...GetLayoutBanner
+          location_index
+          ...GetLatestLayoutBanner
         }
         layout_app_collections {
           location_index
           indexed
           title
           layout_apps {
-            ...GetLayoutApp
+            ...GetLatestLayoutApp
           }
         }
         layout_banner_collections {
           location_index
           title
           layout_banners {
-            ...GetLayoutBanner
+            background_color_hex
+            background_image_url
+            ...GetLatestLayoutBanner
           }
         }
       }

@@ -5,12 +5,12 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
-  - name: layout
-    using:
-      foreign_key_constraint_on: layout_id
   - name: layout_app_collection
     using:
       foreign_key_constraint_on: layout_app_collection_id
+  - name: layout_category
+    using:
+      foreign_key_constraint_on: layout_category_id
   - name: layout_secondary_category
     using:
       foreign_key_constraint_on: layout_secondary_category_id
@@ -21,7 +21,7 @@ insert_permissions:
       columns:
         - app_id
         - layout_app_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - location_index
     comment: ""
@@ -31,7 +31,7 @@ insert_permissions:
       columns:
         - app_id
         - layout_app_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - location_index
     comment: ""
@@ -43,7 +43,7 @@ select_permissions:
         - location_index
         - app_id
         - layout_app_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - created_at
       filter: {}
@@ -55,7 +55,7 @@ select_permissions:
         - location_index
         - app_id
         - layout_app_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - created_at
       filter: {}

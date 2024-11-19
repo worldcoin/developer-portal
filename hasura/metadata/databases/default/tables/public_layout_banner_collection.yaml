@@ -2,9 +2,9 @@ table:
   name: layout_banner_collection
   schema: public
 object_relationships:
-  - name: layout
+  - name: layout_category
     using:
-      foreign_key_constraint_on: layout_id
+      foreign_key_constraint_on: layout_category_id
   - name: layout_secondary_category
     using:
       foreign_key_constraint_on: layout_secondary_category_id
@@ -21,7 +21,7 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - location_index
         - title
@@ -30,7 +30,7 @@ select_permissions:
   - role: reviewer
     permission:
       columns:
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - location_index
         - title

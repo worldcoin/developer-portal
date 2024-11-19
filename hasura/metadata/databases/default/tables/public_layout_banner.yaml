@@ -2,12 +2,12 @@ table:
   name: layout_banner
   schema: public
 object_relationships:
-  - name: layout
-    using:
-      foreign_key_constraint_on: layout_id
   - name: layout_banner_collection
     using:
       foreign_key_constraint_on: layout_banner_collection_id
+  - name: layout_category
+    using:
+      foreign_key_constraint_on: layout_category_id
   - name: layout_secondary_category
     using:
       foreign_key_constraint_on: layout_secondary_category_id
@@ -20,7 +20,7 @@ insert_permissions:
         - background_image_url
         - highlight_color_hex
         - layout_banner_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - location_index
         - subtitle
@@ -38,7 +38,7 @@ select_permissions:
         - background_image_url
         - highlight_color_hex
         - layout_banner_collection_id
-        - layout_id
+        - layout_category_id
         - layout_secondary_category_id
         - subtitle
         - subtitle_color_hex
