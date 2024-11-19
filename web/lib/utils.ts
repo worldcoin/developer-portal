@@ -177,15 +177,18 @@ export const createTransactionHashUrl = (
   return "Invalid network";
 };
 
-export const tryParseJSON = (jsonString: string) => {
+export const tryParseJSON = <T extends {}>(
+  input: string | null | undefined,
+): T | null => {
+  if (input == null) return null;
   try {
-    const o = JSON.parse(jsonString);
+    const o = JSON.parse(input);
 
     if (o && typeof o === "object") {
       return o;
     }
   } catch (e) {
-    console.warn("Error parsing JSON", { error: e, jsonString });
+    console.warn("Error parsing JSON", { error: e, input });
     return null;
   }
 
