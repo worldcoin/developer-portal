@@ -193,7 +193,9 @@ export const POST = async (
 
 export const GET = async (
   req: NextRequest,
-): Promise<NextResponse<GetLayoutQuery | { error: string }>> => {
+): Promise<
+  NextResponse<GetLayoutQuery["layout_by_pk"] | { error: string }>
+> => {
   const layout_id = req.nextUrl.searchParams.get("layout_id");
   const headers = req.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
@@ -220,5 +222,9 @@ export const GET = async (
     });
   }
 
-  return NextResponse.json(layoutData);
+  const layout = {
+    ...layoutData.layout_by_pk!,
+  } as const;
+
+  return NextResponse.json(layout);
 };
