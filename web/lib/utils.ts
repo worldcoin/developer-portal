@@ -180,7 +180,7 @@ export const createTransactionHashUrl = (
 export const tryParseJSON = <T extends {}>(
   input: string | null | undefined,
 ): T | null => {
-  if (input == null) return null;
+  if (!input) return null;
   try {
     const o = JSON.parse(input);
 
@@ -188,7 +188,7 @@ export const tryParseJSON = <T extends {}>(
       return o;
     }
   } catch (e) {
-    console.warn("Error parsing JSON", { error: e, input });
+    console.warn("Error parsing JSON", { error: JSON.stringify(e), input });
     return null;
   }
 
