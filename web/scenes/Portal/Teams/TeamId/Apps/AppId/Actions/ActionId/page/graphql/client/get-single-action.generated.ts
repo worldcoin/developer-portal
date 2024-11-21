@@ -28,7 +28,7 @@ export const GetSingleActionAndNullifiersDocument = gql`
   query GetSingleActionAndNullifiers($action_id: String!) {
     action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
       id
-      nullifiers {
+      nullifiers(limit: 100) {
         id
         updated_at
         nullifier_hash
