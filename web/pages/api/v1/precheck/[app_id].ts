@@ -206,7 +206,7 @@ export default async function handlePrecheck(
       res,
       400,
       "required",
-      "This attribute is required for new actions.",
+      "No action found for this app.",
       "action",
       req,
     );
