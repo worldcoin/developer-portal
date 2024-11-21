@@ -5,7 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetLatestLayoutAppFragment = {
-  __typename?: "layout_app";
+  __typename: "layout_app";
   location_index: number;
   app: {
     __typename?: "app";
@@ -49,7 +49,7 @@ export type GetLatestLayoutAppFragment = {
 };
 
 export type GetLatestLayoutBannerFragment = {
-  __typename?: "layout_banner";
+  __typename: "layout_banner";
   location_index: number;
   title: string;
   title_color_hex: string;
@@ -70,11 +70,11 @@ export type GetLatestLayoutQuery = {
     __typename?: "layout";
     id: string;
     layout_categories: Array<{
-      __typename?: "layout_category";
+      __typename: "layout_category";
       location_index: number;
       category: string;
       layout_apps: Array<{
-        __typename?: "layout_app";
+        __typename: "layout_app";
         location_index: number;
         app: {
           __typename?: "app";
@@ -117,7 +117,7 @@ export type GetLatestLayoutQuery = {
         };
       }>;
       layout_banners: Array<{
-        __typename?: "layout_banner";
+        __typename: "layout_banner";
         location_index: number;
         title: string;
         title_color_hex: string;
@@ -128,12 +128,12 @@ export type GetLatestLayoutQuery = {
         background_image_url?: string | null;
       }>;
       layout_app_collections: Array<{
-        __typename?: "layout_app_collection";
+        __typename: "layout_app_collection";
         location_index: number;
         indexed: boolean;
         title: string;
         layout_apps: Array<{
-          __typename?: "layout_app";
+          __typename: "layout_app";
           location_index: number;
           app: {
             __typename?: "app";
@@ -177,30 +177,30 @@ export type GetLatestLayoutQuery = {
         }>;
       }>;
       layout_banner_collections: Array<{
-        __typename?: "layout_banner_collection";
+        __typename: "layout_banner_collection";
         location_index: number;
         title: string;
         layout_banners: Array<{
-          __typename?: "layout_banner";
-          background_color_hex?: string | null;
-          background_image_url?: string | null;
+          __typename: "layout_banner";
           location_index: number;
           title: string;
           title_color_hex: string;
           subtitle: string;
           subtitle_color_hex: string;
           highlight_color_hex: string;
+          background_color_hex?: string | null;
+          background_image_url?: string | null;
         }>;
       }>;
       layout_secondary_categories: Array<{
-        __typename?: "layout_secondary_category";
+        __typename: "layout_secondary_category";
         location_index: number;
         title: string;
         subtitle: string;
         background_color_hex?: string | null;
         background_image_url?: string | null;
         layout_apps: Array<{
-          __typename?: "layout_app";
+          __typename: "layout_app";
           location_index: number;
           app: {
             __typename?: "app";
@@ -243,7 +243,7 @@ export type GetLatestLayoutQuery = {
           };
         }>;
         layout_banners: Array<{
-          __typename?: "layout_banner";
+          __typename: "layout_banner";
           location_index: number;
           title: string;
           title_color_hex: string;
@@ -254,12 +254,12 @@ export type GetLatestLayoutQuery = {
           background_image_url?: string | null;
         }>;
         layout_app_collections: Array<{
-          __typename?: "layout_app_collection";
+          __typename: "layout_app_collection";
           location_index: number;
           indexed: boolean;
           title: string;
           layout_apps: Array<{
-            __typename?: "layout_app";
+            __typename: "layout_app";
             location_index: number;
             app: {
               __typename?: "app";
@@ -303,19 +303,19 @@ export type GetLatestLayoutQuery = {
           }>;
         }>;
         layout_banner_collections: Array<{
-          __typename?: "layout_banner_collection";
+          __typename: "layout_banner_collection";
           location_index: number;
           title: string;
           layout_banners: Array<{
-            __typename?: "layout_banner";
-            background_color_hex?: string | null;
-            background_image_url?: string | null;
+            __typename: "layout_banner";
             location_index: number;
             title: string;
             title_color_hex: string;
             subtitle: string;
             subtitle_color_hex: string;
             highlight_color_hex: string;
+            background_color_hex?: string | null;
+            background_image_url?: string | null;
           }>;
         }>;
       }>;
@@ -325,6 +325,7 @@ export type GetLatestLayoutQuery = {
 
 export const GetLatestLayoutAppFragmentDoc = gql`
   fragment GetLatestLayoutApp on layout_app {
+    __typename
     location_index
     app {
       app_metadata {
@@ -366,6 +367,7 @@ export const GetLatestLayoutAppFragmentDoc = gql`
 `;
 export const GetLatestLayoutBannerFragmentDoc = gql`
   fragment GetLatestLayoutBanner on layout_banner {
+    __typename
     location_index
     title
     title_color_hex
@@ -381,6 +383,7 @@ export const GetLatestLayoutDocument = gql`
     layout(order_by: { created_at: desc }, limit: 1) {
       id
       layout_categories {
+        __typename
         location_index
         category
         layout_apps {
@@ -388,10 +391,11 @@ export const GetLatestLayoutDocument = gql`
           ...GetLatestLayoutApp
         }
         layout_banners {
-          location_index
+          __typename
           ...GetLatestLayoutBanner
         }
         layout_app_collections {
+          __typename
           location_index
           indexed
           title
@@ -400,29 +404,28 @@ export const GetLatestLayoutDocument = gql`
           }
         }
         layout_banner_collections {
+          __typename
           location_index
           title
           layout_banners {
-            background_color_hex
-            background_image_url
             ...GetLatestLayoutBanner
           }
         }
         layout_secondary_categories {
+          __typename
           location_index
           title
           subtitle
           background_color_hex
           background_image_url
           layout_apps {
-            location_index
             ...GetLatestLayoutApp
           }
           layout_banners {
-            location_index
             ...GetLatestLayoutBanner
           }
           layout_app_collections {
+            __typename
             location_index
             indexed
             title
@@ -431,11 +434,10 @@ export const GetLatestLayoutDocument = gql`
             }
           }
           layout_banner_collections {
+            __typename
             location_index
             title
             layout_banners {
-              background_color_hex
-              background_image_url
               ...GetLatestLayoutBanner
             }
           }

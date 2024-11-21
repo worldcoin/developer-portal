@@ -36,16 +36,12 @@ const resolveLayoutElements = (
   elements.forEach((element, topLevelElementIndex) => {
     switch (element.elementType) {
       case "app":
-        console.log("App Element");
-
         apps.push({
           app_id: element.elements.id,
           location_index: topLevelElementIndex,
         });
         break;
       case "banner":
-        console.log("Banner Element");
-
         banners.push({
           location_index: topLevelElementIndex,
           title: element.elements.title,
@@ -58,8 +54,6 @@ const resolveLayoutElements = (
         });
         break;
       case "app-collection":
-        console.log("App Collection Element");
-
         appCollections.push({
           location_index: topLevelElementIndex,
           title: element.title,
@@ -73,8 +67,6 @@ const resolveLayoutElements = (
         });
         break;
       case "banner-collection":
-        console.log("Banner Collection Element");
-
         bannerCollections.push({
           location_index: topLevelElementIndex,
           title: element.title,
@@ -93,8 +85,6 @@ const resolveLayoutElements = (
         });
         break;
       case "secondary-category":
-        console.log("Secondary Category Element");
-
         const resolvedLayoutElements = resolveLayoutElements(element.elements);
 
         secondaryCategories.push({
@@ -116,7 +106,7 @@ const resolveLayoutElements = (
         });
         break;
       default:
-        console.log("Unknown Element");
+        console.log("Unknown Element", element);
         break;
     }
   });
@@ -131,6 +121,7 @@ const resolveLayoutElements = (
 
 const resolveLayout = (appStoreLayout: AppStoreLayout): Layout_Insert_Input => {
   let mappedLayout = [] as {
+    location_index: number;
     category: string;
     layout_apps: { data: Layout_App_Insert_Input[] };
     layout_banners: { data: Layout_Banner_Insert_Input[] };
@@ -143,7 +134,7 @@ const resolveLayout = (appStoreLayout: AppStoreLayout): Layout_Insert_Input => {
     };
   }[];
 
-  appStoreLayout.forEach((categoryLayout) => {
+  appStoreLayout.forEach((categoryLayout, index) => {
     const {
       layout_apps,
       layout_banners,
@@ -153,6 +144,7 @@ const resolveLayout = (appStoreLayout: AppStoreLayout): Layout_Insert_Input => {
     } = resolveLayoutElements(categoryLayout.elements);
 
     mappedLayout.push({
+      location_index: index,
       category: categoryLayout.category,
       layout_apps: { data: layout_apps },
       layout_banners: { data: layout_banners },
@@ -171,7 +163,7 @@ export const POST = async (
   try {
     body = await req.json();
   } catch (error) {
-    console.log("app-store-layout - error parsing req body", {
+    console.error("app-store-layout POST - error parsing req body", {
       error: JSON.stringify(error),
       body,
     });
@@ -189,7 +181,7 @@ export const POST = async (
   });
 
   if (!isValid || !parsedBody) {
-    console.log("app-store-layout - invalid request body", { body });
+    console.error("app-store-layout POST - invalid request body", { body });
     return NextResponse.json(
       {
         error: "Invalid request body.",
@@ -208,11 +200,17 @@ export const POST = async (
       layout: resolvedLayout,
     });
   } catch (error) {
-    console.error("app-store-layout - error inserting layout", {
+    console.error("app-store-layout POST - error inserting layout", {
       error: JSON.stringify(error),
       parsedBody,
       resolvedLayout,
     });
+    return NextResponse.json(
+      {
+        error: "Unknown error inserting layout.",
+      },
+      { status: 500 },
+    );
   }
 
   if (
@@ -221,7 +219,7 @@ export const POST = async (
   ) {
     return NextResponse.json(
       {
-        error: "app-store-layout - unknown error inserting layout.",
+        error: "Unknown error inserting layout.",
       },
       { status: 500 },
     );
@@ -231,6 +229,11 @@ export const POST = async (
     layout_id: insertLayoutData.insert_layout_one.id,
   });
 };
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
 const sortByLocationIndex = <
   A extends { location_index: number },
   B extends { location_index: number },
@@ -246,16 +249,13 @@ const mapCategoryElementToResponse = (
     | GetLatestLayoutQuery["layout"][number]["layout_categories"][number]["layout_app_collections"][number]
     | GetLatestLayoutQuery["layout"][number]["layout_categories"][number]["layout_banner_collections"][number]
     | GetLatestLayoutQuery["layout"][number]["layout_categories"][number]["layout_secondary_categories"][number],
-): Pick<AppStoreLayout[number], "elements">["elements"][number] => {
+): Pick<AppStoreLayout[number], "elements">["elements"][number] | undefined => {
   switch (element.__typename) {
     case "layout_app":
       return {
         elementType: "app",
-        elements:
-          // TODO typing
-          element.app.app_metadata[0] as any,
+        elements: element.app.app_metadata[0],
       };
-
     case "layout_banner":
       return {
         elementType: "banner",
@@ -269,7 +269,6 @@ const mapCategoryElementToResponse = (
           backgroundImageUrl: element?.background_image_url ?? undefined,
         } as AppStoreLayoutBannerElement["elements"],
       };
-
     case "layout_app_collection":
       return {
         elementType: "app-collection",
@@ -279,7 +278,6 @@ const mapCategoryElementToResponse = (
           .toSorted(sortByLocationIndex)
           .map((app) => app.app.app_metadata[0] as any),
       };
-
     case "layout_banner_collection":
       return {
         elementType: "banner-collection",
@@ -297,51 +295,54 @@ const mapCategoryElementToResponse = (
             }) as AppStoreLayoutBannerElement["elements"],
         ),
       };
-
     case "layout_secondary_category":
+      const secondaryCategoryElements = mapDbCategoryToResponse({
+        location_index: element.location_index,
+        layout_apps: element.layout_apps,
+        layout_banners: element.layout_banners,
+        layout_app_collections: element.layout_app_collections,
+        layout_banner_collections: element.layout_banner_collections,
+      } as Parameters<typeof mapDbCategoryToResponse>[0]);
+
       return {
         elementType: "secondary-category",
         title: element.title,
         subtitle: element.subtitle,
         backgroundColorHex: element?.background_color_hex ?? undefined,
         backgroundImageUrl: element?.background_image_url ?? undefined,
-        elements: mapCategoryElementToResponse({
-          location_index: element.location_index,
-          layout_apps: element.layout_apps,
-          layout_banners: element.layout_banners,
-          layout_app_collections: element.layout_app_collections,
-          layout_banner_collections: element.layout_banner_collections,
-        } as Parameters<typeof mapCategoryElementToResponse>[0])
-          .elements as AppStoreLayoutSecondaryCategoryElement["elements"],
+        elements:
+          secondaryCategoryElements.elements as AppStoreLayoutSecondaryCategoryElement["elements"],
       } as AppStoreLayoutSecondaryCategoryElement;
     default:
-      console.error("Unknown Element");
-      throw new Error("app-store-layout - unknown element");
+      console.error("Unknown Element", element);
+      return;
   }
 };
 
 const mapDbCategoryToResponse = (
-  category: GetLatestLayoutQuery["layout"][number]["layout_categories"][number],
+  category: Partial<
+    GetLatestLayoutQuery["layout"][number]["layout_categories"][number]
+  >,
 ): AppStoreLayout[number] => {
   let appStoreElements: AppStoreLayout[number]["elements"] = [];
 
   let topLevelSortedElements = [
-    ...category.layout_apps,
-    ...category.layout_banners,
-    ...category.layout_app_collections,
-    ...category.layout_banner_collections,
-    ...category.layout_secondary_categories,
-  ].sort(sortByLocationIndex);
+    category.layout_apps,
+    category.layout_banners,
+    category.layout_app_collections,
+    category.layout_banner_collections,
+    category.layout_secondary_categories,
+  ]
+    .flat()
+    .filter(isDefined)
+    .toSorted(sortByLocationIndex);
 
   topLevelSortedElements.forEach((element) => {
     const mappedElement = mapCategoryElementToResponse(element);
+    if (!mappedElement) return;
     appStoreElements.push(mappedElement);
-    console.log(
-      JSON.stringify(appStoreElements, null, 2),
-      JSON.stringify(mappedElement, null, 2),
-    );
   });
-  return { category: category.category, elements: appStoreElements };
+  return { category: category?.category || "", elements: appStoreElements };
 };
 
 export const GET = async (
@@ -357,10 +358,16 @@ export const GET = async (
       locale,
     });
   } catch (error) {
-    console.error("app-store-layout - error getting layout", {
+    console.error("app-store-layout GET - error getting layout", {
       error: JSON.stringify(error),
       locale,
     });
+    return NextResponse.json(
+      {
+        error: "Unknown error getting layout.",
+      },
+      { status: 500 },
+    );
   }
 
   const layout: AppStoreLayout = layoutData.layout[0].layout_categories.map(

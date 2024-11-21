@@ -1,4 +1,5 @@
 fragment GetLatestLayoutApp on layout_app {
+  __typename
   location_index
   app {
     app_metadata {
@@ -39,6 +40,7 @@ fragment GetLatestLayoutApp on layout_app {
 }
 
 fragment GetLatestLayoutBanner on layout_banner {
+  __typename
   location_index
   title
   title_color_hex
@@ -53,6 +55,7 @@ query GetLatestLayout($locale: String!) {
   layout(order_by: { created_at: desc }, limit: 1) {
     id
     layout_categories {
+      __typename
       location_index
       category
       layout_apps {
@@ -60,10 +63,11 @@ query GetLatestLayout($locale: String!) {
         ...GetLatestLayoutApp
       }
       layout_banners {
-        location_index
+        __typename
         ...GetLatestLayoutBanner
       }
       layout_app_collections {
+        __typename
         location_index
         indexed
         title
@@ -72,29 +76,28 @@ query GetLatestLayout($locale: String!) {
         }
       }
       layout_banner_collections {
+        __typename
         location_index
         title
         layout_banners {
-          background_color_hex
-          background_image_url
           ...GetLatestLayoutBanner
         }
       }
       layout_secondary_categories {
+        __typename
         location_index
         title
         subtitle
         background_color_hex
         background_image_url
         layout_apps {
-          location_index
           ...GetLatestLayoutApp
         }
         layout_banners {
-          location_index
           ...GetLatestLayoutBanner
         }
         layout_app_collections {
+          __typename
           location_index
           indexed
           title
@@ -103,11 +106,10 @@ query GetLatestLayout($locale: String!) {
           }
         }
         layout_banner_collections {
+          __typename
           location_index
           title
           layout_banners {
-            background_color_hex
-            background_image_url
             ...GetLatestLayoutBanner
           }
         }
