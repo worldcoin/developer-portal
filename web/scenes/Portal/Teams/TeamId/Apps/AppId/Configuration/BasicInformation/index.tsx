@@ -1,4 +1,5 @@
 "use client";
+import { useRefetchQueries } from "@/api/helpers/use-refetch-queries";
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
@@ -12,32 +13,17 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
+  FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
+import { BasicInformationFormValues, schema } from "./form-schema";
 import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 import { QrQuickAction } from "./QrQuickAction";
-
-const schema = yup.object({
-  name: yup
-    .string()
-    .required("App name is required")
-    .max(50, "App name cannot exceed 50 characters"),
-  integration_url: yup
-    .string()
-    .url("Must be a valid https:// URL")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Link must be a valid HTTPS URL",
-      excludeEmptyString: true,
-    })
-    .required("This field is required"),
-});
-
-export type BasicInformationFormValues = yup.Asserts<typeof schema>;
+import { validateAndSubmitServerSide } from "./server/validation";
 
 export const BasicInformation = (props: {
   appId: string;
@@ -46,6 +32,12 @@ export const BasicInformation = (props: {
   teamName: string;
 }) => {
   const { appId, teamId, app, teamName } = props;
+  const { refetch: refetchAppMetadata } =
+    useRefetchQueries<FetchAppMetadataQueryVariables>(
+      FetchAppMetadataDocument,
+      { id: appId },
+    );
+
   const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
 
   const [viewMode] = useAtom(viewModeAtom);
@@ -101,27 +93,9 @@ export const BasicInformation = (props: {
     async (data: BasicInformationFormValues) => {
       if (loading) return;
       try {
-        let result;
+        await validateAndSubmitServerSide(appMetaData?.id, data);
+        await refetchAppMetadata();
 
-        result = await updateAppInfoMutation({
-          variables: {
-            app_metadata_id: appMetaData?.id,
-            input: {
-              ...data,
-            },
-          },
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: { id: appId },
-            },
-          ],
-          awaitRefetchQueries: true,
-        });
-
-        if (result instanceof Error) {
-          throw result;
-        }
         toast.success("App information updated successfully");
       } catch (e) {
         console.error("Basic Info Failed to Update: ", e);
@@ -158,7 +132,7 @@ export const BasicInformation = (props: {
             placeholder="Enter your App Name"
             maxLength={50}
             addOnRight={
-              <RemainingCharacters text={watch("name")} maxChars={50} />
+              <RemainingCharacters text={watch("name")} maxChars={40} />
             }
           />
 
