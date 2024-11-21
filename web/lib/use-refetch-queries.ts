@@ -24,7 +24,7 @@ export const useRefetchQueries = <Variables extends Record<string, unknown>>(
     [queries, variables],
   );
 
-  // may mask successful refetches if one fails
+  // may mask successful refetches if any fail
   const refetch = useCallback(async () => {
     return await Promise.all(queriesToRefetch.map((q) => q.refetch()));
   }, [queriesToRefetch]);

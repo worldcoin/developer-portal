@@ -1,11 +1,11 @@
 "use client";
-import { useRefetchQueries } from "@/api/helpers/use-refetch-queries";
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -21,7 +21,6 @@ import {
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
 import { BasicInformationFormValues, schema } from "./form-schema";
-import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
 import { QrQuickAction } from "./QrQuickAction";
 import { validateAndSubmitServerSide } from "./server/validation";
 
@@ -37,8 +36,6 @@ export const BasicInformation = (props: {
       FetchAppMetadataDocument,
       { id: appId },
     );
-
-  const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
 
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -91,7 +88,6 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
-      if (loading) return;
       try {
         await validateAndSubmitServerSide(appMetaData?.id, data);
         await refetchAppMetadata();
@@ -102,7 +98,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData?.id, loading, updateAppInfoMutation],
+    [appId, appMetaData?.id],
   );
 
   return (
