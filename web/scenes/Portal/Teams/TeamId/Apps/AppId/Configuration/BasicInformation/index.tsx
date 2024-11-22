@@ -22,7 +22,7 @@ import { viewModeAtom } from "../layout/ImagesProvider";
 import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
 import { BasicInformationFormValues, schema } from "./form-schema";
 import { QrQuickAction } from "./QrQuickAction";
-import { validateAndSubmitServerSide } from "./server/validation";
+import { validateAndSubmitServerSide } from "./server/submit";
 
 export const BasicInformation = (props: {
   appId: string;
