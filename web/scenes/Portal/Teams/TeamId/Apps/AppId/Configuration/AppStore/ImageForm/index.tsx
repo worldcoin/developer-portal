@@ -14,12 +14,9 @@ import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../../../graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../../hook/use-image";
-import {
-  unverifiedImageAtom,
-  viewModeAtom,
-} from "../../../layout/ImagesProvider";
+} from "../../graphql/client/fetch-app-metadata.generated";
+import { ImageValidationError, useImage } from "../../hook/use-image";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";

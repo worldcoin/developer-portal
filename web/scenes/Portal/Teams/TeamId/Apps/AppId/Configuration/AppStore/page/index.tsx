@@ -9,7 +9,7 @@ import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadat
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppStoreForm } from "../AppStoreLocalised";
 import { FormSubmitStateProvider } from "../AppStoreLocalised/FormSubmitStateProvider";
-import { ImageForm } from "./ImageForm";
+import { ImageForm } from "../ImageForm";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
