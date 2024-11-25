@@ -3,10 +3,10 @@ import { useCallback, useMemo } from "react";
 
 export const useRefetchQueries = <Variables extends Record<string, unknown>>(
   queryDocument: DocumentNode,
-  variables?: Variables,
+  vars?: Variables,
 ) => {
   const client = useApolloClient();
-
+  const variables = vars || {};
   const { queries } = useMemo(
     () =>
       client.refetchQueries({

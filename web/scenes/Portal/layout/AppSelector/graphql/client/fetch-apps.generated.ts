@@ -13,6 +13,7 @@ export type FetchAppsQuery = {
   app: Array<{
     __typename?: "app";
     id: string;
+    created_at: string;
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
@@ -30,6 +31,7 @@ export const FetchAppsDocument = gql`
   query FetchApps($teamId: String!) {
     app(where: { team_id: { _eq: $teamId } }) {
       id
+      created_at
       app_metadata {
         id
         name

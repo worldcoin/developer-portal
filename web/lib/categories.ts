@@ -97,7 +97,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
   },
 };
 
-export const Categories: Array<{ name: string; id: string }> = [
+export const Categories = [
   { name: "Social", id: "social" },
   { name: "Gaming", id: "gaming" },
   { name: "Business", id: "business" },
@@ -107,8 +107,8 @@ export const Categories: Array<{ name: string; id: string }> = [
     id: "productivity",
   },
   { name: "Other", id: "other" },
-];
-
+] as const;
+export const CategoryNameIterable = Categories.map((category) => category.name);
 export const getLocalisedCategory = (name: string, locale: string) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
     console.warn("Missing locale, falling back to default: ", { locale });
