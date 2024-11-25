@@ -113,6 +113,9 @@
   },
   "license": "MIT",
   "name": "worldcoin-developer-portal",
+  "overrides": {
+    "cross-spawn": "^7.0.5"
+  },
   "private": true,
   "scripts": {
     "build": "next build",
@@ -124,8 +127,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "start": "next start",
-    "test:e2e": "playwright test",
     "test:api": "jest tests/api",
+    "test:e2e": "playwright test",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:unit": "jest tests/unit",
