@@ -37,7 +37,7 @@ jest.mock(
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
-            app_rating: 3.4,
+            app_rating: 0,
             verification_status: "unverified",
             app: {
               team: {
@@ -92,7 +92,7 @@ describe("/api/public/app/[app_id]", () => {
         support_link: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
-        app_rating: 3.4,
+        app_rating: 0,
         unique_users: 0,
         verification_status: "unverified",
         description: {
@@ -135,7 +135,7 @@ describe("/api/public/app/[app_id]", () => {
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
-            app_rating: 3.4,
+            app_rating: 0,
             verification_status: "verified",
             app: {
               team: {
@@ -182,7 +182,7 @@ describe("/api/public/app/[app_id]", () => {
         support_link: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
-        app_rating: 3.4,
+        app_rating: 0,
         unique_users: 0,
         verification_status: "verified",
         description: {
@@ -234,7 +234,7 @@ describe("/api/public/app/[app_id]", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
-            app_rating: 3.4,
+            app_rating: 0,
             app: {
               team: {
                 name: "Example Team",
@@ -270,7 +270,7 @@ describe("/api/public/app/[app_id]", () => {
         associated_domains: ["https://worldcoin.org"],
         contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
         permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
-        app_rating: 3.4,
+        app_rating: 0,
         unique_users: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],
         category: { id: "social", name: "Social" },
