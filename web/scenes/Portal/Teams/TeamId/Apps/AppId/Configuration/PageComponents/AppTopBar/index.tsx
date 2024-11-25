@@ -5,6 +5,15 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import {
+  appDescriptionConnectSchema,
+  appDescriptionHowItWorksSchema,
+  appDescriptionOverviewSchema,
+  appNameSchema,
+  appShortNameSchema,
+  appWorldAppDescriptionSchema,
+  httpsLinkSchema,
+} from "@/lib/schema";
 import { Auth0SessionUser } from "@/lib/types";
 import { tryParseJSON } from "@/lib/utils";
 import {
@@ -39,49 +48,17 @@ type AppTopBarProps = {
 };
 
 const submitSchema = yup.object().shape({
-  name: yup
-    .string()
-    .required("App name is required")
-    .max(50, "App name cannot exceed 50 characters"),
-  short_name: yup
-    .string()
-    .required("Short name is required")
-    .max(10, "Short name cannot exceed 10 characters"),
-  description_overview: yup
-    .string()
-    .max(1500, "Overview cannot exceed 1500 characters")
-    .required("Description - Overview is required"),
-  description_how_it_works: yup
-    .string()
-    .max(1500, "How it works cannot exceed 1500 characters")
-    .optional(),
-  description_connect: yup
-    .string()
-    .max(1500, "How to connect cannot exceed 1500 characters")
-    .optional(),
-  world_app_description: yup
-    .string()
-    .max(35, "World app description cannot exceed 35 characters")
-    .required("World app description is required"),
+  name: appNameSchema,
+  short_name: appShortNameSchema,
+  description_overview: appDescriptionOverviewSchema,
+  description_how_it_works: appDescriptionHowItWorksSchema,
+  description_connect: appDescriptionConnectSchema,
+  world_app_description: appWorldAppDescriptionSchema,
   logo_img_url: yup.string().required("A logo image is required"),
   hero_image_url: yup.string().optional(),
   showcase_img_urls: yup.array().nullable().optional(),
-  integration_url: yup
-    .string()
-    .url("App URL is not a valid url")
-    .matches(
-      /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-      "App URL is not a valid url",
-    )
-    .required("App URL is required"),
-  app_website_url: yup
-    .string()
-    .url("Official Website URL is not a valid url")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Official Website URL is not a valid url",
-      excludeEmptyString: true,
-    })
-    .optional(),
+  integration_url: httpsLinkSchema.required("App URL is required"),
+  app_website_url: httpsLinkSchema.optional(),
   category: yup.string().required("Category is required"),
   is_developer_allow_listing: yup.boolean(),
 });
