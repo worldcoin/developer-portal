@@ -129,6 +129,7 @@ const app_metadata = {
   associated_domains: ["https://worldcoin.org"],
   app_rating: 0,
   unique_users: 0,
+  impressions: 0,
   team_name: "test",
 };
 
@@ -224,6 +225,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       supported_languages: ["en"],
       app_rating: 0,
       unique_users: 0,
+      impressions: 0,
       team_name: "test",
     });
   });

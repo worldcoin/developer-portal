@@ -218,6 +218,7 @@ describe("/api/v2/public/apps", () => {
             showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
             team_name: "Example Team",
             unique_users: 0,
+            impressions: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
             app_mode: "mini-app",
             category: { id: "social", name: "Social" },
@@ -245,6 +246,7 @@ describe("/api/v2/public/apps", () => {
             category: { id: "social", name: "Social" },
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
+            impressions: 0,
             app_mode: "external",
             description: {
               overview: "fwefw",
@@ -279,6 +281,7 @@ describe("/api/v2/public/apps", () => {
             ],
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
+            impressions: 0,
             app_rating: 0,
             app_mode: "mini-app",
             associated_domains: ["https://worldcoin.org"],
@@ -386,6 +389,7 @@ describe("/api/v2/public/apps", () => {
               "0x00ca597c4f12f9f85a633bb04cfdc877af7c2d91a6c1c7fe45031b495a227a58",
             app_rating: 0,
             unique_users: 0,
+            impressions: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],
             category: { id: "social", name: "Social" },
             description: {
