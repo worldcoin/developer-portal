@@ -1,5 +1,4 @@
 "use server";
-import { createRedisClient } from "@/lib/redis";
 import { getAPIServiceGraphqlClient } from "../graphql";
 import { getSdk as getAppRatingSdk } from "./graphql/get-app-rating.generated";
 
@@ -8,11 +7,11 @@ export async function getAppRating(appId: string): Promise<number> {
   const redisKey = `app:${appId}:rating`;
   const lockKey = `lock:${appId}:rating`;
 
-  const redis = createRedisClient({
-    url: process.env.REDIS_URL!,
-    password: process.env.REDIS_PASSWORD!,
-    username: process.env.REDIS_USERNAME!,
-  });
+  const redis = global.RedisClient;
+
+  if (!redis) {
+    throw new Error("Redis client not found");
+  }
 
   try {
     // Try to get from cache first
