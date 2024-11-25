@@ -66,14 +66,17 @@ insert_permissions:
         - app_mode
         - app_website_url
         - associated_domains
+        - can_import_all_contacts
         - category
         - contracts
         - description
         - hero_image_url
         - id
         - integration_url
+        - is_allowed_unlimited_notifications
         - is_developer_allow_listing
         - logo_img_url
+        - max_notifications_per_day
         - name
         - permit2_tokens
         - short_name
@@ -86,8 +89,6 @@ insert_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - is_allowed_unlimited_notifications
-        - max_notifications_per_day
     comment: ""
   - role: user
     permission:
@@ -109,30 +110,21 @@ insert_permissions:
       columns:
         - app_id
         - app_mode
-        - app_website_url
         - associated_domains
         - can_import_all_contacts
         - category
         - contracts
-        - description
         - hero_image_url
         - integration_url
+        - is_allowed_unlimited_notifications
         - is_developer_allow_listing
         - logo_img_url
         - name
         - permit2_tokens
-        - short_name
         - showcase_img_urls
-        - source_code_url
-        - support_link
-        - supported_countries
         - supported_languages
         - verification_status
         - whitelisted_addresses
-        - world_app_button_text
-        - world_app_description
-        - is_allowed_unlimited_notifications
-        - max_notifications_per_day
 select_permissions:
   - role: api_key
     permission:
