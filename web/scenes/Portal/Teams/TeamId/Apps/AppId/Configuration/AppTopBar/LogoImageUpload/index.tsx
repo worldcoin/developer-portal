@@ -14,12 +14,9 @@ import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../../hook/use-image";
-import {
-  unverifiedImageAtom,
-  viewModeAtom,
-} from "../../../layout/ImagesProvider";
+import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { ImageValidationError, useImage } from "../../hook/use-image";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {

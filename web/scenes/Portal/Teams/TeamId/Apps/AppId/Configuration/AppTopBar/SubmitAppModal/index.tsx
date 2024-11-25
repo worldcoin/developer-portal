@@ -7,6 +7,7 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import posthog from "posthog-js";
@@ -14,8 +15,8 @@ import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useSubmitAppMutation } from "./graphql/client/submit-app.generated";
+import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { validateAndSubmitAppForReviewFormServerSide } from "../server/submit";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
 const schema = yup.object().shape({
@@ -25,11 +26,11 @@ const schema = yup.object().shape({
 type SubmitAppModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  isDeveloperAllowListing: boolean;
-  appMetadataId: string;
   teamId: string;
   appId: string;
+  appMetadataId: string;
   canSubmitAppStore: boolean;
+  isDeveloperAllowListing: boolean;
 };
 
 export type SubmitAppFormValues = yup.Asserts<typeof schema>;
@@ -38,15 +39,21 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const {
     open,
     setOpen,
-    isDeveloperAllowListing,
-    appMetadataId,
     teamId,
     appId,
     canSubmitAppStore,
+    isDeveloperAllowListing,
+    appMetadataId,
   } = props;
 
-  const [submitAppMutation, { loading: submittingApp }] =
-    useSubmitAppMutation();
+  const { refetch: refetchAppMetadata } = useRefetchQueries(
+    FetchAppMetadataDocument,
+    {
+      variables: {
+        id: appId,
+      },
+    },
+  );
 
   const [validateLocalisation, {}] = useValidateLocalisationMutation();
 
@@ -59,15 +66,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
 
   const submit = useCallback(
     async (values: SubmitAppFormValues) => {
-      if (submittingApp) return;
       try {
-        if (values.is_developer_allow_listing && !canSubmitAppStore) {
-          toast.error(
-            "Featured and showcase images are required for an app store listing",
-          );
-          return;
-        }
-
         const { data } = await validateLocalisation({
           variables: {
             app_metadata_id: appMetadataId,
@@ -81,17 +80,21 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           return;
         }
 
-        await submitAppMutation({
-          variables: {
-            app_metadata_id: appMetadataId,
-            is_developer_allow_listing:
-              values?.is_developer_allow_listing ?? false,
-            verification_status: "awaiting_review",
-          },
+        if (values.is_developer_allow_listing && !canSubmitAppStore) {
+          toast.error(
+            "Featured and showcase images are required for an app store listing",
+          );
+          return;
+        }
 
-          refetchQueries: [FetchAppMetadataDocument],
-          awaitRefetchQueries: true,
+        await validateAndSubmitAppForReviewFormServerSide({
+          input: {
+            app_metadata_id: appMetadataId,
+            team_id: teamId,
+            is_developer_allow_listing: values.is_developer_allow_listing,
+          },
         });
+        await refetchAppMetadata();
 
         posthog.capture("app_submitted_for_review", {
           app_id: appId,
@@ -103,11 +106,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         setOpen(false);
       } catch (error: any) {
         console.error("Submit App Modal Failed: ", error);
-        let errorMessage = "Failed to submit app for review";
-        if (error.message === "Missing localisation for language code") {
-          errorMessage = error.message;
-        }
-        toast.error(errorMessage);
+        toast.error("Failed to submit app for review");
       }
     },
     [
@@ -115,8 +114,6 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       appMetadataId,
       canSubmitAppStore,
       setOpen,
-      submitAppMutation,
-      submittingApp,
       teamId,
       validateLocalisation,
     ],

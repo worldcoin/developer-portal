@@ -4,8 +4,8 @@ import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useAtom } from "jotai";
 import { useMemo } from "react";
-import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../../layout/ImagesProvider";
+import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { viewModeAtom } from "../../layout/ImagesProvider";
 
 type VersionSwitcherProps = {
   app: FetchAppMetadataQuery["app"][0];

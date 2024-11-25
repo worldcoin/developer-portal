@@ -1,5 +1,6 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -9,11 +10,10 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo, useState } from "react";
-import { AppTopBar } from "../../PageComponents/AppTopBar";
+import { AppTopBar } from "../../AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type AppProfileDangerPageProps = {
   params: Record<string, string> | null | undefined;

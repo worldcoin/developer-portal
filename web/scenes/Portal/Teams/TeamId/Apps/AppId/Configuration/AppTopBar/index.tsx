@@ -5,15 +5,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import {
-  appDescriptionConnectSchema,
-  appDescriptionHowItWorksSchema,
-  appDescriptionOverviewSchema,
-  appNameSchema,
-  appShortNameSchema,
-  appWorldAppDescriptionSchema,
-  httpsLinkSchema,
-} from "@/lib/schema";
+
 import { Auth0SessionUser } from "@/lib/types";
 import { tryParseJSON } from "@/lib/utils";
 import {
@@ -29,16 +21,17 @@ import ErrorComponent from "next/error";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { formSubmitStateAtom } from "../../AppStore/AppStoreLocalised/FormSubmitStateProvider";
+import { formSubmitStateAtom } from "../AppStore/AppStoreLocalised/FormSubmitStateProvider";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../../graphql/client/fetch-app-metadata.generated";
-import { useFetchImagesLazyQuery } from "../../graphql/client/fetch-images.generated";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
+} from "../graphql/client/fetch-app-metadata.generated";
+import { useFetchImagesLazyQuery } from "../graphql/client/fetch-images.generated";
+import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
+import { submitAppForReviewSchema } from "./form-schema";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 
 type AppTopBarProps = {
@@ -46,22 +39,6 @@ type AppTopBarProps = {
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
 };
-
-const submitSchema = yup.object().shape({
-  name: appNameSchema,
-  short_name: appShortNameSchema,
-  description_overview: appDescriptionOverviewSchema,
-  description_how_it_works: appDescriptionHowItWorksSchema,
-  description_connect: appDescriptionConnectSchema,
-  world_app_description: appWorldAppDescriptionSchema,
-  logo_img_url: yup.string().required("A logo image is required"),
-  hero_image_url: yup.string().optional(),
-  showcase_img_urls: yup.array().nullable().optional(),
-  integration_url: httpsLinkSchema.required("App URL is required"),
-  app_website_url: httpsLinkSchema.optional(),
-  category: yup.string().required("Category is required"),
-  is_developer_allow_listing: yup.boolean(),
-});
 
 export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
@@ -87,7 +64,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
 
-  const appMetaData = useMemo(() => {
+  const appMetadata = useMemo(() => {
     if (viewMode === "verified") {
       return app.verified_app_metadata[0] ?? [];
     } else {
@@ -98,18 +75,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isSubmitFormValid = useMemo(() => {
     const description = tryParseJSON(
-      appMetaData?.description ? appMetaData.description : "{}",
+      appMetadata?.description ? appMetadata.description : "{}",
     );
     try {
-      submitSchema.validateSync({ ...appMetaData, ...description });
-      return true;
+      submitAppForReviewSchema.validateSync({ ...appMetadata, ...description });
     } catch (error) {
       return false;
     }
-  }, [appMetaData]);
+  }, [appMetadata]);
 
   const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
-    metadataId: appMetaData?.id,
+    metadataId: appMetadata?.id,
   });
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
@@ -130,21 +106,21 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
-      appMetaData?.hero_image_url !== "" &&
-        appMetaData?.showcase_img_urls &&
-        appMetaData?.showcase_img_urls?.length > 0,
+      appMetadata?.hero_image_url !== "" &&
+        appMetadata?.showcase_img_urls &&
+        appMetadata?.showcase_img_urls?.length > 0,
     );
-  }, [appMetaData?.hero_image_url, appMetaData?.showcase_img_urls]);
+  }, [appMetadata?.hero_image_url, appMetadata?.showcase_img_urls]);
 
   const submitForReview = useCallback(async () => {
-    if (appMetaData?.verification_status !== "unverified") return;
+    if (appMetadata?.verification_status !== "unverified") return;
     try {
       const description = tryParseJSON(
-        appMetaData?.description ? appMetaData.description : "{}",
+        appMetadata?.description ? appMetadata.description : "{}",
       );
 
-      await submitSchema.validate(
-        { ...appMetaData, ...description },
+      await submitAppForReviewSchema.validate(
+        { ...appMetadata, ...description },
         { abortEarly: false },
       );
 
@@ -158,7 +134,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
         toast.error("Error occurred while submitting app for review");
       }
     }
-  }, [appMetaData]);
+  }, [appMetadata]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -208,44 +184,44 @@ export const AppTopBar = (props: AppTopBarProps) => {
     setUnverifiedImages,
   ]);
 
-  if (!appMetaData) return <ErrorComponent statusCode={404}></ErrorComponent>;
+  if (!appMetadata) return <ErrorComponent statusCode={404}></ErrorComponent>;
   return (
     <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
       {["changes_requested", "verified"].includes(
-        appMetaData.verification_status,
+        appMetadata.verification_status,
       ) && (
         <ReviewStatus
           status={
-            appMetaData.verification_status as "changes_requested" | "verified"
+            appMetadata.verification_status as "changes_requested" | "verified"
           }
-          message={appMetaData.review_message}
+          message={appMetadata.review_message}
         />
       )}
       <SubmitAppModal
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
-        appMetadataId={appMetaData.id}
+        appMetadataId={appMetadata.id}
         canSubmitAppStore={hasRequiredImagesForAppStore}
         teamId={teamId}
         appId={appId}
-        isDeveloperAllowListing={appMetaData?.is_developer_allow_listing}
+        isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
       />
       <div className="grid items-center justify-items-center gap-y-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-8">
         <ReviewMessageDialog appId={appId} />
         <div className="flex w-full justify-end sm:hidden">
           <AppStatus
             className=""
-            status={appMetaData.verification_status as StatusVariant}
+            status={appMetadata.verification_status as StatusVariant}
           />
         </div>
         <LogoImageUpload
           appId={appId}
           teamId={teamId}
-          appMetadataId={appMetaData.id}
+          appMetadataId={appMetadata.id}
           editable={isEditable && isEnoughPermissions}
-          logoFile={appMetaData.logo_img_url}
+          logoFile={appMetadata.logo_img_url}
           isError={
-            formSubmitState.isSubmitted && appMetaData.logo_img_url === ""
+            formSubmitState.isSubmitted && appMetadata.logo_img_url === ""
           }
         />
         <div className="grid grid-cols-1 gap-y-1">
@@ -255,11 +231,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
               className=" max-w-[250px] truncate sm:max-w-[500px]"
               data-testid="title-app-name"
             >
-              {appMetaData.name}
+              {appMetadata.name}
             </Typography>
             <AppStatus
               className="hidden sm:flex"
-              status={appMetaData.verification_status as StatusVariant}
+              status={appMetadata.verification_status as StatusVariant}
             />
           </div>
           <Environment
@@ -278,7 +254,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 type="submit"
                 className={clsx("h-12 px-6 py-3", {
                   hidden:
-                    appMetaData.app_id?.includes("staging") &&
+                    appMetadata.app_id?.includes("staging") &&
                     process.env.NEXT_PUBLIC_APP_ENV === "production",
                 })}
                 disabled={viewMode === "verified" || !isSubmitFormValid}
