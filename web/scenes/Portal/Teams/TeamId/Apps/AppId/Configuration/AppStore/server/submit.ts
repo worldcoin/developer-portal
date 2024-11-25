@@ -26,61 +26,6 @@ import {
   updateLocalisationInitialSchema,
 } from "../form-schema";
 
-// export async function validateAndSubmitMainFormServerSide(
-// ) {
-//   try {
-//     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
-//       schema,
-//       value: input,
-//     });
-
-//     if (!isValid || !parsedInput) {
-//       throw new Error("Invalid input");
-//     }
-
-//     const client = await getAPIServiceGraphqlClient();
-//     console.log(app_metadata_id, input);
-//     await getUpdateAppSdk(client).UpdateAppInfo({
-//       app_metadata_id,
-//       input: parsedInput,
-//     });
-//   } catch (error) {
-//     console.error("Error updating app configuration basic form", {
-//       error: JSON.stringify(error),
-//       arguments: { app_metadata_id, input },
-//     });
-//     throw error;
-//   }
-// }
-// export async function validateAndSubmitServerSide(
-//   app_metadata_id: string,
-//   input: UpdateAppInfoMutationVariables["input"],
-// ) {
-//   try {
-//     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
-//       schema,
-//       value: input,
-//     });
-
-//     if (!isValid || !parsedInput) {
-//       throw new Error("Invalid input");
-//     }
-
-//     const client = await getAPIServiceGraphqlClient();
-//     console.log(app_metadata_id, input);
-//     await getUpdateAppSdk(client).UpdateAppInfo({
-//       app_metadata_id,
-//       input: parsedInput,
-//     });
-//   } catch (error) {
-//     console.error("Error updating app configuration basic form", {
-//       error: JSON.stringify(error),
-//       arguments: { app_metadata_id, input },
-//     });
-//     throw error;
-//   }
-// }
-
 export async function validateAndUpdateLocalisationServerSide(
   params: UpdateLocalisationInitialSchema,
 ) {
