@@ -43,7 +43,9 @@ export const getTransactionData = async (
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   } catch (error) {
-    logger.warn("Error fetching transaction data", { error });
+    logger.warn("Error fetching transaction data", {
+      error: JSON.stringify(error),
+    });
     return [];
   }
 };
