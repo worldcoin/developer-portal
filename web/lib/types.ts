@@ -232,6 +232,7 @@ export type AppStoreFormattedFields = Omit<
   | "is_reviewer_world_app_approved"
 > & {
   app_rating: number;
+  impressions: number;
   ratings_external_nullifier: string;
   show_in_app_store: boolean;
   unique_users: number;
@@ -259,6 +260,7 @@ export type AppStatsItem = {
   unique_users: number;
   last_updated_at: string;
   unique_users_last_7_days: number | null;
+  total_impressions: number;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;
