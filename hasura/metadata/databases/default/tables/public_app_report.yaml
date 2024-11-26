@@ -24,7 +24,9 @@ select_permissions:
         - created_at
         - details
         - id
+        - purpose
         - reporter_email
         - user_id
+        - violation
       filter: {}
     comment: ""
