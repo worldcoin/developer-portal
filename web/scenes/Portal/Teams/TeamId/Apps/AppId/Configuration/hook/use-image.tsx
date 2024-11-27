@@ -67,12 +67,12 @@ export const useImage = () => {
           reject(new ImageValidationError(`Image aspect ratio is incorrect`));
         }
 
-        if (file.size >= 250 * 1024) {
-          toast("Image size must be under 250KB", {
+        if (file.size >= 500 * 1024) {
+          toast("Image size must be under 500kB", {
             toastId: "ImageValidationError",
             type: "error",
           });
-          reject(new ImageValidationError(`Image size must be under 250KB`));
+          reject(new ImageValidationError(`Image size must be under 500kB`));
         }
         resolve();
       };
