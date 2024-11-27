@@ -1,3 +1,4 @@
+import IORedis from "ioredis-mock";
 import { setConfig } from "next/config";
 import "whatwg-fetch";
 
@@ -8,6 +9,12 @@ setConfig({
     ),
   ),
 });
+
+// Create the mock Redis client
+const redisMock = new IORedis();
+
+// Set the global mock
+global.RedisClient = redisMock;
 
 export const MOCKED_GENERAL_SECRET_KEY =
   "0xsuperSecretKey99994ab56046d4d97695b9999999";
