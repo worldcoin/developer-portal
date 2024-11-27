@@ -11,11 +11,6 @@ const publicAppURL =
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-
-  experimental: {
-    instrumentationHook: true,
-  },
-
   output: "standalone",
   images: {
     remotePatterns: [
