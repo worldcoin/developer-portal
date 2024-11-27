@@ -19,7 +19,6 @@ import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
 import { logger } from "@/legacy/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
-import { createRedisClient } from "@/lib/redis";
 import { captureEvent } from "@/services/posthogClient";
 import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
@@ -98,32 +97,20 @@ export default async function handleOIDCAuthorize(
     return errorNotAllowed(req.method, res, req);
   }
 
-  let redis;
+  const redis = global.RedisClient;
+
+  if (!redis) {
+    return errorResponse(
+      res,
+      500,
+      "internal_server_error",
+      "Redis client not found",
+      "server",
+      req,
+    );
+  }
 
   try {
-    // Initial validations...
-    if (!process.env.REDIS_URL || !process.env.REDIS_USERNAME) {
-      return errorResponse(
-        res,
-        500,
-        "missing_redis_config",
-        "Missing ENV variables.",
-        "INVALID_CONFIG",
-        req,
-      );
-    }
-
-    if (process.env.NODE_ENV !== "development" && !process.env.REDIS_USERNAME) {
-      return errorResponse(
-        res,
-        500,
-        "missing_redis_config",
-        "Missing ENV variables.",
-        "INVALID_CONFIG",
-        req,
-      );
-    }
-
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
       schema,
       value: req.body,
@@ -224,12 +211,6 @@ export default async function handleOIDCAuthorize(
         req,
       );
     }
-
-    redis = createRedisClient({
-      url: process.env.REDIS_URL,
-      password: process.env.REDIS_PASSWORD,
-      username: process.env.REDIS_USERNAME,
-    });
 
     // Anchor: Check the proof hasn't been replayed
     const hashedProof = createHash("sha256").update(proof).digest("hex");
@@ -405,15 +386,6 @@ export default async function handleOIDCAuthorize(
         "server",
         req,
       );
-    }
-  } finally {
-    // Safe cleanup of Redis connection
-    if (redis) {
-      try {
-        await redis.quit();
-      } catch (redisError) {
-        logger.error("Error closing Redis connection", { redisError });
-      }
     }
   }
 }
