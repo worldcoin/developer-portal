@@ -140,19 +140,13 @@ export const AppStoreForm = (props: {
       locale !== "en" ? localisedData?.localisations?.[0] : appMetadata;
 
     reset({
+      ...getValues(),
       name: localisedItem?.name ?? "",
       short_name: localisedItem?.short_name ?? "",
       world_app_description: localisedItem?.world_app_description ?? "",
       world_app_button_text: localisedItem?.world_app_button_text ?? "",
       supported_languages: appMetadata?.supported_languages ?? [],
       app_website_url: appMetadata?.app_website_url ?? "",
-      support_link: appMetadata?.support_link.includes("https://")
-        ? appMetadata?.support_link
-        : "",
-      support_email: appMetadata?.support_link.includes("@")
-        ? appMetadata?.support_link.replace("mailto:", "")
-        : "",
-      ...description,
     });
   }, [
     viewMode,
@@ -161,6 +155,7 @@ export const AppStoreForm = (props: {
     description,
     locale,
     localisedData?.localisations,
+    getValues,
   ]);
 
   useEffect(() => {
