@@ -387,14 +387,5 @@ export default async function handleOIDCAuthorize(
         req,
       );
     }
-  } finally {
-    // Safe cleanup of Redis connection
-    if (redis) {
-      try {
-        await redis.quit();
-      } catch (redisError) {
-        logger.error("Error closing Redis connection", { redisError });
-      }
-    }
   }
 }
