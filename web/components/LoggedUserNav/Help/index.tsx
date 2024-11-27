@@ -1,23 +1,22 @@
-import { Dropdown } from "components/Dropdown";
-import { DiscordIcon } from "@/components/Icons/DiscordIcon";
-import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { SubtractIcon } from "@/components/Icons/SubtractIcon";
+import { TelegramIcon } from "@/components/Icons/TelegramIcon";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import {
-  DISCORD_URL,
   FAQ_URL,
-  GITHUB_ISSUES_URL,
+  TELEGRAM_DEVELOPERS_GROUP_URL,
+  TELEGRAM_MATEO_URL,
   WORLDCOIN_PRIVACY_URL,
   WORLDCOIN_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
+import { Dropdown } from "components/Dropdown";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback } from "react";
-import Link from "next/link";
 
 export const Help = () => {
   const params = useParams();
@@ -79,25 +78,28 @@ export const Help = () => {
       <Dropdown.ListHeader>Community support</Dropdown.ListHeader>
 
       <Dropdown.ListItem asChild>
-        <Link href={DISCORD_URL} onClick={() => trackHelpClick("discord")}>
+        <Link
+          href={TELEGRAM_DEVELOPERS_GROUP_URL}
+          onClick={() => trackHelpClick("telegram_group")}
+        >
           <Dropdown.ListItemIcon asChild>
-            <DiscordIcon />
+            <TelegramIcon className="grayscale" />
           </Dropdown.ListItemIcon>
 
-          <Dropdown.ListItemText>Join our Discord</Dropdown.ListItemText>
+          <Dropdown.ListItemText>Join our Telegram</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
       <Dropdown.ListItem asChild>
         <Link
-          href={GITHUB_ISSUES_URL}
-          onClick={() => trackHelpClick("github_issues")}
+          href={TELEGRAM_MATEO_URL}
+          onClick={() => trackHelpClick("telegram_mateo")}
         >
           <Dropdown.ListItemIcon asChild>
-            <GithubIcon />
+            <TelegramIcon className="grayscale" />
           </Dropdown.ListItemIcon>
 
-          <Dropdown.ListItemText>GitHub Issues</Dropdown.ListItemText>
+          <Dropdown.ListItemText>Text Mateo</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 

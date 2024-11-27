@@ -31,7 +31,9 @@ export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 
 export const GITHUB_ISSUES_URL = "https://github.com/worldcoin/idkit-js/issues";
 
-export const DISCORD_URL = "https://worldcoin.org/discord";
+export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
+
+export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
 
 export const WORLDCOIN_STATUS_URL = "https://status.worldcoin.org/";
 

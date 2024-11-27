@@ -3,7 +3,12 @@
   "enabled": true,
   "language": "en-US",
   "allowCompoundWords": true,
-  "dictionaries": ["typescript", "node", "npm", "html"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html"
+  ],
   "enabledLanguageIds": [
     "typescript",
     "typescriptreact",
@@ -22,7 +27,6 @@
     "chartjs",
     "clsx",
     "consts",
-    "localised",
     "ebecef",
     "fbfbfc",
     "fren",
@@ -38,7 +42,9 @@
     "JWTs",
     "keccak",
     "Localise",
+    "localised",
     "lokalise",
+    "MATEO",
     "merkle",
     "nextjs",
     "nullifer",
