@@ -147,6 +147,16 @@ export const GraphsSection = () => {
     return formattedData;
   }, [stats]);
 
+  if (!transactions || !transactions.length) {
+    !transactionsLoading &&
+      console.log("transactions", {
+        transactions,
+        transactionsData,
+        transactionsLoading,
+      });
+  }
+  //
+
   const formattedTransactionsChartData = useMemo(() => {
     if (!transactions || !transactions.length) {
       return null;
