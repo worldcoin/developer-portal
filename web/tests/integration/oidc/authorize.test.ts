@@ -1,4 +1,5 @@
 import { OIDCErrorCodes } from "@/legacy/backend/oidc";
+import { createRedisClient } from "@/lib/redis";
 import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createHash } from "crypto";
 import fetchMock from "jest-fetch-mock";
@@ -9,9 +10,24 @@ import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
 
+jest.mock("ioredis", () => {
+  const ioredisMock = jest.requireActual("ioredis-mock");
+  return {
+    __esModule: true,
+    Redis: ioredisMock,
+    Cluster: ioredisMock.Cluster,
+  };
+});
+
 beforeEach(async () => {
   await integrationDBClean();
-  await global.RedisClient?.flushall();
+  const redis = createRedisClient({
+    url: process.env.REDIS_URL!,
+    password: process.env.REDIS_PASSWORD,
+    username: process.env.REDIS_USERNAME!,
+  });
+
+  await redis.flushall();
 });
 
 beforeAll(() => {

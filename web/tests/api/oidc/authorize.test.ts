@@ -5,6 +5,7 @@ import {
   insertAuthCodeQuery,
 } from "@/legacy/backend/oidc";
 import { OIDCResponseType } from "@/legacy/lib/types";
+import { createRedisClient } from "@/lib/redis";
 import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
@@ -24,6 +25,15 @@ jest.mock("legacy/backend/kms", () =>
 jest.mock("legacy/backend/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
+
+jest.mock("ioredis", () => {
+  const ioredisMock = jest.requireActual("ioredis-mock");
+  return {
+    __esModule: true,
+    Redis: ioredisMock,
+    Cluster: ioredisMock.Cluster,
+  };
+});
 
 const fetchAppQueryResponse = () => ({
   data: {
@@ -64,8 +74,6 @@ jest.mock(
 );
 
 beforeEach(async () => {
-  await global.RedisClient?.flushall();
-
   when(requestReturnFn)
     .calledWith(
       expect.objectContaining({
@@ -100,6 +108,14 @@ beforeEach(async () => {
     .mockImplementation((args) => ({
       data: { insert_auth_code_one: { auth_code: args.variables.auth_code } },
     }));
+
+  const redis = createRedisClient({
+    url: process.env.REDIS_URL!,
+    password: process.env.REDIS_PASSWORD,
+    username: process.env.REDIS_USERNAME!,
+  });
+
+  await redis.flushall();
 });
 
 beforeAll(() => {
