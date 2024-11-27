@@ -1,3 +1,4 @@
+import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { SecurityIcon } from "@/components/Icons/SecurityIcon";
@@ -5,6 +6,7 @@ import { SubtractIcon } from "@/components/Icons/SubtractIcon";
 import { TelegramIcon } from "@/components/Icons/TelegramIcon";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
 import {
+  DISCORD_URL,
   FAQ_URL,
   TELEGRAM_DEVELOPERS_GROUP_URL,
   TELEGRAM_MATEO_URL,
@@ -100,6 +102,16 @@ export const Help = () => {
           </Dropdown.ListItemIcon>
 
           <Dropdown.ListItemText>Text Mateo</Dropdown.ListItemText>
+        </Link>
+      </Dropdown.ListItem>
+
+      <Dropdown.ListItem asChild>
+        <Link href={DISCORD_URL} onClick={() => trackHelpClick("discord")}>
+          <Dropdown.ListItemIcon asChild>
+            <DiscordIcon />
+          </Dropdown.ListItemIcon>
+
+          <Dropdown.ListItemText>Join our Discord</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
