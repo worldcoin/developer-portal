@@ -55,7 +55,7 @@ export async function getAppRating(appId: string): Promise<number> {
   } finally {
     try {
       await redis.del(lockKey);
-      await redis.quit();
+      await redis.quit(); // TODO: Remove this logic
     } catch (redisError) {
       console.error("Error closing Redis connection", { redisError });
     }
