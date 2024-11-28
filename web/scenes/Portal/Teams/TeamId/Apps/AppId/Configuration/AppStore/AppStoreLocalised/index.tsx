@@ -120,6 +120,7 @@ export const AppStoreForm = (props: {
     defaultValues: {
       ...appMetadata,
       ...description,
+      supported_countries: appMetadata?.supported_countries ?? [],
     },
   });
 
@@ -441,9 +442,7 @@ export const AppStoreForm = (props: {
                 <SelectMultiple
                   values={field.value}
                   onRemove={(value) =>
-                    field.onChange(
-                      field.value?.filter((v) => v !== value) ?? [],
-                    )
+                    field.onChange(field.value.filter((v) => v !== value) ?? [])
                   }
                   items={countries}
                   label=""
