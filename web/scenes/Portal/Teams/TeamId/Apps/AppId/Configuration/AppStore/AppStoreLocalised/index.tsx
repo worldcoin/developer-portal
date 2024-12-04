@@ -142,7 +142,7 @@ export const AppStoreForm = (props: {
     const formValues = getValues();
 
     reset({
-      ...getValues(),
+      ...formValues,
       name: localisedItem?.name ?? "",
       short_name: localisedItem?.short_name ?? "",
       world_app_description: localisedItem?.world_app_description ?? "",
