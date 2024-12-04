@@ -70,7 +70,9 @@ export const CategorySelector = (props: {
 
   return (
     <Select
-      value={value ? categories.indexOf(value) : -1}
+      value={
+        value ? categories.indexOf(value as (typeof categories)[number]) : -1
+      }
       onChange={handleSelect}
       disabled={disabled}
       by={(a: number | null, b: number | null) => a === b}
