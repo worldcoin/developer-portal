@@ -121,6 +121,9 @@ export const AppStoreForm = (props: {
       ...appMetadata,
       ...description,
       supported_countries: appMetadata?.supported_countries ?? [],
+      support_email: appMetadata?.support_link.includes("@")
+        ? appMetadata?.support_link.replace("mailto:", "")
+        : "",
     },
   });
 
