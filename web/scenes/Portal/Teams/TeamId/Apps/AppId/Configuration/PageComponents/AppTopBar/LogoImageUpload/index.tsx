@@ -187,7 +187,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               Image requirements
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Upload a PNG or JPG image smaller than 250 kb. Required aspect
+              Upload a PNG or JPG image smaller than 500 kb. Required aspect
               ratio 1:1. The preview box shows the logo’s final display size.
             </Typography>
           </div>
