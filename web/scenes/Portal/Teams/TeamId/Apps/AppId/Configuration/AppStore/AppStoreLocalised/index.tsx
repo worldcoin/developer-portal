@@ -41,7 +41,7 @@ import {
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
-import { formatEmailLink, parseDescription } from "./utils/util";
+import { parseDescription } from "./utils/util";
 
 type AppStoreLocalisedForm = yup.Asserts<typeof schema>;
 
@@ -220,14 +220,12 @@ export const AppStoreForm = (props: {
   const submit = useCallback(
     async (data: AppStoreLocalisedForm) => {
       try {
-        const supportLink = isSupportEmail
-          ? formatEmailLink(data.support_email)
-          : data.support_link;
-
         await saveLocalisation();
         await validateAndUpdateAppSupportInfoServerSide({
           app_metadata_id: appMetadata?.id,
-          support_link: supportLink,
+          is_support_email: isSupportEmail,
+          support_link: data.support_link,
+          support_email: data.support_email,
           app_website_url: data.app_website_url,
           supported_countries: data.supported_countries,
           category: data.category,
@@ -240,7 +238,7 @@ export const AppStoreForm = (props: {
       }
       toast.update("formState", { autoClose: 0 });
     },
-    [appId, appMetadata?.id, isSupportEmail, saveLocalisation],
+    [appMetadata?.id, isSupportEmail, refetchAppMetadata, saveLocalisation],
   );
 
   const supportedLanguages = useWatch({

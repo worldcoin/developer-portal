@@ -8,7 +8,7 @@ import {
   httpsLinkSchema,
 } from "@/lib/schema";
 import * as yup from "yup";
-
+const urlSchema = httpsLinkSchema();
 export const submitAppForReviewSchema = yup.object().shape({
   name: appNameSchema,
   short_name: appShortNameSchema,
@@ -19,8 +19,8 @@ export const submitAppForReviewSchema = yup.object().shape({
   logo_img_url: yup.string().required("A logo image is required"),
   hero_image_url: yup.string().optional(),
   showcase_img_urls: yup.array().nullable().optional(),
-  integration_url: httpsLinkSchema.required("App URL is required"),
-  app_website_url: httpsLinkSchema.optional(),
+  integration_url: urlSchema.required("App URL is required"),
+  app_website_url: urlSchema.optional(),
   category: yup.string().required("Category is required"),
   is_developer_allow_listing: yup.boolean(),
 });

@@ -8,13 +8,18 @@ export const allowedCommonCharactersRegex =
 /** use for titles */
 const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9_-]+$/u;
 
-export const httpsLinkSchema = yup
-  .string()
-  .url("Invalid URL")
-  .matches(
-    /^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/,
-    "Must be a valid https URL",
-  );
+export const httpsLinkSchema = ({
+  excludeEmptyString = false,
+}: {
+  excludeEmptyString?: boolean;
+} = {}) =>
+  yup
+    .string()
+    .url("Invalid URL")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "Must be a valid https URL",
+      excludeEmptyString,
+    });
 
 function noLinks(value: string | undefined) {
   if (!value) return true;

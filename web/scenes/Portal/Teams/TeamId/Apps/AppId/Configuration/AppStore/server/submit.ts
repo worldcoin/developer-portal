@@ -14,7 +14,10 @@ import {
   getSdk as getUpdateLocalisationSdk,
   UpdateLocalisationMutationVariables,
 } from "../AppStoreLocalised/graphql/server/update-localisation.generated";
-import { encodeDescription } from "../AppStoreLocalised/utils/util";
+import {
+  encodeDescription,
+  formatEmailLink,
+} from "../AppStoreLocalised/utils/util";
 import {
   InsertLocalisationInitialSchema,
   insertLocalisationInitialSchema,
@@ -203,7 +206,9 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 ) {
   const initalValues = {
     app_metadata_id: params.app_metadata_id,
+    is_support_email: params.is_support_email,
     support_link: params.support_link,
+    support_email: params.support_email,
     app_website_url: params.app_website_url,
     supported_countries: params.supported_countries,
     category: params.category,
@@ -225,7 +230,9 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     input = {
       app_metadata_id: parsedInitialValues.app_metadata_id,
       input: {
-        support_link: parsedInitialValues.support_link,
+        support_link: parsedInitialValues.is_support_email
+          ? formatEmailLink(parsedInitialValues.support_email)
+          : parsedInitialValues.support_link,
         app_website_url: parsedInitialValues.app_website_url,
         supported_countries: parsedInitialValues.supported_countries,
         category: parsedInitialValues.category,

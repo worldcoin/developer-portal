@@ -10,9 +10,12 @@ import {
 } from "@/lib/schema";
 import * as yup from "yup";
 
-const appWebsiteUrlSchema = httpsLinkSchema.required("This field is required");
+const appWebsiteUrlSchema = httpsLinkSchema().required(
+  "This field is required",
+);
+const supportEmailSchema = yup.string().email("Invalid email address");
 
-const supportLinkSchema = httpsLinkSchema;
+const supportLinkSchema = httpsLinkSchema({ excludeEmptyString: true });
 const supportedCountriesSchema = yup
   .array(
     yup
@@ -36,7 +39,7 @@ export const schema = yup.object({
   description_how_it_works: appDescriptionHowItWorksSchema,
   description_connect: appDescriptionConnectSchema,
   support_link: supportLinkSchema,
-  support_email: yup.string().email("Invalid email address"),
+  support_email: supportEmailSchema,
   supported_countries: supportedCountriesSchema,
   supported_languages: yup
     .array(yup.string().required("This field is required"))
@@ -74,7 +77,9 @@ export type UpdateAppLocaleInfoInitialSchema = InsertLocalisationInitialSchema;
 
 export const updateAppSupportInfoInitialSchema = yup.object({
   app_metadata_id: appMetadataIdSchema,
+  is_support_email: yup.boolean().required("This field is required"),
   support_link: supportLinkSchema,
+  support_email: supportEmailSchema,
   app_website_url: appWebsiteUrlSchema,
   supported_countries: supportedCountriesSchema,
   category: categorySchema,
