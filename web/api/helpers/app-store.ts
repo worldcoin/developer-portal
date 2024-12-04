@@ -2,6 +2,7 @@ import { getLocalisedCategory } from "@/lib/categories";
 import { whitelistedAppsPermit2 } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
+  AppStatsItem,
   AppStatsReturnType,
   AppStoreFormattedFields,
   AppStoreMetadataDescription,
@@ -15,9 +16,9 @@ export const formatAppMetadata = async (
   locale: string = "en",
 ): Promise<AppStoreFormattedFields> => {
   const { app, ...appMetadata } = appData;
-  const appStat: number =
-    appStats.find((stat) => stat.app_id === appMetadata.app_id)?.unique_users ??
-    0;
+  const singleAppStats: AppStatsItem | undefined = appStats.find(
+    (stat) => stat.app_id === appMetadata.app_id,
+  );
 
   // const appRating = await getAppRating(appMetadata.app_id);
 
@@ -83,7 +84,8 @@ export const formatAppMetadata = async (
     ratings_external_nullifier: generateExternalNullifier(
       `${appMetadata.app_id}_app_review`,
     ).digest,
-    unique_users: appStat,
+    unique_users: singleAppStats?.unique_users ?? 0,
+    impressions: singleAppStats?.total_impressions ?? 0,
     category: getLocalisedCategory(appMetadata.category, locale) ?? {
       id: "other",
       name: "Other",

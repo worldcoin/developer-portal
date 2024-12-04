@@ -345,7 +345,7 @@ export const ImageForm = (props: ImageFormTypes) => {
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 250kb), required aspect ratio 1:1. \nRecommended size: ${1080}x${1080}px`}
+              {`JPG or PNG (max 500kB), required aspect ratio 1:1. \nRecommended size: ${1080}x${1080}px`}
             </Typography>
           </div>
         </ImageDropZone>
@@ -410,7 +410,7 @@ export const ImageForm = (props: ImageFormTypes) => {
                 </Typography>
               </div>
               <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                {`JPG or PNG (max 250kb), required aspect ratio 1:1. Recommended size: ${1080}x${1080}px`}
+                {`JPG or PNG (max 500kB), required aspect ratio 1:1. Recommended size: ${1080}x${1080}px`}
               </Typography>
             </div>
           </ImageDropZone>

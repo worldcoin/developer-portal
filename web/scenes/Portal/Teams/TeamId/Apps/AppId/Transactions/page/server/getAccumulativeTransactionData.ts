@@ -130,13 +130,10 @@ export const getAccumulativeTransactionData = async (
       accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
     };
   } catch (error) {
-    if (error instanceof Error) {
-      logger.warn("Error fetching transaction data", {
-        errorName: error.name,
-        errorMessage: error.message,
-        errorStack: error.stack,
-      });
-    }
+    logger.warn("Error fetching transaction data", {
+      error: JSON.stringify(error),
+    });
+
     return {
       accumulativeTransactions: [],
       accumulatedTokenAmountUSD: 0,

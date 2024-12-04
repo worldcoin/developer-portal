@@ -121,6 +121,11 @@ export const AppStoreForm = (props: {
     defaultValues: {
       ...appMetadata,
       ...description,
+      supported_countries: appMetadata?.supported_countries ?? [],
+      support_email: isSupportEmail
+        ? appMetadata?.support_link.replace("mailto:", "")
+        : "",
+      support_link: isSupportEmail ? "" : appMetadata?.support_link,
     },
   });
 
@@ -139,21 +144,16 @@ export const AppStoreForm = (props: {
   useEffect(() => {
     const localisedItem =
       locale !== "en" ? localisedData?.localisations?.[0] : appMetadata;
+    const formValues = getValues();
 
     reset({
+      ...formValues,
       name: localisedItem?.name ?? "",
       short_name: localisedItem?.short_name ?? "",
       world_app_description: localisedItem?.world_app_description ?? "",
       world_app_button_text: localisedItem?.world_app_button_text ?? "",
-      supported_languages: appMetadata?.supported_languages ?? [],
-      app_website_url: appMetadata?.app_website_url ?? "",
-      support_link: appMetadata?.support_link.includes("https://")
-        ? appMetadata?.support_link
-        : "",
-      support_email: appMetadata?.support_link.includes("@")
-        ? appMetadata?.support_link.replace("mailto:", "")
-        : "",
-      ...description,
+      supported_languages: formValues?.supported_languages ?? [],
+      app_website_url: formValues?.app_website_url ?? "",
     });
   }, [
     viewMode,
@@ -162,6 +162,7 @@ export const AppStoreForm = (props: {
     description,
     locale,
     localisedData?.localisations,
+    getValues,
   ]);
 
   useEffect(() => {
@@ -395,9 +396,7 @@ export const AppStoreForm = (props: {
                 <SelectMultiple
                   values={field.value}
                   onRemove={(value) =>
-                    field.onChange(
-                      field.value?.filter((v) => v !== value) ?? [],
-                    )
+                    field.onChange(field.value.filter((v) => v !== value) ?? [])
                   }
                   items={countries}
                   label=""

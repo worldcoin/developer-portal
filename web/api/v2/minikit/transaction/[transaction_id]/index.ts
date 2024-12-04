@@ -80,28 +80,24 @@ export const GET = async (
     );
   }
 
-  const data = await res.json();
-
   if (!res.ok) {
-    logger.warn("Error fetching transaction data", data);
-
-    let errorMessage;
-    if (data && data.error) {
-      errorMessage = data.error.message;
-    } else {
-      errorMessage = "Transaction fetch to backend failed";
-    }
+    logger.warn("Error fetching transaction data", {
+      status: res.status,
+      statusText: res.statusText,
+    });
 
     return corsHandler(
       errorResponse({
         statusCode: res.status,
-        code: data.error.code ?? "internal_api_error",
-        detail: errorMessage,
+        code: "internal_api_error",
+        detail: "Transaction fetch to backend failed",
         attribute: "transaction",
         req,
       }),
     );
   }
+
+  const data = await res.json();
 
   if (data?.result?.transactions.length !== 0) {
     const transaction = data?.result?.transactions[0];

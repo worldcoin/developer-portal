@@ -31,7 +31,6 @@ export type GetAppMetadataQuery = {
     support_link: string;
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
-    app_rating?: number | null;
     associated_domains?: Array<string> | null;
     verification_status: string;
     contracts?: Array<string> | null;
@@ -76,7 +75,6 @@ export const GetAppMetadataDocument = gql`
       support_link
       supported_countries
       supported_languages
-      app_rating
       associated_domains
       verification_status
       contracts

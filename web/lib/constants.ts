@@ -29,7 +29,9 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 
-export const GITHUB_ISSUES_URL = "https://github.com/worldcoin/idkit-js/issues";
+export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
+
+export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
 
 export const DISCORD_URL = "https://worldcoin.org/discord";
 
@@ -122,4 +124,5 @@ export const notificationPermissions = {
 // These are addresses that have been whitelisted from the permit2 restriction
 export const whitelistedAppsPermit2 = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
+  "app_013bbbd7b5803a25c8d10d10299608e7", // MEME.Factory
 ];

@@ -11,7 +11,7 @@ export type NullifierItem = {
   uses?: number | null | undefined;
 };
 
-// Example of how to use this component
+// This table is just going to be limited to 100 rows to prevent performance issues
 export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
   const { nullifiers } = props;
   const rowsPerPageOptions = [5, 10, 20]; // Rows per page options

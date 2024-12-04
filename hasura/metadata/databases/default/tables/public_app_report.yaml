@@ -10,8 +10,10 @@ insert_permissions:
         - app_name
         - details
         - id
+        - purpose
         - reporter_email
         - user_id
+        - violation
     comment: ""
 select_permissions:
   - role: reviewer
@@ -22,7 +24,9 @@ select_permissions:
         - created_at
         - details
         - id
+        - purpose
         - reporter_email
         - user_id
+        - violation
       filter: {}
     comment: ""

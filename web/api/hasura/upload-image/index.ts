@@ -114,7 +114,7 @@ export const POST = async (req: NextRequest) => {
       Key: objectKey,
       Expires: 600, // URL expires in 10 minutes
       Conditions: [
-        ["content-length-range", 0, 250000], // 250 kb max file size
+        ["content-length-range", 0, 500 * 1024],
         ["eq", "$Content-Type", contentType],
       ],
     });

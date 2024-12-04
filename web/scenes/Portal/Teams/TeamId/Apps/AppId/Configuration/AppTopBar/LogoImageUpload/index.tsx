@@ -184,7 +184,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               Image requirements
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Upload a PNG or JPG image smaller than 250 kb. Required aspect
+              Upload a PNG or JPG image smaller than 500 kb. Required aspect
               ratio 1:1. The preview box shows the logo’s final display size.
             </Typography>
           </div>
@@ -256,7 +256,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         className={clsx(
           "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
           { hidden: !editable || viewMode === "verified" },
-          { "bottom-6": isError },
+          { "bottom-7": isError },
         )}
       >
         <EditIcon className="size-3" />
@@ -264,7 +264,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       {isError && (
         <Typography
           variant={TYPOGRAPHY.R5}
-          className="left-0 top-20 flex max-w-20 shrink text-red-500"
+          className="left-0 top-20 mt-1 flex w-max shrink text-red-500"
         >
           Logo is required.
         </Typography>
