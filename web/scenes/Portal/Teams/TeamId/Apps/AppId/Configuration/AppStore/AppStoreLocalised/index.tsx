@@ -139,6 +139,7 @@ export const AppStoreForm = (props: {
   useEffect(() => {
     const localisedItem =
       locale !== "en" ? localisedData?.localisations?.[0] : appMetadata;
+    const formValues = getValues();
 
     reset({
       ...getValues(),
@@ -146,8 +147,8 @@ export const AppStoreForm = (props: {
       short_name: localisedItem?.short_name ?? "",
       world_app_description: localisedItem?.world_app_description ?? "",
       world_app_button_text: localisedItem?.world_app_button_text ?? "",
-      supported_languages: appMetadata?.supported_languages ?? [],
-      app_website_url: appMetadata?.app_website_url ?? "",
+      supported_languages: formValues?.supported_languages ?? [],
+      app_website_url: formValues?.app_website_url ?? "",
     });
   }, [
     viewMode,
