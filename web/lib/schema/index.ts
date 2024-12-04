@@ -6,7 +6,7 @@ export const allowedCommonCharactersRegex =
   /^[\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+]*$/u;
 
 /** use for titles */
-const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9]+$/u;
+const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9_-]+$/u;
 
 export const httpsLinkSchema = yup
   .string()
