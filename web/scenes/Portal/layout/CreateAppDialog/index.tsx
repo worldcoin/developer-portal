@@ -105,7 +105,7 @@ export const CreateAppDialog = (props: DialogProps) => {
       router.push(redirect);
       props.onClose(false);
     },
-    [appMode, defaultValues, props, reset, router, teamId],
+    [appMode, defaultValues, props, refetchApps, reset, router, teamId],
   );
 
   const onClose = useCallback(() => {
