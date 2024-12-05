@@ -133,7 +133,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - description_internal
         - is_archived
         - status
       filter:
