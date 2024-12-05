@@ -20567,6 +20567,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "args": [],
@@ -20580,6 +20592,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "args": [],
             "type": {
@@ -20846,6 +20870,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "type": {
@@ -20859,6 +20895,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -20958,6 +21006,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "type": {
@@ -20971,6 +21031,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -21052,6 +21124,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "args": [],
@@ -21065,6 +21149,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "args": [],
             "type": {
@@ -21147,6 +21243,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "args": [],
@@ -21160,6 +21268,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "args": [],
             "type": {
@@ -21357,6 +21477,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "type": {
@@ -21370,6 +21502,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -21451,6 +21595,12 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": "column name",
             "isDeprecated": false,
@@ -21458,6 +21608,12 @@
           },
           {
             "name": "user_id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -21532,6 +21688,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "type": {
@@ -21545,6 +21713,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -21666,6 +21846,18 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": null,
             "type": {
@@ -21679,6 +21871,18 @@
           },
           {
             "name": "user_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -21733,6 +21937,12 @@
             "deprecationReason": null
           },
           {
+            "name": "purpose",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reporter_email",
             "description": "column name",
             "isDeprecated": false,
@@ -21740,6 +21950,12 @@
           },
           {
             "name": "user_id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "violation",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

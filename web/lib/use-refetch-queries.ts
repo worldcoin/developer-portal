@@ -3,25 +3,26 @@ import { useCallback, useMemo } from "react";
 
 export const useRefetchQueries = <Variables extends Record<string, unknown>>(
   queryDocument: DocumentNode,
-  vars?: Variables,
+  variables?: Variables,
 ) => {
   const client = useApolloClient();
-  const variables = vars || {};
+  const variablesInternal = useMemo(() => variables || {}, [variables]);
   const { queries } = useMemo(
     () =>
       client.refetchQueries({
         include: [queryDocument],
       }),
-    [queryDocument],
+    [client, queryDocument],
   );
 
   const queriesToRefetch = useMemo(
     () =>
       queries.filter(
         (q) =>
-          JSON.stringify(q.options.variables) === JSON.stringify(variables),
+          JSON.stringify(q.options.variables) ===
+          JSON.stringify(variablesInternal),
       ),
-    [queries, variables],
+    [queries, variablesInternal],
   );
 
   // may mask successful refetches if any fail

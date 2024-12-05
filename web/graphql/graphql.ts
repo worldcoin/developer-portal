@@ -2650,8 +2650,10 @@ export type App_Report = {
   created_at: Scalars["timestamptz"]["output"];
   details: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
+  purpose?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregated selection of "app_report" */
@@ -2685,8 +2687,10 @@ export type App_Report_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   details?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  purpose?: InputMaybe<String_Comparison_Exp>;
   reporter_email?: InputMaybe<String_Comparison_Exp>;
   user_id?: InputMaybe<String_Comparison_Exp>;
+  violation?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_report" */
@@ -2702,8 +2706,10 @@ export type App_Report_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -2714,8 +2720,10 @@ export type App_Report_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
+  purpose?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
@@ -2726,8 +2734,10 @@ export type App_Report_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
+  purpose?: Maybe<Scalars["String"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** response of any mutation on the table "app_report" */
@@ -2753,8 +2763,10 @@ export type App_Report_Order_By = {
   created_at?: InputMaybe<Order_By>;
   details?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  purpose?: InputMaybe<Order_By>;
   reporter_email?: InputMaybe<Order_By>;
   user_id?: InputMaybe<Order_By>;
+  violation?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: app_report */
@@ -2775,9 +2787,13 @@ export enum App_Report_Select_Column {
   /** column name */
   Id = "id",
   /** column name */
+  Purpose = "purpose",
+  /** column name */
   ReporterEmail = "reporter_email",
   /** column name */
   UserId = "user_id",
+  /** column name */
+  Violation = "violation",
 }
 
 /** input type for updating data in table "app_report" */
@@ -2787,8 +2803,10 @@ export type App_Report_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Streaming cursor of the table "app_report" */
@@ -2806,8 +2824,10 @@ export type App_Report_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["String"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "app_report" */
@@ -2823,9 +2843,13 @@ export enum App_Report_Update_Column {
   /** column name */
   Id = "id",
   /** column name */
+  Purpose = "purpose",
+  /** column name */
   ReporterEmail = "reporter_email",
   /** column name */
   UserId = "user_id",
+  /** column name */
+  Violation = "violation",
 }
 
 export type App_Report_Updates = {
