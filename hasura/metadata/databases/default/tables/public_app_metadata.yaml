@@ -108,16 +108,11 @@ insert_permissions:
       columns:
         - app_id
         - app_mode
-        - associated_domains
-        - can_import_all_contacts
-        - contracts
         - hero_image_url
         - logo_img_url
-        - permit2_tokens
         - showcase_img_urls
         - supported_languages
         - verification_status
-        - whitelisted_addresses
 select_permissions:
   - role: api_key
     permission:
