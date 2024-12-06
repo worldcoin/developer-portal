@@ -1,6 +1,7 @@
 "use server";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { createAppSchema, CreateAppSchema } from "../form-schema";
 import { getSdk as getInsertAppSdk } from "../graphql/server/insert-app.generated";
 
@@ -9,6 +10,11 @@ export async function validateAndInsertAppServerSide(
   team_id: string,
 ) {
   try {
+    const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp();
+    if (!isUserAllowedToInsertApp) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: createAppSchema,
@@ -31,7 +37,11 @@ export async function validateAndInsertAppServerSide(
       app_mode: parsedInitialValues.app_mode,
     });
   } catch (error) {
-    console.error("validateAndInsertAppServerSide - error inserting app", {
+    if (error instanceof Error && error.message === "Invalid permissions") {
+      throw error;
+    }
+
+    console.log("validateAndInsertAppServerSide - error inserting app", {
       error: JSON.stringify(error),
       arguments: { initialValues, team_id },
     });

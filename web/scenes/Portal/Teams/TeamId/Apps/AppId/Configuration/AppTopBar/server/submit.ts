@@ -2,6 +2,7 @@
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { submitAppSchema as schema, SubmitAppSchema } from "../form-schema";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 
@@ -11,6 +12,12 @@ export async function validateAndSubmitAppForReviewFormServerSide({
   input: SubmitAppSchema;
 }) {
   try {
+    const isUserAllowedToUpdateAppMetadata =
+      await getIsUserAllowedToUpdateAppMetadata(input.app_metadata_id);
+    if (!isUserAllowedToUpdateAppMetadata) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
       schema,
       value: input,

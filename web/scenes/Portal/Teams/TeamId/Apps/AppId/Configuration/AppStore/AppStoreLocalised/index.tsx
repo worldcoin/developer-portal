@@ -192,7 +192,10 @@ export const AppStoreForm = (props: {
     try {
       if (locale !== "en") {
         if (localisedData?.localisations?.length === 0) {
-          await validateAndInsertLocalisationServerSide(commonProperties);
+          await validateAndInsertLocalisationServerSide(
+            commonProperties,
+            appId,
+          );
         } else {
           const localisation = localisedData?.localisations?.[0];
           await validateAndUpdateLocalisationServerSide({
@@ -209,6 +212,7 @@ export const AppStoreForm = (props: {
       toast.error("Failed to save localisation");
     }
   }, [
+    appId,
     appMetadata?.id,
     getValues,
     locale,

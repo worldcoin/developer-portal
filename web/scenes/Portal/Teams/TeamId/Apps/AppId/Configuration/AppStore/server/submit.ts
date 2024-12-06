@@ -3,6 +3,11 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
+  getIsUserAllowedToInsertLocalisation,
+  getIsUserAllowedToUpdateAppMetadata,
+  getIsUserAllowedToUpdateLocalisation,
+} from "@/lib/permissions";
+import {
   getSdk as getInsertLocalisationSdk,
   InsertLocalisationMutationVariables,
 } from "../AppStoreLocalised/graphql/server/insert-localisation.generated";
@@ -49,6 +54,12 @@ export async function validateAndUpdateLocalisationServerSide(
   };
 
   try {
+    const isUserAllowedToUpdateLocalisation =
+      await getIsUserAllowedToUpdateLocalisation(params.localisation_id);
+    if (!isUserAllowedToUpdateLocalisation) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: updateLocalisationInitialSchema,
@@ -91,6 +102,7 @@ export async function validateAndUpdateLocalisationServerSide(
 
 export async function validateAndInsertLocalisationServerSide(
   params: InsertLocalisationInitialSchema,
+  appId: string,
 ) {
   const initalValues = {
     name: params.name,
@@ -105,6 +117,12 @@ export async function validateAndInsertLocalisationServerSide(
   };
   let encodedInput: InsertLocalisationMutationVariables["input"] = {};
   try {
+    const isUserAllowedToInsertLocalisation =
+      await getIsUserAllowedToInsertLocalisation(appId);
+    if (!isUserAllowedToInsertLocalisation) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: insertLocalisationInitialSchema,
@@ -144,6 +162,7 @@ export async function validateAndInsertLocalisationServerSide(
     throw error;
   }
 }
+
 export async function validateAndUpdateAppLocaleInfoServerSide(
   params: UpdateAppLocaleInfoInitialSchema,
 ) {
@@ -162,6 +181,12 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     app_metadata_id: params.app_metadata_id,
   };
   try {
+    const isUserAllowedToUpdateAppMetadata =
+      await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
+    if (!isUserAllowedToUpdateAppMetadata) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: updateAppLocaleInfoInitialSchema,
@@ -217,6 +242,12 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     app_metadata_id: params.app_metadata_id,
   };
   try {
+    const isUserAllowedToUpdateAppMetadata =
+      await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
+    if (!isUserAllowedToUpdateAppMetadata) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: updateAppSupportInfoInitialSchema,

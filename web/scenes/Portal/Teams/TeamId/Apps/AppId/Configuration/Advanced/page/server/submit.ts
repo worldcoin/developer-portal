@@ -1,6 +1,7 @@
 "use server";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { formatMultipleStringInput } from "@/lib/utils";
 import {
   updateSetupInitialSchema,
@@ -13,6 +14,12 @@ export async function validateAndUpdateSetupServerSide(
   app_metadata_id: string,
 ) {
   try {
+    const isUserAllowedToUpdateAppMetadata =
+      await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
+    if (!isUserAllowedToUpdateAppMetadata) {
+      throw new Error("Invalid permissions");
+    }
+
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
         schema: updateSetupInitialSchema,
@@ -54,7 +61,11 @@ export async function validateAndUpdateSetupServerSide(
       whitelisted_addresses,
     });
   } catch (error) {
-    console.error("validateAndUpdateSetupServerSide - error updating setup", {
+    if (error instanceof Error && error.message === "Invalid permissions") {
+      throw error;
+    }
+
+    console.log("validateAndUpdateSetupServerSide - error updating setup", {
       error: JSON.stringify(error),
       arguments: { initialValues, app_metadata_id },
     });

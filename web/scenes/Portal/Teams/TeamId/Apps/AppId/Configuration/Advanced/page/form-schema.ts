@@ -36,22 +36,3 @@ export const updateSetupInitialSchema = schema.shape({
 export type UpdateSetupInitialSchema = yup.Asserts<
   typeof updateSetupInitialSchema
 >;
-// const associated_domains =
-// values.associated_domains && values.associated_domains.length > 0
-//   ? formatMultipleStringInput(values.associated_domains)
-//   : null;
-
-// const contracts =
-// values.contracts && values.contracts.length > 0
-//   ? formatMultipleStringInput(values.contracts)
-//   : null;
-
-// const permit2_tokens =
-// values.permit2_tokens && values.permit2_tokens.length > 0
-//   ? formatMultipleStringInput(values.permit2_tokens)
-//   : null;
-
-// // If the user disabled the whitelist, we should set the whitelisted_addresses to null
-// const whitelistedAddresses = values.is_whitelist_disabled
-// ? null
-// : formatMultipleStringInput(values.whitelisted_addresses);

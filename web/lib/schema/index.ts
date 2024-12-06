@@ -1,5 +1,11 @@
 // a place for common schema definitions that should remain uniform across the app
+
 import * as yup from "yup";
+
+/** use for entity ids (gen_random_friendly_id) */
+export const entityIdSchema = yup
+  .string()
+  .matches(/^[a-zA-Z0-9]+_[a-zA-Z0-9]{32}$/, "Invalid id format");
 
 /** use for long form text */
 export const allowedCommonCharactersRegex =
