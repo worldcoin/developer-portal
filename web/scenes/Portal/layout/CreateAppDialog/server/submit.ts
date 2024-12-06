@@ -10,7 +10,7 @@ export async function validateAndInsertAppServerSide(
   team_id: string,
 ) {
   try {
-    const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp();
+    const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp(team_id);
     if (!isUserAllowedToInsertApp) {
       throw new Error("Invalid permissions");
     }

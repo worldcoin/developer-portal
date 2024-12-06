@@ -1,5 +1,6 @@
-query GetIsUserPermittedToInsertApp($userId: String!) {
-  team {
+query GetIsUserPermittedToInsertApp($userId: String!, $teamId: String!) {
+  team(where: { id: { _eq: $teamId } }) {
+    id
     memberships(
       where: {
         _or: [

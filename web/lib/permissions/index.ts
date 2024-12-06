@@ -18,7 +18,7 @@ const getIsIdValid = async (id: string) => {
   }
 };
 
-export const getIsUserAllowedToInsertApp = async () => {
+export const getIsUserAllowedToInsertApp = async (teamId: string) => {
   const session = await getSession();
   if (!session) {
     return false;
@@ -27,9 +27,9 @@ export const getIsUserAllowedToInsertApp = async () => {
   const userId = session.user.hasura.id;
   const response = await getAppInsertPermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToInsertApp({ userId });
+  ).GetIsUserPermittedToInsertApp({ userId, teamId });
 
-  if (response.team?.some((team) => team.memberships.length)) {
+  if (response.team.find((team) => team.id === teamId)?.memberships.length) {
     return true;
   }
   return false;

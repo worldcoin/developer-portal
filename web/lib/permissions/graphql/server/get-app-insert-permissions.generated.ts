@@ -6,12 +6,14 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetIsUserPermittedToInsertAppQueryVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
+  teamId: Types.Scalars["String"]["input"];
 }>;
 
 export type GetIsUserPermittedToInsertAppQuery = {
   __typename?: "query_root";
   team: Array<{
     __typename?: "team";
+    id: string;
     memberships: Array<{
       __typename?: "membership";
       user_id: string;
@@ -21,8 +23,9 @@ export type GetIsUserPermittedToInsertAppQuery = {
 };
 
 export const GetIsUserPermittedToInsertAppDocument = gql`
-  query GetIsUserPermittedToInsertApp($userId: String!) {
-    team {
+  query GetIsUserPermittedToInsertApp($userId: String!, $teamId: String!) {
+    team(where: { id: { _eq: $teamId } }) {
+      id
       memberships(
         where: {
           _or: [
