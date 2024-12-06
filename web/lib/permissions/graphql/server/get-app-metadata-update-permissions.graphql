@@ -1,0 +1,27 @@
+query GetIsUserPermittedToModifyAppMetadata(
+  $appMetadataId: String!
+  $userId: String!
+) {
+  app_metadata(
+    where: {
+      id: { _eq: $appMetadataId }
+      verification_status: { _eq: "unverified" }
+    }
+  ) {
+    app {
+      team {
+        memberships(
+          where: {
+            _or: [
+              { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+              { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
+            ]
+          }
+        ) {
+          user_id
+          role
+        }
+      }
+    }
+  }
+}

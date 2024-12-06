@@ -1,0 +1,17 @@
+query GetIsUserPermittedToModifyApp($appId: String!, $userId: String!) {
+  app_by_pk(id: $appId) {
+    team {
+      memberships(
+        where: {
+          _or: [
+            { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+            { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
+          ]
+        }
+      ) {
+        user_id
+        role
+      }
+    }
+  }
+}
