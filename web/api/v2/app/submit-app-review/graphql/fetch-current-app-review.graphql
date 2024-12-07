@@ -1,0 +1,10 @@
+query GetAppReview($app_id: String!, $nullifier_hash: String!) {
+  app_reviews(
+    where: {
+      nullifier_hash: { _eq: $nullifier_hash }
+      app_id: { _eq: $app_id }
+    }
+  ) {
+    rating
+  }
+}
