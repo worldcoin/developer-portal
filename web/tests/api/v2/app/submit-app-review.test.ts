@@ -3,12 +3,32 @@ import { NextRequest } from "next/server";
 import { appReviewMockProof } from "../../__mocks__/app-review-proof.mock";
 
 const UpsertAppReview = jest.fn();
+const UpdateAppRatingSumMutation = jest.fn();
+const GetAppReview = jest.fn();
 
 jest.mock(
   "../../../../api/v2/app/submit-app-review/graphql/upsert-app-review.generated.ts",
   jest.fn(() => ({
     getSdk: () => ({
       UpsertAppReview,
+    }),
+  })),
+);
+
+jest.mock(
+  "../../../../api/v2/app/submit-app-review/graphql/update-review-counter.generated.ts",
+  jest.fn(() => ({
+    getSdk: () => ({
+      UpdateAppRatingSumMutation,
+    }),
+  })),
+);
+
+jest.mock(
+  "../../../../api/v2/app/submit-app-review/graphql/fetch-current-app-review.generated.ts",
+  jest.fn(() => ({
+    getSdk: () => ({
+      GetAppReview,
     }),
   })),
 );
@@ -48,6 +68,20 @@ describe("/api/v2/app/submit-app-review", () => {
         country: validBody.country,
         rating: validBody.rating,
       },
+    });
+
+    UpdateAppRatingSumMutation.mockResolvedValue({
+      update_app: {
+        affected_rows: 1,
+      },
+    });
+
+    GetAppReview.mockResolvedValue({
+      app_reviews: [
+        {
+          rating: 3,
+        },
+      ],
     });
 
     const res = await POST(mockReq);

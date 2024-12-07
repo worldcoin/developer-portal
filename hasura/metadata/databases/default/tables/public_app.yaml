@@ -133,6 +133,8 @@ update_permissions:
     permission:
       columns:
         - is_banned
+        - rating_count
+        - rating_sum
       filter: {}
       check: null
     comment: ""
