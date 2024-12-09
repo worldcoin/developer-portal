@@ -20,9 +20,12 @@ export const formatAppMetadata = async (
     (stat) => stat.app_id === appMetadata.app_id,
   );
 
-  const appRating = parseFloat(
-    (appData.app.rating_sum / appData.app.rating_count).toFixed(2),
-  );
+  const appRating =
+    appData.app.rating_count > 0
+      ? parseFloat(
+          (appData.app.rating_sum / appData.app.rating_count).toFixed(2),
+        )
+      : 0;
 
   const localisedContent = appMetadata.localisations?.[0];
 
