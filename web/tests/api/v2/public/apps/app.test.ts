@@ -37,12 +37,13 @@ jest.mock(
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
-            app_rating: 0,
             verification_status: "unverified",
             app: {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
         ],
@@ -50,10 +51,6 @@ jest.mock(
     })),
   }),
 );
-
-jest.mock("@/api/helpers/app-rating", () => ({
-  getAppRating: jest.fn().mockResolvedValue(3.4),
-}));
 
 describe("/api/public/app/[app_id]", () => {
   test("Returns correct value for valid unverified app", async () => {
@@ -92,7 +89,7 @@ describe("/api/public/app/[app_id]", () => {
         support_link: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
-        app_rating: 0,
+        app_rating: 3.33,
         unique_users: 0,
         impressions: 0,
         verification_status: "unverified",
@@ -136,12 +133,13 @@ describe("/api/public/app/[app_id]", () => {
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
-            app_rating: 0,
             verification_status: "verified",
             app: {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
         ],
@@ -158,6 +156,7 @@ describe("/api/public/app/[app_id]", () => {
       app_data: {
         name: "Example App",
         app_id: "1",
+        app_rating: 3.33,
         short_name: "test",
         logo_img_url: "https://cdn.test.com/1/logo.png",
         showcase_img_urls: [
@@ -183,7 +182,6 @@ describe("/api/public/app/[app_id]", () => {
         support_link: "andy@gmail.com",
         supported_countries: ["us"],
         supported_languages: ["en", "es"],
-        app_rating: 0,
         unique_users: 0,
         impressions: 0,
         verification_status: "verified",
@@ -236,11 +234,12 @@ describe("/api/public/app/[app_id]", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
-            app_rating: 0,
             app: {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
         ],
@@ -272,7 +271,7 @@ describe("/api/public/app/[app_id]", () => {
         associated_domains: ["https://worldcoin.org"],
         contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
         permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
-        app_rating: 0,
+        app_rating: 3.33,
         unique_users: 0,
         impressions: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],

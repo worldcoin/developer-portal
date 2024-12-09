@@ -48,6 +48,8 @@ export type GetAppsQuery = {
     }>;
     app: {
       __typename?: "app";
+      rating_count: number;
+      rating_sum: number;
       team: { __typename?: "team"; name?: string | null };
     };
   }>;
@@ -99,6 +101,8 @@ export const GetAppsDocument = gql`
         team {
           name
         }
+        rating_count
+        rating_sum
       }
     }
   }

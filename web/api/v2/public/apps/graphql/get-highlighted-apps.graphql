@@ -50,6 +50,8 @@ query GetHighlights(
       team {
         name
       }
+      rating_count
+      rating_sum
     }
   }
 }

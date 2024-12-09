@@ -93,6 +93,8 @@ select_permissions:
         - is_archived
         - is_banned
         - is_staging
+        - rating_count
+        - rating_sum
         - status
         - team_id
       filter: {}
