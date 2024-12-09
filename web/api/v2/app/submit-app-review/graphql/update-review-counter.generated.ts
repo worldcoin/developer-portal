@@ -6,7 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateAppRatingSumMutationMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
-  rating: Types.Scalars["bigint"]["input"];
+  rating: Types.Scalars["Int"]["input"];
 }>;
 
 export type UpdateAppRatingSumMutationMutation = {
@@ -18,7 +18,7 @@ export type UpdateAppRatingSumMutationMutation = {
 };
 
 export const UpdateAppRatingSumMutationDocument = gql`
-  mutation UpdateAppRatingSumMutation($app_id: String!, $rating: bigint!) {
+  mutation UpdateAppRatingSumMutation($app_id: String!, $rating: Int!) {
     update_app(
       where: { id: { _eq: $app_id } }
       _inc: { rating_count: 1, rating_sum: $rating }

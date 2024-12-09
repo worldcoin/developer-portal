@@ -26,7 +26,6 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
-  bigint: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
   timestamptz: { input: string; output: string };
@@ -1390,8 +1389,8 @@ export type App = {
   is_staging: Scalars["Boolean"]["output"];
   logo_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
-  rating_count?: Maybe<Scalars["bigint"]["output"]>;
-  rating_sum?: Maybe<Scalars["bigint"]["output"]>;
+  rating_count: Scalars["Int"]["output"];
+  rating_sum: Scalars["Int"]["output"];
   status: Scalars["String"]["output"];
   /** An object relationship */
   team: Team;
@@ -1545,8 +1544,8 @@ export type App_Bool_Exp = {
   is_staging?: InputMaybe<Boolean_Comparison_Exp>;
   logo_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
-  rating_count?: InputMaybe<Bigint_Comparison_Exp>;
-  rating_sum?: InputMaybe<Bigint_Comparison_Exp>;
+  rating_count?: InputMaybe<Int_Comparison_Exp>;
+  rating_sum?: InputMaybe<Int_Comparison_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
@@ -1562,8 +1561,8 @@ export enum App_Constraint {
 
 /** input type for incrementing numeric columns in table "app" */
 export type App_Inc_Input = {
-  rating_count?: InputMaybe<Scalars["bigint"]["input"]>;
-  rating_sum?: InputMaybe<Scalars["bigint"]["input"]>;
+  rating_count?: InputMaybe<Scalars["Int"]["input"]>;
+  rating_sum?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** input type for inserting data into table "app" */
@@ -1579,8 +1578,8 @@ export type App_Insert_Input = {
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  rating_count?: InputMaybe<Scalars["bigint"]["input"]>;
-  rating_sum?: InputMaybe<Scalars["bigint"]["input"]>;
+  rating_count?: InputMaybe<Scalars["Int"]["input"]>;
+  rating_sum?: InputMaybe<Scalars["Int"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
@@ -1597,8 +1596,8 @@ export type App_Max_Fields = {
   id?: Maybe<Scalars["String"]["output"]>;
   logo_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
-  rating_count?: Maybe<Scalars["bigint"]["output"]>;
-  rating_sum?: Maybe<Scalars["bigint"]["output"]>;
+  rating_count?: Maybe<Scalars["Int"]["output"]>;
+  rating_sum?: Maybe<Scalars["Int"]["output"]>;
   status?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -2461,8 +2460,8 @@ export type App_Min_Fields = {
   id?: Maybe<Scalars["String"]["output"]>;
   logo_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
-  rating_count?: Maybe<Scalars["bigint"]["output"]>;
-  rating_sum?: Maybe<Scalars["bigint"]["output"]>;
+  rating_count?: Maybe<Scalars["Int"]["output"]>;
+  rating_sum?: Maybe<Scalars["Int"]["output"]>;
   status?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -3234,8 +3233,8 @@ export type App_Set_Input = {
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  rating_count?: InputMaybe<Scalars["bigint"]["input"]>;
-  rating_sum?: InputMaybe<Scalars["bigint"]["input"]>;
+  rating_count?: InputMaybe<Scalars["Int"]["input"]>;
+  rating_sum?: InputMaybe<Scalars["Int"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -3539,8 +3538,8 @@ export type App_Stream_Cursor_Value_Input = {
   is_staging?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  rating_count?: InputMaybe<Scalars["bigint"]["input"]>;
-  rating_sum?: InputMaybe<Scalars["bigint"]["input"]>;
+  rating_count?: InputMaybe<Scalars["Int"]["input"]>;
+  rating_sum?: InputMaybe<Scalars["Int"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -3550,8 +3549,8 @@ export type App_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type App_Sum_Fields = {
   __typename?: "app_sum_fields";
-  rating_count?: Maybe<Scalars["bigint"]["output"]>;
-  rating_sum?: Maybe<Scalars["bigint"]["output"]>;
+  rating_count?: Maybe<Scalars["Int"]["output"]>;
+  rating_sum?: Maybe<Scalars["Int"]["output"]>;
 };
 
 /** order by sum() on columns of table "app" */
@@ -3943,19 +3942,6 @@ export type Auth_Code_Updates = {
   _set?: InputMaybe<Auth_Code_Set_Input>;
   /** filter the rows which have to be updated */
   where: Auth_Code_Bool_Exp;
-};
-
-/** Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'. */
-export type Bigint_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars["bigint"]["input"]>;
-  _gt?: InputMaybe<Scalars["bigint"]["input"]>;
-  _gte?: InputMaybe<Scalars["bigint"]["input"]>;
-  _in?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
-  _lt?: InputMaybe<Scalars["bigint"]["input"]>;
-  _lte?: InputMaybe<Scalars["bigint"]["input"]>;
-  _neq?: InputMaybe<Scalars["bigint"]["input"]>;
-  _nin?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
 };
 
 /** columns and relationships of "cache" */

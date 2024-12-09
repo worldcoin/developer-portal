@@ -43,6 +43,8 @@ query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
       team {
         name
       }
+      rating_count
+      rating_sum
     }
   }
 }
