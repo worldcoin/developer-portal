@@ -10,6 +10,8 @@ import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.generated";
+import { getSdk as updateReviewCount } from "./graphql/update-review-counter.generated";
 import { getSdk as upsertAppReview } from "./graphql/upsert-app-review.generated";
 
 const schema = yup.object({
@@ -93,6 +95,11 @@ export const POST = async (req: NextRequest) => {
 
   const serviceClient = await getAPIServiceGraphqlClient();
 
+  const { app_reviews } = await fetchAppReview(serviceClient).GetAppReview({
+    nullifier_hash: parsedParams.nullifier_hash,
+    app_id: app_id,
+  });
+
   // Anchor: Insert App Rating or Update App Rating
   const { insert_app_reviews_one } = await upsertAppReview(
     serviceClient,
@@ -111,6 +118,22 @@ export const POST = async (req: NextRequest) => {
       attribute: null,
       req,
     });
+  }
+
+  // Anchor: Update App Review Count
+  let ratingChange = parsedParams.rating;
+  if (app_reviews.length) {
+    ratingChange = parsedParams.rating - app_reviews[0].rating;
+  }
+  const { update_app } = await updateReviewCount(
+    serviceClient,
+  ).UpdateAppRatingSumMutation({
+    app_id: app_id,
+    rating: ratingChange,
+  });
+
+  if (!update_app) {
+    console.warn("Failed to update app review count");
   }
 
   await captureEvent({
