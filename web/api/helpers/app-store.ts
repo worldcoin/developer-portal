@@ -51,7 +51,7 @@ export const formatAppMetadata = async (
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
-    app_rating: appRating,
+    app_rating: appRating ?? 0,
     world_app_button_text:
       localisedContent?.world_app_button_text ??
       appMetadata.world_app_button_text,
