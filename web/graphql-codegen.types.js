@@ -167,6 +167,28 @@ module.exports = {
       },
     },
 
+    "lib/permissions": {
+      documents: ["lib/**/server/**/*.graphql", "lib/**/server/**/*.gql"],
+      preset: "near-operation-file",
+      presetConfig: {
+        baseTypesPath: "~@/graphql/graphql",
+        extension: ".generated.ts",
+      },
+      plugins: [
+        {
+          add: {
+            placement: "prepend",
+            content: "/* eslint-disable */",
+          },
+        },
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
+      config: {
+        withMutationFn: true,
+      },
+    },
+
     "tests/e2e": {
       documents: ["tests/e2e/**/*.graphql", "tests/e2e/**/*.gql"],
       preset: "near-operation-file",
