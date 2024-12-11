@@ -79,6 +79,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     );
     try {
       submitAppForReviewSchema.validateSync({ ...appMetadata, ...description });
+      return true;
     } catch (error) {
       return false;
     }
