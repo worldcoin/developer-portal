@@ -113,6 +113,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       appId,
       appMetadataId,
       canSubmitAppStore,
+      refetchAppMetadata,
       setOpen,
       teamId,
       validateLocalisation,

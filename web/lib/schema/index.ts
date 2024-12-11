@@ -39,7 +39,7 @@ function noLinks(value: string | undefined) {
 export const appNameSchema = yup
   .string()
   .required("App name is required")
-  .max(40, "App name cannot exceed 40 characters")
+  .max(50, "App name cannot exceed 50 characters")
   .matches(allowedTitleCharactersRegex, {
     message: "App name can only contain letters, numbers and spaces",
     excludeEmptyString: true,

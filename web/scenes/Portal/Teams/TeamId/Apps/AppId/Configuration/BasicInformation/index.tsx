@@ -98,7 +98,7 @@ export const BasicInformation = (props: {
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData?.id],
+    [appMetaData?.id, refetchAppMetadata],
   );
 
   return (
@@ -128,7 +128,7 @@ export const BasicInformation = (props: {
             placeholder="Enter your App Name"
             maxLength={50}
             addOnRight={
-              <RemainingCharacters text={watch("name")} maxChars={40} />
+              <RemainingCharacters text={watch("name")} maxChars={50} />
             }
           />
 

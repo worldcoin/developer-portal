@@ -23,7 +23,6 @@ export async function validateAndSubmitServerSide(
     }
 
     const client = await getAPIServiceGraphqlClient();
-    console.log(app_metadata_id, input);
     await getUpdateAppSdk(client).UpdateAppInfo({
       app_metadata_id,
       input: parsedInput,
