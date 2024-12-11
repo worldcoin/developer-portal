@@ -61,11 +61,7 @@ export async function validateAndUpdateSetupServerSide(
       whitelisted_addresses,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid permissions") {
-      throw error;
-    }
-
-    console.log("validateAndUpdateSetupServerSide - error updating setup", {
+    console.error("validateAndUpdateSetupServerSide - error updating setup", {
       error: JSON.stringify(error),
       arguments: { initialValues, app_metadata_id },
     });

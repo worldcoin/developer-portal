@@ -146,7 +146,6 @@ export const SetupForm = (props: LinksFormProps) => {
 
         toast.success("App information updated successfully");
       } catch (e) {
-        console.error("Mini App Data Failed to Update: ", e);
         toast.error("Failed to update app information");
       }
     },
