@@ -127,3 +127,8 @@ export const whitelistedAppsPermit2 = [
   "app_013bbbd7b5803a25c8d10d10299608e7", // MEME.Factory
   "app_15daccf5b7d4ec9b7dbba044a8fdeab5", // Poop
 ];
+
+export const AppMode = {
+  external: "external",
+  ["mini-app"]: "mini-app",
+} as const;

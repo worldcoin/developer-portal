@@ -1,6 +1,7 @@
 query FetchApps($teamId: String!) {
   app(where: { team_id: { _eq: $teamId } }) {
     id
+    created_at
     app_metadata {
       id
       name

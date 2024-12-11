@@ -40,8 +40,8 @@ insert_permissions:
       check: {}
       columns:
         - engine
-        - id
         - is_staging
+        - name
         - team_id
   - role: user
     permission:
@@ -57,12 +57,6 @@ insert_permissions:
                   - role:
                       _eq: ADMIN
       columns:
-        - description_internal
-        - engine
-        - is_archived
-        - is_staging
-        - name
-        - status
         - team_id
 select_permissions:
   - role: api_key
@@ -143,7 +137,6 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - description_internal
         - is_archived
         - status
       filter:

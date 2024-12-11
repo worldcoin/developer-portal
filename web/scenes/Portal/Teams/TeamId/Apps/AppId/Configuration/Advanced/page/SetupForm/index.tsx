@@ -5,8 +5,10 @@ import { WLDIcon } from "@/components/Icons/WLDIcon";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, formatMultipleStringInput } from "@/lib/utils";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { checkUserPermissions } from "@/lib/utils";
 import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -19,30 +21,8 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { useUpdateSetupMutation } from "./graphql/client/update-setup.generated";
-
-const schema = yup.object().shape({
-  app_mode: yup.string().required(),
-  whitelisted_addresses: yup.string().nullable(),
-  is_whitelist_disabled: yup.boolean(),
-  associated_domains: yup
-    .string()
-    .test(
-      "is-valid-https-url-list",
-      "Each value must be a valid HTTPS URL",
-      function (value) {
-        if (!value) return true;
-
-        const domains = value.split(",").map((domain) => domain.trim());
-        const httpsUrlRegex = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
-        return domains.every((domain) => httpsUrlRegex.test(domain));
-      },
-    )
-    .nullable(),
-  contracts: yup.string().nullable(),
-  permit2_tokens: yup.string().nullable(),
-  can_import_all_contacts: yup.boolean().optional(),
-});
+import { schema } from "../form-schema";
+import { validateAndUpdateSetupServerSide } from "../server/submit";
 
 type LinksFormValues = yup.Asserts<typeof schema>;
 
@@ -52,13 +32,35 @@ type LinksFormProps = {
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
 
+const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  const inputValue = e.target.value;
+  const inputEvent = e.nativeEvent as InputEvent;
+
+  if (
+    inputValue.length > 0 &&
+    inputValue[inputValue.length - 1] === "," &&
+    inputEvent.inputType !== "deleteContentBackward"
+  ) {
+    const formattedValue = inputValue
+      .split(",")
+      .map((domain) => domain.trim())
+      .join(", ");
+
+    e.target.value = formattedValue;
+  }
+};
+
 export const SetupForm = (props: LinksFormProps) => {
   const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
 
-  const [updateSetupMutation, { loading: updatingInfo }] =
-    useUpdateSetupMutation();
+  const { refetch: refetchAppMetadata } = useRefetchQueries(
+    FetchAppMetadataDocument,
+    {
+      id: appId,
+    },
+  );
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -81,12 +83,11 @@ export const SetupForm = (props: LinksFormProps) => {
     defaultValues: {
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
-      app_mode: appMetadata?.app_mode,
+      app_mode: appMetadata?.app_mode as keyof typeof AppMode,
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      can_import_all_contacts: appMetadata?.can_import_all_contacts ?? false,
     },
   });
 
@@ -95,12 +96,11 @@ export const SetupForm = (props: LinksFormProps) => {
     reset({
       whitelisted_addresses:
         appMetadata?.whitelisted_addresses?.join(",") ?? null,
-      app_mode: appMetadata?.app_mode,
+      app_mode: appMetadata?.app_mode as keyof typeof AppMode,
       is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      can_import_all_contacts: appMetadata?.can_import_all_contacts ?? false,
     });
   }, [
     reset,
@@ -109,12 +109,10 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.associated_domains,
     appMetadata?.contracts,
     appMetadata?.permit2_tokens,
-    appMetadata?.can_import_all_contacts,
   ]);
 
   const submit = useCallback(
     async (values: LinksFormValues) => {
-      if (updatingInfo) return;
       try {
         // Check if app_mode is true and whitelisted_addresses is not provided or empty
         if (
@@ -133,78 +131,26 @@ export const SetupForm = (props: LinksFormProps) => {
           );
         }
 
-        const associated_domains =
-          values.associated_domains && values.associated_domains.length > 0
-            ? formatMultipleStringInput(values.associated_domains)
-            : null;
-
-        const contracts =
-          values.contracts && values.contracts.length > 0
-            ? formatMultipleStringInput(values.contracts)
-            : null;
-
-        const permit2_tokens =
-          values.permit2_tokens && values.permit2_tokens.length > 0
-            ? formatMultipleStringInput(values.permit2_tokens)
-            : null;
-
-        // If the user disabled the whitelist, we should set the whitelisted_addresses to null
-        const whitelistedAddresses = values.is_whitelist_disabled
-          ? null
-          : formatMultipleStringInput(values.whitelisted_addresses);
-
-        const result = await updateSetupMutation({
-          variables: {
-            app_metadata_id: appMetadata?.id ?? "",
-            whitelisted_addresses: whitelistedAddresses,
-            app_mode: values.app_mode,
-            associated_domains,
-            contracts,
-            permit2_tokens,
-            can_import_all_contacts: values.can_import_all_contacts,
+        await validateAndUpdateSetupServerSide(
+          {
+            is_whitelist_disabled: values.is_whitelist_disabled,
+            whitelisted_addresses: values.whitelisted_addresses,
+            app_mode: values.app_mode as keyof typeof AppMode,
+            associated_domains: values.associated_domains,
+            contracts: values.contracts,
+            permit2_tokens: values.permit2_tokens,
           },
-
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: {
-                id: appId,
-              },
-            },
-          ],
-        });
-
-        if (result instanceof Error) {
-          throw result;
-        }
+          appMetadata?.id ?? "",
+        );
+        refetchAppMetadata();
 
         toast.success("App information updated successfully");
       } catch (e) {
-        console.error("Mini App Data Failed to Update: ", e);
         toast.error("Failed to update app information");
       }
     },
-
-    [appId, appMetadata?.id, setError, updateSetupMutation, updatingInfo],
+    [appMetadata?.id, refetchAppMetadata, setError],
   );
-
-  const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const inputValue = e.target.value;
-    const inputEvent = e.nativeEvent as InputEvent;
-
-    if (
-      inputValue.length > 0 &&
-      inputValue[inputValue.length - 1] === "," &&
-      inputEvent.inputType !== "deleteContentBackward"
-    ) {
-      const formattedValue = inputValue
-        .split(",")
-        .map((domain) => domain.trim())
-        .join(", ");
-
-      e.target.value = formattedValue;
-    }
-  };
 
   const appMode = useWatch({
     control,

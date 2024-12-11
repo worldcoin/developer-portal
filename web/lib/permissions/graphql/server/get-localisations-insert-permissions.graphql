@@ -1,0 +1,27 @@
+query GetIsUserPermittedToInsertLocalisations(
+  $appId: String!
+  $userId: String!
+) {
+  app_metadata(
+    where: {
+      _and: [
+        { verification_status: { _eq: "unverified" } }
+        {
+          app: {
+            id: { _eq: $appId }
+            team: {
+              memberships: {
+                _and: [
+                  { user_id: { _eq: $userId } }
+                  { _or: [{ role: { _eq: OWNER } }, { role: { _eq: ADMIN } }] }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    id
+  }
+}

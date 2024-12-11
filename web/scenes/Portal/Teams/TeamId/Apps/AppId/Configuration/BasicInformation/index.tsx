@@ -5,6 +5,7 @@ import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,32 +13,16 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
+  FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
-import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
+import { BasicInformationFormValues, schema } from "./form-schema";
 import { QrQuickAction } from "./QrQuickAction";
-
-const schema = yup.object({
-  name: yup
-    .string()
-    .required("App name is required")
-    .max(50, "App name cannot exceed 50 characters"),
-  integration_url: yup
-    .string()
-    .url("Must be a valid https:// URL")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
-      message: "Link must be a valid HTTPS URL",
-      excludeEmptyString: true,
-    })
-    .required("This field is required"),
-});
-
-export type BasicInformationFormValues = yup.Asserts<typeof schema>;
+import { validateAndSubmitServerSide } from "./server/submit";
 
 export const BasicInformation = (props: {
   appId: string;
@@ -46,7 +31,11 @@ export const BasicInformation = (props: {
   teamName: string;
 }) => {
   const { appId, teamId, app, teamName } = props;
-  const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
+  const { refetch: refetchAppMetadata } =
+    useRefetchQueries<FetchAppMetadataQueryVariables>(
+      FetchAppMetadataDocument,
+      { id: appId },
+    );
 
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -99,36 +88,17 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
-      if (loading) return;
       try {
-        let result;
+        await validateAndSubmitServerSide(appMetaData?.id, data);
+        await refetchAppMetadata();
 
-        result = await updateAppInfoMutation({
-          variables: {
-            app_metadata_id: appMetaData?.id,
-            input: {
-              ...data,
-            },
-          },
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: { id: appId },
-            },
-          ],
-          awaitRefetchQueries: true,
-        });
-
-        if (result instanceof Error) {
-          throw result;
-        }
         toast.success("App information updated successfully");
       } catch (e) {
         console.error("Basic Info Failed to Update: ", e);
         toast.error("Failed to update app information");
       }
     },
-    [appId, appMetaData?.id, loading, updateAppInfoMutation],
+    [appMetaData?.id, refetchAppMetadata],
   );
 
   return (
