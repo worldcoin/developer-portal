@@ -14,7 +14,7 @@ describe("create-app-report schema validation [illegal-content]", () => {
     illegal_content_category: IllegalContentCategoryEnum.IllegalHateSpeech,
     illegal_content_description:
       "Contains hate speech against a specific group",
-    illegal_content_location: "http://example.com/illegal-content-location",
+    illegal_content_location: "description explaining illegal-content-location",
   };
 
   it("should validate a valid input", async () => {
@@ -100,7 +100,8 @@ describe("create-app-report schema validation [other/tos-violation]", () => {
         illegal_content_category: IllegalContentCategoryEnum.IllegalHateSpeech,
         illegal_content_description:
           "Contains hate speech against a specific group",
-        illegal_content_location: "http://example.com/illegal-content-location",
+        illegal_content_location:
+          "description explaining illegal-content-location",
       }),
     );
   });
