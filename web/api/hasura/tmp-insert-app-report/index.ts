@@ -42,7 +42,7 @@ export const POST = async (req: NextRequest) => {
         { role: body.session_variables["x-hasura-role"] };
       return errorHasuraQuery({ req });
     }
-    console.log(body);
+
     const { isValid, parsedParams } = await validateRequestSchema({
       value: body.input.input,
       schema,

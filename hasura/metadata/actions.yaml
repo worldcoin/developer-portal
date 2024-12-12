@@ -11,7 +11,7 @@ actions:
     comment: Bans app by app_id
   - name: create_app_report
     definition:
-      kind: asynchronous
+      kind: synchronous
       handler: '{{NEXT_API_URL}}/hasura/create-app-report'
       headers:
         - name: Authorization

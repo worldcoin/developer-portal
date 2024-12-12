@@ -18,8 +18,6 @@ export const schema = yup.object({
   review_conclusion_reason: yup.string().required(),
 });
 
-type FinishAppReport = yup.InferType<typeof schema>;
-
 export const POST = async (req: NextRequest) => {
   try {
     if (!protectInternalEndpoint(req)) {
@@ -49,7 +47,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const { isValid, parsedParams } = await validateRequestSchema({
-      value: body.input,
+      value: body.input.input,
       schema,
     });
 
