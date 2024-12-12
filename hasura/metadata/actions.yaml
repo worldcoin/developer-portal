@@ -9,6 +9,14 @@ actions:
     permissions:
       - role: reviewer
     comment: Bans app by app_id
+  - name: create_app_report
+    definition:
+      kind: asynchronous
+      handler: '{{NEXT_API_URL}}/hasura/create-app-report'
+      headers:
+        - name: Authorization
+          value: INTERNAL_ENDPOINTS_SECRET
+    comment: Creates an app report
   - name: create_new_draft
     definition:
       kind: synchronous
@@ -35,6 +43,14 @@ actions:
     permissions:
       - role: user
       - role: api_key
+  - name: finish_app_report
+    definition:
+      kind: asynchronous
+      handler: '{{NEXT_API_URL}}/hasura/finish-app-report'
+      headers:
+        - name: Authorization
+          value: INTERNAL_ENDPOINTS_SECRET
+    comment: Closes the report with an decision
   - name: get_all_unverified_images
     definition:
       kind: ""
@@ -126,6 +142,14 @@ actions:
       - role: api_key
       - role: user
     comment: Reset the client secret for a Sign in with World ID application
+  - name: unban_app
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/ban-app'
+      headers:
+        - name: Authorization
+          value: INTERNAL_ENDPOINTS_SECRET
+    comment: Unbans an app
   - name: upload_image
     definition:
       kind: ""
@@ -181,9 +205,70 @@ actions:
       - role: reviewer
     comment: Verify an App
 custom_types:
-  enums: []
+  enums:
+    - name: ReviewStatusEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: IRRELEVANT
+        - description: null
+          is_deprecated: null
+          value: CONFIRMED_VIOLATION
+        - description: null
+          is_deprecated: null
+          value: NO_VIOLATION
+    - name: PurposeEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: ILLEGAL_CONTENT
+        - description: null
+          is_deprecated: null
+          value: TOS_VIOLATION
+        - description: null
+          is_deprecated: null
+          value: OTHER
+    - name: ViolationEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: FEATURES
+        - description: null
+          is_deprecated: null
+          value: CORE_FUNCTIONALITY
+        - description: null
+          is_deprecated: null
+          value: MALICIOUS_APP
+    - name: IllegalContentCategoryEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: PROVIDES_OR_FACILITATES_AN_ILLEGAL_SERVICE
+        - description: null
+          is_deprecated: null
+          value: INCITES_TERRORISM_OR_VIOLENCE
+        - description: null
+          is_deprecated: null
+          value: ILLEGAL_HATE_SPEECH
+        - description: null
+          is_deprecated: null
+          value: CHILD_SEXUAL_ABUSE
+        - description: null
+          is_deprecated: null
+          value: VIOLATES_INTELLECTUAL_PROPERTY_RIGHTS
+        - description: null
+          is_deprecated: null
+          value: VIOLATES_CONSUMER_PROTECTION_OR_PRIVACY_LAW
+        - description: null
+          is_deprecated: null
+          value: VIOLATES_ADVERTISING_LAW
+        - description: null
+          is_deprecated: null
+          value: OTHER
   input_objects:
     - name: UploadImageInput
+    - name: CreateAppReportInput
+    - name: FinishAppReportInput
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
@@ -201,4 +286,7 @@ custom_types:
     - name: CreateNewDraftOutput
     - name: ValidateLocalisationOutput
     - name: BanAppOutput
+    - name: CreateAppReportOutput
+    - name: UnbanAppOutput
+    - name: FinishAppReportOutput
   scalars: []

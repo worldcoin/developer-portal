@@ -1,17 +1,38 @@
 table:
   name: app_report
   schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
 insert_permissions:
   - role: reviewer
     permission:
       check: {}
       columns:
         - app_id
-        - app_name
         - details
         - id
         - purpose
         - reporter_email
+        - user_id
+        - violation
+    comment: ""
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - details
+        - illegal_content_category
+        - illegal_content_description
+        - illegal_content_laws_broken
+        - illegal_content_location
+        - purpose
+        - reporter_email
+        - review_conclusion_reason
+        - review_status
+        - reviewed_by
         - user_id
         - violation
     comment: ""
@@ -20,7 +41,6 @@ select_permissions:
     permission:
       columns:
         - app_id
-        - app_name
         - created_at
         - details
         - id
