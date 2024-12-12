@@ -86,7 +86,7 @@ export const getLogoImgCDNUrl = (
   isAppVerified = true,
 ) => {
   if (!path) {
-    return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/default-logo-image`;
+    return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/default/default-logo-image.png`;
   }
   return getCDNImageUrl(app_id, path, isAppVerified);
 };
