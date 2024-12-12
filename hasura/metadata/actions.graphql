@@ -77,6 +77,12 @@ type Mutation {
 }
 
 type Mutation {
+  tmp_insert_app_report(
+    input: TmpInsertAppReport!
+  ): TmpInsertAppReportOutput
+}
+
+type Mutation {
   unban_app(
     app_id: String!
   ): UnbanAppOutput
@@ -163,6 +169,13 @@ input FinishAppReportInput {
   review_conclusion_reason: String!
 }
 
+input TmpInsertAppReport {
+  app_id: String!
+  user_id: String!
+  reporter_email: String!
+  details: String!
+}
+
 type ResetClientOutput {
   client_secret: String!
 }
@@ -245,5 +258,9 @@ type UnbanAppOutput {
 
 type FinishAppReportOutput {
   successs: Boolean!
+}
+
+type TmpInsertAppReportOutput {
+  success: Boolean!
 }
 
