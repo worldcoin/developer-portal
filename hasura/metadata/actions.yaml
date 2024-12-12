@@ -48,7 +48,7 @@ actions:
   - name: finish_app_report
     definition:
       kind: asynchronous
-      handler: '{{NEXT_API_URL}}/hasura/finish-app-report'
+      handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
       headers:
         - name: Authorization
           value: INTERNAL_ENDPOINTS_SECRET

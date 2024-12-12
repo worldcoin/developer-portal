@@ -226,6 +226,18 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+export type TmpInsertAppReport = {
+  app_id: Scalars["String"]["input"];
+  details: Scalars["String"]["input"];
+  reporter_email: Scalars["String"]["input"];
+  user_id: Scalars["String"]["input"];
+};
+
+export type TmpInsertAppReportOutput = {
+  __typename?: "TmpInsertAppReportOutput";
+  success: Scalars["Boolean"]["output"];
+};
+
 export type UnbanAppOutput = {
   __typename?: "UnbanAppOutput";
   success: Scalars["Boolean"]["output"];
@@ -4286,19 +4298,6 @@ export type Cache_Updates = {
   where: Cache_Bool_Exp;
 };
 
-/** fields of action: "create_app_report" */
-export type Create_App_Report = {
-  __typename?: "create_app_report";
-  /** the time at which this action was created */
-  created_at: Scalars["timestamptz"]["output"];
-  /** errors related to the invocation */
-  errors?: Maybe<Scalars["json"]["output"]>;
-  /** the unique id of an action */
-  id: Scalars["uuid"]["output"];
-  /** the output fields of this action */
-  output?: Maybe<CreateAppReportOutput>;
-};
-
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
@@ -5269,7 +5268,7 @@ export type Mutation_Root = {
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Creates an app report */
-  create_app_report: Scalars["uuid"]["output"];
+  create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
@@ -5457,6 +5456,8 @@ export type Mutation_Root = {
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
+  /** temporary backward-compatibility layer for the old report form */
+  tmp_insert_app_report?: Maybe<TmpInsertAppReportOutput>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -6136,6 +6137,11 @@ export type Mutation_RootReset_Api_KeyArgs = {
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootTmp_Insert_App_ReportArgs = {
+  input: TmpInsertAppReport;
 };
 
 /** mutation root */
@@ -7353,8 +7359,6 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
-  /** Creates an app report */
-  create_app_report?: Maybe<Create_App_Report>;
   /** Closes the report with an decision */
   finish_app_report?: Maybe<Finish_App_Report>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
@@ -7686,10 +7690,6 @@ export type Query_RootCache_AggregateArgs = {
 
 export type Query_RootCache_By_PkArgs = {
   id: Scalars["String"]["input"];
-};
-
-export type Query_RootCreate_App_ReportArgs = {
-  id: Scalars["uuid"]["input"];
 };
 
 export type Query_RootFinish_App_ReportArgs = {
@@ -8422,8 +8422,6 @@ export type Subscription_Root = {
   cache_by_pk?: Maybe<Cache>;
   /** fetch data from the table in a streaming manner: "cache" */
   cache_stream: Array<Cache>;
-  /** Creates an app report */
-  create_app_report?: Maybe<Create_App_Report>;
   /** Closes the report with an decision */
   finish_app_report?: Maybe<Finish_App_Report>;
   /** fetch data from the table: "invite" */
@@ -8836,10 +8834,6 @@ export type Subscription_RootCache_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Cache_Stream_Cursor_Input>>;
   where?: InputMaybe<Cache_Bool_Exp>;
-};
-
-export type Subscription_RootCreate_App_ReportArgs = {
-  id: Scalars["uuid"]["input"];
 };
 
 export type Subscription_RootFinish_App_ReportArgs = {

@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger";
 import { allowedCommonCharactersRegex } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getFinishAppSdk } from "./graphql/finish-app-report.generated";
+import { getSdk as getConcludeAppReportInvestigationSdk } from "./graphql/conclude-app-report-investigation.generated";
 
 const reviewStatusIterable = Object.values(ReviewStatusEnum);
 
@@ -35,7 +35,7 @@ export const POST = async (req: NextRequest) => {
 
     const body = await req.json();
 
-    if (body?.action.name !== "finish_app_report") {
+    if (body?.action.name !== "conclude_app_report_investigation") {
       return errorHasuraQuery({
         req,
         detail: "Invalid action.",
@@ -66,20 +66,21 @@ export const POST = async (req: NextRequest) => {
 
     const client = await getAPIServiceGraphqlClient();
 
-    const { update_app_report_by_pk } = await getFinishAppSdk(
-      client,
-    ).FinishAppReport({
-      app_report_id: parsedParams.app_report_id,
-      review_conclusion_reason: parsedParams.review_conclusion_reason,
-      review_status: parsedParams.review_status,
-      reviewed_by: parsedParams.reviewed_by,
-    });
+    const { update_app_report_by_pk } =
+      await getConcludeAppReportInvestigationSdk(
+        client,
+      ).ConcludeAppReportInvestigation({
+        app_report_id: parsedParams.app_report_id,
+        review_conclusion_reason: parsedParams.review_conclusion_reason,
+        review_status: parsedParams.review_status,
+        reviewed_by: parsedParams.reviewed_by,
+      });
 
     if (!update_app_report_by_pk) {
       return errorHasuraQuery({
         req,
         detail: "Failed to finish app report",
-        code: "finish_app_report_failed",
+        code: "conclude_app_report_investigation_failed",
       });
     }
 
@@ -89,7 +90,7 @@ export const POST = async (req: NextRequest) => {
 
     return errorHasuraQuery({
       req,
-      detail: "Unable to finish app report",
+      detail: "Unable to conclude app report investigation",
       code: "internal_error",
     });
   }

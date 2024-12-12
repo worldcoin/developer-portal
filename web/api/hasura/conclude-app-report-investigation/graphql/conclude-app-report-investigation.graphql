@@ -1,4 +1,4 @@
-mutation FinishAppReport(
+mutation ConcludeAppReportInvestigation(
   $app_report_id: String!
   $reviewed_by: String!
   $review_status: review_status_enum!

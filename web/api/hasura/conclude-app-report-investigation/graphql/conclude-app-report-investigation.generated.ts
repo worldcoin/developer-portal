@@ -4,20 +4,20 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FinishAppReportMutationVariables = Types.Exact<{
+export type ConcludeAppReportInvestigationMutationVariables = Types.Exact<{
   app_report_id: Types.Scalars["String"]["input"];
   reviewed_by: Types.Scalars["String"]["input"];
   review_status: Types.Scalars["review_status_enum"]["input"];
   review_conclusion_reason: Types.Scalars["String"]["input"];
 }>;
 
-export type FinishAppReportMutation = {
+export type ConcludeAppReportInvestigationMutation = {
   __typename?: "mutation_root";
   update_app_report_by_pk?: { __typename: "app_report" } | null;
 };
 
-export const FinishAppReportDocument = gql`
-  mutation FinishAppReport(
+export const ConcludeAppReportInvestigationDocument = gql`
+  mutation ConcludeAppReportInvestigation(
     $app_report_id: String!
     $reviewed_by: String!
     $review_status: review_status_enum!
@@ -56,18 +56,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FinishAppReport(
-      variables: FinishAppReportMutationVariables,
+    ConcludeAppReportInvestigation(
+      variables: ConcludeAppReportInvestigationMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FinishAppReportMutation> {
+    ): Promise<ConcludeAppReportInvestigationMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FinishAppReportMutation>(
-            FinishAppReportDocument,
+          client.request<ConcludeAppReportInvestigationMutation>(
+            ConcludeAppReportInvestigationDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FinishAppReport",
+        "ConcludeAppReportInvestigation",
         "mutation",
         variables,
       );
