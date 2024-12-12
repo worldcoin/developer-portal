@@ -212,6 +212,8 @@ export type AppStoreMetadataFields = {
   verification_status: string;
   app: {
     team: { name?: string | null };
+    rating_sum: number;
+    rating_count: number;
   };
 };
 

@@ -1,0 +1,16 @@
+query GetIsUserPermittedToInsertApp($userId: String!, $teamId: String!) {
+  team(where: { id: { _eq: $teamId } }) {
+    id
+    memberships(
+      where: {
+        _or: [
+          { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+          { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
+        ]
+      }
+    ) {
+      user_id
+      role
+    }
+  }
+}

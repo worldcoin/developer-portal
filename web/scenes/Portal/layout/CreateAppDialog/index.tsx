@@ -11,6 +11,7 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
@@ -18,33 +19,19 @@ import posthog from "posthog-js";
 import { useCallback, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { RadioCard } from "./RadioCard";
-import { useInsertAppMutation } from "./graphql/client/insert-app.generated";
-
-const BUILD_TYPES = ["staging", "production"] as const;
-const VERIFICATION_TYPES = ["cloud", "on-chain"] as const;
-
-const createAppSchema = yup.object({
-  appName: yup.string().required("This field is required"),
-  build: yup.string().oneOf(BUILD_TYPES).default("production"),
-  category: yup.string().required(),
-  integration_url: yup.string().url("Must be a valid URL").optional(),
-  verification: yup.string().oneOf(VERIFICATION_TYPES).default("cloud"),
-  app_mode: yup
-    .string()
-    .oneOf(["mini-app", "external", "native"])
-    .default("mini-app"),
-});
-
-type FormValues = yup.InferType<typeof createAppSchema>;
+import { createAppSchema, CreateAppSchema } from "./form-schema";
+import { validateAndInsertAppServerSide } from "./server/submit";
 
 export const CreateAppDialog = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
+  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
+    teamId: teamId,
+  });
 
-  const defaultValues: Partial<FormValues> = useMemo(
+  const defaultValues: Partial<CreateAppSchema> = useMemo(
     () => ({
       build: "production",
       verification: "cloud",
@@ -60,7 +47,7 @@ export const CreateAppDialog = (props: DialogProps) => {
     handleSubmit,
     control,
     reset,
-  } = useForm<FormValues>({
+  } = useForm<CreateAppSchema>({
     mode: "onChange",
     resolver: yupResolver(createAppSchema),
     defaultValues,
@@ -71,70 +58,54 @@ export const CreateAppDialog = (props: DialogProps) => {
     name: "app_mode",
   });
 
-  const [insertApp] = useInsertAppMutation();
-
   const submit = useCallback(
-    (values: FormValues) => {
+    async (values: CreateAppSchema) => {
       if (!teamId) {
         return toast.error("Failed to create app");
       }
+      try {
+        await validateAndInsertAppServerSide(values, teamId);
+      } catch (error) {
+        toast.error("Error while creating app");
 
-      insertApp({
-        variables: {
-          name: values.appName,
-          is_staging: values.build === "staging",
-          engine: values.verification,
+        posthog.capture("app_creation_failed", {
           team_id: teamId,
-          category: values.category,
-          integration_url:
-            values.integration_url ?? "https://docs.worldcoin.org/",
-          app_mode: values.app_mode,
-        },
+          environment: values.build,
+          engine: values.verification,
+        });
+      }
+      const [refetched] = await refetchApps();
 
-        refetchQueries: [FetchAppsDocument],
+      const latestApp = refetched.data.app.toSorted(
+        (a: any, b: any) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )[0];
 
-        onCompleted: (data) => {
-          if (!data.insert_app_one) {
-            toast.error("Failed to create app");
-          }
+      const redirect =
+        appMode == "mini-app"
+          ? urls.configuration({
+              team_id: teamId,
+              app_id: latestApp?.id ?? "",
+            })
+          : urls.actions({
+              team_id: teamId,
+              app_id: latestApp?.id ?? "",
+            });
 
-          const redirect =
-            appMode == "mini-app"
-              ? urls.configuration({
-                  team_id: teamId,
-                  app_id: data.insert_app_one?.id ?? "",
-                })
-              : urls.actions({
-                  team_id: teamId,
-                  app_id: data.insert_app_one?.id ?? "",
-                });
+      router.prefetch(redirect);
+      reset(defaultValues);
 
-          router.prefetch(redirect);
-          reset(defaultValues);
-
-          posthog.capture("app_creation_successful", {
-            team_id: teamId,
-            app_id: data.insert_app_one?.id,
-            environment: values.build,
-            engine: values.verification,
-          });
-
-          router.push(redirect);
-          props.onClose(false);
-        },
-
-        onError: () => {
-          toast.error("Error while creating app");
-
-          posthog.capture("app_creation_failed", {
-            team_id: teamId,
-            environment: values.build,
-            engine: values.verification,
-          });
-        },
+      posthog.capture("app_creation_successful", {
+        team_id: teamId,
+        app_id: latestApp?.id,
+        environment: values.build,
+        engine: values.verification,
       });
+
+      router.push(redirect);
+      props.onClose(false);
     },
-    [appMode, defaultValues, insertApp, props, reset, router, teamId],
+    [appMode, defaultValues, props, refetchApps, reset, router, teamId],
   );
 
   const onClose = useCallback(() => {
@@ -235,11 +206,11 @@ export const CreateAppDialog = (props: DialogProps) => {
 
               <div className="grid gap-y-8">
                 <Input
-                  register={register("appName")}
+                  register={register("name")}
                   label="App name"
                   placeholder="Display name (ex. Voting app)"
                   required
-                  errors={errors.appName}
+                  errors={errors.name}
                   data-testid="input-app-name"
                 />
                 <Input

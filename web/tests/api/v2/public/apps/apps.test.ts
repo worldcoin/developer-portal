@@ -43,15 +43,8 @@ jest.mock(
   }),
 );
 
-jest.mock("@/api/helpers/app-rating", () => ({
-  getAppRating: jest.fn().mockResolvedValue(3.4),
-}));
-
 beforeEach(() => {
   jest.resetAllMocks();
-
-  const { getAppRating } = require("@/api/helpers/app-rating");
-  getAppRating.mockResolvedValue(3.4);
 });
 
 describe("/api/v2/public/apps", () => {
@@ -131,6 +124,8 @@ describe("/api/v2/public/apps", () => {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
           {
@@ -158,6 +153,8 @@ describe("/api/v2/public/apps", () => {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
           {
@@ -189,6 +186,8 @@ describe("/api/v2/public/apps", () => {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
         ],
@@ -232,7 +231,7 @@ describe("/api/v2/public/apps", () => {
             },
             world_app_button_text: "random",
             world_app_description: "random",
-            app_rating: 0,
+            app_rating: 3.33,
             verification_status: "verified",
           },
           {
@@ -263,7 +262,7 @@ describe("/api/v2/public/apps", () => {
             team_name: "Example Team",
             world_app_button_text: "random",
             world_app_description: "random",
-            app_rating: 0,
+            app_rating: 3.33,
             verification_status: "verified",
           },
           {
@@ -282,7 +281,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             impressions: 0,
-            app_rating: 0,
+            app_rating: 3.33,
             app_mode: "mini-app",
             associated_domains: ["https://worldcoin.org"],
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
@@ -348,6 +347,8 @@ describe("/api/v2/public/apps", () => {
               team: {
                 name: "Example Team",
               },
+              rating_sum: 10,
+              rating_count: 3,
             },
           },
         ],
@@ -387,7 +388,7 @@ describe("/api/v2/public/apps", () => {
             supported_languages: ["en", "es"],
             ratings_external_nullifier:
               "0x00ca597c4f12f9f85a633bb04cfdc877af7c2d91a6c1c7fe45031b495a227a58",
-            app_rating: 0,
+            app_rating: 3.33,
             unique_users: 0,
             impressions: 0,
             whitelisted_addresses: ["0x1234", "0x5678"],

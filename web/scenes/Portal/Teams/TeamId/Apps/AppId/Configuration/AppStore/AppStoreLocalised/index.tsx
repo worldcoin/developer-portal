@@ -15,6 +15,7 @@ import {
   languageMap,
 } from "@/lib/languages";
 import { Auth0SessionUser } from "@/lib/types";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -30,18 +31,17 @@ import {
 } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
+import { schema } from "../form-schema";
+import {
+  validateAndInsertLocalisationServerSide,
+  validateAndUpdateAppLocaleInfoServerSide,
+  validateAndUpdateAppSupportInfoServerSide,
+  validateAndUpdateLocalisationServerSide,
+} from "../server/submit";
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
-import { useInsertLocalisationMutation } from "./graphql/client/insert-localisation.generated";
-import { useUpdateAppInfoMutation } from "./graphql/client/update-app.generated";
-import { useUpdateLocalisationMutation } from "./graphql/client/update-localisation.generated";
-import {
-  encodeDescription,
-  formatEmailLink,
-  parseDescription,
-  schema,
-} from "./utils/util";
+import { parseDescription } from "./utils/util";
 
 type AppStoreLocalisedForm = yup.Asserts<typeof schema>;
 
@@ -55,10 +55,11 @@ export const AppStoreForm = (props: {
   const countries = useMemo(() => formCountriesList(), []);
   const languages = useMemo(() => formLanguagesList(), []);
 
-  const [updateLocalisationMutation] = useUpdateLocalisationMutation();
   const [addLocaleMutation] = useAddLocaleMutation();
-  const [updateAppInfoMutation, { loading }] = useUpdateAppInfoMutation();
-  const [insertLocalisationMutation] = useInsertLocalisationMutation();
+  const { refetch: refetchAppMetadata } = useRefetchQueries(
+    FetchAppMetadataDocument,
+    { id: appId },
+  );
 
   const [locale, setLocale] = useState("en");
   const [isSupportEmail, setIsSupportEmail] = useState(
@@ -177,106 +178,63 @@ export const AppStoreForm = (props: {
       world_app_button_text,
       ..._
     } = data;
-
-    if (locale !== "en") {
-      const localisedFormData = {
-        name: name,
-        short_name: short_name,
-        world_app_description: world_app_description,
-        world_app_button_text: world_app_button_text,
-      };
-
-      if (localisedData?.localisations?.length === 0) {
-        await insertLocalisationMutation({
-          variables: {
-            input: {
-              description: encodeDescription(
-                data.description_overview,
-                data.description_how_it_works,
-                data.description_connect,
-              ),
-              app_metadata_id: appMetadata?.id ?? "",
-              locale: locale,
-              ...localisedFormData,
-            },
-          },
-        });
-      } else {
-        const localisation = localisedData?.localisations?.[0];
-        await updateLocalisationMutation({
-          variables: {
+    const commonProperties = {
+      description_overview: data.description_overview,
+      description_how_it_works: data.description_how_it_works,
+      description_connect: data.description_connect,
+      app_metadata_id: appMetadata?.id ?? "",
+      locale: locale,
+      name,
+      short_name,
+      world_app_button_text,
+      world_app_description,
+    } as const;
+    try {
+      if (locale !== "en") {
+        if (localisedData?.localisations?.length === 0) {
+          await validateAndInsertLocalisationServerSide(
+            commonProperties,
+            appId,
+          );
+        } else {
+          const localisation = localisedData?.localisations?.[0];
+          await validateAndUpdateLocalisationServerSide({
             localisation_id: localisation?.id ?? "",
-            input: {
-              description: encodeDescription(
-                data.description_overview,
-                data.description_how_it_works,
-                data.description_connect,
-              ),
-              ...localisedFormData,
-            },
-          },
-        });
+            ...commonProperties,
+          });
+        }
+        await refetchLocalisation();
+      } else {
+        await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
+        refetchLocalisation();
       }
-      await refetchLocalisation();
-    } else {
-      await updateAppInfoMutation({
-        variables: {
-          app_metadata_id: appMetadata?.id,
-          input: {
-            description: encodeDescription(
-              data.description_overview,
-              data.description_how_it_works,
-              data.description_connect,
-            ),
-            name,
-            short_name,
-            world_app_button_text,
-            world_app_description,
-          },
-        },
-      });
-      refetchLocalisation();
+    } catch (e) {
+      toast.error("Failed to save localisation");
     }
   }, [
+    appId,
     appMetadata?.id,
     getValues,
-    insertLocalisationMutation,
     locale,
     localisedData?.localisations,
     refetchLocalisation,
-    updateAppInfoMutation,
-    updateLocalisationMutation,
   ]);
 
   // Anchor: Submit Form
   const submit = useCallback(
     async (data: AppStoreLocalisedForm) => {
-      if (loading) return;
       try {
-        const supportLink = isSupportEmail
-          ? formatEmailLink(data.support_email)
-          : data.support_link;
-
         await saveLocalisation();
-        await updateAppInfoMutation({
-          variables: {
-            app_metadata_id: appMetadata?.id,
-            input: {
-              support_link: supportLink,
-              app_website_url: data.app_website_url,
-              supported_countries: data.supported_countries,
-              category: data.category,
-            },
-          },
-          refetchQueries: [
-            {
-              query: FetchAppMetadataDocument,
-              variables: {
-                id: appId,
-              },
-            },
-          ],
+        await validateAndUpdateAppSupportInfoServerSide({
+          app_metadata_id: appMetadata?.id,
+          is_support_email: isSupportEmail,
+          support_link: data.support_link,
+          support_email: data.support_email,
+          app_website_url: data.app_website_url,
+          supported_countries: data.supported_countries,
+          category: data.category,
         });
+        await refetchAppMetadata();
         toast.success("App information updated successfully");
       } catch (e) {
         console.error("App information failed to update: ", e);
@@ -284,14 +242,7 @@ export const AppStoreForm = (props: {
       }
       toast.update("formState", { autoClose: 0 });
     },
-    [
-      appId,
-      appMetadata?.id,
-      isSupportEmail,
-      loading,
-      saveLocalisation,
-      updateAppInfoMutation,
-    ],
+    [appMetadata?.id, isSupportEmail, refetchAppMetadata, saveLocalisation],
   );
 
   const supportedLanguages = useWatch({

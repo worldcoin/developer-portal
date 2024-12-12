@@ -1,0 +1,5 @@
+ALTER TABLE app
+DROP COLUMN IF EXISTS rating_sum;
+
+ALTER TABLE app
+DROP COLUMN IF EXISTS rating_count;
