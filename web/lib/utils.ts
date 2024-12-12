@@ -80,6 +80,17 @@ export const getCDNImageUrl = (
     ? `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`
     : `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
 
+export const getLogoImgCDNUrl = (
+  app_id: string,
+  path: string,
+  isAppVerified = true,
+) => {
+  if (!path) {
+    return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/default-logo-image`;
+  }
+  return getCDNImageUrl(app_id, path, isAppVerified);
+};
+
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
   teamId: string,

@@ -83,28 +83,28 @@ export async function GET(
     }, null);
   }
 
-  let dataToReturn = await formatAppMetadata(
+  let formattedMetadata = await formatAppMetadata(
     { ...parsedAppMetadata },
     metricsData,
     locale,
   );
 
-  if (dataToReturn.app_id in nativeAppMetadata) {
-    const nativeAppItem = nativeAppMetadata[dataToReturn.app_id];
+  if (formattedMetadata.app_id in nativeAppMetadata) {
+    const nativeAppItem = nativeAppMetadata[formattedMetadata.app_id];
 
-    dataToReturn = {
-      ...dataToReturn,
+    formattedMetadata = {
+      ...formattedMetadata,
       app_mode: nativeAppItem.app_mode,
       integration_url:
         nativeAppItem.integration_url !== ""
           ? nativeAppItem.integration_url
-          : dataToReturn.integration_url,
+          : formattedMetadata.integration_url,
       app_id: nativeAppItem.app_id,
     };
   }
 
   return NextResponse.json(
-    { app_data: dataToReturn },
+    { app_data: formattedMetadata },
     {
       status: 200,
     },
