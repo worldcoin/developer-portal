@@ -62,6 +62,7 @@ insert_permissions:
     permission:
       check: {}
       columns:
+        - app_id
         - app_mode
         - app_website_url
         - associated_domains
