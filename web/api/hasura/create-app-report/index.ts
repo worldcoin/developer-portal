@@ -8,6 +8,7 @@ import {
   ViolationEnum,
 } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
+import { allowedCommonCharactersRegex } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getCreateAppSdk } from "./graphql/create-app-report.generated";
@@ -29,14 +30,30 @@ export const schema = yup
       .oneOf(purposeIterable)
       .required("Purpose is required"),
     violation: yup.string().oneOf(violationIterable).nullable(),
-    details: yup.string().nullable(),
+    details: yup
+      .string()
+      .nullable()
+      .matches(allowedCommonCharactersRegex)
+      .max(1500),
     illegal_content_category: yup
       .string()
       .oneOf(illegalContentCategoryIterable)
       .nullable(),
-    illegal_content_laws_broken: yup.string().nullable(),
-    illegal_content_description: yup.string().nullable(),
-    illegal_content_location: yup.string().nullable(),
+    illegal_content_laws_broken: yup
+      .string()
+      .nullable()
+      .matches(allowedCommonCharactersRegex)
+      .max(1500),
+    illegal_content_description: yup
+      .string()
+      .nullable()
+      .matches(allowedCommonCharactersRegex)
+      .max(1500),
+    illegal_content_location: yup
+      .string()
+      .nullable()
+      .matches(allowedCommonCharactersRegex)
+      .max(1500),
   })
   .test("final-validation", "Invalid input", (values) => {
     if (

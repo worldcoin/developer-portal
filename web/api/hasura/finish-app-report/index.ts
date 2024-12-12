@@ -4,6 +4,7 @@ import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { ReviewStatusEnum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
+import { allowedCommonCharactersRegex } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getFinishAppSdk } from "./graphql/finish-app-report.generated";
@@ -15,7 +16,11 @@ export const schema = yup.object({
   reviewed_at: yup.date().required(),
   reviewed_by: yup.string().required(),
   review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
-  review_conclusion_reason: yup.string().required(),
+  review_conclusion_reason: yup
+    .string()
+    .required()
+    .matches(allowedCommonCharactersRegex)
+    .max(3000),
 });
 
 export const POST = async (req: NextRequest) => {
