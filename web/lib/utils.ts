@@ -77,8 +77,8 @@ export const getCDNImageUrl = (
   isAppVerified = true,
 ) =>
   isAppVerified
-    ? `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/${app_id}/${path}`
-    : `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
+    ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}/${path}`
+    : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
 
 export const getLogoImgCDNUrl = (
   app_id: string,
@@ -86,7 +86,7 @@ export const getLogoImgCDNUrl = (
   isAppVerified = true,
 ) => {
   if (!path) {
-    return `${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}/default/default-logo-image.png`;
+    return `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/default/default-logo-image.png`;
   }
   return getCDNImageUrl(app_id, path, isAppVerified);
 };
@@ -139,7 +139,7 @@ export const isValidHostName = (request: Request) => {
   if (process.env.NODE_ENV === "development") {
     return true;
   }
-  const cdnHost = process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL;
+  const cdnHost = process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
   if (!cdnHost || !cdnHost.includes(hostName)) {
     return false;
   }

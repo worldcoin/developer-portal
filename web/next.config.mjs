@@ -1,8 +1,7 @@
 // @ts-check
 
 const cdnURLObject = new URL(
-  process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL ||
-    "https://world-id-assets.com",
+  process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
 
 const publicAppURL =
