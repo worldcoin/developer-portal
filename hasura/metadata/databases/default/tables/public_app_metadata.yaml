@@ -347,6 +347,7 @@ update_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - changelog
         - contracts
         - created_at
         - description
