@@ -12519,6 +12519,22 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "args": [],
@@ -14076,6 +14092,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "type": {
@@ -14597,6 +14625,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "type": {
@@ -15095,6 +15135,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "args": [],
@@ -15503,6 +15555,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "type": {
@@ -15870,6 +15934,18 @@
           },
           {
             "name": "category",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "changelog",
             "description": null,
             "args": [],
             "type": {
@@ -16278,6 +16354,18 @@
           },
           {
             "name": "category",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "changelog",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -16837,6 +16925,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "type": {
@@ -17273,6 +17373,12 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": "column name",
             "isDeprecated": false,
@@ -17619,6 +17725,18 @@
           },
           {
             "name": "category",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "changelog",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18330,6 +18448,18 @@
             "deprecationReason": null
           },
           {
+            "name": "changelog",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "contracts",
             "description": null,
             "type": {
@@ -18828,6 +18958,12 @@
           },
           {
             "name": "category",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "changelog",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

@@ -1,4 +1,5 @@
 import {
+  appChangelogSchema,
   appDescriptionConnectSchema,
   appDescriptionHowItWorksSchema,
   appDescriptionOverviewSchema,
@@ -32,5 +33,6 @@ export const submitAppSchema = yup.object().shape({
   app_metadata_id: yup.string().required("App metadata ID is required"),
   team_id: yup.string().required("Team ID is required"),
   is_developer_allow_listing: yup.boolean(),
+  changelog: appChangelogSchema,
 });
 export type SubmitAppSchema = yup.Asserts<typeof submitAppSchema>;
