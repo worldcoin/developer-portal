@@ -5,6 +5,12 @@ type Mutation {
 }
 
 type Mutation {
+  conclude_app_report_investigation(
+    input: ConcludeAppReportInvestigationInput!
+  ): ConcludeAppReportInvestigationOutput
+}
+
+type Mutation {
   create_app_report(
     input: CreateAppReportInput!
   ): CreateAppReportOutput
@@ -21,12 +27,6 @@ type Mutation {
   delete_unverified_images(
     app_id: String!
   ): DeleteImageOutput
-}
-
-type Mutation {
-  finish_app_report(
-    input: FinishAppReportInput!
-  ): FinishAppReportOutput
 }
 
 type Query {
@@ -176,6 +176,13 @@ input TmpInsertAppReport {
   details: String!
 }
 
+input ConcludeAppReportInvestigationInput {
+  app_report_id: String!
+  reviewed_by: String!
+  review_status: ReviewStatusEnum!
+  review_conclusion_reason: String!
+}
+
 type ResetClientOutput {
   client_secret: String!
 }
@@ -261,6 +268,10 @@ type FinishAppReportOutput {
 }
 
 type TmpInsertAppReportOutput {
+  success: Boolean!
+}
+
+type ConcludeAppReportInvestigationOutput {
   success: Boolean!
 }
 

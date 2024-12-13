@@ -79,14 +79,14 @@ export const POST = async (req: NextRequest) => {
     if (!update_app_report_by_pk) {
       return errorHasuraQuery({
         req,
-        detail: "Failed to finish app report",
+        detail: "Failed to conclude app report",
         code: "conclude_app_report_investigation_failed",
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error finishing app report", { error });
+    logger.error("Error concluding app report", { error });
 
     return errorHasuraQuery({
       req,

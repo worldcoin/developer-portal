@@ -55,6 +55,18 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]["input"]>>;
 };
 
+export type ConcludeAppReportInvestigationInput = {
+  app_report_id: Scalars["String"]["input"];
+  review_conclusion_reason: Scalars["String"]["input"];
+  review_status: ReviewStatusEnum;
+  reviewed_by: Scalars["String"]["input"];
+};
+
+export type ConcludeAppReportInvestigationOutput = {
+  __typename?: "ConcludeAppReportInvestigationOutput";
+  successs: Scalars["Boolean"]["output"];
+};
+
 export type CreateAppReportInput = {
   app_id: Scalars["String"]["input"];
   details?: InputMaybe<Scalars["String"]["input"]>;
@@ -81,18 +93,6 @@ export type CreateNewDraftOutput = {
 export type DeleteImageOutput = {
   __typename?: "DeleteImageOutput";
   success?: Maybe<Scalars["Boolean"]["output"]>;
-};
-
-export type FinishAppReportInput = {
-  app_report_id: Scalars["String"]["input"];
-  review_conclusion_reason: Scalars["String"]["input"];
-  review_status: ReviewStatusEnum;
-  reviewed_by: Scalars["String"]["input"];
-};
-
-export type FinishAppReportOutput = {
-  __typename?: "FinishAppReportOutput";
-  successs: Scalars["Boolean"]["output"];
 };
 
 export type GetUploadedImageOutput = {
@@ -4298,17 +4298,9 @@ export type Cache_Updates = {
   where: Cache_Bool_Exp;
 };
 
-/** ordering argument of a cursor */
-export enum Cursor_Ordering {
-  /** ascending ordering of the cursor */
-  Asc = "ASC",
-  /** descending ordering of the cursor */
-  Desc = "DESC",
-}
-
-/** fields of action: "finish_app_report" */
-export type Finish_App_Report = {
-  __typename?: "finish_app_report";
+/** fields of action: "conclude_app_report_investigation" */
+export type Conclude_App_Report_Investigation = {
+  __typename?: "conclude_app_report_investigation";
   /** the time at which this action was created */
   created_at: Scalars["timestamptz"]["output"];
   /** errors related to the invocation */
@@ -4316,8 +4308,16 @@ export type Finish_App_Report = {
   /** the unique id of an action */
   id: Scalars["uuid"]["output"];
   /** the output fields of this action */
-  output?: Maybe<FinishAppReportOutput>;
+  output?: Maybe<ConcludeAppReportInvestigationOutput>;
 };
+
+/** ordering argument of a cursor */
+export enum Cursor_Ordering {
+  /** ascending ordering of the cursor */
+  Asc = "ASC",
+  /** descending ordering of the cursor */
+  Desc = "DESC",
+}
 
 /** Boolean expression to compare columns of type "illegal_content_category_enum". All fields are combined with logical 'AND'. */
 export type Illegal_Content_Category_Enum_Comparison_Exp = {
@@ -5267,6 +5267,8 @@ export type Mutation_Root = {
   __typename?: "mutation_root";
   /** Bans app by app_id */
   ban_app: BanAppOutput;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation: Scalars["uuid"]["output"];
   /** Creates an app report */
   create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
@@ -5359,8 +5361,6 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
-  /** Closes the report with an decision */
-  finish_app_report: Scalars["uuid"]["output"];
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -5617,6 +5617,11 @@ export type Mutation_RootBan_AppArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootConclude_App_Report_InvestigationArgs = {
+  input: ConcludeAppReportInvestigationInput;
+};
+
+/** mutation root */
 export type Mutation_RootCreate_App_ReportArgs = {
   input: CreateAppReportInput;
 };
@@ -5850,11 +5855,6 @@ export type Mutation_RootDelete_UserArgs = {
 /** mutation root */
 export type Mutation_RootDelete_User_By_PkArgs = {
   id: Scalars["String"]["input"];
-};
-
-/** mutation root */
-export type Mutation_RootFinish_App_ReportArgs = {
-  input: FinishAppReportInput;
 };
 
 /** mutation root */
@@ -7359,8 +7359,8 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
-  /** Closes the report with an decision */
-  finish_app_report?: Maybe<Finish_App_Report>;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
   /** Used by the reviewer to get in review app images */
   get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
@@ -7692,7 +7692,7 @@ export type Query_RootCache_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
-export type Query_RootFinish_App_ReportArgs = {
+export type Query_RootConclude_App_Report_InvestigationArgs = {
   id: Scalars["uuid"]["input"];
 };
 
@@ -8422,8 +8422,8 @@ export type Subscription_Root = {
   cache_by_pk?: Maybe<Cache>;
   /** fetch data from the table in a streaming manner: "cache" */
   cache_stream: Array<Cache>;
-  /** Closes the report with an decision */
-  finish_app_report?: Maybe<Finish_App_Report>;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   /** fetch data from the table: "invite" */
   invite: Array<Invite>;
   /** fetch aggregated fields from the table: "invite" */
@@ -8836,7 +8836,7 @@ export type Subscription_RootCache_StreamArgs = {
   where?: InputMaybe<Cache_Bool_Exp>;
 };
 
-export type Subscription_RootFinish_App_ReportArgs = {
+export type Subscription_RootConclude_App_Report_InvestigationArgs = {
   id: Scalars["uuid"]["input"];
 };
 

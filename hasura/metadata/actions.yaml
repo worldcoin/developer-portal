@@ -9,6 +9,16 @@ actions:
     permissions:
       - role: reviewer
     comment: Bans app by app_id
+  - name: conclude_app_report_investigation
+    definition:
+      kind: asynchronous
+      handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
+      headers:
+        - name: Authorization
+          value: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: reviewer
+    comment: Closes the report with a decision
   - name: create_app_report
     definition:
       kind: synchronous
@@ -45,16 +55,6 @@ actions:
     permissions:
       - role: user
       - role: api_key
-  - name: finish_app_report
-    definition:
-      kind: asynchronous
-      handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
-      headers:
-        - name: Authorization
-          value: INTERNAL_ENDPOINTS_SECRET
-    permissions:
-      - role: reviewer
-    comment: Closes the report with an decision
   - name: get_all_unverified_images
     definition:
       kind: ""
@@ -286,6 +286,7 @@ custom_types:
     - name: CreateAppReportInput
     - name: FinishAppReportInput
     - name: TmpInsertAppReport
+    - name: ConcludeAppReportInvestigationInput
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
@@ -307,4 +308,5 @@ custom_types:
     - name: UnbanAppOutput
     - name: FinishAppReportOutput
     - name: TmpInsertAppReportOutput
+    - name: ConcludeAppReportInvestigationOutput
   scalars: []
