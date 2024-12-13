@@ -126,6 +126,16 @@ actions:
       - role: api_key
       - role: user
     comment: Reset the client secret for a Sign in with World ID application
+  - name: tmp_insert_app_report
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/tmp-insert-app-report'
+      headers:
+        - name: Authorization
+          value: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: reviewer
+    comment: temporary backward-compatibility layer for the old report form
   - name: upload_image
     definition:
       kind: ""
@@ -184,6 +194,7 @@ custom_types:
   enums: []
   input_objects:
     - name: UploadImageInput
+    - name: TmpInsertAppReport
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
@@ -201,4 +212,5 @@ custom_types:
     - name: CreateNewDraftOutput
     - name: ValidateLocalisationOutput
     - name: BanAppOutput
+    - name: TmpInsertAppReportOutput
   scalars: []

@@ -64,6 +64,12 @@ type Mutation {
   ): ResetClientOutput
 }
 
+type Mutation {
+  tmp_insert_app_report(
+    input: TmpInsertAppReport!
+  ): TmpInsertAppReportOutput
+}
+
 type Query {
   upload_image(
     app_id: String!
@@ -94,6 +100,13 @@ input UploadImageInput {
   team_id: String!
   image_type: String!
   content_type_ending: String!
+}
+
+input TmpInsertAppReport {
+  app_id: String!
+  user_id: String!
+  reporter_email: String!
+  details: String!
 }
 
 type ResetClientOutput {
@@ -166,5 +179,9 @@ type ValidateLocalisationOutput {
 
 type BanAppOutput {
   success: Boolean
+}
+
+type TmpInsertAppReportOutput {
+  success: Boolean!
 }
 
