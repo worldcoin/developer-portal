@@ -62,7 +62,7 @@ export const formatAppMetadata = async (
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
     short_name:
-      localisedContent?.short_name || appMetadata.short_name || "default-name",
+      localisedContent?.short_name || appMetadata.short_name || "test",
     logo_img_url: getLogoImgCDNUrl(
       appMetadata.app_id,
       appMetadata.logo_img_url,
