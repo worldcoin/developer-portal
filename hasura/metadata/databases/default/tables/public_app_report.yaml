@@ -44,8 +44,16 @@ select_permissions:
         - created_at
         - details
         - id
+        - illegal_content_category
+        - illegal_content_description
+        - illegal_content_laws_broken
+        - illegal_content_location
         - purpose
         - reporter_email
+        - review_conclusion_reason
+        - review_status
+        - reviewed_at
+        - reviewed_by
         - user_id
         - violation
       filter: {}
