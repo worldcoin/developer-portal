@@ -13,6 +13,10 @@ insert_permissions:
         - app_id
         - details
         - id
+        - illegal_content_category
+        - illegal_content_description
+        - illegal_content_laws_broken
+        - illegal_content_location
         - purpose
         - reporter_email
         - user_id
