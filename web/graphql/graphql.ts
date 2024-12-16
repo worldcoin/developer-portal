@@ -64,7 +64,7 @@ export type ConcludeAppReportInvestigationInput = {
 
 export type ConcludeAppReportInvestigationOutput = {
   __typename?: "ConcludeAppReportInvestigationOutput";
-  successs: Scalars["Boolean"]["output"];
+  success: Scalars["Boolean"]["output"];
 };
 
 export type CreateAppReportInput = {
@@ -224,18 +224,6 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars["String"]["input"]>;
-};
-
-export type TmpInsertAppReport = {
-  app_id: Scalars["String"]["input"];
-  details: Scalars["String"]["input"];
-  reporter_email: Scalars["String"]["input"];
-  user_id: Scalars["String"]["input"];
-};
-
-export type TmpInsertAppReportOutput = {
-  __typename?: "TmpInsertAppReportOutput";
-  success: Scalars["Boolean"]["output"];
 };
 
 export type UnbanAppOutput = {
@@ -5456,8 +5444,6 @@ export type Mutation_Root = {
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
-  /** temporary backward-compatibility layer for the old report form */
-  tmp_insert_app_report?: Maybe<TmpInsertAppReportOutput>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -6137,11 +6123,6 @@ export type Mutation_RootReset_Api_KeyArgs = {
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
-};
-
-/** mutation root */
-export type Mutation_RootTmp_Insert_App_ReportArgs = {
-  input: TmpInsertAppReport;
 };
 
 /** mutation root */
