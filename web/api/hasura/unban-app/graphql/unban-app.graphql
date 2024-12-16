@@ -1,0 +1,5 @@
+mutation UnbanApp($app_id: String!) {
+  update_app_by_pk(pk_columns: { id: $app_id }, _set: { is_banned: false }) {
+    id
+  }
+}

@@ -5,13 +5,10 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getCreateAppSdk } from "./graphql/create-app-report.generated";
+import { getSdk as getUnbanAppSdk } from "./graphql/unban-app.generated";
 
-export const schema = yup.object({
-  app_id: yup.string().required("App ID is required"),
-  user_id: yup.string().required("User ID is required"),
-  reporter_email: yup.string().required("Reporter email is required"),
-  details: yup.string().nullable(),
+const schema = yup.object({
+  app_id: yup.string().strict().required(),
 });
 
 export const POST = async (req: NextRequest) => {
@@ -26,7 +23,7 @@ export const POST = async (req: NextRequest) => {
 
     const body = await req.json();
 
-    if (body?.action.name !== "create_app_report") {
+    if (body?.action.name !== "unban_app") {
       return errorHasuraQuery({
         req,
         detail: "Invalid action.",
@@ -43,7 +40,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const { isValid, parsedParams } = await validateRequestSchema({
-      value: body.input.input,
+      value: body.input,
       schema,
     });
 
@@ -55,32 +52,37 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const client = await getAPIServiceGraphqlClient();
+    const { app_id } = parsedParams;
 
-    const { insert_app_report } = await getCreateAppSdk(client).CreateAppReport(
-      {
-        app_id: parsedParams.app_id,
-        user_id: parsedParams.user_id,
-        reporter_email: parsedParams.reporter_email,
-        details: parsedParams.details,
-      },
-    );
-
-    if (!insert_app_report) {
+    if (!app_id) {
       return errorHasuraQuery({
         req,
-        detail: "Failed to create app report",
-        code: "create_app_report_failed",
+        detail: "app_id must be set.",
+        code: "required",
+      });
+    }
+
+    const client = await getAPIServiceGraphqlClient();
+
+    const { update_app_by_pk } = await getUnbanAppSdk(client).UnbanApp({
+      app_id,
+    });
+
+    if (!update_app_by_pk) {
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to unban app",
+        code: "unban_app_failed",
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error creating app report", { error });
+    logger.error("Error unbanning app.", { error });
 
     return errorHasuraQuery({
       req,
-      detail: "Unable to create app report",
+      detail: "Unable to unban app",
       code: "internal_error",
     });
   }
