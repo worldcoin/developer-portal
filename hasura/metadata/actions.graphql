@@ -77,12 +77,6 @@ type Mutation {
 }
 
 type Mutation {
-  tmp_insert_app_report(
-    input: TmpInsertAppReport!
-  ): TmpInsertAppReportOutput
-}
-
-type Mutation {
   unban_app(
     app_id: String!
   ): UnbanAppOutput
