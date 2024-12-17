@@ -4,9 +4,9 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetHighlightsQueryVariables = Types.Exact<{ [key: string]: never }>;
+export type GetRankingsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-export type GetHighlightsQuery = {
+export type GetRankingsQuery = {
   __typename?: "query_root";
   app_rankings: Array<{
     __typename?: "app_rankings";
@@ -14,8 +14,8 @@ export type GetHighlightsQuery = {
   }>;
 };
 
-export const GetHighlightsDocument = gql`
-  query GetHighlights {
+export const GetRankingsDocument = gql`
+  query GetRankings {
     app_rankings(
       where: { platform: { _eq: "app" }, country: { _eq: "featured" } }
     ) {
@@ -43,17 +43,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetHighlights(
-      variables?: GetHighlightsQueryVariables,
+    GetRankings(
+      variables?: GetRankingsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetHighlightsQuery> {
+    ): Promise<GetRankingsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetHighlightsQuery>(GetHighlightsDocument, variables, {
+          client.request<GetRankingsQuery>(GetRankingsDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "GetHighlights",
+        "GetRankings",
         "query",
         variables,
       );
