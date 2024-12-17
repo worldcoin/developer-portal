@@ -36,6 +36,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       is_developer_allow_listing:
         parsedInput.is_developer_allow_listing ?? false,
       verification_status: "awaiting_review",
+      changelog: parsedInput.changelog,
     });
   } catch (error) {
     console.error(

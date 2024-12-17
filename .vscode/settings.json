@@ -25,4 +25,5 @@
     "**/Thumbs.db": true,
     "**/node_modules": true
   },
+  "makefile.configureOnOpen": false
 }

@@ -127,3 +127,12 @@ export const appDescriptionConnectSchema = yup
     excludeEmptyString: true,
   })
   .optional();
+export const appChangelogSchema = yup
+  .string()
+  .matches(allowedCommonCharactersRegex, {
+    message:
+      "Changelog can only contain letters, numbers and certain special characters.",
+  })
+  .min(10, "Provide a changelog, 10 characters minimum")
+  .max(1500, "Changelog cannot exceed 1500 characters")
+  .required("Changelog is required");
