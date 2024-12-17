@@ -1,0 +1,53 @@
+query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
+  top_apps: app_metadata(
+    where: {
+      app: { is_banned: { _eq: false } }
+      _or: [
+        { is_reviewer_world_app_approved: { _eq: true } }
+        { app_mode: { _eq: "external" } }
+      ]
+      verification_status: { _eq: "verified" }
+    }
+    limit: $limit
+    offset: $offset
+  ) {
+    name
+    short_name
+    app_id
+    logo_img_url
+    showcase_img_urls
+    hero_image_url
+    world_app_description
+    world_app_button_text
+    whitelisted_addresses
+    app_mode
+    description
+    category
+    integration_url
+    app_website_url
+    source_code_url
+    support_link
+    supported_countries
+    supported_languages
+    associated_domains
+    contracts
+    permit2_tokens
+    can_import_all_contacts
+    is_reviewer_world_app_approved
+    verification_status
+    localisations(where: { locale: { _eq: $locale } }) {
+      name
+      world_app_button_text
+      world_app_description
+      short_name
+      description
+    }
+    app {
+      team {
+        name
+      }
+      rating_count
+      rating_sum
+    }
+  }
+}
