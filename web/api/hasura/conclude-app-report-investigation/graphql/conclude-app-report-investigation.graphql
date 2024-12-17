@@ -1,0 +1,19 @@
+mutation ConcludeAppReportInvestigation(
+  $app_report_id: String!
+  $reviewed_by: String!
+  $review_status: review_status_enum!
+  $review_conclusion_reason: String!
+) {
+  update_app_report_by_pk(
+    pk_columns: { id: $app_report_id }
+    _set: {
+      # set reviewed_at to now
+      reviewed_at: "now()"
+      reviewed_by: $reviewed_by
+      review_status: $review_status
+      review_conclusion_reason: $review_conclusion_reason
+    }
+  ) {
+    __typename
+  }
+}

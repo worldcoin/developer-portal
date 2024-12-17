@@ -5,6 +5,18 @@ type Mutation {
 }
 
 type Mutation {
+  conclude_app_report_investigation(
+    input: ConcludeAppReportInvestigationInput!
+  ): ConcludeAppReportInvestigationOutput
+}
+
+type Mutation {
+  create_app_report(
+    input: CreateAppReportInput!
+  ): CreateAppReportOutput
+}
+
+type Mutation {
   create_new_draft(
     app_id: String!
     team_id: String!
@@ -64,6 +76,12 @@ type Mutation {
   ): ResetClientOutput
 }
 
+type Mutation {
+  unban_app(
+    app_id: String!
+  ): UnbanAppOutput
+}
+
 type Query {
   upload_image(
     app_id: String!
@@ -89,11 +107,74 @@ type Mutation {
   ): VerifyAppOutput
 }
 
+enum ReviewStatusEnum {
+  IRRELEVANT
+  CONFIRMED_VIOLATION
+  NO_VIOLATION
+}
+
+enum PurposeEnum {
+  ILLEGAL_CONTENT
+  TOS_VIOLATION
+  OTHER
+}
+
+enum ViolationEnum {
+  FEATURES
+  CORE_FUNCTIONALITY
+  MALICIOUS_APP
+}
+
+enum IllegalContentCategoryEnum {
+  PROVIDES_OR_FACILITATES_AN_ILLEGAL_SERVICE
+  INCITES_TERRORISM_OR_VIOLENCE
+  ILLEGAL_HATE_SPEECH
+  CHILD_SEXUAL_ABUSE
+  VIOLATES_INTELLECTUAL_PROPERTY_RIGHTS
+  VIOLATES_CONSUMER_PROTECTION_OR_PRIVACY_LAW
+  VIOLATES_ADVERTISING_LAW
+  OTHER
+}
+
 input UploadImageInput {
   app_id: String!
   team_id: String!
   image_type: String!
   content_type_ending: String!
+}
+
+input CreateAppReportInput {
+  app_id: String!
+  user_id: String!
+  reporter_email: String!
+  purpose: PurposeEnum!
+  violation: ViolationEnum
+  details: String
+  illegal_content_category: IllegalContentCategoryEnum
+  illegal_content_laws_broken: String
+  illegal_content_description: String
+  illegal_content_location: String
+}
+
+input FinishAppReportInput {
+  app_report_id: String!
+  reviewed_by: String!
+  review_status: ReviewStatusEnum!
+  review_conclusion_reason: String!
+}
+
+input TmpInsertAppReport {
+  app_id: String!
+  user_id: String!
+  reporter_email: String!
+  details: String!
+}
+
+input ConcludeAppReportInvestigationInput {
+  app_report_id: String!
+  reviewed_by: String!
+  review_status: ReviewStatusEnum!
+  review_conclusion_reason: String!
 }
 
 type ResetClientOutput {
@@ -166,5 +247,25 @@ type ValidateLocalisationOutput {
 
 type BanAppOutput {
   success: Boolean
+}
+
+type CreateAppReportOutput {
+  success: Boolean!
+}
+
+type UnbanAppOutput {
+  success: Boolean!
+}
+
+type FinishAppReportOutput {
+  successs: Boolean!
+}
+
+type TmpInsertAppReportOutput {
+  success: Boolean!
+}
+
+type ConcludeAppReportInvestigationOutput {
+  success: Boolean!
 }
 

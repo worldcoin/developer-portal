@@ -26,9 +26,15 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  illegal_content_category_enum: { input: unknown; output: unknown };
+  json: { input: any; output: any };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
+  purpose_enum: { input: unknown; output: unknown };
+  review_status_enum: { input: unknown; output: unknown };
   timestamptz: { input: string; output: string };
+  uuid: { input: unknown; output: unknown };
+  violation_enum: { input: unknown; output: unknown };
 };
 
 export type BanAppOutput = {
@@ -49,6 +55,36 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]["input"]>>;
 };
 
+export type ConcludeAppReportInvestigationInput = {
+  app_report_id: Scalars["String"]["input"];
+  review_conclusion_reason: Scalars["String"]["input"];
+  review_status: ReviewStatusEnum;
+  reviewed_by: Scalars["String"]["input"];
+};
+
+export type ConcludeAppReportInvestigationOutput = {
+  __typename?: "ConcludeAppReportInvestigationOutput";
+  success: Scalars["Boolean"]["output"];
+};
+
+export type CreateAppReportInput = {
+  app_id: Scalars["String"]["input"];
+  details?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_category?: InputMaybe<IllegalContentCategoryEnum>;
+  illegal_content_description?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_laws_broken?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_location?: InputMaybe<Scalars["String"]["input"]>;
+  purpose: PurposeEnum;
+  reporter_email: Scalars["String"]["input"];
+  user_id: Scalars["String"]["input"];
+  violation?: InputMaybe<ViolationEnum>;
+};
+
+export type CreateAppReportOutput = {
+  __typename?: "CreateAppReportOutput";
+  success: Scalars["Boolean"]["output"];
+};
+
 export type CreateNewDraftOutput = {
   __typename?: "CreateNewDraftOutput";
   success?: Maybe<Scalars["Boolean"]["output"]>;
@@ -63,6 +99,17 @@ export type GetUploadedImageOutput = {
   __typename?: "GetUploadedImageOutput";
   url: Scalars["String"]["output"];
 };
+
+export enum IllegalContentCategoryEnum {
+  ChildSexualAbuse = "CHILD_SEXUAL_ABUSE",
+  IllegalHateSpeech = "ILLEGAL_HATE_SPEECH",
+  IncitesTerrorismOrViolence = "INCITES_TERRORISM_OR_VIOLENCE",
+  Other = "OTHER",
+  ProvidesOrFacilitatesAnIllegalService = "PROVIDES_OR_FACILITATES_AN_ILLEGAL_SERVICE",
+  ViolatesAdvertisingLaw = "VIOLATES_ADVERTISING_LAW",
+  ViolatesConsumerProtectionOrPrivacyLaw = "VIOLATES_CONSUMER_PROTECTION_OR_PRIVACY_LAW",
+  ViolatesIntellectualPropertyRights = "VIOLATES_INTELLECTUAL_PROPERTY_RIGHTS",
+}
 
 export type ImageGetAllUnverifiedImagesOutput = {
   __typename?: "ImageGetAllUnverifiedImagesOutput";
@@ -107,6 +154,12 @@ export type PresignedPostOutput = {
   url: Scalars["String"]["output"];
 };
 
+export enum PurposeEnum {
+  IllegalContent = "ILLEGAL_CONTENT",
+  Other = "OTHER",
+  TosViolation = "TOS_VIOLATION",
+}
+
 export type ResetApiOutput = {
   __typename?: "ResetAPIOutput";
   api_key: Scalars["String"]["output"];
@@ -116,6 +169,12 @@ export type ResetClientOutput = {
   __typename?: "ResetClientOutput";
   client_secret: Scalars["String"]["output"];
 };
+
+export enum ReviewStatusEnum {
+  ConfirmedViolation = "CONFIRMED_VIOLATION",
+  Irrelevant = "IRRELEVANT",
+  NoViolation = "NO_VIOLATION",
+}
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type String_Array_Comparison_Exp = {
@@ -167,6 +226,11 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+export type UnbanAppOutput = {
+  __typename?: "UnbanAppOutput";
+  success: Scalars["Boolean"]["output"];
+};
+
 export type ValidateLocalisationOutput = {
   __typename?: "ValidateLocalisationOutput";
   success?: Maybe<Scalars["Boolean"]["output"]>;
@@ -176,6 +240,12 @@ export type VerifyAppOutput = {
   __typename?: "VerifyAppOutput";
   success?: Maybe<Scalars["Boolean"]["output"]>;
 };
+
+export enum ViolationEnum {
+  CoreFunctionality = "CORE_FUNCTIONALITY",
+  Features = "FEATURES",
+  MaliciousApp = "MALICIOUS_APP",
+}
 
 /** columns and relationships of "action" */
 export type Action = {
@@ -2710,15 +2780,26 @@ export type App_Rankings_Updates = {
 /** columns and relationships of "app_report" */
 export type App_Report = {
   __typename?: "app_report";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
-  app_name: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
-  details: Scalars["String"]["output"];
+  details?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["String"]["output"];
-  purpose?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_category?: Maybe<
+    Scalars["illegal_content_category_enum"]["output"]
+  >;
+  illegal_content_description?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_laws_broken?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_location?: Maybe<Scalars["String"]["output"]>;
+  purpose?: Maybe<Scalars["purpose_enum"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  review_conclusion_reason?: Maybe<Scalars["String"]["output"]>;
+  review_status?: Maybe<Scalars["review_status_enum"]["output"]>;
+  reviewed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  reviewed_by?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
-  violation?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["violation_enum"]["output"]>;
 };
 
 /** aggregated selection of "app_report" */
@@ -2747,15 +2828,23 @@ export type App_Report_Bool_Exp = {
   _and?: InputMaybe<Array<App_Report_Bool_Exp>>;
   _not?: InputMaybe<App_Report_Bool_Exp>;
   _or?: InputMaybe<Array<App_Report_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
-  app_name?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   details?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  purpose?: InputMaybe<String_Comparison_Exp>;
+  illegal_content_category?: InputMaybe<Illegal_Content_Category_Enum_Comparison_Exp>;
+  illegal_content_description?: InputMaybe<String_Comparison_Exp>;
+  illegal_content_laws_broken?: InputMaybe<String_Comparison_Exp>;
+  illegal_content_location?: InputMaybe<String_Comparison_Exp>;
+  purpose?: InputMaybe<Purpose_Enum_Comparison_Exp>;
   reporter_email?: InputMaybe<String_Comparison_Exp>;
+  review_conclusion_reason?: InputMaybe<String_Comparison_Exp>;
+  review_status?: InputMaybe<Review_Status_Enum_Comparison_Exp>;
+  reviewed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  reviewed_by?: InputMaybe<String_Comparison_Exp>;
   user_id?: InputMaybe<String_Comparison_Exp>;
-  violation?: InputMaybe<String_Comparison_Exp>;
+  violation?: InputMaybe<Violation_Enum_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_report" */
@@ -2766,43 +2855,71 @@ export enum App_Report_Constraint {
 
 /** input type for inserting data into table "app_report" */
 export type App_Report_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  app_name?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  purpose?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_category?: InputMaybe<
+    Scalars["illegal_content_category_enum"]["input"]
+  >;
+  illegal_content_description?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_laws_broken?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_location?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["purpose_enum"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  review_conclusion_reason?: InputMaybe<Scalars["String"]["input"]>;
+  review_status?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  reviewed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
-  violation?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["violation_enum"]["input"]>;
 };
 
 /** aggregate max on columns */
 export type App_Report_Max_Fields = {
   __typename?: "app_report_max_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
-  app_name?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  purpose?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_category?: Maybe<
+    Scalars["illegal_content_category_enum"]["output"]
+  >;
+  illegal_content_description?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_laws_broken?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_location?: Maybe<Scalars["String"]["output"]>;
+  purpose?: Maybe<Scalars["purpose_enum"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  review_conclusion_reason?: Maybe<Scalars["String"]["output"]>;
+  review_status?: Maybe<Scalars["review_status_enum"]["output"]>;
+  reviewed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  reviewed_by?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
-  violation?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["violation_enum"]["output"]>;
 };
 
 /** aggregate min on columns */
 export type App_Report_Min_Fields = {
   __typename?: "app_report_min_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
-  app_name?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   details?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
-  purpose?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_category?: Maybe<
+    Scalars["illegal_content_category_enum"]["output"]
+  >;
+  illegal_content_description?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_laws_broken?: Maybe<Scalars["String"]["output"]>;
+  illegal_content_location?: Maybe<Scalars["String"]["output"]>;
+  purpose?: Maybe<Scalars["purpose_enum"]["output"]>;
   reporter_email?: Maybe<Scalars["String"]["output"]>;
+  review_conclusion_reason?: Maybe<Scalars["String"]["output"]>;
+  review_status?: Maybe<Scalars["review_status_enum"]["output"]>;
+  reviewed_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  reviewed_by?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
-  violation?: Maybe<Scalars["String"]["output"]>;
+  violation?: Maybe<Scalars["violation_enum"]["output"]>;
 };
 
 /** response of any mutation on the table "app_report" */
@@ -2823,13 +2940,21 @@ export type App_Report_On_Conflict = {
 
 /** Ordering options when selecting data from "app_report". */
 export type App_Report_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
-  app_name?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   details?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  illegal_content_category?: InputMaybe<Order_By>;
+  illegal_content_description?: InputMaybe<Order_By>;
+  illegal_content_laws_broken?: InputMaybe<Order_By>;
+  illegal_content_location?: InputMaybe<Order_By>;
   purpose?: InputMaybe<Order_By>;
   reporter_email?: InputMaybe<Order_By>;
+  review_conclusion_reason?: InputMaybe<Order_By>;
+  review_status?: InputMaybe<Order_By>;
+  reviewed_at?: InputMaybe<Order_By>;
+  reviewed_by?: InputMaybe<Order_By>;
   user_id?: InputMaybe<Order_By>;
   violation?: InputMaybe<Order_By>;
 };
@@ -2844,17 +2969,31 @@ export enum App_Report_Select_Column {
   /** column name */
   AppId = "app_id",
   /** column name */
-  AppName = "app_name",
-  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Details = "details",
   /** column name */
   Id = "id",
   /** column name */
+  IllegalContentCategory = "illegal_content_category",
+  /** column name */
+  IllegalContentDescription = "illegal_content_description",
+  /** column name */
+  IllegalContentLawsBroken = "illegal_content_laws_broken",
+  /** column name */
+  IllegalContentLocation = "illegal_content_location",
+  /** column name */
   Purpose = "purpose",
   /** column name */
   ReporterEmail = "reporter_email",
+  /** column name */
+  ReviewConclusionReason = "review_conclusion_reason",
+  /** column name */
+  ReviewStatus = "review_status",
+  /** column name */
+  ReviewedAt = "reviewed_at",
+  /** column name */
+  ReviewedBy = "reviewed_by",
   /** column name */
   UserId = "user_id",
   /** column name */
@@ -2864,14 +3003,23 @@ export enum App_Report_Select_Column {
 /** input type for updating data in table "app_report" */
 export type App_Report_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  app_name?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  purpose?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_category?: InputMaybe<
+    Scalars["illegal_content_category_enum"]["input"]
+  >;
+  illegal_content_description?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_laws_broken?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_location?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["purpose_enum"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  review_conclusion_reason?: InputMaybe<Scalars["String"]["input"]>;
+  review_status?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  reviewed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
-  violation?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["violation_enum"]["input"]>;
 };
 
 /** Streaming cursor of the table "app_report" */
@@ -2885,14 +3033,23 @@ export type App_Report_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type App_Report_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  app_name?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   details?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  purpose?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_category?: InputMaybe<
+    Scalars["illegal_content_category_enum"]["input"]
+  >;
+  illegal_content_description?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_laws_broken?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_location?: InputMaybe<Scalars["String"]["input"]>;
+  purpose?: InputMaybe<Scalars["purpose_enum"]["input"]>;
   reporter_email?: InputMaybe<Scalars["String"]["input"]>;
+  review_conclusion_reason?: InputMaybe<Scalars["String"]["input"]>;
+  review_status?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  reviewed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
-  violation?: InputMaybe<Scalars["String"]["input"]>;
+  violation?: InputMaybe<Scalars["violation_enum"]["input"]>;
 };
 
 /** update columns of table "app_report" */
@@ -2900,17 +3057,31 @@ export enum App_Report_Update_Column {
   /** column name */
   AppId = "app_id",
   /** column name */
-  AppName = "app_name",
-  /** column name */
   CreatedAt = "created_at",
   /** column name */
   Details = "details",
   /** column name */
   Id = "id",
   /** column name */
+  IllegalContentCategory = "illegal_content_category",
+  /** column name */
+  IllegalContentDescription = "illegal_content_description",
+  /** column name */
+  IllegalContentLawsBroken = "illegal_content_laws_broken",
+  /** column name */
+  IllegalContentLocation = "illegal_content_location",
+  /** column name */
   Purpose = "purpose",
   /** column name */
   ReporterEmail = "reporter_email",
+  /** column name */
+  ReviewConclusionReason = "review_conclusion_reason",
+  /** column name */
+  ReviewStatus = "review_status",
+  /** column name */
+  ReviewedAt = "reviewed_at",
+  /** column name */
+  ReviewedBy = "reviewed_by",
   /** column name */
   UserId = "user_id",
   /** column name */
@@ -4129,6 +4300,19 @@ export type Cache_Updates = {
   where: Cache_Bool_Exp;
 };
 
+/** fields of action: "conclude_app_report_investigation" */
+export type Conclude_App_Report_Investigation = {
+  __typename?: "conclude_app_report_investigation";
+  /** the time at which this action was created */
+  created_at: Scalars["timestamptz"]["output"];
+  /** errors related to the invocation */
+  errors?: Maybe<Scalars["json"]["output"]>;
+  /** the unique id of an action */
+  id: Scalars["uuid"]["output"];
+  /** the output fields of this action */
+  output?: Maybe<ConcludeAppReportInvestigationOutput>;
+};
+
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
@@ -4136,6 +4320,19 @@ export enum Cursor_Ordering {
   /** descending ordering of the cursor */
   Desc = "DESC",
 }
+
+/** Boolean expression to compare columns of type "illegal_content_category_enum". All fields are combined with logical 'AND'. */
+export type Illegal_Content_Category_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["illegal_content_category_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["illegal_content_category_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["illegal_content_category_enum"]["input"]>>;
+};
 
 /** Invites */
 export type Invite = {
@@ -5072,6 +5269,10 @@ export type Mutation_Root = {
   __typename?: "mutation_root";
   /** Bans app by app_id */
   ban_app: BanAppOutput;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation: Scalars["uuid"]["output"];
+  /** Creates an app report */
+  create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
   /** delete data from the table: "action" */
   delete_action?: Maybe<Action_Mutation_Response>;
@@ -5257,6 +5458,8 @@ export type Mutation_Root = {
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
+  /** Unbans an app */
+  unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
   update_action?: Maybe<Action_Mutation_Response>;
   /** update single row of the table: "action" */
@@ -5411,6 +5614,16 @@ export type Mutation_Root = {
 /** mutation root */
 export type Mutation_RootBan_AppArgs = {
   app_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootConclude_App_Report_InvestigationArgs = {
+  input: ConcludeAppReportInvestigationInput;
+};
+
+/** mutation root */
+export type Mutation_RootCreate_App_ReportArgs = {
+  input: CreateAppReportInput;
 };
 
 /** mutation root */
@@ -5924,6 +6137,11 @@ export type Mutation_RootReset_Api_KeyArgs = {
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootUnban_AppArgs = {
+  app_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7047,6 +7265,19 @@ export enum Order_By {
   DescNullsLast = "desc_nulls_last",
 }
 
+/** Boolean expression to compare columns of type "purpose_enum". All fields are combined with logical 'AND'. */
+export type Purpose_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["purpose_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["purpose_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["purpose_enum"]["input"]>>;
+};
+
 export type Query_Root = {
   __typename?: "query_root";
   /** fetch data from the table: "action" */
@@ -7123,6 +7354,8 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
   /** Used by the reviewer to get in review app images */
   get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
@@ -7452,6 +7685,10 @@ export type Query_RootCache_AggregateArgs = {
 
 export type Query_RootCache_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootConclude_App_Report_InvestigationArgs = {
+  id: Scalars["uuid"]["input"];
 };
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
@@ -7918,6 +8155,19 @@ export type Redirect_Updates = {
   where: Redirect_Bool_Exp;
 };
 
+/** Boolean expression to compare columns of type "review_status_enum". All fields are combined with logical 'AND'. */
+export type Review_Status_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["review_status_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["review_status_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["review_status_enum"]["input"]>>;
+};
+
 /** columns and relationships of "role" */
 export type Role = {
   __typename?: "role";
@@ -8167,6 +8417,8 @@ export type Subscription_Root = {
   cache_by_pk?: Maybe<Cache>;
   /** fetch data from the table in a streaming manner: "cache" */
   cache_stream: Array<Cache>;
+  /** Closes the report with a decision */
+  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   /** fetch data from the table: "invite" */
   invite: Array<Invite>;
   /** fetch aggregated fields from the table: "invite" */
@@ -8577,6 +8829,10 @@ export type Subscription_RootCache_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Cache_Stream_Cursor_Input>>;
   where?: InputMaybe<Cache_Bool_Exp>;
+};
+
+export type Subscription_RootConclude_App_Report_InvestigationArgs = {
+  id: Scalars["uuid"]["input"];
 };
 
 export type Subscription_RootInviteArgs = {
@@ -9489,4 +9745,17 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */
+export type Violation_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["violation_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["violation_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["violation_enum"]["input"]>>;
 };

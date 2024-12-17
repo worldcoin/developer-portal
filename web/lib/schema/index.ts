@@ -7,9 +7,29 @@ export const entityIdSchema = yup
   .string()
   .matches(/^[a-zA-Z0-9]+_[a-zA-Z0-9]{32}$/, "Invalid id format");
 
-/** use for long form text */
+/**
+ * use for long form text
+ *
+ * a short overview of this lovely regex:
+ *
+ * \u3000-\u303F: CJK symbols and punctuation
+ *
+ * \u4E00-\u9FFF: CJK unified ideographs
+ *
+ * \u3040-\u309F: Hiragana
+ *
+ * \u30A0-\u30FF: Katakana
+ *
+ * \uFF00-\uFFEF: Halfwidth and fullwidth forms
+ *
+ * \p{Letter}: any letter in any language
+ *
+ * \p{Mark}: a character intended to be combined with another character (e.g. accents, umlauts, enclosing boxes, etc.).
+ *
+ * https://www.regular-expressions.info/unicode.html
+ */
 export const allowedCommonCharactersRegex =
-  /^[\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+]*$/u;
+  /^[/\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+]*$/u;
 
 /** use for titles */
 const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9_-]+$/u;
