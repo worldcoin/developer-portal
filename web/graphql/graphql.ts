@@ -1703,7 +1703,7 @@ export type App_Metadata = {
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   can_import_all_contacts: Scalars["Boolean"]["output"];
   category: Scalars["String"]["output"];
-  changelog: Scalars["String"]["output"];
+  changelog?: Maybe<Scalars["String"]["output"]>;
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at: Scalars["timestamptz"]["output"];
   description: Scalars["String"]["output"];
