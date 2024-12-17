@@ -8,7 +8,7 @@ import {
   AppStoreMetadataDescription,
   AppStoreMetadataFields,
 } from "@/lib/types";
-import { getCDNImageUrl, tryParseJSON } from "@/lib/utils";
+import { getCDNImageUrl, getLogoImgCDNUrl, tryParseJSON } from "@/lib/utils";
 
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
@@ -61,8 +61,9 @@ export const formatAppMetadata = async (
     world_app_description:
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
-    short_name: localisedContent?.short_name ?? appMetadata.short_name ?? name,
-    logo_img_url: getCDNImageUrl(
+    short_name:
+      localisedContent?.short_name || appMetadata.short_name || "test",
+    logo_img_url: getLogoImgCDNUrl(
       appMetadata.app_id,
       appMetadata.logo_img_url,
       appMetadata.verification_status === "verified",

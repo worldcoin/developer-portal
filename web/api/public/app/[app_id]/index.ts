@@ -32,7 +32,7 @@ export async function GET(
   if (!isValidHostName(request)) {
     return NextResponse.json(
       {
-        error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_VERIFIED_IMAGES_CDN_URL}`,
+        error: `Invalid Request Origin, please use ${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}`,
       },
       { status: 400 },
     );
