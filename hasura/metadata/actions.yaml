@@ -15,7 +15,7 @@ actions:
       handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
       headers:
         - name: Authorization
-          value: INTERNAL_ENDPOINTS_SECRET
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
       - role: reviewer
     comment: Closes the report with a decision
@@ -25,7 +25,7 @@ actions:
       handler: '{{NEXT_API_URL}}/hasura/create-app-report'
       headers:
         - name: Authorization
-          value: INTERNAL_ENDPOINTS_SECRET
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
       - role: reviewer
     comment: Creates an app report
@@ -152,7 +152,7 @@ actions:
       handler: '{{NEXT_API_URL}}/hasura/unban-app'
       headers:
         - name: Authorization
-          value: INTERNAL_ENDPOINTS_SECRET
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
       - role: reviewer
     comment: Unbans an app
