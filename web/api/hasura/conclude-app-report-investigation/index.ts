@@ -24,7 +24,7 @@ export const schema = yup.object({
 
 export const POST = async (req: NextRequest) => {
   try {
-    if (protectInternalEndpoint(req)) {
+    if (!protectInternalEndpoint(req)) {
       return errorHasuraQuery({
         req,
         detail: "Internal endpoint",
