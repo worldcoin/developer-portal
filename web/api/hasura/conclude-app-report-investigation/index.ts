@@ -13,7 +13,6 @@ const reviewStatusIterable = Object.values(ReviewStatusEnum);
 
 export const schema = yup.object({
   app_report_id: yup.string().required(),
-  reviewed_at: yup.date().required(),
   reviewed_by: yup.string().required(),
   review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
   review_conclusion_reason: yup
