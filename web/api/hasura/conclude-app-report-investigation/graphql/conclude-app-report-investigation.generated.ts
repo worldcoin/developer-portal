@@ -13,7 +13,7 @@ export type ConcludeAppReportInvestigationMutationVariables = Types.Exact<{
 
 export type ConcludeAppReportInvestigationMutation = {
   __typename?: "mutation_root";
-  update_app_report_by_pk?: { __typename: "app_report" } | null;
+  update_app_report_by_pk?: { __typename: "app_report"; id: string } | null;
 };
 
 export const ConcludeAppReportInvestigationDocument = gql`
@@ -33,6 +33,7 @@ export const ConcludeAppReportInvestigationDocument = gql`
       }
     ) {
       __typename
+      id
     }
   }
 `;

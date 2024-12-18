@@ -62,3 +62,20 @@ select_permissions:
         - violation
       filter: {}
     comment: ""
+  - role: service
+    permission:
+      columns:
+        - id
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - review_conclusion_reason
+        - review_status
+        - reviewed_at
+        - reviewed_by
+      filter: {}
+      check: null
+    comment: ""
