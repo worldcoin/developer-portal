@@ -29,7 +29,7 @@ export const entityIdSchema = yup
  * https://www.regular-expressions.info/unicode.html
  */
 export const allowedCommonCharactersRegex =
-  /^[/\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+]*$/u;
+  /^[/\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+$]*$/u;
 
 /** use for titles */
 const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9_-]+$/u;
