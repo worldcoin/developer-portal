@@ -15,6 +15,5 @@ mutation ConcludeAppReportInvestigation(
     }
   ) {
     __typename
-    id
   }
 }
