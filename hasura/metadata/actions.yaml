@@ -11,7 +11,7 @@ actions:
     comment: Bans app by app_id
   - name: conclude_app_report_investigation
     definition:
-      kind: asynchronous
+      kind: synchronous
       handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
       headers:
         - name: Authorization

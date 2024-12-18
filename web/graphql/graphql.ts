@@ -27,13 +27,11 @@ export type Scalars = {
   Int: { input: number; output: number };
   Float: { input: number; output: number };
   illegal_content_category_enum: { input: unknown; output: unknown };
-  json: { input: any; output: any };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
   purpose_enum: { input: unknown; output: unknown };
   review_status_enum: { input: unknown; output: unknown };
   timestamptz: { input: string; output: string };
-  uuid: { input: unknown; output: unknown };
   violation_enum: { input: unknown; output: unknown };
 };
 
@@ -1703,7 +1701,7 @@ export type App_Metadata = {
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   can_import_all_contacts: Scalars["Boolean"]["output"];
   category: Scalars["String"]["output"];
-  changelog: Scalars["String"]["output"];
+  changelog?: Maybe<Scalars["String"]["output"]>;
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at: Scalars["timestamptz"]["output"];
   description: Scalars["String"]["output"];
@@ -4300,19 +4298,6 @@ export type Cache_Updates = {
   where: Cache_Bool_Exp;
 };
 
-/** fields of action: "conclude_app_report_investigation" */
-export type Conclude_App_Report_Investigation = {
-  __typename?: "conclude_app_report_investigation";
-  /** the time at which this action was created */
-  created_at: Scalars["timestamptz"]["output"];
-  /** errors related to the invocation */
-  errors?: Maybe<Scalars["json"]["output"]>;
-  /** the unique id of an action */
-  id: Scalars["uuid"]["output"];
-  /** the output fields of this action */
-  output?: Maybe<ConcludeAppReportInvestigationOutput>;
-};
-
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
@@ -5270,7 +5255,7 @@ export type Mutation_Root = {
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Closes the report with a decision */
-  conclude_app_report_investigation: Scalars["uuid"]["output"];
+  conclude_app_report_investigation?: Maybe<ConcludeAppReportInvestigationOutput>;
   /** Creates an app report */
   create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
@@ -7354,8 +7339,6 @@ export type Query_Root = {
   cache_aggregate: Cache_Aggregate;
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
-  /** Closes the report with a decision */
-  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
   /** Used by the reviewer to get in review app images */
   get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
@@ -7685,10 +7668,6 @@ export type Query_RootCache_AggregateArgs = {
 
 export type Query_RootCache_By_PkArgs = {
   id: Scalars["String"]["input"];
-};
-
-export type Query_RootConclude_App_Report_InvestigationArgs = {
-  id: Scalars["uuid"]["input"];
 };
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
@@ -8417,8 +8396,6 @@ export type Subscription_Root = {
   cache_by_pk?: Maybe<Cache>;
   /** fetch data from the table in a streaming manner: "cache" */
   cache_stream: Array<Cache>;
-  /** Closes the report with a decision */
-  conclude_app_report_investigation?: Maybe<Conclude_App_Report_Investigation>;
   /** fetch data from the table: "invite" */
   invite: Array<Invite>;
   /** fetch aggregated fields from the table: "invite" */
@@ -8829,10 +8806,6 @@ export type Subscription_RootCache_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Cache_Stream_Cursor_Input>>;
   where?: InputMaybe<Cache_Bool_Exp>;
-};
-
-export type Subscription_RootConclude_App_Report_InvestigationArgs = {
-  id: Scalars["uuid"]["input"];
 };
 
 export type Subscription_RootInviteArgs = {
