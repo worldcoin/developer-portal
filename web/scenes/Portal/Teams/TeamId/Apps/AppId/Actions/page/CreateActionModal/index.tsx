@@ -8,8 +8,8 @@ import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { generateExternalNullifier } from "@/lib/hashing";
 import { EngineType } from "@/lib/types";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -22,13 +22,13 @@ import slugify from "slugify";
 import * as yup from "yup";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
-import { useInsertActionMutation } from "./graphql/client/insert-action.generated";
+import { createActionServerSide } from "./server";
 
 const createActionSchema = yup.object({
   name: yup.string().required("This field is required"),
   description: yup.string().required(),
   action: yup.string().required("This field is required"),
-  maxVerifications: yup
+  max_verifications: yup
     .number()
     .typeError("Max verifications must be a number")
     .required("This field is required"),
@@ -63,11 +63,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     resolver: yupResolver(createActionSchema),
     mode: "onChange",
     defaultValues: {
-      maxVerifications: 1,
+      max_verifications: 1,
     },
   });
-
-  const [insertActionMutation, { loading }] = useInsertActionMutation({});
 
   useEffect(() => {
     setFocus("name");
@@ -86,28 +84,22 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     return () => subscription.unsubscribe();
   }, [setValue, watch]);
 
+  const { refetch: refetchActions } = useRefetchQueries(GetActionsDocument, {
+    app_id: appId,
+  });
+
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
-        const result = await insertActionMutation({
-          variables: {
-            name: values.name,
-            description: values.description,
-            action: values.action,
-            app_id: appId,
-            external_nullifier: generateExternalNullifier(appId, values.action)
-              .digest,
-            max_verifications: values.maxVerifications,
-          },
-
-          refetchQueries: [GetActionsDocument],
-          awaitRefetchQueries: true,
+        const result = await createActionServerSide({
+          ...values,
+          app_id: appId,
         });
 
         if (result instanceof Error) {
           throw result;
         }
-        const action_id = result.data?.insert_action_one?.id;
+        const action_id = result.action_id;
 
         posthog.capture("action_created", {
           name: values.name,
@@ -116,6 +108,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           is_first_action: firstAction,
         });
 
+        const refetchResult = await refetchActions();
+        console.log("refetchResult", refetchResult);
         reset();
         if (firstAction) {
           router.prefetch(`${pathname}/${action_id}/settings`);
@@ -148,15 +142,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [
-      insertActionMutation,
-      appId,
-      reset,
-      firstAction,
-      router,
-      pathname,
-      setError,
-    ],
+    [appId, firstAction, refetchActions, reset, router, pathname, setError],
   );
 
   return (
@@ -229,14 +215,14 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             />
             {engineType !== EngineType.OnChain && (
               <Controller
-                name="maxVerifications"
+                name="max_verifications"
                 control={control}
                 render={({ field }) => {
                   return (
                     <MaxVerificationsSelector
                       value={field.value}
                       onChange={field.onChange}
-                      errors={errors.maxVerifications}
+                      errors={errors.max_verifications}
                       showCustomInput
                       required
                       label="Max verifications per user"
@@ -251,7 +237,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               <DecoratedButton
                 variant="primary"
                 type="submit"
-                disabled={!isValid || loading}
+                disabled={!isValid}
                 className="px-10 py-3"
                 testId="create-action-modal"
               >

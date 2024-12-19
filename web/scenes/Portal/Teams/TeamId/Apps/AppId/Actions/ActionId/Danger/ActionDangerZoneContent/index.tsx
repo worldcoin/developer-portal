@@ -50,7 +50,6 @@ export const ActionDangerZoneContent = (props: {
             query: GetActionsDocument,
             variables: {
               app_id: appId,
-              condition: {},
             },
             fetchPolicy: "network-only", // No reason to pull cache as we deleted an action
           },
