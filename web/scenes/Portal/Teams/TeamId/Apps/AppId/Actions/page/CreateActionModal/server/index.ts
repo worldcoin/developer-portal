@@ -5,7 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
-    
+
 export async function createActionServerSide(
   initialValues: CreateActionSchema,
 ) {
