@@ -8,17 +8,17 @@ import { AppStatsReturnType } from "@/lib/types";
 import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 import {
   GetAppsQuery,
-  getSdk as getAppsSdk,
-} from "./graphql/get-app-rankings.generated";
-import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
+  getSdk as getTopAppsSdk,
+} from "./graphql/get-top-apps.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
-} from "./graphql/get-highlighted-apps.generated";
+} from "./graphql/get-highlights-apps.generated";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
@@ -73,7 +73,7 @@ export const GET = async (request: NextRequest) => {
   let highlightsIds: string[] = [];
 
   try {
-    const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
+    const { app_rankings } = await getWebHighlightsSdk(client).GetRankings();
     highlightsIds = app_rankings[0]?.rankings ?? [];
   } catch (error) {
     console.log(error);
@@ -94,7 +94,7 @@ export const GET = async (request: NextRequest) => {
 
   // ANCHOR: Fetch app rankings
   try {
-    const { top_apps } = await getAppsSdk(client).GetApps({
+    const { top_apps } = await getTopAppsSdk(client).GetApps({
       limit: limitValue,
       offset,
       locale,
