@@ -32,7 +32,8 @@ export const allowedCommonCharactersRegex =
   /^[/\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9.,!?'"()\-;/+$]*$/u;
 
 /** use for titles */
-const allowedTitleCharactersRegex = /^[\p{Letter}\p{Mark}\s0-9_-]+$/u;
+const allowedTitleCharactersRegex =
+  /^[\p{Emoji_Presentation}\p{Letter}\p{Mark}\s0-9_-]+$/u;
 
 export const httpsLinkSchema = ({
   excludeEmptyString = false,
@@ -70,7 +71,7 @@ export const appShortNameSchema = yup
   .required("Short name is required")
   .max(10)
   .matches(allowedTitleCharactersRegex, {
-    message: "App name can only contain letters, numbers and spaces",
+    message: "App name can only contain letters, numbers and spaces and emojis",
     excludeEmptyString: true,
   });
 
