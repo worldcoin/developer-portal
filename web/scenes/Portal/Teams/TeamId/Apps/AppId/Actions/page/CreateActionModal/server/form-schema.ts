@@ -23,7 +23,6 @@ export const createActionSchema = yup.object().shape({
   app_id: yup.string().required("App ID is required"),
   max_verifications: yup
     .number()
-    .positive("Max verifications must be positive")
     .required("Max verifications is required"),
 });
 
