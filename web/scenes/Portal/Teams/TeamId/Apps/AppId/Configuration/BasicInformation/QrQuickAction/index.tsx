@@ -32,7 +32,7 @@ export const QrQuickAction = (props: { app_id: string }) => {
 
   return (
     <QuickAction
-      type={"button"}
+      type="button"
       description="Scan this, or copy the link"
       icon={<FlaskIcon />}
       hideArrow

@@ -291,6 +291,11 @@ export const SetupForm = (props: LinksFormProps) => {
           register={register("permit2_tokens", { onChange: formatArrayInput })}
           enableResize={false}
         />
+        {errors?.permit2_tokens?.message && (
+          <p className="mt-2 text-xs text-system-error-500">
+            {errors?.permit2_tokens?.message}
+          </p>
+        )}
       </div>
 
       {/* Contracts */}
@@ -308,6 +313,11 @@ export const SetupForm = (props: LinksFormProps) => {
           register={register("contracts", { onChange: formatArrayInput })}
           enableResize={false}
         />
+        {errors?.contracts?.message && (
+          <p className="mt-2 text-xs text-system-error-500">
+            {errors?.contracts?.message}
+          </p>
+        )}
       </div>
       <DecoratedButton
         type="submit"

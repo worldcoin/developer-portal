@@ -25,8 +25,33 @@ export const schema = yup.object().shape({
       },
     )
     .nullable(),
-  contracts: yup.string().nullable(),
-  permit2_tokens: yup.string().nullable(),
+  contracts: yup
+    .string()
+    .test(
+      "is-valid-eth-address-list",
+      "Each value must be a valid Worldchain address",
+      function (value) {
+        if (!value) return true;
+        const addresses = value.split(",").map((addr) => addr.trim());
+        const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+        return addresses.every((address) => ethAddressRegex.test(address));
+      },
+    )
+    .nullable(),
+  permit2_tokens: yup
+    .string()
+    .test(
+      "is-valid-eth-address-list",
+      "Each value must be a valid Worldchain address",
+      function (value) {
+        if (!value) return true;
+
+        const addresses = value.split(",").map((addr) => addr.trim());
+        const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+        return addresses.every((address) => ethAddressRegex.test(address));
+      },
+    )
+    .nullable(),
 });
 
 export const updateSetupInitialSchema = schema.shape({
