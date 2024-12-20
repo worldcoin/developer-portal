@@ -1,5 +1,8 @@
 import { getLocalisedCategory } from "@/lib/categories";
-import { whitelistedAppsPermit2 } from "@/lib/constants";
+import {
+  whitelistedAppsContracts,
+  whitelistedAppsPermit2,
+} from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
   AppStatsItem,
@@ -51,6 +54,11 @@ export const formatAppMetadata = async (
     ? ["all"]
     : appMetadata.permit2_tokens;
 
+  // Check if the app is whitelisted for permit2
+  const contracts = whitelistedAppsContracts.includes(appMetadata.app_id)
+    ? ["all"]
+    : appMetadata.contracts;
+
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
@@ -97,6 +105,7 @@ export const formatAppMetadata = async (
     show_in_app_store: is_reviewer_world_app_approved,
     team_name: app.team.name ?? "",
     permit2_tokens: permit2Tokens,
+    contracts: contracts,
   };
 };
 
