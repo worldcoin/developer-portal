@@ -21,9 +21,7 @@ export const createActionSchema = yup.object().shape({
     .nullable(),
   action: yup.string().required("Action is required"),
   app_id: yup.string().required("App ID is required"),
-  max_verifications: yup
-    .number()
-    .required("Max verifications is required"),
+  max_verifications: yup.number().required("Max verifications is required"),
 });
 
 export type CreateActionSchema = yup.Asserts<typeof createActionSchema>;
