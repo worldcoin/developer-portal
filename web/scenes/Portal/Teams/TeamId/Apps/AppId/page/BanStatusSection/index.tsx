@@ -11,5 +11,5 @@ export const BanStatusSection = ({ appId }: { appId: string }) => {
 
   const isAppBanned = data?.app[0].id;
 
-  return !isAppBanned && <BanStatus />;
+  return isAppBanned && <BanStatus />;
 };
