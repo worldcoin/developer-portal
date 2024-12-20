@@ -1,10 +1,10 @@
-import { gql } from "@apollo/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import { errorNotAllowed } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { ActionModel } from "@/legacy/lib/models";
-import { errorNotAllowed } from "@/legacy/backend/errors";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { gql } from "@apollo/client";
+import { NextApiRequest, NextApiResponse } from "next";
 
 /**
  * Generates the external nullifier for actions created in the Developer Portal.
@@ -25,7 +25,10 @@ export default async function handler(
 
   const action = req.body.event.data.new as ActionModel;
 
-  if (action.external_nullifier) {
+  if (
+    action.external_nullifier &&
+    action.external_nullifier !== action.app_id // If it's app_id this is the default sign in action
+  ) {
     return res.status(200).json({ success: true, already_generated: true });
   }
 

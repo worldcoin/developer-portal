@@ -26,13 +26,13 @@ test.describe("Action", () => {
     );
     await expect(page.getByTestId("button-create-action-modal")).toBeDisabled();
 
-    await page.fill("[data-testid='input-name']", "Test Action #1");
+    await page.fill("[data-testid='input-name']", "Test Action 1");
     await expect(page.getByTestId("input-id")).toHaveValue("test-action-1");
     await page.fill("[data-testid='input-description']", "Hello, world!");
     await page.click("[data-testid='button-create-action-modal']");
 
     await expect(
-      page.getByText("Test Action #1", { exact: true }),
+      page.getByText("Test Action 1", { exact: true }),
     ).toBeVisible();
 
     await expect(page.locator(`input[placeholder='${appId}']`)).toBeVisible();

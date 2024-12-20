@@ -22,11 +22,16 @@ export const integrationDBClean = async () => {
       path.resolve(__dirname, "./db/default"),
     );
     for (const file of seedFiles) {
-      const seedQuery = fs.readFileSync(
-        path.resolve(__dirname, `./db/default/${file}`),
-        "utf8",
-      );
-      await pool.query(seedQuery);
+      try {
+        const seedQuery = fs.readFileSync(
+          path.resolve(__dirname, `./db/default/${file}`),
+          "utf8",
+        );
+        await pool.query(seedQuery);
+      } catch (error) {
+        console.error(`Error seeding file ${file}:`, error);
+        throw error; // Re-throw the error to trigger rollback
+      }
     }
     await pool.query("COMMIT");
   } catch (error) {
