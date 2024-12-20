@@ -1,4 +1,4 @@
-alter table "public"."action" drop constraint "action_external_nullifier_key";
+-- alter table "public"."action" drop constraint "action_external_nullifier_key";
 
 -- FUNCTION: revert create_default_action_for_app
 CREATE OR REPLACE FUNCTION create_default_action_for_app() RETURNS trigger AS $$ BEGIN
