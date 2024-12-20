@@ -8,6 +8,10 @@ import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  allowedCommonCharactersRegex,
+  allowedTitleCharactersRegex,
+} from "@/lib/schema";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { ApolloError } from "@apollo/client";
@@ -25,8 +29,20 @@ import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 
 const createActionSchema = yup.object({
-  name: yup.string().required("This field is required"),
-  description: yup.string().required(),
+  name: yup
+    .string()
+    .matches(
+      allowedTitleCharactersRegex,
+      "Name must contain only common characters",
+    )
+    .required("This field is required"),
+  description: yup
+    .string()
+    .matches(
+      allowedCommonCharactersRegex,
+      "Description must contain only common characters",
+    )
+    .required(),
   action: yup.string().required("This field is required"),
   max_verifications: yup
     .number()
