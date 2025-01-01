@@ -38,6 +38,8 @@ jest.mock(
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
             verification_status: "unverified",
+            is_allowed_unlimited_notifications: true,
+            max_notifications_per_day: 10,
             app: {
               team: {
                 name: "Example Team",
@@ -93,6 +95,8 @@ describe("/api/public/app/[app_id]", () => {
         unique_users: 0,
         impressions: 0,
         verification_status: "unverified",
+        is_allowed_unlimited_notifications: true,
+        max_notifications_per_day: 10,
         description: {
           how_it_works: "few",
           how_to_connect: "fewf",
@@ -134,6 +138,8 @@ describe("/api/public/app/[app_id]", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_languages: ["en", "es"],
             verification_status: "verified",
+            is_allowed_unlimited_notifications: true,
+            max_notifications_per_day: 10,
             app: {
               team: {
                 name: "Example Team",
@@ -185,6 +191,8 @@ describe("/api/public/app/[app_id]", () => {
         unique_users: 0,
         impressions: 0,
         verification_status: "verified",
+        is_allowed_unlimited_notifications: true,
+        max_notifications_per_day: 10,
         description: {
           how_it_works: "few",
           how_to_connect: "fewf",
@@ -234,6 +242,8 @@ describe("/api/public/app/[app_id]", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
+            is_allowed_unlimited_notifications: true,
+            max_notifications_per_day: 10,
             app: {
               team: {
                 name: "Example Team",
@@ -276,6 +286,8 @@ describe("/api/public/app/[app_id]", () => {
         impressions: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],
         category: { id: "social", name: "Social" },
+        is_allowed_unlimited_notifications: true,
+        max_notifications_per_day: 10,
         description: {
           how_it_works: "few",
           how_to_connect: "fewf",
