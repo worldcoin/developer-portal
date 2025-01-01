@@ -210,6 +210,8 @@ export type AppStoreMetadataFields = {
   permit2_tokens?: string[] | null;
   can_import_all_contacts?: boolean | null;
   verification_status: string;
+  is_allowed_unlimited_notifications?: boolean | null;
+  max_notifications_per_day?: number | null;
   app: {
     team: { name?: string | null };
     rating_sum: number;
