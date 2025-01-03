@@ -233,7 +233,7 @@ describe("test /login-callback", () => {
     const mockReq = {
       nextUrl: url,
     } as unknown as NextRequest;
-    
+
     const mockSession = {
       user: {
         ...validEmailSessionUser,
