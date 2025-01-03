@@ -38,6 +38,8 @@ export type GetAppsQuery = {
     can_import_all_contacts: boolean;
     is_reviewer_world_app_approved: boolean;
     verification_status: string;
+    is_allowed_unlimited_notifications?: boolean | null;
+    max_notifications_per_day?: number | null;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -90,6 +92,8 @@ export const GetAppsDocument = gql`
       can_import_all_contacts
       is_reviewer_world_app_approved
       verification_status
+      is_allowed_unlimited_notifications
+      max_notifications_per_day
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text
