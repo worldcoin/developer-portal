@@ -94,7 +94,7 @@ describe("test /join-callback", () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
-      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2025-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,
     )) as { rows: { id: string; team_id: string; email: string }[] };
 
     const mockReq = {
@@ -173,7 +173,7 @@ describe("test /join-callback", () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
-      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2025-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,
     )) as { rows: { id: string; team_id: string; email: string }[] };
 
     const mockReq = {
