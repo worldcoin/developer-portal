@@ -120,8 +120,8 @@ describe("/api/v2/public/apps", () => {
               description_connect: "4fwfewf",
             }),
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
             app: {
               team: {
                 name: "Example Team",
@@ -146,8 +146,8 @@ describe("/api/v2/public/apps", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             app_mode: "external",
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
             description: JSON.stringify({
               description_overview: "fwefw",
               description_how_it_works: "fwefw",
@@ -181,8 +181,8 @@ describe("/api/v2/public/apps", () => {
             ],
             category: "Social",
             verification_status: "unverified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
             description: JSON.stringify({
               description_overview: "random",
               description_how_it_works: "random",
@@ -239,8 +239,8 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
             app_rating: 3.33,
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
           },
           {
             app_id: "2",
@@ -272,8 +272,8 @@ describe("/api/v2/public/apps", () => {
             world_app_description: "random",
             app_rating: 3.33,
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
           },
           {
             app_id: "3",
@@ -306,8 +306,8 @@ describe("/api/v2/public/apps", () => {
             world_app_button_text: "random",
             world_app_description: "random",
             verification_status: "unverified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
           },
         ],
       },
@@ -355,8 +355,8 @@ describe("/api/v2/public/apps", () => {
             supported_countries: ["us"],
             supported_languages: ["en", "es"],
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
             app: {
               team: {
                 name: "Example Team",
@@ -416,8 +416,8 @@ describe("/api/v2/public/apps", () => {
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             verification_status: "verified",
-            is_allowed_unlimited_notifications: true,
-            max_notifications_per_day: 10,
+            // is_allowed_unlimited_notifications: true,
+            // max_notifications_per_day: 10,
           },
         ],
         highlights: [],
