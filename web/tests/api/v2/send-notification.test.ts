@@ -135,6 +135,32 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe("API key is required.");
   });
 
+  it("returns 400 if message is too long", async () => {
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "random",
+          wallet_addresses: ["0x1234567890"],
+          title: "Test Notification",
+          message: "a" + "bet".repeat(200),
+          mini_app_path: "/test",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe(
+      "message must be at most 200 characters",
+    );
+  });
+
   it("returns 404 if api key not exists", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",

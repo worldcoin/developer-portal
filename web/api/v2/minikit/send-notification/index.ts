@@ -17,9 +17,14 @@ import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
 const sendNotificationBodySchema = yup.object({
   app_id: yup.string().strict().required(),
-  wallet_addresses: yup.array().of(yup.string()),
-  message: yup.string().strict().required(),
-  title: yup.string().strict().optional(),
+  wallet_addresses: yup
+    .array()
+    .of(yup.string())
+    .min(1)
+    .max(1000)
+    .required("wallet_addresses is required"),
+  message: yup.string().strict().required().max(200),
+  title: yup.string().strict().optional().max(30),
   mini_app_path: yup.string().strict().required(),
 });
 
