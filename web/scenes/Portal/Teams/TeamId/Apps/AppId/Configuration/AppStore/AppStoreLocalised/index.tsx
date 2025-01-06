@@ -143,11 +143,11 @@ export const AppStoreForm = (props: {
 
   useEffect(() => {
     const localisedItem =
-      locale !== "en" ? localisedData?.localisations?.[0] : appMetadata;
+      locale === "en" ? appMetadata : localisedData?.localisations?.[0];
     const formValues = getValues();
-
     reset({
       ...formValues,
+      ...description,
       name: localisedItem?.name ?? "",
       short_name: localisedItem?.short_name ?? "",
       world_app_description: localisedItem?.world_app_description ?? "",
@@ -159,10 +159,10 @@ export const AppStoreForm = (props: {
     viewMode,
     reset,
     appMetadata,
-    description,
     locale,
     localisedData?.localisations,
     getValues,
+    description,
   ]);
 
   useEffect(() => {
