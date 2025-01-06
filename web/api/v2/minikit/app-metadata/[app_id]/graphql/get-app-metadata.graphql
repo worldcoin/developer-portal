@@ -36,6 +36,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     app {
       team {
         name
+        id
       }
       rating_sum
       rating_count
