@@ -242,7 +242,7 @@ export const formCountriesList = () =>
     }))
     .filter(({ value }) => allowedCountries.includes(value));
 
-export const formLanguagesList = () => supportedLanguages;
+export const formLanguagesList = supportedLanguages;
 
 // Since Android isn't using a standardized list of locales to return we need to normalize the locale
 export const parseLocale = (locale: string) => {
