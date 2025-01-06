@@ -93,7 +93,6 @@ export const ProfilePage = () => {
             input: {
               name: values.name,
               is_allow_tracking: values.isAllowTracking,
-              // TODO: pass color
             },
           },
         });

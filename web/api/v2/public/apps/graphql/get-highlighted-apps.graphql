@@ -51,6 +51,7 @@ query GetHighlights(
     app {
       team {
         name
+        id
       }
       rating_count
       rating_sum

@@ -10,8 +10,6 @@ function corsHandler(response: NextResponse) {
   return response;
 }
 
-// TODO: Improve Rate Limiting on this endpoint
-
 export const GET = async (
   req: NextRequest,
   { params: routeParams }: { params: { transaction_id: string } },
