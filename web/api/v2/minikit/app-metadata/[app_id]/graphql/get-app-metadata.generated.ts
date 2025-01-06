@@ -49,7 +49,7 @@ export type GetAppMetadataQuery = {
       __typename?: "app";
       rating_sum: number;
       rating_count: number;
-      team: { __typename?: "team"; name?: string | null };
+      team: { __typename?: "team"; name?: string | null; id: string };
     };
   }>;
 };
@@ -93,6 +93,7 @@ export const GetAppMetadataDocument = gql`
       app {
         team {
           name
+          id
         }
         rating_sum
         rating_count

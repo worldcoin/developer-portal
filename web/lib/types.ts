@@ -213,7 +213,7 @@ export type AppStoreMetadataFields = {
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
   app: {
-    team: { name?: string | null };
+    team: { name?: string | null; id: string };
     rating_sum: number;
     rating_count: number;
   };

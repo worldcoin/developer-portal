@@ -55,7 +55,7 @@ export type GetHighlightsQuery = {
       __typename?: "app";
       rating_count: number;
       rating_sum: number;
-      team: { __typename?: "team"; name?: string | null };
+      team: { __typename?: "team"; name?: string | null; id: string };
     };
   }>;
 };
@@ -113,6 +113,7 @@ export const GetHighlightsDocument = gql`
       app {
         team {
           name
+          id
         }
         rating_count
         rating_sum

@@ -71,7 +71,6 @@ export const logNotification = async (
   logger.info(`Notification sent successfully, ${app_id}`);
 };
 
-// TODO: Open to outside of studios and check permissions
 export const POST = async (req: NextRequest) => {
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
@@ -188,6 +187,8 @@ export const POST = async (req: NextRequest) => {
 
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
+
+  // TODO: Remove this enforcement
   if (
     !notificationPermissions[
       process.env.NEXT_PUBLIC_APP_ENV as "staging" | "production"
@@ -257,5 +258,5 @@ export const POST = async (req: NextRequest) => {
     message,
   );
 
-  return NextResponse.json({ success: true, status: 200 });
+  return NextResponse.json({ success: true, status: 200, ...data });
 };

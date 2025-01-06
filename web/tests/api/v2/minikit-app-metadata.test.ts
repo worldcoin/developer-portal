@@ -126,6 +126,7 @@ const app_metadata = {
   unique_users: 0,
   impressions: 0,
   team_name: "test",
+  is_allowed_unlimited_notifications: false,
 };
 
 const getUrl = (app_id: string) =>
@@ -221,6 +222,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       unique_users: 0,
       impressions: 0,
       team_name: "test",
+      is_allowed_unlimited_notifications: false,
     });
   });
 });
