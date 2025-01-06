@@ -53,9 +53,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
     {
-      variables: {
-        id: appId,
-      },
+      id: appId,
     },
   );
 
