@@ -89,7 +89,7 @@ export async function validateAndUpdateLocalisationServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateLocalisationSdk(client).UpdateLocalisation(encodedInput);
   } catch (error) {
-    console.error(
+    console.warn(
       "validateAndUpdateLocalisation - error updating localisation",
       {
         error: JSON.stringify(error),
@@ -152,7 +152,7 @@ export async function validateAndInsertLocalisationServerSide(
       input: encodedInput,
     });
   } catch (error) {
-    console.error(
+    console.warn(
       "validateAndInsertLocalisation - error inserting localisation",
       {
         error: JSON.stringify(error),
@@ -215,7 +215,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(encodedInput);
   } catch (error) {
-    console.error(
+    console.warn(
       "validateAndUpdateAppLocaleInfo - error updating app locale info",
       {
         error: JSON.stringify(error),
@@ -273,7 +273,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(input);
   } catch (error) {
-    console.error(
+    console.warn(
       "validateAndUpdateAppSupportInfo - error updating app support info",
       {
         error: JSON.stringify(error),

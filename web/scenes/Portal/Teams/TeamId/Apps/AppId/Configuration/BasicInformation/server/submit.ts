@@ -35,7 +35,7 @@ export async function validateAndSubmitServerSide(
       input: parsedInput,
     });
   } catch (error) {
-    console.error("Error updating app configuration basic form", {
+    console.warn("Error updating app configuration basic form", {
       error: JSON.stringify(error),
       arguments: { app_metadata_id, input },
     });

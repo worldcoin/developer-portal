@@ -41,7 +41,7 @@ export async function validateAndInsertAppServerSide(
       throw error;
     }
 
-    console.log("validateAndInsertAppServerSide - error inserting app", {
+    console.warn("validateAndInsertAppServerSide - error inserting app", {
       error: JSON.stringify(error),
       arguments: { initialValues, team_id },
     });

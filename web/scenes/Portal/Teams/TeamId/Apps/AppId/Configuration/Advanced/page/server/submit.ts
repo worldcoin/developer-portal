@@ -61,7 +61,7 @@ export async function validateAndUpdateSetupServerSide(
       whitelisted_addresses,
     });
   } catch (error) {
-    console.error("validateAndUpdateSetupServerSide - error updating setup", {
+    console.warn("validateAndUpdateSetupServerSide - error updating setup", {
       error: JSON.stringify(error),
       arguments: { initialValues, app_metadata_id },
     });

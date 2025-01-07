@@ -237,7 +237,6 @@ export const AppStoreForm = (props: {
         await refetchAppMetadata();
         toast.success("App information updated successfully");
       } catch (e) {
-        console.error("App information failed to update: ", e);
         toast.error("Failed to update app information");
       }
       toast.update("formState", { autoClose: 0 });

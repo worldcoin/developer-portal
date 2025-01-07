@@ -39,7 +39,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       changelog: parsedInput.changelog,
     });
   } catch (error) {
-    console.error(
+    console.warn(
       "validateAndSubmitAppForReviewFormServerSide - error submitting app for review",
       {
         error: JSON.stringify(error),
