@@ -229,6 +229,7 @@ export const POST = async (req: NextRequest) => {
         title,
         message,
         miniAppPath: mini_app_path,
+        teamId: teamId,
       }),
     },
   );
