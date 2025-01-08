@@ -43,7 +43,7 @@ const maxNotificationPerDayDropdownOptions = [
   { value: 0, label: "0" },
   { value: 1, label: "1" },
   { value: 2, label: "2" },
-  { value: "unlimited", label: "unlimited" },
+  { value: "unlimited", label: "Unlimited" },
 ] as const;
 
 const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -397,7 +397,11 @@ export const SetupForm = (props: LinksFormProps) => {
                         variant={TYPOGRAPHY.R3}
                         className="text-start text-grey-700"
                       >
-                        {value}
+                        {
+                          maxNotificationPerDayDropdownOptions.find(
+                            (v) => v.value === value,
+                          )?.label
+                        }
                       </Typography>
                       <CaretIcon />
                     </div>
