@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { WLDIcon } from "@/components/Icons/WLDIcon";
+import { Link } from "@/components/Link";
 import {
   Select,
   SelectButton,
@@ -361,9 +362,15 @@ export const SetupForm = (props: LinksFormProps) => {
             variant={TYPOGRAPHY.R3}
             className="text-system-warning-500"
           >
-            Warning: right now you are required to only notify of transactional
-            events. Unlimited notifications are very rarely granted and will be
-            rejected most of the time.
+            Warning: Unlimited notifications are very rarely granted and will be
+            rejected most of the time. Refer to{" "}
+            <Link
+              className="font-bold underline"
+              href="https://docs.world.org/mini-apps/commands/notifications"
+            >
+              docs
+            </Link>{" "}
+            for guidelines.
           </Typography>
         </div>
         <Typography variant={TYPOGRAPHY.R3}>
