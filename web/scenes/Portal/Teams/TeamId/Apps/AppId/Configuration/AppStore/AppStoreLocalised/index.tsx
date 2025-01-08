@@ -209,6 +209,7 @@ export const AppStoreForm = (props: {
       }
       await refetchLocalisation();
     } catch (e) {
+      console.error("App information failed to update: ", e);
       toast.error("Failed to save localisation");
     }
   }, [

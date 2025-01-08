@@ -94,6 +94,7 @@ export const BasicInformation = (props: {
 
         toast.success("App information updated successfully");
       } catch (e) {
+        console.error("Basic Info Failed to Update: ", e);
         toast.error("Failed to update app information");
       }
     },
