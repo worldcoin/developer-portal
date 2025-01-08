@@ -264,5 +264,9 @@ export const POST = async (req: NextRequest) => {
     message,
   );
 
-  return NextResponse.json({ success: true, status: 200, ...data });
+  return NextResponse.json({
+    success: true,
+    status: 200,
+    result: data.results,
+  });
 };
