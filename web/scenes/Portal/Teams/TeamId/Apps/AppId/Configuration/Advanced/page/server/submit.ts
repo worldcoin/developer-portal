@@ -51,6 +51,13 @@ export async function validateAndUpdateSetupServerSide(
       ? null
       : formatMultipleStringInput(parsedInitialValues.whitelisted_addresses);
 
+    const is_allowed_unlimited_notifications =
+      parsedInitialValues.max_notifications_per_day === "unlimited";
+
+    const max_notifications_per_day = is_allowed_unlimited_notifications
+      ? 0
+      : (parsedInitialValues.max_notifications_per_day as number);
+
     const client = await getAPIServiceGraphqlClient();
     await getUpdateSetupSdk(client).UpdateSetup({
       app_metadata_id,
@@ -59,6 +66,9 @@ export async function validateAndUpdateSetupServerSide(
       contracts,
       permit2_tokens,
       whitelisted_addresses,
+      can_import_all_contacts: parsedInitialValues.can_import_all_contacts,
+      is_allowed_unlimited_notifications,
+      max_notifications_per_day,
     });
   } catch (error) {
     console.error("validateAndUpdateSetupServerSide - error updating setup", {
