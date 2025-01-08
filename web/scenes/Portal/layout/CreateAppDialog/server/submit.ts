@@ -1,4 +1,5 @@
 "use server";
+import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
@@ -37,14 +38,10 @@ export async function validateAndInsertAppServerSide(
       app_mode: parsedInitialValues.app_mode,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid permissions") {
-      throw error;
-    }
-
-    console.warn("validateAndInsertAppServerSide - error inserting app", {
+    return errorFormAction({
+      message: "validateAndInsertAppServerSide - error inserting app",
       error: JSON.stringify(error),
-      arguments: { initialValues, team_id },
+      additionalInfo: { initialValues, team_id },
     });
-    throw error;
   }
 }

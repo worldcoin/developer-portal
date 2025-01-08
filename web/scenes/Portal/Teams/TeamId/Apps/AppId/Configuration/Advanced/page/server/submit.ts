@@ -1,4 +1,5 @@
 "use server";
+import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
@@ -61,10 +62,10 @@ export async function validateAndUpdateSetupServerSide(
       whitelisted_addresses,
     });
   } catch (error) {
-    console.warn("validateAndUpdateSetupServerSide - error updating setup", {
-      error: JSON.stringify(error),
-      arguments: { initialValues, app_metadata_id },
+    return errorFormAction({
+      error,
+      message: "validateAndUpdateSetupServerSide - error updating setup",
+      additionalInfo: { initialValues, app_metadata_id },
     });
-    throw error;
   }
 }

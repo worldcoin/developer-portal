@@ -1,5 +1,6 @@
 "use server";
 
+import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
@@ -35,10 +36,10 @@ export async function validateAndSubmitServerSide(
       input: parsedInput,
     });
   } catch (error) {
-    console.warn("Error updating app configuration basic form", {
-      error: JSON.stringify(error),
-      arguments: { app_metadata_id, input },
+    return errorFormAction({
+      message: "Error updating app configuration basic form",
+      error,
+      additionalInfo: { app_metadata_id, input },
     });
-    throw error;
   }
 }

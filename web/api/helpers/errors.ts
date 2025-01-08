@@ -144,3 +144,31 @@ export function errorHasuraQuery({
     { status: 400 },
   );
 }
+
+export class ServerSideValidationError {
+  public message: string;
+  public additionalInfo: string;
+
+  constructor(message: string, additionalInfo: any) {
+    this.message = message;
+    this.additionalInfo = additionalInfo;
+  }
+}
+
+export function errorFormAction({
+  error,
+  message,
+  additionalInfo,
+}: {
+  error: unknown;
+  message: string;
+  additionalInfo: object;
+}) {
+  if (error instanceof Error) {
+    throw new ServerSideValidationError(message, {
+      sourceErrorMessage: error.message,
+      additionalInfo,
+    });
+  }
+  throw error;
+}

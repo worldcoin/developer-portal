@@ -1,5 +1,6 @@
 "use server";
 
+import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
@@ -152,14 +153,11 @@ export async function validateAndInsertLocalisationServerSide(
       input: encodedInput,
     });
   } catch (error) {
-    console.warn(
-      "validateAndInsertLocalisation - error inserting localisation",
-      {
-        error: JSON.stringify(error),
-        arguments: { encodedInput: JSON.stringify(encodedInput, null, 2) },
-      },
-    );
-    throw error;
+    return errorFormAction({
+      message: "validateAndInsertLocalisation - error inserting localisation",
+      error: error,
+      additionalInfo: { encodedInput, initalValues },
+    });
   }
 }
 
@@ -215,14 +213,15 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(encodedInput);
   } catch (error) {
-    console.warn(
-      "validateAndUpdateAppLocaleInfo - error updating app locale info",
-      {
-        error: JSON.stringify(error),
-        arguments: { encodedInput: JSON.stringify(encodedInput, null, 2) },
+    return errorFormAction({
+      error,
+      message:
+        "validateAndUpdateAppLocaleInfo - error updating app locale info",
+      additionalInfo: {
+        encodedInput,
+        initalValues,
       },
-    );
-    throw error;
+    });
   }
 }
 
@@ -273,13 +272,11 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(input);
   } catch (error) {
-    console.warn(
-      "validateAndUpdateAppSupportInfo - error updating app support info",
-      {
-        error: JSON.stringify(error),
-        arguments: { input: JSON.stringify(input, null, 2) },
-      },
-    );
-    throw error;
+    return errorFormAction({
+      error,
+      message:
+        "validateAndUpdateAppSupportInfo - error updating app support info",
+      additionalInfo: { input, initalValues },
+    });
   }
 }
