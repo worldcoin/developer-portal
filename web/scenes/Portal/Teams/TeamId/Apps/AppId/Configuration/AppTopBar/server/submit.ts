@@ -1,5 +1,6 @@
 "use server";
 
+import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
@@ -39,13 +40,11 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       changelog: parsedInput.changelog,
     });
   } catch (error) {
-    console.error(
-      "validateAndSubmitAppForReviewFormServerSide - error submitting app for review",
-      {
-        error: JSON.stringify(error),
-        arguments: { input },
-      },
-    );
-    throw error;
+    return errorFormAction({
+      message:
+        "validateAndSubmitAppForReviewFormServerSide - error submitting app for review",
+      error: error,
+      additionalInfo: { input },
+    });
   }
 }
