@@ -48,6 +48,8 @@ export const logNotification = async (
     app_id,
     mini_app_path,
   };
+
+  // Log notifications sent to more than 10 addresses
   if (walletAddresses.length > 10) {
     notificationLog.message = message;
   }
