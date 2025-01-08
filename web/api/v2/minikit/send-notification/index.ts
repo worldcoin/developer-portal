@@ -28,6 +28,16 @@ const sendNotificationBodySchema = yup.object({
   mini_app_path: yup.string().strict().required(),
 });
 
+type NotificationResult = {
+  walletAddress: string;
+  sent: boolean;
+  reason?: string;
+};
+
+type SendNotificationResponse = {
+  results: NotificationResult[];
+};
+
 export const logNotification = async (
   serviceClient: GraphQLClient,
   app_id: string,
@@ -256,6 +266,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const response = data as SendNotificationResponse;
+
   logNotification(
     serviceClient,
     app_id,
@@ -267,6 +279,6 @@ export const POST = async (req: NextRequest) => {
   return NextResponse.json({
     success: true,
     status: 200,
-    result: data.results,
+    result: response.results,
   });
 };
