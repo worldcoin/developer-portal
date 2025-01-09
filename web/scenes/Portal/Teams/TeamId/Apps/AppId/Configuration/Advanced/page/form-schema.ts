@@ -52,6 +52,12 @@ export const schema = yup.object().shape({
       },
     )
     .nullable(),
+  max_notifications_per_day: yup
+    .mixed<number | string>()
+    .oneOf([0, 1, 2, "unlimited"])
+    .required(),
+  can_import_all_contacts: yup.boolean().required(),
+  is_allowed_unlimited_notifications: yup.boolean().required(),
 });
 
 export const updateSetupInitialSchema = schema.shape({

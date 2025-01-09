@@ -122,6 +122,11 @@ export const POST = async (req: NextRequest) => {
           )
           .join(",")}}`
       : null,
+    is_allowed_unlimited_notifications: Boolean(
+      newAppMetadata.is_allowed_unlimited_notifications,
+    ),
+    can_import_all_contacts: newAppMetadata.can_import_all_contacts,
+    max_notifications_per_day: Number(newAppMetadata.max_notifications_per_day),
   });
 
   if (!insert_app_metadata_one) {
