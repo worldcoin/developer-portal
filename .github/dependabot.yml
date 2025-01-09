@@ -3,5 +3,12 @@ updates:
   - package-ecosystem: "npm"
     directory: "/web"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase
+    open-pull-requests-limit: 10
+    reviewers:
+      - "andy-t-wang"
+      - "michalstruck"
+    assignees:
+      - "andy-t-wang"
+      - "michalstruck"
