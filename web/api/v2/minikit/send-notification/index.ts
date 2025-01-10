@@ -265,8 +265,8 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
-  logger.warn("Notification sent successfully", data);
-  const response: SendNotificationResponse = data;
+  const response: SendNotificationResponse = data.result;
+  logger.warn("Notification sent successfully", response);
 
   logNotification(
     serviceClient,
