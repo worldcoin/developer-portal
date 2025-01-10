@@ -1,6 +1,5 @@
 import { getLocalisedCategory } from "@/lib/categories";
 import {
-  notificationPermissions,
   whitelistedAppsContracts,
   whitelistedAppsPermit2,
 } from "@/lib/constants";
@@ -107,10 +106,6 @@ export const formatAppMetadata = async (
     team_name: app.team.name ?? "",
     permit2_tokens: permit2Tokens,
     contracts: contracts,
-    // TODO: Remove this once we have the forms
-    is_allowed_unlimited_notifications: notificationPermissions[
-      process.env.NEXT_PUBLIC_APP_ENV as "staging" | "production"
-    ].includes(app.team.id),
   };
 };
 

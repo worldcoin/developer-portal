@@ -2,7 +2,6 @@ import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { notificationPermissions } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -205,21 +204,6 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
-  // TODO: Remove this enforcement
-  if (
-    !notificationPermissions[
-      process.env.NEXT_PUBLIC_APP_ENV as "staging" | "production"
-    ].includes(teamId)
-  ) {
-    return errorResponse({
-      statusCode: 403,
-      code: "forbidden",
-      detail: "You are not allowed to send notifications.",
-      attribute: "team_id",
-      req,
-    });
-  }
-
   // Anchor: Send notification
 
   const signedFetch = createSignedFetcher({
@@ -266,7 +250,6 @@ export const POST = async (req: NextRequest) => {
     });
   }
   const response: SendNotificationResponse = data.result;
-  logger.warn("Notification sent successfully", response);
 
   logNotification(
     serviceClient,
