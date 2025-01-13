@@ -204,6 +204,18 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
+  if (
+    !appMetadata.is_allowed_unlimited_notifications &&
+    appMetadata.max_notifications_per_day === 0
+  ) {
+    return errorResponse({
+      statusCode: 400,
+      code: "not_allowed",
+      detail: "Notifications not enabled for this app",
+      req,
+    });
+  }
+
   // Anchor: Send notification
 
   const signedFetch = createSignedFetcher({

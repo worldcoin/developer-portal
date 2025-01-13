@@ -84,6 +84,7 @@ const validAppMetadataResponse = [
     supported_countries: ["us"],
     supported_languages: ["en"],
     associated_domains: ["https://worldcoin.org"],
+    is_allowed_unlimited_notifications: false,
     app: { team: { name: "test" }, rating_sum: 10, rating_count: 3 },
   },
 ];
@@ -181,6 +182,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
           supported_countries: ["us"],
           supported_languages: ["en"],
           app: { team: { name: "test" }, rating_sum: 10, rating_count: 3 },
+          is_allowed_unlimited_notifications: false,
         },
       ],
     });

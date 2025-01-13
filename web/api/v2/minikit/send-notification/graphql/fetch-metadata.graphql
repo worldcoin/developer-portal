@@ -9,6 +9,8 @@ query GetAppMetadata($app_id: String!) {
     name
     app_id
     is_reviewer_app_store_approved
+    is_allowed_unlimited_notifications
+    max_notifications_per_day
     app {
       team {
         id
