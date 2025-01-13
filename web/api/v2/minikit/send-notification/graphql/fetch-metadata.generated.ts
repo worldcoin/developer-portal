@@ -15,6 +15,8 @@ export type GetAppMetadataQuery = {
     name: string;
     app_id: string;
     is_reviewer_app_store_approved: boolean;
+    is_allowed_unlimited_notifications?: boolean | null;
+    max_notifications_per_day?: number | null;
     app: { __typename?: "app"; team: { __typename?: "team"; id: string } };
   }>;
 };
@@ -31,6 +33,8 @@ export const GetAppMetadataDocument = gql`
       name
       app_id
       is_reviewer_app_store_approved
+      is_allowed_unlimited_notifications
+      max_notifications_per_day
       app {
         team {
           id

@@ -32,7 +32,17 @@ jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
     jest.fn(() =>
       Promise.resolve({
-        json: () => ({}),
+        json: () => ({
+          result: {
+            results: [
+              {
+                walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
+                sent: true,
+                reason: "User has disabled notifications",
+              },
+            ],
+          },
+        }),
         ok: true,
         status: 201,
       }),
@@ -234,7 +244,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe("API key is inactive.");
   });
 
-  it("returns 403 if app team is invalid", async () => {
+  it("returns 400 if not allowed to send notifications", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",
       api_key: validApiKey,
@@ -247,15 +257,17 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           name: "Example App",
           app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
           is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: false,
+          max_notifications_per_day: 0,
           app: { team: { id: "random" } },
         },
       ],
     });
 
     const res = await POST(mockReq);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(400);
     expect((await res.json()).detail).toBe(
-      "You are not allowed to send notifications.",
+      "Notifications not enabled for this app",
     );
   });
 });
