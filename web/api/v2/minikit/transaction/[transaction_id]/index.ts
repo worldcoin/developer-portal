@@ -13,6 +13,8 @@ function corsHandler(response: NextResponse) {
 }
 
 const appIdRegex = /^app_[a-f0-9]{32}$/;
+const transactionIdRegex = /^0x[a-f0-9]{64}$/;
+
 const schema = yup.object({
   app_id: yup
     .string()
@@ -26,6 +28,20 @@ export const GET = async (
   { params: routeParams }: { params: { transaction_id: string } },
 ) => {
   const { searchParams } = new URL(req.url);
+  const transactionId = routeParams.transaction_id;
+
+  // Add transaction_id validation
+  if (!transactionIdRegex.test(transactionId)) {
+    return corsHandler(
+      errorResponse({
+        statusCode: 400,
+        code: "invalid_parameter",
+        detail: "Invalid transaction ID",
+        attribute: "transaction_id",
+        req,
+      }),
+    );
+  }
 
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
@@ -40,8 +56,6 @@ export const GET = async (
   }
 
   const { app_id: appId, type } = parsedParams;
-
-  const transactionId = routeParams.transaction_id;
 
   const signedFetch = createSignedFetcher({
     service: "execute-api",

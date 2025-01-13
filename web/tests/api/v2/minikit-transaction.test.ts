@@ -94,7 +94,8 @@ const validApiKeyResponse = {
 };
 
 const validAppId = validApiKeyResponse.api_key_by_pk.team.apps[0].id;
-const validTransactionId = "transaction_123";
+const validTransactionId =
+  "0x8004b63530b968a2a2c9ff414e01fc06a3ec5e4068d36d923df6aa4334744369";
 const validApiKey = `api_${apiKeyValue}`;
 
 // #endregion
