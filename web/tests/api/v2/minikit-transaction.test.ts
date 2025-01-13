@@ -88,13 +88,14 @@ const validApiKeyResponse = {
     is_active: true,
     team: {
       id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
-      apps: [{ id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a" }],
+      apps: [{ id: "app_9cdd0a714aec9ed17dca660bc9ffe72a" }],
     },
   },
 };
 
 const validAppId = validApiKeyResponse.api_key_by_pk.team.apps[0].id;
-const validTransactionId = "transaction_123";
+const validTransactionId =
+  "0x8004b63530b968a2a2c9ff414e01fc06a3ec5e4068d36d923df6aa4334744369";
 const validApiKey = `api_${apiKeyValue}`;
 
 // #endregion

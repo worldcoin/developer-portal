@@ -1,8 +1,10 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { TransactionTypes } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 
 function corsHandler(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Origin", "*");
@@ -10,43 +12,50 @@ function corsHandler(response: NextResponse) {
   return response;
 }
 
+const appIdRegex = /^app_[a-f0-9]{32}$/;
+const transactionIdRegex = /^0x[a-f0-9]{64}$/;
+
+const schema = yup.object({
+  app_id: yup
+    .string()
+    .matches(appIdRegex, "app_id must be in format app_{32 hex chars}")
+    .required(),
+  type: yup.string().oneOf(Object.values(TransactionTypes)).required(),
+});
+
 export const GET = async (
   req: NextRequest,
   { params: routeParams }: { params: { transaction_id: string } },
 ) => {
   const { searchParams } = new URL(req.url);
-
-  const appId = searchParams.get("app_id");
-  const type = searchParams.get("type") ?? TransactionTypes.Payment;
-
-  if (
-    type !== TransactionTypes.Payment &&
-    type !== TransactionTypes.Transaction
-  ) {
-    return corsHandler(
-      errorResponse({
-        statusCode: 400,
-        code: "invalid_request",
-        detail: "Invalid transaction type.",
-        attribute: "type",
-        req,
-      }),
-    );
-  }
-
-  if (!appId) {
-    return corsHandler(
-      errorResponse({
-        statusCode: 400,
-        code: "invalid_request",
-        detail: "App ID is required.",
-        attribute: "app_id",
-        req,
-      }),
-    );
-  }
-
   const transactionId = routeParams.transaction_id;
+
+  // Add transaction_id validation
+  if (!transactionIdRegex.test(transactionId)) {
+    return corsHandler(
+      errorResponse({
+        statusCode: 400,
+        code: "invalid_parameter",
+        detail: "Invalid transaction ID",
+        attribute: "transaction_id",
+        req,
+      }),
+    );
+  }
+
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: {
+      app_id: searchParams.get("app_id"),
+      type: searchParams.get("type") ?? TransactionTypes.Payment,
+    },
+  });
+
+  if (!isValid) {
+    return handleError(req);
+  }
+
+  const { app_id: appId, type } = parsedParams;
 
   const signedFetch = createSignedFetcher({
     service: "execute-api",
