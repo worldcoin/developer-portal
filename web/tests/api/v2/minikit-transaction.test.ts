@@ -88,7 +88,7 @@ const validApiKeyResponse = {
     is_active: true,
     team: {
       id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
-      apps: [{ id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a" }],
+      apps: [{ id: "app_9cdd0a714aec9ed17dca660bc9ffe72a" }],
     },
   },
 };
