@@ -44,6 +44,9 @@ export type CreateDraftMutationVariables = Types.Exact<{
   permit2_tokens?: Types.InputMaybe<
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
+  can_import_all_contacts: Types.Scalars["Boolean"]["input"];
+  is_allowed_unlimited_notifications: Types.Scalars["Boolean"]["input"];
+  max_notifications_per_day: Types.Scalars["Int"]["input"];
 }>;
 
 export type CreateDraftMutation = {
@@ -76,6 +79,9 @@ export const CreateDraftDocument = gql`
     $associated_domains: [String!] = null
     $contracts: [String!] = null
     $permit2_tokens: [String!] = null
+    $can_import_all_contacts: Boolean!
+    $is_allowed_unlimited_notifications: Boolean!
+    $max_notifications_per_day: Int!
   ) {
     insert_app_metadata_one(
       object: {
@@ -102,6 +108,9 @@ export const CreateDraftDocument = gql`
         associated_domains: $associated_domains
         contracts: $contracts
         permit2_tokens: $permit2_tokens
+        can_import_all_contacts: $can_import_all_contacts
+        is_allowed_unlimited_notifications: $is_allowed_unlimited_notifications
+        max_notifications_per_day: $max_notifications_per_day
       }
     ) {
       id

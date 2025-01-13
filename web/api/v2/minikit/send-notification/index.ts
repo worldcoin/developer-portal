@@ -28,6 +28,16 @@ const sendNotificationBodySchema = yup.object({
   mini_app_path: yup.string().strict().required(),
 });
 
+type NotificationResult = {
+  walletAddress: string;
+  sent: boolean;
+  reason?: string;
+};
+
+type SendNotificationResponse = {
+  results: NotificationResult[];
+};
+
 export const logNotification = async (
   serviceClient: GraphQLClient,
   app_id: string,
@@ -48,6 +58,8 @@ export const logNotification = async (
     app_id,
     mini_app_path,
   };
+
+  // Log notifications sent to more than 10 addresses
   if (walletAddresses.length > 10) {
     notificationLog.message = message;
   }
@@ -229,8 +241,7 @@ export const POST = async (req: NextRequest) => {
         title,
         message,
         miniAppPath: mini_app_path,
-        maxNotificationsPerDay: 1,
-        isAllowedUnlimitedNotifications: true, // This is temporary while the API is restricted to studios
+        teamId: teamId,
       }),
     },
   );
@@ -254,6 +265,8 @@ export const POST = async (req: NextRequest) => {
       req,
     });
   }
+  const response: SendNotificationResponse = data.result;
+  logger.warn("Notification sent successfully", response);
 
   logNotification(
     serviceClient,
@@ -263,5 +276,9 @@ export const POST = async (req: NextRequest) => {
     message,
   );
 
-  return NextResponse.json({ success: true, status: 200, ...data });
+  return NextResponse.json({
+    success: true,
+    status: 200,
+    result: response.results,
+  });
 };

@@ -1,7 +1,15 @@
 "use client";
 import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { WLDIcon } from "@/components/Icons/WLDIcon";
+import { Link } from "@/components/Link";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -14,7 +22,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import {
@@ -31,6 +39,12 @@ type LinksFormProps = {
   teamId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
+const maxNotificationPerDayDropdownOptions = [
+  { value: 0, label: "0" },
+  { value: 1, label: "1" },
+  { value: 2, label: "2" },
+  { value: "unlimited", label: "Unlimited" },
+] as const;
 
 const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
   const inputValue = e.target.value;
@@ -73,7 +87,7 @@ export const SetupForm = (props: LinksFormProps) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isValid, dirtyFields },
     setError,
     control,
   } = useForm<LinksFormValues>({
@@ -88,6 +102,11 @@ export const SetupForm = (props: LinksFormProps) => {
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+      can_import_all_contacts: appMetadata?.can_import_all_contacts,
+      max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
+      is_allowed_unlimited_notifications: Boolean(
+        appMetadata?.is_allowed_unlimited_notifications,
+      ),
     },
   });
 
@@ -101,6 +120,11 @@ export const SetupForm = (props: LinksFormProps) => {
       associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+      can_import_all_contacts: appMetadata?.can_import_all_contacts,
+      max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
+      is_allowed_unlimited_notifications: Boolean(
+        appMetadata?.is_allowed_unlimited_notifications,
+      ),
     });
   }, [
     reset,
@@ -109,6 +133,9 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.associated_domains,
     appMetadata?.contracts,
     appMetadata?.permit2_tokens,
+    appMetadata?.can_import_all_contacts,
+    appMetadata?.max_notifications_per_day,
+    appMetadata?.is_allowed_unlimited_notifications,
   ]);
 
   const submit = useCallback(
@@ -139,6 +166,10 @@ export const SetupForm = (props: LinksFormProps) => {
             associated_domains: values.associated_domains,
             contracts: values.contracts,
             permit2_tokens: values.permit2_tokens,
+            can_import_all_contacts: values.can_import_all_contacts,
+            max_notifications_per_day: values.max_notifications_per_day,
+            is_allowed_unlimited_notifications:
+              values.is_allowed_unlimited_notifications,
           },
           appMetadata?.id ?? "",
         );
@@ -318,6 +349,95 @@ export const SetupForm = (props: LinksFormProps) => {
             {errors?.contracts?.message}
           </p>
         )}
+      </div>
+
+      {/* Permissions */}
+      <div className={clsx("grid gap-y-4", { hidden: appMode == "external" })}>
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Permissions</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Request permissions to access notifications or contacts.
+          </Typography>
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className="text-system-warning-500"
+          >
+            Warning: Unlimited notifications are very rarely granted and will be
+            rejected most of the time. Refer to{" "}
+            <Link
+              className="font-bold underline"
+              href="https://docs.world.org/mini-apps/commands/notifications"
+            >
+              docs
+            </Link>{" "}
+            for guidelines.
+          </Typography>
+        </div>
+        <Typography variant={TYPOGRAPHY.R3}>
+          Select your desired maximum notifications per day
+        </Typography>
+        <Controller
+          name="max_notifications_per_day"
+          control={control}
+          render={({ field }) => {
+            return (
+              <Select
+                value={
+                  !dirtyFields.max_notifications_per_day &&
+                  appMetadata?.is_allowed_unlimited_notifications
+                    ? "unlimited"
+                    : field.value
+                }
+                onChange={field.onChange}
+              >
+                <SelectButton className="min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
+                  {({ value }) => (
+                    <div className="grid grid-cols-1fr/auto items-center gap-x-2">
+                      <Typography
+                        variant={TYPOGRAPHY.R3}
+                        className="text-start text-grey-700"
+                      >
+                        {
+                          maxNotificationPerDayDropdownOptions.find(
+                            (v) => v.value === value,
+                          )?.label
+                        }
+                      </Typography>
+                      <CaretIcon />
+                    </div>
+                  )}
+                </SelectButton>
+
+                <SelectOptions>
+                  {maxNotificationPerDayDropdownOptions.map((option, index) => (
+                    <SelectOption
+                      key={`max-notifications-${option.value}-${index}`}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </SelectOption>
+                  ))}
+                </SelectOptions>
+              </Select>
+            );
+          }}
+        />
+        <label
+          htmlFor="can_import_all_contacts"
+          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
+        >
+          <Checkbox
+            id="can_import_all_contacts"
+            register={register("can_import_all_contacts")}
+            disabled={
+              !isEditable || !isEnoughPermissions || appMode === "external"
+            }
+          />
+
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+            Can import all contacts
+          </Typography>
+        </label>
       </div>
       <DecoratedButton
         type="submit"
