@@ -103,7 +103,7 @@ export const GET = async (
       errorResponse({
         statusCode: res.status,
         code: "internal_api_error",
-        detail: "Transaction fetch to backend failed",
+        detail: errorBody ?? "Transaction fetch to backend failed",
         attribute: "transaction",
         req,
       }),
