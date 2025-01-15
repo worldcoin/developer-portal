@@ -9,6 +9,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "External",
     earn: "Earn",
+    ai: "Artificial Intelligence",
   },
   ca: {
     social: "Social",
@@ -20,6 +21,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Extern",
     earn: "Guanyar",
+    ai: "Intel·ligència Artificial",
   },
   zh_CN: {
     social: "社交",
@@ -31,6 +33,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "代币",
     external: "外部",
     earn: "收益",
+    ai: "人工智能",
   },
   fr: {
     social: "Social",
@@ -42,6 +45,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Jetons",
     external: "Externe",
     earn: "Gagner",
+    ai: "Intelligence Artificielle",
   },
   de: {
     social: "Sozial",
@@ -53,6 +57,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Token",
     external: "Extern",
     earn: "Verdienen",
+    ai: "Künstliche Intelligenz",
   },
   hi: {
     social: "सामाजिक",
@@ -64,6 +69,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "टोकन",
     external: "बाहरी",
     earn: "कमाई",
+    ai: "कृत्रिम बुद्धिमत्ता",
   },
   ja: {
     social: "ソーシャル",
@@ -75,6 +81,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "トークン",
     external: "外部",
     earn: "稼ぐ",
+    ai: "人工知能",
   },
   ko: {
     social: "소셜",
@@ -86,6 +93,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "토큰",
     external: "외부",
     earn: "수익",
+    ai: "인공지능",
   },
   pl: {
     social: "Społeczność",
@@ -97,6 +105,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokeny",
     external: "Zewnętrzny",
     earn: "Zarabiaj",
+    ai: "Sztuczna inteligencja",
   },
   pt: {
     social: "Social",
@@ -108,6 +117,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganhar",
+    ai: "Inteligência Artificial",
   },
   es: {
     social: "Social",
@@ -119,6 +129,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganar",
+    ai: "Inteligencia Artificial",
   },
   es_419: {
     social: "Social",
@@ -130,6 +141,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganar",
+    ai: "Inteligencia Artificial",
   },
 };
 
@@ -143,6 +155,7 @@ export const Categories = [
   { name: "Tokens", id: "tokens" },
   { name: "External", id: "external" },
   { name: "Earn", id: "earn" },
+  { name: "Artificial Intelligence", id: "ai" },
 ] as const;
 
 export const CategoryNameIterable = Categories.map((category) => category.name);
