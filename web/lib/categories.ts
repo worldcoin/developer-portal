@@ -160,6 +160,14 @@ export const Categories = [
 
 export const CategoryNameIterable = Categories.map((category) => category.name);
 
+export const CategoryNameToId = Categories.reduce(
+  (acc, { name, id }) => {
+    acc[name] = id;
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
 export const getLocalisedCategory = (name: string, locale: string) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
     console.warn("Missing locale, falling back to default: ", { locale });
@@ -167,7 +175,7 @@ export const getLocalisedCategory = (name: string, locale: string) => {
   }
   const defaultLocale = locale || "en";
   const translation = CategoryTranslations[defaultLocale];
-  const id = name.toLowerCase();
+  const id = CategoryNameToId[name];
   return {
     id: id,
     name: translation?.[id] ?? CategoryTranslations["en"][id],
