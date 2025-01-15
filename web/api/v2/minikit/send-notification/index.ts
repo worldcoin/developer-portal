@@ -22,8 +22,24 @@ const sendNotificationBodySchema = yup.object({
     .min(1)
     .max(1000)
     .required("wallet_addresses is required"),
-  message: yup.string().strict().required().max(200),
-  title: yup.string().strict().optional().max(30),
+  message: yup
+    .string()
+    .strict()
+    .required()
+    .max(200)
+    .matches(
+      /^[\p{L}\p{N}\p{P}\p{Z}]+$/u,
+      "Message can only contain letters, numbers, punctuation, and spaces",
+    ),
+  title: yup
+    .string()
+    .strict()
+    .optional()
+    .max(30)
+    .matches(
+      /^[\p{L}\p{N}\p{P}\p{Z}]+$/u,
+      "Title can only contain letters, numbers, punctuation, and spaces",
+    ),
   mini_app_path: yup.string().strict().required(),
 });
 
