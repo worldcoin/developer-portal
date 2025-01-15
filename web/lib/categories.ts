@@ -151,11 +151,11 @@ export const Categories = [
   { name: "Business", id: "business" },
   { name: "Finance", id: "finance" },
   { name: "Productivity", id: "productivity" },
-  { name: "Other", id: "other" },
   { name: "Tokens", id: "tokens" },
   { name: "External", id: "external" },
   { name: "Earn", id: "earn" },
   { name: "Artificial Intelligence", id: "ai" },
+  { name: "Other", id: "other" },
 ] as const;
 
 export const CategoryNameIterable = Categories.map((category) => category.name);
