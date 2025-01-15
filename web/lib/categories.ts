@@ -32,7 +32,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     other: "其他",
     tokens: "代币",
     external: "外部",
-    earn: "收益",
+    earn: "赚",
     ai: "人工智能",
   },
   fr: {
@@ -68,7 +68,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     other: "अन्य",
     tokens: "टोकन",
     external: "बाहरी",
-    earn: "कमाई",
+    earn: "कमाना",
     ai: "कृत्रिम बुद्धिमत्ता",
   },
   ja: {
@@ -92,7 +92,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     other: "기타",
     tokens: "토큰",
     external: "외부",
-    earn: "수익",
+    earn: "벌다",
     ai: "인공지능",
   },
   pl: {
