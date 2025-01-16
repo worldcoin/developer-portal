@@ -9,7 +9,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "External",
     earn: "Earn",
-    ai: "Artificial Intelligence",
+    ai: "AI",
   },
   ca: {
     social: "Social",
@@ -117,7 +117,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganhar",
-    ai: "Inteligência Artificial",
+    ai: "IA",
   },
   es: {
     social: "Social",
@@ -129,7 +129,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganar",
-    ai: "Inteligencia Artificial",
+    ai: "IA",
   },
   es_419: {
     social: "Social",
@@ -141,21 +141,21 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     tokens: "Tokens",
     external: "Externo",
     earn: "Ganar",
-    ai: "Inteligencia Artificial",
+    ai: "IA",
   },
 };
 
 export const Categories = [
+  { name: "AI", id: "ai" },
   { name: "Social", id: "social" },
   { name: "Gaming", id: "gaming" },
   { name: "Business", id: "business" },
   { name: "Finance", id: "finance" },
   { name: "Productivity", id: "productivity" },
   { name: "Tokens", id: "tokens" },
-  { name: "External", id: "external" },
   { name: "Earn", id: "earn" },
-  { name: "Artificial Intelligence", id: "ai" },
   { name: "Other", id: "other" },
+  { name: "External", id: "external" },
 ] as const;
 
 export const CategoryNameIterable = Categories.map((category) => category.name);
