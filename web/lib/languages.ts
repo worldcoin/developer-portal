@@ -217,6 +217,10 @@ const supportedLanguages = [
     label: "Spanish (Latin America)",
     value: "es_419",
   },
+  {
+    label: "Malay",
+    value: "ms",
+  },
 ];
 
 export const languageMap = {
@@ -232,6 +236,7 @@ export const languageMap = {
   pt: { label: "Portuguese", country_code: "PT" },
   es: { label: "Spanish", country_code: "ES" },
   es_419: { label: "Spanish (Latin America)", country_code: "AR" },
+  ms: { label: "Malay", country_code: "MY" },
 };
 
 export const formCountriesList = () =>
