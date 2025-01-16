@@ -49,6 +49,10 @@ const validBody = {
 };
 
 describe("/api/v2/app/submit-app-review", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("Can successfully submit an app review", async () => {
     const mockReq = new NextRequest(
       "https://cdn.test.com/api/v2/app/submit-app-review",
@@ -77,14 +81,63 @@ describe("/api/v2/app/submit-app-review", () => {
     });
 
     GetAppReview.mockResolvedValue({
-      app_reviews: [
-        {
-          rating: 3,
-        },
-      ],
+      app_reviews: [],
     });
 
     const res = await POST(mockReq);
     expect(res.status).toBe(200);
+    expect(UpdateAppRatingSumMutation).toHaveBeenCalledTimes(1);
+    expect(UpdateAppRatingSumMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rating_count_inc: 1,
+        rating: 3, // rating increment
+        app_id: validBody.app_id,
+      }),
+    );
+  });
+
+  it("Does not increment rating_count if user updates existing rating", async () => {
+    const validBody = {
+      ...appReviewMockProof,
+      rating: 4,
+      country: "us",
+      app_id: "app_staging_e396fd19c804e62f657767ccaa78885c",
+    };
+    const mockReq = new NextRequest(
+      "https://cdn.test.com/api/v2/app/submit-app-review",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(validBody),
+      },
+    );
+    GetAppReview.mockResolvedValue({
+      app_reviews: [{ rating: 3 }],
+    });
+    UpsertAppReview.mockResolvedValue({
+      insert_app_reviews_one: {
+        id: "review_123",
+        rating: 4,
+        app_id: validBody.app_id,
+        country: validBody.country,
+      },
+    });
+    UpdateAppRatingSumMutation.mockResolvedValue({
+      update_app: {
+        affected_rows: 1,
+      },
+    });
+    const res = await POST(mockReq);
+    expect(res.status).toBe(200);
+    expect(UpdateAppRatingSumMutation).toHaveBeenCalledTimes(1);
+    expect(UpdateAppRatingSumMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rating_count_inc: 0,
+        rating: 1, // rating increment
+        app_id: validBody.app_id,
+      }),
+    );
   });
 });

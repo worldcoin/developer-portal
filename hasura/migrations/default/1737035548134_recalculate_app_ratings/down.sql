@@ -1,0 +1,9 @@
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- UPDATE app
+-- SET
+--     rating_count = (
+--       SELECT COUNT(*)
+--       FROM app_reviews
+--       WHERE app_reviews.app_id = app.id
+--     );

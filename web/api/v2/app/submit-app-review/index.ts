@@ -120,16 +120,22 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Anchor: Update App Review Count
-  let ratingChange = parsedParams.rating;
+  // Calculate the rating sum and count increment
+  let ratingSumIncrement = parsedParams.rating;
+  let ratingCountIncrement = 1;
   if (app_reviews.length) {
-    ratingChange = parsedParams.rating - app_reviews[0].rating;
+    // If we already have an existing row for this user, only adjust for the difference
+    ratingSumIncrement = parsedParams.rating - app_reviews[0].rating;
+    ratingCountIncrement = 0;
   }
+
+  // Anchor: Update App Review Count
   const { update_app } = await updateReviewCount(
     serviceClient,
   ).UpdateAppRatingSumMutation({
     app_id: app_id,
-    rating: ratingChange,
+    rating: ratingSumIncrement,
+    rating_count_inc: ratingCountIncrement,
   });
 
   if (!update_app) {

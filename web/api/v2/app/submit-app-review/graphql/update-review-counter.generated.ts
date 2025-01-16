@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateAppRatingSumMutationMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   rating: Types.Scalars["Int"]["input"];
+  rating_count_inc: Types.Scalars["Int"]["input"];
 }>;
 
 export type UpdateAppRatingSumMutationMutation = {
@@ -18,10 +19,14 @@ export type UpdateAppRatingSumMutationMutation = {
 };
 
 export const UpdateAppRatingSumMutationDocument = gql`
-  mutation UpdateAppRatingSumMutation($app_id: String!, $rating: Int!) {
+  mutation UpdateAppRatingSumMutation(
+    $app_id: String!
+    $rating: Int!
+    $rating_count_inc: Int!
+  ) {
     update_app(
       where: { id: { _eq: $app_id } }
-      _inc: { rating_count: 1, rating_sum: $rating }
+      _inc: { rating_sum: $rating, rating_count: $rating_count_inc }
     ) {
       affected_rows
     }
