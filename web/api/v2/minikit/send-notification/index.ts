@@ -28,7 +28,7 @@ const sendNotificationBodySchema = yup.object({
     .required()
     .max(200)
     .matches(
-      /^[\p{L}\p{N}\p{P}\p{Z}]+$/u,
+      /^[\p{L}\p{N}\p{Z}\p{Sc}\.]+$/u,
       "Message can only contain letters, numbers, punctuation, and spaces",
     ),
   title: yup
@@ -37,7 +37,7 @@ const sendNotificationBodySchema = yup.object({
     .optional()
     .max(30)
     .matches(
-      /^[\p{L}\p{N}\p{P}\p{Z}]+$/u,
+      /^[\p{L}\p{N}\p{Z}\p{Sc}\.]+$/u,
       "Title can only contain letters, numbers, punctuation, and spaces",
     ),
   mini_app_path: yup.string().strict().required(),
