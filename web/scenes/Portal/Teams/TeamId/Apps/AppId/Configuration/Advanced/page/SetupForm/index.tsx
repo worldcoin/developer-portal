@@ -366,7 +366,7 @@ export const SetupForm = (props: LinksFormProps) => {
             rejected most of the time. Refer to{" "}
             <Link
               className="font-bold underline"
-              href="https://docs.world.org/mini-apps/commands/notifications"
+              href="https://docs.world.org/mini-apps/commands/send-notifications"
             >
               docs
             </Link>{" "}
