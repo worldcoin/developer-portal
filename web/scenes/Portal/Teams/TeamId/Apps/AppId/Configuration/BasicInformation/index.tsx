@@ -158,7 +158,7 @@ export const BasicInformation = (props: {
           </DecoratedButton>
         </form>
         <div className="mt-7 flex justify-center sm:justify-start">
-          <QrQuickAction app_id={appId} />
+          <QrQuickAction app_id={appId} app_metadata_id={appMetaData?.id} />
         </div>
       </div>
     </div>
