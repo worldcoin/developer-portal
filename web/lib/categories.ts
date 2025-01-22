@@ -147,13 +147,13 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     social: "Sosial",
     gaming: "Permainan",
     business: "Perniagaan",
-    finance: "Keuangan",
+    finance: "Kewangan",
     productivity: "Produktiviti",
     other: "Lain-lain",
-    tokens: "Tokens",
-    external: "Externo",
-    earn: "Ganhar",
-    ai: "IA",
+    tokens: "Token",
+    external: "Luaran",
+    earn: "Dapatkan",
+    ai: "Kecerdasan Buatan",
   },
 };
 
