@@ -143,6 +143,18 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     earn: "Ganar",
     ai: "IA",
   },
+  ms: {
+    social: "Sosial",
+    gaming: "Permainan",
+    business: "Perniagaan",
+    finance: "Keuangan",
+    productivity: "Produktiviti",
+    other: "Lain-lain",
+    tokens: "Tokens",
+    external: "Externo",
+    earn: "Ganhar",
+    ai: "IA",
+  },
 };
 
 export const Categories = [
