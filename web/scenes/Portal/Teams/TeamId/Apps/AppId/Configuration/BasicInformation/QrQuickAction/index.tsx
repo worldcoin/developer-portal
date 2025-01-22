@@ -16,11 +16,17 @@ const getQRCode = async (url: string): Promise<string | null> => {
   }
 };
 
-export const QrQuickAction = (props: { app_id: string }) => {
-  const { app_id } = props;
+export const QrQuickAction = (props: {
+  app_id: string;
+  app_metadata_id: string;
+}) => {
+  const { app_id, app_metadata_id } = props;
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string | null>(null);
 
-  const url = `https://worldcoin.org/mini-app?app_id=${app_id}`;
+  let url = `https://worldcoin.org/mini-app?app_id=${app_id}`;
+  if (process.env.NEXT_PUBLIC_APP_ENV !== "production" && app_metadata_id) {
+    url += `&app_metadata_id=${app_metadata_id}`;
+  }
 
   useEffect(() => {
     getQRCode(url).then(setQrCodeDataURL);

@@ -83,6 +83,17 @@ export async function GET(
     }, null);
   }
 
+  /**
+   * Temporary: Testing staging feature for mini apps
+   */
+  const { searchParams } = new URL(request.url);
+  const app_metadata_id = searchParams.get("app_metadata_id");
+  if (process.env.NEXT_PUBLIC_APP_ENV !== "production" && app_metadata_id) {
+    parsedAppMetadata =
+      app_metadata.find((meta) => meta.id === app_metadata_id) ??
+      parsedAppMetadata;
+  }
+
   let formattedMetadata = await formatAppMetadata(
     { ...parsedAppMetadata },
     metricsData,
