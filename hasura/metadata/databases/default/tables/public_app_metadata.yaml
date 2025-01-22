@@ -319,15 +319,16 @@ update_permissions:
   - role: reviewer
     permission:
       columns:
-        - logo_img_url
-        - showcase_img_urls
+        - category
         - hero_image_url
-        - verified_at
-        - reviewed_by
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
+        - logo_img_url
         - review_message
+        - reviewed_by
+        - showcase_img_urls
         - verification_status
+        - verified_at
       filter:
         _and:
           - verification_status:
