@@ -422,7 +422,7 @@ export const SetupForm = (props: LinksFormProps) => {
             );
           }}
         />
-        <label
+        {/* <label
           htmlFor="can_import_all_contacts"
           className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
         >
@@ -437,7 +437,7 @@ export const SetupForm = (props: LinksFormProps) => {
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
             Can import all contacts
           </Typography>
-        </label>
+        </label> */}
       </div>
       <DecoratedButton
         type="submit"
