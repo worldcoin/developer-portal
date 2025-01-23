@@ -30,7 +30,7 @@ export const BasicInformation = (props: {
   app: FetchAppMetadataQuery["app"][0];
   teamName: string;
 }) => {
-  const { appId, teamId, app, teamName } = props;
+  const { appId, teamId, app } = props;
   const { refetch: refetchAppMetadata } =
     useRefetchQueries<FetchAppMetadataQueryVariables>(
       FetchAppMetadataDocument,
@@ -101,6 +101,15 @@ export const BasicInformation = (props: {
     [appMetaData?.id, refetchAppMetadata],
   );
 
+  const { url, showDeveloperFlag } = useMemo(() => {
+    let url = `https://worldcoin.org/mini-app?app_id=${appId}`;
+    let showDeveloperFlag = appMetaData?.verification_status !== "verified";
+    if (showDeveloperFlag) {
+      url += `&app_metadata_id=${appMetaData?.id}`;
+    }
+    return { url, showDeveloperFlag };
+  }, [appId, appMetaData]);
+
   return (
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
       <div className="">
@@ -158,7 +167,7 @@ export const BasicInformation = (props: {
           </DecoratedButton>
         </form>
         <div className="mt-7 flex justify-center sm:justify-start">
-          <QrQuickAction app_id={appId} app_metadata_id={appMetaData?.id} />
+          <QrQuickAction url={url} showDeveloperFlag={showDeveloperFlag} />
         </div>
       </div>
     </div>

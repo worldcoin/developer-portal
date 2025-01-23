@@ -1,6 +1,7 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
+import { Notification } from "@/components/Notification";
 import { QuickAction } from "@/components/QuickAction";
 import Image from "next/image";
 import QRCode from "qrcode";
@@ -17,16 +18,12 @@ const getQRCode = async (url: string): Promise<string | null> => {
 };
 
 export const QrQuickAction = (props: {
-  app_id: string;
-  app_metadata_id: string;
+  url: string;
+  showDeveloperFlag: boolean;
 }) => {
-  const { app_id, app_metadata_id } = props;
+  const { url, showDeveloperFlag } = props;
+  // const { app_id, app_metadata_id } = props;
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string | null>(null);
-
-  let url = `https://worldcoin.org/mini-app?app_id=${app_id}`;
-  if (process.env.NEXT_PUBLIC_APP_ENV !== "production" && app_metadata_id) {
-    url += `&app_metadata_id=${app_metadata_id}`;
-  }
 
   useEffect(() => {
     getQRCode(url).then(setQrCodeDataURL);
@@ -37,21 +34,36 @@ export const QrQuickAction = (props: {
   }
 
   return (
-    <QuickAction
-      type="button"
-      description="Scan this, or copy the link"
-      icon={<FlaskIcon />}
-      hideArrow
-      iconRight={
-        <CopyButton
-          fieldName="Miniapp URL"
-          fieldValue={url}
-          className="flex items-center justify-center rounded-full border p-2 !pr-2 text-blue-500"
-        />
-      }
-      title="See your mini app"
-    >
-      <Image src={qrCodeDataURL} width={200} height={200} alt="QR Code" />
-    </QuickAction>
+    <div className="grid gap-y-2">
+      {showDeveloperFlag && (
+        <Notification variant="warning">
+          <div className="text-sm">
+            <h3 className="font-medium text-yellow-800">Developer Preview</h3>
+            <div className="mt-2 text-yellow-700">
+              This link/QR code is for testing purposes only and will be deleted
+              after the app is verified.
+            </div>
+          </div>
+        </Notification>
+      )}
+      <div className="flex justify-center">
+        <QuickAction
+          type="button"
+          description="Scan this, or copy the link"
+          icon={<FlaskIcon />}
+          hideArrow
+          iconRight={
+            <CopyButton
+              fieldName="Miniapp URL"
+              fieldValue={url}
+              className="flex items-center justify-center rounded-full border p-2 !pr-2 text-blue-500"
+            />
+          }
+          title="See your mini app"
+        >
+          <Image src={qrCodeDataURL} width={200} height={200} alt="QR Code" />
+        </QuickAction>
+      </div>
+    </div>
   );
 };
