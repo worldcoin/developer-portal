@@ -22,7 +22,6 @@ export const QrQuickAction = (props: {
   showDeveloperFlag: boolean;
 }) => {
   const { url, showDeveloperFlag } = props;
-  // const { app_id, app_metadata_id } = props;
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string | null>(null);
 
   useEffect(() => {

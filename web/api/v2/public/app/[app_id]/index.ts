@@ -89,7 +89,9 @@ export async function GET(
   } else if (app_metadata.length > 1) {
     // If no specific metadata found by id, check for reviewer approved version
     const approvedMetadata = app_metadata.find(
-      (meta) => meta.is_reviewer_world_app_approved,
+      (meta) =>
+        meta.is_reviewer_world_app_approved &&
+        meta.verification_status === "verified",
     );
     if (approvedMetadata) {
       parsedAppMetadata = approvedMetadata;
