@@ -299,4 +299,281 @@ describe("/api/public/app/[app_id]", () => {
       },
     });
   });
+
+  describe("App metadata selection logic", () => {
+    // beforeEach(() => {
+    //   process.env.NEXT_PUBLIC_APP_ENV = "development";
+    //   process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT = "http://metrics";
+    //   process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "http://cdn";
+    //   global.fetch = jest.fn(() =>
+    //     Promise.resolve({
+    //       status: 200,
+    //       json: () => Promise.resolve({ stats: "data" }),
+    //     }),
+    //   ) as jest.Mock;
+    // });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should select metadata by app_metadata_id when provided", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              id: "1",
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "takis@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              is_reviewer_world_app_approved: true,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+            {
+              id: "2",
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration-unverified",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "takis@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              is_reviewer_world_app_approved: false,
+              verification_status: "unverified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/public/app/test-app?app_metadata_id=2",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request, { params: { app_id: "test-app" } });
+      const data = await response.json();
+      expect(data.app_data.name).toBe("Example App");
+      expect(data.app_data.app_rating).toBe(3.33);
+      expect(data.app_data.integration_url).toBe(
+        "https://example.com/integration-unverified",
+      );
+    });
+
+    test("should select reviewer approved metadata when no app_metadata_id provided", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              id: "1",
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "takis@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              is_reviewer_world_app_approved: true,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+            {
+              id: "2",
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration-unverified",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "takis@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              is_reviewer_world_app_approved: false,
+              verification_status: "unverified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/public/app/test-app",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request, { params: { app_id: "test-app" } });
+      const data = await response.json();
+      expect(data.app_data.name).toBe("Example App");
+      expect(data.app_data.app_rating).toBe(3.33);
+      expect(data.app_data.integration_url).toBe(
+        "https://example.com/integration",
+      );
+    });
+
+    test("should fallback to first metadata when app_metadata_id is invalid", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              id: "1",
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "andy@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/public/app/test-app?app_metadata_id=non-existent",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request, { params: { app_id: "test-app" } });
+      const data = await response.json();
+      expect(data.app_data.name).toBe("Example App");
+      expect(data.app_data.app_rating).toBe(3.33);
+      expect(data.app_data.integration_url).toBe(
+        "https://example.com/integration",
+      );
+    });
+  });
 });
