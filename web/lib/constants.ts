@@ -131,6 +131,7 @@ export const whitelistedAppsPermit2 = [
 
 export const whitelistedAppsContracts = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
+  "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
 ];
 
 export const AppMode = {
