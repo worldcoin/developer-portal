@@ -192,11 +192,19 @@ export const GET = async (request: NextRequest) => {
     return app;
   });
 
-  return NextResponse.json({
-    app_rankings: {
-      top_apps: rankApps(formattedTopApps, metricsData),
-      highlights: rankApps(highlightedApps, metricsData),
+  return NextResponse.json(
+    {
+      app_rankings: {
+        top_apps: rankApps(formattedTopApps, metricsData),
+        highlights: rankApps(highlightedApps, metricsData),
+      },
+      categories: getAllLocalisedCategories(locale), // TODO: Localise
     },
-    categories: getAllLocalisedCategories(locale), // TODO: Localise
-  });
+    {
+      headers: {
+        // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
+        "Cache-Control": "public, max-age=86400, stale-while-error=86400",
+      },
+    },
+  );
 };
