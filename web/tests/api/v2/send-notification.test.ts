@@ -95,6 +95,7 @@ const validAppMetadata = {
       name: "Example App",
       app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
       is_reviewer_app_store_approved: true,
+      verification_status: "verified",
       app: {
         team: {
           id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
@@ -110,9 +111,10 @@ const validApiKey = `api_${apiKeyValue}`;
 
 // #region Success cases tests
 describe("/api/v2/minikit/send-notification [success cases]", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
     GetAppMetadata.mockResolvedValue(validAppMetadata);
+    await global.RedisClient?.flushall();
   });
 
   it("can send a notification", async () => {
@@ -129,9 +131,10 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
 
 // #region Error cases tests
 describe("/api/v2/minikit/send-notification [error cases]", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
     GetAppMetadata.mockResolvedValue(validAppMetadata);
+    await global.RedisClient?.flushall();
   });
 
   it("returns 401 if no api key is provided", async () => {
@@ -259,6 +262,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           is_reviewer_app_store_approved: true,
           is_allowed_unlimited_notifications: false,
           max_notifications_per_day: 0,
+          verification_status: "unverified",
           app: { team: { id: "random" } },
         },
       ],
@@ -269,6 +273,112 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe(
       "Notifications not enabled for this app",
     );
+  });
+
+  it("returns 400 if unverified app limit reached", async () => {
+    // Mock the API key lookup
+    FetchAPIKey.mockResolvedValue(validApiKeyResponse);
+
+    // Mock the app metadata to simulate an unverified app
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          name: "Example App",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+      ],
+    });
+
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          wallet_addresses: [
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+            "0x1234567890",
+          ],
+          title: "Test Notification",
+          message: "This is a test notification",
+          mini_app_path: "/test",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(200);
+
+    const mockReq2 = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          wallet_addresses: ["0x1234567890"],
+          title: "Test Notification",
+          message: "This is a test notification",
+          mini_app_path: "/test",
+        }),
+      },
+    );
+
+    const res2 = await POST(mockReq2);
+    expect(res2.status).toBe(400);
+    expect((await res2.json()).detail).toBe("Unverified app limit reached");
   });
 });
 // #endregion
