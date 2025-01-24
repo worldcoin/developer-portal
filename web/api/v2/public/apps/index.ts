@@ -203,7 +203,7 @@ export const GET = async (request: NextRequest) => {
     {
       headers: {
         // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
-        "Cache-Control": "public, max-age=86400, stale-while-error=86400",
+        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
       },
     },
   );
