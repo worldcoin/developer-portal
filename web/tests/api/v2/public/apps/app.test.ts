@@ -301,18 +301,6 @@ describe("/api/public/app/[app_id]", () => {
   });
 
   describe("App metadata selection logic", () => {
-    // beforeEach(() => {
-    //   process.env.NEXT_PUBLIC_APP_ENV = "development";
-    //   process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT = "http://metrics";
-    //   process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "http://cdn";
-    //   global.fetch = jest.fn(() =>
-    //     Promise.resolve({
-    //       status: 200,
-    //       json: () => Promise.resolve({ stats: "data" }),
-    //     }),
-    //   ) as jest.Mock;
-    // });
-
     afterEach(() => {
       jest.clearAllMocks();
     });
