@@ -74,24 +74,26 @@ export async function GET(
 
   let parsedAppMetadata = app_metadata[0];
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
-  if (app_metadata.length > 1) {
-    app_metadata.reduce((acc, current) => {
-      if (current.is_reviewer_world_app_approved) {
-        parsedAppMetadata = current;
-      }
-      return acc;
-    }, null);
-  }
 
-  /**
-   * Temporary: Testing staging feature for mini apps
-   */
+  // Get query param for specific metadata if provided
   const { searchParams } = new URL(request.url);
-  const app_metadata_id = searchParams.get("app_metadata_id");
-  if (process.env.NEXT_PUBLIC_APP_ENV !== "production" && app_metadata_id) {
-    parsedAppMetadata =
-      app_metadata.find((meta) => meta.id === app_metadata_id) ??
-      parsedAppMetadata;
+  const draft_id = searchParams.get("draft_id");
+
+  if (draft_id) {
+    const metadataById = app_metadata.find((meta) => meta.id === draft_id);
+    if (metadataById) {
+      parsedAppMetadata = metadataById;
+    }
+  } else if (app_metadata.length > 1) {
+    // If no specific metadata found by id, check for reviewer approved version
+    const approvedMetadata = app_metadata.find(
+      (meta) =>
+        meta.is_reviewer_world_app_approved &&
+        meta.verification_status === "verified",
+    );
+    if (approvedMetadata) {
+      parsedAppMetadata = approvedMetadata;
+    }
   }
 
   let formattedMetadata = await formatAppMetadata(
