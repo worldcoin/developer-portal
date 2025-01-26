@@ -105,7 +105,7 @@ export const BasicInformation = (props: {
     let url = `https://worldcoin.org/mini-app?app_id=${appId}`;
     let showDeveloperFlag = appMetaData?.verification_status !== "verified";
     if (showDeveloperFlag) {
-      url += `&app_metadata_id=${appMetaData?.id}`;
+      url += `&draft_id=${appMetaData?.id}`;
     }
     return { url, showDeveloperFlag };
   }, [appId, appMetaData]);

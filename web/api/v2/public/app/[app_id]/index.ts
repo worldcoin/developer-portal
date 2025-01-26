@@ -77,12 +77,10 @@ export async function GET(
 
   // Get query param for specific metadata if provided
   const { searchParams } = new URL(request.url);
-  const app_metadata_id = searchParams.get("app_metadata_id");
+  const draft_id = searchParams.get("draft_id");
 
-  if (app_metadata_id) {
-    const metadataById = app_metadata.find(
-      (meta) => meta.id === app_metadata_id,
-    );
+  if (draft_id) {
+    const metadataById = app_metadata.find((meta) => meta.id === draft_id);
     if (metadataById) {
       parsedAppMetadata = metadataById;
     }

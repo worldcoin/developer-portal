@@ -305,7 +305,7 @@ describe("/api/public/app/[app_id]", () => {
       jest.clearAllMocks();
     });
 
-    test("should select metadata by app_metadata_id when provided", async () => {
+    test("should select metadata by draft_id when provided", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -388,7 +388,7 @@ describe("/api/public/app/[app_id]", () => {
       }));
 
       const request = new NextRequest(
-        "https://cdn.test.com/api/public/app/test-app?app_metadata_id=2",
+        "https://cdn.test.com/api/public/app/test-app?draft_id=2",
         {
           headers: {
             host: "cdn.test.com",
@@ -404,7 +404,7 @@ describe("/api/public/app/[app_id]", () => {
       );
     });
 
-    test("should select reviewer approved metadata when no app_metadata_id provided", async () => {
+    test("should select reviewer approved metadata when no draft_id provided", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -503,7 +503,7 @@ describe("/api/public/app/[app_id]", () => {
       );
     });
 
-    test("should fallback to first metadata when app_metadata_id is invalid", async () => {
+    test("should fallback to first metadata when draft_id is invalid", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -548,7 +548,7 @@ describe("/api/public/app/[app_id]", () => {
       }));
 
       const request = new NextRequest(
-        "https://cdn.test.com/api/public/app/test-app?app_metadata_id=non-existent",
+        "https://cdn.test.com/api/public/app/test-app?draft_id=non-existent",
         {
           headers: {
             host: "cdn.test.com",
