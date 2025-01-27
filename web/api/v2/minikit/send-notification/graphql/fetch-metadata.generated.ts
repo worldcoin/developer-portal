@@ -17,6 +17,7 @@ export type GetAppMetadataQuery = {
     is_reviewer_app_store_approved: boolean;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
+    verification_status: string;
     app: { __typename?: "app"; team: { __typename?: "team"; id: string } };
   }>;
 };
@@ -24,17 +25,14 @@ export type GetAppMetadataQuery = {
 export const GetAppMetadataDocument = gql`
   query GetAppMetadata($app_id: String!) {
     app_metadata(
-      where: {
-        app_id: { _eq: $app_id }
-        verification_status: { _eq: "verified" }
-        app: { is_banned: { _eq: false } }
-      }
+      where: { app_id: { _eq: $app_id }, app: { is_banned: { _eq: false } } }
     ) {
       name
       app_id
       is_reviewer_app_store_approved
       is_allowed_unlimited_notifications
       max_notifications_per_day
+      verification_status
       app {
         team {
           id

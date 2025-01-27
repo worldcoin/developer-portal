@@ -154,6 +154,18 @@ export const POST = async (req: NextRequest) => {
     appId: app_id,
   });
 
+  const redis = global.RedisClient;
+
+  if (!redis) {
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_server_error",
+      detail: "Redis client not found",
+      attribute: "server",
+      req,
+    });
+  }
+
   if (!api_key_by_pk) {
     return errorResponse({
       statusCode: 404,
@@ -210,11 +222,66 @@ export const POST = async (req: NextRequest) => {
   if (!app_metadata || app_metadata.length === 0) {
     return errorResponse({
       statusCode: 404,
-      code: "app_not_verified",
-      detail: "App either doesn't exist or isn't verified",
+      code: "app_not_found",
+      detail: "App not found",
       attribute: "app",
       req,
     });
+  }
+  // If app is verified we pull that app metadata
+  let verifiedOrDefaultApp = app_metadata[0];
+  if (app_metadata.length > 1) {
+    const verifiedApp = app_metadata.find(
+      (app) => app.verification_status === "verified",
+    );
+    if (verifiedApp) {
+      verifiedOrDefaultApp = verifiedApp;
+    } else {
+      return errorResponse({
+        statusCode: 400,
+        code: "duplicate_app",
+        detail: "Invalid app configuration",
+        attribute: "app",
+        req,
+      });
+    }
+  }
+
+  // If app is not verified we allow max 40 notifications per 4 hours
+  if (verifiedOrDefaultApp?.verification_status !== "verified") {
+    const key = `app_notifications_${app_id}`;
+    const TTL_SECONDS = 14400; // 4 hours in seconds
+
+    let currentCount = await redis.get(key);
+    const parsedCount = currentCount ? Number(currentCount) : 0;
+    const notificationsToAdd = wallet_addresses.length;
+
+    // Check if adding these notifications would exceed the limit:
+    if (parsedCount + notificationsToAdd > 40) {
+      return errorResponse({
+        statusCode: 400,
+        code: "unverified_app_limit_reached",
+        detail: "Unverified app limit reached",
+        attribute: "notifications",
+        req,
+      });
+    }
+
+    // If the counter doesn't exist yet, initialize with TTL.
+    if (!currentCount) {
+      await redis.set(key, notificationsToAdd, "EX", TTL_SECONDS);
+    } else {
+      const timeLeft = await redis.ttl(key);
+      const newCount = parsedCount + notificationsToAdd;
+
+      // Update the count
+      await redis.set(
+        key,
+        newCount,
+        "EX",
+        timeLeft > 0 ? timeLeft : TTL_SECONDS,
+      );
+    }
   }
 
   const appMetadata = app_metadata?.[0];
