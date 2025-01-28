@@ -255,10 +255,6 @@ export const AppStoreForm = (props: {
       await saveLocalisation();
     }
 
-    if (supportedLanguages.length === 0) {
-      return;
-    }
-
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
     const nextLocaleIdx = currentLocaleIdx + 1;
     const nextLocale = supportedLanguages[nextLocaleIdx];
@@ -279,10 +275,6 @@ export const AppStoreForm = (props: {
   const handleSelectPreviousLocalisation = useCallback(async () => {
     if (isDirty) {
       await saveLocalisation();
-    }
-
-    if (supportedLanguages.length === 0) {
-      return;
     }
 
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
