@@ -194,7 +194,7 @@ export const AppStoreForm = (props: {
       // if locale is en, set the data on app_metadata directly
       if (locale === "en") {
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
-        refetchLocalisation();
+        await refetchLocalisation();
         return;
       }
 
