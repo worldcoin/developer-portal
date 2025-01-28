@@ -103,7 +103,7 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     productivity: "Produktywność",
     other: "Inne",
     tokens: "Tokeny",
-    external: "Zewnętrzny",
+    external: "Zewnętrzne",
     earn: "Zarabiaj",
     ai: "Sztuczna inteligencja",
   },
