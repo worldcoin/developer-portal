@@ -194,7 +194,7 @@ export const AppStoreForm = (props: {
       // if locale is en, set the data on app_metadata directly
       if (locale === "en") {
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
-        refetchLocalisation();
+        await refetchLocalisation();
         return;
       }
 
@@ -255,6 +255,10 @@ export const AppStoreForm = (props: {
       await saveLocalisation();
     }
 
+    if (supportedLanguages.length === 0) {
+      return;
+    }
+
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
     const nextLocaleIdx = currentLocaleIdx + 1;
     const nextLocale = supportedLanguages[nextLocaleIdx];
@@ -275,6 +279,10 @@ export const AppStoreForm = (props: {
   const handleSelectPreviousLocalisation = useCallback(async () => {
     if (isDirty) {
       await saveLocalisation();
+    }
+
+    if (supportedLanguages.length === 0) {
+      return;
     }
 
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
