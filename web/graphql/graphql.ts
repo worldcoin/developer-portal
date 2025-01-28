@@ -6107,6 +6107,11 @@ export type Mutation_RootInsert_User_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInvalidate_CacheArgs = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** mutation root */
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];

@@ -52,7 +52,9 @@ type Query {
 }
 
 type Mutation {
-  invalidate_cache: InvalidateCacheOutput
+  invalidate_cache(
+    app_id: String
+  ): InvalidateCacheOutput
 }
 
 type Mutation {

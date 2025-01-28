@@ -46,6 +46,15 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({ req });
   }
 
+  const appId = body.input?.app_id;
+  const paths = ["/api/v2/public/apps*"];
+
+  if (appId) {
+    paths.push(`/api/v2/public/app/${appId}`);
+  } else {
+    paths.push("/api/v2/public/app/*");
+  }
+
   const client = new CloudFrontClient({
     region: process.env.ASSETS_S3_REGION,
   });
@@ -54,8 +63,8 @@ export const POST = async (req: NextRequest) => {
     DistributionId: process.env.CLOUDFRONT_DISTRIBUTION_ID,
     InvalidationBatch: {
       Paths: {
-        Quantity: 2,
-        Items: ["/api/v2/public/app/*", "/api/v2/public/apps*"],
+        Quantity: paths.length,
+        Items: paths,
       },
       CallerReference: Date.now().toString(),
     },
