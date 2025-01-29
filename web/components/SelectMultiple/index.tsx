@@ -112,15 +112,18 @@ export const SelectMultiple = <T extends FieldValues>(
     [items, search],
   );
 
-  const labelClassNames = clsx("ml-2 text-sm peer-focus:text-blue-500", {
-    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
-      !errors && !disabled,
-    "text-system-error-500 peer-focus:text-system-error-500":
-      errors && !disabled,
-    "text-grey-400": disabled,
-    "px-0": label == "",
-    "px-0.5": label != "",
-  });
+  const labelClassNames = clsx(
+    "ml-2 whitespace-nowrap text-sm peer-focus:text-blue-500",
+    {
+      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+        !errors && !disabled,
+      "text-system-error-500 peer-focus:text-system-error-500":
+        errors && !disabled,
+      "text-grey-400": disabled,
+      "px-0": label == "",
+      "px-0.5": label != "",
+    },
+  );
 
   const fieldsetClassName = clsx(
     "overflow-hidden rounded-lg border bg-grey-0 text-base text-grey-700 md:text-sm",

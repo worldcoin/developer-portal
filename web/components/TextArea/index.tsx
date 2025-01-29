@@ -61,7 +61,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   );
 
   const labelClassNames = clsx(
-    "ml-2 px-[2px] text-sm peer-focus:text-blue-500",
+    "ml-2 whitespace-nowrap px-[2px] text-sm peer-focus:text-blue-500",
     {
       "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
         !errors && !disabled,
