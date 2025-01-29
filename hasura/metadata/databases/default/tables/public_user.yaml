@@ -26,6 +26,12 @@ insert_permissions:
         - team_id
         - world_id_nullifier
 select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - email
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
