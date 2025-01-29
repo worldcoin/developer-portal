@@ -192,11 +192,20 @@ export const GET = async (request: NextRequest) => {
     return app;
   });
 
-  return NextResponse.json({
-    app_rankings: {
-      top_apps: rankApps(formattedTopApps, metricsData),
-      highlights: rankApps(highlightedApps, metricsData),
+  return NextResponse.json(
+    {
+      app_rankings: {
+        top_apps: rankApps(formattedTopApps, metricsData),
+        highlights: rankApps(highlightedApps, metricsData),
+      },
+      categories: getAllLocalisedCategories(locale), // TODO: Localise
     },
-    categories: getAllLocalisedCategories(locale), // TODO: Localise
-  });
+    {
+      headers: {
+        // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
+        // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
+        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+      },
+    },
+  );
 };
