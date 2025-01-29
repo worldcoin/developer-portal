@@ -95,7 +95,11 @@ export const Input = memo(function Input(props: InputInterface) {
         <div className="flex items-center">{addOnRight && addOnRight}</div>
 
         {label && (
-          <legend className={twMerge(clsx("select-none", labelClassNames))}>
+          <legend
+            className={twMerge(
+              clsx("select-none whitespace-nowrap", labelClassNames),
+            )}
+          >
             {label}{" "}
             {required && <span className="text-system-error-500">*</span>}
           </legend>

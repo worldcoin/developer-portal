@@ -57,10 +57,14 @@ export const MaxVerificationsSelector = (props: {
         true,
     },
   );
-  const labelClassNames = clsx("ml-4 px-[2px] peer-focus:text-blue-500", {
-    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700": !errors,
-    "text-system-error-500 peer-focus:text-system-error-500": errors,
-  });
+  const labelClassNames = clsx(
+    "ml-4 whitespace-nowrap px-[2px] peer-focus:text-blue-500",
+    {
+      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+        !errors,
+      "text-system-error-500 peer-focus:text-system-error-500": errors,
+    },
+  );
 
   const handleSelect = useCallback(
     (newValue: number) => {

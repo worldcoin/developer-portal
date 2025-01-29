@@ -53,13 +53,16 @@ export const CategorySelector = (props: {
         !disabled,
     },
   );
-  const labelClassNames = clsx("ml-4 px-0.5 peer-focus:text-blue-500", {
-    "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
-      !errors && !disabled,
-    "text-system-error-500 peer-focus:text-system-error-500":
-      errors && !disabled,
-    "text-grey-400": disabled,
-  });
+  const labelClassNames = clsx(
+    "ml-4 whitespace-nowrap px-0.5 peer-focus:text-blue-500",
+    {
+      "text-grey-400 peer-focus:text-blue-500 group-hover:text-grey-700":
+        !errors && !disabled,
+      "text-system-error-500 peer-focus:text-system-error-500":
+        errors && !disabled,
+      "text-grey-400": disabled,
+    },
+  );
 
   const handleSelect = useCallback(
     (newValue: number) => {
