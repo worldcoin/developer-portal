@@ -36,7 +36,7 @@
     "jotai": "^2.9.1",
     "jsdom": "^25.0.1",
     "json5": "^2.2.3",
-    "next": "14.2.13",
+    "next": "14.2.15",
     "next-safe": "^3.5.0",
     "next-useragent": "^2.8.0",
     "playwright-qase-reporter": "^2.0.6",
