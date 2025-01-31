@@ -67,7 +67,7 @@ export const GET = async (request: NextRequest) => {
   const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
 
-  const { page, limit, app_mode } = parsedParams;
+  const { page, limit } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
 
   let highlightsIds: string[] = [];
@@ -192,11 +192,17 @@ export const GET = async (request: NextRequest) => {
     return app;
   });
 
+  highlightedApps = highlightedApps.sort((a, b) => {
+    const aIndex = highlightsIds.indexOf(a.app_id);
+    const bIndex = highlightsIds.indexOf(b.app_id);
+    return aIndex - bIndex;
+  });
+
   return NextResponse.json(
     {
       app_rankings: {
         top_apps: rankApps(formattedTopApps, metricsData),
-        highlights: rankApps(highlightedApps, metricsData),
+        highlights: highlightedApps,
       },
       categories: getAllLocalisedCategories(locale), // TODO: Localise
     },
