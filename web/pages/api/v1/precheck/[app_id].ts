@@ -180,6 +180,7 @@ export default async function handlePrecheck(
       "We couldn't find an app with this ID. Action may be inactive.",
       null,
       req,
+      true,
     );
   }
   const app_metadata = rawAppValues.app_metadata[0];

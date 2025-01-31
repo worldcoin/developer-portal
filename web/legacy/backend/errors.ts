@@ -8,11 +8,14 @@ export function errorResponse(
   detail: string = "Something went wrong",
   attribute: string | null = null,
   req: NextApiRequest,
+  skipLogging: boolean = false,
 ): void {
-  if (statusCode >= 500) {
-    logger.error(detail, { req, error: { statusCode, code, attribute } });
-  } else {
-    logger.warn(detail, { req, error: { statusCode, code, attribute } });
+  if (!skipLogging) {
+    if (statusCode >= 500) {
+      logger.error(detail, { req, error: { statusCode, code, attribute } });
+    } else {
+      logger.warn(detail, { req, error: { statusCode, code, attribute } });
+    }
   }
 
   res.status(statusCode).json({ code, detail, attribute });
