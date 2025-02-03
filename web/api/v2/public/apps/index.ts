@@ -28,7 +28,7 @@ const queryParamsSchema = yup.object({
     .string()
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
-  draft_ids: yup
+  override_top_apps_by_draft_ids: yup
     .mixed<string[]>()
     .transform((value) => {
       if (!value) return undefined;
@@ -76,11 +76,11 @@ export const GET = async (request: NextRequest) => {
   const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
 
-  const { page, limit, draft_ids } = parsedParams;
+  const { page, limit, override_top_apps_by_draft_ids } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
 
   let highlightsIds: string[] = [];
-  let draftApps: AppStoreFormattedFields[] = [];
+  let draftMetadataMap: Record<string, AppStoreFormattedFields> = {};
 
   try {
     const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
@@ -111,20 +111,31 @@ export const GET = async (request: NextRequest) => {
 
   const metricsData: AppStatsReturnType = await response.json();
 
-  // Fetch and format draft metadata if requested
-  if (draft_ids && draft_ids.length > 0) {
+  // Fetch draft metadata if requested for overriding top apps
+  if (
+    override_top_apps_by_draft_ids &&
+    override_top_apps_by_draft_ids.length > 0
+  ) {
     try {
       const { draft_metadata } = await getDraftMetadataSdk(
         client,
       ).GetDraftMetadata({
-        draft_ids,
+        draft_ids: override_top_apps_by_draft_ids,
         locale,
       });
 
-      draftApps = await Promise.all(
+      // Create a map of app_id to formatted draft metadata for easier lookup
+      const formattedDrafts = await Promise.all(
         draft_metadata.map((draft) =>
           formatAppMetadata(draft, metricsData, locale),
         ),
+      );
+      draftMetadataMap = formattedDrafts.reduce(
+        (acc, draft) => {
+          acc[draft.app_id] = draft;
+          return acc;
+        },
+        {} as Record<string, AppStoreFormattedFields>,
       );
     } catch (error) {
       console.log(error);
@@ -186,7 +197,7 @@ export const GET = async (request: NextRequest) => {
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  // Format all apps concurrently using Promise.all
+  // Format all apps concurrently using Promise.all and override top apps with draft data if available
   let formattedTopApps = await Promise.all(
     topApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
@@ -195,7 +206,9 @@ export const GET = async (request: NextRequest) => {
     highlightsApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
 
+  // Override top apps with draft metadata if available
   formattedTopApps = formattedTopApps.map((app) => {
+    // Check for native apps first
     if (app.app_id in nativeAppMetadata) {
       const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
@@ -210,6 +223,11 @@ export const GET = async (request: NextRequest) => {
           metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,
       };
+    }
+    // Then check for draft overrides
+    const draftOverride = draftMetadataMap[app.app_id];
+    if (draftOverride) {
+      return draftOverride;
     }
     return app;
   });
@@ -243,7 +261,6 @@ export const GET = async (request: NextRequest) => {
         highlights: highlightedApps,
       },
       categories: getAllLocalisedCategories(locale),
-      draft_apps: draftApps,
     },
     {
       headers: {
