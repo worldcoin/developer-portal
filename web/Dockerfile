@@ -7,13 +7,20 @@ FROM base AS deps
 RUN apk update && apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Install working version of corepack
+RUN npm install -g corepack@0.31.0 && corepack --version
+
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
+
 # Server depencies are runtime depencies required for running the Node.JS server, bundled separately
 # this includes logging dependencies
 FROM base AS server_deps
 WORKDIR /app
+
+# Install working version of corepack
+RUN npm install -g corepack@0.31.0 && corepack --version
 
 # TODO: Can be further optimized to remove next peer dependency
 RUN corepack enable pnpm && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.12.0
@@ -23,6 +30,9 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Install working version of corepack
+RUN npm install -g corepack@0.31.0 && corepack --version
 
 # Temporary env vars required for building
 ARG ASSETS_S3_BUCKET_NAME=""
@@ -43,7 +53,7 @@ ENV HASURA_GRAPHQL_JWT_SECRET '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMt
 ENV CLOUDFRONT_DISTRIBUTION_ID=${CLOUDFRONT_DISTRIBUTION_ID}
 ENV JWT_ISSUER invalid.localhost
 
-RUN corepack enable pnpm && pnpm run build;
+RUN corepack enable pnpm && pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
