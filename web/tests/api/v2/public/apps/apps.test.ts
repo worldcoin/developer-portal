@@ -3,6 +3,7 @@ import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
+import { getSdk as getDraftMetadataSdk } from "../../../../../api/v2/public/apps/graphql/get-draft-metadata.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated";
 
 // Mock the external dependencies
@@ -38,6 +39,17 @@ jest.mock(
     getSdk: jest.fn(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
         highlights: [],
+      }),
+    })),
+  }),
+);
+
+jest.mock(
+  "../../../../../api/v2/public/apps/graphql/get-draft-metadata.generated",
+  () => ({
+    getSdk: jest.fn(() => ({
+      GetDraftMetadata: jest.fn().mockResolvedValue({
+        draft_metadata: [],
       }),
     })),
   }),
@@ -81,6 +93,7 @@ describe("/api/v2/public/apps", () => {
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
       categories: Categories,
+      draft_apps: [],
     });
   });
 
@@ -312,6 +325,7 @@ describe("/api/v2/public/apps", () => {
         ],
       },
       categories: Categories,
+      draft_apps: [],
     });
   });
 
@@ -423,6 +437,229 @@ describe("/api/v2/public/apps", () => {
         highlights: [],
       },
       categories: Categories,
+      draft_apps: [],
+    });
+  });
+
+  describe("Draft metadata handling", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [],
+        }),
+      }));
+    });
+
+    test("should return draft metadata when draft_ids array contains one valid id", async () => {
+      jest.mocked(getDraftMetadataSdk).mockImplementation(() => ({
+        GetDraftMetadata: jest.fn().mockResolvedValue({
+          draft_metadata: [
+            {
+              id: "draft1",
+              name: "Draft App 1",
+              app_id: "app1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Draft description",
+              world_app_button_text: "Use Draft",
+              category: "Productivity",
+              description:
+                '{"description_overview":"draft","description_how_it_works":"draft","description_connect":"draft"}',
+              integration_url: "https://example.com/draft",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app",
+              support_link: "draft@example.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://draft.org"],
+              contracts: ["0x1234"],
+              permit2_tokens: ["0x1234"],
+              supported_languages: ["en"],
+              verification_status: "unverified",
+              is_allowed_unlimited_notifications: true,
+              max_notifications_per_day: 5,
+              is_reviewer_world_app_approved: false,
+              app: {
+                team: {
+                  name: "Draft Team",
+                },
+                rating_sum: 5,
+                rating_count: 2,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?draft_ids=draft1",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.draft_apps).toHaveLength(1);
+      expect(data.draft_apps[0]).toMatchObject({
+        name: "Draft App 1",
+        app_id: "app1",
+        integration_url: "https://example.com/draft",
+        verification_status: "unverified",
+        logo_img_url: "https://cdn.test.com/unverified/app1/logo.png",
+        hero_image_url: "https://cdn.test.com/unverified/app1/hero.png",
+        showcase_img_urls: [
+          "https://cdn.test.com/unverified/app1/showcase1.png",
+          "https://cdn.test.com/unverified/app1/showcase2.png",
+        ],
+      });
+    });
+
+    test("should handle multiple draft_ids with mix of existing and non-existing ids", async () => {
+      jest.mocked(getDraftMetadataSdk).mockImplementation(() => ({
+        GetDraftMetadata: jest.fn().mockResolvedValue({
+          draft_metadata: [
+            {
+              id: "draft1",
+              name: "Draft App 1",
+              app_id: "app1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Draft description",
+              world_app_button_text: "Use Draft",
+              category: "Productivity",
+              description:
+                '{"description_overview":"draft","description_how_it_works":"draft","description_connect":"draft"}',
+              integration_url: "https://example.com/draft1",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app",
+              support_link: "draft@example.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://draft.org"],
+              contracts: ["0x1234"],
+              permit2_tokens: ["0x1234"],
+              supported_languages: ["en"],
+              verification_status: "unverified",
+              is_allowed_unlimited_notifications: true,
+              max_notifications_per_day: 5,
+              is_reviewer_world_app_approved: false,
+              app: {
+                team: {
+                  name: "Draft Team 1",
+                },
+                rating_sum: 5,
+                rating_count: 2,
+              },
+            },
+            {
+              id: "draft2",
+              name: "Draft App 2",
+              app_id: "app2",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Draft description",
+              world_app_button_text: "Use Draft",
+              category: "Productivity",
+              description:
+                '{"description_overview":"draft","description_how_it_works":"draft","description_connect":"draft"}',
+              integration_url: "https://example.com/draft2",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app",
+              support_link: "draft@example.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://draft.org"],
+              contracts: ["0x1234"],
+              permit2_tokens: ["0x1234"],
+              supported_languages: ["en"],
+              verification_status: "unverified",
+              is_allowed_unlimited_notifications: true,
+              max_notifications_per_day: 5,
+              is_reviewer_world_app_approved: false,
+              app: {
+                team: {
+                  name: "Draft Team 2",
+                },
+                rating_sum: 8,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?draft_ids=draft1,draft2,non_existent_draft",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.draft_apps).toHaveLength(2);
+      expect(data.draft_apps).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: "Draft App 1",
+            app_id: "app1",
+            integration_url: "https://example.com/draft1",
+            logo_img_url: "https://cdn.test.com/unverified/app1/logo.png",
+          }),
+          expect.objectContaining({
+            name: "Draft App 2",
+            app_id: "app2",
+            integration_url: "https://example.com/draft2",
+            logo_img_url: "https://cdn.test.com/unverified/app2/logo.png",
+          }),
+        ]),
+      );
+    });
+
+    test("should return empty drafts array when no draft_ids match", async () => {
+      jest.mocked(getDraftMetadataSdk).mockImplementation(() => ({
+        GetDraftMetadata: jest.fn().mockResolvedValue({
+          draft_metadata: [],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?draft_ids=non_existent1,non_existent2",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.draft_apps).toEqual([]);
     });
   });
 });
