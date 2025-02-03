@@ -7,7 +7,7 @@ FROM base AS deps
 RUN apk update && apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install specific version of corepack to fix signature verification issues
+# Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
 # Install dependencies based on the preferred package manager
@@ -19,7 +19,7 @@ RUN corepack enable pnpm && pnpm i --frozen-lockfile
 FROM base AS server_deps
 WORKDIR /app
 
-# Install specific version of corepack in this stage
+# Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
 # TODO: Can be further optimized to remove next peer dependency
@@ -31,7 +31,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Install specific version of corepack in builder stage
+# Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
 # Temporary env vars required for building
