@@ -3,6 +3,7 @@ import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
+import { getSdk as getDraftMetadataSdk } from "../../../../../api/v2/public/apps/graphql/get-draft-metadata.generated";
 import { getSdk as getHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-highlighted-apps.generated";
 
 // Mock the external dependencies
@@ -38,6 +39,17 @@ jest.mock(
     getSdk: jest.fn(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
         highlights: [],
+      }),
+    })),
+  }),
+);
+
+jest.mock(
+  "../../../../../api/v2/public/apps/graphql/get-draft-metadata.generated",
+  () => ({
+    getSdk: jest.fn(() => ({
+      GetDraftMetadata: jest.fn().mockResolvedValue({
+        draft_metadata: [],
       }),
     })),
   }),
@@ -423,6 +435,206 @@ describe("/api/v2/public/apps", () => {
         highlights: [],
       },
       categories: Categories,
+    });
+  });
+
+  describe("Draft metadata handling", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+    });
+
+    test("should override top app with draft metadata when draft_id matches", async () => {
+      // Mock top apps with two metadata rows for the same app
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [
+            {
+              id: "1",
+              name: "Original App",
+              app_id: "app1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Original description",
+              world_app_button_text: "Use Original",
+              category: "Productivity",
+              description:
+                '{"description_overview":"original","description_how_it_works":"original","description_connect":"original"}',
+              integration_url: "https://example.com/original",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app",
+              support_link: "support@example.com",
+              supported_countries: ["us"],
+              verification_status: "verified",
+              app: {
+                team: { name: "Original Team" },
+                rating_sum: 10,
+                rating_count: 2,
+              },
+            },
+          ],
+        }),
+      }));
+
+      // Mock draft metadata
+      jest.mocked(getDraftMetadataSdk).mockImplementation(() => ({
+        GetDraftMetadata: jest.fn().mockResolvedValue({
+          draft_metadata: [
+            {
+              id: "draft1",
+              name: "Draft Version",
+              app_id: "app1",
+              short_name: "test-draft",
+              logo_img_url: "logo-draft.png",
+              showcase_img_urls: ["showcase-draft.png"],
+              hero_image_url: "hero-draft.png",
+              world_app_description: "Draft description",
+              world_app_button_text: "Use Draft",
+              category: "Social",
+              description:
+                '{"description_overview":"draft","description_how_it_works":"draft","description_connect":"draft"}',
+              integration_url: "https://example.com/draft",
+              app_website_url: "https://example.com/draft",
+              source_code_url: "https://github.com/example/draft",
+              whitelisted_addresses: ["0x5678"],
+              app_mode: "mini-app",
+              support_link: "draft@example.com",
+              supported_countries: ["us"],
+              verification_status: "unverified",
+              app: {
+                team: { name: "Draft Team" },
+                rating_sum: 15,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?override_top_apps_by_draft_ids=draft1",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.app_rankings.top_apps).toHaveLength(1);
+      expect(data.app_rankings.top_apps[0]).toMatchObject({
+        name: "Draft Version",
+        app_id: "app1",
+        integration_url: "https://example.com/draft",
+        logo_img_url: "https://cdn.test.com/unverified/app1/logo-draft.png",
+        team_name: "Draft Team",
+      });
+    });
+
+    test("should use original metadata when draft_id doesn't match", async () => {
+      // Mock top apps with original metadata
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [
+            {
+              id: "1",
+              name: "Original App",
+              app_id: "app1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Original description",
+              world_app_button_text: "Use Original",
+              category: "Productivity",
+              description:
+                '{"description_overview":"original","description_how_it_works":"original","description_connect":"original"}',
+              integration_url: "https://example.com/original",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app",
+              support_link: "support@example.com",
+              supported_countries: ["us"],
+              verification_status: "verified",
+              app: {
+                team: { name: "Original Team" },
+                rating_sum: 10,
+                rating_count: 2,
+              },
+            },
+          ],
+        }),
+      }));
+
+      // Mock draft metadata with non-matching draft
+      jest.mocked(getDraftMetadataSdk).mockImplementation(() => ({
+        GetDraftMetadata: jest.fn().mockResolvedValue({
+          draft_metadata: [
+            {
+              id: "draft2",
+              name: "Different Draft",
+              app_id: "app2",
+              short_name: "test-draft",
+              logo_img_url: "logo-draft.png",
+              showcase_img_urls: ["showcase-draft.png"],
+              hero_image_url: "hero-draft.png",
+              world_app_description: "Draft description",
+              world_app_button_text: "Use Draft",
+              category: "Social",
+              description:
+                '{"description_overview":"draft","description_how_it_works":"draft","description_connect":"draft"}',
+              integration_url: "https://example.com/draft",
+              app_website_url: "https://example.com/draft",
+              source_code_url: "https://github.com/example/draft",
+              whitelisted_addresses: ["0x5678"],
+              app_mode: "mini-app",
+              support_link: "draft@example.com",
+              supported_countries: ["us"],
+              verification_status: "unverified",
+              app: {
+                team: { name: "Draft Team" },
+                rating_sum: 15,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?override_top_apps_by_draft_ids=draft2",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data.app_rankings.top_apps).toHaveLength(1);
+      expect(data.app_rankings.top_apps[0]).toMatchObject({
+        name: "Original App",
+        app_id: "app1",
+        integration_url: "https://example.com/original",
+        logo_img_url: "https://cdn.test.com/app1/logo.png",
+        team_name: "Original Team",
+      });
     });
   });
 });

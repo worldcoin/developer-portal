@@ -4,7 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getAllLocalisedCategories } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
-import { AppStatsReturnType } from "@/lib/types";
+import { AppStatsReturnType, AppStoreFormattedFields } from "@/lib/types";
 import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -15,6 +15,7 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import { getSdk as getDraftMetadataSdk } from "./graphql/get-draft-metadata.generated";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -26,6 +27,14 @@ const queryParamsSchema = yup.object({
   app_mode: yup
     .string()
     .oneOf(["mini-app", "external", "native"])
+    .notRequired(),
+  override_top_apps_by_draft_ids: yup
+    .mixed<string[]>()
+    .transform((value) => {
+      if (!value) return undefined;
+      const strValue = String(value);
+      return strValue.replace(/['"]/g, "").split(",").filter(Boolean);
+    })
     .notRequired(),
 });
 
@@ -67,10 +76,11 @@ export const GET = async (request: NextRequest) => {
   const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
 
-  const { page, limit } = parsedParams;
+  const { page, limit, override_top_apps_by_draft_ids } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
 
   let highlightsIds: string[] = [];
+  let draftMetadataMap: Record<string, AppStoreFormattedFields> = {};
 
   try {
     const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
@@ -84,6 +94,59 @@ export const GET = async (request: NextRequest) => {
       attribute: null,
       req: request,
     });
+  }
+
+  // ANCHOR: Fetch app stats from metrics service
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
+    {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    },
+  );
+
+  const metricsData: AppStatsReturnType = await response.json();
+
+  // Fetch draft metadata if requested for overriding top apps
+  if (
+    override_top_apps_by_draft_ids &&
+    override_top_apps_by_draft_ids.length > 0
+  ) {
+    try {
+      const { draft_metadata } = await getDraftMetadataSdk(
+        client,
+      ).GetDraftMetadata({
+        draft_ids: override_top_apps_by_draft_ids,
+        locale,
+      });
+
+      // Create a map of app_id to formatted draft metadata for easier lookup
+      const formattedDrafts = await Promise.all(
+        draft_metadata.map((draft) =>
+          formatAppMetadata(draft, metricsData, locale),
+        ),
+      );
+      draftMetadataMap = formattedDrafts.reduce(
+        (acc, draft) => {
+          acc[draft.app_id] = draft;
+          return acc;
+        },
+        {} as Record<string, AppStoreFormattedFields>,
+      );
+    } catch (error) {
+      console.log(error);
+      return errorResponse({
+        statusCode: 500,
+        code: "server_error",
+        detail: "Failed to fetch draft metadata. Please try again.",
+        attribute: null,
+        req: request,
+      });
+    }
   }
 
   let topApps: GetAppsQuery["top_apps"] = [];
@@ -132,23 +195,9 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
-  // ANCHOR: Fetch app stats from metrics service
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-    {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    },
-  );
-
-  const metricsData: AppStatsReturnType = await response.json();
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  // Format all apps concurrently using Promise.all
+  // Format all apps concurrently using Promise.all and override top apps with draft data if available
   let formattedTopApps = await Promise.all(
     topApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
@@ -157,7 +206,9 @@ export const GET = async (request: NextRequest) => {
     highlightsApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
 
+  // Override top apps with draft metadata if available
   formattedTopApps = formattedTopApps.map((app) => {
+    // Check for native apps first
     if (app.app_id in nativeAppMetadata) {
       const nativeAppItem = nativeAppMetadata[app.app_id];
       return {
@@ -172,6 +223,11 @@ export const GET = async (request: NextRequest) => {
           metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
             ?.unique_users ?? 0,
       };
+    }
+    // Then check for draft overrides
+    const draftOverride = draftMetadataMap[app.app_id];
+    if (draftOverride) {
+      return draftOverride;
     }
     return app;
   });
@@ -204,7 +260,7 @@ export const GET = async (request: NextRequest) => {
         top_apps: rankApps(formattedTopApps, metricsData),
         highlights: highlightedApps,
       },
-      categories: getAllLocalisedCategories(locale), // TODO: Localise
+      categories: getAllLocalisedCategories(locale),
     },
     {
       headers: {

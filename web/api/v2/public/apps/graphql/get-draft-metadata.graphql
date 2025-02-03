@@ -1,0 +1,49 @@
+query GetDraftMetadata($draft_ids: [String!], $locale: String!) {
+  draft_metadata: app_metadata(where: { id: { _in: $draft_ids } }) {
+    id
+    name
+    short_name
+    app_id
+    logo_img_url
+    showcase_img_urls
+    hero_image_url
+    world_app_description
+    world_app_button_text
+    whitelisted_addresses
+    app_mode
+    description
+    category
+    integration_url
+    app_website_url
+    source_code_url
+    support_link
+    supported_countries
+    supported_languages
+    associated_domains
+    contracts
+    permit2_tokens
+    can_import_all_contacts
+    is_reviewer_world_app_approved
+    verification_status
+    is_allowed_unlimited_notifications
+    max_notifications_per_day
+    localisations(where: { locale: { _eq: $locale } }) {
+      name
+      world_app_button_text
+      world_app_description
+      short_name
+      description
+    }
+    app {
+      team {
+        name
+        id
+      }
+      rating_count
+      rating_sum
+      is_banned
+      created_at
+      updated_at
+    }
+  }
+}
