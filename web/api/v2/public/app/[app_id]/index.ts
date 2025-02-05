@@ -120,6 +120,9 @@ export async function GET(
     { app_data: formattedMetadata },
     {
       status: 200,
+      headers: {
+        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+      },
     },
   );
 }
