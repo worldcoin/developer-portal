@@ -247,6 +247,7 @@ export type AppStoreFormattedFields = Omit<
     how_it_works: string;
     how_to_connect: string;
   };
+  draft_id?: string;
 };
 
 type NativeApp = {

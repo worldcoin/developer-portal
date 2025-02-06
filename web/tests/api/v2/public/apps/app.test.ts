@@ -402,6 +402,7 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.integration_url).toBe(
         "https://example.com/integration-unverified",
       );
+      expect(data.app_data.draft_id).toBe("2");
     });
 
     test("should select reviewer approved metadata when no draft_id provided", async () => {
@@ -501,6 +502,7 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.integration_url).toBe(
         "https://example.com/integration",
       );
+      expect(data.app_data.draft_id).toBeUndefined();
     });
 
     test("should fallback to first metadata when draft_id is invalid", async () => {
@@ -562,6 +564,7 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.integration_url).toBe(
         "https://example.com/integration",
       );
+      expect(data.app_data.draft_id).toBeUndefined();
     });
   });
 });

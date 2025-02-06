@@ -102,6 +102,14 @@ export async function GET(
     locale,
   );
 
+  // Add the draft_id to the response if it exists in the parsed metadata
+  if (parsedAppMetadata.id === draft_id) {
+    formattedMetadata = {
+      ...formattedMetadata,
+      draft_id: draft_id,
+    };
+  }
+
   if (formattedMetadata.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[formattedMetadata.app_id];
 
