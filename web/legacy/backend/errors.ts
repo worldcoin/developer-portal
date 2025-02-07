@@ -1,4 +1,4 @@
-import { logger } from "@/legacy/lib/logger";
+import { logger } from "@/lib/logger";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export function errorResponse(
