@@ -43,7 +43,7 @@ export const httpsLinkSchema = ({
   yup
     .string()
     .url("Invalid URL")
-    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-\+._/?%&#=]*)?$/, {
       message: "Must be a valid https URL",
       excludeEmptyString,
     });
