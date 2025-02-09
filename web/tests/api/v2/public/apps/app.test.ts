@@ -505,7 +505,7 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.draft_id).toBeUndefined();
     });
 
-    test("should fallback to first metadata when draft_id is invalid", async () => {
+    test("should return 404 when draft_id is invalid", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -559,12 +559,65 @@ describe("/api/public/app/[app_id]", () => {
       );
       const response = await GET(request, { params: { app_id: "test-app" } });
       const data = await response.json();
-      expect(data.app_data.name).toBe("Example App");
-      expect(data.app_data.app_rating).toBe(3.33);
-      expect(data.app_data.integration_url).toBe(
-        "https://example.com/integration",
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Draft not found");
+    });
+
+    test("should return 404 when a draft_id is provided for native app", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/TEST_APP?draft_id=123",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
       );
-      expect(data.app_data.draft_id).toBeUndefined();
+
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Example App",
+              app_id: "app_test_123",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Social",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "andy@gmail.com",
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_countries: ["us"],
+              supported_languages: ["en", "es"],
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const response = await GET(request, {
+        params: { app_id: "TEST_APP" },
+      });
+      expect(response.status).toBe(404);
     });
   });
 });
