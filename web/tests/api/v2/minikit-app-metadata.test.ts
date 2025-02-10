@@ -107,8 +107,8 @@ const app_metadata = {
   app_mode: "external",
   description: {
     overview: "Random values",
-    how_it_works: "Random values",
-    how_to_connect: "test",
+    how_it_works: "",
+    how_to_connect: "",
   },
   category: {
     id: "social",

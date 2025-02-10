@@ -68,8 +68,8 @@ describe("/api/v2/public/apps", () => {
         max_notifications_per_day: 10,
         description: JSON.stringify({
           description_overview: "test",
-          description_how_it_works: "test",
-          description_connect: "test",
+          description_how_it_works: "",
+          description_connect: "",
         }),
         app: {
           team: { name: "Test Team" },
@@ -95,8 +95,8 @@ describe("/api/v2/public/apps", () => {
         max_notifications_per_day: 10,
         description: JSON.stringify({
           description_overview: "test",
-          description_how_it_works: "test",
-          description_connect: "test",
+          description_how_it_works: "",
+          description_connect: "",
         }),
         app: {
           team: { name: "Test Team" },
@@ -263,8 +263,8 @@ describe("/api/v2/public/apps", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             description: JSON.stringify({
               description_overview: "random string",
-              description_how_it_works: "23423",
-              description_connect: "4fwfewf",
+              description_how_it_works: "",
+              description_connect: "",
             }),
             verification_status: "verified",
             is_allowed_unlimited_notifications: false,
@@ -297,8 +297,8 @@ describe("/api/v2/public/apps", () => {
             max_notifications_per_day: 10,
             description: JSON.stringify({
               description_overview: "fwefw",
-              description_how_it_works: "fwefw",
-              description_connect: "fwefw",
+              description_how_it_works: "",
+              description_connect: "",
             }),
             app: {
               team: {
@@ -332,8 +332,8 @@ describe("/api/v2/public/apps", () => {
             max_notifications_per_day: 10,
             description: JSON.stringify({
               description_overview: "random",
-              description_how_it_works: "random",
-              description_connect: "random",
+              description_how_it_works: "",
+              description_connect: "",
             }),
             app: {
               team: {
@@ -379,8 +379,8 @@ describe("/api/v2/public/apps", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             description: {
               overview: "random string",
-              how_it_works: "23423",
-              how_to_connect: "4fwfewf",
+              how_it_works: "",
+              how_to_connect: "",
             },
             world_app_button_text: "random",
             world_app_description: "random",
@@ -404,8 +404,8 @@ describe("/api/v2/public/apps", () => {
             app_mode: "external",
             description: {
               overview: "fwefw",
-              how_it_works: "fwefw",
-              how_to_connect: "fwefw",
+              how_it_works: "",
+              how_to_connect: "",
             },
             associated_domains: ["https://worldcoin.org"],
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
@@ -445,8 +445,8 @@ describe("/api/v2/public/apps", () => {
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             category: { id: "social", name: "Social" },
             description: {
-              how_it_works: "random",
-              how_to_connect: "random",
+              how_it_works: "",
+              how_to_connect: "",
               overview: "random",
             },
             team_name: "Example Team",
@@ -555,8 +555,8 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             category: { id: "social", name: "Social" },
             description: {
-              how_it_works: "few",
-              how_to_connect: "fewf",
+              how_it_works: "",
+              how_to_connect: "",
               overview: "fewf",
             },
             world_app_button_text: "Use Integration",

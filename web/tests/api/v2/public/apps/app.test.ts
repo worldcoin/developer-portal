@@ -98,8 +98,8 @@ describe("/api/public/app/[app_id]", () => {
         is_allowed_unlimited_notifications: false,
         max_notifications_per_day: 10,
         description: {
-          how_it_works: "few",
-          how_to_connect: "fewf",
+          how_it_works: "",
+          how_to_connect: "",
           overview: "fewf",
         },
         world_app_button_text: "Use Integration",
@@ -194,8 +194,8 @@ describe("/api/public/app/[app_id]", () => {
         is_allowed_unlimited_notifications: false,
         max_notifications_per_day: 10,
         description: {
-          how_it_works: "few",
-          how_to_connect: "fewf",
+          how_it_works: "",
+          how_to_connect: "",
           overview: "fewf",
         },
         world_app_button_text: "Use Integration",
@@ -289,8 +289,8 @@ describe("/api/public/app/[app_id]", () => {
         is_allowed_unlimited_notifications: false,
         max_notifications_per_day: 10,
         description: {
-          how_it_works: "few",
-          how_to_connect: "fewf",
+          how_it_works: "",
+          how_to_connect: "",
           overview: "fewf",
         },
         world_app_button_text: "Use Integration",
