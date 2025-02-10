@@ -15,6 +15,7 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import { logger } from "@/lib/logger";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -83,7 +84,7 @@ export const GET = async (request: NextRequest) => {
     const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
     highlightsIds = app_rankings[0]?.rankings ?? [];
   } catch (error) {
-    console.log(error);
+    logger.error("Error fetching highlights", { error, req: request });
     return errorResponse({
       statusCode: 500,
       code: "server_error",
@@ -115,7 +116,7 @@ export const GET = async (request: NextRequest) => {
     });
     highlightsApps = highlights;
   } catch (error) {
-    console.log(error);
+    logger.error("Error fetching app rankings", { error, req: request });
     return errorResponse({
       statusCode: 500,
       code: "server_error",

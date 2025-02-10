@@ -77,7 +77,7 @@ export const Form = (props: { hasUser: boolean }) => {
       }
 
       if (!data || !data.returnTo) {
-        return console.log("Something went wrong");
+        return;
       }
 
       await checkSession();
