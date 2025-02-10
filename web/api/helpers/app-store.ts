@@ -88,10 +88,11 @@ export const formatAppMetadata = async (
       appMetadata.hero_image_url,
       appMetadata.verification_status === "verified",
     ),
+    // TODO: These fields are not used anymore, we can add them back if we want later
     description: {
       overview: description?.description_overview ?? "",
-      how_it_works: description?.description_how_it_works ?? "",
-      how_to_connect: description?.description_connect ?? "",
+      how_it_works: "",
+      how_to_connect: "",
     },
     ratings_external_nullifier: generateExternalNullifier(
       `${appMetadata.app_id}_app_review`,
