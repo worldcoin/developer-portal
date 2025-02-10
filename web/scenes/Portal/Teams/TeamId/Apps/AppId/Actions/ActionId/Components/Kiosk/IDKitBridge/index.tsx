@@ -1,4 +1,3 @@
-import { logger } from "@/lib/logger";
 import { KioskScreen } from "@/lib/types";
 import {
   VerificationLevel,
@@ -71,7 +70,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       })
       .catch((error) => {
         if (process.env.NODE_ENV === "development") {
-          logger.debug("Error creating client", { error });
+          console.debug("Error creating client", { error });
         }
       });
   }, [
