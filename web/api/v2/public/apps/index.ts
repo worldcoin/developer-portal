@@ -27,6 +27,7 @@ const queryParamsSchema = yup.object({
     .string()
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
+  country: yup.string().notRequired(),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -64,8 +65,14 @@ export const GET = async (request: NextRequest) => {
     return handleError(request);
   }
   const headers = request.headers;
-  const country = headers.get("CloudFront-Viewer-Country");
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
+  let country: string | null = null;
+
+  if (parsedParams.country) {
+    country = parsedParams.country;
+  } else {
+    country = headers.get("CloudFront-Viewer-Country");
+  }
 
   const { page, limit } = parsedParams;
   const client = await getAPIServiceGraphqlClient();

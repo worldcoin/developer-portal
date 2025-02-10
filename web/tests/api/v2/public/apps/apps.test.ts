@@ -48,6 +48,153 @@ beforeEach(() => {
 });
 
 describe("/api/v2/public/apps", () => {
+  describe("country selection", () => {
+    const mockAppsWithCountries = [
+      {
+        app_id: "1",
+        name: "Test App",
+        short_name: "test",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social",
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app",
+        supported_countries: ["US", "GB"],
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "test",
+          description_connect: "test",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+      {
+        app_id: "2",
+        name: "Test App",
+        short_name: "test",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social",
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app",
+        supported_countries: ["US"],
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "test",
+          description_connect: "test",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+    });
+
+    test("should prioritize country from query parameter over CloudFront header", async () => {
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithCountries,
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?country=GB",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "CloudFront-Viewer-Country": "US",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // App should be included as GB is in supported_countries
+      expect(data.app_rankings.top_apps).toHaveLength(1);
+      expect(data.app_rankings.top_apps[0].app_id).toBe("1");
+    });
+
+    test("should fall back to CloudFront header when no query parameter is provided", async () => {
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithCountries,
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "CloudFront-Viewer-Country": "US",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // App should be included as US is in supported_countries
+      expect(data.app_rankings.top_apps).toHaveLength(2);
+      expect(data.app_rankings.top_apps[0].app_id).toBe("1");
+      expect(data.app_rankings.top_apps[1].app_id).toBe("2");
+    });
+
+    test("should filter out apps not supporting the specified country", async () => {
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithCountries,
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?country=FR",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // App should be filtered out as FR is not in supported_countries
+      expect(data.app_rankings.top_apps).toHaveLength(0);
+    });
+  });
+
   test("should handle empty rankings correctly", async () => {
     jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
