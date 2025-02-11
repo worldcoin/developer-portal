@@ -156,16 +156,16 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     ai: "Kecerdasan Buatan",
   },
   th: {
-    social: "สังคม",
-    gaming: "เกม",
+    social: "โซเชียล",
+    gaming: "การเล่นเกม",
     business: "ธุรกิจ",
     finance: "การเงิน",
-    productivity: "ผลผลิต",
+    productivity: "การผลิต",
     other: "อื่นๆ",
-    tokens: "Token",
+    tokens: "โทเค็น",
     external: "ภายนอก",
     earn: "รับรายได้",
-    ai: "ปัญญาประดิษฐ์",
+    ai: "AI",
   },
   id: {
     social: "Sosial",
@@ -176,8 +176,8 @@ export const CategoryTranslations: Record<string, Record<string, string>> = {
     other: "Lainnya",
     tokens: "Token",
     external: "Eksternal",
-    earn: "Dapatkan",
-    ai: "Kecerdasan Buatan",
+    earn: "Hasilkan",
+    ai: "AI",
   },
 };
 
