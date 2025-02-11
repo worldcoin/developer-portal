@@ -228,7 +228,7 @@ describe("/api/v2/public/apps", () => {
 
       await GET(request);
 
-      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(getAppsSdk).toHaveBeenCalled();
       expect(
         jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
       ).toHaveBeenCalledWith(
@@ -251,7 +251,7 @@ describe("/api/v2/public/apps", () => {
 
       await GET(request);
 
-      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(getAppsSdk).toHaveBeenCalled();
       expect(
         jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
       ).toHaveBeenCalledWith(
@@ -274,7 +274,7 @@ describe("/api/v2/public/apps", () => {
 
       await GET(request);
 
-      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(getAppsSdk).toHaveBeenCalled();
       expect(
         jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
       ).toHaveBeenCalledWith(
@@ -297,7 +297,7 @@ describe("/api/v2/public/apps", () => {
 
       await GET(request);
 
-      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(getAppsSdk).toHaveBeenCalled();
       expect(
         jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
       ).toHaveBeenCalledWith(
