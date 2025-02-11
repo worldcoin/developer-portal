@@ -221,6 +221,14 @@ const supportedLanguages = [
     label: "Malay",
     value: "ms",
   },
+  {
+    label: "Thai",
+    value: "th",
+  },
+  {
+    label: "Indonesian",
+    value: "id",
+  },
 ];
 
 export const languageMap = {
@@ -237,6 +245,8 @@ export const languageMap = {
   es: { label: "Spanish", country_code: "ES" },
   es_419: { label: "Spanish (Latin America)", country_code: "AR" },
   ms: { label: "Malay", country_code: "MY" },
+  th: { label: "Thai", country_code: "TH" },
+  id: { label: "Indonesian", country_code: "ID" },
 };
 
 export const formCountriesList = () =>
