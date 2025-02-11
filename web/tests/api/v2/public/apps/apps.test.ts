@@ -195,6 +195,119 @@ describe("/api/v2/public/apps", () => {
     });
   });
 
+  describe("locale parsing", () => {
+    beforeEach(() => {
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [],
+        }),
+      }));
+    });
+
+    test("should use 'en' locale when no x-accept-language header is provided", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      await GET(request);
+
+      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(
+        jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          locale: "en",
+        }),
+      );
+    });
+
+    test("should parse simple language code from x-accept-language header", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "x-accept-language": "es",
+          },
+        },
+      );
+
+      await GET(request);
+
+      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(
+        jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          locale: "es",
+        }),
+      );
+    });
+
+    test("should parse language code with region from x-accept-language header", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "x-accept-language": "en-US",
+          },
+        },
+      );
+
+      await GET(request);
+
+      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(
+        jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          locale: "en",
+        }),
+      );
+    });
+
+    test("should handle multiple language preferences in x-accept-language header", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "x-accept-language": "th-TH,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+          },
+        },
+      );
+
+      await GET(request);
+
+      expect(getAppsSdk).toHaveBeenCalledWith(expect.anything());
+      expect(
+        jest.mocked(getAppsSdk).mock.results[0].value.GetApps,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          locale: "th",
+        }),
+      );
+    });
+  });
+
   test("should handle empty rankings correctly", async () => {
     jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
       GetHighlights: jest.fn().mockResolvedValue({
