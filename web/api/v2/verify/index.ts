@@ -135,6 +135,7 @@ export async function POST(
       detail: "This action does not have a valid external nullifier set.",
       attribute: null,
       req,
+      skipLogging: true,
     });
   }
 
@@ -173,16 +174,17 @@ export async function POST(
         detail: error?.message || "There was an error verifying this proof.",
         attribute: error?.attribute || null,
         req,
+        skipLogging: true,
       });
     }
   } catch (e: any) {
-    console.warn("Error verifying proof", { error: e });
     return errorResponse({
       statusCode: 400,
       code: "verification_error",
       detail: e.message,
       attribute: null,
       req,
+      skipLogging: true,
     });
   }
 
@@ -244,6 +246,7 @@ export async function POST(
         : e.message,
       attribute: null,
       req,
+      skipLogging: true,
     });
   }
 }

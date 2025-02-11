@@ -8,6 +8,7 @@ export function errorResponse(params: {
   detail?: string;
   attribute?: string | null;
   req: NextRequest;
+  skipLogging?: boolean;
 }) {
   const {
     statusCode,
@@ -15,7 +16,15 @@ export function errorResponse(params: {
     detail = "Something went wrong",
     attribute = null,
     req,
+    skipLogging = false,
   } = params;
+
+  if (skipLogging) {
+    return NextResponse.json(
+      { code, detail, attribute },
+      { status: statusCode },
+    );
+  }
 
   if (statusCode >= 500) {
     logger.error(detail, { req, error: { statusCode, code, attribute } });
@@ -89,7 +98,14 @@ export function errorValidation(
   attribute: string | null,
   req: NextRequest,
 ) {
-  return errorResponse({ statusCode: 400, code, detail, attribute, req });
+  return errorResponse({
+    statusCode: 400,
+    code,
+    detail,
+    attribute,
+    req,
+    skipLogging: true,
+  });
 }
 
 export function errorOIDCResponse(

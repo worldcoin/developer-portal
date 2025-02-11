@@ -51,6 +51,7 @@ export const GET = async (
       detail: "API key not found.",
       attribute: "api_key",
       req,
+      skipLogging: true,
     });
   }
 
@@ -61,6 +62,7 @@ export const GET = async (
       detail: "API key is inactive.",
       attribute: "api_key",
       req,
+      skipLogging: true,
     });
   }
 
