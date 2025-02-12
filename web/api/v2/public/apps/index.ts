@@ -15,6 +15,7 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import { logger } from "@/lib/logger";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -68,10 +69,9 @@ export const GET = async (request: NextRequest) => {
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
 
-  console.log({
-    cloudfrontCountry: country,
-    parsedCountry: parsedParams.country,
-  });
+  logger.info(
+    `Cloudfront Country: ${country}, Parsed Country: ${parsedParams.country}`,
+  );
 
   if (parsedParams.country) {
     country = parsedParams.country;
