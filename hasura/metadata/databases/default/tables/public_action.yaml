@@ -44,6 +44,8 @@ insert_permissions:
         - max_verifications
         - creation_mode
         - kiosk_enabled
+        - webhook_uri
+        - webhook_pem
   - role: service
     permission:
       check: {}
@@ -56,6 +58,8 @@ insert_permissions:
         - name
         - action
         - creation_mode
+        - webhook_uri
+        - webhook_pem
 select_permissions:
   - role: api_key
     permission:
@@ -73,6 +77,8 @@ select_permissions:
         - creation_mode
         - kiosk_enabled
         - status
+        - webhook_uri
+        - webhook_pem
       filter:
         app:
           team_id:
