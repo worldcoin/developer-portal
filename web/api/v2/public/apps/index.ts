@@ -15,7 +15,6 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
-import { logger } from "@/lib/logger";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -28,7 +27,7 @@ const queryParamsSchema = yup.object({
     .string()
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
-  country: yup.string().notRequired(),
+  override_country: yup.string().notRequired(),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -69,12 +68,13 @@ export const GET = async (request: NextRequest) => {
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
 
-  logger.info(
-    `Cloudfront Country: ${country}, Parsed Country: ${parsedParams.country}`,
-  );
+  console.log({
+    cloudfrontCountry: country,
+    parsedCountry: parsedParams.override_country,
+  });
 
-  if (parsedParams.country) {
-    country = parsedParams.country;
+  if (parsedParams.override_country) {
+    country = parsedParams.override_country;
   }
 
   const { page, limit } = parsedParams;
