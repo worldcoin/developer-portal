@@ -281,6 +281,10 @@ export type Action = {
   status: Scalars["String"]["output"];
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["timestamptz"]["output"];
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** columns and relationships of "action" */
@@ -443,6 +447,8 @@ export type Action_Bool_Exp = {
   status?: InputMaybe<String_Comparison_Exp>;
   terms_uri?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  webhook_pem?: InputMaybe<String_Comparison_Exp>;
+  webhook_uri?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "action" */
@@ -489,6 +495,10 @@ export type Action_Insert_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -516,6 +526,10 @@ export type Action_Max_Fields = {
   status?: Maybe<Scalars["String"]["output"]>;
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "action" */
@@ -540,6 +554,10 @@ export type Action_Max_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Order_By>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -567,6 +585,10 @@ export type Action_Min_Fields = {
   status?: Maybe<Scalars["String"]["output"]>;
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "action" */
@@ -591,6 +613,10 @@ export type Action_Min_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Order_By>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "action" */
@@ -638,6 +664,8 @@ export type Action_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  webhook_pem?: InputMaybe<Order_By>;
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: action */
@@ -679,6 +707,10 @@ export enum Action_Select_Column {
   TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WebhookPem = "webhook_pem",
+  /** column name */
+  WebhookUri = "webhook_uri",
 }
 
 /** select "action_aggregate_bool_exp_bool_and_arguments_columns" columns of table "action" */
@@ -716,6 +748,10 @@ export type Action_Set_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Action_Stats_Args = {
@@ -1045,6 +1081,10 @@ export type Action_Stream_Cursor_Value_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
@@ -1100,6 +1140,10 @@ export enum Action_Update_Column {
   TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WebhookPem = "webhook_pem",
+  /** column name */
+  WebhookUri = "webhook_uri",
 }
 
 export type Action_Updates = {

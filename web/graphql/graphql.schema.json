@@ -3244,7 +3244,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -3256,7 +3256,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -4674,7 +4674,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -4686,7 +4686,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -4900,7 +4900,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -4912,7 +4912,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -5116,7 +5116,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -5128,7 +5128,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -5342,7 +5342,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -5354,7 +5354,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -5558,7 +5558,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -5570,7 +5570,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -6393,7 +6393,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -6405,7 +6405,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -8404,7 +8404,7 @@
           },
           {
             "name": "webhook_pem",
-            "description": null,
+            "description": "PEM used to encrypt the payload sent to the webhook_uri",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -8416,7 +8416,7 @@
           },
           {
             "name": "webhook_uri",
-            "description": null,
+            "description": "uri to send a payload to the webhook, encrypted by the webhook_pem",
             "type": {
               "kind": "SCALAR",
               "name": "String",
