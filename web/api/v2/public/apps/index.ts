@@ -66,12 +66,15 @@ export const GET = async (request: NextRequest) => {
   }
   const headers = request.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
-  let country: string | null = null;
+  let country: string | null = headers.get("CloudFront-Viewer-Country");
+
+  console.log({
+    cloudfrontCountry: country,
+    parsedCountry: parsedParams.country,
+  });
 
   if (parsedParams.country) {
     country = parsedParams.country;
-  } else {
-    country = headers.get("CloudFront-Viewer-Country");
   }
 
   const { page, limit } = parsedParams;
