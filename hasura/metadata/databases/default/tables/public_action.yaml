@@ -95,6 +95,8 @@ select_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
+        - webhook_uri
+        - webhook_pem
       computed_fields:
         - redirect_count
       filter:
@@ -123,6 +125,8 @@ select_permissions:
         - status
         - terms_uri
         - updated_at
+        - webhook_uri
+        - webhook_pem
       filter:
         app:
           team:
@@ -163,6 +167,8 @@ update_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
+        - webhook_uri
+        - webhook_pem
       filter:
         app:
           team:

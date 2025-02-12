@@ -18,6 +18,7 @@ test-results/
 # misc
 .DS_Store
 *.pem
+.idea/
 
 # debug
 pnpm-debug.log*
