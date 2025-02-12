@@ -6,6 +6,8 @@ query GetSingleAction($action_id: String!) {
     description
     name
     max_verifications
+    webhook_uri
+    webhook_pem
     app {
       id
       is_staging

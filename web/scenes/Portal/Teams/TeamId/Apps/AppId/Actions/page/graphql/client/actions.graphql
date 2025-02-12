@@ -14,6 +14,8 @@ query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
     name
     max_accounts_per_user
     max_verifications
+    webhook_uri
+    webhook_pem
     updated_at
     nullifiers: nullifiers_aggregate {
       aggregate {

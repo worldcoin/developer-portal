@@ -18,6 +18,8 @@ export type GetSingleActionQuery = {
     description: string;
     name: string;
     max_verifications: number;
+    webhook_uri?: string | null;
+    webhook_pem?: string | null;
     app: {
       __typename?: "app";
       id: string;
@@ -36,6 +38,8 @@ export const GetSingleActionDocument = gql`
       description
       name
       max_verifications
+      webhook_uri
+      webhook_pem
       app {
         id
         is_staging

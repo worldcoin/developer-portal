@@ -5,8 +5,8 @@ mutation InsertAction(
   $app_id: String!
   $external_nullifier: String!
   $max_verifications: Int = 1
-#  $webhook_uri: String!
-#  $webhook_pem: String!
+  $webhook_uri: String
+  $webhook_pem: String
 ) {
   insert_action_one(
     object: {
@@ -16,8 +16,8 @@ mutation InsertAction(
       description: $description
       external_nullifier: $external_nullifier
       max_verifications: $max_verifications
-#      webhook_uri: $webhook_uri
-#      webhook_pem: $webhook_pem
+      webhook_uri: $webhook_uri
+      webhook_pem: $webhook_pem
     }
   ) {
     id

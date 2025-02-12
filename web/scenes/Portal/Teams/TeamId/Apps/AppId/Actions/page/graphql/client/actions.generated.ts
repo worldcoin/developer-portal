@@ -26,6 +26,8 @@ export type GetActionsQuery = {
     name: string;
     max_accounts_per_user: number;
     max_verifications: number;
+    webhook_uri?: string | null;
+    webhook_pem?: string | null;
     updated_at: string;
     nullifiers: {
       __typename?: "nullifier_aggregate";
@@ -57,6 +59,8 @@ export const GetActionsDocument = gql`
       name
       max_accounts_per_user
       max_verifications
+      webhook_uri
+      webhook_pem
       updated_at
       nullifiers: nullifiers_aggregate {
         aggregate {
