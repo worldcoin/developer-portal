@@ -128,7 +128,7 @@ describe("/api/v2/public/apps", () => {
       }));
 
       const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/apps?country=GB",
+        "https://cdn.test.com/api/v2/public/apps?override_country=GB",
         {
           headers: {
             host: "cdn.test.com",
@@ -179,7 +179,7 @@ describe("/api/v2/public/apps", () => {
       }));
 
       const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/apps?country=FR",
+        "https://cdn.test.com/api/v2/public/apps?override_country=FR",
         {
           headers: {
             host: "cdn.test.com",
@@ -329,7 +329,7 @@ describe("/api/v2/public/apps", () => {
     }));
 
     const request = new NextRequest(
-      "https://cdn.test.com/api/v2/public/apps?platform=web&country=US",
+      "https://cdn.test.com/api/v2/public/apps?platform=web&override_country=US",
       {
         headers: {
           host: "cdn.test.com",
