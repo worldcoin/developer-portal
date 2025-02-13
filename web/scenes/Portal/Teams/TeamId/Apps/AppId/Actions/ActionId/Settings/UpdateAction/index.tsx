@@ -22,6 +22,13 @@ const updateActionSchema = yup.object({
     .number()
     .typeError("Max verifications must be a number")
     .required("This field is required"),
+  webhook_uri: yup.string().optional().url("Must be a valid URL"),
+  webhook_pem: yup.string().when("webhook_uri", {
+    is: (value: string) => !!value,
+    then: (schema) =>
+      schema.required("PEM is required when a webhook URL is provided"),
+    otherwise: (schema) => schema.optional(),
+  }),
 });
 
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
@@ -47,6 +54,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       description: action.description,
       action: action.action,
       maxVerifications: action.max_verifications,
+      webhook_uri: action.webhook_uri ?? undefined,
+      webhook_pem: action.webhook_pem ?? undefined,
     },
   });
 
@@ -62,6 +71,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               name: values.name,
               description: values.description,
               max_verifications: values.maxVerifications,
+              webhook_uri: values.webhook_uri,
+              webhook_pem: values.webhook_pem,
             },
           },
           refetchQueries: [GetActionNameDocument],
@@ -157,6 +168,24 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             }}
           />
         )}
+
+        <Input
+          register={register("webhook_uri")}
+          errors={errors.webhook_uri}
+          label="Webhook URL"
+          placeholder="https://your-webhook-endpoint.com"
+          helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+          className="h-16"
+        />
+
+        <Input
+          register={register("webhook_pem")}
+          errors={errors.webhook_pem}
+          label="Webhook PEM"
+          placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+          helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+          className="h-16"
+        />
 
         <div className="flex w-full justify-start">
           <DecoratedButton
