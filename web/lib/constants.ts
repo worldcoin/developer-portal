@@ -4,20 +4,27 @@
 
 import { LoginErrorCode, NativeAppsMap } from "./types";
 export { Categories } from "./categories";
-// ANCHOR: Orb credential
-export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 
+// ANCHOR: Production Sequencers
+export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
+export const PHONE_SEQUENCER =
+  "https://signup-phone-ethereum.crypto.worldcoin.org";
+export const PASSPORT_SEQUENCER =
+  "https://signup-document.crypto.worldcoin.org";
+export const SECURE_PASSPORT_SEQUENCER =
+  "https://signup-document-secure.crypto.worldcoin.org";
+
+// ANCHOR: Staging Sequencers
 export const ORB_SEQUENCER_STAGING =
   process.env.NEXT_PUBLIC_APP_ENV === "production"
     ? "https://signup-orb-ethereum.stage-crypto.worldcoin.org"
     : "https://signup-app.stage-crypto.worldcoin.dev";
-
-// ANCHOR: Phone credential
-export const PHONE_SEQUENCER =
-  "https://signup-phone-ethereum.crypto.worldcoin.org";
-
 export const PHONE_SEQUENCER_STAGING =
   "https://signup-phone-ethereum.stage-crypto.worldcoin.org";
+export const PASSPORT_SEQUENCER_STAGING =
+  "https://signup-document.stage-crypto.worldcoin.org";
+export const SECURE_PASSPORT_SEQUENCER_STAGING =
+  "https://signup-document-secure.stage-crypto.worldcoin.org";
 
 // ANCHOR: OIDC Base URL
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
