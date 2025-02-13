@@ -4,8 +4,12 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
+  PASSPORT_SEQUENCER,
+  PASSPORT_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
+  SECURE_PASSPORT_SEQUENCER,
+  SECURE_PASSPORT_SEQUENCER_STAGING,
 } from "./constants";
 import { Auth0SessionUser } from "./types";
 
@@ -21,6 +25,14 @@ export const sequencerMapping: Record<
   [VerificationLevel.Device]: {
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
+  },
+  [VerificationLevel.Passport]: {
+    true: PASSPORT_SEQUENCER_STAGING,
+    false: PASSPORT_SEQUENCER,
+  },
+  [VerificationLevel.SecurePassport]: {
+    true: SECURE_PASSPORT_SEQUENCER_STAGING,
+    false: SECURE_PASSPORT_SEQUENCER,
   },
 };
 
