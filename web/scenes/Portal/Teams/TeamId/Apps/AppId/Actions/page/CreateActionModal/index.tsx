@@ -125,7 +125,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         });
 
         const refetchResult = await refetchActions();
-        console.log("refetchResult", refetchResult);
+
         reset();
         if (firstAction) {
           router.prefetch(`${pathname}/${action_id}/settings`);

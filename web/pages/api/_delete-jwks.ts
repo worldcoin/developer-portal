@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { _deleteExpiredJWKs, createAndStoreJWK } from "@/legacy/backend/jwks";
-import { protectInternalEndpoint } from "@/legacy/backend/utils";
 import { errorNotAllowed } from "@/legacy/backend/errors";
-import { logger } from "@/legacy/lib/logger";
+import { _deleteExpiredJWKs } from "@/legacy/backend/jwks";
+import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { logger } from "@/lib/logger";
+import { NextApiRequest, NextApiResponse } from "next";
 
 /**
  * Generates JWKs to verify proofs offline

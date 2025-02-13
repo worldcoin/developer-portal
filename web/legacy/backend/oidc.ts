@@ -1,5 +1,5 @@
-import { logger } from "@/legacy/lib/logger";
 import { ActionModel, AppModel, RedirectModel } from "@/legacy/lib/models";
+import { logger } from "@/lib/logger";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";

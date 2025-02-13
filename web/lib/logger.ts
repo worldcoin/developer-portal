@@ -1,5 +1,6 @@
 import { IncomingMessage } from "http";
 import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 import winston from "winston";
 
 const apiKey = process.env.NEXT_SERVER_DD_API_KEY;
@@ -58,18 +59,32 @@ const _logger = winston.createLogger({
 });
 
 // NOTE: this is wrapper and formatter for debug request data (this is workaround, because winston don't support async formatters)
-async function requestFormatter(req: NextApiRequest | IncomingMessage) {
+async function requestFormatter(
+  req: NextApiRequest | IncomingMessage | NextRequest,
+) {
   if (!req) {
     return {};
   }
 
-  const ip =
-    req.socket?.remoteAddress ||
-    req.headers["x-forwarded-for"] ||
-    "IP not available";
+  let ip: string | string[] | undefined;
+  if (req instanceof NextRequest) {
+    ip = req.ip;
+  } else {
+    ip =
+      req.socket?.remoteAddress ||
+      req.headers["x-forwarded-for"] ||
+      "IP not available";
+  }
+
   const url = req.url?.replace(/\?.*$/, "");
   const method = req.method;
-  const userAgent = req.headers["user-agent"];
+  let userAgent: string | undefined;
+
+  if (req instanceof NextRequest) {
+    userAgent = req.headers.get("user-agent") ?? undefined;
+  } else {
+    userAgent = req.headers["user-agent"] ?? undefined;
+  }
 
   const query = req.url?.includes("?")
     ? Object.fromEntries(

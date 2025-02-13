@@ -1,9 +1,9 @@
-import { gql } from "@apollo/client";
+import { errorNotAllowed } from "@/legacy/backend/errors";
 import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { protectInternalEndpoint } from "@/legacy/backend/utils";
+import { logger } from "@/lib/logger";
+import { gql } from "@apollo/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { errorNotAllowed } from "@/legacy/backend/errors";
-import { logger } from "@/legacy/lib/logger";
 
 /**
  * Deletes expired auth codes

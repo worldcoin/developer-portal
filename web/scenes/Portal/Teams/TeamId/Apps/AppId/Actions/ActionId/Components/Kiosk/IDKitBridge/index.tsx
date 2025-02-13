@@ -70,8 +70,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       })
       .catch((error) => {
         if (process.env.NODE_ENV === "development") {
-          console.log("Error creating client");
-          console.error(error);
+          console.debug("Error creating client", { error });
         }
       });
   }, [
