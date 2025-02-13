@@ -97,6 +97,7 @@ export const useImage = () => {
     appId: string,
     teamId: string,
     imageType: string,
+    language: string,
   ) => {
     const response = await uploadImage({
       variables: {
@@ -104,6 +105,7 @@ export const useImage = () => {
         image_type: imageType,
         content_type_ending: file.type.split("/")[1],
         team_id: teamId,
+        language,
       },
     });
 

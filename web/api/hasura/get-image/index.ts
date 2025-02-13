@@ -13,6 +13,7 @@ const schema = yup.object({
   app_id: yup.string().strict().required(),
   image_type: yup.string().strict().required(),
   content_type_ending: yup.string().required(),
+  language: yup.string().required(),
 });
 
 /**

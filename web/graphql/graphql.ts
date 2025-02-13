@@ -7894,6 +7894,7 @@ export type Query_RootUpload_ImageArgs = {
   app_id: Scalars["String"]["input"];
   content_type_ending: Scalars["String"]["input"];
   image_type: Scalars["String"]["input"];
+  language: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
 };
 
