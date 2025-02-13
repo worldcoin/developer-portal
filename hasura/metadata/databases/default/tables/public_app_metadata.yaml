@@ -341,6 +341,7 @@ update_permissions:
               _in:
                 - changes_requested
                 - verified
+                - awaiting_review
   - role: service
     permission:
       columns:
