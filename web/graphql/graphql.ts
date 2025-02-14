@@ -260,7 +260,7 @@ export type Action = {
   description: Scalars["String"]["output"];
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier: Scalars["String"]["output"];
-  flow: Scalars["action_flow_enum"]["output"];
+  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id: Scalars["String"]["output"];
   kiosk_enabled: Scalars["Boolean"]["output"];
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */

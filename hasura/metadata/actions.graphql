@@ -136,6 +136,11 @@ enum IllegalContentCategoryEnum {
   OTHER
 }
 
+enum ActionFlowEnum {
+  VERIFY
+  PARTNER
+}
+
 input UploadImageInput {
   app_id: String!
   team_id: String!

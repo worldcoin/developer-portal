@@ -7,6 +7,7 @@ query GetKioskAction($action_id: String!, $app_id: String!) {
     name
     max_verifications
     kiosk_enabled
+    flow
     webhook_uri
     webhook_pem
   }

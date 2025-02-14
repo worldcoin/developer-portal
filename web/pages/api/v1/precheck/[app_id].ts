@@ -94,6 +94,7 @@ const appPrecheckQuery = gql`
         status
         privacy_policy_uri
         terms_uri
+        flow
         webhook_uri
         webhook_pem
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {

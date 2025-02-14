@@ -48,6 +48,7 @@ const createActionSchema = yup
       )
       .required(),
     action: yup.string().required("This field is required"),
+    flow: yup.string().oneOf(['partner', 'verify']).required("This field is required"),
     max_verifications: yup
       .number()
       .typeError("Max verifications must be a number")
@@ -63,7 +64,9 @@ const createActionSchema = yup
     "webhook-fields",
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
-      const { webhook_uri, webhook_pem } = values;
+      const { webhook_uri, webhook_pem, flow } = values;
+      if (flow !== 'partner') return true;
+
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
         return this.createError({
@@ -105,6 +108,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
+      flow: 'verify',
     },
   });
 
@@ -274,23 +278,39 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               />
             )}
 
-            <Input
-              register={register("webhook_uri")}
-              errors={errors.webhook_uri}
-              label="Webhook URL"
-              placeholder="https://your-webhook-endpoint.com"
-              helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-              className="h-16"
-            />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Flow Type</label>
+              <select
+                {...register("flow")}
+                className="rounded-md border border-grey-100 px-3 py-2"
+                data-testid="input-flow"
+              >
+                <option value="verify">Verify</option>
+                <option value="partner">Partner</option>
+              </select>
+            </div>
 
-            <Input
-              register={register("webhook_pem")}
-              errors={errors.webhook_pem}
-              label="Webhook PEM"
-              placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-              helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-              className="h-16"
-            />
+            {watch("flow") === "partner" && (
+              <>
+                <Input
+                  register={register("webhook_uri")}
+                  errors={errors.webhook_uri}
+                  label="Webhook URL"
+                  placeholder="https://your-webhook-endpoint.com"
+                  helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+                  className="h-16"
+                />
+
+                <Input
+                  register={register("webhook_pem")}
+                  errors={errors.webhook_pem}
+                  label="Webhook PEM"
+                  placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+                  helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+                  className="h-16"
+                />
+              </>
+            )}
 
             <div className="flex w-full justify-end">
               <DecoratedButton
