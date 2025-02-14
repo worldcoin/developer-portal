@@ -15,11 +15,9 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   addOnLeft?: React.ReactElement;
   addOnRight?: React.ReactElement;
   className?: string;
-  selectOptions?: { value: string; label: string }[];
   onChange?: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
-  type?: "text" | "select" | "number" | "password";
 }
 
 export const Input = memo(function Input(props: InputInterface) {
@@ -34,8 +32,6 @@ export const Input = memo(function Input(props: InputInterface) {
     addOnLeft,
     addOnRight,
     disabled,
-    selectOptions,
-    type = "text",
     ...restProps
   } = props;
 
@@ -76,72 +72,37 @@ export const Input = memo(function Input(props: InputInterface) {
 
   return (
     <div className={"inline-grid w-full font-gta transition-colors"}>
-      {type === "select" ? (
-        <div className="space-y-1">
-          {label && (
-            <label className={clsx(labelClassNames)}>
-              {label}
-              {required && <span className="text-system-error-500">*</span>}
-            </label>
-          )}
-          <select
-            value={props.currentValue}
-            onChange={props.onChange}
-            className={clsx(
-              "w-full rounded-lg border border-grey-200 bg-grey-0 p-2 text-grey-700",
-              "focus:border-blue-500 focus:outline-none",
-              {
-                "border-system-error-500": errors && !disabled,
-                "bg-grey-50 text-grey-400": disabled,
-                "hover:border-grey-700": !disabled,
-              },
-            )}
-            disabled={disabled}
-          >
-            {selectOptions?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : (
-        <fieldset
-          className={twMerge(
-            clsx(
-              "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
-              { "py-2": !label },
-              parentClassNames,
-            ),
-            className,
-          )}
-        >
-          <div className="flex items-center">{addOnLeft && addOnLeft}</div>
-
-          <input
-            {...register}
-            {...restProps}
-            className={clsx(inputClassNames)}
-            placeholder={placeholder}
-            disabled={disabled}
-            required={required}
-            aria-invalid={errors ? "true" : "false"}
-          />
-
-          <div className="flex items-center">{addOnRight && addOnRight}</div>
-
-          {label && (
-            <legend
-              className={twMerge(
-                clsx("select-none whitespace-nowrap", labelClassNames),
-              )}
-            >
-              {label}{" "}
-              {required && <span className="text-system-error-500">*</span>}
-            </legend>
-          )}
-        </fieldset>
+      {label && (
+        <label className={clsx(labelClassNames)}>
+          {label}
+          {required && <span className="text-system-error-500">*</span>}
+        </label>
       )}
+
+      <fieldset
+        className={twMerge(
+          clsx(
+            "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
+            { "py-2": !label },
+            parentClassNames,
+          ),
+          className,
+        )}
+      >
+        <div className="flex items-center">{addOnLeft && addOnLeft}</div>
+
+        <input
+          {...register}
+          {...restProps}
+          className={clsx(inputClassNames)}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          aria-invalid={errors ? "true" : "false"}
+        />
+
+        <div className="flex items-center">{addOnRight && addOnRight}</div>
+      </fieldset>
 
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (

@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import slugify from "slugify";
 import * as yup from "yup";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
+import { FlowTypeSelector } from "./FlowTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 
@@ -284,24 +285,16 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
             <Controller
               name="flow"
               control={control}
-              render={({ field }) => {
-                return (
-                  <Input
-                    label="Flow"
-                    value={field.value}
-                    onChange={field.onChange}
-                    errors={errors.flow}
-                    required
-                    type="select"
-                    selectOptions={[
-                      { value: "VERIFY", label: "Verify" },
-                      { value: "PARTNER", label: "Partner" },
-                    ]}
-                    data-testid="input-flow"
-                    helperText="The flow type for this action"
-                  />
-                );
-              }}
+              render={({ field }) => (
+                <FlowTypeSelector
+                  value={field.value}
+                  onChange={field.onChange}
+                  errors={errors.flow}
+                  label="Flow"
+                  helperText="The flow type for this action"
+                  required
+                />
+              )}
             />
 
             {watch("flow") === "PARTNER" && (
@@ -312,7 +305,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   label="Webhook URL"
                   placeholder="https://your-webhook-endpoint.com"
                   helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-                  className="h-16"
+                  className="h-12"
                 />
 
                 <Input
@@ -321,7 +314,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   label="Webhook PEM"
                   placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
                   helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-                  className="h-16"
+                  className="h-12"
                 />
               </>
             )}
