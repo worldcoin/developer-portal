@@ -1,4 +1,2 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."action" add column "webhook_uri" text
---  null;
+alter table "public"."action" drop column "webhook_uri";
+alter table "public"."action" drop column "webhook_pem";
