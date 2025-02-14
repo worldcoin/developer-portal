@@ -16,8 +16,10 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   addOnRight?: React.ReactElement;
   className?: string;
   selectOptions?: { value: string; label: string }[];
-  onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  type?: 'text' | 'select' | 'number' | 'password';
+  onChange?: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
+  type?: "text" | "select" | "number" | "password";
 }
 
 export const Input = memo(function Input(props: InputInterface) {
@@ -33,7 +35,7 @@ export const Input = memo(function Input(props: InputInterface) {
     addOnRight,
     disabled,
     selectOptions,
-    type = 'text',
+    type = "text",
     ...restProps
   } = props;
 
@@ -74,7 +76,7 @@ export const Input = memo(function Input(props: InputInterface) {
 
   return (
     <div className={"inline-grid w-full font-gta transition-colors"}>
-      {type === 'select' ? (
+      {type === "select" ? (
         <div className="space-y-1">
           {label && (
             <label className={clsx(labelClassNames)}>
@@ -92,11 +94,11 @@ export const Input = memo(function Input(props: InputInterface) {
                 "border-system-error-500": errors && !disabled,
                 "bg-grey-50 text-grey-400": disabled,
                 "hover:border-grey-700": !disabled,
-              }
+              },
             )}
             disabled={disabled}
           >
-            {selectOptions?.map(option => (
+            {selectOptions?.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -104,11 +106,16 @@ export const Input = memo(function Input(props: InputInterface) {
           </select>
         </div>
       ) : (
-        <fieldset className={twMerge(clsx(
-          "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
-          { "py-2": !label },
-          parentClassNames
-        ), className)}>
+        <fieldset
+          className={twMerge(
+            clsx(
+              "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
+              { "py-2": !label },
+              parentClassNames,
+            ),
+            className,
+          )}
+        >
           <div className="flex items-center">{addOnLeft && addOnLeft}</div>
 
           <input
