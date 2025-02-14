@@ -9,20 +9,52 @@ import { useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { FlowTypeSelector } from "../../../page/CreateActionModal/FlowTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
 import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
 
-const updateActionSchema = yup.object({
-  name: yup.string().required("This field is required"),
-  description: yup.string().required(),
-  action: yup.string().required("This field is required"),
-  maxVerifications: yup
-    .number()
-    .typeError("Max verifications must be a number")
-    .required("This field is required"),
-});
+const rsaPublicKeyRegex =
+  /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
+
+const updateActionSchema = yup
+  .object({
+    name: yup.string().required("This field is required"),
+    description: yup.string().required(),
+    action: yup.string().required("This field is required"),
+    maxVerifications: yup
+      .number()
+      .typeError("Max verifications must be a number")
+      .required("This field is required"),
+    flow: yup
+      .string()
+      .oneOf(["VERIFY", "PARTNER"])
+      .required("This field is required"),
+    webhook_uri: yup.string().optional().url("Must be a valid URL"),
+    webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
+      message:
+        "Must be a valid RSA public key in PEM format (BEGIN/END lines, base64 data).",
+      excludeEmptyString: true,
+    }),
+  })
+  .test(
+    "webhook-fields",
+    "Both webhook URL and PEM must be provided or removed",
+    function (values) {
+      const { webhook_uri, webhook_pem, flow } = values;
+      if (flow !== "PARTNER") return true;
+
+      if (!!webhook_uri !== !!webhook_pem) {
+        const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
+        return this.createError({
+          path: errorPath,
+          message: "Both webhook URL and PEM must be provided or removed",
+        });
+      }
+      return true;
+    },
+  );
 
 export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
 
@@ -47,6 +79,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       description: action.description,
       action: action.action,
       maxVerifications: action.max_verifications,
+      flow: action.flow as "VERIFY" | "PARTNER",
+      webhook_uri: action.webhook_uri ?? undefined,
+      webhook_pem: action.webhook_pem ?? undefined,
     },
   });
 
@@ -62,6 +97,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               name: values.name,
               description: values.description,
               max_verifications: values.maxVerifications,
+              webhook_uri: values.webhook_uri,
+              webhook_pem: values.webhook_pem,
             },
           },
           refetchQueries: [GetActionNameDocument],
@@ -120,7 +157,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={watch("action")}
             />
           }
-          className=" h-16 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         <Input
@@ -134,7 +171,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={action.app_id}
             />
           }
-          className=" h-16 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         {action.app.engine !== EngineType.OnChain && (
@@ -158,6 +195,37 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           />
         )}
 
+        <FlowTypeSelector
+          value={action.flow as "VERIFY" | "PARTNER"}
+          onChange={() => {}}
+          label="Flow"
+          helperText="The flow type for this action"
+          className="text-grey-400"
+          disabled
+        />
+
+        {action.flow === "PARTNER" && (
+          <>
+            <Input
+              register={register("webhook_uri")}
+              errors={errors.webhook_uri}
+              label="Webhook URL"
+              placeholder="https://your-webhook-endpoint.com"
+              helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+              className="h-16"
+            />
+
+            <Input
+              register={register("webhook_pem")}
+              errors={errors.webhook_pem}
+              label="Webhook PEM"
+              placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+              helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+              className="h-16"
+            />
+          </>
+        )}
+
         <div className="flex w-full justify-start">
           <DecoratedButton
             variant="primary"
@@ -173,4 +241,10 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       </form>
     </div>
   );
+};
+
+// e.g. "VERIFY" -> "Verify", "PARTNER" -> "Partner"
+const formatFlowType = (flow: string | null | undefined) => {
+  if (!flow) return "";
+  return flow.charAt(0).toUpperCase() + flow.slice(1).toLowerCase();
 };

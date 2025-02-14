@@ -271,6 +271,14 @@ custom_types:
         - description: null
           is_deprecated: null
           value: OTHER
+    - name: ActionFlowEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: VERIFY
+        - description: null
+          is_deprecated: null
+          value: PARTNER
   input_objects:
     - name: UploadImageInput
     - name: CreateAppReportInput
@@ -299,4 +307,4 @@ custom_types:
     - name: FinishAppReportOutput
     - name: TmpInsertAppReportOutput
     - name: ConcludeAppReportInvestigationOutput
-  scalars: []
+  scalars: [ ]
