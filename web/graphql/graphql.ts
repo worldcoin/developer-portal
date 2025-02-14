@@ -26,6 +26,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  action_flow_enum: { input: unknown; output: unknown };
   illegal_content_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
@@ -259,6 +260,7 @@ export type Action = {
   description: Scalars["String"]["output"];
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier: Scalars["String"]["output"];
+  flow: Scalars["action_flow_enum"]["output"];
   id: Scalars["String"]["output"];
   kiosk_enabled: Scalars["Boolean"]["output"];
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -283,7 +285,7 @@ export type Action = {
   updated_at: Scalars["timestamptz"]["output"];
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: Maybe<Scalars["String"]["output"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -433,6 +435,7 @@ export type Action_Bool_Exp = {
   creation_mode?: InputMaybe<String_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
   external_nullifier?: InputMaybe<String_Comparison_Exp>;
+  flow?: InputMaybe<Action_Flow_Enum_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   kiosk_enabled?: InputMaybe<Boolean_Comparison_Exp>;
   max_accounts_per_user?: InputMaybe<Int_Comparison_Exp>;
@@ -461,6 +464,19 @@ export enum Action_Constraint {
   ActionPkey = "action_pkey",
 }
 
+/** Boolean expression to compare columns of type "action_flow_enum". All fields are combined with logical 'AND'. */
+export type Action_Flow_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["action_flow_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["action_flow_enum"]["input"]>>;
+};
+
 /** input type for incrementing numeric columns in table "action" */
 export type Action_Inc_Input = {
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -481,6 +497,7 @@ export type Action_Insert_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -497,7 +514,7 @@ export type Action_Insert_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -513,6 +530,7 @@ export type Action_Max_Fields = {
   description?: Maybe<Scalars["String"]["output"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: Maybe<Scalars["String"]["output"]>;
+  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: Maybe<Scalars["Int"]["output"]>;
@@ -528,7 +546,7 @@ export type Action_Max_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: Maybe<Scalars["String"]["output"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -543,6 +561,7 @@ export type Action_Max_Order_By = {
   description?: InputMaybe<Order_By>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Order_By>;
+  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -556,7 +575,7 @@ export type Action_Max_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: InputMaybe<Order_By>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: InputMaybe<Order_By>;
 };
 
@@ -572,6 +591,7 @@ export type Action_Min_Fields = {
   description?: Maybe<Scalars["String"]["output"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: Maybe<Scalars["String"]["output"]>;
+  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: Maybe<Scalars["Int"]["output"]>;
@@ -587,7 +607,7 @@ export type Action_Min_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: Maybe<Scalars["String"]["output"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -602,6 +622,7 @@ export type Action_Min_Order_By = {
   description?: InputMaybe<Order_By>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Order_By>;
+  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -615,7 +636,7 @@ export type Action_Min_Order_By = {
   updated_at?: InputMaybe<Order_By>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: InputMaybe<Order_By>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: InputMaybe<Order_By>;
 };
 
@@ -652,6 +673,7 @@ export type Action_Order_By = {
   creation_mode?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
   external_nullifier?: InputMaybe<Order_By>;
+  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   kiosk_enabled?: InputMaybe<Order_By>;
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -689,6 +711,8 @@ export enum Action_Select_Column {
   Description = "description",
   /** column name */
   ExternalNullifier = "external_nullifier",
+  /** column name */
+  Flow = "flow",
   /** column name */
   Id = "id",
   /** column name */
@@ -736,6 +760,7 @@ export type Action_Set_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -750,7 +775,7 @@ export type Action_Set_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1069,6 +1094,7 @@ export type Action_Stream_Cursor_Value_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -1083,7 +1109,7 @@ export type Action_Stream_Cursor_Value_Input = {
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   /** PEM used to encrypt the payload sent to the webhook_uri */
   webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
-  /** uri to send a payload to the webhook, encrypted by the webhook_pem */
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
   webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1122,6 +1148,8 @@ export enum Action_Update_Column {
   Description = "description",
   /** column name */
   ExternalNullifier = "external_nullifier",
+  /** column name */
+  Flow = "flow",
   /** column name */
   Id = "id",
   /** column name */

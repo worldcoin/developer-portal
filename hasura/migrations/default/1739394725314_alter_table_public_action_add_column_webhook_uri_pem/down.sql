@@ -1,2 +1,6 @@
-alter table "public"."action" drop column "webhook_uri";
-alter table "public"."action" drop column "webhook_pem";
+ALTER TABLE public.action
+DROP COLUMN webhook_uri,
+  DROP COLUMN webhook_pem,
+  DROP COLUMN flow;
+
+DROP TYPE action_flow_enum;
