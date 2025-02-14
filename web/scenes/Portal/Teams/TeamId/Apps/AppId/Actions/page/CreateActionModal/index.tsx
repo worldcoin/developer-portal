@@ -305,7 +305,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   label="Webhook URL"
                   placeholder="https://your-webhook-endpoint.com"
                   helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-                  className="h-12"
+                  className="h-16"
                 />
 
                 <Input
@@ -314,7 +314,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   label="Webhook PEM"
                   placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
                   helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-                  className="h-12"
+                  className="h-16"
                 />
               </>
             )}

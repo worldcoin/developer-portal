@@ -15,9 +15,6 @@ interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   addOnLeft?: React.ReactElement;
   addOnRight?: React.ReactElement;
   className?: string;
-  onChange?: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => void;
 }
 
 export const Input = memo(function Input(props: InputInterface) {
@@ -72,13 +69,6 @@ export const Input = memo(function Input(props: InputInterface) {
 
   return (
     <div className={"inline-grid w-full font-gta transition-colors"}>
-      {label && (
-        <label className={clsx(labelClassNames)}>
-          {label}
-          {required && <span className="text-system-error-500">*</span>}
-        </label>
-      )}
-
       <fieldset
         className={twMerge(
           clsx(
@@ -86,7 +76,8 @@ export const Input = memo(function Input(props: InputInterface) {
             { "py-2": !label },
             parentClassNames,
           ),
-          className,
+
+          typeof className === "string" ? className : undefined,
         )}
       >
         <div className="flex items-center">{addOnLeft && addOnLeft}</div>
@@ -102,6 +93,17 @@ export const Input = memo(function Input(props: InputInterface) {
         />
 
         <div className="flex items-center">{addOnRight && addOnRight}</div>
+
+        {label && (
+          <legend
+            className={twMerge(
+              clsx("select-none whitespace-nowrap", labelClassNames),
+            )}
+          >
+            {label}{" "}
+            {required && <span className="text-system-error-500">*</span>}
+          </legend>
+        )}
       </fieldset>
 
       <div className={clsx("flex w-full flex-col px-2")}>

@@ -132,7 +132,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           label="Action Name"
           placeholder="Anonymous Vote #12"
           required
-          className="h-12"
+          className="h-16"
         />
         <Input
           register={register("description")}
@@ -141,7 +141,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           placeholder="Cast your vote on proposal #102"
           helperText="Tell your users what the action is for."
           required
-          className="h-12"
+          className="h-16"
         />
 
         <Input
@@ -157,7 +157,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={watch("action")}
             />
           }
-          className="h-12 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         <Input
@@ -171,7 +171,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={action.app_id}
             />
           }
-          className="h-12 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         {action.app.engine !== EngineType.OnChain && (
@@ -197,7 +197,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
 
         <FlowTypeSelector
           value={action.flow as "VERIFY" | "PARTNER"}
-          onChange={() => { }}
+          onChange={() => {}}
           label="Flow"
           helperText="The flow type for this action"
           className="text-grey-400"
@@ -212,7 +212,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               label="Webhook URL"
               placeholder="https://your-webhook-endpoint.com"
               helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-              className="h-12"
+              className="h-16"
             />
 
             <Input
@@ -221,7 +221,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               label="Webhook PEM"
               placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
               helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-              className="h-12"
+              className="h-16"
             />
           </>
         )}
