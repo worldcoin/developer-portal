@@ -48,7 +48,10 @@ const createActionSchema = yup
       )
       .required(),
     action: yup.string().required("This field is required"),
-    flow: yup.string().oneOf(['VERIFY', 'PARTNER']).required("This field is required"),
+    flow: yup
+      .string()
+      .oneOf(["VERIFY", "PARTNER"])
+      .required("This field is required"),
     max_verifications: yup
       .number()
       .typeError("Max verifications must be a number")
@@ -65,7 +68,7 @@ const createActionSchema = yup
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
       const { webhook_uri, webhook_pem, flow } = values;
-      if (flow !== 'PARTNER') return true;
+      if (flow !== "PARTNER") return true;
 
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
@@ -108,7 +111,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
-      flow: 'VERIFY',
+      flow: "VERIFY",
     },
   });
 
@@ -291,8 +294,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                     required
                     type="select"
                     selectOptions={[
-                      { value: 'VERIFY', label: 'Verify' },
-                      { value: 'PARTNER', label: 'Partner' }
+                      { value: "VERIFY", label: "Verify" },
+                      { value: "PARTNER", label: "Partner" },
                     ]}
                     data-testid="input-flow"
                     helperText="The flow type for this action"

@@ -4,7 +4,7 @@ import { InputHTMLAttributes, memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
-export interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
+interface InputInterface extends InputHTMLAttributes<HTMLInputElement> {
   register?: UseFormRegisterReturn;
   required?: boolean;
   currentValue?: string;

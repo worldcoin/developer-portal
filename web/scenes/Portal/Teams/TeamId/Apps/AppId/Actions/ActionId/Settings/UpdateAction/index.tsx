@@ -243,6 +243,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
 
 // e.g. "VERIFY" -> "Verify", "PARTNER" -> "Partner"
 const formatFlowType = (flow: string | null | undefined) => {
-  if (!flow) return '';
+  if (!flow) return "";
   return flow.charAt(0).toUpperCase() + flow.slice(1).toLowerCase();
 };
