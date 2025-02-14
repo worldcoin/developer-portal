@@ -11,6 +11,7 @@ export type InsertActionMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   external_nullifier: Types.Scalars["String"]["input"];
   max_verifications?: Types.InputMaybe<Types.Scalars["Int"]["input"]>;
+  flow: Types.Scalars["action_flow_enum"]["input"];
   webhook_uri?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   webhook_pem?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
@@ -28,6 +29,7 @@ export const InsertActionDocument = gql`
     $app_id: String!
     $external_nullifier: String!
     $max_verifications: Int = 1
+    $flow: action_flow_enum!
     $webhook_uri: String
     $webhook_pem: String
   ) {
@@ -39,6 +41,7 @@ export const InsertActionDocument = gql`
         description: $description
         external_nullifier: $external_nullifier
         max_verifications: $max_verifications
+        flow: $flow
         webhook_uri: $webhook_uri
         webhook_pem: $webhook_pem
       }

@@ -5,7 +5,7 @@ mutation InsertAction(
   $app_id: String!
   $external_nullifier: String!
   $max_verifications: Int = 1
-#  $flow: Enu
+  $flow: action_flow_enum!
   $webhook_uri: String
   $webhook_pem: String
 ) {
@@ -17,7 +17,7 @@ mutation InsertAction(
       description: $description
       external_nullifier: $external_nullifier
       max_verifications: $max_verifications
-#      flow: $flow
+      flow: $flow
       webhook_uri: $webhook_uri
       webhook_pem: $webhook_pem
     }

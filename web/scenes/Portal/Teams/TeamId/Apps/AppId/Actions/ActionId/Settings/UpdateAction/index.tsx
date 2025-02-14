@@ -26,6 +26,10 @@ const updateActionSchema = yup
       .number()
       .typeError("Max verifications must be a number")
       .required("This field is required"),
+    flow: yup
+      .string()
+      .oneOf(["VERIFY", "PARTNER"])
+      .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
     webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
       message:
@@ -37,7 +41,9 @@ const updateActionSchema = yup
     "webhook-fields",
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
-      const { webhook_uri, webhook_pem } = values;
+      const { webhook_uri, webhook_pem, flow } = values;
+      if (flow !== "PARTNER") return true;
+
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
         return this.createError({
@@ -72,6 +78,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       description: action.description,
       action: action.action,
       maxVerifications: action.max_verifications,
+      flow: action.flow as "VERIFY" | "PARTNER",
       webhook_uri: action.webhook_uri ?? undefined,
       webhook_pem: action.webhook_pem ?? undefined,
     },
@@ -149,7 +156,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={watch("action")}
             />
           }
-          className=" h-16 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         <Input
@@ -163,7 +170,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               fieldValue={action.app_id}
             />
           }
-          className=" h-16 text-grey-400"
+          className="h-16 text-grey-400"
         />
 
         {action.app.engine !== EngineType.OnChain && (
@@ -188,22 +195,34 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         )}
 
         <Input
-          register={register("webhook_uri")}
-          errors={errors.webhook_uri}
-          label="Webhook URL"
-          placeholder="https://your-webhook-endpoint.com"
-          helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+          label="Flow"
+          disabled
+          value={formatFlowType(action.flow?.toString())}
           className="h-16"
+          helperText="The flow type for this action"
         />
 
-        <Input
-          register={register("webhook_pem")}
-          errors={errors.webhook_pem}
-          label="Webhook PEM"
-          placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-          helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-          className="h-16"
-        />
+        {action.flow === "PARTNER" && (
+          <>
+            <Input
+              register={register("webhook_uri")}
+              errors={errors.webhook_uri}
+              label="Webhook URL"
+              placeholder="https://your-webhook-endpoint.com"
+              helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+              className="h-16"
+            />
+
+            <Input
+              register={register("webhook_pem")}
+              errors={errors.webhook_pem}
+              label="Webhook PEM"
+              placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+              helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+              className="h-16"
+            />
+          </>
+        )}
 
         <div className="flex w-full justify-start">
           <DecoratedButton
@@ -220,4 +239,10 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       </form>
     </div>
   );
+};
+
+// e.g. "VERIFY" -> "Verify", "PARTNER" -> "Partner"
+const formatFlowType = (flow: string | null | undefined) => {
+  if (!flow) return '';
+  return flow.charAt(0).toUpperCase() + flow.slice(1).toLowerCase();
 };

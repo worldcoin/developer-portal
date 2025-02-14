@@ -48,7 +48,7 @@ const createActionSchema = yup
       )
       .required(),
     action: yup.string().required("This field is required"),
-    flow: yup.string().oneOf(['partner', 'verify']).required("This field is required"),
+    flow: yup.string().oneOf(['VERIFY', 'PARTNER']).required("This field is required"),
     max_verifications: yup
       .number()
       .typeError("Max verifications must be a number")
@@ -65,7 +65,7 @@ const createActionSchema = yup
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
       const { webhook_uri, webhook_pem, flow } = values;
-      if (flow !== 'partner') return true;
+      if (flow !== 'PARTNER') return true;
 
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
@@ -108,7 +108,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
-      flow: 'verify',
+      flow: 'VERIFY',
     },
   });
 
@@ -278,19 +278,30 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               />
             )}
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Flow Type</label>
-              <select
-                {...register("flow")}
-                className="rounded-md border border-grey-100 px-3 py-2"
-                data-testid="input-flow"
-              >
-                <option value="verify">Verify</option>
-                <option value="partner">Partner</option>
-              </select>
-            </div>
+            <Controller
+              name="flow"
+              control={control}
+              render={({ field }) => {
+                return (
+                  <Input
+                    label="Flow"
+                    value={field.value}
+                    onChange={field.onChange}
+                    errors={errors.flow}
+                    required
+                    type="select"
+                    selectOptions={[
+                      { value: 'VERIFY', label: 'Verify' },
+                      { value: 'PARTNER', label: 'Partner' }
+                    ]}
+                    data-testid="input-flow"
+                    helperText="The flow type for this action"
+                  />
+                );
+              }}
+            />
 
-            {watch("flow") === "partner" && (
+            {watch("flow") === "PARTNER" && (
               <>
                 <Input
                   register={register("webhook_uri")}
