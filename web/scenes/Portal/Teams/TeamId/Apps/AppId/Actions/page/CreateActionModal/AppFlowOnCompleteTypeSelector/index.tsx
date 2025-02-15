@@ -82,8 +82,8 @@ export const AppFlowOnCompleteTypeSelector = (props: {
             data-testid="select-flow-type"
           >
             <Typography variant={TYPOGRAPHY.R4}>
-              {appFlowOnCompleteOptions.find((option) => option.value === value)?.label ??
-                value}
+              {appFlowOnCompleteOptions.find((option) => option.value === value)
+                ?.label ?? value}
             </Typography>
             {!disabled && (
               <CaretIcon className="ml-2 text-grey-400 group-hover:text-grey-700" />

@@ -82,14 +82,20 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       action: action.action,
       max_verifications: action.max_verifications,
       app_flow_on_complete: action.app_flow_on_complete as "NONE" | "VERIFY",
-      webhook_uri: action.app_flow_on_complete === "VERIFY" ? action.webhook_uri ?? undefined : undefined,
-      webhook_pem: action.app_flow_on_complete === "VERIFY" ? action.webhook_pem ?? undefined : undefined,
+      webhook_uri:
+        action.app_flow_on_complete === "VERIFY"
+          ? action.webhook_uri ?? undefined
+          : undefined,
+      webhook_pem:
+        action.app_flow_on_complete === "VERIFY"
+          ? action.webhook_pem ?? undefined
+          : undefined,
     },
   });
 
   const [updateActionQuery, { loading }] = useUpdateActionMutation();
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(
-    action.app_flow_on_complete === "VERIFY"
+    action.app_flow_on_complete === "VERIFY",
   );
 
   const appFlowOnComplete = watch("app_flow_on_complete");
@@ -129,7 +135,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Error occurred while updating action."
+            : "Error occurred while updating action.",
         );
       }
     },
@@ -226,7 +232,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           </div>
 
           {showAdvancedConfig && (
-            <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+            <div className="space-y-6 border-l-2 border-grey-100 pl-4">
               <Controller
                 name="app_flow_on_complete"
                 control={control}
@@ -243,7 +249,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
               />
 
               {watch("app_flow_on_complete") === "VERIFY" && (
-                <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                <div className="space-y-6 border-l-2 border-grey-100 pl-4">
                   <Input
                     register={register("webhook_uri")}
                     errors={errors.webhook_uri}

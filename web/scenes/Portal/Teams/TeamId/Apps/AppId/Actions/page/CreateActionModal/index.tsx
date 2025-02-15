@@ -297,7 +297,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               </div>
 
               {showAdvancedConfig && (
-                <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                <div className="space-y-6 border-l-2 border-grey-100 pl-4">
                   <Controller
                     name="app_flow_on_complete"
                     control={control}
@@ -314,7 +314,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                   />
 
                   {watch("app_flow_on_complete") === "VERIFY" && (
-                    <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                    <div className="space-y-6 border-l-2 border-grey-100 pl-4">
                       <Input
                         register={register("webhook_uri")}
                         errors={errors.webhook_uri}
