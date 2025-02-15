@@ -26,6 +26,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  app_flow_on_complete_enum: { input: unknown; output: unknown };
   illegal_content_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
@@ -252,6 +253,7 @@ export type Action = {
   action: Scalars["String"]["output"];
   /** An object relationship */
   app: App;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id: Scalars["String"]["output"];
   client_secret: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
@@ -281,6 +283,10 @@ export type Action = {
   status: Scalars["String"]["output"];
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["timestamptz"]["output"];
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** columns and relationships of "action" */
@@ -423,6 +429,7 @@ export type Action_Bool_Exp = {
   _or?: InputMaybe<Array<Action_Bool_Exp>>;
   action?: InputMaybe<String_Comparison_Exp>;
   app?: InputMaybe<App_Bool_Exp>;
+  app_flow_on_complete?: InputMaybe<App_Flow_On_Complete_Enum_Comparison_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   client_secret?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -443,6 +450,8 @@ export type Action_Bool_Exp = {
   status?: InputMaybe<String_Comparison_Exp>;
   terms_uri?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  webhook_pem?: InputMaybe<String_Comparison_Exp>;
+  webhook_uri?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "action" */
@@ -468,6 +477,9 @@ export type Action_Insert_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -489,6 +501,10 @@ export type Action_Insert_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -496,6 +512,7 @@ export type Action_Max_Fields = {
   __typename?: "action_max_fields";
   /** Raw action value as passed by the dev to IDKit. */
   action?: Maybe<Scalars["String"]["output"]>;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id?: Maybe<Scalars["String"]["output"]>;
   client_secret?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -516,12 +533,17 @@ export type Action_Max_Fields = {
   status?: Maybe<Scalars["String"]["output"]>;
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by max() on columns of table "action" */
 export type Action_Max_Order_By = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -540,6 +562,10 @@ export type Action_Max_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Order_By>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -547,6 +573,7 @@ export type Action_Min_Fields = {
   __typename?: "action_min_fields";
   /** Raw action value as passed by the dev to IDKit. */
   action?: Maybe<Scalars["String"]["output"]>;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id?: Maybe<Scalars["String"]["output"]>;
   client_secret?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -567,12 +594,17 @@ export type Action_Min_Fields = {
   status?: Maybe<Scalars["String"]["output"]>;
   terms_uri?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: Maybe<Scalars["String"]["output"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** order by min() on columns of table "action" */
 export type Action_Min_Order_By = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -591,6 +623,10 @@ export type Action_Min_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Order_By>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "action" */
@@ -620,6 +656,7 @@ export type Action_On_Conflict = {
 export type Action_Order_By = {
   action?: InputMaybe<Order_By>;
   app?: InputMaybe<App_Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -638,6 +675,8 @@ export type Action_Order_By = {
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  webhook_pem?: InputMaybe<Order_By>;
+  webhook_uri?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: action */
@@ -649,6 +688,8 @@ export type Action_Pk_Columns_Input = {
 export enum Action_Select_Column {
   /** column name */
   Action = "action",
+  /** column name */
+  AppFlowOnComplete = "app_flow_on_complete",
   /** column name */
   AppId = "app_id",
   /** column name */
@@ -679,6 +720,10 @@ export enum Action_Select_Column {
   TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WebhookPem = "webhook_pem",
+  /** column name */
+  WebhookUri = "webhook_uri",
 }
 
 /** select "action_aggregate_bool_exp_bool_and_arguments_columns" columns of table "action" */
@@ -697,6 +742,9 @@ export enum Action_Select_Column_Action_Aggregate_Bool_Exp_Bool_Or_Arguments_Col
 export type Action_Set_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -716,6 +764,10 @@ export type Action_Set_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Action_Stats_Args = {
@@ -1026,6 +1078,9 @@ export type Action_Stream_Cursor_Input = {
 export type Action_Stream_Cursor_Value_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -1045,6 +1100,10 @@ export type Action_Stream_Cursor_Value_Input = {
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** PEM used to encrypt the payload sent to the webhook_uri */
+  webhook_pem?: InputMaybe<Scalars["String"]["input"]>;
+  /** URI to send a payload to the webhook, encrypted by the webhook_pem */
+  webhook_uri?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate sum on columns */
@@ -1070,6 +1129,8 @@ export type Action_Sum_Order_By = {
 export enum Action_Update_Column {
   /** column name */
   Action = "action",
+  /** column name */
+  AppFlowOnComplete = "app_flow_on_complete",
   /** column name */
   AppId = "app_id",
   /** column name */
@@ -1100,6 +1161,10 @@ export enum Action_Update_Column {
   TermsUri = "terms_uri",
   /** column name */
   UpdatedAt = "updated_at",
+  /** column name */
+  WebhookPem = "webhook_pem",
+  /** column name */
+  WebhookUri = "webhook_uri",
 }
 
 export type Action_Updates = {
@@ -1626,6 +1691,19 @@ export enum App_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppPkey = "app_pkey",
 }
+
+/** Boolean expression to compare columns of type "app_flow_on_complete_enum". All fields are combined with logical 'AND'. */
+export type App_Flow_On_Complete_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["app_flow_on_complete_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["app_flow_on_complete_enum"]["input"]>>;
+};
 
 /** input type for incrementing numeric columns in table "app" */
 export type App_Inc_Input = {

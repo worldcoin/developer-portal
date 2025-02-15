@@ -18,6 +18,9 @@ export type UpdateActionMutation = {
     description: string;
     max_verifications: number;
     status: string;
+    app_flow_on_complete?: unknown | null;
+    webhook_uri?: string | null;
+    webhook_pem?: string | null;
   } | null;
 };
 
@@ -29,6 +32,9 @@ export const UpdateActionDocument = gql`
       description
       max_verifications
       status
+      app_flow_on_complete
+      webhook_uri
+      webhook_pem
     }
   }
 `;
