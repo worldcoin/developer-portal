@@ -22,9 +22,9 @@ export const createActionSchema = yup.object().shape({
   action: yup.string().required("Action is required"),
   app_id: yup.string().required("App ID is required"),
   max_verifications: yup.number().required("Max verifications is required"),
-  flow: yup
+  app_flow_on_complete: yup
     .string()
-    .oneOf(["VERIFY", "PARTNER"])
+    .oneOf(["NONE", "VERIFY"])
     .required("This field is required"),
   webhook_uri: yup.string().optional().url("Must be a valid URL"),
   webhook_pem: yup.string().when("webhook_uri", {

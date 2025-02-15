@@ -1,6 +1,6 @@
 ALTER TABLE public.action
 DROP COLUMN webhook_uri,
   DROP COLUMN webhook_pem,
-  DROP COLUMN flow;
+  DROP COLUMN app_flow_on_complete;
 
-DROP TYPE action_flow_enum;
+DROP TYPE app_flow_on_complete;

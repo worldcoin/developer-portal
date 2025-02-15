@@ -7,6 +7,7 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   allowedCommonCharactersRegex,
@@ -19,13 +20,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import slugify from "slugify";
 import * as yup from "yup";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
-import { FlowTypeSelector } from "./FlowTypeSelector";
+import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 
@@ -49,9 +50,9 @@ const createActionSchema = yup
       )
       .required(),
     action: yup.string().required("This field is required"),
-    flow: yup
+    app_flow_on_complete: yup
       .string()
-      .oneOf(["VERIFY", "PARTNER"])
+      .oneOf(["NONE", "VERIFY"])
       .required("This field is required"),
     max_verifications: yup
       .number()
@@ -68,8 +69,8 @@ const createActionSchema = yup
     "webhook-fields",
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
-      const { webhook_uri, webhook_pem, flow } = values;
-      if (flow !== "PARTNER") return true;
+      const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
+      if (app_flow_on_complete !== "NONE") return true;
 
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
@@ -112,9 +113,11 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
-      flow: "VERIFY",
+      app_flow_on_complete: "VERIFY",
     },
   });
+
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
 
   useEffect(() => {
     setFocus("name");
@@ -282,42 +285,58 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               />
             )}
 
-            <Controller
-              name="flow"
-              control={control}
-              render={({ field }) => (
-                <FlowTypeSelector
-                  value={field.value}
-                  onChange={field.onChange}
-                  errors={errors.flow}
-                  label="Flow"
-                  helperText="The flow type for this action"
-                  required
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <Typography variant={TYPOGRAPHY.R3} className="font-medium">
+                  Advanced Configuration
+                </Typography>
+                <Toggle
+                  checked={showAdvancedConfig}
+                  onChange={() => setShowAdvancedConfig(!showAdvancedConfig)}
                 />
+              </div>
+
+              {showAdvancedConfig && (
+                <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                  <Controller
+                    name="app_flow_on_complete"
+                    control={control}
+                    render={({ field }) => (
+                      <AppFlowOnCompleteTypeSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                        errors={errors.app_flow_on_complete}
+                        label="App Flow on Complete"
+                        helperText="Select what happens when the action is completed"
+                        required
+                      />
+                    )}
+                  />
+
+                  {watch("app_flow_on_complete") === "VERIFY" && (
+                    <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                      <Input
+                        register={register("webhook_uri")}
+                        errors={errors.webhook_uri}
+                        label="Webhook URL"
+                        placeholder="https://your-webhook-endpoint.com"
+                        helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+                        className="h-16"
+                      />
+
+                      <Input
+                        register={register("webhook_pem")}
+                        errors={errors.webhook_pem}
+                        label="Webhook PEM"
+                        placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+                        helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+                        className="h-16"
+                      />
+                    </div>
+                  )}
+                </div>
               )}
-            />
-
-            {watch("flow") === "PARTNER" && (
-              <>
-                <Input
-                  register={register("webhook_uri")}
-                  errors={errors.webhook_uri}
-                  label="Webhook URL"
-                  placeholder="https://your-webhook-endpoint.com"
-                  helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-                  className="h-16"
-                />
-
-                <Input
-                  register={register("webhook_pem")}
-                  errors={errors.webhook_pem}
-                  label="Webhook PEM"
-                  placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-                  helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-                  className="h-16"
-                />
-              </>
-            )}
+            </div>
 
             <div className="flex w-full justify-end">
               <DecoratedButton

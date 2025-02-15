@@ -136,9 +136,9 @@ enum IllegalContentCategoryEnum {
   OTHER
 }
 
-enum ActionFlowEnum {
+enum AppFlowOnCompleteEnum {
+  NONE,
   VERIFY
-  PARTNER
 }
 
 input UploadImageInput {

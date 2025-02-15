@@ -2,14 +2,15 @@
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
+import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FlowTypeSelector } from "../../../page/CreateActionModal/FlowTypeSelector";
+import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
@@ -23,13 +24,13 @@ const updateActionSchema = yup
     name: yup.string().required("This field is required"),
     description: yup.string().required(),
     action: yup.string().required("This field is required"),
-    maxVerifications: yup
+    max_verifications: yup
       .number()
       .typeError("Max verifications must be a number")
       .required("This field is required"),
-    flow: yup
+    app_flow_on_complete: yup
       .string()
-      .oneOf(["VERIFY", "PARTNER"])
+      .oneOf(["NONE", "VERIFY"])
       .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
     webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
@@ -42,8 +43,8 @@ const updateActionSchema = yup
     "webhook-fields",
     "Both webhook URL and PEM must be provided or removed",
     function (values) {
-      const { webhook_uri, webhook_pem, flow } = values;
-      if (flow !== "PARTNER") return true;
+      const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
+      if (app_flow_on_complete !== "NONE") return true;
 
       if (!!webhook_uri !== !!webhook_pem) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
@@ -71,6 +72,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     formState: { errors, isValid },
     handleSubmit,
     watch,
+    reset,
   } = useForm<NewActionFormValues>({
     resolver: yupResolver(updateActionSchema),
     mode: "onChange",
@@ -78,25 +80,31 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       name: action.name,
       description: action.description,
       action: action.action,
-      maxVerifications: action.max_verifications,
-      flow: action.flow as "VERIFY" | "PARTNER",
-      webhook_uri: action.webhook_uri ?? undefined,
-      webhook_pem: action.webhook_pem ?? undefined,
+      max_verifications: action.max_verifications,
+      app_flow_on_complete: action.app_flow_on_complete as "NONE" | "VERIFY",
+      webhook_uri: action.app_flow_on_complete === "VERIFY" ? action.webhook_uri ?? undefined : undefined,
+      webhook_pem: action.app_flow_on_complete === "VERIFY" ? action.webhook_pem ?? undefined : undefined,
     },
   });
 
   const [updateActionQuery, { loading }] = useUpdateActionMutation();
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(
+    action.app_flow_on_complete === "VERIFY"
+  );
+
+  const appFlowOnComplete = watch("app_flow_on_complete");
 
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
-        const result = await updateActionQuery({
+        const { data, errors } = await updateActionQuery({
           variables: {
             id: action.id,
             input: {
               name: values.name,
               description: values.description,
-              max_verifications: values.maxVerifications,
+              max_verifications: values.max_verifications,
+              app_flow_on_complete: values.app_flow_on_complete,
               webhook_uri: values.webhook_uri,
               webhook_pem: values.webhook_pem,
             },
@@ -105,16 +113,27 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           awaitRefetchQueries: true,
         });
 
-        if (result instanceof Error) {
-          throw result;
+        if (errors) {
+          throw new Error(errors[0].message);
         }
+
+        if (!data?.update_action_by_pk) {
+          throw new Error("Failed to update action");
+        }
+
+        toast.success(`Action "${values.name}" updated.`);
+
+        reset(values);
       } catch (error) {
         console.error("Update Action: ", error);
-        return toast.error("Error occurred while updating action.");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error occurred while updating action."
+        );
       }
-      toast.success(`Action "${values.name}" updated.`);
     },
-    [updateActionQuery, action.id],
+    [updateActionQuery, action.id, reset],
   );
 
   return (
@@ -176,14 +195,14 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
 
         {action.app.engine !== EngineType.OnChain && (
           <Controller
-            name="maxVerifications"
+            name="max_verifications"
             control={control}
             render={({ field }) => {
               return (
                 <MaxVerificationsSelector
                   value={field.value}
                   onChange={field.onChange}
-                  errors={errors.maxVerifications}
+                  errors={errors.max_verifications}
                   showCustomInput
                   required
                   className="w-full " // border is 2 px
@@ -195,36 +214,58 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           />
         )}
 
-        <FlowTypeSelector
-          value={action.flow as "VERIFY" | "PARTNER"}
-          onChange={() => {}}
-          label="Flow"
-          helperText="The flow type for this action"
-          className="text-grey-400"
-          disabled
-        />
-
-        {action.flow === "PARTNER" && (
-          <>
-            <Input
-              register={register("webhook_uri")}
-              errors={errors.webhook_uri}
-              label="Webhook URL"
-              placeholder="https://your-webhook-endpoint.com"
-              helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
-              className="h-16"
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <Typography variant={TYPOGRAPHY.R3} className="font-medium">
+              Advanced Configuration
+            </Typography>
+            <Toggle
+              checked={showAdvancedConfig}
+              onChange={() => setShowAdvancedConfig(!showAdvancedConfig)}
             />
+          </div>
 
-            <Input
-              register={register("webhook_pem")}
-              errors={errors.webhook_pem}
-              label="Webhook PEM"
-              placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-              helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-              className="h-16"
-            />
-          </>
-        )}
+          {showAdvancedConfig && (
+            <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+              <Controller
+                name="app_flow_on_complete"
+                control={control}
+                render={({ field }) => (
+                  <AppFlowOnCompleteTypeSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    errors={errors.app_flow_on_complete}
+                    label="App Flow on Complete"
+                    helperText="Select what happens when the action is completed"
+                    required
+                  />
+                )}
+              />
+
+              {watch("app_flow_on_complete") === "VERIFY" && (
+                <div className="space-y-6 pl-4 border-l-2 border-grey-100">
+                  <Input
+                    register={register("webhook_uri")}
+                    errors={errors.webhook_uri}
+                    label="Webhook URL"
+                    placeholder="https://your-webhook-endpoint.com"
+                    helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+                    className="h-16"
+                  />
+
+                  <Input
+                    register={register("webhook_pem")}
+                    errors={errors.webhook_pem}
+                    label="Webhook PEM"
+                    placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
+                    helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+                    className="h-16"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex w-full justify-start">
           <DecoratedButton
@@ -241,10 +282,4 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       </form>
     </div>
   );
-};
-
-// e.g. "VERIFY" -> "Verify", "PARTNER" -> "Partner"
-const formatFlowType = (flow: string | null | undefined) => {
-  if (!flow) return "";
-  return flow.charAt(0).toUpperCase() + flow.slice(1).toLowerCase();
 };

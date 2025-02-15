@@ -20,7 +20,7 @@ export type GetKioskActionQuery = {
     name: string;
     max_verifications: number;
     kiosk_enabled: boolean;
-    flow?: unknown | null;
+    app_flow_on_complete?: unknown | null;
     webhook_uri?: string | null;
     webhook_pem?: string | null;
   }>;
@@ -37,7 +37,7 @@ export const GetKioskActionDocument = gql`
       name
       max_verifications
       kiosk_enabled
-      flow
+      app_flow_on_complete
       webhook_uri
       webhook_pem
     }

@@ -44,7 +44,7 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - flow
+        - app_flow_on_complete
         - webhook_pem
         - webhook_uri
   - role: service
@@ -59,7 +59,7 @@ insert_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - flow
+        - app_flow_on_complete
         - webhook_pem
         - webhook_uri
 select_permissions:
@@ -79,7 +79,7 @@ select_permissions:
         - name
         - status
         - updated_at
-        - flow
+        - app_flow_on_complete
         - webhook_pem
         - webhook_uri
       computed_fields:
@@ -106,7 +106,7 @@ select_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
-        - flow
+        - app_flow_on_complete
         - webhook_uri
         - webhook_pem
       computed_fields:
@@ -137,7 +137,7 @@ select_permissions:
         - status
         - terms_uri
         - updated_at
-        - flow
+        - app_flow_on_complete
         - webhook_uri
         - webhook_pem
       filter:
@@ -155,7 +155,7 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - flow
+        - app_flow_on_complete
         - webhook_pem
         - webhook_uri
       filter:
@@ -183,7 +183,7 @@ update_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
-        - flow
+        - app_flow_on_complete
         - webhook_uri
         - webhook_pem
       filter:

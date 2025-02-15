@@ -26,7 +26,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
-  action_flow_enum: { input: unknown; output: unknown };
+  app_flow_on_complete_enum: { input: unknown; output: unknown };
   illegal_content_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
@@ -253,6 +253,7 @@ export type Action = {
   action: Scalars["String"]["output"];
   /** An object relationship */
   app: App;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id: Scalars["String"]["output"];
   client_secret: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
@@ -260,7 +261,6 @@ export type Action = {
   description: Scalars["String"]["output"];
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier: Scalars["String"]["output"];
-  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id: Scalars["String"]["output"];
   kiosk_enabled: Scalars["Boolean"]["output"];
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -429,13 +429,13 @@ export type Action_Bool_Exp = {
   _or?: InputMaybe<Array<Action_Bool_Exp>>;
   action?: InputMaybe<String_Comparison_Exp>;
   app?: InputMaybe<App_Bool_Exp>;
+  app_flow_on_complete?: InputMaybe<App_Flow_On_Complete_Enum_Comparison_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   client_secret?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   creation_mode?: InputMaybe<String_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
   external_nullifier?: InputMaybe<String_Comparison_Exp>;
-  flow?: InputMaybe<Action_Flow_Enum_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   kiosk_enabled?: InputMaybe<Boolean_Comparison_Exp>;
   max_accounts_per_user?: InputMaybe<Int_Comparison_Exp>;
@@ -464,19 +464,6 @@ export enum Action_Constraint {
   ActionPkey = "action_pkey",
 }
 
-/** Boolean expression to compare columns of type "action_flow_enum". All fields are combined with logical 'AND'. */
-export type Action_Flow_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _gt?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _gte?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _in?: InputMaybe<Array<Scalars["action_flow_enum"]["input"]>>;
-  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
-  _lt?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _lte?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _neq?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
-  _nin?: InputMaybe<Array<Scalars["action_flow_enum"]["input"]>>;
-};
-
 /** input type for incrementing numeric columns in table "action" */
 export type Action_Inc_Input = {
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -490,6 +477,9 @@ export type Action_Insert_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -497,7 +487,6 @@ export type Action_Insert_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
-  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -523,6 +512,7 @@ export type Action_Max_Fields = {
   __typename?: "action_max_fields";
   /** Raw action value as passed by the dev to IDKit. */
   action?: Maybe<Scalars["String"]["output"]>;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id?: Maybe<Scalars["String"]["output"]>;
   client_secret?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -530,7 +520,6 @@ export type Action_Max_Fields = {
   description?: Maybe<Scalars["String"]["output"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: Maybe<Scalars["String"]["output"]>;
-  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: Maybe<Scalars["Int"]["output"]>;
@@ -554,6 +543,7 @@ export type Action_Max_Fields = {
 export type Action_Max_Order_By = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -561,7 +551,6 @@ export type Action_Max_Order_By = {
   description?: InputMaybe<Order_By>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Order_By>;
-  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -584,6 +573,7 @@ export type Action_Min_Fields = {
   __typename?: "action_min_fields";
   /** Raw action value as passed by the dev to IDKit. */
   action?: Maybe<Scalars["String"]["output"]>;
+  app_flow_on_complete?: Maybe<Scalars["app_flow_on_complete_enum"]["output"]>;
   app_id?: Maybe<Scalars["String"]["output"]>;
   client_secret?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
@@ -591,7 +581,6 @@ export type Action_Min_Fields = {
   description?: Maybe<Scalars["String"]["output"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: Maybe<Scalars["String"]["output"]>;
-  flow?: Maybe<Scalars["action_flow_enum"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: Maybe<Scalars["Int"]["output"]>;
@@ -615,6 +604,7 @@ export type Action_Min_Fields = {
 export type Action_Min_Order_By = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -622,7 +612,6 @@ export type Action_Min_Order_By = {
   description?: InputMaybe<Order_By>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Order_By>;
-  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -667,13 +656,13 @@ export type Action_On_Conflict = {
 export type Action_Order_By = {
   action?: InputMaybe<Order_By>;
   app?: InputMaybe<App_Order_By>;
+  app_flow_on_complete?: InputMaybe<Order_By>;
   app_id?: InputMaybe<Order_By>;
   client_secret?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   creation_mode?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
   external_nullifier?: InputMaybe<Order_By>;
-  flow?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   kiosk_enabled?: InputMaybe<Order_By>;
   max_accounts_per_user?: InputMaybe<Order_By>;
@@ -700,6 +689,8 @@ export enum Action_Select_Column {
   /** column name */
   Action = "action",
   /** column name */
+  AppFlowOnComplete = "app_flow_on_complete",
+  /** column name */
   AppId = "app_id",
   /** column name */
   ClientSecret = "client_secret",
@@ -711,8 +702,6 @@ export enum Action_Select_Column {
   Description = "description",
   /** column name */
   ExternalNullifier = "external_nullifier",
-  /** column name */
-  Flow = "flow",
   /** column name */
   Id = "id",
   /** column name */
@@ -753,6 +742,9 @@ export enum Action_Select_Column_Action_Aggregate_Bool_Exp_Bool_Or_Arguments_Col
 export type Action_Set_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -760,7 +752,6 @@ export type Action_Set_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
-  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -1087,6 +1078,9 @@ export type Action_Stream_Cursor_Input = {
 export type Action_Stream_Cursor_Value_Input = {
   /** Raw action value as passed by the dev to IDKit. */
   action?: InputMaybe<Scalars["String"]["input"]>;
+  app_flow_on_complete?: InputMaybe<
+    Scalars["app_flow_on_complete_enum"]["input"]
+  >;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   client_secret?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -1094,7 +1088,6 @@ export type Action_Stream_Cursor_Value_Input = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   /** Encoded and hashed value of app_id and action. Determines scope for uniqueness. Used for Semaphore ZKPs. */
   external_nullifier?: InputMaybe<Scalars["String"]["input"]>;
-  flow?: InputMaybe<Scalars["action_flow_enum"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   kiosk_enabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   /** Only for Sign in with World ID. Determines the maximum number of accounts a single person can have for the respective app. */
@@ -1137,6 +1130,8 @@ export enum Action_Update_Column {
   /** column name */
   Action = "action",
   /** column name */
+  AppFlowOnComplete = "app_flow_on_complete",
+  /** column name */
   AppId = "app_id",
   /** column name */
   ClientSecret = "client_secret",
@@ -1148,8 +1143,6 @@ export enum Action_Update_Column {
   Description = "description",
   /** column name */
   ExternalNullifier = "external_nullifier",
-  /** column name */
-  Flow = "flow",
   /** column name */
   Id = "id",
   /** column name */
@@ -1698,6 +1691,19 @@ export enum App_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppPkey = "app_pkey",
 }
+
+/** Boolean expression to compare columns of type "app_flow_on_complete_enum". All fields are combined with logical 'AND'. */
+export type App_Flow_On_Complete_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _gt?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _gte?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["app_flow_on_complete_enum"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _lte?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _neq?: InputMaybe<Scalars["app_flow_on_complete_enum"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["app_flow_on_complete_enum"]["input"]>>;
+};
 
 /** input type for incrementing numeric columns in table "app" */
 export type App_Inc_Input = {

@@ -26,7 +26,7 @@ export type GetActionsQuery = {
     name: string;
     max_accounts_per_user: number;
     max_verifications: number;
-    flow?: unknown | null;
+    app_flow_on_complete?: unknown | null;
     webhook_uri?: string | null;
     webhook_pem?: string | null;
     updated_at: string;
@@ -60,7 +60,7 @@ export const GetActionsDocument = gql`
       name
       max_accounts_per_user
       max_verifications
-      flow
+      app_flow_on_complete
       webhook_uri
       webhook_pem
       updated_at

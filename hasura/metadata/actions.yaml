@@ -271,14 +271,14 @@ custom_types:
         - description: null
           is_deprecated: null
           value: OTHER
-    - name: ActionFlowEnum
+    - name: AppFlowOnCompleteEnum
       values:
         - description: null
           is_deprecated: null
-          value: VERIFY
+          value: NONE
         - description: null
           is_deprecated: null
-          value: PARTNER
+          value: VERIFY
   input_objects:
     - name: UploadImageInput
     - name: CreateAppReportInput
