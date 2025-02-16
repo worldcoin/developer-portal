@@ -2,14 +2,14 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
+  DOCUMENT_SEQUENCER,
+  DOCUMENT_SEQUENCER_STAGING,
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
-  PASSPORT_SEQUENCER,
-  PASSPORT_SEQUENCER_STAGING,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
-  SECURE_PASSPORT_SEQUENCER,
-  SECURE_PASSPORT_SEQUENCER_STAGING,
+  SECURE_DOCUMENT_SEQUENCER,
+  SECURE_DOCUMENT_SEQUENCER_STAGING,
 } from "./constants";
 import { Auth0SessionUser } from "./types";
 
@@ -26,13 +26,13 @@ export const sequencerMapping: Record<
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
   },
-  [VerificationLevel.Passport]: {
-    true: PASSPORT_SEQUENCER_STAGING,
-    false: PASSPORT_SEQUENCER,
+  [VerificationLevel.Document]: {
+    true: DOCUMENT_SEQUENCER_STAGING,
+    false: DOCUMENT_SEQUENCER,
   },
-  [VerificationLevel.SecurePassport]: {
-    true: SECURE_PASSPORT_SEQUENCER_STAGING,
-    false: SECURE_PASSPORT_SEQUENCER,
+  [VerificationLevel.SecureDocument]: {
+    true: SECURE_DOCUMENT_SEQUENCER_STAGING,
+    false: SECURE_DOCUMENT_SEQUENCER,
   },
 };
 

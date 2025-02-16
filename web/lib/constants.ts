@@ -9,9 +9,9 @@ export { Categories } from "./categories";
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 export const PHONE_SEQUENCER =
   "https://signup-phone-ethereum.crypto.worldcoin.org";
-export const PASSPORT_SEQUENCER =
+export const DOCUMENT_SEQUENCER =
   "https://signup-document.crypto.worldcoin.org";
-export const SECURE_PASSPORT_SEQUENCER =
+export const SECURE_DOCUMENT_SEQUENCER =
   "https://signup-document-secure.crypto.worldcoin.org";
 
 // ANCHOR: Staging Sequencers
@@ -21,9 +21,9 @@ export const ORB_SEQUENCER_STAGING =
     : "https://signup-app.stage-crypto.worldcoin.dev";
 export const PHONE_SEQUENCER_STAGING =
   "https://signup-phone-ethereum.stage-crypto.worldcoin.org";
-export const PASSPORT_SEQUENCER_STAGING =
+export const DOCUMENT_SEQUENCER_STAGING =
   "https://signup-document.stage-crypto.worldcoin.org";
-export const SECURE_PASSPORT_SEQUENCER_STAGING =
+export const SECURE_DOCUMENT_SEQUENCER_STAGING =
   "https://signup-document-secure.stage-crypto.worldcoin.org";
 
 // ANCHOR: OIDC Base URL
