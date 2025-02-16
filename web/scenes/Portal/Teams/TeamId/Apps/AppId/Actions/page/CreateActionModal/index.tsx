@@ -113,7 +113,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
-      app_flow_on_complete: "VERIFY",
+      app_flow_on_complete: "NONE",
     },
   });
 
