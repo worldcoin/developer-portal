@@ -7,6 +7,9 @@ query GetKioskAction($action_id: String!, $app_id: String!) {
     name
     max_verifications
     kiosk_enabled
+    app_flow_on_complete
+    webhook_uri
+    webhook_pem
   }
   app_metadata(
     where: {

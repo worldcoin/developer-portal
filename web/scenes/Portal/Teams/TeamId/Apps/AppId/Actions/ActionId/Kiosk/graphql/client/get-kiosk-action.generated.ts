@@ -20,6 +20,9 @@ export type GetKioskActionQuery = {
     name: string;
     max_verifications: number;
     kiosk_enabled: boolean;
+    app_flow_on_complete?: unknown | null;
+    webhook_uri?: string | null;
+    webhook_pem?: string | null;
   }>;
   app_metadata: Array<{ __typename?: "app_metadata"; logo_img_url: string }>;
 };
@@ -34,6 +37,9 @@ export const GetKioskActionDocument = gql`
       name
       max_verifications
       kiosk_enabled
+      app_flow_on_complete
+      webhook_uri
+      webhook_pem
     }
     app_metadata(
       where: {
