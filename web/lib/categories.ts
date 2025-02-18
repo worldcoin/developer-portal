@@ -1,5 +1,3 @@
-import { getCDNCategoryIconUrl } from "./utils";
-
 export const CategoryTranslations: Record<
   string,
   Record<Category["id"], string>
@@ -187,16 +185,56 @@ export const CategoryTranslations: Record<
 };
 
 export const Categories = [
-  { name: "AI", id: "ai" },
-  { name: "Social", id: "social" },
-  { name: "Gaming", id: "gaming" },
-  { name: "Business", id: "business" },
-  { name: "Finance", id: "finance" },
-  { name: "Productivity", id: "productivity" },
-  { name: "Tokens", id: "tokens" },
-  { name: "Earn", id: "earn" },
-  { name: "Other", id: "other" },
-  { name: "External", id: "external" },
+  {
+    name: "AI",
+    id: "ai",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/ai.png`,
+  },
+  {
+    name: "Social",
+    id: "social",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/social.png`,
+  },
+  {
+    name: "Gaming",
+    id: "gaming",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/gaming.png`,
+  },
+  {
+    name: "Business",
+    id: "business",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/business.png`,
+  },
+  {
+    name: "Finance",
+    id: "finance",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/finance.png`,
+  },
+  {
+    name: "Productivity",
+    id: "productivity",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/productivity.png`,
+  },
+  {
+    name: "Tokens",
+    id: "tokens",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/tokens.png`,
+  },
+  {
+    name: "Earn",
+    id: "earn",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/earn.png`,
+  },
+  {
+    name: "Other",
+    id: "other",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/other.png`,
+  },
+  {
+    name: "External",
+    id: "external",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/external.png`,
+  },
 ] as const;
 
 export type Category = (typeof Categories)[number];
@@ -234,7 +272,6 @@ export const getAllLocalisedCategoriesWithUrls = (locale: string) => {
   const defaultLocale = locale || "en";
   return Categories.map((category) => {
     const { id, name } = getLocalisedCategory(category.name, defaultLocale);
-    const icon_url = getCDNCategoryIconUrl(id);
-    return { id, name, icon_url };
+    return { id, name, icon_url: category.icon_url };
   });
 };
