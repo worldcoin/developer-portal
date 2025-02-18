@@ -1,7 +1,6 @@
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { Category } from "./categories";
 import {
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
@@ -91,9 +90,6 @@ export const getLogoImgCDNUrl = (
   }
   return getCDNImageUrl(app_id, path, isAppVerified);
 };
-
-export const getCDNCategoryIconUrl = (category: Category["id"]) =>
-  `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/${category.toLowerCase()}.png`;
 
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
