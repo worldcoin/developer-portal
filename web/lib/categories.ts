@@ -1,4 +1,9 @@
-export const CategoryTranslations: Record<string, Record<string, string>> = {
+import { getCDNCategoryIconUrl } from "./utils";
+
+export const CategoryTranslations: Record<
+  string,
+  Record<Category["id"], string>
+> = {
   en: {
     social: "Social",
     gaming: "Gaming",
@@ -194,17 +199,24 @@ export const Categories = [
   { name: "External", id: "external" },
 ] as const;
 
-export const CategoryNameIterable = Categories.map((category) => category.name);
+export type Category = (typeof Categories)[number];
+
+export const CategoryNameIterable: Category["name"][] = Categories.map(
+  (category) => category.name,
+);
 
 export const CategoryNameToId = Categories.reduce(
   (acc, { name, id }) => {
     acc[name] = id;
     return acc;
   },
-  {} as Record<string, string>,
+  {} as Record<Category["name"], Category["id"]>,
 );
 
-export const getLocalisedCategory = (name: string, locale: string) => {
+export const getLocalisedCategory = (
+  name: Category["name"],
+  locale: string,
+) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
     console.warn("Missing locale, falling back to default: ", { locale });
     locale = "en";
@@ -218,9 +230,11 @@ export const getLocalisedCategory = (name: string, locale: string) => {
   };
 };
 
-export const getAllLocalisedCategories = (locale: string) => {
+export const getAllLocalisedCategoriesWithUrls = (locale: string) => {
   const defaultLocale = locale || "en";
-  return Categories.map((category) =>
-    getLocalisedCategory(category.name, defaultLocale),
-  );
+  return Categories.map((category) => {
+    const { id, name } = getLocalisedCategory(category.name, defaultLocale);
+    const icon_url = getCDNCategoryIconUrl(id);
+    return { id, name, icon_url };
+  });
 };

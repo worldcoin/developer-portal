@@ -1,4 +1,4 @@
-import { getLocalisedCategory } from "@/lib/categories";
+import { type Category, getLocalisedCategory } from "@/lib/categories";
 import {
   whitelistedAppsContracts,
   whitelistedAppsPermit2,
@@ -99,7 +99,10 @@ export const formatAppMetadata = async (
     ).digest,
     unique_users: singleAppStats?.unique_users ?? 0,
     impressions: singleAppStats?.total_impressions ?? 0,
-    category: getLocalisedCategory(appMetadata.category, locale) ?? {
+    category: getLocalisedCategory(
+      appMetadata.category as Category["name"],
+      locale,
+    ) ?? {
       id: "other",
       name: "Other",
     },
