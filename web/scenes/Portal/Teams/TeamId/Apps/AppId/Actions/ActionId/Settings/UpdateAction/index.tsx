@@ -5,61 +5,19 @@ import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { useUpdateActionMutation } from "./graphql/client/update-action.generated";
-
-const rsaPublicKeyRegex =
-  /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
-
-const updateActionSchema = yup
-  .object({
-    name: yup.string().required("This field is required"),
-    description: yup.string().required(),
-    action: yup.string().required("This field is required"),
-    max_verifications: yup
-      .number()
-      .typeError("Max verifications must be a number")
-      .required("This field is required"),
-    app_flow_on_complete: yup
-      .string()
-      .oneOf(["NONE", "VERIFY"])
-      .required("This field is required"),
-    webhook_uri: yup.string().optional().url("Must be a valid URL"),
-    webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
-      message:
-        "Must be a valid RSA public key in PEM format (BEGIN/END lines, base64 data).",
-      excludeEmptyString: true,
-    }),
-  })
-  .test(
-    "webhook-fields",
-    "Both webhook URL and PEM must be provided or removed",
-    function (values) {
-      const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
-      if (app_flow_on_complete !== "NONE") return true;
-
-      if (!!webhook_uri !== !!webhook_pem) {
-        const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
-        return this.createError({
-          path: errorPath,
-          message: "Both webhook URL and PEM must be provided or removed",
-        });
-      }
-      return true;
-    },
-  );
-
-export type NewActionFormValues = yup.Asserts<typeof updateActionSchema>;
+import { updateActionServerSide } from "./server";
+import { updateActionSchema, UpdateActionSchema } from "./server/form-schema";
 
 type UpdateActionProps = {
   teamId: string;
@@ -77,7 +35,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     handleSubmit,
     watch,
     reset,
-  } = useForm<NewActionFormValues>({
+  } = useForm<UpdateActionSchema>({
     resolver: yupResolver(updateActionSchema),
     mode: "onChange",
     defaultValues: {
@@ -97,37 +55,24 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     },
   });
 
-  const [updateActionQuery, { loading }] = useUpdateActionMutation();
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(
     action.app_flow_on_complete === "VERIFY",
   );
 
+  const { refetch: refetchAction } = useRefetchQueries(GetActionNameDocument, {
+    action_id: action.id,
+  });
+
   const submit = useCallback(
-    async (values: NewActionFormValues) => {
+    async (values: UpdateActionSchema) => {
       try {
-        const { data, errors } = await updateActionQuery({
-          variables: {
-            id: action.id,
-            input: {
-              name: values.name,
-              description: values.description,
-              max_verifications: values.max_verifications,
-              app_flow_on_complete: values.app_flow_on_complete,
-              webhook_uri: values.webhook_uri,
-              webhook_pem: values.webhook_pem,
-            },
-          },
-          refetchQueries: [GetActionNameDocument],
-          awaitRefetchQueries: true,
-        });
+        console.log("values", values);
+        const result = await updateActionServerSide(values, teamId, action.id);
 
-        if (errors) {
-          throw new Error(errors[0].message);
+        if (result instanceof Error) {
+          throw result;
         }
-
-        if (!data?.update_action_by_pk) {
-          throw new Error("Failed to update action");
-        }
+        await refetchAction();
 
         toast.success(`Action "${values.name}" updated.`);
 
@@ -141,7 +86,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         );
       }
     },
-    [updateActionQuery, action.id, reset],
+    [reset, teamId, action.id, refetchAction],
   );
 
   return (
@@ -279,7 +224,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           <DecoratedButton
             variant="primary"
             type="submit"
-            disabled={!isValid || loading}
+            disabled={!isValid}
             className="mt-4 px-6 py-3"
           >
             <Typography variant={TYPOGRAPHY.R4} className="text-white">

@@ -307,4 +307,4 @@ custom_types:
     - name: FinishAppReportOutput
     - name: TmpInsertAppReportOutput
     - name: ConcludeAppReportInvestigationOutput
-  scalars: [ ]
+  scalars: []

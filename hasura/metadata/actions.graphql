@@ -137,7 +137,7 @@ enum IllegalContentCategoryEnum {
 }
 
 enum AppFlowOnCompleteEnum {
-  NONE,
+  NONE
   VERIFY
 }
 

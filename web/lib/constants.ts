@@ -135,7 +135,7 @@ export const AppMode = {
 } as const;
 
 export const PARTNER_TEAM_IDS = {
-  dev: ["team_dd2ecd36c6c45f645e8e5d9a31abdee1"],
+  dev: ["team_4851dd041eee090a180124a5ade0dfdf"],
   staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
   production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
 };

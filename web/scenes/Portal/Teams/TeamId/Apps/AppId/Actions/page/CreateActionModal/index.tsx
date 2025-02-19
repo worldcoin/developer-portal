@@ -9,10 +9,6 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  allowedCommonCharactersRegex,
-  allowedTitleCharactersRegex,
-} from "@/lib/schema";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
@@ -25,66 +21,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import slugify from "slugify";
-import * as yup from "yup";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
-
-const rsaPublicKeyRegex =
-  /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
-
-const createActionSchema = yup
-  .object({
-    name: yup
-      .string()
-      .matches(
-        allowedTitleCharactersRegex,
-        "Name must contain only common characters",
-      )
-      .required("This field is required"),
-    description: yup
-      .string()
-      .matches(
-        allowedCommonCharactersRegex,
-        "Description must contain only common characters",
-      )
-      .required(),
-    action: yup.string().required("This field is required"),
-    app_flow_on_complete: yup
-      .string()
-      .oneOf(["NONE", "VERIFY"])
-      .required("This field is required"),
-    max_verifications: yup
-      .number()
-      .typeError("Max verifications must be a number")
-      .required("This field is required"),
-    webhook_uri: yup.string().optional().url("Must be a valid URL"),
-    webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
-      message:
-        "Must be a valid RSA public key in PEM format (BEGIN/END lines, base64 data).",
-      excludeEmptyString: true,
-    }),
-  })
-  .test(
-    "webhook-fields",
-    "Both webhook URL and PEM must be provided or removed",
-    function (values) {
-      const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
-      if (app_flow_on_complete !== "NONE") return true;
-
-      if (!!webhook_uri !== !!webhook_pem) {
-        const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
-        return this.createError({
-          path: errorPath,
-          message: "Both webhook URL and PEM must be provided or removed",
-        });
-      }
-      return true;
-    },
-  );
-
-export type NewActionFormValues = yup.Asserts<typeof createActionSchema>;
+import { createActionSchema, CreateActionSchema } from "./server/form-schema";
 
 type CreateActionModalProps = {
   className?: string;
@@ -111,7 +52,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     watch,
     reset,
     setFocus,
-  } = useForm<NewActionFormValues>({
+  } = useForm<CreateActionSchema>({
     resolver: yupResolver(createActionSchema),
     mode: "onChange",
     defaultValues: {
@@ -144,15 +85,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   });
 
   const submit = useCallback(
-    async (values: NewActionFormValues) => {
+    async (values: CreateActionSchema) => {
       try {
-        const result = await createActionServerSide(
-          {
-            ...values,
-            app_id: appId,
-          },
-          teamId,
-        );
+        const result = await createActionServerSide(values, teamId, appId);
 
         if (result instanceof Error) {
           throw result;
@@ -166,8 +101,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           is_first_action: firstAction,
         });
 
-        const refetchResult = await refetchActions();
-        console.log("refetchResult", refetchResult);
+        await refetchActions();
+        router.refresh();
+
         reset();
         if (firstAction) {
           router.prefetch(`${pathname}/${action_id}/settings`);
@@ -200,7 +136,16 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       }
       toast.success(`Action "${values.name}" created.`);
     },
-    [appId, firstAction, refetchActions, reset, router, pathname, setError],
+    [
+      appId,
+      firstAction,
+      teamId,
+      refetchActions,
+      reset,
+      router,
+      pathname,
+      setError,
+    ],
   );
 
   return (

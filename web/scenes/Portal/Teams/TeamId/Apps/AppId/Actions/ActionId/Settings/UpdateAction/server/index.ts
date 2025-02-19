@@ -2,23 +2,22 @@
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { generateExternalNullifier } from "@/lib/hashing";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
-import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
-import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
-import { createActionSchema, CreateActionSchema } from "./form-schema";
+import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
+import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
+import { updateActionSchema, UpdateActionSchema } from "./form-schema";
 
-export const getIsUserAllowedToInsertAction = async (teamId: string) => {
+export const getIsUserAllowedToUpdateAction = async (teamId: string) => {
   const session = await getSession();
   if (!session) {
     return false;
   }
 
   const userId = session.user.hasura.id;
-  const response = await getActionInsertPermissionsSdk(
+  const response = await getActionUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToInsertAction({ userId, teamId });
+  ).GetIsUserPermittedToUpdateAction({ userId, teamId });
 
   if (response.team.find((team) => team.id === teamId)?.memberships.length) {
     return true;
@@ -26,21 +25,22 @@ export const getIsUserAllowedToInsertAction = async (teamId: string) => {
   return false;
 };
 
-export async function createActionServerSide(
-  initialValues: CreateActionSchema,
+export async function updateActionServerSide(
+  initialValues: UpdateActionSchema,
   teamId: string,
-  appId: string,
+  actionId: string,
 ) {
-  if (!(await getIsUserAllowedToInsertAction(teamId))) {
+  if (!(await getIsUserAllowedToUpdateAction(teamId))) {
     throw new Error("User is not authorized to insert action");
   }
 
   const { isValid, parsedParams: parsedInitialValues } =
     await validateRequestSchema({
-      schema: createActionSchema,
+      schema: updateActionSchema,
       value: initialValues,
     });
 
+  console.log(isValid);
   if (!isValid || !parsedInitialValues) {
     throw new Error("Invalid request");
   }
@@ -53,17 +53,13 @@ export async function createActionServerSide(
   }
 
   const client = await getAPIServiceGraphqlClient();
-
-  const result = await getCreateActionSdk(client).InsertAction({
-    ...parsedInitialValues,
-    app_id: appId,
-    external_nullifier: generateExternalNullifier(
-      appId,
-      parsedInitialValues.action,
-    ).digest,
+  const { action, ...queryParams } = parsedInitialValues;
+  const result = await getUpdateActionSdk(client).UpdateAction({
+    id: actionId,
+    input: queryParams,
   });
 
   return {
-    action_id: result.insert_action_one?.id,
+    action_id: result.update_action_by_pk?.id,
   };
 }
