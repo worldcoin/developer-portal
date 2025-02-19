@@ -10,6 +10,7 @@ export const CategoryTranslations: Record<
     productivity: "Productivity",
     other: "Other",
     tokens: "Tokens",
+    external: "External",
     earn: "Earn",
     ai: "AI",
   },
@@ -21,6 +22,7 @@ export const CategoryTranslations: Record<
     productivity: "Productivitat",
     other: "Altres",
     tokens: "Tokens",
+    external: "Extern",
     earn: "Guanyar",
     ai: "Intel·ligència Artificial",
   },
@@ -32,6 +34,7 @@ export const CategoryTranslations: Record<
     productivity: "生产力",
     other: "其他",
     tokens: "代币",
+    external: "外部",
     earn: "赚",
     ai: "人工智能",
   },
@@ -43,6 +46,7 @@ export const CategoryTranslations: Record<
     productivity: "Productivité",
     other: "Autre",
     tokens: "Tokens",
+    external: "Externe",
     earn: "Gagner",
     ai: "IA",
   },
@@ -54,6 +58,7 @@ export const CategoryTranslations: Record<
     productivity: "Produktivität",
     other: "Sonstiges",
     tokens: "Token",
+    external: "Extern",
     earn: "Verdienen",
     ai: "AI",
   },
@@ -65,6 +70,7 @@ export const CategoryTranslations: Record<
     productivity: "उत्पादकता",
     other: "अन्य",
     tokens: "टोकन",
+    external: "बाहरी",
     earn: "कमाना",
     ai: "कृत्रिम बुद्धिमत्ता",
   },
@@ -76,6 +82,7 @@ export const CategoryTranslations: Record<
     productivity: "生産性",
     other: "その他",
     tokens: "トークン",
+    external: "外部",
     earn: "稼ぐ",
     ai: "AI",
   },
@@ -87,6 +94,7 @@ export const CategoryTranslations: Record<
     productivity: "생산성",
     other: "기타",
     tokens: "토큰",
+    external: "외부",
     earn: "받기",
     ai: "AI",
   },
@@ -98,6 +106,7 @@ export const CategoryTranslations: Record<
     productivity: "Produktywność",
     other: "Inne",
     tokens: "Tokeny",
+    external: "Zewnętrzne",
     earn: "Zarabiaj",
     ai: "AI",
   },
@@ -109,6 +118,7 @@ export const CategoryTranslations: Record<
     productivity: "Produtividade",
     other: "Outro",
     tokens: "Tokens",
+    external: "Externo",
     earn: "Ganhar",
     ai: "IA",
   },
@@ -120,6 +130,7 @@ export const CategoryTranslations: Record<
     productivity: "Productividad",
     other: "Otro",
     tokens: "Tokens",
+    external: "Externo",
     earn: "Ganar",
     ai: "IA",
   },
@@ -131,6 +142,7 @@ export const CategoryTranslations: Record<
     productivity: "Productividad",
     other: "Otros",
     tokens: "Tokens",
+    external: "Externo",
     earn: "Gana",
     ai: "IA",
   },
@@ -142,6 +154,7 @@ export const CategoryTranslations: Record<
     productivity: "Produktiviti",
     other: "Lain-Lain-lain",
     tokens: "Token",
+    external: "Luaran",
     earn: "Dapatkan",
     ai: "Kecerdasan AI",
   },
@@ -153,6 +166,7 @@ export const CategoryTranslations: Record<
     productivity: "การผลิต",
     other: "อื่นๆ",
     tokens: "โทเค็น",
+    external: "ภายนอก",
     earn: "รับรายได้",
     ai: "AI",
   },
@@ -164,6 +178,7 @@ export const CategoryTranslations: Record<
     productivity: "Produktivitas",
     other: "Lainnya",
     tokens: "Token",
+    external: "Eksternal",
     earn: "Hasilkan",
     ai: "AI",
   },
@@ -215,6 +230,11 @@ export const Categories = [
     id: "other",
     icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/other.png`,
   },
+  {
+    name: "External",
+    id: "external",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/external.png`,
+  },
 ] as const;
 
 export type Category = (typeof Categories)[number];
@@ -251,7 +271,10 @@ export const getLocalisedCategory = (
 export const getAllLocalisedCategoriesWithUrls = (locale: string) => {
   const defaultLocale = locale || "en";
   return Categories.map((category) => {
+    if (category.id === "external") {
+      return null;
+    }
     const { id, name } = getLocalisedCategory(category.name, defaultLocale);
     return { id, name, icon_url: category.icon_url };
-  });
+  }).filter((category) => category !== null);
 };
