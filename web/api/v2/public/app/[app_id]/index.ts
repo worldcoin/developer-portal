@@ -84,6 +84,13 @@ export async function GET(
     if (!draft_metadata) {
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
+
+    if (app_metadata[0].id === draft_id) {
+      return NextResponse.json(
+        { error: "Draft already verified" },
+        { status: 400 },
+      );
+    }
     parsedAppMetadata = draft_metadata;
   } else if (app_metadata.length > 1) {
     // If no specific metadata found by id, check for reviewer approved version
