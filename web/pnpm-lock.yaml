@@ -42,8 +42,8 @@ importers:
         specifier: ^1.7.18
         version: 1.7.18(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
       '@hookform/resolvers':
-        specifier: ^3.3.4
-        version: 3.3.4(react-hook-form@7.50.1(react@18.3.1))
+        specifier: ^3.10.0
+        version: 3.10.0(react-hook-form@7.50.1(react@18.3.1))
       '@next/env':
         specifier: ^14.2.13
         version: 14.2.13
@@ -1334,8 +1334,8 @@ packages:
       react: ^16 || ^17 || ^18
       react-dom: ^16 || ^17 || ^18
 
-  '@hookform/resolvers@3.3.4':
-    resolution: {integrity: sha512-o5cgpGOuJYrd+iMKvkttOclgwRW86EsWJZZRC23prf0uU2i48Htq4PuT73AVb9ionFyZrwYEITuOFGF+BydEtQ==}
+  '@hookform/resolvers@3.10.0':
+    resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
     peerDependencies:
       react-hook-form: ^7.0.0
 
@@ -8164,7 +8164,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.2.0(react@18.3.1)
 
-  '@hookform/resolvers@3.3.4(react-hook-form@7.50.1(react@18.3.1))':
+  '@hookform/resolvers@3.10.0(react-hook-form@7.50.1(react@18.3.1))':
     dependencies:
       react-hook-form: 7.50.1(react@18.3.1)
 
