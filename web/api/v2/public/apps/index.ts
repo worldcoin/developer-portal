@@ -225,7 +225,7 @@ export const GET = async (request: NextRequest) => {
       headers: {
         // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
         // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+        "Cache-Control": "public, max-age=10, stale-if-error=86400",
       },
     },
   );
