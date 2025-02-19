@@ -15,6 +15,7 @@ import {
 } from "@/lib/schema";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { checkIfPartnerTeam } from "@/lib/utils";
 import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -97,6 +98,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const params = useParams();
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId as string;
+  const isPartnerTeam = checkIfPartnerTeam(teamId);
 
   const {
     control,
@@ -285,7 +288,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               />
             )}
 
-            <div className="mt-6 space-y-4">
+            <div
+              className={clsx("mt-6 space-y-4", isPartnerTeam ? "" : "hidden")}
+            >
               <div className="flex items-center justify-between">
                 <Typography variant={TYPOGRAPHY.R3} className="font-medium">
                   Advanced Configuration

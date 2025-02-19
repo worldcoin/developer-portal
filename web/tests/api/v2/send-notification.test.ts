@@ -276,7 +276,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
   });
 
   it("returns 400 if unverified app limit reached", async () => {
-    // Mock the API key lookup
+    // Mock the API key lookup  
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     // Mock the app metadata to simulate an unverified app

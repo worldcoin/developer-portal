@@ -5,7 +5,9 @@ import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
+import { checkIfPartnerTeam } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -66,6 +68,8 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
+  const isPartnerTeam = checkIfPartnerTeam(teamId);
+
   const {
     control,
     register,
@@ -97,8 +101,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(
     action.app_flow_on_complete === "VERIFY",
   );
-
-  const appFlowOnComplete = watch("app_flow_on_complete");
 
   const submit = useCallback(
     async (values: NewActionFormValues) => {
@@ -220,7 +222,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           />
         )}
 
-        <div className="mt-6 space-y-4">
+        <div className={clsx("mt-6 space-y-4", isPartnerTeam ? "" : "hidden")}>
           <div className="flex items-center justify-between">
             <Typography variant={TYPOGRAPHY.R3} className="font-medium">
               Advanced Configuration

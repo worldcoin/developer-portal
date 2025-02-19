@@ -6,6 +6,7 @@ import {
   DOCUMENT_SEQUENCER_STAGING,
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
+  PARTNER_TEAM_IDS,
   PHONE_SEQUENCER,
   PHONE_SEQUENCER_STAGING,
   SECURE_DOCUMENT_SEQUENCER,
@@ -13,7 +14,11 @@ import {
 } from "./constants";
 import { Auth0SessionUser } from "./types";
 
-// Sequencer mapping
+/**
+ * Sequencer mapping
+ * @param verificationLevel - The verification level to get the sequencer for
+ * @returns The sequencer for the verification level
+ */
 export const sequencerMapping: Record<
   VerificationLevel,
   { [key: string]: string | undefined }
@@ -78,11 +83,25 @@ export const validateEmail = (candidate: string): boolean => {
   );
 };
 
+/**
+ * Checks if the code is running in the server
+ * @returns True if the code is running in the server, false otherwise
+ */
 export const isSSR = () => typeof window === "undefined";
 
+/**
+ * Checks if a user is an email user
+ * @param user - The user to check
+ */
 export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
   user.sub.startsWith("email|");
-
+/**
+ * Gets the CDN image URL
+ * @param app_id - The ID of the app
+ * @param path - The path to the image
+ * @param isAppVerified - Whether the app is verified
+ * @returns The CDN image URL
+ */
 export const getCDNImageUrl = (
   app_id: string,
   path: string,
@@ -92,6 +111,13 @@ export const getCDNImageUrl = (
     ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}/${path}`
     : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
 
+/**
+ * Gets the logo image CDN URL
+ * @param app_id - The ID of the app
+ * @param path - The path to the logo image
+ * @param isAppVerified - Whether the app is verified
+ * @returns The logo image CDN URL
+ */
 export const getLogoImgCDNUrl = (
   app_id: string,
   path: string,
@@ -103,6 +129,13 @@ export const getLogoImgCDNUrl = (
   return getCDNImageUrl(app_id, path, isAppVerified);
 };
 
+/**
+ * Checks if a user has the required roles
+ * @param user - The user to check
+ * @param teamId - The ID of the team to check
+ * @param validRoles - The roles to check for
+ * @returns True if the user has the required roles, false otherwise
+ */
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
   teamId: string,
@@ -118,11 +151,22 @@ export const checkUserPermissions = (
   return validRoles.includes(membership?.role);
 };
 
+/**
+ * Gets the nullifier name
+ * @param nullifier - The nullifier to get the name of
+ * @returns The nullifier name
+ */
 export const getNullifierName = (nullifier: string | undefined | null) => {
   if (!nullifier) return null;
   return `${nullifier.slice(0, 6)}...${nullifier.slice(-4)}`;
 };
 
+/**
+ * Truncates a string
+ * @param str - The string to truncate
+ * @param length - The length to truncate the string to
+ * @returns The truncated string
+ */
 export const truncateString = (
   str: string | undefined | null,
   length: number,
@@ -138,7 +182,11 @@ export const truncateString = (
   return `${str.slice(0, length)}...`;
 };
 
-// This function is to protect public endpoints to ensure they are coming from our cloudfront distribution
+/**
+ * Validates the host name of a request
+ * @param request - The request to validate
+ * @returns True if the host name is valid, false otherwise
+ */
 export const isValidHostName = (request: Request) => {
   const hostName =
     request.headers.get("host") || request.headers.get(":authority");
@@ -158,6 +206,11 @@ export const isValidHostName = (request: Request) => {
   return true;
 };
 
+/**
+ * Creates a localise category
+ * @param category - The category to create a localise category for
+ * @returns The localise category
+ */
 export const createLocaliseCategory = (category: string) => {
   return `world_id_partner_category_${category.toLowerCase()}`;
 };
@@ -166,7 +219,11 @@ export const createLocaliseField = (appId: string, field: string) => {
   return `world_id_partner_${appId}_${field}`;
 };
 
-// converts the stringified array of string arrays to a format that can be used in a query
+/**
+ * Converts the stringified array of string arrays to a format that can be used in a query
+ * @param stringifiedArray - The stringified array of string arrays to convert
+ * @returns The converted array
+ */
 export const formatMultipleStringInput = (
   stringifiedArray: string | null | undefined,
 ) => {
@@ -182,6 +239,11 @@ export const formatMultipleStringInput = (
   return formattedArray;
 };
 
+/**
+ * Converts an array to a Hasura array
+ * @param array - The array to convert
+ * @returns The converted array
+ */
 export const convertArrayToHasuraArray = (
   array: string[] | null | undefined,
 ) => {
@@ -189,6 +251,12 @@ export const convertArrayToHasuraArray = (
   return `{${array.join(",")}}`;
 };
 
+/**
+ * Creates a transaction hash URL
+ * @param transactionHash - The transaction hash to create a URL for
+ * @param network - The network to create a URL for
+ * @returns The transaction hash URL
+ */
 export const createTransactionHashUrl = (
   transactionHash: string | null,
   network: string,
@@ -200,6 +268,11 @@ export const createTransactionHashUrl = (
   return "Invalid network";
 };
 
+/**
+ * Tries to parse a JSON string
+ * @param input - The string to parse
+ * @returns The parsed JSON object or null if the string is not a valid JSON
+ */
 export const tryParseJSON = <T extends {}>(
   input: string | null | undefined,
 ): T | null => {
@@ -218,7 +291,11 @@ export const tryParseJSON = <T extends {}>(
   return null;
 };
 
-// Helper function to ensure uploaded images are png or jpg. Otherwise hasura trigger will fail
+/**
+ * Gets the file type of an image
+ * @param imageType - The type of image to get the file type of
+ * @returns The file type of the image
+ */
 export const getImageEndpoint = (imageType: string) => {
   const fileType = imageType.split(".").pop();
   if (fileType === "png" || fileType === "jpg") {
@@ -226,4 +303,17 @@ export const getImageEndpoint = (imageType: string) => {
   } else {
     throw new Error("Unsupported image file type");
   }
+};
+
+/**
+ * Checks if a team is a partner team
+ * @param teamId - The ID of the team to check
+ * @returns True if the team is a partner team, false otherwise
+ */
+export const checkIfPartnerTeam = (teamId: string) => {
+  const envTeamIds =
+    PARTNER_TEAM_IDS[
+      process.env.NEXT_PUBLIC_APP_ENV as keyof typeof PARTNER_TEAM_IDS
+    ];
+  return envTeamIds.includes(teamId);
 };
