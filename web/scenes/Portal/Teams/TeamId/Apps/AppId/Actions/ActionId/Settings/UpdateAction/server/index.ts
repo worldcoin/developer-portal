@@ -40,7 +40,6 @@ export async function updateActionServerSide(
       value: initialValues,
     });
 
-  console.log(isValid);
   if (!isValid || !parsedInitialValues) {
     throw new Error("Invalid request");
   }
