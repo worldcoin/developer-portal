@@ -146,10 +146,13 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const submit = useCallback(
     async (values: NewActionFormValues) => {
       try {
-        const result = await createActionServerSide({
-          ...values,
-          app_id: appId,
-        });
+        const result = await createActionServerSide(
+          {
+            ...values,
+            app_id: appId,
+          },
+          teamId,
+        );
 
         if (result instanceof Error) {
           throw result;
