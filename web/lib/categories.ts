@@ -268,7 +268,7 @@ export const getLocalisedCategory = (
   };
 };
 
-export const getAllLocalisedCategoriesWithUrls = (locale: string) => {
+export const getAppStoreLocalisedCategoriesWithUrls = (locale: string) => {
   const defaultLocale = locale || "en";
   return Categories.map((category) => {
     if (category.id === "external") {
