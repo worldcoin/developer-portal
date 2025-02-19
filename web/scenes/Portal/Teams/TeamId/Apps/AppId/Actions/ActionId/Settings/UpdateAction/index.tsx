@@ -27,6 +27,7 @@ type UpdateActionProps = {
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
   const isPartnerTeam = checkIfPartnerTeam(teamId);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     control,
@@ -66,7 +67,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   const submit = useCallback(
     async (values: UpdateActionSchema) => {
       try {
-        console.log("values", values);
+        setIsSubmitting(true);
         const result = await updateActionServerSide(values, teamId, action.id);
 
         if (result instanceof Error) {
@@ -84,6 +85,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             ? error.message
             : "Error occurred while updating action.",
         );
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [reset, teamId, action.id, refetchAction],
@@ -224,7 +227,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           <DecoratedButton
             variant="primary"
             type="submit"
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             className="mt-4 px-6 py-3"
           >
             <Typography variant={TYPOGRAPHY.R4} className="text-white">

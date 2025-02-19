@@ -41,6 +41,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
   const isPartnerTeam = checkIfPartnerTeam(teamId);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     control,
@@ -87,6 +88,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const submit = useCallback(
     async (values: CreateActionSchema) => {
       try {
+        setIsSubmitting(true);
         const result = await createActionServerSide(values, teamId, appId);
 
         if (result instanceof Error) {
@@ -133,6 +135,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           );
         }
         return toast.error("Error occurred while creating action.");
+      } finally {
+        setIsSubmitting(false);
       }
       toast.success(`Action "${values.name}" created.`);
     },
@@ -295,7 +299,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
               <DecoratedButton
                 variant="primary"
                 type="submit"
-                disabled={!isValid}
+                disabled={!isValid || isSubmitting}
                 className="px-10 py-3"
                 testId="create-action-modal"
               >
