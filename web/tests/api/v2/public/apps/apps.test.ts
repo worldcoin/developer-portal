@@ -571,7 +571,7 @@ describe("/api/v2/public/apps", () => {
           },
         ],
       },
-      categories: Categories,
+      categories: Categories.filter((category) => category.id !== "external"),
     });
   });
 
