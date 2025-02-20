@@ -155,9 +155,6 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - app_flow_on_complete
-        - webhook_pem
-        - webhook_uri
       filter:
         app:
           team_id:
@@ -166,10 +163,19 @@ update_permissions:
   - role: service
     permission:
       columns:
+        - app_flow_on_complete
         - client_secret
+        - description
         - external_nullifier
+        - kiosk_enabled
+        - max_accounts_per_user
+        - max_verifications
+        - name
         - privacy_policy_uri
+        - status
         - terms_uri
+        - webhook_pem
+        - webhook_uri
       filter: {}
       check: null
   - role: user
@@ -183,9 +189,6 @@ update_permissions:
         - privacy_policy_uri
         - status
         - terms_uri
-        - app_flow_on_complete
-        - webhook_uri
-        - webhook_pem
       filter:
         app:
           team:

@@ -35,17 +35,11 @@ export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
 export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
-
 export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
-
 export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
-
 export const DISCORD_URL = "https://worldcoin.org/discord";
-
 export const WORLDCOIN_STATUS_URL = "https://status.worldcoin.org/";
-
 export const WORLDCOIN_PRIVACY_URL = "https://worldcoin.org/privacy";
-
 export const FAQ_URL = "https://worldcoin.org/faqs";
 
 export const loginErrors: Record<LoginErrorCode, string> = {
@@ -122,12 +116,6 @@ export const NativeApps: Record<string, NativeAppsMap> = {
   },
 };
 
-export const notificationPermissions = {
-  dev: ["team_dd2ecd36c6c45f645e8e5d9a31abdee1"],
-  staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
-  production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
-};
-
 // These are addresses that have been whitelisted from the permit2 restriction
 export const whitelistedAppsPermit2 = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
@@ -145,3 +133,9 @@ export const AppMode = {
   external: "external",
   ["mini-app"]: "mini-app",
 } as const;
+
+export const PARTNER_TEAM_IDS = {
+  dev: ["team_4851dd041eee090a180124a5ade0dfdf"],
+  staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
+  production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
+};

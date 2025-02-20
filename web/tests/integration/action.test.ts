@@ -133,7 +133,7 @@ describe("user role", () => {
     expect(response.data.update_action_by_pk.privacy_policy_uri).toEqual(url);
   });
 
-  test("Owner can update sign in with World ID", async () => {
+  test("Owner can delete sign in with World ID", async () => {
     const serviceClient = await getAPIServiceClient();
 
     const query = gql(`query GetUserId {
@@ -264,5 +264,70 @@ describe("user role", () => {
     });
 
     expect(response.data.update_action_by_pk).toBeNull();
+  });
+
+  test("User can't update webhook_uri and webhook_pem", async () => {
+    const serviceClient = await getAPIServiceClient();
+    const query = gql(`query GetUserId {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        app {
+          team {
+            memberships(where: {role: {_eq: OWNER}}) {
+              user {
+                id
+              }
+            }
+          }
+        }
+      }
+    }`);
+
+    const res = (await serviceClient.query({ query })) as {
+      data: {
+        action: [
+          {
+            id: string;
+            app: {
+              team: {
+                memberships: [
+                  {
+                    user: {
+                      id: string;
+                    };
+                  },
+                ];
+              };
+            };
+          },
+        ];
+      };
+    };
+
+    const ownerUserId = res.data.action[0].app.team.memberships[0].user.id;
+    const actionId = res.data.action[0].id;
+    const client = await getAPIUserClient({
+      user_id: ownerUserId,
+    });
+
+    const mutation = gql`
+      mutation UpdateAction($id: String!) {
+        update_action_by_pk(
+          pk_columns: { id: $id }
+          _set: { webhook_uri: "http://example.com", webhook_pem: "pem" }
+        ) {
+          id
+        }
+      }
+    `;
+
+    expect(
+      client.mutate({
+        mutation,
+        variables: {
+          id: actionId,
+        },
+      }),
+    ).rejects.toThrow();
   });
 });

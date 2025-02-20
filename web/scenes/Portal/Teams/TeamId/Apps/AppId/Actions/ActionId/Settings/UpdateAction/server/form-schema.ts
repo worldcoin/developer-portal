@@ -1,36 +1,20 @@
-import {
-  allowedCommonCharactersRegex,
-  allowedTitleCharactersRegex,
-} from "@/lib/schema";
 import * as yup from "yup";
 
 const rsaPublicKeyRegex =
   /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
 
-export const createActionSchema = yup
+export const updateActionSchema = yup
   .object({
-    name: yup
-      .string()
-      .matches(
-        allowedTitleCharactersRegex,
-        "Name must contain only common characters",
-      )
-      .required("This field is required"),
-    description: yup
-      .string()
-      .matches(
-        allowedCommonCharactersRegex,
-        "Description must contain only common characters",
-      )
-      .required(),
+    name: yup.string().required("This field is required"),
+    description: yup.string().required(),
     action: yup.string().required("This field is required"),
-    app_flow_on_complete: yup
-      .string()
-      .oneOf(["NONE", "VERIFY"])
-      .required("This field is required"),
     max_verifications: yup
       .number()
       .typeError("Max verifications must be a number")
+      .required("This field is required"),
+    app_flow_on_complete: yup
+      .string()
+      .oneOf(["NONE", "VERIFY"])
       .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
     webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
@@ -57,4 +41,4 @@ export const createActionSchema = yup
     },
   );
 
-export type CreateActionSchema = yup.Asserts<typeof createActionSchema>;
+export type UpdateActionSchema = yup.Asserts<typeof updateActionSchema>;

@@ -460,6 +460,8 @@ export enum Action_Constraint {
   ActionAppIdActionKey = "action_app_id_action_key",
   /** unique or primary key constraint on columns "external_nullifier", "app_id" */
   ActionAppIdExternalNullifierKey = "action_app_id_external_nullifier_key",
+  /** unique or primary key constraint on columns "external_nullifier" */
+  ActionExternalNullifierKey = "action_external_nullifier_key",
   /** unique or primary key constraint on columns "id" */
   ActionPkey = "action_pkey",
 }
