@@ -18,29 +18,51 @@ export const VerificationLevelPicker = memo(function VerificationLevelPicker(
   return (
     <div
       className={twMerge(
-        "flex flex-row items-center justify-center gap-x-3",
+        "flex flex-col items-center justify-center gap-x-3",
         className,
       )}
     >
       <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
         Verification level:
       </Typography>
-      <Radio
-        value={VerificationLevel.Device}
-        label="Device"
-        checked={verificationLevel === VerificationLevel.Device}
-        onChange={() =>
-          resetKioskAndUpdateVerificationLevel(VerificationLevel.Device)
-        }
-      />
-      <Radio
-        value={VerificationLevel.Orb}
-        label="Orb"
-        checked={verificationLevel === VerificationLevel.Orb}
-        onChange={() =>
-          resetKioskAndUpdateVerificationLevel(VerificationLevel.Orb)
-        }
-      />
+      <div className="flex flex-row items-center justify-center gap-x-3">
+        <Radio
+          value={VerificationLevel.Device}
+          label="Device"
+          checked={verificationLevel === VerificationLevel.Device}
+          onChange={() =>
+            resetKioskAndUpdateVerificationLevel(VerificationLevel.Device)
+          }
+        />
+        <Radio
+          value={VerificationLevel.Document}
+          label="Document"
+          checked={verificationLevel === VerificationLevel.Document}
+          onChange={() =>
+            resetKioskAndUpdateVerificationLevel(VerificationLevel.Document)
+          }
+        />
+      </div>
+      <div className="flex flex-row items-center justify-center gap-x-3">
+        <Radio
+          value={VerificationLevel.SecureDocument}
+          label="Secure Document"
+          checked={verificationLevel === VerificationLevel.SecureDocument}
+          onChange={() =>
+            resetKioskAndUpdateVerificationLevel(
+              VerificationLevel.SecureDocument,
+            )
+          }
+        />
+        <Radio
+          value={VerificationLevel.Orb}
+          label="Orb"
+          checked={verificationLevel === VerificationLevel.Orb}
+          onChange={() =>
+            resetKioskAndUpdateVerificationLevel(VerificationLevel.Orb)
+          }
+        />
+      </div>
     </div>
   );
 });
