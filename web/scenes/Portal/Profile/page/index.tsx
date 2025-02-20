@@ -132,8 +132,7 @@ export const ProfilePage = () => {
                 variant={TYPOGRAPHY.R4}
                 className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
               >
-                Assigning colors randomly is the default, but feel free to
-                switch them if it`s necessary or preferred
+                Avatar colors are assigned randomly, change as preferred
               </Typography>
 
               <Controller

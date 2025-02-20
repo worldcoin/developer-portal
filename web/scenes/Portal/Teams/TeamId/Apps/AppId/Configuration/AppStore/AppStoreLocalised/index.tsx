@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "@/components/Icons/ChevronRightIcon";
 import { Input } from "@/components/Input";
+import { Notification } from "@/components/Notification";
 import { Radio } from "@/components/Radio";
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { TextArea } from "@/components/TextArea";
@@ -70,6 +71,10 @@ export const AppStoreForm = (props: {
   const [, setFormSubmitState] = useAtom(formSubmitStateAtom);
 
   const isEditable = appMetadata?.verification_status === "unverified";
+
+  //
+  // ADD WARN ABOUT INDO APPS!!
+  //
 
   // Anchor: Localisation Metadata
   const [
@@ -390,6 +395,19 @@ export const AppStoreForm = (props: {
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
                 List of countries where your app is available.
               </Typography>
+              <Notification variant="warning">
+                <div className="text-sm">
+                  <h3 className="font-medium text-yellow-800">
+                    Real-life payments in certain SEA countries
+                  </h3>
+                  <div className="mt-2 text-yellow-700">
+                    Please note that Indonesia, Malaysia, and Thailand do not
+                    support chance-based/gambling mini apps. Make sure your app
+                    proposals and updates for these regions comply with local
+                    regulations.
+                  </div>
+                </div>
+              </Notification>
             </div>
             <Controller
               control={control}
