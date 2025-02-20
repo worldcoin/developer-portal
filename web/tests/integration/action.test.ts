@@ -321,13 +321,13 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
-      mutation,
-      variables: {
-        id: actionId,
-      },
-    });
-
-    expect(response.data.action_by_pk.webhook_pem).toBeNull();
+    expect(
+      client.mutate({
+        mutation,
+        variables: {
+          id: actionId,
+        },
+      }),
+    ).rejects.toThrow();
   });
 });
