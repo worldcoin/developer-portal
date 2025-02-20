@@ -649,6 +649,7 @@ describe("/api/public/app/[app_id]", () => {
               contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
               permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
               supported_languages: ["en", "es"],
+              is_reviewer_world_app_approved: true,
               verification_status: "verified",
               is_allowed_unlimited_notifications: false,
               max_notifications_per_day: 10,

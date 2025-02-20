@@ -80,22 +80,22 @@ export async function GET(
   const draft_id = searchParams.get("draft_id");
 
   if (draft_id) {
-    const draft_metadata = app_metadata.find(
-      (meta) =>
-        meta.id === draft_id &&
-        !meta.is_reviewer_world_app_approved &&
-        meta.verification_status !== "verified",
-    );
-    if (!draft_metadata) {
-      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
-    }
+    const draft_metadata = app_metadata.find((meta) => meta.id === draft_id);
 
-    if (app_metadata[0].id === draft_id) {
+    if (
+      !draft_metadata?.is_reviewer_world_app_approved &&
+      draft_metadata?.verification_status === "verified"
+    ) {
       return NextResponse.json(
         { error: "Draft already verified" },
         { status: 400 },
       );
     }
+
+    if (!draft_metadata) {
+      return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+    }
+
     parsedAppMetadata = draft_metadata;
   } else if (app_metadata.length > 1) {
     // If no specific metadata found by id, check for reviewer approved version
