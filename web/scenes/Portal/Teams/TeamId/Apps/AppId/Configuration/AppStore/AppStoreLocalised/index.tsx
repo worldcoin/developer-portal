@@ -398,11 +398,11 @@ export const AppStoreForm = (props: {
               <Notification variant="warning">
                 <div className="text-sm">
                   <h3 className="font-medium text-yellow-800">
-                    Real-life payments in certain SEA countries
+                    Gambling in certain SEA countries
                   </h3>
                   <div className="mt-2 text-yellow-700">
                     Please note that Indonesia, Malaysia, and Thailand do not
-                    support chance-based/gambling mini apps. Make sure your app
+                    allow chance-based/gambling mini apps. Make sure your app
                     proposals and updates for these regions comply with local
                     regulations.
                   </div>
