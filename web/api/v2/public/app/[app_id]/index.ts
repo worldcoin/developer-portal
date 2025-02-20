@@ -83,7 +83,7 @@ export async function GET(
     const draft_metadata = app_metadata.find((meta) => meta.id === draft_id);
 
     if (
-      !draft_metadata?.is_reviewer_world_app_approved &&
+      draft_metadata?.is_reviewer_world_app_approved &&
       draft_metadata?.verification_status === "verified"
     ) {
       return NextResponse.json(
