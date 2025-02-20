@@ -130,7 +130,7 @@ export async function GET(
     {
       status: 200,
       headers: {
-        "Cache-Control": "public, max-age=5, stale-if-error=86400",
+        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
       },
     },
   );
