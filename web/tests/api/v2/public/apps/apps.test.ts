@@ -340,7 +340,7 @@ describe("/api/v2/public/apps", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
-      categories: Categories.filter((category) => category.id !== "external"),
+      categories: Categories,
     });
   });
 
@@ -571,7 +571,7 @@ describe("/api/v2/public/apps", () => {
           },
         ],
       },
-      categories: Categories.filter((category) => category.id !== "external"),
+      categories: Categories,
     });
   });
 
@@ -682,7 +682,7 @@ describe("/api/v2/public/apps", () => {
         ],
         highlights: [],
       },
-      categories: Categories.filter((category) => category.id !== "external"),
+      categories: Categories,
     });
   });
 });
