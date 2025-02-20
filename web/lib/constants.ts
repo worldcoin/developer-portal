@@ -3,6 +3,7 @@
  */
 
 import { LoginErrorCode, NativeAppsMap } from "./types";
+
 export { Categories } from "./categories";
 
 // ANCHOR: Production Sequencers
@@ -137,5 +138,8 @@ export const AppMode = {
 export const PARTNER_TEAM_IDS = {
   dev: ["team_4851dd041eee090a180124a5ade0dfdf"],
   staging: ["team_1767d2864edd0a422e0974f4a8a406e3"], // IO-Staging-Team
-  production: ["team_4e67539b4bb0f6dfabeba48793cf747d"], // TFH
+  production: [
+    "team_4e67539b4bb0f6dfabeba48793cf747d",
+    "team_9b50d04b36a7aa4d2562604f67277376",
+  ], // TFH, Test Partner
 };
