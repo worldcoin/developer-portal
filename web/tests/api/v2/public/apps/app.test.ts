@@ -619,5 +619,64 @@ describe("/api/public/app/[app_id]", () => {
       });
       expect(response.status).toBe(404);
     });
+
+    test("should return 400 when draft_id is already verified", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              id: "1",
+              name: "Example App",
+              app_id: "test-app",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description:
+                "This is an example app designed to showcase the capabilities of our platform.",
+              world_app_button_text: "Use Integration",
+              category: "Productivity",
+              description:
+                '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "michal@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              is_reviewer_world_app_approved: true,
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/public/app/test-app?draft_id=1",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+      const response = await GET(request, { params: { app_id: "test-app" } });
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe("Draft already verified");
+    });
   });
 });
