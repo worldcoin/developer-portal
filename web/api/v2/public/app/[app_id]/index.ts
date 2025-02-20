@@ -80,7 +80,12 @@ export async function GET(
   const draft_id = searchParams.get("draft_id");
 
   if (draft_id) {
-    const draft_metadata = app_metadata.find((meta) => meta.id === draft_id);
+    const draft_metadata = app_metadata.find(
+      (meta) =>
+        meta.id === draft_id &&
+        !meta.is_reviewer_world_app_approved &&
+        meta.verification_status !== "verified",
+    );
     if (!draft_metadata) {
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
