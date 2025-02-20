@@ -155,9 +155,6 @@ update_permissions:
         - max_accounts_per_user
         - max_verifications
         - name
-        - app_flow_on_complete
-        - webhook_pem
-        - webhook_uri
       filter:
         app:
           team_id:
