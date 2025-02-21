@@ -315,5 +315,10 @@ export const checkIfPartnerTeam = (teamId: string) => {
     PARTNER_TEAM_IDS[
       process.env.NEXT_PUBLIC_APP_ENV as keyof typeof PARTNER_TEAM_IDS
     ];
+
+  // Always return true if it's a staging app
+  if (process.env.NEXT_PUBLIC_APP_ENV === "staging") {
+    return true;
+  }
   return envTeamIds.includes(teamId);
 };
