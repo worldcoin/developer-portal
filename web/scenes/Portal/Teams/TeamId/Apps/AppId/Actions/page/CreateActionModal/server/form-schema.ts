@@ -40,7 +40,7 @@ export const createActionSchema = yup
         test: (value) => {
           if (!value) return true;
           return validatePublicKey(value);
-        }
+        },
       }),
   })
   .test(

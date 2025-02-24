@@ -24,7 +24,7 @@ export const updateActionSchema = yup
         test: (value) => {
           if (!value) return true;
           return validatePublicKey(value);
-        }
+        },
       }),
   })
   .test(
