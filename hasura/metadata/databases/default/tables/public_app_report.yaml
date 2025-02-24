@@ -15,11 +15,11 @@ insert_permissions:
         - id
         - illegal_content_category
         - illegal_content_description
-        - illegal_content_laws_broken
+        - illegal_content_legal_reason
         - illegal_content_location
         - purpose
         - reporter_email
-        - user_id
+        - user_pkid
         - violation
     comment: ""
   - role: service
@@ -30,14 +30,14 @@ insert_permissions:
         - details
         - illegal_content_category
         - illegal_content_description
-        - illegal_content_laws_broken
+        - illegal_content_legal_reason
         - illegal_content_location
         - purpose
         - reporter_email
         - review_conclusion_reason
         - review_status
         - reviewed_by
-        - user_id
+        - user_pkid
         - violation
     comment: ""
 select_permissions:
@@ -50,7 +50,7 @@ select_permissions:
         - id
         - illegal_content_category
         - illegal_content_description
-        - illegal_content_laws_broken
+        - illegal_content_legal_reason
         - illegal_content_location
         - purpose
         - reporter_email
@@ -58,7 +58,7 @@ select_permissions:
         - review_status
         - reviewed_at
         - reviewed_by
-        - user_id
+        - user_pkid
         - violation
       filter: {}
     comment: ""
