@@ -1,3 +1,4 @@
+-- review_status
 ALTER TABLE app_report
     DROP CONSTRAINT review_conclusion_reason_check;
 
@@ -16,6 +17,25 @@ ALTER TABLE app_report
     ALTER COLUMN review_status TYPE review_status_enum_new USING review_status::review_status_enum_new,
     ALTER COLUMN review_status SET NOT NULL;
 ALTER TYPE review_status_enum_new RENAME TO review_status_enum;
+
+-- purpose
+ALTER TABLE app_report
+    DROP CONSTRAINT purpose_violation_details_check;
+ALTER TABLE app_report
+    DROP CONSTRAINT illegal_content_check;
+
+ALTER TABLE app_report ALTER COLUMN purpose TYPE text;
+
+DROP TYPE purpose_enum;
+
+CREATE TYPE purpose_enum_new AS ENUM ('ILLEGAL_CONTENT', 'FRAUD', 'SPAM', 'APP_UNSAFE', 'OTHER');
+
+UPDATE app_report SET purpose = 'OTHER' WHERE purpose::text = 'TOS_VIOLATION';
+
+ALTER TABLE app_report 
+    ALTER COLUMN purpose TYPE purpose_enum_new USING purpose::purpose_enum_new,
+    ALTER COLUMN purpose SET NOT NULL;
+ALTER TYPE purpose_enum_new RENAME TO purpose_enum;
 
 ALTER TABLE app_report RENAME COLUMN illegal_content_laws_broken TO illegal_content_legal_reason;
 ALTER TABLE app_report RENAME COLUMN user_id TO user_pkid;
