@@ -7,5 +7,4 @@ README.md
 .git
 .env.test
 # Added by SEC-1406 patch
-.git
 .gitignore
