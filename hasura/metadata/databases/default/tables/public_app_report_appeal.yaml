@@ -1,0 +1,7 @@
+table:
+  name: app_report_appeal
+  schema: public
+object_relationships:
+  - name: app_report
+    using:
+      foreign_key_constraint_on: app_report_id
