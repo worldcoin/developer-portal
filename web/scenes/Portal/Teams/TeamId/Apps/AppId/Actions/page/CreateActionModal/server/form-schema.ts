@@ -49,6 +49,7 @@ export const createActionSchema = yup
     function (values) {
       const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
       if (app_flow_on_complete === "NONE") return true;
+
       if ((webhook_uri && !webhook_pem) || (!webhook_uri && webhook_pem)) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
         return this.createError({

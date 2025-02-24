@@ -26,6 +26,7 @@ import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 import { createActionSchema, CreateActionSchema } from "./server/form-schema";
 import { reformatPem } from "@/lib/crypto.client";
+import { ApolloError } from "@apollo/client";
 
 type CreateActionModalProps = {
   className?: string;
@@ -121,17 +122,41 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           router.replace(pathname);
         }
       } catch (error) {
-        console.error("Create Action: ", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error occurred while creating action.",
-        );
+        posthog.capture("action_creation_failed", {
+          name: values.name,
+          app_id: appId,
+          is_first_action: firstAction,
+          error: error,
+        });
+
+        if (
+          (error as ApolloError).graphQLErrors[0].extensions.code ===
+          "constraint-violation"
+        ) {
+          setError("action", {
+            type: "custom",
+            message: "This action already exists.",
+          });
+          return toast.error(
+            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
+          );
+        }
+        return toast.error("Error occurred while creating action.");
       } finally {
         setIsSubmitting(false);
       }
+      toast.success(`Action "${values.name}" created.`);
     },
-    [router, pathname, teamId, appId, refetchActions],
+    [
+      appId,
+      firstAction,
+      teamId,
+      refetchActions,
+      reset,
+      router,
+      pathname,
+      setError,
+    ],
   );
 
   return (
