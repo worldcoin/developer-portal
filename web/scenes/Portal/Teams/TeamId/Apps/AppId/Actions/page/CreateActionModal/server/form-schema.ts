@@ -1,11 +1,9 @@
+import { validatePublicKey } from "@/lib/crypto.server";
 import {
   allowedCommonCharactersRegex,
   allowedTitleCharactersRegex,
 } from "@/lib/schema";
 import * as yup from "yup";
-
-const rsaPublicKeyRegex =
-  /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
 
 export const createActionSchema = yup
   .object({
@@ -33,11 +31,17 @@ export const createActionSchema = yup
       .typeError("Max verifications must be a number")
       .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
-    webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
-      message:
-        "Must be a valid RSA public key in PEM format (BEGIN/END lines, base64 data).",
-      excludeEmptyString: true,
-    }),
+    webhook_pem: yup
+      .string()
+      .optional()
+      .test({
+        name: "is-valid-pem",
+        message: "Must be a valid RSA public key in PEM format",
+        test: (value) => {
+          if (!value) return true;
+          return validatePublicKey(value);
+        },
+      }),
   })
   .test(
     "webhook-fields",

@@ -4419,12 +4419,6 @@
             "deprecationReason": null
           },
           {
-            "name": "action_external_nullifier_key",
-            "description": "unique or primary key constraint on columns \"external_nullifier\"",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "action_pkey",
             "description": "unique or primary key constraint on columns \"id\"",
             "isDeprecated": false,

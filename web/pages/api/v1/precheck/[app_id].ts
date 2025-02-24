@@ -36,6 +36,8 @@ interface _Action
     | "external_nullifier"
     | "status"
     | "__typename"
+    | "webhook_uri"
+    | "webhook_pem"
   > {
   nullifiers: [_Nullifier] | [];
 }
