@@ -1,7 +1,26 @@
+import { createPublicKey } from "crypto";
 import * as yup from "yup";
 
-const rsaPublicKeyRegex =
-  /^-----BEGIN RSA PUBLIC KEY-----\s+([A-Za-z0-9+/=\s]+)-----END RSA PUBLIC KEY-----\s*$/;
+const validatePublicKey = (value: string | undefined) => {
+  if (!value) return true; // Allow empty values since it's optional
+
+  try {
+    const key = createPublicKey({
+      key: value,
+      format: 'pem',
+      type: 'spki'
+    });
+
+    // Verify it's an RSA public key
+    if (key.asymmetricKeyType !== 'rsa') {
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 export const updateActionSchema = yup
   .object({
@@ -17,11 +36,13 @@ export const updateActionSchema = yup
       .oneOf(["NONE", "VERIFY"])
       .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
-    webhook_pem: yup.string().optional().matches(rsaPublicKeyRegex, {
-      message:
-        "Must be a valid RSA public key in PEM format (BEGIN/END lines, base64 data).",
-      excludeEmptyString: true,
-    }),
+    webhook_pem: yup.string()
+      .optional()
+      .test(
+        'is-valid-pem',
+        'Must be a valid RSA public key in PEM format',
+        validatePublicKey
+      ),
   })
   .test(
     "webhook-fields",

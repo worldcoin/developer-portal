@@ -2,7 +2,7 @@
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfPartnerTeam, normalizePublicKey } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
@@ -49,6 +49,11 @@ export async function updateActionServerSide(
     parsedInitialValues.webhook_uri = undefined;
     parsedInitialValues.webhook_pem = undefined;
     parsedInitialValues.app_flow_on_complete = "NONE";
+  }
+
+  // Normalize the public key before saving
+  if (parsedInitialValues.webhook_pem) {
+    parsedInitialValues.webhook_pem = normalizePublicKey(parsedInitialValues.webhook_pem);
   }
 
   const client = await getAPIServiceGraphqlClient();
