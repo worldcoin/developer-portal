@@ -10,9 +10,9 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
+import { reformatPem } from "@/lib/crypto.client";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
-import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -89,6 +89,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     async (values: CreateActionSchema) => {
       try {
         setIsSubmitting(true);
+
+        // Reformat PEM client-side before submission
+        if (values.webhook_pem) {
+          values.webhook_pem = reformatPem(values.webhook_pem);
+        }
+
         const result = await createActionServerSide(values, teamId, appId);
 
         if (result instanceof Error) {
@@ -115,41 +121,17 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           router.replace(pathname);
         }
       } catch (error) {
-        posthog.capture("action_creation_failed", {
-          name: values.name,
-          app_id: appId,
-          is_first_action: firstAction,
-          error: error,
-        });
-
-        if (
-          (error as ApolloError).graphQLErrors[0].extensions.code ===
-          "constraint-violation"
-        ) {
-          setError("action", {
-            type: "custom",
-            message: "This action already exists.",
-          });
-          return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
-          );
-        }
-        return toast.error("Error occurred while creating action.");
+        console.error("Create Action: ", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error occurred while creating action.",
+        );
       } finally {
         setIsSubmitting(false);
       }
-      toast.success(`Action "${values.name}" created.`);
     },
-    [
-      appId,
-      firstAction,
-      teamId,
-      refetchActions,
-      reset,
-      router,
-      pathname,
-      setError,
-    ],
+    [router, pathname, teamId, appId, refetchActions],
   );
 
   return (
@@ -287,7 +269,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                         label="Webhook PEM"
                         placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
                         helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-                        className="h-16"
+                        className="h-32"
+                        type="textarea"
                       />
                     </div>
                   )}

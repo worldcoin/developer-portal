@@ -2,7 +2,8 @@
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { checkIfPartnerTeam, normalizePublicKey } from "@/lib/utils";
+import { normalizePublicKey as cryptoNormalizePublicKey } from "@/lib/crypto.client";
+import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
@@ -53,7 +54,9 @@ export async function updateActionServerSide(
 
   // Normalize the public key before saving
   if (parsedInitialValues.webhook_pem) {
-    parsedInitialValues.webhook_pem = normalizePublicKey(parsedInitialValues.webhook_pem);
+    parsedInitialValues.webhook_pem = await cryptoNormalizePublicKey(
+      parsedInitialValues.webhook_pem,
+    );
   }
 
   const client = await getAPIServiceGraphqlClient();

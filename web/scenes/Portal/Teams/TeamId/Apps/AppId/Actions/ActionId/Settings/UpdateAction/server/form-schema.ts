@@ -1,26 +1,5 @@
-import { createPublicKey } from "crypto";
 import * as yup from "yup";
-
-const validatePublicKey = (value: string | undefined) => {
-  if (!value) return true; // Allow empty values since it's optional
-
-  try {
-    const key = createPublicKey({
-      key: value,
-      format: 'pem',
-      type: 'spki'
-    });
-
-    // Verify it's an RSA public key
-    if (key.asymmetricKeyType !== 'rsa') {
-      return false;
-    }
-
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+import { validatePublicKey } from "@/lib/crypto.client";
 
 export const updateActionSchema = yup
   .object({
@@ -36,12 +15,13 @@ export const updateActionSchema = yup
       .oneOf(["NONE", "VERIFY"])
       .required("This field is required"),
     webhook_uri: yup.string().optional().url("Must be a valid URL"),
-    webhook_pem: yup.string()
+    webhook_pem: yup
+      .string()
       .optional()
       .test(
-        'is-valid-pem',
-        'Must be a valid RSA public key in PEM format',
-        validatePublicKey
+        "is-valid-pem",
+        "Must be a valid RSA public key in PEM format",
+        validatePublicKey,
       ),
   })
   .test(

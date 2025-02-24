@@ -8,6 +8,7 @@ import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
+import { normalizePublicKey } from "@/lib/crypto.client";
 
 export const getIsUserAllowedToInsertAction = async (teamId: string) => {
   const session = await getSession();
@@ -50,6 +51,12 @@ export async function createActionServerSide(
     parsedInitialValues.webhook_uri = undefined;
     parsedInitialValues.webhook_pem = undefined;
     parsedInitialValues.app_flow_on_complete = "NONE";
+  }
+
+  if (parsedInitialValues.webhook_pem) {
+    parsedInitialValues.webhook_pem = await normalizePublicKey(
+      parsedInitialValues.webhook_pem,
+    );
   }
 
   const client = await getAPIServiceGraphqlClient();

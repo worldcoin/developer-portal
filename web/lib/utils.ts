@@ -1,7 +1,6 @@
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { createPublicKey } from "crypto";
 import {
   DOCUMENT_SEQUENCER,
   DOCUMENT_SEQUENCER_STAGING,
@@ -322,23 +321,4 @@ export const checkIfPartnerTeam = (teamId: string) => {
     return true;
   }
   return envTeamIds.includes(teamId);
-};
-
-/**
- * Normalizes a public key PEM to the standard SPKI PEM string format for public keys.
- * @param pem - The public key PEM to normalize
- */
-export const normalizePublicKey = (pem: string): string => {
-  const key = createPublicKey({
-    key: pem,
-    format: "pem",
-    type: "spki",
-  });
-
-  return key
-    .export({
-      type: "spki",
-      format: "pem",
-    })
-    .toString();
 };
