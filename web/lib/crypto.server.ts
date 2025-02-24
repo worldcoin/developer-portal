@@ -1,9 +1,7 @@
 "use server";
 import { createPublicKey } from "crypto";
 
-export const normalizePublicKeyServer = async (
-  pem: string,
-): Promise<string> => {
+export const normalizePublicKey = async (pem: string): Promise<string> => {
   // Reformat the PEM to ensure proper newlines if they're missing.
   const formattedPem = await reformatPem(pem);
 
@@ -65,7 +63,7 @@ export const reformatPem = async (pem: string): Promise<string> => {
  * @param value - The PEM string to validate.
  * @returns True if the key is a valid RSA public key, false otherwise.
  */
-export const validatePublicKeyServer = async (
+export const validatePublicKey = async (
   value: string | undefined,
 ): Promise<boolean> => {
   if (!value) return true; // Allow empty values since it's optional
