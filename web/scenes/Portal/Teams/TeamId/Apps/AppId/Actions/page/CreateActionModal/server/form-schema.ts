@@ -34,11 +34,14 @@ export const createActionSchema = yup
     webhook_pem: yup
       .string()
       .optional()
-      .test(
-        "is-valid-pem",
-        "Must be a valid RSA public key in PEM format",
-        validatePublicKey,
-      ),
+      .test({
+        name: "is-valid-pem",
+        message: "Must be a valid RSA public key in PEM format",
+        test: (value) => {
+          if (!value) return true;
+          return validatePublicKey(value);
+        }
+      }),
   })
   .test(
     "webhook-fields",
@@ -46,7 +49,6 @@ export const createActionSchema = yup
     function (values) {
       const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
       if (app_flow_on_complete === "NONE") return true;
-
       if ((webhook_uri && !webhook_pem) || (!webhook_uri && webhook_pem)) {
         const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
         return this.createError({

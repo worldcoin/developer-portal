@@ -1,5 +1,5 @@
-import * as yup from "yup";
 import { validatePublicKey } from "@/lib/crypto.client";
+import * as yup from "yup";
 
 export const updateActionSchema = yup
   .object({
@@ -18,11 +18,14 @@ export const updateActionSchema = yup
     webhook_pem: yup
       .string()
       .optional()
-      .test(
-        "is-valid-pem",
-        "Must be a valid RSA public key in PEM format",
-        validatePublicKey,
-      ),
+      .test({
+        name: "is-valid-pem",
+        message: "Must be a valid RSA public key in PEM format",
+        test: (value) => {
+          if (!value) return true;
+          return validatePublicKey(value);
+        }
+      }),
   })
   .test(
     "webhook-fields",
