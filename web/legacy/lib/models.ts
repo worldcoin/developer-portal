@@ -84,6 +84,8 @@ export interface ActionModel {
   terms_uri: string;
   privacy_policy_uri: string;
   redirect_count: number;
+  webhook_uri?: string;
+  webhook_pem?: string;
   __typename: "action";
 }
 
