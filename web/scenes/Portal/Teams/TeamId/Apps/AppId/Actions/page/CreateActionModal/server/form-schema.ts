@@ -1,4 +1,4 @@
-import { validatePublicKey } from "@/lib/crypto.client";
+import { validatePublicKey } from "@/lib/crypto.server";
 import {
   allowedCommonCharactersRegex,
   allowedTitleCharactersRegex,

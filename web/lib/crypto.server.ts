@@ -1,6 +1,10 @@
 "use server";
 import { createPublicKey } from "crypto";
 
+/**
+ * Server-side crypto utilities
+ */
+
 export const normalizePublicKey = async (pem: string): Promise<string> => {
   // Reformat the PEM to ensure proper newlines if they're missing.
   const formattedPem = await reformatPem(pem);
