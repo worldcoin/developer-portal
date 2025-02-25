@@ -5,3 +5,21 @@ object_relationships:
   - name: app_report
     using:
       foreign_key_constraint_on: app_report_id
+insert_permissions:
+  - role: reviewer
+    permission:
+      check: {}
+      columns:
+        - app_report_id
+        - appeal_comment
+    comment: ""
+select_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - app_report_id
+        - appeal_comment
+        - created_at
+        - id
+      filter: {}
+    comment: ""
