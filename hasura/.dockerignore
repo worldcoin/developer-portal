@@ -1,3 +1,7 @@
 Dockerfile
 .dockerignore
 README.md
+
+# Added by SEC-1406 patch
+.git
+.gitignore

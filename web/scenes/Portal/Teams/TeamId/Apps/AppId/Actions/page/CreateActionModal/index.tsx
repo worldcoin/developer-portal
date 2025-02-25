@@ -12,7 +12,6 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
-import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -26,6 +25,8 @@ import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 import { createActionSchema, CreateActionSchema } from "./server/form-schema";
+import { reformatPem } from "@/lib/crypto.client";
+import { ApolloError } from "@apollo/client";
 
 type CreateActionModalProps = {
   className?: string;
@@ -89,6 +90,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     async (values: CreateActionSchema) => {
       try {
         setIsSubmitting(true);
+
+        // Reformat PEM client-side before submission
+        if (values.webhook_pem) {
+          values.webhook_pem = reformatPem(values.webhook_pem);
+        }
+
         const result = await createActionServerSide(values, teamId, appId);
 
         if (result instanceof Error) {
@@ -287,7 +294,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                         label="Webhook PEM"
                         placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
                         helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
-                        className="h-16"
                       />
                     </div>
                   )}

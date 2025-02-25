@@ -7,6 +7,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
+import { reformatPem } from "@/lib/crypto.client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
@@ -68,6 +69,12 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     async (values: UpdateActionSchema) => {
       try {
         setIsSubmitting(true);
+
+        // Reformat PEM client-side before submission
+        if (values.webhook_pem) {
+          values.webhook_pem = reformatPem(values.webhook_pem);
+        }
+
         const result = await updateActionServerSide(values, teamId, action.id);
 
         if (result instanceof Error) {
