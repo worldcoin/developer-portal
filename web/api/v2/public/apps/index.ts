@@ -1,7 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { getAllLocalisedCategoriesWithUrls } from "@/lib/categories";
+import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
@@ -28,6 +28,7 @@ const queryParamsSchema = yup.object({
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
   override_country: yup.string().notRequired(),
+  show_external: yup.string().notRequired(),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -67,11 +68,6 @@ export const GET = async (request: NextRequest) => {
   const headers = request.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
-
-  console.log({
-    cloudfrontCountry: country,
-    parsedCountry: parsedParams.override_country,
-  });
 
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
@@ -141,6 +137,15 @@ export const GET = async (request: NextRequest) => {
       app.supported_countries?.some((c: string) => c === country),
     );
   }
+
+  // ANCHOR: Filter out external apps if show_external is not set
+  if (!parsedParams.show_external) {
+    highlightsApps = highlightsApps.filter(
+      (app) => app.category !== "external",
+    );
+
+    topApps = topApps.filter((app) => app.category !== "external");
+  } // otherwise include external apps
 
   // ANCHOR: Fetch app stats from metrics service
   const response = await fetch(
@@ -214,13 +219,13 @@ export const GET = async (request: NextRequest) => {
         top_apps: rankApps(formattedTopApps, metricsData),
         highlights: highlightedApps,
       },
-      categories: getAllLocalisedCategoriesWithUrls(locale), // TODO: Localise
+      categories: getAppStoreLocalisedCategoriesWithUrls(locale), // TODO: Localise
     },
     {
       headers: {
         // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
         // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+        "Cache-Control": "public, max-age=5, stale-if-error=86400",
       },
     },
   );
