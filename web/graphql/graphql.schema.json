@@ -315,11 +315,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
-              "kind": "ENUM",
-              "name": "IllegalContentCategoryEnum",
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -351,11 +351,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
+              "kind": "ENUM",
+              "name": "IllegalContentSubCategoryEnum",
               "ofType": null
             },
             "defaultValue": null,
@@ -395,7 +395,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "NON_NULL",
@@ -539,26 +539,38 @@
       },
       {
         "kind": "ENUM",
-        "name": "IllegalContentCategoryEnum",
+        "name": "IllegalContentSubCategoryEnum",
         "description": null,
         "fields": null,
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
           {
-            "name": "CHILD_SEXUAL_ABUSE",
+            "name": "DATA_PROTECTION_PRIVACY",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "ILLEGAL_HATE_SPEECH",
+            "name": "DEFAMATION",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "INCITES_TERRORISM_OR_VIOLENCE",
+            "name": "ILLEGAL_OR_HARMFUL_SPEECH",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NEGATIVE_EFFECTS_ON_CIVIC_DISCOURSE",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NON_CONSENSUAL_BEHAVIOR",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -570,25 +582,37 @@
             "deprecationReason": null
           },
           {
-            "name": "PROVIDES_OR_FACILITATES_AN_ILLEGAL_SERVICE",
+            "name": "PORNOGRAPHY",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "VIOLATES_ADVERTISING_LAW",
+            "name": "PROTECTION_OF_MINORS",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "VIOLATES_CONSUMER_PROTECTION_OR_PRIVACY_LAW",
+            "name": "RISK_FOR_PUBLIC_SECURITY",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "VIOLATES_INTELLECTUAL_PROPERTY_RIGHTS",
+            "name": "SELF_HARM",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "UNSAFE_OR_ILLEGAL_PRODUCTS",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "VIOLENCE",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -1040,19 +1064,37 @@
         "interfaces": null,
         "enumValues": [
           {
-            "name": "CONFIRMED_VIOLATION",
+            "name": "ACTIONED",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "IRRELEVANT",
+            "name": "APPEALED",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "NO_VIOLATION",
+            "name": "ESCALATE",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NOT_ESCALATE",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "OPEN",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "REVIEW",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -4415,12 +4457,6 @@
           {
             "name": "action_app_id_external_nullifier_key",
             "description": "unique or primary key constraint on columns \"external_nullifier\", \"app_id\"",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "action_external_nullifier_key",
-            "description": "unique or primary key constraint on columns \"external_nullifier\"",
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -22188,12 +22224,12 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -22212,7 +22248,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "args": [],
             "type": {
@@ -22224,13 +22260,17 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "illegal_content_sub_category_enum",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -22240,9 +22280,13 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "purpose_enum",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "purpose_enum",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -22276,9 +22320,13 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "review_status_enum",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "review_status_enum",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -22308,7 +22356,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "args": [],
             "type": {
@@ -22469,6 +22517,1035 @@
         "possibleTypes": null
       },
       {
+        "kind": "OBJECT",
+        "name": "app_report_appeal",
+        "description": "columns and relationships of \"app_report_appeal\"",
+        "fields": [
+          {
+            "name": "app_report",
+            "description": "An object relationship",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app_report",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "timestamp",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "app_report_appeal_aggregate",
+        "description": "aggregated selection of \"app_report_appeal\"",
+        "fields": [
+          {
+            "name": "aggregate",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_aggregate_fields",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nodes",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_report_appeal",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "app_report_appeal_aggregate_fields",
+        "description": "aggregate fields of \"app_report_appeal\"",
+        "fields": [
+          {
+            "name": "count",
+            "description": null,
+            "args": [
+              {
+                "name": "columns",
+                "description": null,
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_report_appeal_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "distinct",
+                "description": null,
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "max",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_max_fields",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "min",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_min_fields",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_bool_exp",
+        "description": "Boolean expression to filter rows from the table \"app_report_appeal\". All fields are combined with a logical 'AND'.",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "_and",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_not",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_appeal_bool_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_or",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_bool_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_id",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "timestamp_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "app_report_appeal_constraint",
+        "description": "unique or primary key constraints on table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "app_report_appeal_pkey",
+            "description": "unique or primary key constraint on columns \"id\"",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_insert_input",
+        "description": "input type for inserting data into table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "app_report",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_obj_rel_insert_input",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "app_report_appeal_max_fields",
+        "description": "aggregate max on columns",
+        "fields": [
+          {
+            "name": "app_report_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "app_report_appeal_min_fields",
+        "description": "aggregate min on columns",
+        "fields": [
+          {
+            "name": "app_report_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "app_report_appeal_mutation_response",
+        "description": "response of any mutation on the table \"app_report_appeal\"",
+        "fields": [
+          {
+            "name": "affected_rows",
+            "description": "number of rows affected by the mutation",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "returning",
+            "description": "data from the rows affected by the mutation",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_report_appeal",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_on_conflict",
+        "description": "on_conflict condition type for table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "constraint",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "app_report_appeal_constraint",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "update_columns",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "ENUM",
+                    "name": "app_report_appeal_update_column",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "defaultValue": "[]",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "where",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_appeal_bool_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_order_by",
+        "description": "Ordering options when selecting data from \"app_report_appeal\".",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "app_report",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_pk_columns_input",
+        "description": "primary key columns input for table: app_report_appeal",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "app_report_appeal_select_column",
+        "description": "select columns of table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "app_report_id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_set_input",
+        "description": "input type for updating data in table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "app_report_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_stream_cursor_input",
+        "description": "Streaming cursor of the table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "initial_value",
+            "description": "Stream column input with initial value",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "app_report_appeal_stream_cursor_value_input",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ordering",
+            "description": "cursor ordering",
+            "type": {
+              "kind": "ENUM",
+              "name": "cursor_ordering",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_stream_cursor_value_input",
+        "description": "Initial value of the column from where the streaming should start",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "app_report_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "app_report_appeal_update_column",
+        "description": "update columns of table \"app_report_appeal\"",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "app_report_id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "appeal_comment",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "created_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "id",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_appeal_updates",
+        "description": null,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "_set",
+            "description": "sets the columns of the filtered rows to the given values",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_appeal_set_input",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "where",
+            "description": "filter the rows which have to be updated",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "app_report_appeal_bool_exp",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "INPUT_OBJECT",
         "name": "app_report_bool_exp",
         "description": "Boolean expression to filter rows from the table \"app_report\". All fields are combined with a logical 'AND'.",
@@ -22587,11 +23664,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "illegal_content_category_enum_comparison_exp",
+              "name": "String_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -22611,7 +23688,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -22623,11 +23700,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
+              "name": "illegal_content_sub_category_enum_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -22707,7 +23784,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -22819,11 +23896,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -22843,7 +23920,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -22855,11 +23932,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -22939,7 +24016,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -23021,12 +24098,12 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -23045,7 +24122,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "args": [],
             "type": {
@@ -23057,12 +24134,12 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "isDeprecated": false,
@@ -23141,7 +24218,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "args": [],
             "type": {
@@ -23224,12 +24301,12 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -23248,7 +24325,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "args": [],
             "type": {
@@ -23260,12 +24337,12 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "isDeprecated": false,
@@ -23344,7 +24421,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "args": [],
             "type": {
@@ -23421,6 +24498,45 @@
         ],
         "inputFields": null,
         "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "app_report_obj_rel_insert_input",
+        "description": "input type for inserting object relation for remote table \"app_report\"",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "data",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "app_report_insert_input",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "on_conflict",
+            "description": "upsert condition",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "app_report_on_conflict",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
         "enumValues": null,
         "possibleTypes": null
       },
@@ -23554,7 +24670,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -23578,7 +24694,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -23590,7 +24706,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -23674,7 +24790,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -23762,7 +24878,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -23774,13 +24890,13 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -23822,7 +24938,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -23891,11 +25007,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -23915,7 +25031,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -23927,11 +25043,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -24011,7 +25127,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -24133,11 +25249,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -24157,7 +25273,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -24169,11 +25285,11 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -24253,7 +25369,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -24314,7 +25430,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_category",
+            "name": "illegal_content_country_code",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -24326,13 +25442,13 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_location",
+            "name": "illegal_content_sub_category",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -24374,7 +25490,7 @@
             "deprecationReason": null
           },
           {
-            "name": "user_id",
+            "name": "user_pkid",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -32039,7 +33155,7 @@
       },
       {
         "kind": "SCALAR",
-        "name": "illegal_content_category_enum",
+        "name": "illegal_content_sub_category_enum",
         "description": null,
         "fields": null,
         "inputFields": null,
@@ -32049,8 +33165,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "illegal_content_category_enum_comparison_exp",
-        "description": "Boolean expression to compare columns of type \"illegal_content_category_enum\". All fields are combined with logical 'AND'.",
+        "name": "illegal_content_sub_category_enum_comparison_exp",
+        "description": "Boolean expression to compare columns of type \"illegal_content_sub_category_enum\". All fields are combined with logical 'AND'.",
         "fields": null,
         "inputFields": [
           {
@@ -32058,7 +33174,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32070,7 +33186,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32082,7 +33198,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32100,7 +33216,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "illegal_content_category_enum",
+                  "name": "illegal_content_sub_category_enum",
                   "ofType": null
                 }
               }
@@ -32126,7 +33242,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32138,7 +33254,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32150,7 +33266,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "illegal_content_category_enum",
+              "name": "illegal_content_sub_category_enum",
               "ofType": null
             },
             "defaultValue": null,
@@ -32168,7 +33284,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "illegal_content_category_enum",
+                  "name": "illegal_content_sub_category_enum",
                   "ofType": null
                 }
               }
@@ -39123,6 +40239,64 @@
             "deprecationReason": null
           },
           {
+            "name": "delete_app_report_appeal",
+            "description": "delete data from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "where",
+                "description": "filter the rows which have to be deleted",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "app_report_appeal_bool_exp",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_mutation_response",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "delete_app_report_appeal_by_pk",
+            "description": "delete single row from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "delete_app_report_by_pk",
             "description": "delete single row from the table: \"app_report\"",
             "args": [
@@ -40634,6 +41808,96 @@
             "type": {
               "kind": "OBJECT",
               "name": "app_report_mutation_response",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "insert_app_report_appeal",
+            "description": "insert data into the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "objects",
+                "description": "the rows to be inserted",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "name": null,
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "app_report_appeal_insert_input",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "on_conflict",
+                "description": "upsert condition",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_on_conflict",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_mutation_response",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "insert_app_report_appeal_one",
+            "description": "insert a single row into the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "object",
+                "description": "the row to be inserted",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "app_report_appeal_insert_input",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "on_conflict",
+                "description": "upsert condition",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_on_conflict",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal",
               "ofType": null
             },
             "isDeprecated": false,
@@ -43081,6 +44345,129 @@
               "kind": "OBJECT",
               "name": "app_report_mutation_response",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "update_app_report_appeal",
+            "description": "update data of the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "_set",
+                "description": "sets the columns of the filtered rows to the given values",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_set_input",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows which have to be updated",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "app_report_appeal_bool_exp",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal_mutation_response",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "update_app_report_appeal_by_pk",
+            "description": "update single row of the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "_set",
+                "description": "sets the columns of the filtered rows to the given values",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_set_input",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "pk_columns",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "app_report_appeal_pk_columns_input",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "update_app_report_appeal_many",
+            "description": "update multiples rows of table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "updates",
+                "description": "updates to execute, in order",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "name": null,
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "app_report_appeal_updates",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app_report_appeal_mutation_response",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -51823,6 +53210,229 @@
             "deprecationReason": null
           },
           {
+            "name": "app_report_appeal",
+            "description": "fetch data from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "distinct_on",
+                "description": "distinct select on columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_report_appeal_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "limit",
+                "description": "limit the number of rows returned",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "offset",
+                "description": "skip the first n rows. Use only with order_by",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "order_by",
+                "description": "sort the rows by one or more columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_report_appeal_order_by",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_report_appeal",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_appeal_aggregate",
+            "description": "fetch aggregated fields from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "distinct_on",
+                "description": "distinct select on columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_report_appeal_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "limit",
+                "description": "limit the number of rows returned",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "offset",
+                "description": "skip the first n rows. Use only with order_by",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "order_by",
+                "description": "sort the rows by one or more columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_report_appeal_order_by",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app_report_appeal_aggregate",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_appeal_by_pk",
+            "description": "fetch data from the table: \"app_report_appeal\" using primary key columns",
+            "args": [
+              {
+                "name": "id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_report_by_pk",
             "description": "fetch data from the table: \"app_report\" using primary key columns",
             "args": [
@@ -60262,6 +61872,302 @@
             "deprecationReason": null
           },
           {
+            "name": "app_report_appeal",
+            "description": "fetch data from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "distinct_on",
+                "description": "distinct select on columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_report_appeal_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "limit",
+                "description": "limit the number of rows returned",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "offset",
+                "description": "skip the first n rows. Use only with order_by",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "order_by",
+                "description": "sort the rows by one or more columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_report_appeal_order_by",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_report_appeal",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_appeal_aggregate",
+            "description": "fetch aggregated fields from the table: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "distinct_on",
+                "description": "distinct select on columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_report_appeal_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "limit",
+                "description": "limit the number of rows returned",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "offset",
+                "description": "skip the first n rows. Use only with order_by",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "order_by",
+                "description": "sort the rows by one or more columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_report_appeal_order_by",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "app_report_appeal_aggregate",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_appeal_by_pk",
+            "description": "fetch data from the table: \"app_report_appeal\" using primary key columns",
+            "args": [
+              {
+                "name": "id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "app_report_appeal",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "app_report_appeal_stream",
+            "description": "fetch data from the table in a streaming manner: \"app_report_appeal\"",
+            "args": [
+              {
+                "name": "batch_size",
+                "description": "maximum number of rows returned in a single batch",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "cursor",
+                "description": "cursor to stream the results returned by the query",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "LIST",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_report_appeal_stream_cursor_input",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_report_appeal_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_report_appeal",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "app_report_by_pk",
             "description": "fetch data from the table: \"app_report\" using primary key columns",
             "args": [
@@ -67183,6 +69089,151 @@
         ],
         "inputFields": null,
         "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "SCALAR",
+        "name": "timestamp",
+        "description": null,
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "timestamp_comparison_exp",
+        "description": "Boolean expression to compare columns of type \"timestamp\". All fields are combined with logical 'AND'.",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "_eq",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_gt",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_gte",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_in",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "timestamp",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_is_null",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_lt",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_lte",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_neq",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_nin",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "timestamp",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
         "enumValues": null,
         "possibleTypes": null
       },

@@ -74,7 +74,7 @@ ALTER TABLE app_report
 
 ALTER TABLE app_report RENAME COLUMN illegal_content_laws_broken TO illegal_content_legal_reason;
 ALTER TABLE app_report RENAME COLUMN user_id TO user_pkid;
-ALTER TABLE app_report ADD COLUMN illegal_content_country_code text NOT NULL DEFAULT 'DEFAULT';
+ALTER TABLE app_report ADD COLUMN illegal_content_country_code text;
 
 UPDATE app_report SET illegal_content_description = illegal_content_description || ' illegal_content_location: ' || illegal_content_location;
 ALTER TABLE app_report DROP COLUMN illegal_content_location;

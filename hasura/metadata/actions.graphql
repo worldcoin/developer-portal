@@ -108,9 +108,12 @@ type Mutation {
 }
 
 enum ReviewStatusEnum {
-  IRRELEVANT
-  CONFIRMED_VIOLATION
-  NO_VIOLATION
+  OPEN
+  NOT_ESCALATE
+  ESCALATE
+  APPEALED
+  REVIEW
+  ACTIONED
 }
 
 enum PurposeEnum {
@@ -141,6 +144,21 @@ enum AppFlowOnCompleteEnum {
   VERIFY
 }
 
+enum IllegalContentSubCategoryEnum {
+  DATA_PROTECTION_PRIVACY
+  DEFAMATION
+  ILLEGAL_OR_HARMFUL_SPEECH
+  NEGATIVE_EFFECTS_ON_CIVIC_DISCOURSE
+  NON_CONSENSUAL_BEHAVIOR
+  PORNOGRAPHY
+  PROTECTION_OF_MINORS
+  RISK_FOR_PUBLIC_SECURITY
+  SELF_HARM
+  UNSAFE_OR_ILLEGAL_PRODUCTS
+  VIOLENCE
+  OTHER
+}
+
 input UploadImageInput {
   app_id: String!
   team_id: String!
@@ -150,15 +168,15 @@ input UploadImageInput {
 
 input CreateAppReportInput {
   app_id: String!
-  user_id: String!
+  user_pkid: String!
   reporter_email: String!
   purpose: PurposeEnum!
   violation: ViolationEnum
   details: String
-  illegal_content_category: IllegalContentCategoryEnum
+  illegal_content_sub_category: IllegalContentSubCategoryEnum
   illegal_content_laws_broken: String
   illegal_content_description: String
-  illegal_content_location: String
+  illegal_content_country_code: String
 }
 
 input FinishAppReportInput {
