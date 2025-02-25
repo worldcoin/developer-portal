@@ -1,5 +1,6 @@
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
   IllegalContentSubCategoryEnum,
@@ -108,13 +109,13 @@ const transformAppReport = (values: CreateAppReport): CreateAppReport => {
 
 export const POST = async (req: NextRequest) => {
   try {
-    // if (!protectInternalEndpoint(req)) {
-    //   return errorHasuraQuery({
-    //     req,
-    //     detail: "Internal endpoint",
-    //     code: "internal_endpoint",
-    //   });
-    // }
+    if (!protectInternalEndpoint(req)) {
+      return errorHasuraQuery({
+        req,
+        detail: "Internal endpoint",
+        code: "internal_endpoint",
+      });
+    }
 
     const body = await req.json();
 
@@ -126,13 +127,13 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // if (
-    //   !["reviewer", "admin"].includes(body.session_variables["x-hasura-role"])
-    // ) {
-    //   logger.error("Unauthorized access."),
-    //     { role: body.session_variables["x-hasura-role"] };
-    //   return errorHasuraQuery({ req });
-    // }
+    if (
+      !["reviewer", "admin"].includes(body.session_variables["x-hasura-role"])
+    ) {
+      logger.error("Unauthorized access."),
+        { role: body.session_variables["x-hasura-role"] };
+      return errorHasuraQuery({ req });
+    }
 
     const { isValid, parsedParams } = await validateRequestSchema({
       value: body.input.input,
