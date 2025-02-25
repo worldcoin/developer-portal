@@ -1,6 +1,6 @@
 import { schema } from "@/api/hasura/create-app-report";
 import {
-  IllegalContentCategoryEnum,
+  IllegalContentSubCategoryEnum,
   PurposeEnum,
   ViolationEnum,
 } from "@/graphql/graphql";
@@ -11,7 +11,8 @@ describe("create-app-report schema validation [illegal-content]", () => {
     user_id: "usr_0f21d289d476394c693700d75cf9aa60",
     reporter_email: "reporter2@example.com",
     purpose: PurposeEnum.IllegalContent,
-    illegal_content_category: IllegalContentCategoryEnum.IllegalHateSpeech,
+    illegal_content_category:
+      IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
     illegal_content_description:
       "Contains hate speech against a specific group",
     illegal_content_location: "description explaining illegal-content-location",
@@ -97,7 +98,8 @@ describe("create-app-report schema validation [other/tos-violation]", () => {
     expect(
       schema.validate({
         ...validInput,
-        illegal_content_category: IllegalContentCategoryEnum.IllegalHateSpeech,
+        illegal_content_category:
+          IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
         illegal_content_description:
           "Contains hate speech against a specific group",
         illegal_content_location:
@@ -109,7 +111,8 @@ describe("create-app-report schema validation [other/tos-violation]", () => {
   it("should validate when illegal_content_category is defined for Other purpose", async () => {
     const invalidInput = {
       ...validInput,
-      illegal_content_category: IllegalContentCategoryEnum.IllegalHateSpeech,
+      illegal_content_category:
+        IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
     };
     await expect(schema.validate(invalidInput));
   });

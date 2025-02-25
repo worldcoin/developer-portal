@@ -1,9 +1,8 @@
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
-  IllegalContentCategoryEnum,
+  IllegalContentSubCategoryEnum,
   PurposeEnum,
   ViolationEnum,
 } from "@/graphql/graphql";
@@ -13,17 +12,16 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getCreateAppSdk } from "./graphql/create-app-report.generated";
 
-// const reviewStatusIterable = Object.values(ReviewStatusEnum);
 const purposeIterable = Object.values(PurposeEnum);
 const violationIterable = Object.values(ViolationEnum);
-const illegalContentCategoryIterable = Object.values(
-  IllegalContentCategoryEnum,
+const illegalContentSubCategoryIterable = Object.values(
+  IllegalContentSubCategoryEnum,
 );
 
 export const schema = yup
   .object({
     app_id: yup.string().required("App ID is required"),
-    user_id: yup.string().required("User ID is required"),
+    user_pkid: yup.string().required("User PKID is required"),
     reporter_email: yup.string().required("Reporter email is required"),
     purpose: yup
       .string()
@@ -35,11 +33,11 @@ export const schema = yup
       .nullable()
       .matches(allowedCommonCharactersRegex)
       .max(1500),
-    illegal_content_category: yup
+    illegal_content_sub_category: yup
       .string()
-      .oneOf(illegalContentCategoryIterable)
+      .oneOf(illegalContentSubCategoryIterable)
       .nullable(),
-    illegal_content_laws_broken: yup
+    illegal_content_legal_reason: yup
       .string()
       .nullable()
       .matches(allowedCommonCharactersRegex)
@@ -49,11 +47,7 @@ export const schema = yup
       .nullable()
       .matches(allowedCommonCharactersRegex)
       .max(1500),
-    illegal_content_location: yup
-      .string()
-      .nullable()
-      .matches(allowedCommonCharactersRegex)
-      .max(1500),
+    illegal_content_country_code: yup.string().nullable().max(2),
   })
   .test("final-validation", "Invalid input", (values) => {
     if (
@@ -69,9 +63,9 @@ export const schema = yup
     }
     if (
       values.purpose === PurposeEnum.IllegalContent &&
-      (!values.illegal_content_category ||
+      (!values.illegal_content_sub_category ||
         !values.illegal_content_description ||
-        !values.illegal_content_location)
+        !values.illegal_content_country_code)
     ) {
       throw new yup.ValidationError(
         "Illegal content category, description and location are required when purpose is ILLEGAL_CONTENT",
@@ -88,15 +82,15 @@ const transformAppReport = (values: CreateAppReport): CreateAppReport => {
   if (
     (values.purpose === PurposeEnum.TosViolation ||
       values.purpose === PurposeEnum.Other) &&
-    (values.illegal_content_category ||
+    (values.illegal_content_sub_category ||
       values.illegal_content_description ||
-      values.illegal_content_location)
+      values.illegal_content_country_code)
   ) {
     return {
       ...values,
-      illegal_content_category: null,
+      illegal_content_sub_category: null,
       illegal_content_description: null,
-      illegal_content_location: null,
+      illegal_content_country_code: null,
     };
   }
   if (
@@ -114,13 +108,13 @@ const transformAppReport = (values: CreateAppReport): CreateAppReport => {
 
 export const POST = async (req: NextRequest) => {
   try {
-    if (!protectInternalEndpoint(req)) {
-      return errorHasuraQuery({
-        req,
-        detail: "Internal endpoint",
-        code: "internal_endpoint",
-      });
-    }
+    // if (!protectInternalEndpoint(req)) {
+    //   return errorHasuraQuery({
+    //     req,
+    //     detail: "Internal endpoint",
+    //     code: "internal_endpoint",
+    //   });
+    // }
 
     const body = await req.json();
 
@@ -132,13 +126,13 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    if (
-      !["reviewer", "admin"].includes(body.session_variables["x-hasura-role"])
-    ) {
-      logger.error("Unauthorized access."),
-        { role: body.session_variables["x-hasura-role"] };
-      return errorHasuraQuery({ req });
-    }
+    // if (
+    //   !["reviewer", "admin"].includes(body.session_variables["x-hasura-role"])
+    // ) {
+    //   logger.error("Unauthorized access."),
+    //     { role: body.session_variables["x-hasura-role"] };
+    //   return errorHasuraQuery({ req });
+    // }
 
     const { isValid, parsedParams } = await validateRequestSchema({
       value: body.input.input,
@@ -159,15 +153,15 @@ export const POST = async (req: NextRequest) => {
     const { insert_app_report } = await getCreateAppSdk(client).CreateAppReport(
       {
         app_id: transformed.app_id,
-        user_id: transformed.user_id,
+        user_pkid: transformed.user_pkid,
         reporter_email: transformed.reporter_email,
         purpose: transformed.purpose,
         violation: transformed.violation,
         details: transformed.details,
-        illegal_content_category: transformed.illegal_content_category,
-        illegal_content_laws_broken: transformed.illegal_content_laws_broken,
+        illegal_content_sub_category: transformed.illegal_content_sub_category,
+        illegal_content_legal_reason: transformed.illegal_content_legal_reason,
         illegal_content_description: transformed.illegal_content_description,
-        illegal_content_location: transformed.illegal_content_location,
+        illegal_content_country_code: transformed.illegal_content_country_code,
       },
     );
 

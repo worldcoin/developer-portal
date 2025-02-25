@@ -216,13 +216,22 @@ custom_types:
       values:
         - description: null
           is_deprecated: null
-          value: IRRELEVANT
+          value: OPEN
         - description: null
           is_deprecated: null
-          value: CONFIRMED_VIOLATION
+          value: NOT_ESCALATE
         - description: null
           is_deprecated: null
-          value: NO_VIOLATION
+          value: ESCALATE
+        - description: null
+          is_deprecated: null
+          value: APPEALED
+        - description: null
+          is_deprecated: null
+          value: REVIEW
+        - description: null
+          is_deprecated: null
+          value: ACTIONED
     - name: PurposeEnum
       values:
         - description: null
@@ -279,6 +288,44 @@ custom_types:
         - description: null
           is_deprecated: null
           value: VERIFY
+    - name: IllegalContentSubCategoryEnum
+      values:
+        - description: null
+          is_deprecated: null
+          value: DATA_PROTECTION_PRIVACY
+        - description: null
+          is_deprecated: null
+          value: DEFAMATION
+        - description: null
+          is_deprecated: null
+          value: ILLEGAL_OR_HARMFUL_SPEECH
+        - description: null
+          is_deprecated: null
+          value: NEGATIVE_EFFECTS_ON_CIVIC_DISCOURSE
+        - description: null
+          is_deprecated: null
+          value: NON_CONSENSUAL_BEHAVIOR
+        - description: null
+          is_deprecated: null
+          value: PORNOGRAPHY
+        - description: null
+          is_deprecated: null
+          value: PROTECTION_OF_MINORS
+        - description: null
+          is_deprecated: null
+          value: RISK_FOR_PUBLIC_SECURITY
+        - description: null
+          is_deprecated: null
+          value: SELF_HARM
+        - description: null
+          is_deprecated: null
+          value: UNSAFE_OR_ILLEGAL_PRODUCTS
+        - description: null
+          is_deprecated: null
+          value: VIOLENCE
+        - description: null
+          is_deprecated: null
+          value: OTHER
   input_objects:
     - name: UploadImageInput
     - name: CreateAppReportInput

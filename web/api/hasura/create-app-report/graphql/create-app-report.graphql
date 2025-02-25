@@ -1,28 +1,29 @@
 mutation CreateAppReport(
   $app_id: String!
-  $user_id: String!
+  $user_pkid: String!
   $reporter_email: String!
   $purpose: purpose_enum!
   $violation: violation_enum
   $details: String
-  $illegal_content_category: illegal_content_category_enum
-  $illegal_content_laws_broken: String
+  $illegal_content_sub_category: illegal_content_sub_category_enum
+  $illegal_content_legal_reason: String
   $illegal_content_description: String
-  $illegal_content_location: String
+  $illegal_content_country_code: String
 ) {
   insert_app_report(
     objects: [
       {
         app_id: $app_id
-        user_id: $user_id
+        user_pkid: $user_pkid
+        review_status: OPEN
         reporter_email: $reporter_email
         purpose: $purpose
         violation: $violation
         details: $details
-        illegal_content_category: $illegal_content_category
-        illegal_content_laws_broken: $illegal_content_laws_broken
+        illegal_content_sub_category: $illegal_content_sub_category
+        illegal_content_legal_reason: $illegal_content_legal_reason
         illegal_content_description: $illegal_content_description
-        illegal_content_location: $illegal_content_location
+        illegal_content_country_code: $illegal_content_country_code
       }
     ]
   ) {

@@ -13,13 +13,14 @@ insert_permissions:
         - app_id
         - details
         - id
-        - illegal_content_category
+        - illegal_content_country_code
         - illegal_content_description
-        - illegal_content_laws_broken
-        - illegal_content_location
+        - illegal_content_legal_reason
+        - illegal_content_sub_category
         - purpose
         - reporter_email
-        - user_id
+        - review_status
+        - user_pkid
         - violation
     comment: ""
   - role: service
@@ -28,16 +29,16 @@ insert_permissions:
       columns:
         - app_id
         - details
-        - illegal_content_category
+        - illegal_content_country_code
         - illegal_content_description
-        - illegal_content_laws_broken
-        - illegal_content_location
+        - illegal_content_legal_reason
+        - illegal_content_sub_category
         - purpose
         - reporter_email
         - review_conclusion_reason
         - review_status
         - reviewed_by
-        - user_id
+        - user_pkid
         - violation
     comment: ""
 select_permissions:
@@ -48,17 +49,17 @@ select_permissions:
         - created_at
         - details
         - id
-        - illegal_content_category
+        - illegal_content_country_code
         - illegal_content_description
-        - illegal_content_laws_broken
-        - illegal_content_location
+        - illegal_content_legal_reason
+        - illegal_content_sub_category
         - purpose
         - reporter_email
         - review_conclusion_reason
         - review_status
         - reviewed_at
         - reviewed_by
-        - user_id
+        - user_pkid
         - violation
       filter: {}
     comment: ""
