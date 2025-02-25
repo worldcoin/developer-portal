@@ -174,7 +174,7 @@ input CreateAppReportInput {
   violation: ViolationEnum
   details: String
   illegal_content_sub_category: IllegalContentSubCategoryEnum
-  illegal_content_laws_broken: String
+  illegal_content_legal_reason: String
   illegal_content_description: String
   illegal_content_country_code: String
 }

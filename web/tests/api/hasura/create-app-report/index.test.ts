@@ -8,14 +8,15 @@ import {
 describe("create-app-report schema validation [illegal-content]", () => {
   const validInput = {
     app_id: "app_a8fb422028b239a336fd065511294c47",
-    user_id: "usr_0f21d289d476394c693700d75cf9aa60",
+    user_pkid: "usr_0f21d289d476394c693700d75cf9aa60",
     reporter_email: "reporter2@example.com",
     purpose: PurposeEnum.IllegalContent,
-    illegal_content_category:
+    illegal_content_sub_category:
       IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
+    illegal_content_legal_reason: "legal reason",
     illegal_content_description:
       "Contains hate speech against a specific group",
-    illegal_content_location: "description explaining illegal-content-location",
+    illegal_content_country_code: "US",
   };
 
   it("should validate a valid input", async () => {
@@ -61,8 +62,11 @@ describe("create-app-report schema validation [illegal-content]", () => {
     await expect(schema.validate(invalidInput)).rejects.toThrow();
   });
 
-  it("should fail when illegal_content_category is missing for ILLEGAL_CONTENT purpose", async () => {
-    const invalidInput = { ...validInput, illegal_content_category: undefined };
+  it("should fail when illegal_content_sub_category is missing for ILLEGAL_CONTENT purpose", async () => {
+    const invalidInput = {
+      ...validInput,
+      illegal_content_sub_category: undefined,
+    };
     await expect(schema.validate(invalidInput)).rejects.toThrow();
   });
 
@@ -74,8 +78,11 @@ describe("create-app-report schema validation [illegal-content]", () => {
     await expect(schema.validate(invalidInput)).rejects.toThrow();
   });
 
-  it("should fail when illegal_content_location is missing for ILLEGAL_CONTENT purpose", async () => {
-    const invalidInput = { ...validInput, illegal_content_location: undefined };
+  it("should fail when illegal_content_country_code is missing for ILLEGAL_CONTENT purpose", async () => {
+    const invalidInput = {
+      ...validInput,
+      illegal_content_country_code: undefined,
+    };
     await expect(schema.validate(invalidInput)).rejects.toThrow();
   });
 });
@@ -83,7 +90,7 @@ describe("create-app-report schema validation [illegal-content]", () => {
 describe("create-app-report schema validation [other/tos-violation]", () => {
   const validInput = {
     app_id: "app_a8fb422028b239a336fd065511294c47",
-    user_id: "usr_0f21d289d476394c693700d75cf9aa60",
+    user_pkid: "usr_0f21d289d476394c693700d75cf9aa60",
     reporter_email: "reporter2@example.com",
     purpose: PurposeEnum.Other,
     violation: ViolationEnum.MaliciousApp,
@@ -98,21 +105,19 @@ describe("create-app-report schema validation [other/tos-violation]", () => {
     expect(
       schema.validate({
         ...validInput,
-        illegal_content_category:
+        illegal_content_sub_category:
           IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
         illegal_content_description:
           "Contains hate speech against a specific group",
-        illegal_content_location:
-          "description explaining illegal-content-location",
+        illegal_content_country_code: "US",
       }),
     );
   });
 
-  it("should validate when illegal_content_category is defined for Other purpose", async () => {
+  it("should validate when illegal_content_sub_category is defined for Other purpose", async () => {
     const invalidInput = {
       ...validInput,
-      illegal_content_category:
-        IllegalContentSubCategoryEnum.IllegalOrHarmfulSpeech,
+      illegal_content_sub_category: IllegalContentSubCategoryEnum.Other,
     };
     await expect(schema.validate(invalidInput));
   });
