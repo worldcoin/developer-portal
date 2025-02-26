@@ -5,7 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
   allowTitleAndEmojisRegex,
-  allowCommonCharactersAndEmojisRegex
+  allowCommonCharactersAndEmojisRegex,
 } from "@/lib/schema";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
