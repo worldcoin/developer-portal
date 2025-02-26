@@ -268,13 +268,10 @@ export const getLocalisedCategory = (
   };
 };
 
-export const getAppStoreLocalisedCategoriesWithUrls = (locale: string) => {
+export const getAllLocalisedCategoriesWithUrls = (locale: string) => {
   const defaultLocale = locale || "en";
   return Categories.map((category) => {
-    if (category.id === "external") {
-      return null;
-    }
     const { id, name } = getLocalisedCategory(category.name, defaultLocale);
     return { id, name, icon_url: category.icon_url };
-  }).filter((category) => category !== null);
+  });
 };
