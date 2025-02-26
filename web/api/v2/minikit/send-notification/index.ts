@@ -4,8 +4,8 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
-  allowedCommonCharactersRegex,
-  allowedTitleCharactersRegex,
+  allowTitleAndEmojisRegex,
+  allowCommonCharactersAndEmojisRegex,
 } from "@/lib/schema";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -32,7 +32,7 @@ const sendNotificationBodySchema = yup.object({
     .required()
     .max(200)
     .matches(
-      allowedCommonCharactersRegex,
+      allowCommonCharactersAndEmojisRegex,
       "Message can only contain letters, numbers, punctuation, and spaces",
     ),
   title: yup
@@ -41,7 +41,7 @@ const sendNotificationBodySchema = yup.object({
     .optional()
     .max(30)
     .matches(
-      allowedTitleCharactersRegex,
+      allowTitleAndEmojisRegex,
       "Title can only contain letters, numbers, punctuation, and spaces",
     ),
   mini_app_path: yup.string().strict().required(),
