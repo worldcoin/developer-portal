@@ -1,7 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { getAllLocalisedCategoriesWithUrls } from "@/lib/categories";
+import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
@@ -28,6 +28,7 @@ const queryParamsSchema = yup.object({
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
   override_country: yup.string().notRequired(),
+  show_external: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -128,6 +129,15 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
+  if (!parsedParams.show_external) {
+    topApps = topApps.filter(
+      (app) => app.category.toLowerCase() !== "external",
+    );
+    highlightsApps = highlightsApps.filter(
+      (app) => app.category.toLowerCase() !== "external",
+    );
+  }
+
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) =>
@@ -214,13 +224,13 @@ export const GET = async (request: NextRequest) => {
         top_apps: rankApps(formattedTopApps, metricsData),
         highlights: highlightedApps,
       },
-      categories: getAllLocalisedCategoriesWithUrls(locale), // TODO: Localise
+      categories: getAppStoreLocalisedCategoriesWithUrls(locale), // TODO: Localise
     },
     {
       headers: {
         // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
         // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+        "Cache-Control": "public, max-age=5, stale-if-error=86400",
       },
     },
   );
