@@ -237,6 +237,12 @@ export const Categories = [
   },
 ] as const;
 
+export const AllCategory = {
+  name: "All",
+  id: "all",
+  icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/all.png`,
+} as const;
+
 export type Category = (typeof Categories)[number];
 
 export const CategoryNameIterable: Category["name"][] = Categories.map(

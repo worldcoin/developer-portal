@@ -1,7 +1,10 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { getAllLocalisedCategoriesWithUrls } from "@/lib/categories";
+import {
+  AllCategory,
+  getAllLocalisedCategoriesWithUrls,
+} from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
@@ -214,6 +217,7 @@ export const GET = async (request: NextRequest) => {
         top_apps: rankApps(formattedTopApps, metricsData),
         highlights: highlightedApps,
       },
+      all_category: AllCategory,
       categories: getAllLocalisedCategoriesWithUrls(locale), // TODO: Localise
     },
     {
