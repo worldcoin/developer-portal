@@ -139,7 +139,7 @@ export async function GET(
   }
   const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
   const isCategoryValid = categories.some(
-    (category) => category.id === formattedMetadata.category.id,
+    (category) => category?.id === formattedMetadata.category.id,
   );
 
   if (!isCategoryValid) {

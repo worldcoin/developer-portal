@@ -226,10 +226,10 @@ export const GET = async (request: NextRequest) => {
   const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
   const areAppCategoriesValid =
     formattedTopApps.every((app) =>
-      categories.some((category) => category.id === app.category.id),
+      categories.some((category) => category?.id === app.category.id),
     ) &&
     highlightedApps.every((app) =>
-      categories.some((category) => category.id === app.category.id),
+      categories.some((category) => category?.id === app.category.id),
     );
 
   if (!areAppCategoriesValid) {
