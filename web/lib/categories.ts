@@ -258,7 +258,7 @@ export const AllCategory = {
   icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/all.png`,
 } as const;
 
-export type Category = (typeof Categories)[number] | typeof AllCategory;
+export type Category = (typeof Categories)[number];
 
 export const CategoryNameIterable: Category["name"][] = Categories.map(
   (category) => category.name,
@@ -273,7 +273,7 @@ export const CategoryNameToId = Categories.reduce(
 );
 
 export const getLocalisedCategory = (
-  name: Category["name"],
+  name: Category["name"] | "All",
   locale: string,
 ) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
@@ -282,6 +282,14 @@ export const getLocalisedCategory = (
   }
   const defaultLocale = locale || "en";
   const translation = CategoryTranslations[defaultLocale];
+
+  if (name === "All") {
+    return {
+      id: "all",
+      name: translation?.all ?? CategoryTranslations["en"].all,
+    };
+  }
+
   const id = CategoryNameToId[name];
   return {
     id: id,
