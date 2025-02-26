@@ -218,13 +218,33 @@ export const GET = async (request: NextRequest) => {
     return aIndex - bIndex;
   });
 
+  // validate all apps have valid categories
+  const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
+  const areAppCategoriesValid =
+    formattedTopApps.every((app) =>
+      categories.some((category) => category.id === app.category.id),
+    ) &&
+    highlightedApps.every((app) =>
+      categories.some((category) => category.id === app.category.id),
+    );
+
+  if (!areAppCategoriesValid) {
+    return errorResponse({
+      statusCode: 500,
+      code: "invalid_categories",
+      detail: "Some apps have invalid categories",
+      attribute: null,
+      req: request,
+    });
+  }
+
   return NextResponse.json(
     {
       app_rankings: {
         top_apps: rankApps(formattedTopApps, metricsData),
         highlights: highlightedApps,
       },
-      categories: getAppStoreLocalisedCategoriesWithUrls(locale), // TODO: Localise
+      categories,
     },
     {
       headers: {

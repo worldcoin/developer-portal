@@ -1,5 +1,6 @@
 import { formatAppMetadata } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
@@ -135,6 +136,14 @@ export async function GET(
           : formattedMetadata.integration_url,
       app_id: nativeAppItem.app_id,
     };
+  }
+  const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
+  const isCategoryValid = categories.some(
+    (category) => category.id === formattedMetadata.category.id,
+  );
+
+  if (!isCategoryValid) {
+    return NextResponse.json({ error: "Invalid category" }, { status: 500 });
   }
 
   return NextResponse.json(
