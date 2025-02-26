@@ -38,6 +38,9 @@ export const allowedTitleCharactersRegex =
 export const allowCommonCharactersAndEmojisRegex =
   /^[\u{1F000}-\u{1F9FF}\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\p{Punctuation}\s0-9+$]*[^{\\}]$/u;
 
+export const allowTitleAndEmojisRegex =
+  /^[\u{1F000}-\u{1F9FF}/^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
+
 export const httpsLinkSchema = ({
   excludeEmptyString = false,
 }: {
