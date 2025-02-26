@@ -1,4 +1,5 @@
 import { GET } from "@/api/v2/public/apps";
+import { AllCategory } from "@/lib/categories";
 import { Categories } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
@@ -340,6 +341,7 @@ describe("/api/v2/public/apps", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
+      all_category: AllCategory,
       categories: Categories,
     });
   });
@@ -571,6 +573,7 @@ describe("/api/v2/public/apps", () => {
           },
         ],
       },
+      all_category: AllCategory,
       categories: Categories,
     });
   });
@@ -682,6 +685,7 @@ describe("/api/v2/public/apps", () => {
         ],
         highlights: [],
       },
+      all_category: AllCategory,
       categories: Categories,
     });
   });
