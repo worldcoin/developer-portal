@@ -298,6 +298,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
       jti: expect.any(String),
       iat: expect.any(Number),
       exp: expect.any(Number),
+      sid: expect.any(String),
       aud: "app_112233445566778",
       scope: "openid",
       "https://id.worldcoin.org/beta": {
@@ -359,6 +360,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       jti: expect.any(String),
       iat: expect.any(Number),
       exp: expect.any(Number),
+      sid: expect.any(String),
       aud: "app_112233445566778",
       scope: "openid",
       "https://id.worldcoin.org/beta": {

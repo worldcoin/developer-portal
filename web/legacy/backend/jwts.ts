@@ -230,6 +230,7 @@ export const generateOIDCJWT = async ({
     iss: JWT_ISSUER,
     sub: nullifier_hash,
     jti: randomUUID(),
+    sid: randomUUID(),
     iat: formatOIDCDateTime(new Date()),
     exp: formatOIDCDateTime(dayjs().add(1, "hour")),
     aud: app_id,
