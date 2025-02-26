@@ -1,8 +1,9 @@
 export const CategoryTranslations: Record<
   string,
-  Record<Category["id"], string>
+  Record<Category["id"] | "all", string>
 > = {
   en: {
+    all: "All",
     social: "Social",
     gaming: "Gaming",
     business: "Business",
@@ -15,6 +16,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   ca: {
+    all: "Tots",
     social: "Social",
     gaming: "Jocs",
     business: "Negocis",
@@ -27,6 +29,7 @@ export const CategoryTranslations: Record<
     ai: "Intel·ligència Artificial",
   },
   zh_CN: {
+    all: "All",
     social: "社交",
     gaming: "游戏",
     business: "商业",
@@ -39,6 +42,7 @@ export const CategoryTranslations: Record<
     ai: "人工智能",
   },
   fr: {
+    all: "Toutes",
     social: "Social",
     gaming: "Jeux",
     business: "Business",
@@ -51,6 +55,7 @@ export const CategoryTranslations: Record<
     ai: "IA",
   },
   de: {
+    all: "Alle",
     social: "Soziales",
     gaming: "Gaming",
     business: "Business",
@@ -63,6 +68,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   hi: {
+    all: "सभी",
     social: "सामाजिक",
     gaming: "गेमिंग",
     business: "व्यापार",
@@ -75,6 +81,7 @@ export const CategoryTranslations: Record<
     ai: "कृत्रिम बुद्धिमत्ता",
   },
   ja: {
+    all: "総て",
     social: "ソーシャル",
     gaming: "ゲーミング",
     business: "ビジネス",
@@ -87,6 +94,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   ko: {
+    all: "모든",
     social: "소셜",
     gaming: "게이밍",
     business: "비즈니스",
@@ -99,6 +107,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   pl: {
+    all: "Wszystkie",
     social: "Społeczność",
     gaming: "Gry",
     business: "Biznes",
@@ -111,6 +120,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   pt: {
+    all: "Todos",
     social: "Social",
     gaming: "Jogos",
     business: "Negócios",
@@ -123,6 +133,7 @@ export const CategoryTranslations: Record<
     ai: "IA",
   },
   es: {
+    all: "Todo",
     social: "Social",
     gaming: "Juegos",
     business: "Negocios",
@@ -135,6 +146,7 @@ export const CategoryTranslations: Record<
     ai: "IA",
   },
   es_419: {
+    all: "Todo",
     social: "Social",
     gaming: "Juegos",
     business: "Negocio",
@@ -147,6 +159,7 @@ export const CategoryTranslations: Record<
     ai: "IA",
   },
   ms: {
+    all: "Semua",
     social: "Sosial",
     gaming: "Permainan",
     business: "Perniagaan",
@@ -159,6 +172,7 @@ export const CategoryTranslations: Record<
     ai: "Kecerdasan AI",
   },
   th: {
+    all: "ทั้งหมด",
     social: "โซเชียล",
     gaming: "การเล่นเกม",
     business: "ธุรกิจ",
@@ -171,6 +185,7 @@ export const CategoryTranslations: Record<
     ai: "AI",
   },
   id: {
+    all: "Semua",
     social: "Sosial",
     gaming: "Gaming",
     business: "Bisnis",
@@ -243,7 +258,7 @@ export const AllCategory = {
   icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/all.png`,
 } as const;
 
-export type Category = (typeof Categories)[number];
+export type Category = (typeof Categories)[number] | typeof AllCategory;
 
 export const CategoryNameIterable: Category["name"][] = Categories.map(
   (category) => category.name,
