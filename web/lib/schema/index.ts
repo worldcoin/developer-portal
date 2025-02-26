@@ -35,9 +35,11 @@ export const allowedCommonCharactersRegex =
 export const allowedTitleCharactersRegex =
   /^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
 
+/** use for common characters and emojis */
 export const allowCommonCharactersAndEmojisRegex =
   /^[\u{1F000}-\u{1F9FF}\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\p{Punctuation}\s0-9+$]*[^{\\}]$/u;
 
+/** use for titles with emojis */
 export const allowTitleAndEmojisRegex =
   /^[\u{1F000}-\u{1F9FF}/^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
 
