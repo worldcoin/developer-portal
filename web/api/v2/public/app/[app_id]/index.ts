@@ -137,7 +137,7 @@ export async function GET(
       app_id: nativeAppItem.app_id,
     };
   }
-  const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
+  const categories = getAppStoreLocalisedCategoriesWithUrls(locale, false);
   const isCategoryValid = categories.some(
     (category) => category?.id === formattedMetadata.category.id,
   );

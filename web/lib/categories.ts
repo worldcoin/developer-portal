@@ -297,10 +297,13 @@ export const getLocalisedCategory = (
   };
 };
 
-export const getAppStoreLocalisedCategoriesWithUrls = (locale: string) => {
+export const getAppStoreLocalisedCategoriesWithUrls = (
+  locale: string,
+  shouldShowExternal: boolean,
+) => {
   const defaultLocale = locale || "en";
   return Categories.map((category) => {
-    if (category.id === "external") {
+    if (category.id === "external" && !shouldShowExternal) {
       return null;
     }
     const { id, name } = getLocalisedCategory(category.name, defaultLocale);

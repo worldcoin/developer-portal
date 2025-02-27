@@ -223,7 +223,10 @@ export const GET = async (request: NextRequest) => {
   });
 
   // validate all apps have valid categories
-  const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
+  const categories = getAppStoreLocalisedCategoriesWithUrls(
+    locale,
+    parsedParams.show_external ?? false,
+  );
   const areAppCategoriesValid =
     formattedTopApps.every((app) =>
       categories.some((category) => category?.id === app.category.id),
