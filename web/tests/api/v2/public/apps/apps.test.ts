@@ -342,7 +342,7 @@ describe("/api/v2/public/apps", () => {
     expect(await response.json()).toEqual({
       app_rankings: { top_apps: [], highlights: [] },
       all_category: AllCategory,
-      categories: Categories,
+      categories: Categories.filter((category) => category.id !== "external"),
     });
   });
 
@@ -573,8 +573,8 @@ describe("/api/v2/public/apps", () => {
           },
         ],
       },
+      categories: Categories.filter((category) => category.id !== "external"),
       all_category: AllCategory,
-      categories: Categories,
     });
   });
 
@@ -685,8 +685,73 @@ describe("/api/v2/public/apps", () => {
         ],
         highlights: [],
       },
+      categories: Categories.filter((category) => category.id !== "external"),
       all_category: AllCategory,
-      categories: Categories,
     });
+  });
+
+  test("Error on invalid category", async () => {
+    jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        app_rankings: [{ rankings: [] }],
+      }),
+    }));
+    jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+      GetHighlights: jest.fn().mockResolvedValue({
+        highlights: [],
+      }),
+    }));
+
+    jest.mocked(getAppsSdk).mockImplementation(() => ({
+      GetApps: jest.fn().mockResolvedValue({
+        top_apps: [
+          {
+            name: "Example App",
+            app_id: "app_test_123",
+            short_name: "test",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            world_app_description:
+              "This is an example app designed to showcase the capabilities of our platform.",
+            world_app_button_text: "Use Integration",
+            category: "INVALID!!",
+            description:
+              '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+            integration_url: "https://example.com/integration",
+            app_website_url: "https://example.com",
+            source_code_url: "https://github.com/example/app",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
+            support_link: "andy@gmail.com",
+            associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            supported_countries: ["us"],
+            supported_languages: ["en", "es"],
+            verification_status: "verified",
+            is_allowed_unlimited_notifications: false,
+            max_notifications_per_day: 10,
+            app: {
+              team: {
+                name: "Example Team",
+              },
+              rating_sum: 10,
+              rating_count: 3,
+            },
+          },
+        ],
+      }),
+    }));
+
+    const request = new NextRequest("https://cdn.test.com/api/v2/public/apps", {
+      headers: {
+        host: "cdn.test.com",
+      },
+    });
+
+    const response = await GET(request);
+
+    expect(response.status).toEqual(500);
   });
 });

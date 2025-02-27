@@ -3,7 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
   AllCategory,
-  getAllLocalisedCategoriesWithUrls,
+  getAppStoreLocalisedCategoriesWithUrls,
   getLocalisedCategory,
 } from "@/lib/categories";
 import { NativeApps } from "@/lib/constants";
@@ -32,6 +32,7 @@ const queryParamsSchema = yup.object({
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
   override_country: yup.string().notRequired(),
+  show_external: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -132,6 +133,15 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
+  if (!parsedParams.show_external) {
+    topApps = topApps.filter(
+      (app) => app.category.toLowerCase() !== "external",
+    );
+    highlightsApps = highlightsApps.filter(
+      (app) => app.category.toLowerCase() !== "external",
+    );
+  }
+
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) =>
@@ -212,6 +222,26 @@ export const GET = async (request: NextRequest) => {
     return aIndex - bIndex;
   });
 
+  // validate all apps have valid categories
+  const categories = getAppStoreLocalisedCategoriesWithUrls(locale);
+  const areAppCategoriesValid =
+    formattedTopApps.every((app) =>
+      categories.some((category) => category?.id === app.category.id),
+    ) &&
+    highlightedApps.every((app) =>
+      categories.some((category) => category?.id === app.category.id),
+    );
+
+  if (!areAppCategoriesValid) {
+    return errorResponse({
+      statusCode: 500,
+      code: "invalid_categories",
+      detail: "Some apps have invalid categories",
+      attribute: null,
+      req: request,
+    });
+  }
+
   return NextResponse.json(
     {
       app_rankings: {
@@ -222,13 +252,13 @@ export const GET = async (request: NextRequest) => {
         ...AllCategory,
         name: getLocalisedCategory(AllCategory.name, locale).name,
       },
-      categories: getAllLocalisedCategoriesWithUrls(locale), // TODO: Localise
+      categories,
     },
     {
       headers: {
         // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
         // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=86400, stale-if-error=86400",
+        "Cache-Control": "public, max-age=5, stale-if-error=86400",
       },
     },
   );
