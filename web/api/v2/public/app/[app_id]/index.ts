@@ -137,7 +137,12 @@ export async function GET(
       app_id: nativeAppItem.app_id,
     };
   }
-  const categories = getAppStoreLocalisedCategoriesWithUrls(locale, false);
+
+  const show_external = searchParams.get("show_external");
+  const categories = getAppStoreLocalisedCategoriesWithUrls(
+    locale,
+    Boolean(show_external) ?? false,
+  );
   const isCategoryValid = categories.some(
     (category) => category?.id === formattedMetadata.category.id,
   );
