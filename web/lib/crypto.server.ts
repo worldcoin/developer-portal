@@ -10,7 +10,9 @@ export const normalizePublicKey = async (pem: string): Promise<string> => {
   const formattedPem = await reformatPem(pem);
 
   let key;
-  if (formattedPem.includes("BEGIN RSA PUBLIC KEY")) {
+  const isPkcs1Format = formattedPem.includes("BEGIN RSA PUBLIC KEY");
+
+  if (isPkcs1Format) {
     key = createPublicKey({
       key: formattedPem,
       format: "pem",
@@ -24,9 +26,10 @@ export const normalizePublicKey = async (pem: string): Promise<string> => {
     });
   }
 
+  // Export the key in the same format it was provided
   return key
     .export({
-      type: "spki",
+      type: isPkcs1Format ? "pkcs1" : "spki",
       format: "pem",
     })
     .toString();

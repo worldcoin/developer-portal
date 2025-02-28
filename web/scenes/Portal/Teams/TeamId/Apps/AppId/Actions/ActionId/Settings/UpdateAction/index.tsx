@@ -4,10 +4,10 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
-import { reformatPem } from "@/lib/crypto.client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
@@ -17,7 +17,7 @@ import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/A
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { updateActionServerSide } from "./server";
+import { testWebhookServerSide, updateActionServerSide } from "./server";
 import { updateActionSchema, UpdateActionSchema } from "./server/form-schema";
 
 type UpdateActionProps = {
@@ -29,6 +29,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
 
   const {
     control,
@@ -219,9 +220,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                   <Input
                     register={register("webhook_pem")}
                     errors={errors.webhook_pem}
-                    label="Webhook PEM"
-                    placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-                    helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+                    label="Webhook RSA PEM"
+                    placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----\n\nor\n\n-----BEGIN PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END PUBLIC KEY-----`}
+                    helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines. Both PKCS#1 (RSA PUBLIC KEY) and SPKI (PUBLIC KEY) formats are supported."
                     className="h-16"
                   />
                 </div>
