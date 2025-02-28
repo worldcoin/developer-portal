@@ -9,9 +9,11 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam } from "@/lib/utils";
+import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -25,8 +27,6 @@ import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";
 import { createActionSchema, CreateActionSchema } from "./server/form-schema";
-import { reformatPem } from "@/lib/crypto.client";
-import { ApolloError } from "@apollo/client";
 
 type CreateActionModalProps = {
   className?: string;
@@ -291,9 +291,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                       <Input
                         register={register("webhook_pem")}
                         errors={errors.webhook_pem}
-                        label="Webhook PEM"
-                        placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----`}
-                        helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines."
+                        label="Webhook RSA PEM"
+                        placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----\n\nor\n\n-----BEGIN PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END PUBLIC KEY-----`}
+                        helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines. Both PKCS#1 (RSA PUBLIC KEY) and SPKI (PUBLIC KEY) formats are supported."
                       />
                     </div>
                   )}
