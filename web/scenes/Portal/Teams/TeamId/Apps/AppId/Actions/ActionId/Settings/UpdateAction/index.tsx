@@ -17,7 +17,7 @@ import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/A
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { testWebhookServerSide, updateActionServerSide } from "./server";
+import { updateActionServerSide } from "./server";
 import { updateActionSchema, UpdateActionSchema } from "./server/form-schema";
 
 type UpdateActionProps = {
