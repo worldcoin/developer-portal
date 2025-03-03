@@ -209,7 +209,10 @@ export default async function handlePrecheck(
     is_verified: verified_app_metadata ? true : false,
     name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
     verified_app_logo: logo_img_url,
-    integration_url: verified_app_metadata?.integration_url ?? app_metadata?.integration_url ?? "",
+    integration_url:
+      verified_app_metadata?.integration_url ??
+      app_metadata?.integration_url ??
+      "",
     actions: rawAppValues.actions,
   };
 
