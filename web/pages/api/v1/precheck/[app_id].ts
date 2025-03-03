@@ -196,9 +196,7 @@ export default async function handlePrecheck(
   }
   const app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
-  console.log("Verified App Metadata:", verified_app_metadata);
-  console.log("Unverified App Metadata:", app_metadata);
-  // If a image is present it should store it's relative path and extension ie logo.png
+  // If an image is present it should store it's relative path and extension ie logo.png
   const logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
     : "";
