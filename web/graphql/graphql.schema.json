@@ -339,7 +339,7 @@
             "deprecationReason": null
           },
           {
-            "name": "illegal_content_laws_broken",
+            "name": "illegal_content_legal_reason",
             "description": null,
             "type": {
               "kind": "SCALAR",

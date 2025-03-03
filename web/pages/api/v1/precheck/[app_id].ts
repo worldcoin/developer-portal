@@ -23,7 +23,10 @@ type _Nullifier = Pick<
   "nullifier_hash" | "uses" | "__typename"
 >;
 
-type AppMetadataPayload = Pick<AppMetadataModel, "name" | "logo_img_url">;
+type AppMetadataPayload = Pick<
+  AppMetadataModel,
+  "name" | "logo_img_url" | "app_website_url"
+>;
 
 interface _Action
   extends Pick<
@@ -79,12 +82,14 @@ const appPrecheckQuery = gql`
       engine
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
+        app_website_url
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
       ) {
         name
         logo_img_url
+        app_website_url
       }
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
