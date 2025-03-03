@@ -25,7 +25,7 @@ type _Nullifier = Pick<
 
 type AppMetadataPayload = Pick<
   AppMetadataModel,
-  "name" | "logo_img_url" | "app_website_url"
+  "name" | "logo_img_url" | "integration_url"
 >;
 
 interface _Action
@@ -51,6 +51,7 @@ interface _App
   actions: _Action[];
   name: string;
   verified_app_logo: string;
+  integration_url: string;
 }
 
 interface _AppQueryReturnInterface
@@ -82,14 +83,14 @@ const appPrecheckQuery = gql`
       engine
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
-        app_website_url
+        integration_url
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
       ) {
         name
         logo_img_url
-        app_website_url
+        integration_url
       }
       actions(where: { external_nullifier: { _eq: $external_nullifier } }) {
         external_nullifier
@@ -195,6 +196,8 @@ export default async function handlePrecheck(
   }
   const app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
+  console.log("Verified App Metadata:", verified_app_metadata);
+  console.log("Unverified App Metadata:", app_metadata);
   // If a image is present it should store it's relative path and extension ie logo.png
   const logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
@@ -208,6 +211,7 @@ export default async function handlePrecheck(
     is_verified: verified_app_metadata ? true : false,
     name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
     verified_app_logo: logo_img_url,
+    integration_url: verified_app_metadata?.integration_url ?? app_metadata?.integration_url ?? "",
     actions: rawAppValues.actions,
   };
 
