@@ -75,6 +75,10 @@ export const POST = async (req: NextRequest) => {
     }
 
     const client = await getAPIServiceGraphqlClient();
+    const reviewed_at =
+      parsedParams.review_status === ReviewStatusEnum.Appealed
+        ? undefined
+        : new Date().toISOString();
 
     const { update_app_report_by_pk } = await getChangeAppReportStatusSdk(
       client,
@@ -83,6 +87,7 @@ export const POST = async (req: NextRequest) => {
       review_conclusion_reason: parsedParams.review_conclusion_reason,
       review_status: parsedParams.review_status,
       reviewed_by: parsedParams.reviewed_by,
+      reviewed_at,
     });
 
     if (!update_app_report_by_pk) {
