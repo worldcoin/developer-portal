@@ -72,7 +72,7 @@ export type CreateAppReportInput = {
   details?: InputMaybe<Scalars["String"]["input"]>;
   illegal_content_country_code?: InputMaybe<Scalars["String"]["input"]>;
   illegal_content_description?: InputMaybe<Scalars["String"]["input"]>;
-  illegal_content_laws_broken?: InputMaybe<Scalars["String"]["input"]>;
+  illegal_content_legal_reason?: InputMaybe<Scalars["String"]["input"]>;
   illegal_content_sub_category?: InputMaybe<IllegalContentSubCategoryEnum>;
   purpose: PurposeEnum;
   reporter_email: Scalars["String"]["input"];
