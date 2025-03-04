@@ -8,7 +8,7 @@ export type ConcludeAppReportInvestigationMutationVariables = Types.Exact<{
   app_report_id: Types.Scalars["String"]["input"];
   reviewed_by: Types.Scalars["String"]["input"];
   review_status: Types.Scalars["review_status_enum"]["input"];
-  review_conclusion_reason: Types.Scalars["String"]["input"];
+  review_conclusion_reason?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type ConcludeAppReportInvestigationMutation = {
@@ -21,7 +21,7 @@ export const ConcludeAppReportInvestigationDocument = gql`
     $app_report_id: String!
     $reviewed_by: String!
     $review_status: review_status_enum!
-    $review_conclusion_reason: String!
+    $review_conclusion_reason: String
   ) {
     update_app_report_by_pk(
       pk_columns: { id: $app_report_id }

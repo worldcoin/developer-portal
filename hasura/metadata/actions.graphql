@@ -197,7 +197,7 @@ input ConcludeAppReportInvestigationInput {
   app_report_id: String!
   reviewed_by: String!
   review_status: ReviewStatusEnum!
-  review_conclusion_reason: String!
+  review_conclusion_reason: String
 }
 
 type ResetClientOutput {

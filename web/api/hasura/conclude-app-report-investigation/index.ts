@@ -17,7 +17,6 @@ export const schema = yup.object({
   review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
   review_conclusion_reason: yup
     .string()
-    .required()
     .matches(allowedCommonCharactersRegex)
     .max(3000),
 });
