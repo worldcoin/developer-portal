@@ -5,9 +5,9 @@ type Mutation {
 }
 
 type Mutation {
-  conclude_app_report_investigation(
-    input: ConcludeAppReportInvestigationInput!
-  ): ConcludeAppReportInvestigationOutput
+  change_app_report_status(
+    input: ChangeAppReportStatusInput!
+  ): ChangeAppReportStatusOutput
 }
 
 type Mutation {
@@ -197,7 +197,18 @@ input ConcludeAppReportInvestigationInput {
   app_report_id: String!
   reviewed_by: String!
   review_status: ReviewStatusEnum!
-  review_conclusion_reason: String!
+  review_conclusion_reason: String
+}
+
+input SetAppReportAppealInput {
+  app_report_id: String!
+}
+
+input ChangeAppReportStatusInput {
+  app_report_id: String!
+  reviewed_by: String
+  review_status: ReviewStatusEnum!
+  review_conclusion_reason: String
 }
 
 type ResetClientOutput {
@@ -289,6 +300,14 @@ type TmpInsertAppReportOutput {
 }
 
 type ConcludeAppReportInvestigationOutput {
+  success: Boolean!
+}
+
+type SetAppReportAppealOutput {
+  success: Boolean!
+}
+
+type ChangeAppReportStatusOutput {
   success: Boolean!
 }
 

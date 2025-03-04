@@ -9,10 +9,10 @@ actions:
     permissions:
       - role: reviewer
     comment: Bans app by app_id
-  - name: conclude_app_report_investigation
+  - name: change_app_report_status
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/conclude-app-report-investigation'
+      handler: '{{NEXT_API_URL}}/hasura/change-app-report-status'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -332,6 +332,8 @@ custom_types:
     - name: FinishAppReportInput
     - name: TmpInsertAppReport
     - name: ConcludeAppReportInvestigationInput
+    - name: SetAppReportAppealInput
+    - name: ChangeAppReportStatusInput
   objects:
     - name: ResetClientOutput
     - name: ResetAPIOutput
@@ -354,4 +356,6 @@ custom_types:
     - name: FinishAppReportOutput
     - name: TmpInsertAppReportOutput
     - name: ConcludeAppReportInvestigationOutput
+    - name: SetAppReportAppealOutput
+    - name: ChangeAppReportStatusOutput
   scalars: []

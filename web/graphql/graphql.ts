@@ -55,15 +55,15 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars["Boolean"]["input"]>>;
 };
 
-export type ConcludeAppReportInvestigationInput = {
+export type ChangeAppReportStatusInput = {
   app_report_id: Scalars["String"]["input"];
-  review_conclusion_reason: Scalars["String"]["input"];
+  review_conclusion_reason?: InputMaybe<Scalars["String"]["input"]>;
   review_status: ReviewStatusEnum;
   reviewed_by: Scalars["String"]["input"];
 };
 
-export type ConcludeAppReportInvestigationOutput = {
-  __typename?: "ConcludeAppReportInvestigationOutput";
+export type ChangeAppReportStatusOutput = {
+  __typename?: "ChangeAppReportStatusOutput";
   success: Scalars["Boolean"]["output"];
 };
 
@@ -5512,7 +5512,7 @@ export type Mutation_Root = {
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Closes the report with a decision */
-  conclude_app_report_investigation?: Maybe<ConcludeAppReportInvestigationOutput>;
+  change_app_report_status?: Maybe<ChangeAppReportStatusOutput>;
   /** Creates an app report */
   create_app_report?: Maybe<CreateAppReportOutput>;
   create_new_draft?: Maybe<CreateNewDraftOutput>;
@@ -5875,8 +5875,8 @@ export type Mutation_RootBan_AppArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootConclude_App_Report_InvestigationArgs = {
-  input: ConcludeAppReportInvestigationInput;
+export type Mutation_RootChange_App_Report_StatusArgs = {
+  input: ChangeAppReportStatusInput;
 };
 
 /** mutation root */

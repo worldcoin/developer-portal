@@ -7,17 +7,16 @@ import { logger } from "@/lib/logger";
 import { allowedCommonCharactersRegex } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getConcludeAppReportInvestigationSdk } from "./graphql/conclude-app-report-investigation.generated";
+import { getSdk as getChangeAppReportStatusSdk } from "./graphql/change-app-report-status.generated";
 
 const reviewStatusIterable = Object.values(ReviewStatusEnum);
 
 export const schema = yup.object({
   app_report_id: yup.string().required(),
-  reviewed_by: yup.string().required(),
+  reviewed_by: yup.string(),
   review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
   review_conclusion_reason: yup
     .string()
-    .required()
     .matches(allowedCommonCharactersRegex)
     .max(3000),
 });
@@ -62,18 +61,29 @@ export const POST = async (req: NextRequest) => {
         code: "invalid_request",
       });
     }
+    // reviewed_by can only be null if the status is appealed
+    if (
+      !parsedParams.reviewed_by &&
+      (parsedParams.review_status as ReviewStatusEnum) !==
+        ReviewStatusEnum.Appealed
+    ) {
+      return errorHasuraQuery({
+        req,
+        detail: "Reviewed by is required if status is not appealed",
+        code: "invalid_request",
+      });
+    }
 
     const client = await getAPIServiceGraphqlClient();
 
-    const { update_app_report_by_pk } =
-      await getConcludeAppReportInvestigationSdk(
-        client,
-      ).ConcludeAppReportInvestigation({
-        app_report_id: parsedParams.app_report_id,
-        review_conclusion_reason: parsedParams.review_conclusion_reason,
-        review_status: parsedParams.review_status,
-        reviewed_by: parsedParams.reviewed_by,
-      });
+    const { update_app_report_by_pk } = await getChangeAppReportStatusSdk(
+      client,
+    ).ChangeAppReportStatus({
+      app_report_id: parsedParams.app_report_id,
+      review_conclusion_reason: parsedParams.review_conclusion_reason,
+      review_status: parsedParams.review_status,
+      reviewed_by: parsedParams.reviewed_by,
+    });
 
     if (!update_app_report_by_pk) {
       return errorHasuraQuery({

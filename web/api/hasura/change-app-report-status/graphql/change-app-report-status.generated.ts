@@ -4,24 +4,24 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type ConcludeAppReportInvestigationMutationVariables = Types.Exact<{
+export type ChangeAppReportStatusMutationVariables = Types.Exact<{
   app_report_id: Types.Scalars["String"]["input"];
-  reviewed_by: Types.Scalars["String"]["input"];
+  reviewed_by?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   review_status: Types.Scalars["review_status_enum"]["input"];
-  review_conclusion_reason: Types.Scalars["String"]["input"];
+  review_conclusion_reason?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
-export type ConcludeAppReportInvestigationMutation = {
+export type ChangeAppReportStatusMutation = {
   __typename?: "mutation_root";
   update_app_report_by_pk?: { __typename: "app_report" } | null;
 };
 
-export const ConcludeAppReportInvestigationDocument = gql`
-  mutation ConcludeAppReportInvestigation(
+export const ChangeAppReportStatusDocument = gql`
+  mutation ChangeAppReportStatus(
     $app_report_id: String!
-    $reviewed_by: String!
+    $reviewed_by: String
     $review_status: review_status_enum!
-    $review_conclusion_reason: String!
+    $review_conclusion_reason: String
   ) {
     update_app_report_by_pk(
       pk_columns: { id: $app_report_id }
@@ -56,18 +56,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    ConcludeAppReportInvestigation(
-      variables: ConcludeAppReportInvestigationMutationVariables,
+    ChangeAppReportStatus(
+      variables: ChangeAppReportStatusMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<ConcludeAppReportInvestigationMutation> {
+    ): Promise<ChangeAppReportStatusMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<ConcludeAppReportInvestigationMutation>(
-            ConcludeAppReportInvestigationDocument,
+          client.request<ChangeAppReportStatusMutation>(
+            ChangeAppReportStatusDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "ConcludeAppReportInvestigation",
+        "ChangeAppReportStatus",
         "mutation",
         variables,
       );

@@ -1,8 +1,8 @@
-mutation ConcludeAppReportInvestigation(
+mutation ChangeAppReportStatus(
   $app_report_id: String!
-  $reviewed_by: String!
+  $reviewed_by: String
   $review_status: review_status_enum!
-  $review_conclusion_reason: String!
+  $review_conclusion_reason: String
 ) {
   update_app_report_by_pk(
     pk_columns: { id: $app_report_id }
