@@ -1,4 +1,6 @@
 ALTER TABLE app_report
+    DROP CONSTRAINT IF EXISTS purpose_details_check;
+ALTER TABLE app_report
     DROP CONSTRAINT IF EXISTS purpose_violation_details_check;
     
 ALTER TABLE app_report
