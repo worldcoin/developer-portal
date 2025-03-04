@@ -9,6 +9,7 @@ export type ChangeAppReportStatusMutationVariables = Types.Exact<{
   reviewed_by?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   review_status: Types.Scalars["review_status_enum"]["input"];
   review_conclusion_reason?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  reviewed_at?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
 }>;
 
 export type ChangeAppReportStatusMutation = {
@@ -22,11 +23,12 @@ export const ChangeAppReportStatusDocument = gql`
     $reviewed_by: String
     $review_status: review_status_enum!
     $review_conclusion_reason: String
+    $reviewed_at: timestamptz
   ) {
     update_app_report_by_pk(
       pk_columns: { id: $app_report_id }
       _set: {
-        reviewed_at: "now()"
+        reviewed_at: $reviewed_at
         reviewed_by: $reviewed_by
         review_status: $review_status
         review_conclusion_reason: $review_conclusion_reason

@@ -59,7 +59,7 @@ export type ChangeAppReportStatusInput = {
   app_report_id: Scalars["String"]["input"];
   review_conclusion_reason?: InputMaybe<Scalars["String"]["input"]>;
   review_status: ReviewStatusEnum;
-  reviewed_by: Scalars["String"]["input"];
+  reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type ChangeAppReportStatusOutput = {
