@@ -180,7 +180,7 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "ConcludeAppReportInvestigationInput",
+        "name": "ChangeAppReportStatusInput",
         "description": null,
         "fields": null,
         "inputFields": [
@@ -204,13 +204,9 @@
             "name": "review_conclusion_reason",
             "description": null,
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -255,7 +251,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "ConcludeAppReportInvestigationOutput",
+        "name": "ChangeAppReportStatusOutput",
         "description": null,
         "fields": [
           {
@@ -39759,7 +39755,7 @@
             "deprecationReason": null
           },
           {
-            "name": "conclude_app_report_investigation",
+            "name": "change_app_report_status",
             "description": "Closes the report with a decision",
             "args": [
               {
@@ -39770,7 +39766,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "INPUT_OBJECT",
-                    "name": "ConcludeAppReportInvestigationInput",
+                    "name": "ChangeAppReportStatusInput",
                     "ofType": null
                   }
                 },
@@ -39781,7 +39777,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "ConcludeAppReportInvestigationOutput",
+              "name": "ChangeAppReportStatusOutput",
               "ofType": null
             },
             "isDeprecated": false,
