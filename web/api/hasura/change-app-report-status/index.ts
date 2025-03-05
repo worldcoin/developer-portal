@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
 
     const body = await req.json();
 
-    if (body?.action.name !== "conclude_app_report_investigation") {
+    if (body?.action.name !== "change_app_report_status") {
       return errorHasuraQuery({
         req,
         detail: "Invalid action.",
@@ -93,7 +93,7 @@ export const POST = async (req: NextRequest) => {
     if (!update_app_report_by_pk) {
       return errorHasuraQuery({
         req,
-        detail: "Failed to conclude app report",
+        detail: "Failed to update app report",
         code: "conclude_app_report_investigation_failed",
       });
     }
@@ -104,7 +104,7 @@ export const POST = async (req: NextRequest) => {
 
     return errorHasuraQuery({
       req,
-      detail: "Unable to conclude app report investigation",
+      detail: "Unable to update app report",
       code: "internal_error",
     });
   }
