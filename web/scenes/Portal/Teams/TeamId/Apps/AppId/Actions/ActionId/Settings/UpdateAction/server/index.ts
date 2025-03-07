@@ -7,7 +7,7 @@ import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
-import { updateActionSchema, UpdateActionSchema } from "./form-schema";
+import { createUpdateActionSchema, UpdateActionSchema } from "./form-schema";
 
 export const getIsUserAllowedToUpdateAction = async (teamId: string) => {
   const session = await getSession();
@@ -30,14 +30,19 @@ export async function updateActionServerSide(
   initialValues: UpdateActionSchema,
   teamId: string,
   actionId: string,
+  isNotProduction: boolean,
 ) {
   if (!(await getIsUserAllowedToUpdateAction(teamId))) {
     throw new Error("User is not authorized to insert action");
   }
 
+  const schema = createUpdateActionSchema({
+    is_not_production: isNotProduction,
+  });
+
   const { isValid, parsedParams: parsedInitialValues } =
     await validateRequestSchema({
-      schema: updateActionSchema,
+      schema,
       value: initialValues,
     });
 
