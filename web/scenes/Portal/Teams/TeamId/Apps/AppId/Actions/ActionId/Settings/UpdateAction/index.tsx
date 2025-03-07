@@ -44,7 +44,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     reset,
   } = useForm<UpdateActionSchema>({
     resolver: yupResolver(
-      createUpdateActionSchema({ is_not_production: action.app.is_staging }),
+      createUpdateActionSchema({ is_not_production: isNotProduction }),
     ),
     mode: "onChange",
     defaultValues: {
