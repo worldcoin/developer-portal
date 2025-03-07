@@ -42,6 +42,7 @@ import {
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
+import { ImageForm } from "./ImageForm";
 import { parseDescription } from "./utils/util";
 
 type AppStoreLocalisedForm = yup.Asserts<typeof schema>;
@@ -619,6 +620,13 @@ export const AppStoreForm = (props: {
               <ChevronLeftIcon className="mr-2 size-8" />
             </button>
             <div>
+              <ImageForm
+                appId={appId}
+                teamId={teamId}
+                locale={locale}
+                appMetadataId={appMetadata?.id ?? ""}
+                appMetadata={appMetadata}
+              />
               <Input
                 register={register("name")}
                 errors={errors.name}

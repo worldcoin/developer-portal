@@ -12,11 +12,11 @@ import { useAtom } from "jotai";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "../../graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../hook/use-image";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
+    FetchAppMetadataDocument,
+    FetchAppMetadataQuery,
+} from "../../../graphql/client/fetch-app-metadata.generated";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
+import { unverifiedImageAtom, viewModeAtom } from "../../../layout/ImagesProvider";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
@@ -25,6 +25,7 @@ import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcas
 type ImageFormTypes = {
   appId: string;
   teamId: string;
+  locale: string;
   appMetadataId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
@@ -36,7 +37,7 @@ const SHOWCASE_IMAGE_NAMES = [
 ];
 
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, appMetadata } = props;
+  const { appId, teamId, appMetadataId, appMetadata, locale } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [heroImageUploading, setHeroImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
