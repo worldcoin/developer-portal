@@ -2,13 +2,13 @@
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { normalizePublicKey } from "@/lib/crypto.server";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
-import { normalizePublicKey } from "@/lib/crypto.server";
 
 export const getIsUserAllowedToInsertAction = async (teamId: string) => {
   const session = await getSession();
@@ -31,14 +31,17 @@ export async function createActionServerSide(
   initialValues: CreateActionSchema,
   teamId: string,
   appId: string,
+  isNotProduction: boolean,
 ) {
   if (!(await getIsUserAllowedToInsertAction(teamId))) {
     throw new Error("User is not authorized to insert action");
   }
 
+  const schema = createActionSchema({ is_not_production: isNotProduction });
+
   const { isValid, parsedParams: parsedInitialValues } =
     await validateRequestSchema({
-      schema: createActionSchema,
+      schema,
       value: initialValues,
     });
 
