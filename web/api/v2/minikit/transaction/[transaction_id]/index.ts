@@ -121,7 +121,8 @@ export const GET = async (
       errorResponse({
         statusCode: 404,
         code: "not_found",
-        detail: "Transaction not found.",
+        detail:
+          "Transaction not found. Please double check your transaction ID and the transaction belongs to this app_id.",
         attribute: "transaction",
         req,
       }),
