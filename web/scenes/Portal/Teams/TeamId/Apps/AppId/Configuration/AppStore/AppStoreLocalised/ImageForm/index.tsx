@@ -12,11 +12,14 @@ import { useAtom } from "jotai";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import {
-    FetchAppMetadataDocument,
-    FetchAppMetadataQuery,
+  FetchAppMetadataDocument,
+  FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../../hook/use-image";
-import { unverifiedImageAtom, viewModeAtom } from "../../../layout/ImagesProvider";
+import {
+  unverifiedImageAtom,
+  viewModeAtom,
+} from "../../../layout/ImagesProvider";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
@@ -312,14 +315,14 @@ export const ImageForm = (props: ImageFormTypes) => {
   ]);
 
   return (
-    <form className="grid gap-y-7">
+    <div className="grid gap-y-7">
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Featured image
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
-          Worldcoin’s app store.
+          Worldcoin's app store.
         </Typography>
       </div>
       {!heroImage && (
@@ -448,6 +451,6 @@ export const ImageForm = (props: ImageFormTypes) => {
           />
         )}
       </div>
-    </form>
+    </div>
   );
 };
