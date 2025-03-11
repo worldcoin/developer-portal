@@ -20,9 +20,15 @@ import {
   unverifiedImageAtom,
   viewModeAtom,
 } from "../../../layout/ImagesProvider";
+import {
+  FetchLocalisationDocument,
+  FetchLocalisationQuery,
+} from "../graphql/client/fetch-localisation.generated";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
+import { useUpdateLocalisationHeroImageMutation } from "./graphql/client/update-localisation-hero-image.generated";
+import { useUpdateLocalisationShowcaseImagesMutation } from "./graphql/client/update-localisation-showcase-images.generated";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 
 type ImageFormTypes = {
@@ -31,6 +37,7 @@ type ImageFormTypes = {
   locale: string;
   appMetadataId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  localisation?: FetchLocalisationQuery["localisations"][0];
 };
 
 const SHOWCASE_IMAGE_NAMES = [
@@ -39,8 +46,14 @@ const SHOWCASE_IMAGE_NAMES = [
   "showcase_img_3",
 ];
 
+type ImageUpdateFunctions = {
+  updateHeroImage: (heroImageUrl: string) => Promise<any>;
+  updateShowcaseImages: (showcaseImgUrls: string[]) => Promise<any>;
+};
+
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, appMetadata, locale } = props;
+  const { appId, teamId, appMetadataId, appMetadata, locale, localisation } =
+    props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [heroImageUploading, setHeroImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
@@ -48,12 +61,110 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
+  const [updateLocalisationHeroImageMutation] =
+    useUpdateLocalisationHeroImageMutation();
+  const [updateLocalisationShowcaseImagesMutation] =
+    useUpdateLocalisationShowcaseImagesMutation();
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();
 
+  const isEnglishLocale = locale === "en";
+
+  const updateFunctions: ImageUpdateFunctions = useMemo(() => {
+    if (isEnglishLocale) {
+      return {
+        updateHeroImage: async (heroImageUrl: string) => {
+          return updateHeroImageMutation({
+            variables: {
+              app_metadata_id: appMetadataId,
+              hero_image_url: heroImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+            ],
+          });
+        },
+        updateShowcaseImages: async (showcaseImgUrls: string[]) => {
+          const formatted_showcase_img_urls = `{${showcaseImgUrls.map((url) => `"${url}"`).join(",")}}`;
+          return updateShowcaseImagesMutation({
+            variables: {
+              app_metadata_id: appMetadataId,
+              showcase_img_urls: formatted_showcase_img_urls,
+            },
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+      };
+    } else {
+      return {
+        updateHeroImage: async (heroImageUrl: string) => {
+          return updateLocalisationHeroImageMutation({
+            variables: {
+              localisation_id: localisation?.id ?? "",
+              hero_image_url: heroImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchLocalisationDocument,
+                variables: {
+                  id: appMetadataId,
+                  locale: locale,
+                },
+              },
+            ],
+          });
+        },
+        updateShowcaseImages: async (showcaseImgUrls: string[]) => {
+          return updateLocalisationShowcaseImagesMutation({
+            variables: {
+              localisation_id: localisation?.id ?? "",
+              showcase_img_urls: showcaseImgUrls,
+            },
+            refetchQueries: [
+              {
+                query: FetchLocalisationDocument,
+                variables: {
+                  id: appMetadataId,
+                  locale: locale,
+                },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+      };
+    }
+  }, [
+    isEnglishLocale,
+    appMetadataId,
+    appId,
+    locale,
+    localisation?.id,
+    updateHeroImageMutation,
+    updateShowcaseImagesMutation,
+    updateLocalisationHeroImageMutation,
+    updateLocalisationShowcaseImagesMutation,
+  ]);
+
   const showcaseImgFileNames = useMemo(
-    () => appMetadata?.showcase_img_urls ?? [],
-    [appMetadata?.showcase_img_urls],
+    () =>
+      isEnglishLocale
+        ? appMetadata?.showcase_img_urls ?? []
+        : localisation?.showcase_img_urls ?? [],
+    [
+      isEnglishLocale,
+      appMetadata?.showcase_img_urls,
+      localisation?.showcase_img_urls,
+    ],
   );
 
   const isEnoughPermissions = useMemo(() => {
@@ -82,22 +193,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         hero_image_url: "",
       });
 
-      const result = await updateHeroImageMutation({
-        variables: {
-          app_metadata_id: appMetadataId,
-          hero_image_url: "",
-        },
-
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-
-            variables: {
-              id: appId,
-            },
-          },
-        ],
-      });
+      const result = await updateFunctions.updateHeroImage("");
       if (result instanceof Error) {
         throw result;
       }
@@ -105,13 +201,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       console.error("Error Deleting Image: ", error);
       toast.error("Error deleting image");
     }
-  }, [
-    setUnverifiedImages,
-    unverifiedImages,
-    updateHeroImageMutation,
-    appMetadataId,
-    appId,
-  ]);
+  }, [setUnverifiedImages, unverifiedImages, updateFunctions]);
 
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
@@ -119,29 +209,12 @@ export const ImageForm = (props: ImageFormTypes) => {
         url.includes(name),
       )[0];
 
-      const formatted_showcase_img_urls = `{${showcaseImgFileNames
-        .filter((img: string) => !img.includes(fileNameToDelete))
-        .map((fileName: string) => `"${fileName}"`)
-        .join(",")}}`;
+      const newShowcaseImgUrls = showcaseImgFileNames.filter(
+        (img: string) => !img.includes(fileNameToDelete),
+      );
 
-      const result = await updateShowcaseImagesMutation({
-        variables: {
-          app_metadata_id: appMetadataId,
-          showcase_img_urls: formatted_showcase_img_urls,
-        },
-
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-
-            variables: {
-              id: appId,
-            },
-          },
-        ],
-
-        awaitRefetchQueries: true,
-      });
+      const result =
+        await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
 
       if (result instanceof Error) {
         throw result;
@@ -156,9 +229,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     },
     [
       showcaseImgFileNames,
-      updateShowcaseImagesMutation,
-      appMetadataId,
-      appId,
+      updateFunctions,
       setUnverifiedImages,
       unverifiedImages,
     ],
@@ -196,23 +267,10 @@ export const ImageForm = (props: ImageFormTypes) => {
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+        const fileName = `${imageType}.${saveFileType}`;
+
         if (imageType === "hero_image") {
-          const result = await updateHeroImageMutation({
-            variables: {
-              app_metadata_id: appMetadataId,
-              hero_image_url: `${imageType}.${saveFileType}`,
-            },
-
-            refetchQueries: [
-              {
-                query: FetchAppMetadataDocument,
-
-                variables: {
-                  id: appId,
-                },
-              },
-            ],
-          });
+          const result = await updateFunctions.updateHeroImage(fileName);
           if (result instanceof Error) {
             throw result;
           }
@@ -222,30 +280,9 @@ export const ImageForm = (props: ImageFormTypes) => {
           });
           setHeroImageUploading(false);
         } else if (imageType.startsWith("showcase_img")) {
-          const formatted_showcase_img_urls = `{${[
-            ...showcaseImgFileNames,
-            `${imageType}.${saveFileType}`,
-          ]
-            .map((url: string) => `"${url}"`)
-            .join(",")}}`;
-
-          const result = await updateShowcaseImagesMutation({
-            variables: {
-              app_metadata_id: appMetadataId,
-              showcase_img_urls: formatted_showcase_img_urls,
-            },
-
-            refetchQueries: [
-              {
-                query: FetchAppMetadataDocument,
-                variables: {
-                  id: appId,
-                },
-              },
-            ],
-
-            awaitRefetchQueries: true,
-          });
+          const newShowcaseImgUrls = [...showcaseImgFileNames, fileName];
+          const result =
+            await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
 
           if (result instanceof Error) {
             throw result;
@@ -287,21 +324,29 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const heroImage = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
-      if (!appMetadata?.hero_image_url) return null;
-      return getCDNImageUrl(appId, appMetadata?.hero_image_url);
+      const imageUrl = isEnglishLocale
+        ? appMetadata?.hero_image_url
+        : localisation?.hero_image_url;
+      if (!imageUrl) return null;
+      return getCDNImageUrl(appId, imageUrl);
     } else {
       return unverifiedImages.hero_image_url;
     }
   }, [
+    appMetadata?.verification_status,
     appMetadata?.hero_image_url,
+    localisation?.hero_image_url,
+    isEnglishLocale,
     appId,
     unverifiedImages.hero_image_url,
-    appMetadata?.verification_status,
   ]);
 
   const showcaseImgUrls = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
-      return appMetadata?.showcase_img_urls?.map((url: string) => {
+      const urls = isEnglishLocale
+        ? appMetadata?.showcase_img_urls
+        : localisation?.showcase_img_urls;
+      return urls?.map((url: string) => {
         return getCDNImageUrl(appId, url);
       });
     } else {
@@ -310,6 +355,8 @@ export const ImageForm = (props: ImageFormTypes) => {
   }, [
     appMetadata?.verification_status,
     appMetadata?.showcase_img_urls,
+    localisation?.showcase_img_urls,
+    isEnglishLocale,
     appId,
     unverifiedImages.showcase_image_urls,
   ]);
