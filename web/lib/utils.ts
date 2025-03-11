@@ -263,7 +263,7 @@ export const createTransactionHashUrl = (
 ) => {
   if (!transactionHash) return "";
   if (network === "optimism") {
-    return `https://optimistic.etherscan.io/tx/${transactionHash}`;
+    return `https://worldscan.org/tx/${transactionHash}`;
   }
   return "Invalid network";
 };
