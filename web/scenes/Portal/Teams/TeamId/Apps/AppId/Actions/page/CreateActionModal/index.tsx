@@ -12,7 +12,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
 import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -32,6 +32,7 @@ type CreateActionModalProps = {
   className?: string;
   firstAction?: boolean;
   engineType?: string;
+  appIsStaging?: boolean;
 };
 
 export const CreateActionModal = (props: CreateActionModalProps) => {
@@ -41,6 +42,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
+  const isNotProduction = checkIfNotProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,7 +57,9 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     reset,
     setFocus,
   } = useForm<CreateActionSchema>({
-    resolver: yupResolver(createActionSchema),
+    resolver: yupResolver(
+      createActionSchema({ is_not_production: isNotProduction }),
+    ),
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
@@ -96,7 +100,12 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           values.webhook_pem = reformatPem(values.webhook_pem);
         }
 
-        const result = await createActionServerSide(values, teamId, appId);
+        const result = await createActionServerSide(
+          values,
+          teamId,
+          appId,
+          isNotProduction,
+        );
 
         if (result instanceof Error) {
           throw result;
@@ -151,6 +160,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       appId,
       firstAction,
       teamId,
+      isNotProduction,
       refetchActions,
       reset,
       router,

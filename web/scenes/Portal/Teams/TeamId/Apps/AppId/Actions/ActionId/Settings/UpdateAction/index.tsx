@@ -7,7 +7,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
@@ -18,7 +18,10 @@ import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVer
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
 import { updateActionServerSide } from "./server";
-import { updateActionSchema, UpdateActionSchema } from "./server/form-schema";
+import {
+  UpdateActionSchema,
+  createUpdateActionSchema,
+} from "./server/form-schema";
 
 type UpdateActionProps = {
   teamId: string;
@@ -27,6 +30,7 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
+  const isNotProduction = checkIfNotProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTestingWebhook, setIsTestingWebhook] = useState(false);
@@ -39,7 +43,9 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     watch,
     reset,
   } = useForm<UpdateActionSchema>({
-    resolver: yupResolver(updateActionSchema),
+    resolver: yupResolver(
+      createUpdateActionSchema({ is_not_production: isNotProduction }),
+    ),
     mode: "onChange",
     defaultValues: {
       name: action.name,
@@ -47,14 +53,8 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       action: action.action,
       max_verifications: action.max_verifications,
       app_flow_on_complete: action.app_flow_on_complete as "NONE" | "VERIFY",
-      webhook_uri:
-        action.app_flow_on_complete === "VERIFY"
-          ? action.webhook_uri ?? undefined
-          : undefined,
-      webhook_pem:
-        action.app_flow_on_complete === "VERIFY"
-          ? action.webhook_pem ?? undefined
-          : undefined,
+      webhook_uri: action.webhook_uri ?? undefined,
+      webhook_pem: action.webhook_pem ?? undefined,
     },
   });
 
@@ -76,7 +76,12 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           values.webhook_pem = reformatPem(values.webhook_pem);
         }
 
-        const result = await updateActionServerSide(values, teamId, action.id);
+        const result = await updateActionServerSide(
+          values,
+          teamId,
+          action.id,
+          isNotProduction,
+        );
 
         if (result instanceof Error) {
           throw result;
@@ -197,7 +202,17 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 render={({ field }) => (
                   <AppFlowOnCompleteTypeSelector
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      // If changing to NONE, don't hide the fields if they have values
+                      if (
+                        value === "NONE" &&
+                        !watch("webhook_uri") &&
+                        !watch("webhook_pem")
+                      ) {
+                        setShowAdvancedConfig(false);
+                      }
+                    }}
                     errors={errors.app_flow_on_complete}
                     label="App Flow on Complete"
                     helperText="Select what happens when the action is completed"
