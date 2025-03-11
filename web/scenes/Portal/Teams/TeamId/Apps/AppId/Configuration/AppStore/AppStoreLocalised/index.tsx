@@ -41,6 +41,8 @@ import {
 } from "../server/submit";
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
+import { useCreateEmptyLocalisationMutation } from "./graphql/client/create-empty-localisation.generated";
+import { useDeleteLocalisationMutation } from "./graphql/client/delete-localisation.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
 import { ImageForm } from "./ImageForm";
 import { parseDescription } from "./utils/util";
@@ -58,6 +60,9 @@ export const AppStoreForm = (props: {
   const allPossibleLanguages = formLanguagesList;
 
   const [addLocaleMutation] = useAddLocaleMutation();
+  const [createEmptyLocalisationMutation] =
+    useCreateEmptyLocalisationMutation();
+  const [deleteLocalisationMutation] = useDeleteLocalisationMutation();
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
     { id: appId },
@@ -509,6 +514,20 @@ export const AppStoreForm = (props: {
                         },
                       ],
                     });
+
+                    // Delete localisation for removed language
+                    if (value !== "en") {
+                      try {
+                        await deleteLocalisationMutation({
+                          variables: {
+                            app_metadata_id: appMetadata.id,
+                            locale: value,
+                          },
+                        });
+                      } catch (error) {
+                        console.error("Failed to delete localisation:", error);
+                      }
+                    }
                   }}
                   selectAll={() => {
                     const languageValues = allPossibleLanguages.map(
@@ -554,21 +573,22 @@ export const AppStoreForm = (props: {
                       key={index}
                       index={index}
                       checked={field.value?.includes(item.value)}
-                      onChange={(value) => {
+                      onChange={async (value) => {
                         if (!field.value) {
                           return field.onChange([]);
                         }
 
-                        field.onChange(
-                          field.value.some((v) => v === value)
-                            ? field.value.filter((v) => v !== value)
-                            : [...field.value, value],
-                        );
+                        const isNewLanguage = !field.value.includes(value);
+                        const newSupportedLanguages = isNewLanguage
+                          ? [...field.value, value]
+                          : field.value.filter((v) => v !== value);
 
-                        addLocaleMutation({
+                        field.onChange(newSupportedLanguages);
+
+                        await addLocaleMutation({
                           variables: {
                             app_metadata_id: appMetadata.id,
-                            supported_languages: [...field.value, value],
+                            supported_languages: newSupportedLanguages,
                           },
                           refetchQueries: [
                             {
@@ -579,6 +599,26 @@ export const AppStoreForm = (props: {
                             },
                           ],
                         });
+
+                        // Create empty localisation for new language
+                        if (isNewLanguage && value !== "en") {
+                          try {
+                            await createEmptyLocalisationMutation({
+                              variables: {
+                                app_metadata_id: appMetadata.id,
+                                locale: value,
+                              },
+                            });
+                          } catch (error) {
+                            console.error(
+                              "Failed to create empty localisation:",
+                              error,
+                            );
+                            toast.error(
+                              "Failed to create localisation for new language",
+                            );
+                          }
+                        }
                       }}
                       disabled={!isEditable || !isEnoughPermissions}
                     />

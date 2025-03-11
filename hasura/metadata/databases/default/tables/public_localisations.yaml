@@ -148,3 +148,27 @@ update_permissions:
                   - unverified
                   - awaiting_review
     comment: ""
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      filter:
+        app_metadata:
+          _and:
+            - verification_status:
+                _neq: verified
+            - app:
+                team:
+                  memberships:
+                    _and:
+                      - user_id:
+                          _eq: X-Hasura-User-Id
+                      - _or:
+                          - role:
+                              _eq: OWNER
+                          - role:
+                              _eq: ADMIN
+    comment: ""
