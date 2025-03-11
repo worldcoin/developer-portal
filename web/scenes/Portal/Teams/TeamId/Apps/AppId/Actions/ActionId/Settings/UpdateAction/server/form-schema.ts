@@ -45,8 +45,11 @@ export const createUpdateActionSchema = (context: ActionContext) => {
       "Both webhook URL and PEM must be provided or removed",
       function (values) {
         const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
-        if (app_flow_on_complete === "NONE") return true;
 
+        // If both webhook fields are empty, no validation needed
+        if (!webhook_uri && !webhook_pem) return true;
+
+        // If one webhook field is provided but not the other, return error
         if ((webhook_uri && !webhook_pem) || (!webhook_uri && webhook_pem)) {
           const errorPath = !webhook_uri ? "webhook_uri" : "webhook_pem";
           return this.createError({
@@ -54,6 +57,7 @@ export const createUpdateActionSchema = (context: ActionContext) => {
             message: "Both webhook URL and PEM must be provided or removed",
           });
         }
+
         return true;
       },
     );

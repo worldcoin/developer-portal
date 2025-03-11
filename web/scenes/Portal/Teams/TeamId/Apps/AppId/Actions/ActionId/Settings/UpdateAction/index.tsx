@@ -53,19 +53,15 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       action: action.action,
       max_verifications: action.max_verifications,
       app_flow_on_complete: action.app_flow_on_complete as "NONE" | "VERIFY",
-      webhook_uri:
-        action.app_flow_on_complete === "VERIFY"
-          ? action.webhook_uri ?? undefined
-          : undefined,
-      webhook_pem:
-        action.app_flow_on_complete === "VERIFY"
-          ? action.webhook_pem ?? undefined
-          : undefined,
+      webhook_uri: action.webhook_uri ?? undefined,
+      webhook_pem: action.webhook_pem ?? undefined,
     },
   });
 
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(
-    action.app_flow_on_complete === "VERIFY",
+    action.app_flow_on_complete === "VERIFY" ||
+    Boolean(action.webhook_uri) ||
+    Boolean(action.webhook_pem)
   );
 
   const { refetch: refetchAction } = useRefetchQueries(GetActionNameDocument, {
@@ -208,7 +204,13 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 render={({ field }) => (
                   <AppFlowOnCompleteTypeSelector
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      // If changing to NONE, don't hide the fields if they have values
+                      if (value === "NONE" && !watch("webhook_uri") && !watch("webhook_pem")) {
+                        setShowAdvancedConfig(false);
+                      }
+                    }}
                     errors={errors.app_flow_on_complete}
                     label="App Flow on Complete"
                     helperText="Select what happens when the action is completed"
@@ -217,7 +219,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 )}
               />
 
-              {watch("app_flow_on_complete") === "VERIFY" && (
+              {(watch("app_flow_on_complete") === "VERIFY" || watch("webhook_uri") || watch("webhook_pem")) && (
                 <div className="space-y-6 border-l-2 border-grey-100 pl-4">
                   <Input
                     register={register("webhook_uri")}

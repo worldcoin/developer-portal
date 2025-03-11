@@ -57,6 +57,12 @@ export async function updateActionServerSide(
     parsedInitialValues.app_flow_on_complete = "NONE";
   }
 
+  // If app_flow_on_complete is NONE but webhook fields are provided, set app_flow_on_complete to VERIFY
+  if (parsedInitialValues.app_flow_on_complete === "NONE" &&
+    (parsedInitialValues.webhook_uri || parsedInitialValues.webhook_pem)) {
+    parsedInitialValues.app_flow_on_complete = "VERIFY";
+  }
+
   // Normalize the public key before saving
   if (parsedInitialValues.webhook_pem) {
     parsedInitialValues.webhook_pem = await normalizePublicKey(
