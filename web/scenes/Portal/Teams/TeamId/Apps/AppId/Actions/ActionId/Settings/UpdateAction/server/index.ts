@@ -36,13 +36,13 @@ export async function updateActionServerSide(
     throw new Error("User is not authorized to insert action");
   }
 
-  const schema = createUpdateActionSchema({
+  const updateActionSchema = createUpdateActionSchema({
     is_not_production: isNotProduction,
   });
 
   const { isValid, parsedParams: parsedInitialValues } =
     await validateRequestSchema({
-      schema,
+      schema: updateActionSchema,
       value: initialValues,
     });
 
