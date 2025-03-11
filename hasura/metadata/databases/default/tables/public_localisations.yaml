@@ -123,7 +123,15 @@ update_permissions:
     comment: ""
   - role: user
     permission:
-      columns: []
+      columns:
+        - description
+        - hero_image_url
+        - name
+        - short_name
+        - showcase_img_urls
+        - updated_at
+        - world_app_button_text
+        - world_app_description
       filter:
         app_metadata:
           _and:

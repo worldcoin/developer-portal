@@ -257,13 +257,20 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        await uploadViaPresignedPost(
+          file,
+          appId,
+          teamId,
+          imageType,
+          !isEnglishLocale ? locale : undefined,
+        );
 
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
           teamId,
           imageType,
+          !isEnglishLocale ? locale : undefined,
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
@@ -328,7 +335,12 @@ export const ImageForm = (props: ImageFormTypes) => {
         ? appMetadata?.hero_image_url
         : localisation?.hero_image_url;
       if (!imageUrl) return null;
-      return getCDNImageUrl(appId, imageUrl);
+      return getCDNImageUrl(
+        appId,
+        imageUrl,
+        true,
+        !isEnglishLocale ? locale : undefined,
+      );
     } else {
       return unverifiedImages.hero_image_url;
     }
@@ -339,6 +351,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     isEnglishLocale,
     appId,
     unverifiedImages.hero_image_url,
+    locale,
   ]);
 
   const showcaseImgUrls = useMemo(() => {
@@ -347,7 +360,12 @@ export const ImageForm = (props: ImageFormTypes) => {
         ? appMetadata?.showcase_img_urls
         : localisation?.showcase_img_urls;
       return urls?.map((url: string) => {
-        return getCDNImageUrl(appId, url);
+        return getCDNImageUrl(
+          appId,
+          url,
+          true,
+          !isEnglishLocale ? locale : undefined,
+        );
       });
     } else {
       return unverifiedImages.showcase_image_urls;
@@ -359,6 +377,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     isEnglishLocale,
     appId,
     unverifiedImages.showcase_image_urls,
+    locale,
   ]);
 
   return (

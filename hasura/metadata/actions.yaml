@@ -100,6 +100,7 @@ actions:
           app_id: '{{$body.input.app_id}}'
           content_type_ending: '{{$body.input.content_type_ending}}'
           image_type: '{{$body.input.image_type}}'
+          locale: '{{$body.input.locale}}'
         template_engine: Kriti
         version: 2
     permissions:
@@ -169,6 +170,7 @@ actions:
           app_id: '{{$body.input.app_id}}'
           content_type_ending: '{{$body.input.content_type_ending}}'
           image_type: '{{$body.input.image_type}}'
+          locale: '{{$body.input.locale}}'
         template_engine: Kriti
         version: 2
     permissions:

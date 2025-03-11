@@ -100,16 +100,18 @@ export const isEmailUser = (user: Auth0User): user is Auth0EmailUser =>
  * @param app_id - The ID of the app
  * @param path - The path to the image
  * @param isAppVerified - Whether the app is verified
+ * @param locale - Optional locale for localized images
  * @returns The CDN image URL
  */
 export const getCDNImageUrl = (
   app_id: string,
   path: string,
   isAppVerified = true,
+  locale?: string,
 ) =>
   isAppVerified
     ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}/${path}`
-    : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}/${path}`;
+    : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}${locale ? `/${locale}` : ""}/${path}`;
 
 /**
  * Gets the logo image CDN URL
