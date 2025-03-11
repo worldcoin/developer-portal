@@ -1,0 +1,10 @@
+mutation DeleteLocalisation($app_metadata_id: String!, $locale: String!) {
+  delete_localisations(
+    where: {
+      app_metadata_id: { _eq: $app_metadata_id }
+      locale: { _eq: $locale }
+    }
+  ) {
+    affected_rows
+  }
+}

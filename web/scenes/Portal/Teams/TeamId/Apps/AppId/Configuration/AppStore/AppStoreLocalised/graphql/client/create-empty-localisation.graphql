@@ -1,0 +1,7 @@
+mutation CreateEmptyLocalisation($app_metadata_id: String!, $locale: String!) {
+  insert_localisations_one(
+    object: { app_metadata_id: $app_metadata_id, locale: $locale }
+  ) {
+    id
+  }
+}
