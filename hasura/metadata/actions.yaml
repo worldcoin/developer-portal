@@ -66,6 +66,7 @@ actions:
         method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
+          locale: '{{$body.input.locale}}'
         template_engine: Kriti
         version: 2
     permissions:
@@ -82,6 +83,7 @@ actions:
         method: POST
         query_params:
           app_id: '{{$body.input.app_id}}'
+          locale: '{{$body.input.locale}}'
         template_engine: Kriti
         version: 2
     permissions:
