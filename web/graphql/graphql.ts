@@ -8038,11 +8038,13 @@ export type Query_RootCache_By_PkArgs = {
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
   app_id: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
   team_id: Scalars["String"]["input"];
 };
 
 export type Query_RootGet_App_Review_ImagesArgs = {
   app_id: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Query_RootGet_Uploaded_ImageArgs = {

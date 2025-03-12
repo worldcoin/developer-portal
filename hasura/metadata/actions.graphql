@@ -33,12 +33,14 @@ type Query {
   get_all_unverified_images(
     app_id: String!
     team_id: String!
+    locale: String
   ): ImageGetAllUnverifiedImagesOutput
 }
 
 type Query {
   get_app_review_images(
     app_id: String!
+    locale: String
   ): ImageGetAppReviewImagesOutput
 }
 

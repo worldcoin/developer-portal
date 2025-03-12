@@ -11,6 +11,7 @@ import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
+  locale: yup.string(),
 });
 
 /**
@@ -61,13 +62,14 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id } = parsedParams;
+  const { app_id, locale } = parsedParams;
 
   // Anchor: Get relative paths for images from the database
   const client = await getAPIReviewerGraphqlClient();
 
   const { app: appInfo } = await getAppReviewImages(client).GetAppReviewImages({
     app_id: app_id as string,
+    locale: locale || "en",
   });
 
   // If the app is not found, return an error
@@ -80,6 +82,8 @@ export const POST = async (req: NextRequest) => {
   }
 
   const app = appInfo[0].app_metadata[0];
+  const localisation =
+    (locale && locale !== "en" && app.localisations?.[0]) || null;
 
   const s3Client = new S3Client({
     region: process.env.ASSETS_S3_REGION,
@@ -93,7 +97,7 @@ export const POST = async (req: NextRequest) => {
 
   const command = new GetObjectCommand({
     Bucket: bucketName,
-    Key: objectKey + app.logo_img_url,
+    Key: `${objectKey}${app.logo_img_url}`,
   });
 
   if (app.logo_img_url) {
@@ -106,26 +110,32 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
-  if (app.hero_image_url) {
+  // For hero and showcase images, use localized versions if available and locale is not English
+  const heroImageUrl = localisation?.hero_image_url ?? app.hero_image_url;
+
+  if (heroImageUrl) {
     urlPromises.push(
       getSignedUrl(
         s3Client,
         new GetObjectCommand({
           Bucket: bucketName,
-          Key: objectKey + app.hero_image_url,
+          Key: `${objectKey}${localisation ? `${locale}/` : ""}${heroImageUrl}`,
         }),
         { expiresIn: urlExpiration },
       ).then((url) => ({ hero_image_url: url })),
     );
   }
 
-  if (app.showcase_img_urls) {
-    const showcaseUrlPromises = app.showcase_img_urls.map((key) =>
+  const showcaseImgUrls =
+    localisation?.showcase_img_urls ?? app.showcase_img_urls;
+
+  if (showcaseImgUrls) {
+    const showcaseUrlPromises = showcaseImgUrls.map((key: string) =>
       getSignedUrl(
         s3Client,
         new GetObjectCommand({
           Bucket: bucketName,
-          Key: objectKey + key,
+          Key: `${objectKey}${localisation ? `${locale}/` : ""}${key}`,
         }),
         { expiresIn: urlExpiration },
       ),
