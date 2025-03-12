@@ -561,7 +561,11 @@ export const AppStoreForm = (props: {
                   errors={errors.supported_languages}
                   showSelectedList
                   searchPlaceholder="Start by typing language..."
+                  canDelete={(item) => item.value !== "en"}
                   onRemove={async (value) => {
+                    // Prevent removal of English language
+                    if (value === "en") return;
+
                     field.onChange(
                       field.value?.filter((v) => v !== value) ?? [],
                     );
@@ -618,11 +622,12 @@ export const AppStoreForm = (props: {
                     field.onChange(languageValues);
                   }}
                   clearAll={() => {
-                    field.onChange([]);
+                    // Keep English language when clearing all
+                    field.onChange(["en"]);
                     addLocaleMutation({
                       variables: {
                         app_metadata_id: appMetadata.id,
-                        supported_languages: null,
+                        supported_languages: ["en"],
                       },
                       refetchQueries: [
                         {

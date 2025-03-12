@@ -38,6 +38,7 @@ export type SelectMultipleProps<T extends FieldValues> = {
   showSelectedList?: boolean;
   children: (item: Item, index: number) => React.ReactNode;
   searchPlaceholder?: string;
+  canDelete?: (item: Item) => boolean;
 };
 
 export const SelectMultiple = <T extends FieldValues>(
@@ -290,34 +291,35 @@ export const SelectMultiple = <T extends FieldValues>(
                   >
                     <Typography
                       variant={TYPOGRAPHY.R4}
-                      className={clsx(
-                        "select-none border-r border-grey-0  px-2 py-1 text-grey-0",
-                        {
-                          "bg-grey-900": !disabled,
-                          "bg-grey-300": disabled,
-                        },
-                      )}
+                      className={clsx("select-none px-2 py-1 text-grey-0", {
+                        "bg-grey-900": !disabled,
+                        "bg-grey-300": disabled,
+                        "border-r border-grey-0":
+                          props.canDelete?.(item) ?? true,
+                      })}
                     >
                       {item?.label}
                     </Typography>
 
-                    <button
-                      type="button"
-                      className={clsx(
-                        "size-full cursor-pointer p-1 transition-colors hover:bg-grey-900/80",
-                        {
-                          "bg-grey-900": !disabled,
-                          "bg-grey-300": disabled,
-                        },
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(item.value);
-                      }}
-                      disabled={disabled}
-                    >
-                      <CloseIcon strokeWidth={2} className="text-grey-0" />
-                    </button>
+                    {(props.canDelete?.(item) ?? true) && (
+                      <button
+                        type="button"
+                        className={clsx(
+                          "size-full cursor-pointer p-1 transition-colors hover:bg-grey-900/80",
+                          {
+                            "bg-grey-900": !disabled,
+                            "bg-grey-300": disabled,
+                          },
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemove(item.value);
+                        }}
+                        disabled={disabled}
+                      >
+                        <CloseIcon strokeWidth={2} className="text-grey-0" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
