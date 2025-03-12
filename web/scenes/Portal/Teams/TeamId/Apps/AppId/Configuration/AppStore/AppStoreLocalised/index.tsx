@@ -666,6 +666,7 @@ export const AppStoreForm = (props: {
                 locale={locale}
                 appMetadataId={appMetadata?.id ?? ""}
                 appMetadata={appMetadata}
+                localisation={localisedData?.localisations?.[0]}
               />
               <Input
                 register={register("name")}
