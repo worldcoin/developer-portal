@@ -16,7 +16,10 @@ import { toast } from "react-toastify";
 import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
 import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
-import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
+import {
+  GetSingleActionDocument,
+  GetSingleActionQuery,
+} from "../page/graphql/client/get-single-action.generated";
 import { updateActionServerSide } from "./server";
 import {
   UpdateActionSchema,
@@ -66,6 +69,13 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     action_id: action.id,
   });
 
+  const { refetch: refetchSingleAction } = useRefetchQueries(
+    GetSingleActionDocument,
+    {
+      action_id: action.id,
+    },
+  );
+
   const submit = useCallback(
     async (values: UpdateActionSchema) => {
       try {
@@ -86,9 +96,10 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         if (result instanceof Error) {
           throw result;
         }
-        await refetchAction();
-
         toast.success(`Action "${values.name}" updated.`);
+
+        await refetchAction();
+        await refetchSingleAction();
 
         reset(values);
       } catch (error) {
@@ -102,7 +113,14 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         setIsSubmitting(false);
       }
     },
-    [reset, teamId, action.id, refetchAction],
+    [
+      teamId,
+      action.id,
+      isNotProduction,
+      refetchAction,
+      refetchSingleAction,
+      reset,
+    ],
   );
 
   return (
