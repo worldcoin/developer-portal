@@ -126,7 +126,9 @@ export const POST = async (req: NextRequest) => {
     }
 
     // For hero and showcase images, use localized versions if available and locale is not English
-    const heroImageUrl = localisation?.hero_image_url ?? app.hero_image_url;
+    const heroImageUrl = localisation
+      ? localisation.hero_image_url
+      : app.hero_image_url;
 
     if (heroImageUrl) {
       urlPromises.push(
@@ -141,8 +143,9 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const showcaseImgUrls =
-      localisation?.showcase_img_urls ?? app.showcase_img_urls;
+    const showcaseImgUrls = localisation
+      ? localisation.showcase_img_urls
+      : app.showcase_img_urls;
 
     if (showcaseImgUrls) {
       const showcaseUrlPromises = showcaseImgUrls.map((key: string) =>
