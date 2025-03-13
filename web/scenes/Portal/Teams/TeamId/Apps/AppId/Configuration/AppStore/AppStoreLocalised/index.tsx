@@ -621,10 +621,26 @@ export const AppStoreForm = (props: {
                     });
                     field.onChange(languageValues);
                   }}
-                  clearAll={() => {
+                  clearAll={async () => {
+                    // Delete localisations for all languages except English
+                    const languagesToDelete =
+                      field.value?.filter((lang) => lang !== "en") ?? [];
+                    for (const lang of languagesToDelete) {
+                      try {
+                        await deleteLocalisationMutation({
+                          variables: {
+                            app_metadata_id: appMetadata.id,
+                            locale: lang,
+                          },
+                        });
+                      } catch (error) {
+                        console.error("Failed to delete localisation:", error);
+                      }
+                    }
+
                     // Keep English language when clearing all
                     field.onChange(["en"]);
-                    addLocaleMutation({
+                    await addLocaleMutation({
                       variables: {
                         app_metadata_id: appMetadata.id,
                         supported_languages: ["en"],
