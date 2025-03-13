@@ -34,6 +34,8 @@ import { viewModeAtom } from "../../layout/ImagesProvider";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { schema } from "../form-schema";
 import {
+  addEmptyLocalisationServerSide,
+  deleteLocalisationServerSide,
   validateAndInsertLocalisationServerSide,
   validateAndUpdateAppLocaleInfoServerSide,
   validateAndUpdateAppSupportInfoServerSide,
@@ -41,8 +43,6 @@ import {
 } from "../server/submit";
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
-import { useCreateEmptyLocalisationMutation } from "./graphql/client/create-empty-localisation.generated";
-import { useDeleteLocalisationMutation } from "./graphql/client/delete-localisation.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
 import { ImageForm } from "./ImageForm";
 import { parseDescription } from "./utils/util";
@@ -60,9 +60,6 @@ export const AppStoreForm = (props: {
   const allPossibleLanguages = formLanguagesList;
 
   const [addLocaleMutation] = useAddLocaleMutation();
-  const [createEmptyLocalisationMutation] =
-    useCreateEmptyLocalisationMutation();
-  const [deleteLocalisationMutation] = useDeleteLocalisationMutation();
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
     { id: appId },
@@ -590,14 +587,13 @@ export const AppStoreForm = (props: {
                     // Delete localisation for removed language
                     if (value !== "en") {
                       try {
-                        await deleteLocalisationMutation({
-                          variables: {
-                            app_metadata_id: appMetadata.id,
-                            locale: value,
-                          },
-                        });
+                        await deleteLocalisationServerSide(
+                          appMetadata.id,
+                          value,
+                        );
                       } catch (error) {
                         console.error("Failed to delete localisation:", error);
+                        toast.error("Failed to delete localisation");
                       }
                     }
                   }}
@@ -627,14 +623,13 @@ export const AppStoreForm = (props: {
                       field.value?.filter((lang) => lang !== "en") ?? [];
                     for (const lang of languagesToDelete) {
                       try {
-                        await deleteLocalisationMutation({
-                          variables: {
-                            app_metadata_id: appMetadata.id,
-                            locale: lang,
-                          },
-                        });
+                        await deleteLocalisationServerSide(
+                          appMetadata.id,
+                          lang,
+                        );
                       } catch (error) {
                         console.error("Failed to delete localisation:", error);
+                        toast.error("Failed to delete localisation");
                       }
                     }
 
@@ -692,12 +687,10 @@ export const AppStoreForm = (props: {
                         // Create empty localisation for new language
                         if (isNewLanguage && value !== "en") {
                           try {
-                            await createEmptyLocalisationMutation({
-                              variables: {
-                                app_metadata_id: appMetadata.id,
-                                locale: value,
-                              },
-                            });
+                            await addEmptyLocalisationServerSide(
+                              appMetadata.id,
+                              value,
+                            );
                           } catch (error) {
                             console.error(
                               "Failed to create empty localisation:",
