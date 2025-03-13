@@ -690,6 +690,7 @@ export const AppStoreForm = (props: {
                             await addEmptyLocalisationServerSide(
                               appMetadata.id,
                               value,
+                              appId,
                             );
                           } catch (error) {
                             console.error(

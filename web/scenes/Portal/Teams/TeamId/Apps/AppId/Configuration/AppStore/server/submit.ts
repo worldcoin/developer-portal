@@ -311,10 +311,11 @@ export async function deleteLocalisationServerSide(
 export async function addEmptyLocalisationServerSide(
   appMetadataId: string,
   locale: string,
+  appId: string,
 ) {
   try {
     const isUserAllowedToInsertLocalisation =
-      await getIsUserAllowedToInsertLocalisation(appMetadataId);
+      await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
       throw new Error("Invalid permissions");
     }
