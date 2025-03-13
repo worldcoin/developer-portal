@@ -338,7 +338,7 @@ export const AppStoreForm = (props: {
         const currentData = getValues();
         if (hasImages(locale) && hasEmptyRequiredFields(currentData, locale)) {
           toast.warn(
-            "Your images are saved but will only be applied after you fill in all required fields",
+            "Your images are saved but will not be displayed in the App Store until you fill in all required fields",
           );
         }
         await updateLocalisationInForm(targetLang);
