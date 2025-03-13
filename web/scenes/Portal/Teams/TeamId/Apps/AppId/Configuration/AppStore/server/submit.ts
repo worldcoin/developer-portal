@@ -288,6 +288,10 @@ export async function deleteLocalisationServerSide(
   locale: string,
 ) {
   try {
+    if (locale === "en") {
+      throw new Error("English localization cannot be removed");
+    }
+
     const isUserAllowedToDeleteLocalisation =
       await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
     if (!isUserAllowedToDeleteLocalisation) {
