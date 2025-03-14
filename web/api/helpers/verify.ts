@@ -13,33 +13,6 @@ type NestedProof = [
   [string, string],
 ];
 
-// Define the SnarkJSProof type
-type SnarkJSProof = {
-  pi_a: (string | bigint)[];
-  pi_b: (string | bigint)[][];
-  pi_c: (string | bigint)[];
-  protocol: string;
-  curve: string;
-};
-
-/**
- * Packs a SnarkJS proof into a flat array format
- * @param originalProof The proof generated with SnarkJS
- * @returns The proof as a flat array
- */
-function packProof(originalProof: SnarkJSProof): string[] {
-  return [
-    originalProof.pi_a[0].toString(),
-    originalProof.pi_a[1].toString(),
-    originalProof.pi_b[0][1].toString(),
-    originalProof.pi_b[0][0].toString(),
-    originalProof.pi_b[1][1].toString(),
-    originalProof.pi_b[1][0].toString(),
-    originalProof.pi_c[0].toString(),
-    originalProof.pi_c[1].toString(),
-  ];
-}
-
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
   // code: error code to return to the client
@@ -328,24 +301,6 @@ export const parseProofInputs = (params: IInputParams) => {
 };
 
 /**
- * Converts a nested proof format to a flat Semaphore format for sending to the sequencer
- * @param nestedProof The nested proof format
- * @returns The flat Semaphore format
- */
-function convertToFlatFormat(nestedProof: NestedProof): string[] {
-  return [
-    nestedProof[0][0],
-    nestedProof[0][1],
-    nestedProof[1][0][1],
-    nestedProof[1][0][0],
-    nestedProof[1][1][1],
-    nestedProof[1][1][0],
-    nestedProof[2][0],
-    nestedProof[2][1],
-  ];
-}
-
-/**
  * Verifies a ZKP with the World ID smart contract
  */
 export const verifyProof = async (
@@ -364,16 +319,13 @@ export const verifyProof = async (
 
   const { params: parsedParams } = parsed;
 
-  // Convert the nested proof format to the flat format expected by the sequencer
-  const flatProof = convertToFlatFormat(parsedParams.proof);
-
   // Query the signup sequencer to verify the proof
   const body = JSON.stringify({
     root: parsedParams.merkle_root,
     nullifierHash: parsedParams.nullifier_hash,
     externalNullifierHash: parsedParams.external_nullifier,
     signalHash: parsedParams.signal_hash,
-    proof: flatProof,
+    proof: parsedParams.proof,
   });
 
   const sequencerUrl =
