@@ -40,7 +40,7 @@ export interface IInputParams {
   signal_hash: string;
   nullifier_hash: string;
   external_nullifier: string;
-  proof: string;
+  proof: string | any;
 }
 
 export interface IVerifyParams {
@@ -49,7 +49,81 @@ export interface IVerifyParams {
   max_age?: number;
 }
 
-function decodeProof(encodedProof: string) {
+export function decodeProof(proof: string | any) {
+  // Check if the proof is already in the expected format (a 2D array)
+  if (typeof proof !== 'string') {
+    try {
+      const formattedProof = tryParsePreDecodedProof(proof);
+      if (formattedProof) {
+        return formattedProof;
+      }
+    } catch (error) {
+      logger.error("Error processing pre-decoded proof", { error });
+      // If there's an error processing the pre-decoded proof, fall through to try decoding it
+    }
+  }
+
+  // Original decoding logic for string proofs
+  return decodeAbiEncodedProof(proof);
+}
+
+/**
+ * Attempts to parse a pre-decoded proof in the form of a 2D array
+ * @param proofArray The pre-decoded proof array
+ * @returns The formatted proof array or null if the input is not in the expected format
+ */
+function tryParsePreDecodedProof(proofArray: any): any[] | null {
+  // Validate the structure of the array
+  if (
+    !Array.isArray(proofArray) ||
+    proofArray.length !== 3 ||
+    !Array.isArray(proofArray[0]) || proofArray[0].length !== 2 ||
+    !Array.isArray(proofArray[1]) || proofArray[1].length !== 2 ||
+    !Array.isArray(proofArray[1][0]) || proofArray[1][0].length !== 2 ||
+    !Array.isArray(proofArray[1][1]) || proofArray[1][1].length !== 2 ||
+    !Array.isArray(proofArray[2]) || proofArray[2].length !== 2
+  ) {
+    return null;
+  }
+
+  // Convert all elements to hex strings if they aren't already
+  return [
+    [
+      ensureHexString(proofArray[0][0]),
+      ensureHexString(proofArray[0][1])
+    ],
+    [
+      [
+        ensureHexString(proofArray[1][0][0]),
+        ensureHexString(proofArray[1][0][1])
+      ],
+      [
+        ensureHexString(proofArray[1][1][0]),
+        ensureHexString(proofArray[1][1][1])
+      ]
+    ],
+    [
+      ensureHexString(proofArray[2][0]),
+      ensureHexString(proofArray[2][1])
+    ]
+  ];
+}
+
+/**
+ * Ensures a value is a hex string
+ * @param value The value to convert to a hex string
+ * @returns The hex string representation of the value
+ */
+function ensureHexString(value: any): string {
+  return typeof value === 'string' ? value : toBeHex(BigInt(value));
+}
+
+/**
+ * Decodes an ABI-encoded proof
+ * @param encodedProof The ABI-encoded proof
+ * @returns The decoded proof array
+ */
+function decodeAbiEncodedProof(encodedProof: string): any[] {
   const binArray = AbiCoder.defaultAbiCoder().decode(
     ["uint256[8]"],
     encodedProof,
@@ -68,6 +142,20 @@ function decodeProof(encodedProof: string) {
     ],
     [hexArray[6], hexArray[7]],
   ];
+}
+
+/**
+ * Decodes a parameter to a hex string
+ * @param value The value to decode
+ * @returns The decoded hex string
+ */
+function decodeToHexString(value: string): string {
+  return toBeHex(
+    AbiCoder.defaultAbiCoder().decode(
+      ["uint256"],
+      `0x${value.slice(2).padStart(64, "0")}`,
+    )[0],
+  );
 }
 
 /**
@@ -90,7 +178,7 @@ export const parseProofInputs = (params: IInputParams) => {
     return {
       error: {
         message:
-          "This attribute is improperly formatted. Expected an ABI-encoded uint256[8].",
+          "This attribute is improperly formatted. Expected either an ABI-encoded uint256[8] or a pre-decoded 2D array in the correct format.",
         code: "invalid_format",
         statusCode: 400,
         attribute: "proof",
@@ -99,12 +187,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    nullifier_hash = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.nullifier_hash.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    nullifier_hash = decodeToHexString(params.nullifier_hash);
   } catch (error) {
     logger.error("Error create nullifier hash", { error });
     return {
@@ -119,12 +202,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    merkle_root = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.merkle_root.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    merkle_root = decodeToHexString(params.merkle_root);
   } catch (error) {
     logger.error("Error create merkle root", { error });
     return {
@@ -139,12 +217,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    external_nullifier = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.external_nullifier.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    external_nullifier = decodeToHexString(params.external_nullifier);
   } catch (error) {
     logger.error("Error create external nullifier", { error });
     return {
@@ -159,12 +232,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    signal_hash = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    signal_hash = decodeToHexString(params.signal_hash);
   } catch (error) {
     logger.error("Error create signal hash", { error });
     return {
