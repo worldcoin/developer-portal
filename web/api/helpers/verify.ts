@@ -72,10 +72,25 @@ const proofSchema = yup
   });
 
 export function decodeProof(proof: string) {
-  // Check if the proof is a JSON-encoded array
-  if (proof.startsWith("[") && proof.endsWith("]")) {
+  // Handle the case where the proof might be a JSON string with escaped quotes
+  let cleanedProof = proof;
+
+  // If the proof contains escaped quotes, unescape them
+  if (proof.includes('\\"')) {
     try {
-      const parsedProof = JSON.parse(proof);
+      // Try to unescape the JSON string
+      cleanedProof = JSON.parse(`"${proof.replace(/^"|"$/g, "")}"`);
+    } catch (error) {
+      logger.debug("Failed to unescape proof string", { error });
+      // If unescaping fails, continue with the original proof
+      cleanedProof = proof;
+    }
+  }
+
+  // Check if the proof is a JSON-encoded array
+  if (cleanedProof.startsWith("[") && cleanedProof.endsWith("]")) {
+    try {
+      const parsedProof = JSON.parse(cleanedProof);
       const formattedProof = tryParsePreDecodedProof(parsedProof);
       if (formattedProof) {
         return formattedProof;
@@ -87,7 +102,7 @@ export function decodeProof(proof: string) {
   }
 
   // Original decoding logic for ABI-encoded proofs
-  return decodeAbiEncodedProof(proof);
+  return decodeAbiEncodedProof(cleanedProof);
 }
 
 /**
