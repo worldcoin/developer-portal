@@ -4,6 +4,7 @@ import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
+import * as yup from "yup";
 
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
@@ -49,6 +50,27 @@ export interface IVerifyParams {
   max_age?: number;
 }
 
+/**
+ * Define a Yup schema for the proof structure
+ */
+const proofSchema = yup
+  .array()
+  .length(3)
+  .test("is-valid-proof-structure", "Invalid proof structure", (value) => {
+    if (!value) return false;
+
+    // Check first level [a, b]
+    if (!Array.isArray(value[0]) || value[0].length !== 2) return false;
+
+    // Check second level [[c, d], [e, f]]
+    if (!Array.isArray(value[1]) || value[1].length !== 2) return false;
+    if (!Array.isArray(value[1][0]) || value[1][0].length !== 2) return false;
+    if (!Array.isArray(value[1][1]) || value[1][1].length !== 2) return false;
+
+    // Check third level [g, h]
+    return !(!Array.isArray(value[2]) || value[2].length !== 2);
+  });
+
 export function decodeProof(proof: string) {
   // Check if the proof is a JSON-encoded array
   if (proof.startsWith("[") && proof.endsWith("]")) {
@@ -74,39 +96,31 @@ export function decodeProof(proof: string) {
  * @returns The formatted proof array or null if the input is not in the expected format
  */
 function tryParsePreDecodedProof(proofArray: any): any[] | null {
-  // Validate the structure of the array
-  if (
-    !Array.isArray(proofArray) ||
-    proofArray.length !== 3 ||
-    !Array.isArray(proofArray[0]) ||
-    proofArray[0].length !== 2 ||
-    !Array.isArray(proofArray[1]) ||
-    proofArray[1].length !== 2 ||
-    !Array.isArray(proofArray[1][0]) ||
-    proofArray[1][0].length !== 2 ||
-    !Array.isArray(proofArray[1][1]) ||
-    proofArray[1][1].length !== 2 ||
-    !Array.isArray(proofArray[2]) ||
-    proofArray[2].length !== 2
-  ) {
+  try {
+    const isValid = proofSchema.validateSync(proofArray, { strict: true });
+    if (!isValid) {
+      return null;
+    }
+
+    // Convert all elements to hex strings if they aren't already
+    return [
+      [ensureHexString(proofArray[0][0]), ensureHexString(proofArray[0][1])],
+      [
+        [
+          ensureHexString(proofArray[1][0][0]),
+          ensureHexString(proofArray[1][0][1]),
+        ],
+        [
+          ensureHexString(proofArray[1][1][0]),
+          ensureHexString(proofArray[1][1][1]),
+        ],
+      ],
+      [ensureHexString(proofArray[2][0]), ensureHexString(proofArray[2][1])],
+    ];
+  } catch (error) {
+    logger.debug("Invalid proof structure", { error });
     return null;
   }
-
-  // Convert all elements to hex strings if they aren't already
-  return [
-    [ensureHexString(proofArray[0][0]), ensureHexString(proofArray[0][1])],
-    [
-      [
-        ensureHexString(proofArray[1][0][0]),
-        ensureHexString(proofArray[1][0][1]),
-      ],
-      [
-        ensureHexString(proofArray[1][1][0]),
-        ensureHexString(proofArray[1][1][1]),
-      ],
-    ],
-    [ensureHexString(proofArray[2][0]), ensureHexString(proofArray[2][1])],
-  ];
 }
 
 /**
