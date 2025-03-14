@@ -84,8 +84,8 @@ function convertToNestedFormat(flatProof: string[]): NestedProof {
   return [
     [flatProof[0], flatProof[1]],
     [
-      [flatProof[3], flatProof[2]],
-      [flatProof[5], flatProof[4]],
+      [flatProof[2], flatProof[3]],
+      [flatProof[4], flatProof[5]],
     ],
     [flatProof[6], flatProof[7]],
   ];
