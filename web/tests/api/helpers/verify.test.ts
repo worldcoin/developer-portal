@@ -20,7 +20,7 @@ describe("verify helpers", () => {
     "0x13046d1af7e62f5b48f0abbd7bf90a0dbbed2eedcde362de280f0582069364ff180406ee4160f3649944d083c809a91f0e352dfcb6d4afba8bb35140c9dfc2171c3e646044e3af21aaf9d5c1674e941b1061e5512b1072f9ab7d880851df425c1c8f7a1d556092d201a7678244fddaef11287edd7aa5ea27e126e457227977b02156fdfc9d31e5b308b9728a9753333bc2c7e560087584fb5efbfae18e901818262f99affb31662d5bc0fdfdd1189bd54c662da2653538d4973c3f042e002ab20ad3756c84904a910c8663e775433923c18ef010843859b71e82af7e1856f14716acf42e25976ba0a7cb86ee58ee2ff8471a6563f540831bbb22d0a373087d1f";
 
   // Sample pre-decoded proof
-  const preDecodedProof: [
+  const preDecodedProofArray: [
     [string, string],
     [[string, string], [string, string]],
     [string, string],
@@ -44,9 +44,11 @@ describe("verify helpers", () => {
       "0x6acf42e25976ba0a7cb86ee58ee2ff8471a6563f540831bbb22d0a373087d1f",
     ],
   ];
+  // Convert to JSON string for the new implementation
+  const preDecodedProof = JSON.stringify(preDecodedProofArray);
 
   // Sample pre-decoded proof with numeric values
-  const preDecodedProofWithNumbers: [
+  const preDecodedProofWithNumbersArray: [
     [string | bigint, string | bigint],
     [[string | number, string | number], [string, string]],
     [string, string],
@@ -71,11 +73,40 @@ describe("verify helpers", () => {
     ],
   ];
 
+  // Create a copy of the array with BigInt values converted to strings for JSON serialization
+  const preDecodedProofWithNumbersForJSON = [
+    [
+      preDecodedProofWithNumbersArray[0][0],
+      preDecodedProofWithNumbersArray[0][1].toString(),
+    ],
+    [
+      [
+        preDecodedProofWithNumbersArray[1][0][0],
+        preDecodedProofWithNumbersArray[1][0][1].toString(),
+      ],
+      [
+        preDecodedProofWithNumbersArray[1][1][0],
+        preDecodedProofWithNumbersArray[1][1][1],
+      ],
+    ],
+    [
+      preDecodedProofWithNumbersArray[2][0],
+      preDecodedProofWithNumbersArray[2][1],
+    ],
+  ];
+
+  // Convert to JSON string for the new implementation
+  const preDecodedProofWithNumbers = JSON.stringify(
+    preDecodedProofWithNumbersForJSON,
+  );
+
   // Sample invalid pre-decoded proof (wrong structure)
-  const invalidPreDecodedProof: [string[], string[]] = [
+  const invalidPreDecodedProofArray: [string[], string[]] = [
     ["0x123", "0x456"],
     ["0x789", "0xabc"],
   ];
+  // Convert to JSON string for the new implementation
+  const invalidPreDecodedProof = JSON.stringify(invalidPreDecodedProofArray);
 
   describe("decodeProof", () => {
     it("should decode an ABI-encoded proof correctly", () => {
@@ -100,7 +131,7 @@ describe("verify helpers", () => {
       expect(typeof result[2][1]).toBe("string");
     });
 
-    it("should handle a pre-decoded proof correctly", () => {
+    it("should handle a JSON-encoded pre-decoded proof correctly", () => {
       const result = decodeProof(preDecodedProof);
 
       // Verify the structure of the result
@@ -112,31 +143,31 @@ describe("verify helpers", () => {
       expect(result[2]).toHaveLength(2);
 
       // Verify all elements are strings and match the input
-      expect(result[0][0]).toBe(preDecodedProof[0][0]);
-      expect(result[0][1]).toBe(preDecodedProof[0][1]);
-      expect(result[1][0][0]).toBe(preDecodedProof[1][0][0]);
-      expect(result[1][0][1]).toBe(preDecodedProof[1][0][1]);
-      expect(result[1][1][0]).toBe(preDecodedProof[1][1][0]);
-      expect(result[1][1][1]).toBe(preDecodedProof[1][1][1]);
-      expect(result[2][0]).toBe(preDecodedProof[2][0]);
-      expect(result[2][1]).toBe(preDecodedProof[2][1]);
+      expect(result[0][0]).toBe(preDecodedProofArray[0][0]);
+      expect(result[0][1]).toBe(preDecodedProofArray[0][1]);
+      expect(result[1][0][0]).toBe(preDecodedProofArray[1][0][0]);
+      expect(result[1][0][1]).toBe(preDecodedProofArray[1][0][1]);
+      expect(result[1][1][0]).toBe(preDecodedProofArray[1][1][0]);
+      expect(result[1][1][1]).toBe(preDecodedProofArray[1][1][1]);
+      expect(result[2][0]).toBe(preDecodedProofArray[2][0]);
+      expect(result[2][1]).toBe(preDecodedProofArray[2][1]);
     });
 
-    it("should convert numeric values to hex strings in pre-decoded proofs", () => {
+    it("should convert numeric values to hex strings in JSON-encoded pre-decoded proofs", () => {
       const result = decodeProof(preDecodedProofWithNumbers);
 
       // Verify the structure of the result
       expect(result).toHaveLength(3);
 
       // Verify numeric values are converted to hex strings
-      expect(result[0][0]).toBe(preDecodedProofWithNumbers[0][0]);
-      expect(result[0][1]).toBe(toBeHex(123456789n));
-      expect(result[1][0][0]).toBe(preDecodedProofWithNumbers[1][0][0]);
-      expect(result[1][0][1]).toBe(toBeHex(BigInt(987654321)));
-      expect(result[1][1][0]).toBe(preDecodedProofWithNumbers[1][1][0]);
-      expect(result[1][1][1]).toBe(preDecodedProofWithNumbers[1][1][1]);
-      expect(result[2][0]).toBe(preDecodedProofWithNumbers[2][0]);
-      expect(result[2][1]).toBe(preDecodedProofWithNumbers[2][1]);
+      expect(result[0][0]).toBe(preDecodedProofWithNumbersArray[0][0]);
+      expect(result[0][1]).toBe(toBeHex(BigInt("123456789")));
+      expect(result[1][0][0]).toBe(preDecodedProofWithNumbersArray[1][0][0]);
+      expect(result[1][0][1]).toBe(toBeHex(BigInt("987654321")));
+      expect(result[1][1][0]).toBe(preDecodedProofWithNumbersArray[1][1][0]);
+      expect(result[1][1][1]).toBe(preDecodedProofWithNumbersArray[1][1][1]);
+      expect(result[2][0]).toBe(preDecodedProofWithNumbersArray[2][0]);
+      expect(result[2][1]).toBe(preDecodedProofWithNumbersArray[2][1]);
     });
 
     it("should throw an error for invalid ABI-encoded proofs", () => {
@@ -145,7 +176,7 @@ describe("verify helpers", () => {
       }).toThrow();
     });
 
-    it("should fall back to ABI decoding for invalid pre-decoded proofs", () => {
+    it("should fall back to ABI decoding for invalid JSON-encoded pre-decoded proofs", () => {
       // This should throw because the invalid pre-decoded proof doesn't match the expected structure
       // and it's not a valid ABI-encoded proof either
       expect(() => {
@@ -179,7 +210,7 @@ describe("verify helpers", () => {
       expect(result.params?.signal_hash).toBeDefined();
     });
 
-    it("should parse valid input params with a pre-decoded proof", () => {
+    it("should parse valid input params with a JSON-encoded pre-decoded proof", () => {
       const result = parseProofInputs({
         ...validInputParams,
         proof: preDecodedProof,

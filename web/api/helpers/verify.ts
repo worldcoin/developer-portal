@@ -40,7 +40,7 @@ export interface IInputParams {
   signal_hash: string;
   nullifier_hash: string;
   external_nullifier: string;
-  proof: string | any;
+  proof: string;
 }
 
 export interface IVerifyParams {
@@ -49,21 +49,22 @@ export interface IVerifyParams {
   max_age?: number;
 }
 
-export function decodeProof(proof: string | any) {
-  // Check if the proof is already in the expected format (a 2D array)
-  if (typeof proof !== 'string') {
+export function decodeProof(proof: string) {
+  // Check if the proof is a JSON-encoded array
+  if (proof.startsWith("[") && proof.endsWith("]")) {
     try {
-      const formattedProof = tryParsePreDecodedProof(proof);
+      const parsedProof = JSON.parse(proof);
+      const formattedProof = tryParsePreDecodedProof(parsedProof);
       if (formattedProof) {
         return formattedProof;
       }
     } catch (error) {
-      logger.error("Error processing pre-decoded proof", { error });
-      // If there's an error processing the pre-decoded proof, fall through to try decoding it
+      logger.error("Error processing JSON-encoded proof", { error });
+      // If there's an error processing the JSON-encoded proof, fall through to try decoding it as ABI
     }
   }
 
-  // Original decoding logic for string proofs
+  // Original decoding logic for ABI-encoded proofs
   return decodeAbiEncodedProof(proof);
 }
 
@@ -77,35 +78,34 @@ function tryParsePreDecodedProof(proofArray: any): any[] | null {
   if (
     !Array.isArray(proofArray) ||
     proofArray.length !== 3 ||
-    !Array.isArray(proofArray[0]) || proofArray[0].length !== 2 ||
-    !Array.isArray(proofArray[1]) || proofArray[1].length !== 2 ||
-    !Array.isArray(proofArray[1][0]) || proofArray[1][0].length !== 2 ||
-    !Array.isArray(proofArray[1][1]) || proofArray[1][1].length !== 2 ||
-    !Array.isArray(proofArray[2]) || proofArray[2].length !== 2
+    !Array.isArray(proofArray[0]) ||
+    proofArray[0].length !== 2 ||
+    !Array.isArray(proofArray[1]) ||
+    proofArray[1].length !== 2 ||
+    !Array.isArray(proofArray[1][0]) ||
+    proofArray[1][0].length !== 2 ||
+    !Array.isArray(proofArray[1][1]) ||
+    proofArray[1][1].length !== 2 ||
+    !Array.isArray(proofArray[2]) ||
+    proofArray[2].length !== 2
   ) {
     return null;
   }
 
   // Convert all elements to hex strings if they aren't already
   return [
-    [
-      ensureHexString(proofArray[0][0]),
-      ensureHexString(proofArray[0][1])
-    ],
+    [ensureHexString(proofArray[0][0]), ensureHexString(proofArray[0][1])],
     [
       [
         ensureHexString(proofArray[1][0][0]),
-        ensureHexString(proofArray[1][0][1])
+        ensureHexString(proofArray[1][0][1]),
       ],
       [
         ensureHexString(proofArray[1][1][0]),
-        ensureHexString(proofArray[1][1][1])
-      ]
+        ensureHexString(proofArray[1][1][1]),
+      ],
     ],
-    [
-      ensureHexString(proofArray[2][0]),
-      ensureHexString(proofArray[2][1])
-    ]
+    [ensureHexString(proofArray[2][0]), ensureHexString(proofArray[2][1])],
   ];
 }
 
@@ -115,7 +115,19 @@ function tryParsePreDecodedProof(proofArray: any): any[] | null {
  * @returns The hex string representation of the value
  */
 function ensureHexString(value: any): string {
-  return typeof value === 'string' ? value : toBeHex(BigInt(value));
+  if (typeof value === "string") {
+    // If it's already a hex string, return it
+    if (value.startsWith("0x")) {
+      return value;
+    }
+    // If it's a string representation of a number, convert it to a hex string
+    if (/^\d+$/.test(value)) {
+      return toBeHex(BigInt(value));
+    }
+    return value;
+  }
+  // If it's a number or BigInt, convert it to a hex string
+  return toBeHex(BigInt(value));
 }
 
 /**
@@ -178,7 +190,7 @@ export const parseProofInputs = (params: IInputParams) => {
     return {
       error: {
         message:
-          "This attribute is improperly formatted. Expected either an ABI-encoded uint256[8] or a pre-decoded 2D array in the correct format.",
+          "This attribute is improperly formatted. Expected either an ABI-encoded uint256[8] string or a JSON-encoded array string in the correct format.",
         code: "invalid_format",
         statusCode: 400,
         attribute: "proof",
