@@ -6,6 +6,13 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
+// Define the nested proof format type
+type NestedProof = [
+  [string, string],
+  [[string, string], [string, string]],
+  [string, string],
+];
+
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
   // code: error code to return to the client
@@ -58,20 +65,33 @@ const proofSchema = yup
   .length(3)
   .test("is-valid-proof-structure", "Invalid proof structure", (value) => {
     if (!value) return false;
-
     // Check first level [a, b]
     if (!Array.isArray(value[0]) || value[0].length !== 2) return false;
-
     // Check second level [[c, d], [e, f]]
     if (!Array.isArray(value[1]) || value[1].length !== 2) return false;
     if (!Array.isArray(value[1][0]) || value[1][0].length !== 2) return false;
     if (!Array.isArray(value[1][1]) || value[1][1].length !== 2) return false;
-
     // Check third level [g, h]
     return !(!Array.isArray(value[2]) || value[2].length !== 2);
   });
 
-export function decodeProof(proof: string) {
+/**
+ * Converts a flat Semaphore proof array to the nested format expected by the tests
+ * @param flatProof The flat Semaphore proof array (8 elements)
+ * @returns The nested proof format (3 elements)
+ */
+function convertToNestedFormat(flatProof: string[]): NestedProof {
+  return [
+    [flatProof[0], flatProof[1]],
+    [
+      [flatProof[2], flatProof[3]],
+      [flatProof[4], flatProof[5]],
+    ],
+    [flatProof[6], flatProof[7]],
+  ];
+}
+
+export function decodeProof(proof: string): NestedProof {
   // Handle the case where the proof might be a JSON string with escaped quotes
   let cleanedProof = proof;
 
@@ -87,13 +107,34 @@ export function decodeProof(proof: string) {
     }
   }
 
-  // Check if the proof is a JSON-encoded array
+  // Check if the proof is a JSON-encoded nested array
   if (cleanedProof.startsWith("[") && cleanedProof.endsWith("]")) {
     try {
-      const parsedProof = JSON.parse(cleanedProof);
-      const formattedProof = tryParsePreDecodedProof(parsedProof);
-      if (formattedProof) {
-        return formattedProof;
+      // Try to parse the JSON
+      const parsedProof = JSON.parse(cleanedProof) as any[];
+
+      // Validate using the Yup schema
+      if (proofSchema.isValidSync(parsedProof)) {
+        return [
+          [
+            ensureHexString(parsedProof[0][0]),
+            ensureHexString(parsedProof[0][1]),
+          ],
+          [
+            [
+              ensureHexString(parsedProof[1][0][0]),
+              ensureHexString(parsedProof[1][0][1]),
+            ],
+            [
+              ensureHexString(parsedProof[1][1][0]),
+              ensureHexString(parsedProof[1][1][1]),
+            ],
+          ],
+          [
+            ensureHexString(parsedProof[2][0]),
+            ensureHexString(parsedProof[2][1]),
+          ],
+        ];
       }
     } catch (error) {
       logger.error("Error processing JSON-encoded proof", { error });
@@ -101,40 +142,13 @@ export function decodeProof(proof: string) {
     }
   }
 
-  // Original decoding logic for ABI-encoded proofs
-  return decodeAbiEncodedProof(cleanedProof);
-}
-
-/**
- * Attempts to parse a pre-decoded proof in the form of a 2D array
- * @param proofArray The pre-decoded proof array
- * @returns The formatted proof array or null if the input is not in the expected format
- */
-function tryParsePreDecodedProof(proofArray: any): any[] | null {
+  // If we couldn't parse it as a nested array JSON, try decoding it as an ABI-encoded proof
   try {
-    const isValid = proofSchema.validateSync(proofArray, { strict: true });
-    if (!isValid) {
-      return null;
-    }
-
-    // Convert all elements to hex strings if they aren't already
-    return [
-      [ensureHexString(proofArray[0][0]), ensureHexString(proofArray[0][1])],
-      [
-        [
-          ensureHexString(proofArray[1][0][0]),
-          ensureHexString(proofArray[1][0][1]),
-        ],
-        [
-          ensureHexString(proofArray[1][1][0]),
-          ensureHexString(proofArray[1][1][1]),
-        ],
-      ],
-      [ensureHexString(proofArray[2][0]), ensureHexString(proofArray[2][1])],
-    ];
+    const flatProof = decodeAbiEncodedProof(cleanedProof);
+    return convertToNestedFormat(flatProof);
   } catch (error) {
-    logger.debug("Invalid proof structure", { error });
-    return null;
+    logger.error("Error decoding ABI-encoded proof", { error });
+    throw new Error("Invalid proof format");
   }
 }
 
@@ -164,25 +178,13 @@ function ensureHexString(value: any): string {
  * @param encodedProof The ABI-encoded proof
  * @returns The decoded proof array
  */
-function decodeAbiEncodedProof(encodedProof: string): any[] {
+function decodeAbiEncodedProof(encodedProof: string): string[] {
   const binArray = AbiCoder.defaultAbiCoder().decode(
     ["uint256[8]"],
     encodedProof,
   )[0] as BigInt[];
-  const hexArray = binArray.map((item) => toBeHex(item as bigint));
 
-  if (hexArray.length !== 8) {
-    throw new Error("Input array must have exactly 8 elements.");
-  }
-
-  return [
-    [hexArray[0], hexArray[1]],
-    [
-      [hexArray[2], hexArray[3]],
-      [hexArray[4], hexArray[5]],
-    ],
-    [hexArray[6], hexArray[7]],
-  ];
+  return binArray.map((item) => toBeHex(item as bigint));
 }
 
 /**
