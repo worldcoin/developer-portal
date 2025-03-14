@@ -9,6 +9,7 @@ export type UploadImageQueryVariables = Types.Exact<{
   image_type: Types.Scalars["String"]["input"];
   content_type_ending: Types.Scalars["String"]["input"];
   team_id: Types.Scalars["String"]["input"];
+  locale?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type UploadImageQuery = {
@@ -26,12 +27,14 @@ export const UploadImageDocument = gql`
     $image_type: String!
     $content_type_ending: String!
     $team_id: String!
+    $locale: String
   ) {
     upload_image(
       app_id: $app_id
       image_type: $image_type
       content_type_ending: $content_type_ending
       team_id: $team_id
+      locale: $locale
     ) {
       url
       stringifiedFields
@@ -55,6 +58,7 @@ export const UploadImageDocument = gql`
  *      image_type: // value for 'image_type'
  *      content_type_ending: // value for 'content_type_ending'
  *      team_id: // value for 'team_id'
+ *      locale: // value for 'locale'
  *   },
  * });
  */
