@@ -4,6 +4,14 @@ import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
+import * as yup from "yup";
+
+// Define the nested proof format type
+type NestedProof = [
+  [string, string],
+  [[string, string], [string, string]],
+  [string, string],
+];
 
 const KNOWN_ERROR_CODES = [
   // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
@@ -49,25 +57,148 @@ export interface IVerifyParams {
   max_age?: number;
 }
 
-function decodeProof(encodedProof: string) {
+/**
+ * Define a Yup schema for the proof structure
+ */
+const proofSchema = yup
+  .array()
+  .length(3)
+  .test("is-valid-proof-structure", "Invalid proof structure", (value) => {
+    if (!value) return false;
+    // Check first level [a, b]
+    if (!Array.isArray(value[0]) || value[0].length !== 2) return false;
+    // Check second level [[c, d], [e, f]]
+    if (!Array.isArray(value[1]) || value[1].length !== 2) return false;
+    if (!Array.isArray(value[1][0]) || value[1][0].length !== 2) return false;
+    if (!Array.isArray(value[1][1]) || value[1][1].length !== 2) return false;
+    // Check third level [g, h]
+    return !(!Array.isArray(value[2]) || value[2].length !== 2);
+  });
+
+/**
+ * Converts a flat Semaphore proof array to the nested format expected by the tests
+ * @param flatProof The flat Semaphore proof array (8 elements)
+ * @returns The nested proof format (3 elements)
+ */
+function convertToNestedFormat(flatProof: string[]): NestedProof {
+  return [
+    [flatProof[0], flatProof[1]],
+    [
+      [flatProof[2], flatProof[3]],
+      [flatProof[4], flatProof[5]],
+    ],
+    [flatProof[6], flatProof[7]],
+  ];
+}
+
+export function decodeProof(proof: string): NestedProof {
+  // Handle the case where the proof might be a JSON string with escaped quotes
+  let cleanedProof = proof;
+
+  // If the proof contains escaped quotes, unescape them
+  if (proof.includes('\\"')) {
+    try {
+      // Try to unescape the JSON string
+      cleanedProof = JSON.parse(`"${proof.replace(/^"|"$/g, "")}"`);
+    } catch (error) {
+      logger.debug("Failed to unescape proof string", { error });
+      // If unescaping fails, continue with the original proof
+      cleanedProof = proof;
+    }
+  }
+
+  // Check if the proof is a JSON-encoded nested array
+  if (cleanedProof.startsWith("[") && cleanedProof.endsWith("]")) {
+    try {
+      // Try to parse the JSON
+      const parsedProof = JSON.parse(cleanedProof) as any[];
+
+      // Validate using the Yup schema
+      if (proofSchema.isValidSync(parsedProof)) {
+        return [
+          [
+            ensureHexString(parsedProof[0][0]),
+            ensureHexString(parsedProof[0][1]),
+          ],
+          [
+            [
+              ensureHexString(parsedProof[1][0][0]),
+              ensureHexString(parsedProof[1][0][1]),
+            ],
+            [
+              ensureHexString(parsedProof[1][1][0]),
+              ensureHexString(parsedProof[1][1][1]),
+            ],
+          ],
+          [
+            ensureHexString(parsedProof[2][0]),
+            ensureHexString(parsedProof[2][1]),
+          ],
+        ];
+      }
+    } catch (error) {
+      logger.error("Error processing JSON-encoded proof", { error });
+      // If there's an error processing the JSON-encoded proof, fall through to try decoding it as ABI
+    }
+  }
+
+  // If we couldn't parse it as a nested array JSON, try decoding it as an ABI-encoded proof
+  try {
+    const flatProof = decodeAbiEncodedProof(cleanedProof);
+    return convertToNestedFormat(flatProof);
+  } catch (error) {
+    logger.error("Error decoding ABI-encoded proof", { error });
+    throw new Error("Invalid proof format");
+  }
+}
+
+/**
+ * Ensures a value is a hex string
+ * @param value The value to convert to a hex string
+ * @returns The hex string representation of the value
+ */
+function ensureHexString(value: any): string {
+  if (typeof value === "string") {
+    // If it's already a hex string, return it
+    if (value.startsWith("0x")) {
+      return value;
+    }
+    // If it's a string representation of a number, convert it to a hex string
+    if (/^\d+$/.test(value)) {
+      return toBeHex(BigInt(value));
+    }
+    return value;
+  }
+  // If it's a number or BigInt, convert it to a hex string
+  return toBeHex(BigInt(value));
+}
+
+/**
+ * Decodes an ABI-encoded proof
+ * @param encodedProof The ABI-encoded proof
+ * @returns The decoded proof array
+ */
+function decodeAbiEncodedProof(encodedProof: string): string[] {
   const binArray = AbiCoder.defaultAbiCoder().decode(
     ["uint256[8]"],
     encodedProof,
   )[0] as BigInt[];
-  const hexArray = binArray.map((item) => toBeHex(item as bigint));
 
-  if (hexArray.length !== 8) {
-    throw new Error("Input array must have exactly 8 elements.");
-  }
+  return binArray.map((item) => toBeHex(item as bigint));
+}
 
-  return [
-    [hexArray[0], hexArray[1]],
-    [
-      [hexArray[2], hexArray[3]],
-      [hexArray[4], hexArray[5]],
-    ],
-    [hexArray[6], hexArray[7]],
-  ];
+/**
+ * Decodes a parameter to a hex string
+ * @param value The value to decode
+ * @returns The decoded hex string
+ */
+function decodeToHexString(value: string): string {
+  return toBeHex(
+    AbiCoder.defaultAbiCoder().decode(
+      ["uint256"],
+      `0x${value.slice(2).padStart(64, "0")}`,
+    )[0],
+  );
 }
 
 /**
@@ -90,7 +221,7 @@ export const parseProofInputs = (params: IInputParams) => {
     return {
       error: {
         message:
-          "This attribute is improperly formatted. Expected an ABI-encoded uint256[8].",
+          "This attribute is improperly formatted. Expected either an ABI-encoded uint256[8] string or a JSON-encoded array string in the correct format.",
         code: "invalid_format",
         statusCode: 400,
         attribute: "proof",
@@ -99,12 +230,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    nullifier_hash = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.nullifier_hash.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    nullifier_hash = decodeToHexString(params.nullifier_hash);
   } catch (error) {
     logger.error("Error create nullifier hash", { error });
     return {
@@ -119,12 +245,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    merkle_root = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.merkle_root.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    merkle_root = decodeToHexString(params.merkle_root);
   } catch (error) {
     logger.error("Error create merkle root", { error });
     return {
@@ -139,12 +260,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    external_nullifier = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.external_nullifier.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    external_nullifier = decodeToHexString(params.external_nullifier);
   } catch (error) {
     logger.error("Error create external nullifier", { error });
     return {
@@ -159,12 +275,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    signal_hash = toBeHex(
-      AbiCoder.defaultAbiCoder().decode(
-        ["uint256"],
-        `0x${params.signal_hash.slice(2).padStart(64, "0")}`,
-      )[0],
-    );
+    signal_hash = decodeToHexString(params.signal_hash);
   } catch (error) {
     logger.error("Error create signal hash", { error });
     return {

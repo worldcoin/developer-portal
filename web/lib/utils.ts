@@ -267,6 +267,9 @@ export const createTransactionHashUrl = (
   if (network === "optimism") {
     return `https://optimistic.etherscan.io/tx/${transactionHash}`;
   }
+  if (network === "worldchain") {
+    return `https://worldscan.org/tx/${transactionHash}`;
+  }
   return "Invalid network";
 };
 
@@ -323,4 +326,11 @@ export const checkIfPartnerTeam = (teamId: string) => {
     return true;
   }
   return envTeamIds.includes(teamId);
+};
+
+/**
+ * Checks if the app is not in a production environment
+ */
+export const checkIfNotProduction = (): boolean => {
+  return process.env.NEXT_PUBLIC_APP_ENV !== "production";
 };
