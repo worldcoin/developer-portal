@@ -148,7 +148,7 @@ export async function GET(
   );
 
   if (!isCategoryValid) {
-    return NextResponse.json({ error: "Invalid category" }, { status: 500 });
+    return NextResponse.json({ error: "Invalid category" }, { status: 404 });
   }
 
   return NextResponse.json(
