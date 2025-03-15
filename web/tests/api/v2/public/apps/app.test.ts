@@ -680,7 +680,7 @@ describe("/api/public/app/[app_id]", () => {
     });
   });
   describe("response integrity", () => {
-    test("should return 500 when category is invalid", async () => {
+    test("should return 404 when category is invalid", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -734,7 +734,7 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
       const response = await GET(request, { params: { app_id: "test-app" } });
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(404);
       const data = await response.json();
       expect(data).toEqual({ error: "Invalid category" });
     });
