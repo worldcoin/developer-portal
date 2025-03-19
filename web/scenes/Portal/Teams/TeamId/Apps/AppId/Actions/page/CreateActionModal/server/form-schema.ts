@@ -3,7 +3,7 @@ import {
   allowedCommonCharactersRegex,
   allowedTitleCharactersRegex,
 } from "@/lib/schema";
-import { validateWebhookUrl } from "@/lib/utils";
+import { validateUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 // Check if not in production
@@ -42,8 +42,8 @@ export const createActionSchema = (context: ActionContext) => {
         .string()
         .optional()
         .test("is-url", "Must be a valid URL", (value) => {
-          if (!value) return true;
-          return validateWebhookUrl(value, context.is_not_production);
+          if (!value || context.is_not_production) return true;
+          return validateUrl(value, context.is_not_production);
         }),
       webhook_pem: yup
         .string()

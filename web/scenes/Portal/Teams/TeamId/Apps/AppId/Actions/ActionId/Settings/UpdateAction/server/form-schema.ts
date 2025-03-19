@@ -1,5 +1,5 @@
 import { validatePublicKey } from "@/lib/crypto.server";
-import { validateWebhookUrl } from "@/lib/utils";
+import { validateUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 export type ActionContext = {
@@ -24,8 +24,8 @@ export const createUpdateActionSchema = (context: ActionContext) => {
         .string()
         .optional()
         .test("is-url", "Must be a valid URL", (value) => {
-          if (!value) return true;
-          return validateWebhookUrl(value, context.is_not_production);
+          if (!value || context.is_not_production) return true;
+          return validateUrl(value, context.is_not_production);
         }),
       webhook_pem: yup
         .string()

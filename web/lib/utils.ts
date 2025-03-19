@@ -70,24 +70,6 @@ export const validateUrl = (candidate: string, isStaging: boolean): boolean => {
   return localhostRegex.test(candidate);
 };
 
-export const validateWebhookUrl = (
-  candidate: string,
-  isNotProduction: boolean,
-): boolean => {
-  if (isNotProduction) {
-    return true;
-  }
-
-  let parsedUrl;
-  try {
-    parsedUrl = new URL(candidate);
-  } catch (_) {
-    return false;
-  }
-
-  return parsedUrl.protocol === "https:";
-};
-
 /**
  * Validates the string looks like a valid email address
  * @param candidate
