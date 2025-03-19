@@ -6,7 +6,6 @@ export type ActionContext = {
   is_not_production: boolean;
 };
 
-// Create a schema factory function that accepts the context
 export const createUpdateActionSchema = (context: ActionContext) => {
   return yup
     .object({
