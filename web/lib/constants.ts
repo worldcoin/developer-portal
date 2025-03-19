@@ -140,7 +140,8 @@ export const PARTNER_TEAM_IDS = {
   staging: [
     "team_1767d2864edd0a422e0974f4a8a406e3",
     "team_3bb5ee7a81ba12e6624b21d03b4a1b2f",
-  ], // IO-Staging-Team, Test Partner
+    "team_ac9fb445581cc231c3fe25187d2ed172",
+  ], // IO-Staging-Team, Test Partner, E2E Test Team
   production: [
     "team_4e67539b4bb0f6dfabeba48793cf747d",
     "team_9b50d04b36a7aa4d2562604f67277376",

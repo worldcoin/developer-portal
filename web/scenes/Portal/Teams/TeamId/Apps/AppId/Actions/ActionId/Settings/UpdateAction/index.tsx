@@ -36,7 +36,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
   const isNotProduction = checkIfNotProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
 
   const {
     control,

@@ -44,7 +44,7 @@ export const createUpdateActionSchema = (context: ActionContext) => {
       "webhook-fields",
       "Both webhook URL and PEM must be provided or removed",
       function (values) {
-        const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
+        const { webhook_uri, webhook_pem } = values;
 
         // If both webhook fields are empty, no validation needed
         if (!webhook_uri && !webhook_pem) return true;
