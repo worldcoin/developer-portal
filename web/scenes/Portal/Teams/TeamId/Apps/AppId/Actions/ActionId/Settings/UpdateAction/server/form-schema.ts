@@ -6,7 +6,6 @@ export type ActionContext = {
   is_not_production: boolean;
 };
 
-// Create a schema factory function that accepts the context
 export const createUpdateActionSchema = (context: ActionContext) => {
   return yup
     .object({
@@ -25,7 +24,7 @@ export const createUpdateActionSchema = (context: ActionContext) => {
         .string()
         .optional()
         .test("is-url", "Must be a valid URL", (value) => {
-          if (!value) return true;
+          if (!value || context.is_not_production) return true;
           return validateUrl(value, context.is_not_production);
         }),
       webhook_pem: yup
@@ -44,7 +43,7 @@ export const createUpdateActionSchema = (context: ActionContext) => {
       "webhook-fields",
       "Both webhook URL and PEM must be provided or removed",
       function (values) {
-        const { webhook_uri, webhook_pem, app_flow_on_complete } = values;
+        const { webhook_uri, webhook_pem } = values;
 
         // If both webhook fields are empty, no validation needed
         if (!webhook_uri && !webhook_pem) return true;
