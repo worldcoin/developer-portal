@@ -225,6 +225,8 @@ export type LocalisedMetadata = {
   world_app_description: string;
   short_name: string;
   description: string;
+  hero_image_url: string;
+  showcase_img_urls?: string[] | null;
 };
 
 export type AppStoreFormattedFields = Omit<

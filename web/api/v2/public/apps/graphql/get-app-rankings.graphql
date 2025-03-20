@@ -40,6 +40,8 @@ query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
       world_app_description
       short_name
       description
+      hero_image_url
+      showcase_img_urls
     }
     app {
       team {

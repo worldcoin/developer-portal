@@ -9,24 +9,40 @@ import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../../graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../hook/use-image";
-import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
+} from "../../../graphql/client/fetch-app-metadata.generated";
+import {
+  FetchImagesDocument,
+  useFetchImagesQuery,
+} from "../../../graphql/client/fetch-images.generated";
+import { ImageValidationError, useImage } from "../../../hook/use-image";
+import {
+  unverifiedImageAtom,
+  viewModeAtom,
+} from "../../../layout/ImagesProvider";
+import {
+  FetchLocalisationDocument,
+  FetchLocalisationQuery,
+} from "../graphql/client/fetch-localisation.generated";
+import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
+import { useUpdateLocalisationHeroImageMutation } from "./graphql/client/update-localisation-hero-image.generated";
+import { useUpdateLocalisationShowcaseImagesMutation } from "./graphql/client/update-localisation-showcase-images.generated";
+import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
-import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
-import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 
 type ImageFormTypes = {
   appId: string;
   teamId: string;
+  locale: string;
   appMetadataId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  localisation?: FetchLocalisationQuery["localisations"][0];
 };
 
 const SHOWCASE_IMAGE_NAMES = [
@@ -35,8 +51,14 @@ const SHOWCASE_IMAGE_NAMES = [
   "showcase_img_3",
 ];
 
+type ImageUpdateFunctions = {
+  updateHeroImage: (heroImageUrl: string) => Promise<any>;
+  updateShowcaseImages: (showcaseImgUrls: string[]) => Promise<any>;
+};
+
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, appMetadata } = props;
+  const { appId, teamId, appMetadataId, appMetadata, locale, localisation } =
+    props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [heroImageUploading, setHeroImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
@@ -44,12 +66,154 @@ export const ImageForm = (props: ImageFormTypes) => {
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
+  const [updateLocalisationHeroImageMutation] =
+    useUpdateLocalisationHeroImageMutation();
+  const [updateLocalisationShowcaseImagesMutation] =
+    useUpdateLocalisationShowcaseImagesMutation();
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();
 
+  const isEnglishLocale = locale === "en";
+
+  const { data: imagesData, loading: isLoadingImages } = useFetchImagesQuery({
+    variables: {
+      id: appId,
+      team_id: teamId,
+      locale: locale,
+    },
+    fetchPolicy: "cache-first",
+  });
+
+  useEffect(() => {
+    if (imagesData?.unverified_images) {
+      setUnverifiedImages({
+        logo_img_url: imagesData.unverified_images.logo_img_url ?? "",
+        hero_image_url: imagesData.unverified_images.hero_image_url ?? "",
+        showcase_image_urls: imagesData.unverified_images.showcase_img_urls,
+      });
+    } else {
+      setUnverifiedImages({
+        logo_img_url: "",
+        hero_image_url: "",
+        showcase_image_urls: [],
+      });
+    }
+  }, [locale, imagesData, setUnverifiedImages]);
+
+  const updateFunctions: ImageUpdateFunctions = useMemo(() => {
+    if (isEnglishLocale) {
+      return {
+        updateHeroImage: async (heroImageUrl: string) => {
+          return updateHeroImageMutation({
+            variables: {
+              app_metadata_id: appMetadataId,
+              hero_image_url: heroImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+        updateShowcaseImages: async (showcaseImgUrls: string[]) => {
+          const formatted_showcase_img_urls = `{${showcaseImgUrls.map((url) => `"${url}"`).join(",")}}`;
+          return updateShowcaseImagesMutation({
+            variables: {
+              app_metadata_id: appMetadataId,
+              showcase_img_urls: formatted_showcase_img_urls,
+            },
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+      };
+    } else {
+      return {
+        updateHeroImage: async (heroImageUrl: string) => {
+          return updateLocalisationHeroImageMutation({
+            variables: {
+              localisation_id: localisation?.id ?? "",
+              hero_image_url: heroImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchLocalisationDocument,
+                variables: {
+                  id: appMetadataId,
+                  locale: locale,
+                },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+        updateShowcaseImages: async (showcaseImgUrls: string[]) => {
+          return updateLocalisationShowcaseImagesMutation({
+            variables: {
+              localisation_id: localisation?.id ?? "",
+              showcase_img_urls: showcaseImgUrls,
+            },
+            refetchQueries: [
+              {
+                query: FetchLocalisationDocument,
+                variables: {
+                  id: appMetadataId,
+                  locale: locale,
+                },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+      };
+    }
+  }, [
+    isEnglishLocale,
+    appMetadataId,
+    appId,
+    teamId,
+    locale,
+    localisation?.id,
+    updateHeroImageMutation,
+    updateShowcaseImagesMutation,
+    updateLocalisationHeroImageMutation,
+    updateLocalisationShowcaseImagesMutation,
+  ]);
+
   const showcaseImgFileNames = useMemo(
-    () => appMetadata?.showcase_img_urls ?? [],
-    [appMetadata?.showcase_img_urls],
+    () =>
+      isEnglishLocale
+        ? appMetadata?.showcase_img_urls ?? []
+        : localisation?.showcase_img_urls ?? [],
+    [
+      isEnglishLocale,
+      appMetadata?.showcase_img_urls,
+      localisation?.showcase_img_urls,
+    ],
   );
 
   const isEnoughPermissions = useMemo(() => {
@@ -78,22 +242,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         hero_image_url: "",
       });
 
-      const result = await updateHeroImageMutation({
-        variables: {
-          app_metadata_id: appMetadataId,
-          hero_image_url: "",
-        },
-
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-
-            variables: {
-              id: appId,
-            },
-          },
-        ],
-      });
+      const result = await updateFunctions.updateHeroImage("");
       if (result instanceof Error) {
         throw result;
       }
@@ -101,13 +250,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       console.error("Error Deleting Image: ", error);
       toast.error("Error deleting image");
     }
-  }, [
-    setUnverifiedImages,
-    unverifiedImages,
-    updateHeroImageMutation,
-    appMetadataId,
-    appId,
-  ]);
+  }, [setUnverifiedImages, unverifiedImages, updateFunctions]);
 
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
@@ -115,29 +258,12 @@ export const ImageForm = (props: ImageFormTypes) => {
         url.includes(name),
       )[0];
 
-      const formatted_showcase_img_urls = `{${showcaseImgFileNames
-        .filter((img: string) => !img.includes(fileNameToDelete))
-        .map((fileName: string) => `"${fileName}"`)
-        .join(",")}}`;
+      const newShowcaseImgUrls = showcaseImgFileNames.filter(
+        (img: string) => !img.includes(fileNameToDelete),
+      );
 
-      const result = await updateShowcaseImagesMutation({
-        variables: {
-          app_metadata_id: appMetadataId,
-          showcase_img_urls: formatted_showcase_img_urls,
-        },
-
-        refetchQueries: [
-          {
-            query: FetchAppMetadataDocument,
-
-            variables: {
-              id: appId,
-            },
-          },
-        ],
-
-        awaitRefetchQueries: true,
-      });
+      const result =
+        await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
 
       if (result instanceof Error) {
         throw result;
@@ -152,9 +278,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     },
     [
       showcaseImgFileNames,
-      updateShowcaseImagesMutation,
-      appMetadataId,
-      appId,
+      updateFunctions,
       setUnverifiedImages,
       unverifiedImages,
     ],
@@ -182,33 +306,27 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         toast.dismiss("ImageValidationError");
 
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+        await uploadViaPresignedPost(
+          file,
+          appId,
+          teamId,
+          imageType,
+          !isEnglishLocale ? locale : undefined,
+        );
 
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
           teamId,
           imageType,
+          !isEnglishLocale ? locale : undefined,
         );
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+        const fileName = `${imageType}.${saveFileType}`;
+
         if (imageType === "hero_image") {
-          const result = await updateHeroImageMutation({
-            variables: {
-              app_metadata_id: appMetadataId,
-              hero_image_url: `${imageType}.${saveFileType}`,
-            },
-
-            refetchQueries: [
-              {
-                query: FetchAppMetadataDocument,
-
-                variables: {
-                  id: appId,
-                },
-              },
-            ],
-          });
+          const result = await updateFunctions.updateHeroImage(fileName);
           if (result instanceof Error) {
             throw result;
           }
@@ -218,30 +336,9 @@ export const ImageForm = (props: ImageFormTypes) => {
           });
           setHeroImageUploading(false);
         } else if (imageType.startsWith("showcase_img")) {
-          const formatted_showcase_img_urls = `{${[
-            ...showcaseImgFileNames,
-            `${imageType}.${saveFileType}`,
-          ]
-            .map((url: string) => `"${url}"`)
-            .join(",")}}`;
-
-          const result = await updateShowcaseImagesMutation({
-            variables: {
-              app_metadata_id: appMetadataId,
-              showcase_img_urls: formatted_showcase_img_urls,
-            },
-
-            refetchQueries: [
-              {
-                query: FetchAppMetadataDocument,
-                variables: {
-                  id: appId,
-                },
-              },
-            ],
-
-            awaitRefetchQueries: true,
-          });
+          const newShowcaseImgUrls = [...showcaseImgFileNames, fileName];
+          const result =
+            await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
 
           if (result instanceof Error) {
             throw result;
@@ -283,22 +380,41 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const heroImage = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
-      if (!appMetadata?.hero_image_url) return null;
-      return getCDNImageUrl(appId, appMetadata?.hero_image_url);
+      const imageUrl = isEnglishLocale
+        ? appMetadata?.hero_image_url
+        : localisation?.hero_image_url;
+      if (!imageUrl) return null;
+      return getCDNImageUrl(
+        appId,
+        imageUrl,
+        true,
+        !isEnglishLocale ? locale : undefined,
+      );
     } else {
       return unverifiedImages.hero_image_url;
     }
   }, [
+    appMetadata?.verification_status,
     appMetadata?.hero_image_url,
+    localisation?.hero_image_url,
+    isEnglishLocale,
     appId,
     unverifiedImages.hero_image_url,
-    appMetadata?.verification_status,
+    locale,
   ]);
 
   const showcaseImgUrls = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
-      return appMetadata?.showcase_img_urls?.map((url: string) => {
-        return getCDNImageUrl(appId, url);
+      const urls = isEnglishLocale
+        ? appMetadata?.showcase_img_urls
+        : localisation?.showcase_img_urls;
+      return urls?.map((url: string) => {
+        return getCDNImageUrl(
+          appId,
+          url,
+          true,
+          !isEnglishLocale ? locale : undefined,
+        );
       });
     } else {
       return unverifiedImages.showcase_image_urls;
@@ -306,22 +422,30 @@ export const ImageForm = (props: ImageFormTypes) => {
   }, [
     appMetadata?.verification_status,
     appMetadata?.showcase_img_urls,
+    localisation?.showcase_img_urls,
+    isEnglishLocale,
     appId,
     unverifiedImages.showcase_image_urls,
+    locale,
   ]);
 
   return (
-    <form className="grid gap-y-7">
+    <div className="grid gap-y-7">
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Featured image
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
-          Worldcoin’s app store.
+          Worldcoin's app store.
         </Typography>
       </div>
-      {!heroImage && (
+      {isLoadingImages && (
+        <div className="size-fit">
+          <Skeleton className="h-32 w-32 rounded-lg" />
+        </div>
+      )}
+      {!isLoadingImages && !heroImage && !heroImageUploading && (
         <ImageDropZone
           width={1080}
           height={1080}
@@ -350,7 +474,7 @@ export const ImageForm = (props: ImageFormTypes) => {
           </div>
         </ImageDropZone>
       )}
-      {heroImage && (
+      {!isLoadingImages && heroImage && (
         <div className="relative size-fit">
           <ImageDisplay
             src={heroImage}
@@ -385,8 +509,15 @@ export const ImageForm = (props: ImageFormTypes) => {
           Upload up to 3 images to showcase your application.
         </Typography>
       </div>
-      {showcaseImgUrls &&
-        showcaseImgUrls?.length < 3 &&
+      {isLoadingImages && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((index) => (
+            <Skeleton key={index} className="h-32 w-32 rounded-lg" />
+          ))}
+        </div>
+      )}
+      {!isLoadingImages &&
+        (!showcaseImgUrls || showcaseImgUrls?.length < 3) &&
         isEditable &&
         isEnoughPermissions && (
           <ImageDropZone
@@ -394,7 +525,10 @@ export const ImageForm = (props: ImageFormTypes) => {
             height={1080}
             uploadImage={uploadImage}
             disabled={
-              !nextShowcaseImgName || !isEnoughPermissions || !isEditable
+              !nextShowcaseImgName ||
+              !isEnoughPermissions ||
+              !isEditable ||
+              showcaseImageUploading
             }
             imageType={nextShowcaseImgName}
           >
@@ -415,38 +549,40 @@ export const ImageForm = (props: ImageFormTypes) => {
             </div>
           </ImageDropZone>
         )}
-      <div className="grid gap-y-4 md:grid-cols-3">
-        {showcaseImgUrls &&
-          showcaseImgUrls.map((url: string, index: number) => (
-            <div className="relative size-fit" key={url}>
-              <ImageDisplay
-                src={url}
-                type={viewMode}
-                width={300}
-                height={300}
-                className="h-auto w-32 rounded-lg"
-              />
-              <Button
-                type="button"
-                onClick={() => deleteShowcaseImage(url)}
-                className={clsx(
-                  "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
-                  {
-                    hidden: !isEnoughPermissions || !isEditable,
-                  },
-                )}
-              >
-                <TrashIcon />
-              </Button>
-            </div>
-          ))}
-        {showcaseImageUploading && (
-          <ImageLoader
-            name={`showcase_image_${showcaseImgUrls?.length}`}
-            className="h-[99px]"
-          />
-        )}
-      </div>
-    </form>
+      {!isLoadingImages && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {showcaseImgUrls &&
+            showcaseImgUrls.map((url: string, index: number) => (
+              <div className="relative size-fit" key={url}>
+                <ImageDisplay
+                  src={url}
+                  type={viewMode}
+                  width={300}
+                  height={300}
+                  className="h-auto w-32 rounded-lg"
+                />
+                <Button
+                  type="button"
+                  onClick={() => deleteShowcaseImage(url)}
+                  className={clsx(
+                    "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
+                    {
+                      hidden: !isEnoughPermissions || !isEditable,
+                    },
+                  )}
+                >
+                  <TrashIcon />
+                </Button>
+              </div>
+            ))}
+          {showcaseImageUploading && (
+            <ImageLoader
+              name={`showcase_image_${showcaseImgUrls?.length}`}
+              className="h-[99px]"
+            />
+          )}
+        </div>
+      )}
+    </div>
   );
 };
