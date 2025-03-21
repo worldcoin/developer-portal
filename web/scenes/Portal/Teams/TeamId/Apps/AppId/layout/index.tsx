@@ -79,6 +79,13 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
             >
               <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
             </Tab>
+            <Tab
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/notifications`}
+              underlined
+              segment={"notifications"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
+            </Tab>
 
             <Tab
               href={`/teams/${params!.teamId}/api-keys`}
