@@ -8,6 +8,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useParams } from "next/navigation";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -20,16 +21,7 @@ type NotificationFormData = {
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [csvImportStatus, setCsvImportStatus] = useState<{
-    status: "success" | "error" | "idle";
-    message: string;
-  }>({ status: "idle", message: "" });
-
   const {
     register,
     handleSubmit,
@@ -57,10 +49,7 @@ export const NotificationsPage = () => {
 
     // check if file is CSV
     if (!file.name.endsWith(".csv")) {
-      setCsvImportStatus({
-        status: "error",
-        message: "Please upload a CSV file",
-      });
+      toast.error("Please upload a CSV file");
       return;
     }
 
@@ -68,10 +57,7 @@ export const NotificationsPage = () => {
       const text = await file.text();
       parseAndSetWalletAddresses(text);
     } catch (error) {
-      setCsvImportStatus({
-        status: "error",
-        message: "Failed to read CSV file",
-      });
+      toast.error("Failed to read CSV file");
     } finally {
       // reset the file input so the same file can be uploaded again
       if (fileInputRef.current) {
@@ -99,63 +85,33 @@ export const NotificationsPage = () => {
       }
 
       if (addresses.length === 0) {
-        setCsvImportStatus({
-          status: "error",
-          message: "No valid wallet addresses found in CSV",
-        });
+        toast.error("No valid wallet addresses found in CSV");
         return;
       }
 
-      if (addresses.length > 1000) {
-        setCsvImportStatus({
-          status: "error",
-          message: `CSV contains ${addresses.length} addresses. Maximum allowed is 1000.`,
-        });
+      const uniqueAddresses = [...new Set(addresses)];
+
+      if (uniqueAddresses.length > 1000) {
+        toast.error("Maximum number of addresses is 1000.");
         return;
       }
 
-      // if there are existing addresses, append the new ones
-      const existingAddresses = walletAddressesValue
-        ? walletAddressesValue
-            .split(",")
-            .map((a) => a.trim())
-            .filter((a) => a)
-        : [];
+      setValue("walletAddresses", uniqueAddresses.join(", \n"));
 
-      const combinedAddresses = [
-        ...new Set([...existingAddresses, ...addresses]),
-      ];
-
-      if (combinedAddresses.length > 1000) {
-        setCsvImportStatus({
-          status: "error",
-          message: `Combined addresses exceed the maximum limit of 1000.`,
-        });
-        return;
-      }
-
-      setValue("walletAddresses", combinedAddresses.join(", \n"));
-
-      setCsvImportStatus({
-        status: "success",
-        message: `Successfully imported ${addresses.length} wallet addresses from CSV`,
-      });
+      toast.success(
+        `Successfully imported ${uniqueAddresses.length} wallet addresses from CSV`,
+      );
     } catch (error) {
-      setCsvImportStatus({
-        status: "error",
-        message: "Failed to parse CSV file",
-      });
+      toast.error("Failed to parse CSV file");
     }
   };
 
   const handleClearAddresses = () => {
     setValue("walletAddresses", "");
-    setCsvImportStatus({ status: "idle", message: "" });
   };
 
   const onSubmit = async (data: NotificationFormData) => {
     setIsSubmitting(true);
-    setSubmitResult(null);
 
     try {
       // convert comma-separated wallet addresses to array
@@ -194,26 +150,17 @@ export const NotificationsPage = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setSubmitResult({
-          success: true,
-          message: `Notification sent successfully to ${walletAddresses.length} wallet(s)`,
-        });
+        toast.success(`Notification sent successfully`);
         reset();
-        setCsvImportStatus({ status: "idle", message: "" });
       } else {
-        setSubmitResult({
-          success: false,
-          message: result.error?.detail || "Failed to send notification",
-        });
+        toast.error(result.error?.detail || "Failed to send notification");
       }
     } catch (error) {
-      setSubmitResult({
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "An error occurred while sending notification",
-      });
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while sending notification",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -245,23 +192,6 @@ export const NotificationsPage = () => {
             </div>
           </div>
         </Notification>
-
-        {submitResult && (
-          <Notification variant={submitResult.success ? "info" : "warning"}>
-            <div className="text-sm">
-              <h3
-                className={`font-medium ${submitResult.success ? "text-blue-800" : "text-yellow-800"}`}
-              >
-                {submitResult.success ? "Success" : "Error"}
-              </h3>
-              <div
-                className={`mt-2 ${submitResult.success ? "text-blue-700" : "text-yellow-700"}`}
-              >
-                {submitResult.message}
-              </div>
-            </div>
-          </Notification>
-        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-y-4">
           <div className="grid gap-y-2">
@@ -295,26 +225,6 @@ export const NotificationsPage = () => {
                 )}
               </div>
             </div>
-
-            {csvImportStatus.status !== "idle" && (
-              <Notification
-                variant={
-                  csvImportStatus.status === "success" ? "info" : "warning"
-                }
-              >
-                <div className="text-sm">
-                  <div
-                    className={
-                      csvImportStatus.status === "success"
-                        ? "text-blue-700"
-                        : "text-yellow-700"
-                    }
-                  >
-                    {csvImportStatus.message}
-                  </div>
-                </div>
-              </Notification>
-            )}
 
             <TextArea
               label=""
