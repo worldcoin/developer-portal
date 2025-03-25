@@ -256,6 +256,11 @@ export const Categories = [
     icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/earn.png`,
   },
   {
+    name: "Shopping",
+    id: "shopping",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/shopping.png`,
+  },
+  {
     name: "Other",
     id: "other",
     icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/other.png`,
@@ -264,11 +269,6 @@ export const Categories = [
     name: "External",
     id: "external",
     icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/external.png`,
-  },
-  {
-    name: "Shopping",
-    id: "shopping",
-    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/shopping.png`,
   },
 ] as const;
 
