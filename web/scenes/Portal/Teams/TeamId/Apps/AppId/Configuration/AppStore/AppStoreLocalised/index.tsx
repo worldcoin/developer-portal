@@ -20,6 +20,7 @@ import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -58,6 +59,8 @@ export const AppStoreForm = (props: {
   const { user } = useUser() as Auth0SessionUser;
   const countries = useMemo(() => formCountriesList(), []);
   const allPossibleLanguages = formLanguagesList;
+  const [isImageOperationInProgress, setIsImageOperationInProgress] =
+    useState(false);
 
   const [addLocaleMutation] = useAddLocaleMutation();
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -719,9 +722,14 @@ export const AppStoreForm = (props: {
                 <CountryBadge
                   key={index}
                   onClick={async () => {
-                    await handleLanguageSwitch(lang);
+                    if (!isImageOperationInProgress) {
+                      await handleLanguageSwitch(lang);
+                    }
                   }}
                   focused={locale === lang}
+                  className={clsx({
+                    "cursor-not-allowed opacity-50": isImageOperationInProgress,
+                  })}
                 >
                   <Image
                     width={20}
@@ -738,7 +746,14 @@ export const AppStoreForm = (props: {
             })}
           </div>
           <div className="flex flex-row items-center">
-            <button type="button" onClick={handleSelectPreviousLocalisation}>
+            <button
+              type="button"
+              onClick={handleSelectPreviousLocalisation}
+              disabled={isImageOperationInProgress}
+              className={clsx({
+                "cursor-not-allowed opacity-50": isImageOperationInProgress,
+              })}
+            >
               <ChevronLeftIcon className="mr-2 size-8" />
             </button>
             <div>
@@ -749,6 +764,7 @@ export const AppStoreForm = (props: {
                 appMetadataId={appMetadata?.id ?? ""}
                 appMetadata={appMetadata}
                 localisation={localisedData?.localisations?.[0]}
+                onOperationStateChange={setIsImageOperationInProgress}
               />
               <Input
                 register={register("name")}
@@ -809,7 +825,14 @@ export const AppStoreForm = (props: {
                 register={register("description_overview")}
               />
             </div>
-            <button type="button" onClick={handleSelectNextLocalisation}>
+            <button
+              type="button"
+              onClick={handleSelectNextLocalisation}
+              disabled={isImageOperationInProgress}
+              className={clsx({
+                "cursor-not-allowed opacity-50": isImageOperationInProgress,
+              })}
+            >
               <ChevronRightIcon className="ml-2 size-8" />
             </button>
           </div>

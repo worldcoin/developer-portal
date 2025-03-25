@@ -43,6 +43,7 @@ type ImageFormTypes = {
   appMetadataId: string;
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
   localisation?: FetchLocalisationQuery["localisations"][0];
+  onOperationStateChange?: (isInProgress: boolean) => void;
 };
 
 const SHOWCASE_IMAGE_NAMES = [
@@ -57,11 +58,20 @@ type ImageUpdateFunctions = {
 };
 
 export const ImageForm = (props: ImageFormTypes) => {
-  const { appId, teamId, appMetadataId, appMetadata, locale, localisation } =
-    props;
+  const {
+    appId,
+    teamId,
+    appMetadataId,
+    appMetadata,
+    locale,
+    localisation,
+    onOperationStateChange,
+  } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [heroImageUploading, setHeroImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
+  const [isAnyOperationInProgress, setIsAnyOperationInProgress] =
+    useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
@@ -237,6 +247,7 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   const deleteHeroImage = useCallback(async () => {
     try {
+      setIsAnyOperationInProgress(true);
       setUnverifiedImages({
         ...unverifiedImages,
         hero_image_url: "",
@@ -249,32 +260,42 @@ export const ImageForm = (props: ImageFormTypes) => {
     } catch (error) {
       console.error("Error Deleting Image: ", error);
       toast.error("Error deleting image");
+    } finally {
+      setIsAnyOperationInProgress(false);
     }
   }, [setUnverifiedImages, unverifiedImages, updateFunctions]);
 
   const deleteShowcaseImage = useCallback(
     async (url: string) => {
-      const fileNameToDelete = SHOWCASE_IMAGE_NAMES.filter((name: string) =>
-        url.includes(name),
-      )[0];
+      try {
+        setIsAnyOperationInProgress(true);
+        const fileNameToDelete = SHOWCASE_IMAGE_NAMES.filter((name: string) =>
+          url.includes(name),
+        )[0];
 
-      const newShowcaseImgUrls = showcaseImgFileNames.filter(
-        (img: string) => !img.includes(fileNameToDelete),
-      );
+        const newShowcaseImgUrls = showcaseImgFileNames.filter(
+          (img: string) => !img.includes(fileNameToDelete),
+        );
 
-      const result =
-        await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
+        const result =
+          await updateFunctions.updateShowcaseImages(newShowcaseImgUrls);
 
-      if (result instanceof Error) {
-        throw result;
+        if (result instanceof Error) {
+          throw result;
+        }
+
+        setUnverifiedImages({
+          ...unverifiedImages,
+          showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
+            (img: string) => img !== url,
+          ),
+        });
+      } catch (error) {
+        console.error("Error deleting showcase image: ", error);
+        toast.error("Error deleting image");
+      } finally {
+        setIsAnyOperationInProgress(false);
       }
-
-      setUnverifiedImages({
-        ...unverifiedImages,
-        showcase_image_urls: unverifiedImages.showcase_image_urls?.filter(
-          (img: string) => img !== url,
-        ),
-      });
     },
     [
       showcaseImgFileNames,
@@ -293,6 +314,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
 
+      setIsAnyOperationInProgress(true);
       imageType === "hero_image"
         ? setHeroImageUploading(true)
         : setShowcaseImageUploading(true);
@@ -374,6 +396,8 @@ export const ImageForm = (props: ImageFormTypes) => {
 
         setHeroImageUploading(false);
         setShowcaseImageUploading(false);
+      } finally {
+        setIsAnyOperationInProgress(false);
       }
     }
   };
@@ -429,6 +453,10 @@ export const ImageForm = (props: ImageFormTypes) => {
     locale,
   ]);
 
+  useEffect(() => {
+    onOperationStateChange?.(isAnyOperationInProgress);
+  }, [isAnyOperationInProgress, onOperationStateChange]);
+
   return (
     <div className="grid gap-y-7">
       <div className="grid gap-y-3">
@@ -452,7 +480,8 @@ export const ImageForm = (props: ImageFormTypes) => {
           disabled={
             unverifiedImages.hero_image_url !== "" ||
             !isEnoughPermissions ||
-            !isEditable
+            !isEditable ||
+            isAnyOperationInProgress
           }
           uploadImage={uploadImage}
           imageType={"hero_image"}
@@ -489,9 +518,14 @@ export const ImageForm = (props: ImageFormTypes) => {
             className={clsx(
               "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
               {
-                hidden: !isEnoughPermissions || !isEditable,
+                hidden:
+                  !isEnoughPermissions ||
+                  !isEditable ||
+                  isAnyOperationInProgress,
+                "cursor-not-allowed opacity-50": isAnyOperationInProgress,
               },
             )}
+            disabled={isAnyOperationInProgress}
           >
             <TrashIcon />
           </Button>
@@ -528,7 +562,8 @@ export const ImageForm = (props: ImageFormTypes) => {
               !nextShowcaseImgName ||
               !isEnoughPermissions ||
               !isEditable ||
-              showcaseImageUploading
+              showcaseImageUploading ||
+              isAnyOperationInProgress
             }
             imageType={nextShowcaseImgName}
           >
@@ -567,9 +602,14 @@ export const ImageForm = (props: ImageFormTypes) => {
                   className={clsx(
                     "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
                     {
-                      hidden: !isEnoughPermissions || !isEditable,
+                      hidden:
+                        !isEnoughPermissions ||
+                        !isEditable ||
+                        isAnyOperationInProgress,
+                      "cursor-not-allowed opacity-50": isAnyOperationInProgress,
                     },
                   )}
+                  disabled={isAnyOperationInProgress}
                 >
                   <TrashIcon />
                 </Button>
