@@ -37,7 +37,6 @@ import { schema } from "../form-schema";
 import {
   addEmptyLocalisationServerSide,
   deleteLocalisationServerSide,
-  validateAndInsertLocalisationServerSide,
   validateAndUpdateAppLocaleInfoServerSide,
   validateAndUpdateAppSupportInfoServerSide,
   validateAndUpdateLocalisationServerSide,
@@ -166,15 +165,7 @@ export const AppStoreForm = (props: {
       supported_languages: formValues?.supported_languages ?? [],
       app_website_url: formValues?.app_website_url ?? "",
     });
-  }, [
-    viewMode,
-    reset,
-    appMetadata,
-    locale,
-    localisedData?.localisations,
-    getValues,
-    description,
-  ]);
+  }, [viewMode, reset, locale, getValues]);
 
   useEffect(() => {
     setFormSubmitState({ isSubmitted });
@@ -205,19 +196,15 @@ export const AppStoreForm = (props: {
       // if locale is en, set the data on app_metadata directly
       if (locale === "en") {
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
-        await refetchLocalisation();
+        await refetchAppMetadata();
         return;
       }
 
-      if (localisedData?.localisations?.length === 0) {
-        await validateAndInsertLocalisationServerSide(commonProperties, appId);
-      } else {
-        const localisation = localisedData?.localisations?.[0];
-        await validateAndUpdateLocalisationServerSide({
-          localisation_id: localisation?.id ?? "",
-          ...commonProperties,
-        });
-      }
+      const localisation = localisedData?.localisations?.[0];
+      await validateAndUpdateLocalisationServerSide({
+        localisation_id: localisation?.id ?? "",
+        ...commonProperties,
+      });
       await refetchLocalisation();
     } catch (e) {
       console.error("App information failed to update: ", e);
