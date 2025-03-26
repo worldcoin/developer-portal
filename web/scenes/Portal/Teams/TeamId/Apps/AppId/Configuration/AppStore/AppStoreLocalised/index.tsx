@@ -18,6 +18,7 @@ import {
 import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
+import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -86,6 +87,36 @@ export const AppStoreForm = (props: {
     getLocalisationText,
     { data: localisedData, refetch: refetchLocalisation },
   ] = useFetchLocalisationLazyQuery();
+
+  const client = useApolloClient();
+
+  const deleteLocalisationWithRefetch = useCallback(
+    async (localeToDelete: string) => {
+      try {
+        await deleteLocalisationServerSide(appMetadata.id, localeToDelete);
+        await refetchLocalisation({
+          id: appMetadata.id,
+          locale: localeToDelete,
+        });
+        await client.refetchQueries({
+          updateCache(cache) {
+            cache.evict({
+              fieldName: "get_all_unverified_images",
+              args: {
+                app_id: appId,
+                team_id: teamId,
+                locale: localeToDelete,
+              },
+            });
+          },
+        });
+      } catch (error) {
+        console.error("Failed to delete localisation:", error);
+        toast.error("Failed to delete localisation");
+      }
+    },
+    [appMetadata.id, refetchLocalisation],
+  );
 
   const updateLocalisationInForm = useCallback(
     async (locale: string) => {
@@ -576,15 +607,7 @@ export const AppStoreForm = (props: {
 
                     // Delete localisation for removed language
                     if (value !== "en") {
-                      try {
-                        await deleteLocalisationServerSide(
-                          appMetadata.id,
-                          value,
-                        );
-                      } catch (error) {
-                        console.error("Failed to delete localisation:", error);
-                        toast.error("Failed to delete localisation");
-                      }
+                      await deleteLocalisationWithRefetch(value);
                     }
                   }}
                   selectAll={() => {
@@ -612,15 +635,7 @@ export const AppStoreForm = (props: {
                     const languagesToDelete =
                       field.value?.filter((lang) => lang !== "en") ?? [];
                     for (const lang of languagesToDelete) {
-                      try {
-                        await deleteLocalisationServerSide(
-                          appMetadata.id,
-                          lang,
-                        );
-                      } catch (error) {
-                        console.error("Failed to delete localisation:", error);
-                        toast.error("Failed to delete localisation");
-                      }
+                      await deleteLocalisationWithRefetch(lang);
                     }
 
                     // Keep English language when clearing all
@@ -682,6 +697,10 @@ export const AppStoreForm = (props: {
                               value,
                               appId,
                             );
+                            await refetchLocalisation({
+                              id: appMetadata.id,
+                              locale: value,
+                            });
                           } catch (error) {
                             console.error(
                               "Failed to create empty localisation:",
