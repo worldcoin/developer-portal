@@ -593,7 +593,8 @@ export const AppStoreForm = (props: {
                   disabled={
                     !isEditable ||
                     !isEnoughPermissions ||
-                    isLocalisationOperationInProgress
+                    isLocalisationOperationInProgress ||
+                    isImageOperationInProgress
                   }
                   errors={errors.supported_languages}
                   showSelectedList
@@ -738,7 +739,8 @@ export const AppStoreForm = (props: {
                       disabled={
                         !isEditable ||
                         !isEnoughPermissions ||
-                        isLocalisationOperationInProgress
+                        isLocalisationOperationInProgress ||
+                        isImageOperationInProgress
                       }
                     />
                   )}
