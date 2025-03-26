@@ -579,10 +579,12 @@ export const AppStoreForm = (props: {
                   errors={errors.supported_languages}
                   showSelectedList
                   searchPlaceholder="Start by typing language..."
-                  canDelete={(item) => item.value !== "en"}
+                  canDelete={(item) =>
+                    item.value !== "en" && !isImageOperationInProgress
+                  }
                   onRemove={async (value) => {
-                    // Prevent removal of English language
-                    if (value === "en") return;
+                    // Prevent removal of English language or if image operation is in progress
+                    if (value === "en" || isImageOperationInProgress) return;
 
                     field.onChange(
                       field.value?.filter((v) => v !== value) ?? [],
