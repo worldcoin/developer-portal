@@ -61,10 +61,6 @@ export const AppStoreForm = (props: {
   const allPossibleLanguages = formLanguagesList;
   const [isImageOperationInProgress, setIsImageOperationInProgress] =
     useState(false);
-  const [
-    isLocalisationOperationInProgress,
-    setIsLocalisationOperationInProgress,
-  ] = useState(false);
 
   const [addLocaleMutation] = useAddLocaleMutation();
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -97,7 +93,6 @@ export const AppStoreForm = (props: {
   const deleteLocalisationWithRefetch = useCallback(
     async (localeToDelete: string) => {
       try {
-        setIsLocalisationOperationInProgress(true);
         await deleteLocalisationServerSide(appMetadata.id, localeToDelete);
         await refetchLocalisation({
           id: appMetadata.id,
@@ -118,8 +113,6 @@ export const AppStoreForm = (props: {
       } catch (error) {
         console.error("Failed to delete localisation:", error);
         toast.error("Failed to delete localisation");
-      } finally {
-        setIsLocalisationOperationInProgress(false);
       }
     },
     [appMetadata.id, refetchLocalisation],
@@ -127,18 +120,13 @@ export const AppStoreForm = (props: {
 
   const updateLocalisationInForm = useCallback(
     async (locale: string) => {
-      try {
-        setIsLocalisationOperationInProgress(true);
-        await getLocalisationText({
-          variables: {
-            id: appMetadata.id,
-            locale: locale,
-          },
-        });
-        setLocale(locale);
-      } finally {
-        setIsLocalisationOperationInProgress(false);
-      }
+      await getLocalisationText({
+        variables: {
+          id: appMetadata.id,
+          locale: locale,
+        },
+      });
+      setLocale(locale);
     },
     [appMetadata.id, getLocalisationText],
   );
@@ -236,7 +224,6 @@ export const AppStoreForm = (props: {
     } as const;
 
     try {
-      setIsLocalisationOperationInProgress(true);
       // if locale is en, set the data on app_metadata directly
       if (locale === "en") {
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
@@ -253,8 +240,6 @@ export const AppStoreForm = (props: {
     } catch (e) {
       console.error("App information failed to update: ", e);
       toast.error("Failed to save localisation");
-    } finally {
-      setIsLocalisationOperationInProgress(false);
     }
   }, [
     appId,
@@ -418,7 +403,7 @@ export const AppStoreForm = (props: {
                 <CategorySelector
                   value={field.value}
                   required
-                  disabled={!isEditable || isLocalisationOperationInProgress}
+                  disabled={!isEditable}
                   onChange={field.onChange}
                   errors={errors.category}
                   label="Category"
@@ -590,11 +575,7 @@ export const AppStoreForm = (props: {
                   values={field.value}
                   items={allPossibleLanguages}
                   label=""
-                  disabled={
-                    !isEditable ||
-                    !isEnoughPermissions ||
-                    isLocalisationOperationInProgress
-                  }
+                  disabled={!isEditable || !isEnoughPermissions}
                   errors={errors.supported_languages}
                   showSelectedList
                   searchPlaceholder="Start by typing language..."
@@ -683,36 +664,34 @@ export const AppStoreForm = (props: {
                       checked={field.value?.includes(item.value)}
                       onChange={async (value) => {
                         if (!field.value) {
-                          field.onChange([value]);
-                          return;
+                          return field.onChange([]);
                         }
 
                         const isNewLanguage = !field.value.includes(value);
-                        const newValue = isNewLanguage
+                        const newSupportedLanguages = isNewLanguage
                           ? [...field.value, value]
                           : field.value.filter((v) => v !== value);
 
-                        field.onChange(newValue);
+                        field.onChange(newSupportedLanguages);
 
-                        try {
-                          setIsLocalisationOperationInProgress(true);
-                          await addLocaleMutation({
-                            variables: {
-                              app_metadata_id: appMetadata.id,
-                              supported_languages: newValue,
-                            },
-                            refetchQueries: [
-                              {
-                                query: FetchAppMetadataDocument,
-                                variables: {
-                                  id: appId,
-                                },
+                        await addLocaleMutation({
+                          variables: {
+                            app_metadata_id: appMetadata.id,
+                            supported_languages: newSupportedLanguages,
+                          },
+                          refetchQueries: [
+                            {
+                              query: FetchAppMetadataDocument,
+                              variables: {
+                                id: appId,
                               },
-                            ],
-                          });
+                            },
+                          ],
+                        });
 
-                          // Create empty localisation for new language
-                          if (isNewLanguage && value !== "en") {
+                        // Create empty localisation for new language
+                        if (isNewLanguage && value !== "en") {
+                          try {
                             await addEmptyLocalisationServerSide(
                               appMetadata.id,
                               value,
@@ -722,24 +701,18 @@ export const AppStoreForm = (props: {
                               id: appMetadata.id,
                               locale: value,
                             });
+                          } catch (error) {
+                            console.error(
+                              "Failed to create empty localisation:",
+                              error,
+                            );
+                            toast.error(
+                              "Failed to create localisation for new language",
+                            );
                           }
-                        } catch (error) {
-                          console.error(
-                            "Failed to create empty localisation:",
-                            error,
-                          );
-                          toast.error(
-                            "Failed to create localisation for new language",
-                          );
-                        } finally {
-                          setIsLocalisationOperationInProgress(false);
                         }
                       }}
-                      disabled={
-                        !isEditable ||
-                        !isEnoughPermissions ||
-                        isLocalisationOperationInProgress
-                      }
+                      disabled={!isEditable || !isEnoughPermissions}
                     />
                   )}
                 </SelectMultiple>
@@ -782,13 +755,9 @@ export const AppStoreForm = (props: {
             <button
               type="button"
               onClick={handleSelectPreviousLocalisation}
-              disabled={
-                isImageOperationInProgress || isLocalisationOperationInProgress
-              }
+              disabled={isImageOperationInProgress}
               className={clsx({
-                "cursor-not-allowed opacity-50":
-                  isImageOperationInProgress ||
-                  isLocalisationOperationInProgress,
+                "cursor-not-allowed opacity-50": isImageOperationInProgress,
               })}
             >
               <ChevronLeftIcon className="mr-2 size-8" />
@@ -807,11 +776,7 @@ export const AppStoreForm = (props: {
                 register={register("name")}
                 errors={errors.name}
                 label="App name"
-                disabled={
-                  !isEditable ||
-                  !isEnoughPermissions ||
-                  isLocalisationOperationInProgress
-                }
+                disabled={!isEditable || !isEnoughPermissions}
                 required
                 placeholder="Enter your App Name"
                 maxLength={50}
@@ -823,11 +788,7 @@ export const AppStoreForm = (props: {
                 register={register("short_name")}
                 errors={errors.short_name}
                 label="Short name"
-                disabled={
-                  !isEditable ||
-                  !isEnoughPermissions ||
-                  isLocalisationOperationInProgress
-                }
+                disabled={!isEditable || !isEnoughPermissions}
                 required
                 placeholder="Enter your short app name"
                 maxLength={10}
@@ -842,11 +803,7 @@ export const AppStoreForm = (props: {
                 register={register("world_app_description")}
                 errors={errors.world_app_description}
                 label="App tag line"
-                disabled={
-                  !isEditable ||
-                  !isEnoughPermissions ||
-                  isLocalisationOperationInProgress
-                }
+                disabled={!isEditable || !isEnoughPermissions}
                 required
                 placeholder="Short app store tagline"
                 maxLength={35}
@@ -863,11 +820,7 @@ export const AppStoreForm = (props: {
                 rows={5}
                 maxLength={1500}
                 errors={errors.description_overview}
-                disabled={
-                  !isEditable ||
-                  !isEnoughPermissions ||
-                  isLocalisationOperationInProgress
-                }
+                disabled={!isEditable || !isEnoughPermissions}
                 addOn={
                   <RemainingCharacters
                     text={watch("description_overview")}
@@ -881,13 +834,9 @@ export const AppStoreForm = (props: {
             <button
               type="button"
               onClick={handleSelectNextLocalisation}
-              disabled={
-                isImageOperationInProgress || isLocalisationOperationInProgress
-              }
+              disabled={isImageOperationInProgress}
               className={clsx({
-                "cursor-not-allowed opacity-50":
-                  isImageOperationInProgress ||
-                  isLocalisationOperationInProgress,
+                "cursor-not-allowed opacity-50": isImageOperationInProgress,
               })}
             >
               <ChevronRightIcon className="ml-2 size-8" />
@@ -898,11 +847,7 @@ export const AppStoreForm = (props: {
             type="submit"
             variant="primary"
             className=" mr-5 h-12 w-40"
-            disabled={
-              !isEditable ||
-              !isEnoughPermissions ||
-              isLocalisationOperationInProgress
-            }
+            disabled={!isEditable || !isEnoughPermissions}
           >
             <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
           </DecoratedButton>
