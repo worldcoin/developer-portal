@@ -11,7 +11,7 @@ export class ImageValidationError extends Error {
 }
 
 export const useImage = () => {
-  const [getUploadedImage] = useGetUploadedImageLazyQuery();
+  const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
 
   const getImage = async (
     fileType: string, // png, jpeg
@@ -143,6 +143,14 @@ export const useImage = () => {
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );
     }
+
+    await refetch({
+      app_id: appId,
+      image_type: imageType,
+      content_type_ending: file.type.split("/")[1],
+      team_id: teamId,
+      locale: locale,
+    });
   };
 
   return {
