@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { errorNotAllowed } from "@/legacy/backend/errors";
-import { OIDC_BASE_URL } from "@/legacy/lib/constants";
 import { JWT_ISSUER } from "@/legacy/backend/jwts";
 import { OIDCScopes } from "@/legacy/backend/oidc";
+import { OIDC_BASE_URL } from "@/legacy/lib/constants";
+import { NextApiRequest, NextApiResponse } from "next";
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
@@ -28,7 +28,7 @@ export default async function handleOidcConfig(
     userinfo_endpoint: `${OIDC_BASE_URL}/userinfo`,
     authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
     grant_types_supported: ["authorization_code", "implicit"],
-    service_documentation: "https://docs.worldcoin.org/sign-in",
+    service_documentation: "https://docs.world.org/world-id",
     op_policy_uri: "https://developer.worldcoin.org/privacy-statement",
     op_tos_uri: "https://developer.worldcoin.org/tos",
     subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across

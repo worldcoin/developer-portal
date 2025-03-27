@@ -1,10 +1,10 @@
 "use client";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { Debugger } from "../Debugger";
 import { useDebuggerQuery } from "./graphql/client/debugger.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -41,7 +41,7 @@ export const ActionIdProofDebugingPage = ({
             actionId={actionID}
             teamId={teamId}
             appId={appId}
-            learnMoreUrl="https://docs.worldcoin.org/reference/api#verify-proof"
+            learnMoreUrl="https://docs.world.org/reference/api#verify-proof"
           />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />
