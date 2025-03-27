@@ -90,32 +90,86 @@ export const AppStoreForm = (props: {
 
   const client = useApolloClient();
 
-  const deleteLocalisationWithRefetch = useCallback(
-    async (localeToDelete: string) => {
+  const handleLocalisationUpdate = useCallback(
+    async (oldLanguages: string[], newLanguages: string[]) => {
       try {
-        await deleteLocalisationServerSide(appMetadata.id, localeToDelete);
-        await refetchLocalisation({
-          id: appMetadata.id,
-          locale: localeToDelete,
+        // Update app metadata with new supported languages
+        await addLocaleMutation({
+          variables: {
+            app_metadata_id: appMetadata.id,
+            supported_languages: newLanguages,
+          },
+          refetchQueries: [
+            {
+              query: FetchAppMetadataDocument,
+              variables: {
+                id: appId,
+              },
+            },
+          ],
         });
-        await client.refetchQueries({
-          updateCache(cache) {
-            cache.evict({
-              fieldName: "get_all_unverified_images",
-              args: {
-                app_id: appId,
-                team_id: teamId,
-                locale: localeToDelete,
+
+        // Find languages to add and remove
+        const languagesToAdd = newLanguages.filter(
+          (lang) => !oldLanguages.includes(lang) && lang !== "en",
+        );
+        const languagesToRemove = oldLanguages.filter(
+          (lang) => !newLanguages.includes(lang) && lang !== "en",
+        );
+
+        // Create empty localisations for new languages
+        for (const lang of languagesToAdd) {
+          await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
+          await refetchLocalisation({
+            id: appMetadata.id,
+            locale: lang,
+          });
+        }
+
+        // Delete localisations for removed languages
+        for (const lang of languagesToRemove) {
+          try {
+            await deleteLocalisationServerSide(appMetadata.id, lang);
+            await refetchLocalisation({
+              id: appMetadata.id,
+              locale: lang,
+            });
+            await client.refetchQueries({
+              updateCache(cache) {
+                cache.evict({
+                  fieldName: "get_all_unverified_images",
+                  args: {
+                    app_id: appId,
+                    team_id: teamId,
+                    locale: lang,
+                  },
+                });
               },
             });
-          },
-        });
+          } catch (error) {
+            console.error("Failed to delete localisation:", error);
+            toast.error("Failed to delete localisation");
+          }
+        }
+
+        // If current locale is removed, switch to English
+        if (languagesToRemove.includes(locale)) {
+          setLocale("en");
+        }
       } catch (error) {
-        console.error("Failed to delete localisation:", error);
-        toast.error("Failed to delete localisation");
+        console.error("Failed to update localisations:", error);
+        toast.error("Failed to update localisations");
       }
     },
-    [appMetadata.id, refetchLocalisation],
+    [
+      appMetadata.id,
+      appId,
+      teamId,
+      addLocaleMutation,
+      refetchLocalisation,
+      locale,
+      client,
+    ],
   );
 
   const updateLocalisationInForm = useCallback(
@@ -586,76 +640,29 @@ export const AppStoreForm = (props: {
                     // Prevent removal of English language or if image operation is in progress
                     if (value === "en" || isImageOperationInProgress) return;
 
-                    field.onChange(
-                      field.value?.filter((v) => v !== value) ?? [],
+                    const newLanguages =
+                      field.value?.filter((v) => v !== value) ?? [];
+                    await handleLocalisationUpdate(
+                      field.value ?? [],
+                      newLanguages,
                     );
-
-                    setLocale("en");
-                    await addLocaleMutation({
-                      variables: {
-                        app_metadata_id: appMetadata.id,
-                        supported_languages:
-                          field.value?.filter((v) => v !== value) ?? [],
-                      },
-                      refetchQueries: [
-                        {
-                          query: FetchAppMetadataDocument,
-                          variables: {
-                            id: appId,
-                          },
-                        },
-                      ],
-                    });
-
-                    // Delete localisation for removed language
-                    if (value !== "en") {
-                      await deleteLocalisationWithRefetch(value);
-                    }
+                    field.onChange(newLanguages);
                   }}
                   selectAll={() => {
                     const languageValues = allPossibleLanguages.map(
                       (c) => c.value,
                     );
-                    addLocaleMutation({
-                      variables: {
-                        app_metadata_id: appMetadata.id,
-                        supported_languages: languageValues,
-                      },
-                      refetchQueries: [
-                        {
-                          query: FetchAppMetadataDocument,
-                          variables: {
-                            id: appId,
-                          },
-                        },
-                      ],
-                    });
+                    handleLocalisationUpdate(field.value ?? [], languageValues);
                     field.onChange(languageValues);
                   }}
                   clearAll={async () => {
-                    // Delete localisations for all languages except English
-                    const languagesToDelete =
-                      field.value?.filter((lang) => lang !== "en") ?? [];
-                    for (const lang of languagesToDelete) {
-                      await deleteLocalisationWithRefetch(lang);
-                    }
-
                     // Keep English language when clearing all
-                    field.onChange(["en"]);
-                    await addLocaleMutation({
-                      variables: {
-                        app_metadata_id: appMetadata.id,
-                        supported_languages: ["en"],
-                      },
-                      refetchQueries: [
-                        {
-                          query: FetchAppMetadataDocument,
-                          variables: {
-                            id: appId,
-                          },
-                        },
-                      ],
-                    });
+                    const newLanguages = ["en"];
+                    await handleLocalisationUpdate(
+                      field.value ?? [],
+                      newLanguages,
+                    );
+                    field.onChange(newLanguages);
                   }}
                 >
                   {(item, index) => (
@@ -674,45 +681,11 @@ export const AppStoreForm = (props: {
                           ? [...field.value, value]
                           : field.value.filter((v) => v !== value);
 
+                        await handleLocalisationUpdate(
+                          field.value,
+                          newSupportedLanguages,
+                        );
                         field.onChange(newSupportedLanguages);
-
-                        await addLocaleMutation({
-                          variables: {
-                            app_metadata_id: appMetadata.id,
-                            supported_languages: newSupportedLanguages,
-                          },
-                          refetchQueries: [
-                            {
-                              query: FetchAppMetadataDocument,
-                              variables: {
-                                id: appId,
-                              },
-                            },
-                          ],
-                        });
-
-                        // Create empty localisation for new language
-                        if (isNewLanguage && value !== "en") {
-                          try {
-                            await addEmptyLocalisationServerSide(
-                              appMetadata.id,
-                              value,
-                              appId,
-                            );
-                            await refetchLocalisation({
-                              id: appMetadata.id,
-                              locale: value,
-                            });
-                          } catch (error) {
-                            console.error(
-                              "Failed to create empty localisation:",
-                              error,
-                            );
-                            toast.error(
-                              "Failed to create localisation for new language",
-                            );
-                          }
-                        }
                       }}
                       disabled={!isEditable || !isEnoughPermissions}
                     />
