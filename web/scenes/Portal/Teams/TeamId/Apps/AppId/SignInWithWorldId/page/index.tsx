@@ -52,7 +52,7 @@ export const SignInWithWorldIdPage = async (
             </Typography>
           </DecoratedButton>
           <DecoratedButton
-            href="https://docs.worldcoin.org/sign-in"
+            href="https://docs.world.org/world-id"
             variant="secondary"
             className="flex h-12 items-center justify-center py-5"
           >

@@ -8,7 +8,7 @@ The Worldcoin Developer Portal provides tools to interact with the [World ID Pro
 
 ## 📄 Documentation
 
-All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
+All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
 
 ## 🧑‍💻 Developing Locally
 
@@ -21,12 +21,11 @@ cd web/
 cp .env.test .env
 ```
 
-**Note:** You may also have to overwrite the `.env.local` file if one exists. 
+**Note:** You may also have to overwrite the `.env.local` file if one exists.
 
 2. Edit any environment variables for which you have real credentials.
 3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with World ID. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](aws-role-sample-policy.json) for this.
    1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
-
 
 ### Starting the app
 

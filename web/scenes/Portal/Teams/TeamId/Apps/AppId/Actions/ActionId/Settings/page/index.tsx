@@ -1,11 +1,11 @@
 "use client";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import ErrorComponent from "next/error";
 import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -40,7 +40,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
             actionId={actionID}
             teamId={teamId}
             appId={appId}
-            learnMoreUrl="https://docs.worldcoin.org/quick-start/installation"
+            learnMoreUrl="https://docs.world.org/quick-start/installation"
           />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />

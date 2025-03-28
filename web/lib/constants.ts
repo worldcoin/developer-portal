@@ -29,7 +29,7 @@ export const SECURE_DOCUMENT_SEQUENCER_STAGING =
 
 // ANCHOR: OIDC Base URL
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
-export const DOCS_URL = "https://docs.worldcoin.org";
+export const DOCS_URL = "https://docs.world.org";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated

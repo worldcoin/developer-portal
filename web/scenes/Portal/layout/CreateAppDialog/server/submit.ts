@@ -34,7 +34,7 @@ export async function validateAndInsertAppServerSide(
       engine: parsedInitialValues.verification,
       category: parsedInitialValues.category,
       integration_url:
-        parsedInitialValues.integration_url ?? "https://docs.worldcoin.org/",
+        parsedInitialValues.integration_url ?? "https://docs.world.org/",
       app_mode: parsedInitialValues.app_mode,
     });
   } catch (error) {
