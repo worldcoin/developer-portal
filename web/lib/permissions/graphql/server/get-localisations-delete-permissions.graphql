@@ -1,0 +1,35 @@
+query GetIsUserPermittedToDeleteLocalisations(
+  $appMetadataId: String!
+  $locale: String!
+  $userId: String!
+) {
+  app_metadata(
+    where: {
+      _and: [
+        { verification_status: { _neq: "verified" } }
+        {
+          app: {
+            app_metadata: {
+              localisations: {
+                _and: [
+                  { app_metadata_id: { _eq: $appMetadataId } }
+                  { locale: { _eq: $locale } }
+                ]
+              }
+            }
+            team: {
+              memberships: {
+                _and: [
+                  { user_id: { _eq: $userId } }
+                  { _or: [{ role: { _eq: OWNER } }, { role: { _eq: ADMIN } }] }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    id
+  }
+}

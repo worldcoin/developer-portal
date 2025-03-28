@@ -4995,10 +4995,12 @@ export type Localisations = {
   app_metadata_id: Scalars["String"]["output"];
   created_at: Scalars["timestamptz"]["output"];
   description: Scalars["String"]["output"];
+  hero_image_url: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   locale: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   short_name: Scalars["String"]["output"];
+  showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
   updated_at: Scalars["timestamptz"]["output"];
   world_app_button_text: Scalars["String"]["output"];
   world_app_description: Scalars["String"]["output"];
@@ -5059,10 +5061,12 @@ export type Localisations_Bool_Exp = {
   app_metadata_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
+  hero_image_url?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   locale?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   short_name?: InputMaybe<String_Comparison_Exp>;
+  showcase_img_urls?: InputMaybe<String_Array_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   world_app_button_text?: InputMaybe<String_Comparison_Exp>;
   world_app_description?: InputMaybe<String_Comparison_Exp>;
@@ -5080,10 +5084,12 @@ export type Localisations_Insert_Input = {
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
+  hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]["input"]>;
   world_app_description?: InputMaybe<Scalars["String"]["input"]>;
@@ -5095,10 +5101,12 @@ export type Localisations_Max_Fields = {
   app_metadata_id?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
+  hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   locale?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   short_name?: Maybe<Scalars["String"]["output"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   world_app_button_text?: Maybe<Scalars["String"]["output"]>;
   world_app_description?: Maybe<Scalars["String"]["output"]>;
@@ -5109,10 +5117,12 @@ export type Localisations_Max_Order_By = {
   app_metadata_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
+  hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
+  showcase_img_urls?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
@@ -5124,10 +5134,12 @@ export type Localisations_Min_Fields = {
   app_metadata_id?: Maybe<Scalars["String"]["output"]>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
+  hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   locale?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   short_name?: Maybe<Scalars["String"]["output"]>;
+  showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   world_app_button_text?: Maybe<Scalars["String"]["output"]>;
   world_app_description?: Maybe<Scalars["String"]["output"]>;
@@ -5138,10 +5150,12 @@ export type Localisations_Min_Order_By = {
   app_metadata_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
+  hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
+  showcase_img_urls?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
@@ -5169,10 +5183,12 @@ export type Localisations_Order_By = {
   app_metadata_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
+  hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
+  showcase_img_urls?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   world_app_button_text?: InputMaybe<Order_By>;
   world_app_description?: InputMaybe<Order_By>;
@@ -5192,6 +5208,8 @@ export enum Localisations_Select_Column {
   /** column name */
   Description = "description",
   /** column name */
+  HeroImageUrl = "hero_image_url",
+  /** column name */
   Id = "id",
   /** column name */
   Locale = "locale",
@@ -5199,6 +5217,8 @@ export enum Localisations_Select_Column {
   Name = "name",
   /** column name */
   ShortName = "short_name",
+  /** column name */
+  ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
@@ -5212,10 +5232,12 @@ export type Localisations_Set_Input = {
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
+  hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]["input"]>;
   world_app_description?: InputMaybe<Scalars["String"]["input"]>;
@@ -5234,10 +5256,12 @@ export type Localisations_Stream_Cursor_Value_Input = {
   app_metadata_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
+  hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   world_app_button_text?: InputMaybe<Scalars["String"]["input"]>;
   world_app_description?: InputMaybe<Scalars["String"]["input"]>;
@@ -5252,6 +5276,8 @@ export enum Localisations_Update_Column {
   /** column name */
   Description = "description",
   /** column name */
+  HeroImageUrl = "hero_image_url",
+  /** column name */
   Id = "id",
   /** column name */
   Locale = "locale",
@@ -5259,6 +5285,8 @@ export enum Localisations_Update_Column {
   Name = "name",
   /** column name */
   ShortName = "short_name",
+  /** column name */
+  ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
@@ -8010,17 +8038,20 @@ export type Query_RootCache_By_PkArgs = {
 
 export type Query_RootGet_All_Unverified_ImagesArgs = {
   app_id: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
   team_id: Scalars["String"]["input"];
 };
 
 export type Query_RootGet_App_Review_ImagesArgs = {
   app_id: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Query_RootGet_Uploaded_ImageArgs = {
   app_id: Scalars["String"]["input"];
   content_type_ending: Scalars["String"]["input"];
   image_type: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
   team_id: Scalars["String"]["input"];
 };
 
@@ -8232,6 +8263,7 @@ export type Query_RootUpload_ImageArgs = {
   app_id: Scalars["String"]["input"];
   content_type_ending: Scalars["String"]["input"];
   image_type: Scalars["String"]["input"];
+  locale?: InputMaybe<Scalars["String"]["input"]>;
   team_id: Scalars["String"]["input"];
 };
 
