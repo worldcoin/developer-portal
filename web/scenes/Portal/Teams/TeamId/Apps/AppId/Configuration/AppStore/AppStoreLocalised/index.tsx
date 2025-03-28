@@ -62,6 +62,12 @@ export const AppStoreForm = (props: {
   const [isImageOperationInProgress, setIsImageOperationInProgress] =
     useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [creatingLocalisations, setCreatingLocalisations] = useState<
+    Set<string>
+  >(new Set());
+  const [deletingLocalisations, setDeletingLocalisations] = useState<
+    Set<string>
+  >(new Set());
 
   const [addLocaleMutation] = useAddLocaleMutation();
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -86,19 +92,35 @@ export const AppStoreForm = (props: {
   // Anchor: Localisation Metadata
   const [
     getLocalisationText,
-    {
-      data: localisedData,
-      refetch: refetchLocalisation,
-      loading: isLocalisationLoading,
-    },
-  ] = useFetchLocalisationLazyQuery();
+    { data: localisedData, refetch: refetchLocalisation },
+  ] = useFetchLocalisationLazyQuery({});
 
   const client = useApolloClient();
 
   const handleLocalisationUpdate = useCallback(
     async (oldLanguages: string[], newLanguages: string[]) => {
       try {
-        // Update app metadata with new supported languages
+        // Find languages to add and remove
+        const languagesToAdd = newLanguages.filter(
+          (lang) => !oldLanguages.includes(lang) && lang !== "en",
+        );
+        const languagesToRemove = oldLanguages.filter(
+          (lang) => !newLanguages.includes(lang) && lang !== "en",
+        );
+        // Add new languages to creating set
+        setCreatingLocalisations((prev) => {
+          const newSet = new Set(prev);
+          languagesToAdd.forEach((lang) => newSet.add(lang));
+          return newSet;
+        });
+
+        // Add languages to deleting set
+        setDeletingLocalisations((prev) => {
+          const newSet = new Set(prev);
+          languagesToRemove.forEach((lang) => newSet.add(lang));
+          return newSet;
+        });
+
         await addLocaleMutation({
           variables: {
             app_metadata_id: appMetadata.id,
@@ -114,22 +136,10 @@ export const AppStoreForm = (props: {
           ],
         });
 
-        // Find languages to add and remove
-        const languagesToAdd = newLanguages.filter(
-          (lang) => !oldLanguages.includes(lang) && lang !== "en",
-        );
-        const languagesToRemove = oldLanguages.filter(
-          (lang) => !newLanguages.includes(lang) && lang !== "en",
-        );
-
         // Create empty localisations for new languages and delete removed ones in parallel
         const addPromises = languagesToAdd.map(async (lang) => {
-          await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
-        });
-
-        const removePromises = languagesToRemove.map(async (lang) => {
           try {
-            await deleteLocalisationServerSide(appMetadata.id, lang);
+            await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
             await refetchLocalisation({
               id: appMetadata.id,
               locale: lang,
@@ -146,9 +156,42 @@ export const AppStoreForm = (props: {
                 });
               },
             });
+            // Remove from creating set when done
+            setCreatingLocalisations((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(lang);
+              return newSet;
+            });
+          } catch (error) {
+            console.error("Failed to add localisation:", error);
+            toast.error("Failed to add localisation");
+            // Remove from creating set on error
+            setCreatingLocalisations((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(lang);
+              return newSet;
+            });
+          }
+        });
+
+        const removePromises = languagesToRemove.map(async (lang) => {
+          try {
+            await deleteLocalisationServerSide(appMetadata.id, lang);
+            // Remove from deleting set when done
+            setDeletingLocalisations((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(lang);
+              return newSet;
+            });
           } catch (error) {
             console.error("Failed to delete localisation:", error);
             toast.error("Failed to delete localisation");
+            // Remove from deleting set on error
+            setDeletingLocalisations((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(lang);
+              return newSet;
+            });
           }
         });
 
@@ -177,13 +220,13 @@ export const AppStoreForm = (props: {
 
   const updateLocalisationInForm = useCallback(
     async (locale: string) => {
-      setLocale(locale);
-      await getLocalisationText({
+      getLocalisationText({
         variables: {
           id: appMetadata.id,
           locale: locale,
         },
       });
+      setLocale(locale);
     },
     [appMetadata.id, getLocalisationText],
   );
@@ -212,7 +255,7 @@ export const AppStoreForm = (props: {
     reset,
     watch,
     getValues,
-    formState: { errors, isDirty, isSubmitted },
+    formState: { errors, isDirty, dirtyFields, isSubmitted },
   } = useForm<AppStoreLocalisedForm>({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -227,8 +270,29 @@ export const AppStoreForm = (props: {
     },
   });
 
+  // Track which fields are relevant for the current locale
+  const isLocaleRelevantField = useCallback((field: string) => {
+    const localeRelevantFields = [
+      "name",
+      "short_name",
+      "world_app_description",
+      "description_overview",
+      "description_how_it_works",
+      "description_connect",
+      "world_app_button_text",
+    ];
+    return localeRelevantFields.includes(field);
+  }, []);
+
+  // Check if only locale-irrelevant fields are dirty
+  const hasOnlyLocaleIrrelevantChanges = useCallback(() => {
+    return Object.keys(dirtyFields).every(
+      (field) => !isLocaleRelevantField(field),
+    );
+  }, [dirtyFields, isLocaleRelevantField]);
+
   useEffect(() => {
-    if (isDirty) {
+    if (isDirty && !hasOnlyLocaleIrrelevantChanges()) {
       toast.info("You have unsaved changes", {
         autoClose: false,
         toastId: "formState",
@@ -237,7 +301,27 @@ export const AppStoreForm = (props: {
     return () => {
       toast.dismiss("formState");
     };
-  }, [isDirty]);
+  }, [isDirty, hasOnlyLocaleIrrelevantChanges]);
+
+  const isFormDisabled = useMemo(() => {
+    if (locale === "en") {
+      return (
+        !isEditable || !isEnoughPermissions || isSubmitting || !appMetadata
+      );
+    }
+    return (
+      !isEditable ||
+      !isEnoughPermissions ||
+      isSubmitting ||
+      !localisedData?.localisations?.[0]
+    );
+  }, [
+    isEditable,
+    isEnoughPermissions,
+    isSubmitting,
+    localisedData?.localisations,
+    locale,
+  ]);
 
   useEffect(() => {
     const localisedItem =
@@ -253,7 +337,7 @@ export const AppStoreForm = (props: {
       supported_languages: formValues?.supported_languages ?? [],
       app_website_url: formValues?.app_website_url ?? "",
     });
-  }, [viewMode, reset, locale, getValues, isLocalisationLoading]);
+  }, [viewMode, reset, locale, getValues, isFormDisabled]);
 
   useEffect(() => {
     setFormSubmitState({ isSubmitted });
@@ -286,13 +370,6 @@ export const AppStoreForm = (props: {
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
         await refetchAppMetadata();
         return;
-      }
-
-      if (!localisedData || !localisedData.localisations?.[0]) {
-        await refetchLocalisation({
-          id: appMetadata.id,
-          locale: locale,
-        });
       }
 
       const localisation = localisedData?.localisations?.[0];
@@ -401,11 +478,13 @@ export const AppStoreForm = (props: {
 
   const handleLanguageSwitch = useCallback(
     async (targetLang: string) => {
+      console.log("targetLang", targetLang);
+
       if (isSubmitting || isImageOperationInProgress) {
         return;
       }
 
-      if (isDirty) {
+      if (isDirty && !hasOnlyLocaleIrrelevantChanges()) {
         // Validate form data before switching
         const formData = getValues();
         const isValid = await schema.isValid(formData);
@@ -447,26 +526,68 @@ export const AppStoreForm = (props: {
       hasEmptyRequiredFields,
       isSubmitting,
       isImageOperationInProgress,
+      hasOnlyLocaleIrrelevantChanges,
     ],
   );
 
   const handleSelectNextLocalisation = useCallback(async () => {
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
-    const nextLocaleIdx = currentLocaleIdx + 1;
-    const nextLocale =
-      supportedLanguages[nextLocaleIdx] || supportedLanguages[0];
-    await handleLanguageSwitch(nextLocale);
-  }, [locale, supportedLanguages, handleLanguageSwitch]);
+    let nextLocaleIdx = currentLocaleIdx + 1;
+    let nextLocale = supportedLanguages[nextLocaleIdx];
+
+    // Skip locales that are being created
+    while (nextLocale && creatingLocalisations.has(nextLocale)) {
+      nextLocaleIdx++;
+      nextLocale = supportedLanguages[nextLocaleIdx];
+    }
+
+    // If we've reached the end, start from the beginning
+    if (!nextLocale) {
+      nextLocaleIdx = 0;
+      nextLocale = supportedLanguages[0];
+      // Skip locales that are being created from the beginning
+      while (nextLocale && creatingLocalisations.has(nextLocale)) {
+        nextLocaleIdx++;
+        nextLocale = supportedLanguages[nextLocaleIdx];
+      }
+    }
+
+    // If we found a valid locale, switch to it
+    if (nextLocale) {
+      await handleLanguageSwitch(nextLocale);
+    }
+  }, [locale, supportedLanguages, handleLanguageSwitch, creatingLocalisations]);
 
   const handleSelectPreviousLocalisation = useCallback(async () => {
     const currentLocaleIdx = supportedLanguages.indexOf(locale);
-    const previousLocaleIdx = currentLocaleIdx - 1;
-    const previousLocale =
-      previousLocaleIdx >= 0
-        ? supportedLanguages[previousLocaleIdx]
-        : supportedLanguages[supportedLanguages.length - 1];
-    await handleLanguageSwitch(previousLocale);
-  }, [locale, supportedLanguages, handleLanguageSwitch]);
+    let previousLocaleIdx = currentLocaleIdx - 1;
+    let previousLocale =
+      previousLocaleIdx >= 0 ? supportedLanguages[previousLocaleIdx] : null;
+
+    // Skip locales that are being created
+    while (previousLocale && creatingLocalisations.has(previousLocale)) {
+      previousLocaleIdx--;
+      previousLocale =
+        previousLocaleIdx >= 0 ? supportedLanguages[previousLocaleIdx] : null;
+    }
+
+    // If we've reached the beginning, start from the end
+    if (!previousLocale) {
+      previousLocaleIdx = supportedLanguages.length - 1;
+      previousLocale = supportedLanguages[previousLocaleIdx];
+      // Skip locales that are being created from the end
+      while (previousLocale && creatingLocalisations.has(previousLocale)) {
+        previousLocaleIdx--;
+        previousLocale =
+          previousLocaleIdx >= 0 ? supportedLanguages[previousLocaleIdx] : null;
+      }
+    }
+
+    // If we found a valid locale, switch to it
+    if (previousLocale) {
+      await handleLanguageSwitch(previousLocale);
+    }
+  }, [locale, supportedLanguages, handleLanguageSwitch, creatingLocalisations]);
 
   return (
     <div className="grid max-w-[580px] grid-cols-1fr/auto">
@@ -657,41 +778,40 @@ export const AppStoreForm = (props: {
                   showSelectedList
                   searchPlaceholder="Start by typing language..."
                   canDelete={(item) =>
-                    item.value !== "en" && !isImageOperationInProgress
+                    item.value !== "en" &&
+                    !isImageOperationInProgress &&
+                    !creatingLocalisations.has(item.value)
                   }
                   onRemove={async (value) => {
-                    // Prevent removal of English language or if operation is in progress
+                    // Prevent removal of English language, if operation is in progress, or if localisation is being created
                     if (
                       value === "en" ||
                       isImageOperationInProgress ||
-                      isSubmitting
+                      isSubmitting ||
+                      creatingLocalisations.has(value)
                     )
                       return;
 
                     const newLanguages =
                       field.value?.filter((v) => v !== value) ?? [];
+                    handleLocalisationUpdate(field.value ?? [], newLanguages);
                     field.onChange(newLanguages);
-                    await handleLocalisationUpdate(
-                      field.value ?? [],
-                      newLanguages,
-                    );
                   }}
                   selectAll={() => {
                     const languageValues = allPossibleLanguages.map(
                       (c) => c.value,
                     );
-                    field.onChange(languageValues);
                     handleLocalisationUpdate(field.value ?? [], languageValues);
+                    field.onChange(languageValues);
                   }}
                   clearAll={async () => {
                     // Keep English language when clearing all
                     const newLanguages = ["en"];
+                    setLocale("en");
+                    handleLocalisationUpdate(field.value ?? [], newLanguages);
                     field.onChange(newLanguages);
-                    await handleLocalisationUpdate(
-                      field.value ?? [],
-                      newLanguages,
-                    );
                   }}
+                  canClearAll={creatingLocalisations.size === 0}
                 >
                   {(item, index) => (
                     <SelectMultiple.Item
@@ -709,14 +829,18 @@ export const AppStoreForm = (props: {
                           ? [...field.value, value]
                           : field.value.filter((v) => v !== value);
 
-                        field.onChange(newSupportedLanguages);
-                        await handleLocalisationUpdate(
+                        handleLocalisationUpdate(
                           field.value,
                           newSupportedLanguages,
                         );
+                        field.onChange(newSupportedLanguages);
                       }}
                       disabled={
-                        !isEditable || !isEnoughPermissions || isSubmitting
+                        !isEditable ||
+                        !isEnoughPermissions ||
+                        isSubmitting ||
+                        creatingLocalisations.has(item.value) ||
+                        deletingLocalisations.has(item.value)
                       }
                     />
                   )}
@@ -725,22 +849,32 @@ export const AppStoreForm = (props: {
             />
           </div>
           <div className="flex flex-wrap gap-2">
-            {supportedLanguages?.map((lang, index) => {
+            {[
+              ...(supportedLanguages || []),
+              ...Array.from(deletingLocalisations),
+            ].map((lang, index) => {
               const language = languageMap[lang as keyof typeof languageMap];
               if (!language) return null;
 
+              const isCreating = creatingLocalisations.has(lang);
+              const isDeleting = deletingLocalisations.has(lang);
+              const isDisabled =
+                isImageOperationInProgress ||
+                isSubmitting ||
+                isCreating ||
+                isDeleting;
+
               return (
                 <CountryBadge
-                  key={index}
+                  key={lang}
                   onClick={async () => {
-                    if (!isImageOperationInProgress && !isSubmitting) {
+                    if (!isDisabled) {
                       await handleLanguageSwitch(lang);
                     }
                   }}
                   focused={locale === lang}
                   className={clsx({
-                    "cursor-not-allowed opacity-50":
-                      isImageOperationInProgress || isSubmitting,
+                    "cursor-not-allowed opacity-50": isDisabled,
                   })}
                 >
                   <Image
@@ -752,6 +886,8 @@ export const AppStoreForm = (props: {
                   />
                   <Typography variant={TYPOGRAPHY.R5}>
                     {language?.label}
+                    {isCreating && " (Creating...)"}
+                    {isDeleting && " (Deleting...)"}
                   </Typography>
                 </CountryBadge>
               );
@@ -761,10 +897,16 @@ export const AppStoreForm = (props: {
             <button
               type="button"
               onClick={handleSelectPreviousLocalisation}
-              disabled={isImageOperationInProgress || isSubmitting}
+              disabled={
+                isImageOperationInProgress ||
+                isSubmitting ||
+                creatingLocalisations.size === supportedLanguages.length
+              }
               className={clsx({
                 "cursor-not-allowed opacity-50":
-                  isImageOperationInProgress || isSubmitting,
+                  isImageOperationInProgress ||
+                  isSubmitting ||
+                  creatingLocalisations.size === supportedLanguages.length,
               })}
             >
               <ChevronLeftIcon className="mr-2 size-8" />
@@ -783,9 +925,7 @@ export const AppStoreForm = (props: {
                 register={register("name")}
                 errors={errors.name}
                 label="App name"
-                disabled={
-                  !isEditable || !isEnoughPermissions || isLocalisationLoading
-                }
+                disabled={isFormDisabled}
                 required
                 placeholder="Enter your App Name"
                 maxLength={50}
@@ -797,9 +937,7 @@ export const AppStoreForm = (props: {
                 register={register("short_name")}
                 errors={errors.short_name}
                 label="Short name"
-                disabled={
-                  !isEditable || !isEnoughPermissions || isLocalisationLoading
-                }
+                disabled={isFormDisabled}
                 required
                 placeholder="Enter your short app name"
                 maxLength={10}
@@ -814,9 +952,7 @@ export const AppStoreForm = (props: {
                 register={register("world_app_description")}
                 errors={errors.world_app_description}
                 label="App tag line"
-                disabled={
-                  !isEditable || !isEnoughPermissions || isLocalisationLoading
-                }
+                disabled={isFormDisabled}
                 required
                 placeholder="Short app store tagline"
                 maxLength={35}
@@ -833,9 +969,7 @@ export const AppStoreForm = (props: {
                 rows={5}
                 maxLength={1500}
                 errors={errors.description_overview}
-                disabled={
-                  !isEditable || !isEnoughPermissions || isLocalisationLoading
-                }
+                disabled={isFormDisabled}
                 addOn={
                   <RemainingCharacters
                     text={watch("description_overview")}
@@ -849,10 +983,16 @@ export const AppStoreForm = (props: {
             <button
               type="button"
               onClick={handleSelectNextLocalisation}
-              disabled={isImageOperationInProgress || isSubmitting}
+              disabled={
+                isImageOperationInProgress ||
+                isSubmitting ||
+                creatingLocalisations.size === supportedLanguages.length
+              }
               className={clsx({
                 "cursor-not-allowed opacity-50":
-                  isImageOperationInProgress || isSubmitting,
+                  isImageOperationInProgress ||
+                  isSubmitting ||
+                  creatingLocalisations.size === supportedLanguages.length,
               })}
             >
               <ChevronRightIcon className="ml-2 size-8" />

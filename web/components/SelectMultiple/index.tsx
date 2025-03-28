@@ -38,6 +38,7 @@ export type SelectMultipleProps<T extends FieldValues> = {
   showSelectedList?: boolean;
   children: (item: Item, index: number) => React.ReactNode;
   searchPlaceholder?: string;
+  canClearAll?: boolean;
   canDelete?: (item: Item) => boolean;
 };
 
@@ -215,8 +216,10 @@ export const SelectMultiple = <T extends FieldValues>(
                 e.stopPropagation();
                 clearAll?.();
               }}
-              className="h-9 rounded-lg"
-              disabled={disabled}
+              className={clsx("h-9 rounded-lg", {
+                "cursor-not-allowed opacity-50": !props.canClearAll,
+              })}
+              disabled={disabled || !props.canClearAll}
             >
               <Typography variant={TYPOGRAPHY.R4}>Clear all</Typography>
             </DecoratedButton>
