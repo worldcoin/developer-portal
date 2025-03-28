@@ -144,18 +144,15 @@ export const AppStoreForm = (props: {
               id: appMetadata.id,
               locale: lang,
             });
-            await client.refetchQueries({
-              updateCache(cache) {
-                cache.evict({
-                  fieldName: "get_all_unverified_images",
-                  args: {
-                    app_id: appId,
-                    team_id: teamId,
-                    locale: lang,
-                  },
-                });
+            client.cache.evict({
+              fieldName: "get_all_unverified_images",
+              args: {
+                app_id: appId,
+                team_id: teamId,
+                locale: lang,
               },
             });
+            client.cache.gc();
             // Remove from creating set when done
             setCreatingLocalisations((prev) => {
               const newSet = new Set(prev);
