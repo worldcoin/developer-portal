@@ -327,6 +327,7 @@ update_permissions:
         - review_message
         - reviewed_by
         - showcase_img_urls
+        - supported_countries
         - verification_status
         - verified_at
       filter:
