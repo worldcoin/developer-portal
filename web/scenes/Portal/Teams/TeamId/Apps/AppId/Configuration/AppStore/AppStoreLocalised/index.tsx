@@ -44,6 +44,7 @@ import {
 } from "../server/submit";
 import { formSubmitStateAtom } from "./FormSubmitStateProvider";
 import { useAddLocaleMutation } from "./graphql/client/add-new-locale.generated";
+import { useFetchAllLocalisationsQuery } from "./graphql/client/fetch-all-localisations.generated";
 import { useFetchLocalisationLazyQuery } from "./graphql/client/fetch-localisation.generated";
 import { ImageForm } from "./ImageForm";
 import { parseDescription } from "./utils/util";
@@ -95,7 +96,98 @@ export const AppStoreForm = (props: {
     { data: localisedData, refetch: refetchLocalisation },
   ] = useFetchLocalisationLazyQuery({});
 
+  const { data: allLocalisationsData, loading: allLocalisationsLoading } =
+    useFetchAllLocalisationsQuery({
+      variables: {
+        app_metadata_id: appMetadata.id,
+      },
+    });
+
   const client = useApolloClient();
+
+  const createLocalisation = useCallback(
+    async (lang: string) => {
+      try {
+        await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
+        await refetchLocalisation({
+          id: appMetadata.id,
+          locale: lang,
+        });
+        client.cache.evict({
+          fieldName: "get_all_unverified_images",
+          args: {
+            app_id: appId,
+            team_id: teamId,
+            locale: lang,
+          },
+        });
+        client.cache.gc();
+        // Remove from creating set when done
+        setCreatingLocalisations((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(lang);
+          return newSet;
+        });
+      } catch (error) {
+        console.error("Failed to add localisation:", error);
+        toast.error("Failed to add localisation");
+        // Remove from creating set on error
+        setCreatingLocalisations((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(lang);
+          return newSet;
+        });
+      }
+    },
+    [appMetadata.id, appId, refetchLocalisation],
+  );
+
+  // Check for missing localisations on initial load
+  useEffect(() => {
+    if (
+      !appMetadata?.id ||
+      !appMetadata?.supported_languages ||
+      !allLocalisationsData?.localisations ||
+      allLocalisationsLoading
+    ) {
+      return;
+    }
+
+    console.log("Were here");
+
+    const existingLocales = new Set(
+      allLocalisationsData.localisations.map((l) => l.locale),
+    );
+
+    // Filter out English and get missing non-English locales
+    const missingLocales = appMetadata.supported_languages.filter(
+      (lang) => lang !== "en" && !existingLocales.has(lang),
+    );
+
+    if (missingLocales.length > 0) {
+      // Add missing locales to creating set
+      setCreatingLocalisations((prev) => {
+        const newSet = new Set(prev);
+        missingLocales.forEach((lang) => newSet.add(lang));
+        return newSet;
+      });
+
+      // Create missing localisations in parallel
+      Promise.all(
+        missingLocales.map(async (lang) => {
+          try {
+            await createLocalisation(lang);
+          } catch (error) {
+            console.error(`Failed to create localisation for ${lang}:`, error);
+            toast.error(`Failed to create localisation for ${lang}`);
+          }
+        }),
+      ).catch((error) => {
+        console.error("Failed to create some localisations:", error);
+        toast.error("Failed to create some localisations");
+      });
+    }
+  }, [allLocalisationsData?.localisations, allLocalisationsLoading]);
 
   const handleLocalisationUpdate = useCallback(
     async (oldLanguages: string[], newLanguages: string[]) => {
@@ -138,37 +230,7 @@ export const AppStoreForm = (props: {
 
         // Create empty localisations for new languages and delete removed ones in parallel
         const addPromises = languagesToAdd.map(async (lang) => {
-          try {
-            await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
-            await refetchLocalisation({
-              id: appMetadata.id,
-              locale: lang,
-            });
-            client.cache.evict({
-              fieldName: "get_all_unverified_images",
-              args: {
-                app_id: appId,
-                team_id: teamId,
-                locale: lang,
-              },
-            });
-            client.cache.gc();
-            // Remove from creating set when done
-            setCreatingLocalisations((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(lang);
-              return newSet;
-            });
-          } catch (error) {
-            console.error("Failed to add localisation:", error);
-            toast.error("Failed to add localisation");
-            // Remove from creating set on error
-            setCreatingLocalisations((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(lang);
-              return newSet;
-            });
-          }
+          await createLocalisation(lang);
         });
 
         const removePromises = languagesToRemove.map(async (lang) => {
@@ -770,7 +832,11 @@ export const AppStoreForm = (props: {
                   values={field.value}
                   items={allPossibleLanguages}
                   label=""
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={
+                    !isEditable ||
+                    !isEnoughPermissions ||
+                    allLocalisationsLoading
+                  }
                   errors={errors.supported_languages}
                   showSelectedList
                   searchPlaceholder="Start by typing language..."
@@ -837,7 +903,8 @@ export const AppStoreForm = (props: {
                         !isEnoughPermissions ||
                         isSubmitting ||
                         creatingLocalisations.has(item.value) ||
-                        deletingLocalisations.has(item.value)
+                        deletingLocalisations.has(item.value) ||
+                        allLocalisationsLoading
                       }
                     />
                   )}
@@ -859,7 +926,8 @@ export const AppStoreForm = (props: {
                 isImageOperationInProgress ||
                 isSubmitting ||
                 isCreating ||
-                isDeleting;
+                isDeleting ||
+                allLocalisationsLoading;
 
               return (
                 <CountryBadge
@@ -885,6 +953,7 @@ export const AppStoreForm = (props: {
                     {language?.label}
                     {isCreating && " (Creating...)"}
                     {isDeleting && " (Deleting...)"}
+                    {allLocalisationsLoading && " (Loading...)"}
                   </Typography>
                 </CountryBadge>
               );
