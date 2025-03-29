@@ -38,7 +38,7 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
           </div>
           {/* // TODO: Change to mini app docs */}
           <DecoratedButton
-            href="https://docs.worldcoin.org/world-id"
+            href="https://docs.world.org/world-id"
             className="py-4"
           >
             See Docs

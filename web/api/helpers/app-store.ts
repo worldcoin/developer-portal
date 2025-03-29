@@ -123,8 +123,7 @@ export const rankApps = (
     const bStat = appStats.find((stat) => stat.app_id === b.app_id);
 
     return (
-      (bStat?.unique_users_last_7_days ?? 0) -
-      (aStat?.unique_users_last_7_days ?? 0)
+      (bStat?.new_users_last_7_days ?? 0) - (aStat?.new_users_last_7_days ?? 0)
     );
   });
 };
