@@ -10,6 +10,7 @@ jest.mock("../../../lib/logger", () => ({
   logger: {
     error: jest.fn(),
     warn: jest.fn(),
+    info: jest.fn(),
   },
 }));
 
