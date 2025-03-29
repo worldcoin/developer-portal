@@ -113,6 +113,7 @@ export async function GET(
 
   const override_country = searchParams.get("override_country");
   if (
+    parsedAppMetadata.verification_status === "verified" &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
   ) {
