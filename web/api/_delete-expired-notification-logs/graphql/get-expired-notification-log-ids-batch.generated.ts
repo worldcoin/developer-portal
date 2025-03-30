@@ -4,22 +4,23 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type DeleteExpiredNotificationLogsMutationVariables = Types.Exact<{
-  date: Types.Scalars["timestamptz"]["input"];
+export type GetExpiredNotificationLogIdsBatchQueryVariables = Types.Exact<{
+  beforeDate: Types.Scalars["timestamptz"]["input"];
 }>;
 
-export type DeleteExpiredNotificationLogsMutation = {
-  __typename?: "mutation_root";
-  delete_notification_log?: {
-    __typename?: "notification_log_mutation_response";
-    affected_rows: number;
-  } | null;
+export type GetExpiredNotificationLogIdsBatchQuery = {
+  __typename?: "query_root";
+  notification_log: Array<{ __typename?: "notification_log"; id: string }>;
 };
 
-export const DeleteExpiredNotificationLogsDocument = gql`
-  mutation DeleteExpiredNotificationLogs($date: timestamptz!) {
-    delete_notification_log(where: { created_at: { _lte: $date } }) {
-      affected_rows
+export const GetExpiredNotificationLogIdsBatchDocument = gql`
+  query GetExpiredNotificationLogIdsBatch($beforeDate: timestamptz!) {
+    notification_log(
+      where: { created_at: { _lte: $beforeDate } }
+      order_by: { created_at: asc }
+      limit: 1000
+    ) {
+      id
     }
   }
 `;
@@ -43,19 +44,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    DeleteExpiredNotificationLogs(
-      variables: DeleteExpiredNotificationLogsMutationVariables,
+    GetExpiredNotificationLogIdsBatch(
+      variables: GetExpiredNotificationLogIdsBatchQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<DeleteExpiredNotificationLogsMutation> {
+    ): Promise<GetExpiredNotificationLogIdsBatchQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<DeleteExpiredNotificationLogsMutation>(
-            DeleteExpiredNotificationLogsDocument,
+          client.request<GetExpiredNotificationLogIdsBatchQuery>(
+            GetExpiredNotificationLogIdsBatchDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "DeleteExpiredNotificationLogs",
-        "mutation",
+        "GetExpiredNotificationLogIdsBatch",
+        "query",
         variables,
       );
     },

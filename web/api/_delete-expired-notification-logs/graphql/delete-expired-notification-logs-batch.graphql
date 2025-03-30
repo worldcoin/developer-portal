@@ -1,0 +1,5 @@
+mutation DeleteExpiredNotificationLogs($notificationLogIds: [String!]) {
+  delete_notification_log(where: { id: { _in: $notificationLogIds } }) {
+    affected_rows
+  }
+}

@@ -1,5 +1,0 @@
-mutation DeleteExpiredNotificationLogs($date: timestamptz!) {
-  delete_notification_log(where: { created_at: { _lte: $date } }) {
-    affected_rows
-  }
-}

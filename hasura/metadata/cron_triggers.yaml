@@ -1,6 +1,6 @@
 - name: Cleanup notification logs
-  webhook: '{{NEXT_API_URL}}/_delete-expired-logs'
-  schedule: 0 11 * * *
+  webhook: '{{NEXT_API_URL}}/_delete-expired-notification-logs'
+  schedule: '*/30 * * * *'
   include_in_metadata: true
   payload: {}
   retry_conf:
