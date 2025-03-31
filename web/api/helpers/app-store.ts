@@ -73,6 +73,12 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
+  const heroImageLocale =
+    isLocalisationComplete && localisedContent?.hero_image_url ? locale : "en";
+  const showcaseImgUrlsLocale =
+    isLocalisationComplete && localisedContent?.showcase_img_urls
+      ? locale
+      : "en";
 
   return {
     ...appMetadataWithoutLocalisations,
@@ -96,12 +102,14 @@ export const formatAppMetadata = async (
         appMetadata.app_id,
         url,
         appMetadata.verification_status === "verified",
+        showcaseImgUrlsLocale,
       ),
     ),
     hero_image_url: getCDNImageUrl(
       appMetadata.app_id,
       heroImageUrl,
       appMetadata.verification_status === "verified",
+      heroImageLocale,
     ),
     // TODO: These fields are not used anymore, we can add them back if we want later
     description: {

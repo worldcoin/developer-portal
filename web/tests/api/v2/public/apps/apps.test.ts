@@ -838,11 +838,11 @@ describe("/api/v2/public/apps", () => {
       expect(data.app_rankings.top_apps[0].name).toBe("Aplicación de Ejemplo");
       expect(data.app_rankings.top_apps[0].short_name).toBe("test-es");
       expect(data.app_rankings.top_apps[0].hero_image_url).toBe(
-        "https://cdn.test.com/1/hero-es.png",
+        "https://cdn.test.com/1/es/hero-es.png",
       );
       expect(data.app_rankings.top_apps[0].showcase_img_urls).toEqual([
-        "https://cdn.test.com/1/showcase1-es.png",
-        "https://cdn.test.com/1/showcase2-es.png",
+        "https://cdn.test.com/1/es/showcase1-es.png",
+        "https://cdn.test.com/1/es/showcase2-es.png",
       ]);
       expect(data.app_rankings.top_apps[0].world_app_description).toBe(
         "Descripción en español",

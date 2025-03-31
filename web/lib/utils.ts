@@ -110,8 +110,8 @@ export const getCDNImageUrl = (
   locale?: string,
 ) =>
   isAppVerified
-    ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}/${path}`
-    : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}${locale ? `/${locale}` : ""}/${path}`;
+    ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${path}`
+    : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${path}`;
 
 /**
  * Gets the logo image CDN URL

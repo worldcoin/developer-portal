@@ -1008,11 +1008,11 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.name).toBe("Aplicación de Ejemplo");
       expect(data.app_data.short_name).toBe("test-es");
       expect(data.app_data.hero_image_url).toBe(
-        "https://cdn.test.com/1/hero-es.png",
+        "https://cdn.test.com/1/es/hero-es.png",
       );
       expect(data.app_data.showcase_img_urls).toEqual([
-        "https://cdn.test.com/1/showcase1-es.png",
-        "https://cdn.test.com/1/showcase2-es.png",
+        "https://cdn.test.com/1/es/showcase1-es.png",
+        "https://cdn.test.com/1/es/showcase2-es.png",
       ]);
       expect(data.app_data.world_app_description).toBe(
         "Descripción en español",
