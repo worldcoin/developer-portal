@@ -105,7 +105,7 @@ export const POST = async (req: NextRequest) => {
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
 
     // Standardize JPEG to jpg
-    const objectKey = `unverified/${app_id}${locale ? `/${locale}` : ""}/${image_type}.${
+    const objectKey = `unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${image_type}.${
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;
 

@@ -154,6 +154,15 @@ export const POST = async (req: NextRequest) => {
         input: {
           ...copiedLocalisation,
           app_metadata_id: newAppMetadataId,
+          hero_image_url: copiedLocalisation?.hero_image_url
+            ? `hero_image.${getImageEndpoint(copiedLocalisation.hero_image_url)}`
+            : "",
+          showcase_img_urls: copiedLocalisation?.showcase_img_urls
+            ? copiedLocalisation.showcase_img_urls.map(
+                (img: string, index: number) =>
+                  `showcase_img_${index + 1}.${getImageEndpoint(img)}`,
+              )
+            : null,
         },
       });
     }
