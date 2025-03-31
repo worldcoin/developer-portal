@@ -680,7 +680,7 @@ describe("/api/public/app/[app_id]", () => {
     });
   });
   describe("response integrity", () => {
-    test("should return 500 when category is invalid", async () => {
+    test("should return 404 when category is invalid", async () => {
       jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
         GetAppMetadata: jest.fn().mockResolvedValue({
           app_metadata: [
@@ -734,9 +734,209 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
       const response = await GET(request, { params: { app_id: "test-app" } });
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(404);
       const data = await response.json();
       expect(data).toEqual({ error: "Invalid category" });
+    });
+  });
+
+  test("Returns 404 when override_country is provided but not supported", async () => {
+    // Mock app metadata with only the US as a supported country
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Country Limited App",
+            app_id: "3",
+            short_name: "country-limited",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            category: "Productivity",
+            description: '{"description_overview":"test"}',
+            integration_url: "https://example.com/integration",
+            verification_status: "verified",
+            supported_countries: ["us"], // Only supports US
+            app: {
+              team: {
+                name: "Test Team",
+              },
+              rating_sum: 0,
+              rating_count: 0,
+            },
+          },
+        ],
+      }),
+    }));
+
+    // Create request with UK as override_country
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/3?override_country=uk",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
+    );
+
+    const response = await GET(request, { params: { app_id: "3" } });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: "App not available in country",
+    });
+  });
+
+  test("Returns app data when override_country is provided and supported", async () => {
+    // Mock app metadata with multiple supported countries
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Multi Country App",
+            app_id: "4",
+            short_name: "multi-country",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            category: "Productivity",
+            description: '{"description_overview":"test"}',
+            integration_url: "https://example.com/integration",
+            verification_status: "verified",
+            supported_countries: ["us", "uk", "ca"], // Supports multiple countries
+            app: {
+              team: {
+                name: "Test Team",
+              },
+              rating_sum: 0,
+              rating_count: 0,
+            },
+          },
+        ],
+      }),
+    }));
+
+    // Create request with UK as override_country (which is supported)
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/4?override_country=uk",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
+    );
+
+    const response = await GET(request, { params: { app_id: "4" } });
+
+    expect(response.status).toBe(200);
+
+    const responseData = await response.json();
+    expect(responseData).toHaveProperty("app_data");
+    expect(responseData.app_data.app_id).toBe("4");
+    expect(responseData.app_data.name).toBe("Multi Country App");
+    expect(responseData.app_data.supported_countries).toContain("uk");
+  });
+
+  test("Returns app data when override_country is not provided", async () => {
+    // Mock app metadata with limited country support
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Limited Country App",
+            app_id: "5",
+            short_name: "limited-country",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            category: "Productivity",
+            description: '{"description_overview":"test"}',
+            integration_url: "https://example.com/integration",
+            verification_status: "verified",
+            supported_countries: ["us", "ca"], // Only supports US and Canada
+            app: {
+              team: {
+                name: "Test Team",
+              },
+              rating_sum: 0,
+              rating_count: 0,
+            },
+          },
+        ],
+      }),
+    }));
+
+    // Create request without override_country
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/5",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
+    );
+
+    const response = await GET(request, { params: { app_id: "5" } });
+
+    // Should return the app regardless of country restrictions
+    // as override_country is not specified
+    expect(response.status).toBe(200);
+
+    const responseData = await response.json();
+    expect(responseData).toHaveProperty("app_data");
+    expect(responseData.app_data.app_id).toBe("5");
+    expect(responseData.app_data.name).toBe("Limited Country App");
+    expect(responseData.app_data.supported_countries).toEqual(["us", "ca"]);
+  });
+
+  test("Returns app data when override_country is provided but app has no supported_countries", async () => {
+    // Mock app metadata without supported_countries field
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Global App",
+            app_id: "6",
+            short_name: "global-app",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            hero_image_url: "hero.png",
+            category: "Productivity",
+            description: '{"description_overview":"test"}',
+            integration_url: "https://example.com/integration",
+            verification_status: "verified",
+            // No supported_countries field
+            app: {
+              team: {
+                name: "Test Team",
+              },
+              rating_sum: 0,
+              rating_count: 0,
+            },
+          },
+        ],
+      }),
+    }));
+
+    // Create request with override_country
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/6?override_country=uk",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
+    );
+
+    const response = await GET(request, { params: { app_id: "6" } });
+
+    // Should return 404 as the app has no supported_countries field
+    // and the code checks !parsedAppMetadata.supported_countries?.includes(override_country)
+    // which evaluates to true when supported_countries is undefined
+    expect(response.status).toBe(404);
+
+    expect(await response.json()).toEqual({
+      error: "App not available in country",
     });
   });
 

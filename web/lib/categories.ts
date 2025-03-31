@@ -14,6 +14,7 @@ export const CategoryTranslations: Record<
     external: "External",
     earn: "Earn",
     ai: "AI",
+    shopping: "Shopping",
   },
   ca: {
     all: "Tots",
@@ -27,6 +28,7 @@ export const CategoryTranslations: Record<
     external: "Extern",
     earn: "Guanyar",
     ai: "Intel·ligència Artificial",
+    shopping: "Compres",
   },
   zh_CN: {
     all: "All",
@@ -40,6 +42,7 @@ export const CategoryTranslations: Record<
     external: "外部",
     earn: "赚",
     ai: "人工智能",
+    shopping: "购物",
   },
   fr: {
     all: "Toutes",
@@ -53,6 +56,7 @@ export const CategoryTranslations: Record<
     external: "Externe",
     earn: "Gagner",
     ai: "IA",
+    shopping: "Shopping",
   },
   de: {
     all: "Alle",
@@ -66,6 +70,7 @@ export const CategoryTranslations: Record<
     external: "Extern",
     earn: "Verdienen",
     ai: "AI",
+    shopping: "Einkaufen",
   },
   hi: {
     all: "सभी",
@@ -79,6 +84,7 @@ export const CategoryTranslations: Record<
     external: "बाहरी",
     earn: "कमाना",
     ai: "कृत्रिम बुद्धिमत्ता",
+    shopping: "खरीदारी",
   },
   ja: {
     all: "総て",
@@ -92,6 +98,7 @@ export const CategoryTranslations: Record<
     external: "外部",
     earn: "稼ぐ",
     ai: "AI",
+    shopping: "ショッピング",
   },
   ko: {
     all: "모든",
@@ -105,6 +112,7 @@ export const CategoryTranslations: Record<
     external: "외부",
     earn: "받기",
     ai: "AI",
+    shopping: "쇼핑",
   },
   pl: {
     all: "Wszystkie",
@@ -118,6 +126,7 @@ export const CategoryTranslations: Record<
     external: "Zewnętrzne",
     earn: "Zarabiaj",
     ai: "AI",
+    shopping: "Zakupy",
   },
   pt: {
     all: "Todos",
@@ -131,6 +140,7 @@ export const CategoryTranslations: Record<
     external: "Externo",
     earn: "Ganhar",
     ai: "IA",
+    shopping: "Compras",
   },
   es: {
     all: "Todo",
@@ -144,6 +154,7 @@ export const CategoryTranslations: Record<
     external: "Externo",
     earn: "Ganar",
     ai: "IA",
+    shopping: "Compras",
   },
   es_419: {
     all: "Todo",
@@ -157,6 +168,7 @@ export const CategoryTranslations: Record<
     external: "Externo",
     earn: "Gana",
     ai: "IA",
+    shopping: "Compras",
   },
   ms: {
     all: "Semua",
@@ -170,6 +182,7 @@ export const CategoryTranslations: Record<
     external: "Luaran",
     earn: "Dapatkan",
     ai: "Kecerdasan AI",
+    shopping: "Belanja",
   },
   th: {
     all: "ทั้งหมด",
@@ -183,6 +196,7 @@ export const CategoryTranslations: Record<
     external: "ภายนอก",
     earn: "รับรายได้",
     ai: "AI",
+    shopping: "ช้อปปิ้ง",
   },
   id: {
     all: "Semua",
@@ -196,6 +210,7 @@ export const CategoryTranslations: Record<
     external: "Eksternal",
     earn: "Hasilkan",
     ai: "AI",
+    shopping: "Belanja",
   },
 };
 
@@ -239,6 +254,11 @@ export const Categories = [
     name: "Earn",
     id: "earn",
     icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/earn.png`,
+  },
+  {
+    name: "Shopping",
+    id: "shopping",
+    icon_url: `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/category-icons/shopping.png`,
   },
   {
     name: "Other",

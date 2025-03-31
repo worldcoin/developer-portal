@@ -29,7 +29,7 @@ export const SECURE_DOCUMENT_SEQUENCER_STAGING =
 
 // ANCHOR: OIDC Base URL
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
-export const DOCS_URL = "https://docs.worldcoin.org";
+export const DOCS_URL = "https://docs.world.org";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
@@ -123,11 +123,13 @@ export const whitelistedAppsPermit2 = [
   "app_013bbbd7b5803a25c8d10d10299608e7", // MEME.Factory
   "app_15daccf5b7d4ec9b7dbba044a8fdeab5", // Poop
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
+  "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
 ];
 
 export const whitelistedAppsContracts = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
+  "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
 ];
 
 export const AppMode = {
@@ -140,7 +142,8 @@ export const PARTNER_TEAM_IDS = {
   staging: [
     "team_1767d2864edd0a422e0974f4a8a406e3",
     "team_3bb5ee7a81ba12e6624b21d03b4a1b2f",
-  ], // IO-Staging-Team, Test Partner
+    "team_ac9fb445581cc231c3fe25187d2ed172",
+  ], // IO-Staging-Team, Test Partner, E2E Test Team
   production: [
     "team_4e67539b4bb0f6dfabeba48793cf747d",
     "team_9b50d04b36a7aa4d2562604f67277376",

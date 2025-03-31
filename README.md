@@ -8,7 +8,7 @@ The Worldcoin Developer Portal provides tools to interact with the [World ID Pro
 
 ## 📄 Documentation
 
-All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
+All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
 
 ## 🧑‍💻 Developing Locally
 

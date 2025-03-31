@@ -76,7 +76,7 @@ export const LoginPage = async () => {
           <DecoratedButton
             variant="secondary"
             className="py-4"
-            href="https://docs.worldcoin.org"
+            href="https://docs.world.org"
           >
             Explore Docs
           </DecoratedButton>

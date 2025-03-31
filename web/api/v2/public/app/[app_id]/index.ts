@@ -61,6 +61,7 @@ export async function GET(
   if (!app_metadata || app_metadata.length === 0) {
     return NextResponse.json({ error: "App not found" }, { status: 404 });
   }
+
   // ANCHOR: Fetch app stats from metrics service
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/${app_id}.json`,
@@ -110,6 +111,18 @@ export async function GET(
     }
   }
 
+  const override_country = searchParams.get("override_country");
+  if (
+    parsedAppMetadata.verification_status === "verified" &&
+    override_country &&
+    !parsedAppMetadata.supported_countries?.includes(override_country)
+  ) {
+    return NextResponse.json(
+      { error: "App not available in country" },
+      { status: 404 },
+    );
+  }
+
   let formattedMetadata = await formatAppMetadata(
     { ...parsedAppMetadata },
     metricsData,
@@ -148,7 +161,7 @@ export async function GET(
   );
 
   if (!isCategoryValid) {
-    return NextResponse.json({ error: "Invalid category" }, { status: 500 });
+    return NextResponse.json({ error: "Invalid category" }, { status: 404 });
   }
 
   return NextResponse.json(

@@ -268,6 +268,7 @@ export type AppStatsItem = {
   last_updated_at: string;
   unique_users_last_7_days: number | null;
   total_impressions: number;
+  new_users_last_7_days: number | null;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;

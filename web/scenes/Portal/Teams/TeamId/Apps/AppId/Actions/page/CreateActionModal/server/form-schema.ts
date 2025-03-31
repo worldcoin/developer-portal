@@ -42,7 +42,7 @@ export const createActionSchema = (context: ActionContext) => {
         .string()
         .optional()
         .test("is-url", "Must be a valid URL", (value) => {
-          if (!value) return true;
+          if (!value || context.is_not_production) return true;
           return validateUrl(value, context.is_not_production);
         }),
       webhook_pem: yup
