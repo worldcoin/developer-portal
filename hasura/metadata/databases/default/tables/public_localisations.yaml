@@ -54,15 +54,17 @@ select_permissions:
     permission:
       columns:
         - app_metadata_id
+        - created_at
         - description
+        - hero_image_url
         - id
         - locale
         - name
         - short_name
+        - showcase_img_urls
+        - updated_at
         - world_app_button_text
         - world_app_description
-        - created_at
-        - updated_at
       filter: {}
     comment: ""
   - role: service
