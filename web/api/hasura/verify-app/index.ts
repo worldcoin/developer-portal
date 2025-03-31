@@ -4,6 +4,7 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import * as Types from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import {
   CopyObjectCommand,
@@ -220,6 +221,64 @@ export const POST = async (req: NextRequest) => {
     );
     copyPromises.push(...showcaseCopyPromises);
   }
+
+  // Handle localisation image updates
+  const localisationUpdates = [];
+  for (const localisation of awaitingReviewAppMetadata.localisations) {
+    const update: Types.Localisations_Updates = {
+      where: { id: { _eq: localisation.id } },
+      _set: {},
+    };
+
+    if (localisation.hero_image_url) {
+      const heroFileType = getFileExtension(localisation.hero_image_url);
+      const newLocalisationHeroImgName = randomUUID() + heroFileType;
+
+      copyPromises.push(
+        s3Client.send(
+          new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${localisation.hero_image_url}`,
+            Key: `${destinationPrefix}${localisation.locale}/${newLocalisationHeroImgName}`,
+          }),
+        ),
+      );
+      if (update._set) {
+        update._set.hero_image_url = newLocalisationHeroImgName;
+      }
+    }
+
+    if (localisation.showcase_img_urls) {
+      const showcaseFileTypes = localisation.showcase_img_urls.map(
+        (url: string) => getFileExtension(url),
+      );
+      const newLocalisationShowcaseImgNames =
+        localisation.showcase_img_urls.map(
+          (_: string, index: number) => randomUUID() + showcaseFileTypes[index],
+        );
+
+      const showcaseCopyPromises = localisation.showcase_img_urls.map(
+        (key: string, index: number) => {
+          return s3Client.send(
+            new CopyObjectCommand({
+              Bucket: bucketName,
+              CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${key}`,
+              Key: `${destinationPrefix}${localisation.locale}/${newLocalisationShowcaseImgNames[index]}`,
+            }),
+          );
+        },
+      );
+      copyPromises.push(...showcaseCopyPromises);
+      if (update._set) {
+        update._set.showcase_img_urls = newLocalisationShowcaseImgNames;
+      }
+    }
+
+    if (update._set && Object.keys(update._set).length > 0) {
+      localisationUpdates.push(update);
+    }
+  }
+
   await Promise.all(copyPromises);
 
   // Update app metadata unverified to reflect new verified images, change verification_status to verified, verified_at, reviewed_by etc.
@@ -237,6 +296,7 @@ export const POST = async (req: NextRequest) => {
       is_reviewer_app_store_approved: is_reviewer_app_store_approved,
       is_reviewer_world_app_approved: is_reviewer_world_app_approved,
     },
+    localisation_updates: localisationUpdates,
   });
 
   if (!updateAppMetadata.update_app_metadata_by_pk) {
