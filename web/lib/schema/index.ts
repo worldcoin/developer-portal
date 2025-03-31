@@ -7,6 +7,13 @@ export const entityIdSchema = yup
   .string()
   .matches(/^[a-zA-Z0-9]+_[a-zA-Z0-9]{32}$/, "Invalid id format");
 
+/** use for app IDs */
+export const appIdRegex = /^app_[a-f0-9]{32}$/;
+export const appIdSchema = yup
+  .string()
+  .matches(appIdRegex, "app_id must be in format app_{32 hex chars}")
+  .required();
+
 /**
  * use for long form text
  *
