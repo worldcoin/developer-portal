@@ -739,4 +739,236 @@ describe("/api/public/app/[app_id]", () => {
       expect(data).toEqual({ error: "Invalid category" });
     });
   });
+
+  describe("localization behavior", () => {
+    test("should use localized image URLs and text fields when all are available", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Default description",
+              world_app_button_text: "Default button",
+              category: "Productivity",
+              description:
+                '{"description_overview":"default","description_how_it_works":"default","description_connect":"default"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "andy@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+              localisations: [
+                {
+                  locale: "es",
+                  name: "Aplicación de Ejemplo",
+                  world_app_button_text: "Botón en español",
+                  world_app_description: "Descripción en español",
+                  short_name: "test-es",
+                  description:
+                    '{"description_overview":"español","description_how_it_works":"español","description_connect":"español"}',
+                  hero_image_url: "hero-es.png",
+                  showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
+                },
+              ],
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
+        headers: {
+          host: "cdn.test.com",
+          "x-accept-language": "es",
+        },
+      });
+      const response = await GET(request, { params: { app_id: "1" } });
+      const data = await response.json();
+
+      expect(data.app_data.name).toBe("Aplicación de Ejemplo");
+      expect(data.app_data.short_name).toBe("test-es");
+      expect(data.app_data.hero_image_url).toBe(
+        "https://cdn.test.com/1/hero-es.png",
+      );
+      expect(data.app_data.showcase_img_urls).toEqual([
+        "https://cdn.test.com/1/showcase1-es.png",
+        "https://cdn.test.com/1/showcase2-es.png",
+      ]);
+      expect(data.app_data.world_app_description).toBe(
+        "Descripción en español",
+      );
+      expect(data.app_data.world_app_button_text).toBe("Botón en español");
+      expect(data.app_data.description.overview).toBe("español");
+    });
+
+    test("should use default image URLs when localization has only text fields", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Default description",
+              world_app_button_text: "Default button",
+              category: "Productivity",
+              description:
+                '{"description_overview":"default","description_how_it_works":"default","description_connect":"default"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "andy@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+              localisations: [
+                {
+                  locale: "es",
+                  name: "Aplicación de Ejemplo",
+                  world_app_button_text: "Botón en español",
+                  world_app_description: "Descripción en español",
+                  short_name: "test-es",
+                  description:
+                    '{"description_overview":"español","description_how_it_works":"español","description_connect":"español"}',
+                },
+              ],
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
+        headers: {
+          host: "cdn.test.com",
+          "x-accept-language": "es",
+        },
+      });
+      const response = await GET(request, { params: { app_id: "1" } });
+      const data = await response.json();
+
+      expect(data.app_data.name).toBe("Aplicación de Ejemplo");
+      expect(data.app_data.short_name).toBe("test-es");
+      expect(data.app_data.hero_image_url).toBe(
+        "https://cdn.test.com/1/hero.png",
+      );
+      expect(data.app_data.showcase_img_urls).toEqual([
+        "https://cdn.test.com/1/showcase1.png",
+        "https://cdn.test.com/1/showcase2.png",
+      ]);
+      expect(data.app_data.world_app_description).toBe(
+        "Descripción en español",
+      );
+      expect(data.app_data.world_app_button_text).toBe("Botón en español");
+      expect(data.app_data.description.overview).toBe("español");
+    });
+
+    test("should use default image URLs when localization images are available but text fields are missing", async () => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Example App",
+              app_id: "1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "hero.png",
+              world_app_description: "Default description",
+              world_app_button_text: "Default button",
+              category: "Productivity",
+              description:
+                '{"description_overview":"default","description_how_it_works":"default","description_connect":"default"}',
+              integration_url: "https://example.com/integration",
+              app_website_url: "https://example.com",
+              source_code_url: "https://github.com/example/app",
+              whitelisted_addresses: ["0x1234", "0x5678"],
+              app_mode: "mini-app",
+              support_link: "andy@gmail.com",
+              supported_countries: ["us"],
+              associated_domains: ["https://worldcoin.org"],
+              contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+              supported_languages: ["en", "es"],
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Example Team",
+                },
+                rating_sum: 10,
+                rating_count: 3,
+              },
+              localisations: [
+                {
+                  locale: "es",
+                  hero_image_url: "hero-es.png",
+                  showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
+                },
+              ],
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
+        headers: {
+          host: "cdn.test.com",
+          "x-accept-language": "es",
+        },
+      });
+      const response = await GET(request, { params: { app_id: "1" } });
+      const data = await response.json();
+
+      expect(data.app_data.name).toBe("Example App");
+      expect(data.app_data.short_name).toBe("test");
+      expect(data.app_data.hero_image_url).toBe(
+        "https://cdn.test.com/1/hero.png",
+      );
+      expect(data.app_data.showcase_img_urls).toEqual([
+        "https://cdn.test.com/1/showcase1.png",
+        "https://cdn.test.com/1/showcase2.png",
+      ]);
+      expect(data.app_data.world_app_description).toBe("Default description");
+      expect(data.app_data.world_app_button_text).toBe("Default button");
+      expect(data.app_data.description.overview).toBe("default");
+    });
+  });
 });
