@@ -11,7 +11,6 @@ import * as yup from "yup";
 
 const schema = yup.object({
   app_id: yup.string().strict().required(),
-  locale: yup.string(),
 });
 
 export const POST = async (req: NextRequest) => {
@@ -62,7 +61,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const { app_id, locale } = parsedParams;
+    const { app_id } = parsedParams;
 
     if (!app_id) {
       return errorHasuraQuery({
@@ -79,7 +78,6 @@ export const POST = async (req: NextRequest) => {
       team_id: teamId,
       app_id: app_id as string,
       user_id: userId,
-      locale: locale || "en",
     });
 
     // All roles can view the unverified images awaiting review.
@@ -92,9 +90,6 @@ export const POST = async (req: NextRequest) => {
     }
 
     const app = appInfo[0].app_metadata[0];
-    const localisation =
-      (locale && locale !== "en" && app.localisations?.[0]) || null;
-
     if (!process.env.ASSETS_S3_REGION) {
       throw new Error("AWS Region must be set.");
     }
@@ -113,7 +108,7 @@ export const POST = async (req: NextRequest) => {
 
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: `${objectKey}${app.logo_img_url}`,
+      Key: objectKey + app.logo_img_url,
     });
 
     // We check for any image values that are defined in the unverified row and generate a signed URL for that image
@@ -125,35 +120,26 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // For hero and showcase images, use localized versions if available and locale is not English
-    const heroImageUrl = localisation
-      ? localisation.hero_image_url
-      : app.hero_image_url;
-
-    if (heroImageUrl) {
+    if (app.hero_image_url) {
       urlPromises.push(
         getSignedUrl(
           s3Client,
           new GetObjectCommand({
             Bucket: bucketName,
-            Key: `${objectKey}${localisation ? `${locale}/` : ""}${heroImageUrl}`,
+            Key: objectKey + app.hero_image_url,
           }),
           { expiresIn: 7200 },
         ).then((url) => ({ hero_image_url: url })),
       );
     }
 
-    const showcaseImgUrls = localisation
-      ? localisation.showcase_img_urls
-      : app.showcase_img_urls;
-
-    if (showcaseImgUrls) {
-      const showcaseUrlPromises = showcaseImgUrls.map((key: string) =>
+    if (app.showcase_img_urls) {
+      const showcaseUrlPromises = app.showcase_img_urls.map((key) =>
         getSignedUrl(
           s3Client,
           new GetObjectCommand({
             Bucket: bucketName,
-            Key: `${objectKey}${localisation ? `${locale}/` : ""}${key}`,
+            Key: objectKey + key,
           }),
           { expiresIn: 7200 },
         ),

@@ -46,8 +46,6 @@ query GetHighlights(
       world_app_description
       short_name
       description
-      hero_image_url
-      showcase_img_urls
     }
 
     app {

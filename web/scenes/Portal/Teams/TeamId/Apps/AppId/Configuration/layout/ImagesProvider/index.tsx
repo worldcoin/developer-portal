@@ -28,16 +28,14 @@ export const ImagesProvider = (props: {
   children: ReactNode;
   appId?: string;
   teamId?: string;
-  locale?: string;
 }) => {
-  const { appId, teamId, locale } = props;
+  const { appId } = props;
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
 
   const {} = useFetchImagesQuery({
     variables: {
       id: appId ?? "",
-      team_id: teamId ?? "",
-      locale: locale,
+      team_id: props.teamId ?? "",
     },
 
     onCompleted: (data) => {

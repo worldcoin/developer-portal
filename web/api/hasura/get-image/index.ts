@@ -13,7 +13,6 @@ const schema = yup.object({
   app_id: yup.string().strict().required(),
   image_type: yup.string().strict().required(),
   content_type_ending: yup.string().required(),
-  locale: yup.string(),
 });
 
 /**
@@ -68,7 +67,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const { app_id, image_type, content_type_ending, locale } = parsedParams;
+    const { app_id, image_type, content_type_ending } = parsedParams;
 
     const client = await getAPIServiceGraphqlClient();
 
@@ -102,7 +101,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-    const objectKey = `unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${image_type}.${
+    const objectKey = `unverified/${app_id}/${image_type}.${
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;
 

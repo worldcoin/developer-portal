@@ -9,6 +9,7 @@ import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadat
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppStoreForm } from "../AppStoreLocalised";
 import { FormSubmitStateProvider } from "../AppStoreLocalised/FormSubmitStateProvider";
+import { ImageForm } from "../ImageForm";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -58,6 +59,12 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
         </SizingWrapper>
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">
           <div className="grid max-w-[580px] grid-cols-1">
+            <ImageForm
+              appId={appId}
+              teamId={teamId}
+              appMetadataId={appMetadata?.id ?? ""}
+              appMetadata={appMetadata}
+            />
             <AppStoreForm
               appId={appId}
               teamId={teamId}

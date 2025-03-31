@@ -36020,22 +36020,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "args": [],
@@ -36094,26 +36078,6 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
               }
             },
             "isDeprecated": false,
@@ -36599,18 +36563,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -36652,18 +36604,6 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "String_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_array_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -36783,18 +36723,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -36837,26 +36765,6 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -36945,18 +36853,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "args": [],
@@ -37000,26 +36896,6 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -37109,18 +36985,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -37158,18 +37022,6 @@
           },
           {
             "name": "short_name",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -37263,18 +37115,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "args": [],
@@ -37318,26 +37158,6 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -37427,18 +37247,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -37476,18 +37284,6 @@
           },
           {
             "name": "short_name",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -37708,18 +37504,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -37757,18 +37541,6 @@
           },
           {
             "name": "short_name",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -37874,12 +37646,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": "column name",
             "isDeprecated": false,
@@ -37899,12 +37665,6 @@
           },
           {
             "name": "short_name",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -37973,18 +37733,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -38027,26 +37775,6 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -38175,18 +37903,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": null,
             "type": {
@@ -38229,26 +37945,6 @@
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
-            "description": null,
-            "type": {
-              "kind": "LIST",
-              "name": null,
-              "ofType": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -38322,12 +38018,6 @@
             "deprecationReason": null
           },
           {
-            "name": "hero_image_url",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "id",
             "description": "column name",
             "isDeprecated": false,
@@ -38347,12 +38037,6 @@
           },
           {
             "name": "short_name",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "showcase_img_urls",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -54908,18 +54592,6 @@
                 "deprecationReason": null
               },
               {
-                "name": "locale",
-                "description": null,
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
                 "name": "team_id",
                 "description": null,
                 "type": {
@@ -54959,18 +54631,6 @@
                     "name": "String",
                     "ofType": null
                   }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "locale",
-                "description": null,
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
@@ -55032,18 +54692,6 @@
                     "name": "String",
                     "ofType": null
                   }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "locale",
-                "description": null,
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
@@ -57351,18 +56999,6 @@
                     "name": "String",
                     "ofType": null
                   }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "locale",
-                "description": null,
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
