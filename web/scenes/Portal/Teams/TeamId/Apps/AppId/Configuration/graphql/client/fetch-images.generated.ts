@@ -7,7 +7,6 @@ const defaultOptions = {} as const;
 export type FetchImagesQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
   team_id: Types.Scalars["String"]["input"];
-  locale?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type FetchImagesQuery = {
@@ -21,11 +20,10 @@ export type FetchImagesQuery = {
 };
 
 export const FetchImagesDocument = gql`
-  query FetchImages($id: String!, $team_id: String!, $locale: String) {
+  query FetchImages($id: String!, $team_id: String!) {
     unverified_images: get_all_unverified_images(
       app_id: $id
       team_id: $team_id
-      locale: $locale
     ) {
       logo_img_url
       hero_image_url
@@ -48,7 +46,6 @@ export const FetchImagesDocument = gql`
  *   variables: {
  *      id: // value for 'id'
  *      team_id: // value for 'team_id'
- *      locale: // value for 'locale'
  *   },
  * });
  */
