@@ -4,10 +4,12 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
+  getIsUserAllowedToDeleteLocalisation,
   getIsUserAllowedToInsertLocalisation,
   getIsUserAllowedToUpdateAppMetadata,
   getIsUserAllowedToUpdateLocalisation,
 } from "@/lib/permissions";
+import { getSdk as getDeleteLocalisationSdk } from "../AppStoreLocalised/graphql/server/delete-localisation.generated";
 import {
   getSdk as getInsertLocalisationSdk,
   InsertLocalisationMutationVariables,
@@ -277,6 +279,63 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       message:
         "validateAndUpdateAppSupportInfo - error updating app support info",
       additionalInfo: { input, initalValues },
+    });
+  }
+}
+
+export async function deleteLocalisationServerSide(
+  appMetadataId: string,
+  locale: string,
+) {
+  try {
+    if (locale === "en") {
+      throw new Error("English localization cannot be removed");
+    }
+
+    const isUserAllowedToDeleteLocalisation =
+      await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
+    if (!isUserAllowedToDeleteLocalisation) {
+      throw new Error("Invalid permissions");
+    }
+
+    const client = await getAPIServiceGraphqlClient();
+    await getDeleteLocalisationSdk(client).DeleteLocalisation({
+      app_metadata_id: appMetadataId,
+      locale,
+    });
+  } catch (error) {
+    return errorFormAction({
+      error,
+      message: "deleteLocalisation - error deleting localisation",
+      additionalInfo: { appMetadataId, locale },
+    });
+  }
+}
+
+export async function addEmptyLocalisationServerSide(
+  appMetadataId: string,
+  locale: string,
+  appId: string,
+) {
+  try {
+    const isUserAllowedToInsertLocalisation =
+      await getIsUserAllowedToInsertLocalisation(appId);
+    if (!isUserAllowedToInsertLocalisation) {
+      throw new Error("Invalid permissions");
+    }
+
+    const client = await getAPIServiceGraphqlClient();
+    await getInsertLocalisationSdk(client).InsertLocalisation({
+      input: {
+        app_metadata_id: appMetadataId,
+        locale,
+      },
+    });
+  } catch (error) {
+    return errorFormAction({
+      error,
+      message: "addEmptyLocalisation - error adding empty localisation",
+      additionalInfo: { appMetadataId, locale },
     });
   }
 }
