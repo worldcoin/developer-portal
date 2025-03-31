@@ -47,6 +47,8 @@ export type GetAppMetadataQuery = {
       world_app_description: string;
       short_name: string;
       description: string;
+      hero_image_url: string;
+      showcase_img_urls?: Array<string> | null;
     }>;
     app: {
       __typename?: "app";
@@ -95,6 +97,8 @@ export const GetAppMetadataDocument = gql`
         world_app_description
         short_name
         description
+        hero_image_url
+        showcase_img_urls
       }
       app {
         team {

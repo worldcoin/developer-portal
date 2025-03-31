@@ -2,6 +2,7 @@ query GetUnverifiedImages(
   $team_id: String!
   $app_id: String!
   $user_id: String!
+  $locale: String
 ) {
   app(
     where: {
@@ -16,6 +17,10 @@ query GetUnverifiedImages(
       logo_img_url
       showcase_img_urls
       hero_image_url
+      localisations(where: { locale: { _eq: $locale } }) {
+        hero_image_url
+        showcase_img_urls
+      }
     }
     team {
       memberships {
