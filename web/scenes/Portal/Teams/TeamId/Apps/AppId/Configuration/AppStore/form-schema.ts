@@ -4,7 +4,6 @@ import {
   appDescriptionOverviewSchema,
   appNameSchema,
   appShortNameSchema,
-  appStoreImageSchema,
   appWorldAppButtonTextSchema,
   appWorldAppDescriptionSchema,
   httpsLinkSchema,
@@ -67,8 +66,6 @@ export const insertLocalisationInitialSchema = yup.object({
   description_connect: appDescriptionConnectSchema,
   app_metadata_id: appMetadataIdSchema,
   locale: yup.string().required("Locale is required"),
-  showcase_img_urls: yup.array().of(appStoreImageSchema),
-  hero_image_url: appStoreImageSchema,
 });
 
 export type InsertLocalisationInitialSchema = yup.Asserts<

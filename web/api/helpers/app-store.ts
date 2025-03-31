@@ -59,27 +59,6 @@ export const formatAppMetadata = async (
     ? ["all"]
     : appMetadata.contracts;
 
-  const isLocalisationComplete =
-    localisedContent?.description &&
-    localisedContent?.world_app_description &&
-    localisedContent?.short_name &&
-    localisedContent?.name;
-
-  const heroImageUrl =
-    isLocalisationComplete && localisedContent?.hero_image_url
-      ? localisedContent.hero_image_url
-      : appMetadata.hero_image_url;
-  const showcaseImgUrls =
-    isLocalisationComplete && localisedContent?.showcase_img_urls
-      ? localisedContent.showcase_img_urls
-      : appMetadata.showcase_img_urls;
-  const heroImageLocale =
-    isLocalisationComplete && localisedContent?.hero_image_url ? locale : "en";
-  const showcaseImgUrlsLocale =
-    isLocalisationComplete && localisedContent?.showcase_img_urls
-      ? locale
-      : "en";
-
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
@@ -97,19 +76,17 @@ export const formatAppMetadata = async (
       appMetadata.logo_img_url,
       appMetadata.verification_status === "verified",
     ),
-    showcase_img_urls: showcaseImgUrls?.map((url: string) =>
+    showcase_img_urls: appMetadata.showcase_img_urls?.map((url: string) =>
       getCDNImageUrl(
         appMetadata.app_id,
         url,
         appMetadata.verification_status === "verified",
-        showcaseImgUrlsLocale,
       ),
     ),
     hero_image_url: getCDNImageUrl(
       appMetadata.app_id,
-      heroImageUrl,
+      appMetadata.hero_image_url,
       appMetadata.verification_status === "verified",
-      heroImageLocale,
     ),
     // TODO: These fields are not used anymore, we can add them back if we want later
     description: {

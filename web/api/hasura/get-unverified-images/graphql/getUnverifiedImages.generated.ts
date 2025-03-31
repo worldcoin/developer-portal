@@ -8,7 +8,6 @@ export type GetUnverifiedImagesQueryVariables = Types.Exact<{
   team_id: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
   user_id: Types.Scalars["String"]["input"];
-  locale?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type GetUnverifiedImagesQuery = {
@@ -20,11 +19,6 @@ export type GetUnverifiedImagesQuery = {
       logo_img_url: string;
       showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
-      localisations: Array<{
-        __typename?: "localisations";
-        hero_image_url: string;
-        showcase_img_urls?: Array<string> | null;
-      }>;
     }>;
     team: {
       __typename?: "team";
@@ -42,7 +36,6 @@ export const GetUnverifiedImagesDocument = gql`
     $team_id: String!
     $app_id: String!
     $user_id: String!
-    $locale: String
   ) {
     app(
       where: {
@@ -57,10 +50,6 @@ export const GetUnverifiedImagesDocument = gql`
         logo_img_url
         showcase_img_urls
         hero_image_url
-        localisations(where: { locale: { _eq: $locale } }) {
-          hero_image_url
-          showcase_img_urls
-        }
       }
       team {
         memberships {

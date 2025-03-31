@@ -145,10 +145,3 @@ export const appChangelogSchema = yup
   .min(10, "Provide a changelog, 10 characters minimum")
   .max(1500, "Changelog cannot exceed 1500 characters")
   .required("Changelog is required");
-
-export const appStoreImageSchema = yup
-  .string()
-  .matches(
-    /^[a-zA-Z]{2}\/[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/,
-    "Invalid image format",
-  );
