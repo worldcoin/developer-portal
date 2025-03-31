@@ -33,14 +33,12 @@ type Query {
   get_all_unverified_images(
     app_id: String!
     team_id: String!
-    locale: String
   ): ImageGetAllUnverifiedImagesOutput
 }
 
 type Query {
   get_app_review_images(
     app_id: String!
-    locale: String
   ): ImageGetAppReviewImagesOutput
 }
 
@@ -50,7 +48,6 @@ type Query {
     image_type: String!
     content_type_ending: String!
     team_id: String!
-    locale: String
   ): GetUploadedImageOutput
 }
 
@@ -91,7 +88,6 @@ type Query {
     image_type: String!
     content_type_ending: String!
     team_id: String!
-    locale: String
   ): PresignedPostOutput
 }
 
