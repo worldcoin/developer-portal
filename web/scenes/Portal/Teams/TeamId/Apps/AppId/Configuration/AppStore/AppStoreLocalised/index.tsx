@@ -153,8 +153,6 @@ export const AppStoreForm = (props: {
       return;
     }
 
-    console.log("Were here");
-
     const existingLocales = new Set(
       allLocalisationsData.localisations.map((l) => l.locale),
     );
@@ -537,8 +535,6 @@ export const AppStoreForm = (props: {
 
   const handleLanguageSwitch = useCallback(
     async (targetLang: string) => {
-      console.log("targetLang", targetLang);
-
       if (isSubmitting || isImageOperationInProgress) {
         return;
       }
