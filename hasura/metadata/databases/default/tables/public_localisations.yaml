@@ -108,6 +108,14 @@ select_permissions:
                   _eq: X-Hasura-User-Id
     comment: ""
 update_permissions:
+  - role: reviewer
+    permission:
+      columns:
+        - hero_image_url
+        - showcase_img_urls
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
