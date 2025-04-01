@@ -4,8 +4,8 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
-  allowTitleAndEmojisRegex,
   allowCommonCharactersAndEmojisRegex,
+  allowTitleAndEmojisRegex,
 } from "@/lib/schema";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -73,15 +73,16 @@ export const logNotification = async (
 
   const walletAddresses = wallet_addresses?.filter((w) => w) as string[];
 
+  // skip if few addresses because of privacy concerns
+  if (walletAddresses.length < 10) {
+    return;
+  }
+
   let notificationLog: CreateNotificationLogMutationVariables = {
     app_id,
     mini_app_path,
+    message,
   };
-
-  // Log notifications sent to more than 10 addresses
-  if (walletAddresses.length > 10) {
-    notificationLog.message = message;
-  }
 
   const { insert_notification_log_one } =
     await createNotificationLogSdk(serviceClient).CreateNotificationLog(
@@ -103,8 +104,6 @@ export const logNotification = async (
       notification_log_id: notificationLogId,
     })),
   });
-
-  logger.info(`Notification sent successfully, ${app_id}`);
 };
 
 export const POST = async (req: NextRequest) => {
@@ -357,6 +356,8 @@ export const POST = async (req: NextRequest) => {
     mini_app_path,
     message,
   );
+
+  logger.info(`Notification sent successfully, ${app_id}`);
 
   return NextResponse.json({
     success: true,
