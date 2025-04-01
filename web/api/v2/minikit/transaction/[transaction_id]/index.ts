@@ -1,6 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
+import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
@@ -12,14 +13,10 @@ function corsHandler(response: NextResponse) {
   return response;
 }
 
-const appIdRegex = /^app_[a-f0-9]{32}$/;
 const transactionIdRegex = /^0x[a-f0-9]{64}$/;
 
 const schema = yup.object({
-  app_id: yup
-    .string()
-    .matches(appIdRegex, "app_id must be in format app_{32 hex chars}")
-    .required(),
+  app_id: appIdSchema,
   type: yup.string().oneOf(Object.values(TransactionTypes)).required(),
 });
 
