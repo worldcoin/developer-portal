@@ -18,7 +18,7 @@ export const GetExpiredNotificationLogIdsBatchDocument = gql`
     notification_log(
       where: { created_at: { _lte: $beforeDate } }
       order_by: { created_at: asc }
-      limit: 1000
+      limit: 250
     ) {
       id
     }
