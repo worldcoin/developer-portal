@@ -124,6 +124,7 @@ export const whitelistedAppsPermit2 = [
   "app_15daccf5b7d4ec9b7dbba044a8fdeab5", // Poop
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
   "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
+  "app_49fe40f83cfcdf67b7ba716d37e927e4", // Cash
 ];
 
 export const whitelistedAppsContracts = [
