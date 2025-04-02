@@ -25,6 +25,43 @@ export async function register() {
       });
 
       global.RedisClient = redis;
+
+      const ddTrace = await import("dd-trace");
+
+      const tracer = ddTrace.default.init({
+        env: process.env.ENV,
+        service: process.env.SERVICE_NAME,
+        version: process.env.SERVICE_VERSION,
+        sampleRate: 1,
+        profiling: true,
+        runtimeMetrics: true,
+        logInjection: true,
+        dogstatsd: {
+          hostname: "localhost",
+          port: 8125,
+        },
+      });
+
+      // Monitor GraphQL
+      tracer.use("graphql", {
+        enabled: true,
+        measured: true,
+      });
+
+      // Monitor Next.js
+      tracer.use("next", {
+        enabled: true,
+        measured: true,
+      });
+
+      // Monitor Winston Logger
+      tracer.use("winston", {
+        enabled: true,
+      });
+
+      const provider = new tracer.TracerProvider();
+
+      provider.register();
     }
   } catch (error) {
     return console.error("🔴 Instrumentation registration error: ", error);

@@ -13,6 +13,7 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
+    serverComponentsExternalPackages: ["winston"],
   },
 
   output: "standalone",
@@ -28,6 +29,21 @@ const nextConfig = {
         pathname: `/unverified/**`,
       },
     ],
+  },
+
+  poweredByHeader: false,
+
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Don't attempt to load server-only modules on the client as:
+      // fs: module loaded by winston
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+
+    return config;
   },
 
   async headers() {
