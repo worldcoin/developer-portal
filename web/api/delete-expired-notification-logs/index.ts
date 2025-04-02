@@ -15,13 +15,6 @@ export const POST = async (req: NextRequest) => {
     return errorNotAllowed(req.method, req);
   }
 
-  return NextResponse.json(
-    {
-      success: true,
-    },
-    { status: 200 },
-  );
-
   try {
     const serviceClient = await getAPIServiceGraphqlClient();
     const fourWeeksAgo = new Date(Date.now() - 4 * 7 * 24 * 60 * 60 * 1000);
