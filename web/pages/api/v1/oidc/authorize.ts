@@ -17,8 +17,8 @@ import {
 } from "@/legacy/backend/oidc";
 import { validateRequestSchema } from "@/legacy/backend/utils";
 import { verifyProof } from "@/legacy/backend/verify";
-import { logger } from "@/legacy/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
