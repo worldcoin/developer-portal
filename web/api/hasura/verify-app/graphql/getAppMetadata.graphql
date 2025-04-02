@@ -6,6 +6,12 @@ query GetAppMetadata($app_id: String!) {
       showcase_img_urls
       hero_image_url
       verification_status
+      localisations {
+        id
+        locale
+        hero_image_url
+        showcase_img_urls
+      }
     }
   }
 }

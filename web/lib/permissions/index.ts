@@ -6,6 +6,7 @@ import { entityIdSchema } from "../schema";
 import { getSdk as getAppInsertPermissionsSdk } from "./graphql/server/get-app-insert-permissions.generated";
 import { getSdk as getAppMetadataPermissionsSdk } from "./graphql/server/get-app-metadata-update-permissions.generated";
 import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-update-permissions.generated";
+import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
 import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
 
@@ -118,6 +119,34 @@ export const getIsUserAllowedToUpdateLocalisation = async (
   const response = await getLocalisationsUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToModifyLocalisations({ localisationId, userId });
+
+  if (response.app_metadata.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToDeleteLocalisation = async (
+  appMetadataId: string,
+  locale: string,
+) => {
+  if (!getIsIdValid(appMetadataId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getLocalisationsDeletePermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToDeleteLocalisations({
+    appMetadataId,
+    locale,
+    userId,
+  });
 
   if (response.app_metadata.length) {
     return true;
