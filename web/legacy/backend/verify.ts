@@ -1,6 +1,6 @@
 import { validateABILikeEncoding } from "@/legacy/lib/hashing";
-import { logger } from "@/legacy/lib/logger";
 import { IInternalError } from "@/legacy/lib/types";
+import { logger } from "@/lib/logger";
 import { sequencerMapping } from "@/lib/utils";
 import { ApolloClient, NormalizedCacheObject, gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
