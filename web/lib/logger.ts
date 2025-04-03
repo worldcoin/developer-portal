@@ -1,4 +1,3 @@
-import ddTrace from "dd-trace";
 import { IncomingMessage } from "http";
 import { NextApiRequest } from "next";
 import winston from "winston";
@@ -9,7 +8,7 @@ const serviceName = process.env.NEXT_SERVER_DD_SERVICE_NAME;
 const httpTransportOptions = {
   host: "http-intake.logs.datadoghq.com",
   path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=${serviceName}&env=${
-    process.env.VERCEL_ENV ?? process.env.NEXT_PUBLIC_APP_ENV ?? undefined
+    process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined
   }`,
   ssl: true,
 };
@@ -109,7 +108,7 @@ async function requestFormatter(req: NextApiRequest | IncomingMessage) {
 
   return {
     body,
-    env: process.env.VERCEL_ENV ?? process.env.NEXT_PUBLIC_APP_ENV ?? undefined,
+    env: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined,
     host: process.env.VERCEL_URL ?? undefined,
     ip,
     method,
@@ -127,25 +126,6 @@ async function loggerWrapper(
   if (data && data.req) {
     data.request = await requestFormatter(data.req);
     delete data.req;
-  }
-
-  // Handle error tracing for error logs
-  if (handler === "error") {
-    const span = ddTrace.scope().active();
-    if (span) {
-      let error: Error | undefined;
-
-      // Check all possible error locations
-      if (data?.error instanceof Error) {
-        error = data.error;
-      } else {
-        error = new Error(msg);
-      }
-
-      if (error) {
-        span.setTag("error", error);
-      }
-    }
   }
 
   _logger[handler](msg, data);
