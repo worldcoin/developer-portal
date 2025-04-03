@@ -132,11 +132,27 @@ export const GET = async (request: NextRequest) => {
       req: request,
     });
   }
-
+  const apps = [
+    {
+      app_id: "1",
+      category: "Social",
+      app_mode: "mini-app",
+    },
+    {
+      app_id: "2",
+      category: "Social",
+      app_mode: "external",
+    },
+    {
+      app_id: "3",
+      category: "External",
+      app_mode: "external",
+    },
+  ];
   if (!parsedParams.show_external) {
     topApps = topApps.filter(
       (app) =>
-        app.category.toLowerCase() !== "external" ||
+        app.category.toLowerCase() !== "external" &&
         app.app_mode !== "external",
     );
     highlightsApps = highlightsApps.filter(
