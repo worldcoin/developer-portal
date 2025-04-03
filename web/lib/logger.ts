@@ -1,3 +1,4 @@
+import ddTrace from "dd-trace";
 import { IncomingMessage } from "http";
 import { NextApiRequest } from "next";
 import winston from "winston";
@@ -130,26 +131,20 @@ async function loggerWrapper(
 
   // Handle error tracing for error logs
   if (handler === "error") {
-    try {
-      // @ts-ignore
-      const ddTracer = await import("dd-trace");
-      const span = ddTracer.scope().active();
-      if (span) {
-        let error: Error | undefined;
+    const span = ddTrace.scope().active();
+    if (span) {
+      let error: Error | undefined;
 
-        // Check all possible error locations
-        if (data?.error instanceof Error) {
-          error = data.error;
-        } else {
-          error = new Error(msg);
-        }
-
-        if (error) {
-          span.setTag("error", error);
-        }
+      // Check all possible error locations
+      if (data?.error instanceof Error) {
+        error = data.error;
+      } else {
+        error = new Error(msg);
       }
-    } catch (e) {
-      // Silently fail if dd-trace is not available
+
+      if (error) {
+        span.setTag("error", error);
+      }
     }
   }
 
