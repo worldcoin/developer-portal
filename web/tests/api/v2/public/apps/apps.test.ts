@@ -196,6 +196,190 @@ describe("/api/v2/public/apps", () => {
     });
   });
 
+  describe("external app mode filtering", () => {
+    const mockAppsWithMixedModes = [
+      {
+        app_id: "1",
+        name: "Test App 1",
+        short_name: "test1",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social",
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app",
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+      {
+        app_id: "2",
+        name: "Test App 2",
+        short_name: "test2",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social", // Not external category
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "external", // External app mode
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+      {
+        app_id: "3",
+        name: "Test App 3",
+        short_name: "test3",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "External", // External category
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app", // Not external app mode
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+      {
+        app_id: "4",
+        name: "Test App 4",
+        short_name: "test4",
+        logo_img_url: "logo.png",
+        hero_image_url: "hero.png",
+        showcase_img_urls: ["showcase1.png"],
+        category: "External", // External category
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "external", // External app mode
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithMixedModes,
+        }),
+      }));
+    });
+
+    test("should filter out apps with app_mode='external' or category='external' by default", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      const filteredAppIds = data.app_rankings.top_apps.map(
+        (app: any) => app.app_id,
+      );
+
+      // App ID 1 should remain (category="Social", app_mode="mini-app")
+      expect(filteredAppIds).toContain("1");
+
+      // App ID 2 should be filtered out (category="Social", app_mode="external")
+      expect(filteredAppIds).not.toContain("2");
+
+      // App ID 3 should be filtered out (category="External" but app_mode="mini-app")
+      expect(filteredAppIds).not.toContain("3");
+
+      // App ID 4 should be filtered out (both category="External" and app_mode="external")
+      expect(filteredAppIds).not.toContain("4");
+    });
+
+    test("should include apps with app_mode='external' when show_external=true", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps?show_external=true",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // Verify that all apps are included when show_external=true
+      const filteredAppIds = data.app_rankings.top_apps.map(
+        (app: any) => app.app_id,
+      );
+
+      // All app IDs should be present
+      expect(filteredAppIds).toContain("1");
+      expect(filteredAppIds).toContain("2");
+      expect(filteredAppIds).toContain("3");
+      expect(filteredAppIds).toContain("4");
+    });
+  });
+
   describe("locale parsing", () => {
     beforeEach(() => {
       jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
@@ -406,7 +590,7 @@ describe("/api/v2/public/apps", () => {
             associated_domains: ["https://worldcoin.org"],
             contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
             permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
-            app_mode: "external",
+            app_mode: "mini-app",
             verification_status: "verified",
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
@@ -516,7 +700,7 @@ describe("/api/v2/public/apps", () => {
             whitelisted_addresses: ["0x1234", "0x5678"],
             unique_users: 0,
             impressions: 0,
-            app_mode: "external",
+            app_mode: "mini-app",
             description: {
               overview: "fwefw",
               how_it_works: "",

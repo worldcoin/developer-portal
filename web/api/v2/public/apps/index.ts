@@ -136,7 +136,7 @@ export const GET = async (request: NextRequest) => {
   if (!parsedParams.show_external) {
     topApps = topApps.filter(
       (app) =>
-        app.category.toLowerCase() !== "external" ||
+        app.category.toLowerCase() !== "external" &&
         app.app_mode !== "external",
     );
     highlightsApps = highlightsApps.filter(
