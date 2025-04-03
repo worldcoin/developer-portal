@@ -123,8 +123,8 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
         </BottomBar.Link>
 
         <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}/profile`}
-          segment={"profile"}
+          href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration`}
+          segment={"configuration"}
         >
           <AppIcon className="size-7" />
         </BottomBar.Link>
