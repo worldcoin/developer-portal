@@ -129,8 +129,8 @@ async function loggerWrapper(
     delete data.req;
   }
 
-  // Handle error tracing for error logs
-  if (handler === "error") {
+  // Handle error tracing for error and warn logs
+  if (handler === "error" || handler === "warn") {
     const span = ddTrace.scope().active();
     if (span) {
       let error: Error | undefined;
@@ -138,7 +138,7 @@ async function loggerWrapper(
       // Check all possible error locations
       if (data?.error instanceof Error) {
         error = data.error;
-      } else {
+      } else if (handler === "error") {
         error = new Error(msg);
       }
 
