@@ -129,22 +129,19 @@ async function loggerWrapper(
     delete data.req;
   }
 
-  // Handle error tracing for error logs
-  if (handler === "error") {
-    const span = ddTrace.scope().active();
-    if (span) {
-      let error: Error | undefined;
+  const span = ddTrace.scope().active();
+  if (span) {
+    let error: Error | undefined;
 
-      // Check all possible error locations
-      if (data?.error instanceof Error) {
-        error = data.error;
-      } else {
-        error = new Error(msg);
-      }
+    // Check all possible error locations
+    if (data?.error instanceof Error) {
+      error = data.error;
+    } else if (handler === "error") {
+      error = new Error(msg);
+    }
 
-      if (error) {
-        span.setTag("error", error);
-      }
+    if (error) {
+      span.setTag("error", error);
     }
   }
 
