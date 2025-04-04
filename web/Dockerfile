@@ -48,10 +48,10 @@ ENV ASSETS_S3_REGION=${ASSETS_S3_REGION}
 ENV NEXT_PUBLIC_IMAGES_CDN_URL=${NEXT_PUBLIC_IMAGES_CDN_URL}
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_POSTHOG_API_KEY=${NEXT_PUBLIC_POSTHOG_API_KEY}
-ENV GENERAL_SECRET_KEY unsafe_test_key
-ENV HASURA_GRAPHQL_JWT_SECRET '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
+ENV GENERAL_SECRET_KEY=unsafe_test_key
+ENV HASURA_GRAPHQL_JWT_SECRET='{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
 ENV CLOUDFRONT_DISTRIBUTION_ID=${CLOUDFRONT_DISTRIBUTION_ID}
-ENV JWT_ISSUER invalid.localhost
+ENV JWT_ISSUER=invalid.localhost
 
 RUN corepack enable pnpm && pnpm run build
 
@@ -76,16 +76,16 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Source maps are enabled to provide helpful error stacks
 ENV NODE_OPTIONS='--enable-source-maps -r dd-trace/init -r next-logger'
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Final config
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 # set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
