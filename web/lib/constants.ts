@@ -60,11 +60,13 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     invites: "app_901d6025acb2a1492a2f2becb5c83d1d",
     network: "app_a8309f030d83505a1632e1ed9dfb57cc",
     grants_native: "app_staging_39ccc5b13235e4227a7c38b23203e59f",
+    contacts: "app_701d0e4883e350804a0811f7b2529425",
   },
   production: {
     grants: "app_d2905e660b94ad24d6fc97816182ab35",
     invites: "app_432af83feb4051e72fd7ee682f365c39",
     network: "app_a23c6398432498825962a9b96294dde1",
+    contacts: "app_32fa11ef4b55fc5865dcd6e45ef281f5",
   },
 };
 
@@ -97,6 +99,11 @@ export const NativeApps: Record<string, NativeAppsMap> = {
       integration_url: "worldapp://worldcoin",
       app_mode: "native",
     },
+    [NativeAppToAppIdMapping.staging.contacts]: {
+      app_id: "contacts",
+      integration_url: "worldapp://contacts",
+      app_mode: "native",
+    },
   },
   production: {
     [NativeAppToAppIdMapping.production.grants]: {
@@ -112,6 +119,11 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     [NativeAppToAppIdMapping.production.network]: {
       app_id: "network",
       integration_url: "worldapp://network",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.production.contacts]: {
+      app_id: "contacts",
+      integration_url: "worldapp://contacts",
       app_mode: "native",
     },
   },
