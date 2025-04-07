@@ -24,11 +24,11 @@ export function compareVersions(version1: string, version2: string): number {
   if (version1 === version2) return 0;
 
   const v1 = version1
-    .split('.')
+    .split(".")
     .slice(0, 3)
     .map((n) => parseInt(n, 10));
   const v2 = version2
-    .split('.')
+    .split(".")
     .slice(0, 3)
     .map((n) => parseInt(n, 10));
 
