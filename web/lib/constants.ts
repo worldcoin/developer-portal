@@ -131,6 +131,7 @@ export const whitelistedAppsContracts = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
   "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
+  "app_d4bce4c056d0cb5ec84c62c6729a66a8", // DNA NFT
 ];
 
 export const AppMode = {
