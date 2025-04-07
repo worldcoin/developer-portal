@@ -26,7 +26,7 @@ import {
 } from "./graphql/get-highlighted-apps.generated";
 
 // TODO remove when min app is higher
-const CONTACTS_APP_AVAILABLE_FROM = "2.8.7801";
+const CONTACTS_APP_AVAILABLE_FROM = "2.8.7900";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
