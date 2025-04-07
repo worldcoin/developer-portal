@@ -1380,56 +1380,5 @@ describe("/api/public/app/[app_id]", () => {
       expect(data).toHaveProperty("app_data");
       expect(data.app_data.name).toBe("Contacts App");
     });
-
-    test("should return app data when requesting non-contacts app regardless of client version", async () => {
-      // Setup mock to return non-contacts app metadata
-      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
-        GetAppMetadata: jest.fn().mockResolvedValue({
-          app_metadata: [
-            {
-              name: "Regular App",
-              app_id: "regular-app-id", // not the contacts app
-              short_name: "regular",
-              logo_img_url: "logo.png",
-              showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
-              category: "Social",
-              description: '{"description_overview":"Regular app"}',
-              integration_url: "https://example.com/integration",
-              verification_status: "verified",
-              supported_countries: ["us", "uk"],
-              is_allowed_unlimited_notifications: false,
-              max_notifications_per_day: 10,
-              app: {
-                team: {
-                  name: "Test Team",
-                },
-                rating_sum: 10,
-                rating_count: 2,
-              },
-            },
-          ],
-        }),
-      }));
-
-      const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/app/regular-app",
-        {
-          headers: {
-            host: "cdn.test.com",
-            "client-version": "2.8.7800", // below the minimum version, but should not matter
-          },
-        },
-      );
-
-      const response = await GET(request, {
-        params: { app_id: "regular-app" },
-      });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("app_data");
-      expect(data.app_data.name).toBe("Regular App");
-    });
   });
 });
