@@ -6,7 +6,7 @@ import {
   getAppStoreLocalisedCategoriesWithUrls,
   getLocalisedCategory,
 } from "@/lib/categories";
-import { NativeApps } from "@/lib/constants";
+import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { isValidHostName } from "@/lib/utils";
@@ -146,12 +146,19 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
+  const nativeIdToActualId =
+    NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
+
   if (
     !clientVersion ||
     compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0
   ) {
-    topApps = topApps.filter((app) => app.app_id !== "contacts");
-    highlightsApps = highlightsApps.filter((app) => app.app_id !== "contacts");
+    topApps = topApps.filter(
+      (app) => app.app_id !== nativeIdToActualId.contacts,
+    );
+    highlightsApps = highlightsApps.filter(
+      (app) => app.app_id !== nativeIdToActualId.contacts,
+    );
   }
 
   // ANCHOR: Filter top apps by country
